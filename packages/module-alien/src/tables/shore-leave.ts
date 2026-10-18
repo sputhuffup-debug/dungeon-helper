@@ -1,101 +1,133 @@
 /**
- * Shore leave event tables (p. 257-258): one for Colonial Marines, one for
- * everyone else. A few rows nest a D6 sub-roll. Rows are unverified
- * paraphrases.
+ * Shore leave event tables (p. 257-258), rolled by a PC who chooses to
+ * Socialize during a week of shore leave. Checked against the book: ranges,
+ * D6 sub-rolls and money amounts are exact; entries are paraphrased.
  */
-import type { RollTable } from "@campaign-forge/module-sdk";
-import { d6, d66Grouped, defineTable } from "./_helpers";
+import type { RollTable, TableRow } from "@campaign-forge/module-sdk";
+import { d6, row } from "./_helpers";
 
 const FAMILY = "shore-leave";
 
-export const marinesTrouble: RollTable = defineTable({
-  id: "alien.shore-leave.marines.trouble",
-  name: "Shore leave: marine trouble",
-  family: FAMILY,
-  page: 258,
+/** Book-checked table: no `unverified` flag on the table or its rows. */
+function table(spec: Omit<RollTable, "family">): RollTable {
+  return { ...spec, family: FAMILY };
+}
+
+interface EventSpec {
+  range: [number, number];
+  label: string;
+  /** Extra structured fields (money, follow-ups). */
+  extra?: Record<string, unknown>;
+  /** D6 sub-table id rolled for this row. */
+  sub?: string;
+}
+
+function events(specs: EventSpec[]): TableRow[] {
+  return specs.map((s) => row(s.range, s.label, { event: s.label, ...(s.extra ?? {}) }, s.sub ? { roll: [{ table: s.sub, as: "detail" }] } : {}));
+}
+
+// ---------------------------------------------------------------------------
+// Colonial Marines (p. 257) and its three D6 sub-rolls
+// ---------------------------------------------------------------------------
+
+export const marinesLuxuries: RollTable = table({
+  id: "alien.shore-leave.marines.luxuries",
+  name: "Shore leave: discount officer's luxuries (D6)",
+  page: 257,
   dice: "1d6",
+  notes: "Sub-roll for the Marines event 24-26.",
   rows: d6([
-    { label: "A black eye and a story", result: { outcome: "bruised" } },
-    { label: "A night in the brig", result: { outcome: "brig" } },
-    { label: "Lost a week's pay", result: { outcome: "lost-pay", cash: -500 } },
-    { label: "Made a new rival", result: { outcome: "rival" } },
-    { label: "Made a new buddy", result: { outcome: "buddy" } },
-    { label: "Got away clean", result: { outcome: "clean" } },
+    { label: "They got away with it", result: { outcome: "got-away" } },
+    { label: "They got away with it", result: { outcome: "got-away" } },
+    { label: "Logistics are investigating the theft", result: { outcome: "investigated" } },
+    { label: "Logistics are investigating the theft", result: { outcome: "investigated" } },
+    { label: "Stolen from another company, and they know", result: { outcome: "other-company-knows" } },
+    { label: "Stolen from another company, and they know", result: { outcome: "other-company-knows" } },
   ]),
 });
 
-export const marinesRumor: RollTable = defineTable({
-  id: "alien.shore-leave.marines.rumor",
-  name: "Shore leave: barracks rumour",
-  family: FAMILY,
-  page: 258,
+export const marinesOldFriend: RollTable = table({
+  id: "alien.shore-leave.marines.old-friend",
+  name: "Shore leave: an old friend arrives (D6)",
+  page: 257,
   dice: "1d6",
+  notes: "Sub-roll for the Marines event 41-44.",
   rows: d6([
-    { label: "A unit went missing on the frontier", result: { rumor: "missing-unit" } },
-    { label: "The Company is hiring deserters", result: { rumor: "company-deserters" } },
-    { label: "A new posting is coming", result: { rumor: "new-posting" } },
-    { label: "Someone saw a Company lab ship", result: { rumor: "lab-ship" } },
-    { label: "An officer is under investigation", result: { rumor: "officer-investigated" } },
-    { label: "The UPP are massing somewhere", result: { rumor: "upp-massing" } },
+    { label: "They are in debt", result: { outcome: "in-debt" } },
+    { label: "They are in debt", result: { outcome: "in-debt" } },
+    { label: "They are in trouble", result: { outcome: "in-trouble" } },
+    { label: "They are in trouble", result: { outcome: "in-trouble" } },
+    { label: "They offer the PCs a way to make some money", result: { outcome: "money-offer" } },
+    { label: "They offer the PCs a way to make some money", result: { outcome: "money-offer" } },
   ]),
 });
 
-export const marines: RollTable = defineTable({
+export const marinesLieutenant: RollTable = table({
+  id: "alien.shore-leave.marines.lieutenant",
+  name: "Shore leave: the lieutenant might be replaced (D6)",
+  page: 257,
+  dice: "1d6",
+  notes: "Sub-roll for the Marines event 45-46.",
+  rows: d6([
+    { label: "They are being promoted", result: { outcome: "promoted" } },
+    { label: "They are being promoted", result: { outcome: "promoted" } },
+    { label: "Big trouble, not their fault", result: { outcome: "trouble-not-their-fault" } },
+    { label: "Big trouble, not their fault", result: { outcome: "trouble-not-their-fault" } },
+    { label: "Big trouble, and definitely their own fault", result: { outcome: "trouble-own-fault" } },
+    { label: "Big trouble, and definitely their own fault", result: { outcome: "trouble-own-fault" } },
+  ]),
+});
+
+export const marines: RollTable = table({
   id: "alien.shore-leave.marines",
-  name: "Shore leave events: Colonial Marines",
-  family: FAMILY,
-  page: [257, 258],
+  name: "Shore leave events, Colonial Marines",
+  page: 257,
   dice: "d66",
-  notes: "Roll once per marine who chooses to socialise during a shore leave week.",
-  rows: d66Grouped(2, [
-    { label: "Bar fight", result: { event: "Bar fight", stress: 0 }, roll: [{ table: "alien.shore-leave.marines.trouble", as: "trouble" }] },
-    { label: "Won big at cards", result: { event: "Won big at cards", cash: 500 } },
-    { label: "Lost big at cards", result: { event: "Lost big at cards", cash: -500 } },
-    { label: "Heard a rumour", result: { event: "Heard a rumour" }, roll: [{ table: "alien.shore-leave.marines.rumor", as: "rumor" }] },
-    { label: "Extra duty for a prank", result: { event: "Extra duty for a prank" } },
-    { label: "A romance, short and sweet", result: { event: "A romance, short and sweet", stress: -1 } },
-    { label: "Caught in a riot", result: { event: "Caught in a riot", stress: 1 }, roll: [{ table: "alien.shore-leave.marines.trouble", as: "trouble" }] },
-    { label: "Met an old squadmate", result: { event: "Met an old squadmate" } },
-    { label: "Recruited for a side job", result: { event: "Recruited for a side job" } },
-    { label: "A tattoo you do not remember", result: { event: "A tattoo you do not remember" } },
-    { label: "Quiet week, rested", result: { event: "Quiet week, rested", stress: -1 } },
-    { label: "A letter from home", result: { event: "A letter from home" } },
-    { label: "Picked up by the MPs", result: { event: "Picked up by the MPs" }, roll: [{ table: "alien.shore-leave.marines.trouble", as: "trouble" }] },
-    { label: "Bought new gear on the cheap", result: { event: "Bought new gear on the cheap", cash: -200 } },
-    { label: "Got a commendation in the mail", result: { event: "Got a commendation in the mail" } },
-    { label: "A Company recruiter made an offer", result: { event: "A Company recruiter made an offer" } },
-    { label: "Nightmares every night", result: { event: "Nightmares every night", stress: 1 } },
-    { label: "Made a friend in the right place", result: { event: "Made a friend in the right place" } },
+  notes: "Roll once for a Colonial Marine PC who chooses to Socialize during a week of shore leave.",
+  rows: events([
+    { range: [11, 13], label: "The base gym is quiet and the PCs have it to themselves" },
+    { range: [14, 16], label: "A Marine from another platoon asks a favor; pays $300, but there might be a catch", extra: { payment: 300 } },
+    { range: [21, 23], label: "A fight breaks out and a PC is involved. What was it about?" },
+    { range: [24, 26], label: "A logistics sergeant sells some officer's luxuries at a discount", sub: "alien.shore-leave.marines.luxuries" },
+    { range: [31, 33], label: "An accident hurts a PC. How, and whose fault was it?" },
+    { range: [34, 36], label: "An official ceremony on base; everyone wears dress uniform" },
+    { range: [41, 44], label: "An old friend arrives", sub: "alien.shore-leave.marines.old-friend" },
+    { range: [45, 46], label: "The PCs' lieutenant might be replaced", sub: "alien.shore-leave.marines.lieutenant" },
+    { range: [51, 53], label: "A senior NCO has it in for the platoon and makes shore leave miserable" },
+    { range: [54, 56], label: "The base commander cancels the platoon's shore leave at once. What did the unit do?", extra: { leaveCancelled: true } },
+    { range: [61, 63], label: "Scheduled training; finishing it earns tickets for laser tag, a movie or the base gym" },
+    { range: [64, 66], label: "A platoon member marks a special occasion with an informal dinner and a speech", extra: { followUp: "Roll for a social encounter." } },
   ]),
 });
 
-export const others: RollTable = defineTable({
+// ---------------------------------------------------------------------------
+// Everyone else (p. 258)
+// ---------------------------------------------------------------------------
+
+export const others: RollTable = table({
   id: "alien.shore-leave.others",
-  name: "Shore leave events: everyone else",
-  family: FAMILY,
-  page: [257, 258],
+  name: "Shore leave events, others",
+  page: 258,
   dice: "d66",
-  notes: "Roll once per non-marine character who chooses to socialise during a shore leave week.",
-  rows: d66Grouped(2, [
-    { label: "A job offer from a stranger", result: { event: "A job offer from a stranger" } },
-    { label: "Robbed in a back alley", result: { event: "Robbed in a back alley", cash: -300, stress: 1 } },
-    { label: "A good week, nothing went wrong", result: { event: "A good week, nothing went wrong", stress: -1 } },
-    { label: "Reunited with family", result: { event: "Reunited with family", stress: -1 } },
-    { label: "Heard a rumour about the Company", result: { event: "Heard a rumour about the Company" } },
-    { label: "Won a bet", result: { event: "Won a bet", cash: 400 } },
-    { label: "A medical bill", result: { event: "A medical bill", cash: -400 } },
-    { label: "An old debt collected", result: { event: "An old debt collected", cash: -500 } },
-    { label: "A short romance", result: { event: "A short romance", stress: -1 } },
-    { label: "Questioned by a marshal", result: { event: "Questioned by a marshal", stress: 1 } },
-    { label: "Sold something for a good price", result: { event: "Sold something for a good price", cash: 300 } },
-    { label: "Met a useful contact", result: { event: "Met a useful contact" } },
-    { label: "Lost a friend to a transfer", result: { event: "Lost a friend to a transfer" } },
-    { label: "Got sick from the local food", result: { event: "Got sick from the local food" } },
-    { label: "A corporate agent asked questions", result: { event: "A corporate agent asked questions", stress: 1 } },
-    { label: "Learned a new trick from a local", result: { event: "Learned a new trick from a local" } },
-    { label: "Can't sleep, keep seeing it", result: { event: "Can't sleep, keep seeing it", stress: 1 } },
-    { label: "Found a place that felt like home", result: { event: "Found a place that felt like home", stress: -1 } },
+  notes: "Roll once for a PC who is not a Colonial Marine and chooses to Socialize during a week of shore leave.",
+  rows: events([
+    { range: [11, 13], label: "A hotel upgrade to executive-level luxury" },
+    { range: [14, 16], label: "A side job of a couple of days paying D6 x $200, but is it legal?", extra: { paymentDice: "1d6", paymentPer: 200 } },
+    { range: [21, 23], label: "Asteroid miners in port all week cause trouble for officials, travelers and the PCs" },
+    { range: [24, 26], label: "A ceremony or celebration at the location" },
+    { range: [31, 33], label: "Red tape: the PCs' papers have irregularities. Negotiate or bribe a way out?" },
+    { range: [34, 36], label: "A port employee recognizes a PC's skill and offers D6 x $200 to solve a problem", extra: { paymentDice: "1d6", paymentPer: 200 } },
+    { range: [41, 44], label: "The PCs overhear scandal about a local official, leader, executive or gangster" },
+    { range: [45, 46], label: "A ship the PCs know limps into port, damaged and with casualties. What happened?" },
+    { range: [51, 53], label: "A thief targets the PCs' valuables, on them or in their room, and escapes unless spotted" },
+    { range: [54, 56], label: "Time with a group of locals yields useful information" },
+    {
+      range: [61, 63],
+      label: "A local commodity on offer for D6 x $400, resellable elsewhere at 50% profit; roll a stress die, a facehugger or a success means a scam",
+      extra: { costDice: "1d6", costPer: 400, resaleProfit: 0.5, scamCheck: { die: "stress", scamOn: ["facehugger", "success"] } },
+    },
+    { range: [64, 66], label: "The PCs find a haven: a beauty spot, quiet lounge or little-known bar, a great place to hide away" },
   ]),
 });
 
-export const shoreLeaveTables: RollTable[] = [marines, marinesTrouble, marinesRumor, others];
+export const shoreLeaveTables: RollTable[] = [marines, marinesLuxuries, marinesOldFriend, marinesLieutenant, others];

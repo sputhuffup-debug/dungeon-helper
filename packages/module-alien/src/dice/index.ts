@@ -4,10 +4,10 @@ import { operations } from "./operations";
 
 export * from "./pool";
 export * from "./tableIds";
-export { operations } from "./operations";
+export { operations, PANIC_TRAUMA_THRESHOLD, SUPPLY_MAX_DICE } from "./operations";
 export { rollOnTable, rollExpression, findRow } from "./tableLookup";
 
-/** The Alien dice adapter: base and stress d6, push with a stress cost (p. 20, 42-44). */
+/** The Alien dice adapter: base and stress d6, push with a stress cost (p. 42-44). */
 export const diceSystem: DiceSystem = {
   dice,
   buildPool,

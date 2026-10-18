@@ -5,7 +5,7 @@ export const STRESS_DIE = "stress";
 export const SUCCESS = "success";
 export const FACEHUGGER = "facehugger";
 
-/** Two kinds of d6 (p. 20): a 6 on either is a success; a 1 on a stress die is the facehugger. */
+/** Two kinds of d6 (p. 42): a 6 on either is a success; a 1 on a stress die is the facehugger. */
 export const dice: DieSpec[] = [
   { id: BASE_DIE, name: "Base die", faces: 6, symbols: { 6: SUCCESS }, color: "#d8d2c4" },
   { id: STRESS_DIE, name: "Stress die", faces: 6, symbols: { 6: SUCCESS, 1: FACEHUGGER }, color: "#f2c230" },
@@ -24,7 +24,7 @@ export interface PoolInput {
   helpers?: number;
   /** Current stress level: one stress die each. */
   stress?: number;
-  /** Difficulty modifier, usually negative (p. 42). */
+  /** Difficulty modifier, usually negative (p. 43). */
   difficulty?: number;
   /** Provenance / semantics for push rules. */
   android?: boolean;
@@ -101,7 +101,7 @@ function pushAllowed(pool: DicePool, pushes: number, facehuggers: number, allowS
   return pushes === 0 || (allowSecondPush && pushes === 1);
 }
 
-/** Any 6 is a success; a stress die showing 1 ends pushing and calls for a stress response (p. 43-44). */
+/** Any 6 is a success; a stress die showing 1 blocks the push and calls for a stress response (p. 42-44). */
 export function roll(pool: DicePool, rng: Rng): RollResult {
   const rolled: RolledDie[] = [];
   const baseCount = pool.dice[BASE_DIE] ?? 0;
@@ -118,7 +118,7 @@ export function roll(pool: DicePool, rng: Rng): RollResult {
     );
   }
   if (pool.meta?.android) notes.push("Androids never push (p. 25).");
-  else if (pool.meta?.npc) notes.push("NPCs never push.");
+  else if (pool.meta?.npc) notes.push("NPCs never push (p. 42).");
 
   return {
     pool,

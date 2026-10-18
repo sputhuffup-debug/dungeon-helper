@@ -15,6 +15,7 @@ import {
   SHIP_ARMAMENT_IDS,
   WITHIN_TAG,
 } from "../src/data";
+import { shipClasses, shipModules, shipUpgrades, shipArmaments } from "../src/data";
 
 const ENTITY_TYPE_IDS = [
   "alien.character",
@@ -46,7 +47,7 @@ const SKILL_IDS = [
 
 const ITEM_SUBTYPES = ["weapon", "armor", "tool", "medical", "pharmaceutical", "food", "other"];
 const LOCATION_SUBTYPES = ["region", "sector", "star-system", "planet", "colony", "site"];
-const RANGES = ["engaged", "short", "medium", "long", "extreme"];
+const RANGES = ["adjacent", "short", "medium", "long", "extreme"];
 
 function fields<T = Record<string, unknown>>(p: { fields: Record<string, unknown> }): T {
   return p.fields as T;
@@ -64,7 +65,8 @@ describe("alien data presets", () => {
 
   it("are all flagged unverified with a page reference", () => {
     for (const p of presets) {
-      expect(p.unverified, p.id).toBe(true);
+      // Checked presets drop the flag; any that keep it (book gaps or contradictions) carry `true`.
+      if (p.unverified !== undefined) expect(p.unverified, p.id).toBe(true);
       expect(p.page, p.id).toBeDefined();
     }
   });
@@ -168,7 +170,7 @@ describe("item presets", () => {
 
   it("armor has an armor rating", () => {
     const armor = itemPresets.filter((p) => presetSubtype(p) === "armor");
-    expect(armor.length).toBeGreaterThanOrEqual(8);
+    expect(armor.length).toBe(7); // Suits & Armor, p. 90-91, including the P-5000 loader
     for (const p of armor) expect(typeof fields<{ armorRating: unknown }>(p).armorRating, p.id).toBe("number");
   });
 
@@ -201,6 +203,43 @@ describe("vehicle and spaceship presets", () => {
       for (const a of f.armaments) expect(SHIP_ARMAMENT_IDS, `${p.id} armament ${a}`).toContain(a);
       expect(typeof f.hull, p.id).toBe("number");
       expect(typeof f.ftl, p.id).toBe("number");
+    }
+  });
+
+  it("match the book's vehicle and ship lists (p. 100-105, 128-138)", () => {
+    expect(vehiclePresets).toHaveLength(6);
+    expect(shipPresets).toHaveLength(7);
+    expect(itemPresets).toHaveLength(89); // 35 weapons (7 vehicle-mounted), 7 armor, 24 tools, 7 other, 4 medical, 5 pharmaceuticals, 7 food
+  });
+
+  it("ship prices add up from class, AI, modules, upgrades and armaments (p. 121-127)", () => {
+    const price = (list: { items: Array<{ id: string; cost?: unknown }> }, id: string): number => Number(list.items.find((i) => i.id === id)!.cost);
+    const mainframes = new Map(itemPresets.map((i) => [i.name, Number(i.fields["cost"])]));
+    for (const p of shipPresets) {
+      const f = fields<{ shipClass: string; ai: string; modules: string[]; upgrades: string[]; armaments: string[]; munitions: Record<string, number>; cost: number }>(p);
+      let total = price(shipClasses, f.shipClass);
+      if (f.ai !== "None") total += mainframes.get(f.ai)!;
+      for (const m of f.modules) total += price(shipModules, m);
+      for (const u of f.upgrades) total += price(shipUpgrades, u);
+      for (const a of f.armaments) {
+        const row = shipArmaments.items.find((i) => i.id === a)!;
+        const count = f.munitions[a] ?? 0;
+        total += row.costPerMunition ? count * Number(row.cost) : Number(row.cost) + count * Number(row.munitionCost ?? 0);
+      }
+      expect(total, p.id).toBe(f.cost);
+    }
+  });
+
+  it("ship stats follow from the class plus upgrades (p. 121, 127)", () => {
+    for (const p of shipPresets) {
+      const f = fields<{ shipClass: string; upgrades: string[]; hull: number; thrusters: number; signature: number; armor: number; ftl: number }>(p);
+      const cls = shipClasses.items.find((c) => c.id === f.shipClass)!;
+      const n = (id: string) => f.upgrades.filter((u) => u === id).length;
+      expect(f.hull, p.id).toBe(Number(cls.hull) + n("reinforced-frame"));
+      expect(f.thrusters, p.id).toBe(Number(cls.thrusters) + n("overpowered-thrusters") - n("external-module-i") - n("external-module-ii") - n("external-module-iii") - n("external-module-iv") - n("external-module-v"));
+      expect(f.signature, p.id).toBe(Number(cls.signature) - 2 * n("stealth-technology"));
+      expect(f.armor, p.id).toBe(n("armored-bulkheads"));
+      if (cls.ftl !== null) expect(f.ftl, p.id).toBe(Number(cls.ftl) - n("boosted-displacement-drives"));
     }
   });
 });
@@ -276,7 +315,8 @@ describe("reference lists", () => {
     const listIds = dataReferenceLists.map((l) => l.id);
     expect(listIds).toEqual(["alien.ship-classes", "alien.ship-modules", "alien.ship-upgrades", "alien.ship-armaments", "alien.minor-corporations"]);
     for (const list of dataReferenceLists) {
-      expect(list.unverified, list.id).toBe(true);
+      if (list.id.startsWith("alien.ship-")) expect(list.unverified, list.id).toBeUndefined(); // checked against p. 121-127
+      else if (list.unverified !== undefined) expect(list.unverified, list.id).toBe(true);
       expect(list.page, list.id).toBeDefined();
       const ids = list.items.map((i) => i.id);
       expect(new Set(ids).size, list.id).toBe(ids.length);
@@ -288,17 +328,19 @@ describe("reference lists", () => {
   it("have the expected sizes", () => {
     const byId = Object.fromEntries(dataReferenceLists.map((l) => [l.id, l.items.length]));
     expect(byId["alien.ship-classes"]).toBe(7);
-    expect(byId["alien.ship-modules"]).toBeGreaterThanOrEqual(25);
-    expect(byId["alien.ship-upgrades"]).toBeGreaterThanOrEqual(12);
-    expect(byId["alien.ship-armaments"]).toBeGreaterThanOrEqual(10);
+    expect(byId["alien.ship-modules"]).toBe(40); // one row per module size, p. 123
+    expect(byId["alien.ship-upgrades"]).toBe(15); // p. 127
+    expect(byId["alien.ship-armaments"]).toBe(12); // 9 offensive + 3 defensive, p. 125
     expect(byId["alien.minor-corporations"]).toBe(10);
   });
 
-  it("armaments carry damage and range", () => {
+  it("offensive armaments carry range (and damage, except the nuke); all name a hardpoint size", () => {
     const arms = dataReferenceLists.find((l) => l.id === "alien.ship-armaments")!;
     for (const a of arms.items) {
-      expect(typeof a.damage, a.id).toBe("number");
-      expect(["short", "medium", "long", "extreme"], a.id).toContain(a.range);
+      expect(["I", "II", "III"], a.id).toContain(a.hardpoint);
+      if (a.kind !== "offensive") continue;
+      if (a.id !== "tactical-nuke") expect(typeof a.damage, a.id).toBe("number");
+      expect(["contact", "short", "medium", "long", "extreme", "surface"], a.id).toContain(a.range);
     }
   });
 });

@@ -91,20 +91,42 @@ describe("trackers and manifest", () => {
 });
 
 describe("reference lists", () => {
-  it("are all flagged unverified with unique item ids", () => {
+  it("have unique item ids; unverified flags, where kept, are true", () => {
     for (const l of referenceLists) {
-      expect(l.unverified, l.id).toBe(true);
+      expect([true, undefined], l.id).toContain(l.unverified);
       expect(new Set(l.items.map((i) => i.id)).size).toBe(l.items.length);
     }
   });
-  it("has 12 skills, 9 careers, 36 critical injuries, 6 traumas, 3 frames and ~56 talents", () => {
+  it("character reference lists are verified against the book", () => {
+    for (const id of ["alien.skills", "alien.careers", "alien.talents", "alien.critical-injuries", "alien.mental-traumas"]) {
+      const l = referenceLists.find((x) => x.id === id)!;
+      expect(l.unverified, id).toBeUndefined();
+      for (const i of l.items) expect(i.unverified, `${id}/${i.id}`).toBeUndefined();
+    }
+  });
+  it("has 12 skills, 9 careers, 36 critical injuries, 18 traumas, 3 frames and 56 talents", () => {
     expect(referenceLists.find((l) => l.id === "alien.skills")!.items).toHaveLength(12);
     expect(careerItems).toHaveLength(9);
     expect(criticalInjuryItems).toHaveLength(36);
-    expect(mentalTraumaItems).toHaveLength(6);
+    expect(mentalTraumaItems).toHaveLength(18);
     expect(frameItems).toHaveLength(3);
-    expect(talentItems.length).toBeGreaterThanOrEqual(50);
+    expect(talentItems).toHaveLength(56);
     expect(talentItems.filter((t) => t.career).length).toBe(27);
+    const byId = Object.fromEntries(talentItems.map((t) => [t.id, t]));
+    expect(byId["hardened"]!.stackLimit).toBe(3);
+    expect(byId["seen-it-all"]!.stackLimit).toBe(3);
+    expect(byId["hardened"]!.maxStack).toBe(3);
+    expect(byId["lucky"]!.career).toBe("kid");
+    expect(byId["second-wind"]!.career).toBeUndefined();
+  });
+  it("career stat lines match the book (p. 31-39)", () => {
+    const c = Object.fromEntries(careerItems.map((x) => [x.id, x]));
+    expect(c["company-agent"]!.keyAttribute).toBe("wits");
+    expect(c["company-agent"]!.cash).toBe("d6 x 1000");
+    expect(c["officer"]!.keyAttribute).toBe("empathy");
+    expect(c["colonial-marshal"]!.keySkills).toEqual(["observation", "rangedCombat", "command"]);
+    expect(c["medic"]!.keySkills).toEqual(["mobility", "observation", "medicalAid"]);
+    expect(careerItems.map((x) => x.page)).toEqual([31, 32, 33, 34, 35, 36, 37, 38, 39]);
   });
   it("career talents and key skills resolve to real talent and skill ids", () => {
     const talentIds = new Set(talentItems.map((t) => t.id));

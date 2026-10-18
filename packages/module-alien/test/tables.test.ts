@@ -45,13 +45,20 @@ describe("alien tables: identity", () => {
     }
   });
 
-  it("is flagged unverified with a page reference and a name on every table", () => {
+  it("has a page reference and a name on every table; unverified flags, where kept, are true", () => {
     for (const t of tables) {
-      expect(t.unverified, t.id).toBe(true);
+      expect([true, undefined], t.id).toContain(t.unverified);
       expect(t.name, t.id).toBeTruthy();
       expect(t.page, `${t.id} page`).toBeDefined();
       expect(t.rows.length, t.id).toBeGreaterThan(0);
-      for (const r of t.rows) expect(r.unverified, `${t.id} row ${r.range.join("-")}`).toBe(true);
+      for (const r of t.rows) expect([true, undefined], `${t.id} row ${r.range.join("-")}`).toContain(r.unverified);
+    }
+  });
+
+  it("character tables are verified against the book", () => {
+    for (const t of tables.filter((x) => x.id.startsWith("alien.character."))) {
+      expect(t.unverified, t.id).toBeUndefined();
+      for (const r of t.rows) expect(r.unverified, `${t.id} row ${r.range.join("-")}`).toBeUndefined();
     }
   });
 });
@@ -105,21 +112,28 @@ describe("alien tables: nested rolls", () => {
     }
   });
 
-  it("orbital components roll twice on the extra table instead of recursing", () => {
+  it("orbital components roll D6 times on the extra table on 12+ (p. 240) instead of recursing", () => {
     const orbital = registry.get("alien.world.orbital-components")!;
     const top = orbital.rows.find((r) => r.range[0] === 12)!;
-    expect(top.roll).toEqual([{ table: "alien.world.orbital-components-extra", as: "extra", times: 2 }]);
+    expect(top.roll).toEqual([{ table: "alien.world.orbital-components-extra", as: "extra", times: "1d6" }]);
+    expect(orbital.rows.find((r) => r.range[0] === 7)!.roll).toEqual([{ table: "alien.world.moons", as: "moons" }]);
     const extra = registry.get("alien.world.orbital-components-extra")!;
-    expect(extra.rows.every((r) => !r.roll)).toBe(true);
+    expect(extra.rows.every((r) => !r.roll || r.roll.every((n) => n.table === "alien.world.moons"))).toBe(true);
+    expect(extra.rows.find((r) => r.range[0] === 12)!.gmDecides).toBe(true);
   });
 
-  it("colonist Wreckage destination re-rolls on the reroll table", () => {
+  it("colonist Wreckage destination rolls the ship type and re-rolls the location on the reroll table", () => {
     const dest = registry.get("alien.jobs.colonists.destination")!;
     const wreck = dest.rows.find((r) => r.label === "Wreckage")!;
-    expect(wreck.roll?.[0]?.table).toBe("alien.jobs.colonists.destination-reroll");
+    expect(wreck.range).toEqual([52, 63]);
+    expect(wreck.roll).toEqual([
+      { table: "alien.jobs.ship-type", as: "ship" },
+      { table: "alien.jobs.colonists.destination-reroll", as: "near" },
+    ]);
     const reroll = registry.get("alien.jobs.colonists.destination-reroll")!;
     expect(reroll.rows.some((r) => r.label === "Wreckage")).toBe(false);
     expect(reroll.rows.every((r) => !r.roll)).toBe(true);
+    expect(registry.get("alien.jobs.truckers.destination")!.rows.find((r) => r.label === "Starship")!.roll).toEqual([{ table: "alien.jobs.ship-type", as: "ship" }]);
   });
 });
 
@@ -144,7 +158,14 @@ describe("alien tables: seed-specified shapes", () => {
     for (const id of ["alien.character.stress-response", "alien.character.panic"]) {
       expect(registry.get(id)!.modifiers).toEqual([expect.objectContaining({ add: { "-": [{ var: "stress" }, { var: "resolve" }] } })]);
     }
-    expect(rowCount("alien.character.mental-trauma")).toBe(6);
+    expect(panic.rows[0]!.range).toEqual([-99, 0]);
+    expect(panic.rows.at(-1)!.range).toEqual([12, 99]);
+    expect(panic.rows.filter((r) => (r.result as { traumaCheck: boolean }).traumaCheck).map((r) => r.range[0])).toEqual([9, 10, 11, 12]);
+    const stress = registry.get("alien.character.stress-response")!;
+    expect(stress.rows.map((r) => r.label)).toEqual(["Keeping Cool", "Jumpy", "Tunnel Vision", "Aggravated", "Shakes", "Frantic", "Deflated", "Mess Up"]);
+    expect(stress.rows.at(-1)!.range).toEqual([7, 99]);
+    expect(dice("alien.character.mental-trauma")).toBe("d66");
+    expect(rowCount("alien.character.mental-trauma")).toBe(18);
     expect(dice("alien.character.critical-injury")).toBe("d66");
     expect(rowCount("alien.character.critical-injury")).toBe(36);
     for (const r of registry.get("alien.character.critical-injury")!.rows) {
@@ -152,10 +173,18 @@ describe("alien tables: seed-specified shapes", () => {
       expect(typeof res.name).toBe("string");
       expect(typeof res.fatal).toBe("boolean");
       expect("timeLimit" in res).toBe(true);
+      expect("healingTime" in res).toBe(true);
       expect(typeof res.effect).toBe("string");
     }
+    const crit = registry.get("alien.character.critical-injury")!;
+    expect(crit.rows.filter((r) => (r.result as { fatal: boolean }).fatal).map((r) => r.range[0])[0]).toBe(44);
+    expect(crit.rows.filter((r) => (r.result as { instantDeath: boolean }).instantDeath).map((r) => r.range[0])).toEqual([64, 65, 66]);
+    expect(crit.rows.find((r) => r.range[0] === 43)!.roll).toEqual([{ table: "alien.character.mental-trauma", as: "trauma" }]);
     expect(registry.get("alien.character.xp-questions")).toBeUndefined();
     expect(dice("alien.character.campaign-theme")).toBe("1d6");
+    expect(registry.get("alien.character.campaign-theme")!.rows.map((r) => r.label)).toEqual([
+      "Killing Greed", "Corporate Intrigue", "Tidings of War", "New Opportunities", "Secret Research", "Echoes from the Past",
+    ]);
   });
 
   it("lifepath tables", () => {
@@ -177,43 +206,110 @@ describe("alien tables: seed-specified shapes", () => {
     for (const b of bonus) expect(registry.get(String(b)), `bonusRoll ${b}`).toBeDefined();
   });
 
-  it("world and system tables", () => {
-    expect(dice("alien.world.size")).toBe("2d6");
-    expect(registry.get("alien.world.size")!.rows.some((r) => (r.result as Record<string, unknown>).gasGiant === true)).toBe(true);
-    const atmo = registry.get("alien.world.atmosphere")!;
-    expect(atmo.rows.length).toBe(7);
-    expect(JSON.stringify(atmo.modifiers)).toContain('"size.diameterKm"');
-    expect(JSON.stringify(registry.get("alien.world.temperature")!.modifiers)).toContain('"atmosphere.atmosphere"');
-    expect(JSON.stringify(registry.get("alien.world.geosphere")!.modifiers)).toContain('"temperature.temperature"');
-    expect(dice("alien.world.terrain")).toBe("d66");
-    expect(dice("alien.world.terrain-ice")).toBe("d66");
-    for (const r of registry.get("alien.world.colony-size")!.rows) {
-      const res = r.result as Record<string, unknown>;
-      expect(["start-up", "young", "established"]).toContain(res.colonySize);
-      expect(typeof res.population).toBe("string");
-      expect(res.missionCount).toBeGreaterThanOrEqual(1);
-      expect(res.missionCount).toBeLessThanOrEqual(3);
-    }
-    expect(dice("alien.world.orbital-components")).toBe("3d6");
-    expect(dice("alien.world.faction-count")).toBe("1d3");
-    expect(dice("alien.world.campaign-hook")).toBe("d66");
-    expect(JSON.stringify(registry.get("alien.system.objects")!.modifiers)).toContain('"brightness"');
-    for (const r of registry.get("alien.system.objects")!.rows) {
-      const res = r.result as Record<string, unknown>;
-      for (const k of ["gasGiants", "terrestrials", "icePlanets", "asteroidBelts"]) expect(typeof res[k], k).toBe("number");
+  it("world, system and job tables are verified against the book (except the sponsor gap rows)", () => {
+    for (const t of tables.filter((x) => /^alien\.(world|system|jobs)\./.test(x.id))) {
+      expect(t.unverified, t.id).toBeUndefined();
+      const flagged = t.rows.filter((r) => r.unverified);
+      if (t.id === "alien.jobs.colonists.employer.corporation") expect(flagged.map((r) => r.range[0])).toEqual([44, 51, 54]);
+      else expect(flagged, t.id).toEqual([]);
     }
   });
 
-  it("job tables exist per frame with nested employer sub-tables", () => {
+  it("world and system tables (p. 236-243)", () => {
+    const labels = (id: string) => registry.get(id)!.rows.map((r) => r.label);
+    const ranges = (id: string) => registry.get(id)!.rows.map((r) => r.range);
+    const mods = (id: string) => (registry.get(id)!.modifiers ?? []).map((m) => m.add);
+    expect(dice("alien.world.size")).toBe("2d6");
+    expect(ranges("alien.world.size")).toEqual([[-99, 2], [3, 4], [5, 6], [7, 7], [8, 8], [9, 10], [11, 11], [12, 99]]);
+    expect(registry.get("alien.world.size")!.rows.map((r) => (r.result as Record<string, unknown>).diameterKm)).toEqual([1000, 2000, 4000, 7000, 10000, 12500, 15000, 20000]);
+    expect(mods("alien.world.size")).toEqual([-2, -4]);
+    const atmo = registry.get("alien.world.atmosphere")!;
+    expect(labels("alien.world.atmosphere")).toEqual(["Thin", "Breathable", "Toxic", "Dense", "Corrosive", "Infiltrating", "Special"]);
+    expect(ranges("alien.world.atmosphere")).toEqual([[-99, 3], [4, 6], [7, 8], [9, 9], [10, 10], [11, 11], [12, 99]]);
+    // As printed on p. 238: 4,000 km or less −2, 4,001-7,000 km −4.
+    expect(atmo.modifiers!.map((m) => [m.label, m.add])).toEqual([["diameter 4,000 km or less", -2], ["diameter 4,001 to 7,000 km", -4]]);
+    expect(JSON.stringify(atmo.modifiers)).toContain('"size.diameterKm"');
+    expect(ranges("alien.world.temperature")).toEqual([[-99, 3], [4, 5], [6, 7], [8, 10], [11, 99]]);
+    expect(mods("alien.world.temperature")).toEqual([-4, -1, 6, -20]);
+    expect(JSON.stringify(registry.get("alien.world.temperature")!.modifiers)).toContain('"atmosphere.atmosphere"');
+    expect(ranges("alien.world.geosphere")).toEqual([[-99, 4], [5, 6], [7, 8], [9, 10], [11, 11], [12, 99]]);
+    expect(mods("alien.world.geosphere")).toEqual([-4, -2, -4, -2]);
+    expect(JSON.stringify(registry.get("alien.world.geosphere")!.modifiers)).toContain('"temperature.temperature"');
+    expect(dice("alien.world.terrain")).toBe("d66");
+    expect(rowCount("alien.world.terrain")).toBe(36);
+    expect(dice("alien.world.terrain-ice")).toBe("2d6");
+    expect(rowCount("alien.world.terrain-ice")).toBe(11);
+    expect(ranges("alien.world.colony-size")).toEqual([[-99, 7], [8, 10], [11, 99]]);
+    expect(mods("alien.world.colony-size")).toEqual([1, -2, -3]);
+    expect(registry.get("alien.world.colony-size")!.rows.map((r) => (r.result as Record<string, unknown>).missionsDice)).toEqual(["1", "d3-1", "d3"]);
+    expect(rowCount("alien.world.colony-mission")).toBe(11);
+    expect(mods("alien.world.colony-mission")).toEqual([1, -1, 1, 4]);
+    expect(dice("alien.world.orbital-components")).toBe("2d6");
+    expect(mods("alien.world.orbital-components")).toEqual([1, 2]);
+    expect(dice("alien.world.moons-uninhabited")).toBe("1d3-1");
+    expect(dice("alien.world.faction-count")).toBe("1d3");
+    expect(labels("alien.world.faction-type")).toEqual(["Newcomers", "Corporate representatives", "Scientists", "Workers", "Security/military", "Colonial leadership"]);
+    expect(dice("alien.world.allegiance-icsc")).toBe("3d6");
+    expect(dice("alien.world.allegiance-arms")).toBe("3d6");
+    expect(dice("alien.world.campaign-hook")).toBe("d66");
+    expect(rowCount("alien.world.campaign-hook")).toBe(36);
+    const system: Array<[string, string, number[]]> = [
+      ["alien.system.gas-giants", "1d6-1", [-1, -4]],
+      ["alien.system.terrestrial-planets", "1d6", [-3, -3]],
+      ["alien.system.ice-planets", "1d6+1", [-1, -1, -1]],
+      ["alien.system.asteroid-belts", "1d6-3", [-2, -2]],
+    ];
+    for (const [id, d, m] of system) {
+      expect(dice(id), id).toBe(d);
+      expect(mods(id), id).toEqual(m);
+      expect(JSON.stringify(registry.get(id)!.modifiers)).toContain('"starType"');
+      for (const r of registry.get(id)!.rows) expect(typeof (r.result as Record<string, unknown>).count).toBe("number");
+    }
+    expect(labels("alien.system.gas-giant-features")).toEqual(["Storms", "Single super storm", "Rings", "High winds", "Intense radiation fields", "Small gas giant"]);
+  });
+
+  it("job tables exist per frame with nested employer sub-tables (p. 244-252)", () => {
     for (const frame of ["truckers", "marines", "colonists"]) {
-      for (const part of ["employer", "bonus", "mission", "destination", "complications"]) {
+      for (const part of ["bonus", "mission", "destination", "complications"]) {
         expect(registry.get(`alien.jobs.${frame}.${part}`), `${frame}.${part}`).toBeDefined();
       }
+    }
+    // Colonial Marines have no employer table (p. 235).
+    expect(registry.get("alien.jobs.marines.employer")).toBeUndefined();
+    for (const frame of ["truckers", "colonists"]) {
       const employer = registry.get(`alien.jobs.${frame}.employer`)!;
       expect(employer.dice).toBe("d66");
-      for (const r of employer.rows) expect(r.roll?.[0]?.as, `${frame} employer row ${r.label}`).toBe("detail");
+      for (const r of employer.rows) for (const n of r.roll ?? []) expect(n.as, `${frame} employer row ${r.label}`).toBe("detail");
     }
-    expect(dice("alien.jobs.plot-twist")).toBe("d66");
+    const nestedOf = (id: string) => registry.get(id)!.rows.filter((r) => r.roll).map((r) => [r.range, r.roll![0]!.table]);
+    expect(nestedOf("alien.jobs.truckers.employer")).toEqual([
+      [[25, 36], "alien.jobs.truckers.employer.mining"],
+      [[61, 66], "alien.jobs.truckers.employer.corporation"],
+    ]);
+    expect(nestedOf("alien.jobs.colonists.employer")).toEqual([
+      [[41, 46], "alien.jobs.colonists.employer.corporation"],
+      [[51, 56], "alien.jobs.colonists.employer.mining"],
+      [[61, 66], "alien.jobs.colonists.employer.government"],
+    ]);
+    expect(dice("alien.jobs.truckers.bonus")).toBe("d66");
+    expect(dice("alien.jobs.marines.bonus")).toBe("1d6");
+    expect(dice("alien.jobs.colonists.bonus")).toBe("1d6");
+    const counts: Record<string, number> = {
+      "alien.jobs.truckers.mission": 22,
+      "alien.jobs.truckers.destination": 11,
+      "alien.jobs.truckers.complications": 8,
+      "alien.jobs.marines.mission": 14,
+      "alien.jobs.marines.destination": 12,
+      "alien.jobs.marines.complications": 14,
+      "alien.jobs.colonists.mission": 9,
+      "alien.jobs.colonists.destination": 11,
+      "alien.jobs.colonists.complications": 7,
+      "alien.jobs.plot-twist": 9,
+    };
+    for (const [id, n] of Object.entries(counts)) {
+      expect(dice(id), id).toBe("d66");
+      expect(rowCount(id), id).toBe(n);
+    }
   });
 
   it("fills the Expedition sponsors gap (44-66) as a flagged module decision", () => {

@@ -1,37 +1,49 @@
+import type { PageRef } from "@campaign-forge/module-sdk";
 import type { AlienPreset } from "./types";
+import {
+  BLOODBURSTER_ATTACKS,
+  CHESTBURSTER_ATTACKS,
+  DRONE_SCOUT_STALKER_ATTACKS,
+  FACEHUGGER_ATTACKS,
+  HARVESTER_ATTACKS,
+  LION_WORM_ATTACKS,
+  NEOMORPH_ATTACKS,
+  PRAETORIAN_CHARGER_QUEEN_ATTACKS,
+  SCORPIONID_ATTACKS,
+  SOLDIER_SENTRY_ATTACKS,
+  SWARM_ATTACKS,
+  type CreatureAttack,
+} from "../tables/creatures";
 
 /**
- * Creature stat blocks (Evolved Edition p. 208-231).
+ * Creature stat blocks (Evolved Edition chapter 10, p. 204-231).
  *
- * Reference data only. Stat lines, six-row signature-attack tables and
- * one-line ability notes come from general knowledge of the Alien RPG and the
- * setting; everything is flagged `unverified`. Stage numbering follows the
- * module spec (drone III, soldier IV, praetorian V, queen VI); the owner must
- * confirm it against the book.
+ * Checked against the book: names, stages, Speed, Health, MOBILITY,
+ * OBSERVATION, Armor Level (with its conditional value in `armorNotes` and
+ * `armorVsFire`), Acid Splash and the signature attack rows are the book's.
+ * Abilities, lifecycle and containment notes are short paraphrases.
  *
- * Creatures have no attributes, never push and never dodge.
+ * Stat fields are only set where the book gives them: eggs have no skills,
+ * the Harvester has no OBSERVATION, the Swarm has no skills and no numeric
+ * armor. Creatures with no attack table in the book (eggs, Worker) carry an
+ * empty `attacks` list.
+ *
+ * Still unverified (book gap, kept as a module decision): the Stage VII+
+ * records. The book only mentions Empress, Queen Mother, Palantine and King
+ * forms as rumor (p. 220-221) and gives no stats, so they stay lore-only.
  */
-
-interface Attack {
-  roll: number;
-  name: string;
-  dice: number;
-  damage: number | string;
-  armorPiercing?: boolean;
-  effect: string;
-}
 
 interface Ability {
   name: string;
   text: string;
-  page?: number;
+  page?: PageRef;
 }
 
 interface CreatureSpec {
   id: string;
   name: string;
   summary: string;
-  page: number | [number, number];
+  page: PageRef;
   species: string;
   stage: string;
   variant?: string;
@@ -40,18 +52,23 @@ interface CreatureSpec {
   mobility?: number;
   observation?: number;
   armor?: number;
+  armorVsFire?: number;
   armorNotes?: string;
   acidSplash?: number;
-  attacks?: Attack[];
+  attackTable?: string;
+  attacks?: CreatureAttack[];
   abilities?: Ability[];
   lifecycleTrigger?: string;
   containment?: string;
   loreOnly?: boolean;
+  /** Book gap: keep `unverified: true` on this record. */
+  unverified?: boolean;
+  extraFields?: Record<string, unknown>;
   tags?: string[];
 }
 
 function creature(spec: CreatureSpec): AlienPreset {
-  const { id, name, summary, page, loreOnly, tags = [], ...rest } = spec;
+  const { id, name, summary, page, loreOnly, unverified, tags = [], extraFields = {}, ...rest } = spec;
   const fields: Record<string, unknown> = {
     species: rest.species,
     stage: rest.stage,
@@ -60,18 +77,18 @@ function creature(spec: CreatureSpec): AlienPreset {
   if (loreOnly) {
     fields.loreOnly = true;
   } else {
-    fields.speed = rest.speed ?? 1;
-    fields.health = rest.health ?? 1;
-    fields.mobility = rest.mobility ?? 0;
-    fields.observation = rest.observation ?? 0;
-    fields.armor = rest.armor ?? 0;
-    fields.attacks = rest.attacks ?? [];
+    for (const key of ["speed", "health", "mobility", "observation", "armor", "armorVsFire"] as const) {
+      if (rest[key] !== undefined) fields[key] = rest[key];
+    }
+    if (rest.attackTable) fields.attackTable = `alien.creatures.attack.${rest.attackTable}`;
+    fields.attacks = (rest.attacks ?? []).map((a) => ({ ...a, armorPiercing: a.armorPiercing === true }));
   }
   if (rest.armorNotes) fields.armorNotes = rest.armorNotes;
   if (rest.acidSplash !== undefined) fields.acidSplash = rest.acidSplash;
   fields.abilities = rest.abilities ?? [];
   if (rest.lifecycleTrigger) fields.lifecycleTrigger = rest.lifecycleTrigger;
   if (rest.containment) fields.containment = rest.containment;
+  Object.assign(fields, extraFields);
   return {
     id: `alien.creature.${id}`,
     entityType: "alien.creature",
@@ -80,163 +97,172 @@ function creature(spec: CreatureSpec): AlienPreset {
     page,
     tags: ["creature", `species:${rest.species}`, ...(loreOnly ? ["lore-only"] : []), ...tags],
     fields,
-    unverified: true,
+    ...(unverified ? { unverified: true } : {}),
   };
 }
 
+/** "2 (1 vs fire)" style armor: the rating, the fire rating and the book's note. */
+function armor(level: number, vsFire?: number): Pick<CreatureSpec, "armor" | "armorVsFire" | "armorNotes"> {
+  return vsFire === undefined ? { armor: level } : { armor: level, armorVsFire: vsFire, armorNotes: `${vsFire} vs fire` };
+}
+
 // ---------------------------------------------------------------------------
-// XX121 (the xenomorph)
+// Xenomorph XX121 (p. 208-221)
 // ---------------------------------------------------------------------------
 
 const XX121 = "xx121";
 
-const facehuggerAttacks: Attack[] = [
-  { roll: 1, name: "Scuttle", dice: 0, damage: 0, effect: "Moves to a hiding place in the zone; cannot be attacked this round unless spotted." },
-  { roll: 2, name: "Clumsy leap", dice: 4, damage: 0, effect: "Lands on the target; on a success the victim must act next round or be hugged." },
-  { roll: 3, name: "Tail whip", dice: 5, damage: 1, effect: "Lashes at a hand or weapon; on a success the victim drops the item." },
-  { roll: 4, name: "Leap", dice: 6, damage: 0, effect: "Attaches to the face; grappled victim must win a Close Combat contest to pull it off." },
-  { roll: 5, name: "Choke hold", dice: 7, damage: 1, effect: "Tail wraps the throat; victim takes damage each round until freed." },
-  { roll: 6, name: "Implant", dice: 8, damage: 0, effect: "Victim is impregnated; the facehugger drops off dead within a shift. Start the chestburster countdown." },
+/** Special abilities common to every variety of Xenomorph XX121 (p. 210). */
+const XX121_COMMON: Ability[] = [
+  { name: "Acid Splash", text: "Non-fire damage sprays acid on everything Adjacent: base dice = Acid Splash rating + damage taken, damage 1. Repeats each round at half the dice.", page: 210 },
+  { name: "Immunity To Cold & Vacuum", text: "Unharmed by cold or vacuum, and does not seem to need to breathe.", page: 210 },
+  { name: "Radiation", text: "Radiation counts as two levels weaker: extreme acts as weak, weak and strong do nothing.", page: 210 },
+  { name: "Darkness", text: "Darkness does not hinder it in stealth mode.", page: 210 },
 ];
 
-const chestbursterAttacks: Attack[] = [
-  { roll: 1, name: "Hide", dice: 0, damage: 0, effect: "Scurries into a vent or under equipment; stealth mode begins." },
-  { roll: 2, name: "Shriek", dice: 0, damage: 0, effect: "Everyone in the zone makes an immediate Panic Roll." },
-  { roll: 3, name: "Bite", dice: 4, damage: 1, effect: "Needle teeth; victim gains +1 stress." },
-  { roll: 4, name: "Whip", dice: 5, damage: 1, effect: "Tail lash; victim knocked prone." },
-  { roll: 5, name: "Frenzied bite", dice: 6, damage: 2, effect: "Tears at exposed flesh." },
-  { roll: 6, name: "Eruption", dice: 8, damage: 3, armorPiercing: true, effect: "Only on emerging: the host dies and everyone in the zone makes a Panic Roll." },
-];
+const OPENING_THE_EGG: Ability = {
+  name: "Opening The Egg",
+  text: "With a potential host (not an android) within Short range, roll a stress die each round: the facehugger result releases a facehugger. At Adjacent range, a MOBILITY roll (no action) each turn or it opens.",
+  page: 212,
+};
 
-const droneAttacks: Attack[] = [
-  { roll: 1, name: "Stalk", dice: 0, damage: 0, effect: "Vanishes into the shadows; next round the drone acts first." },
-  { roll: 2, name: "Shriek", dice: 0, damage: 0, effect: "Everyone in short range makes an immediate Panic Roll." },
-  { roll: 3, name: "Tail lash", dice: 6, damage: 1, effect: "Victim knocked prone and pushed one zone." },
-  { roll: 4, name: "Grab", dice: 7, damage: 0, effect: "Victim is grappled; dragged away next round unless freed." },
-  { roll: 5, name: "Claws", dice: 8, damage: 2, effect: "Slashes with both hands." },
-  { roll: 6, name: "Inner jaw", dice: 9, damage: 3, armorPiercing: true, effect: "Headbite; a critical injury here is almost always fatal." },
-];
+const FACEHUGGING: Ability = {
+  name: "Facehugging",
+  text: "Automatically facehugs an immobilized host within Adjacent range; in combat, attack #6 does it. The host is out cold until it drops off dead a shift later.",
+  page: [213, 214],
+};
 
-const soldierAttacks: Attack[] = [
-  { roll: 1, name: "Playing dead", dice: 0, damage: 0, effect: "Feigns death; attacks with surprise next round." },
-  { roll: 2, name: "Shriek", dice: 0, damage: 0, effect: "Everyone in short range makes an immediate Panic Roll." },
-  { roll: 3, name: "Tail stab", dice: 8, damage: 2, armorPiercing: true, effect: "Impales through armor; victim is grappled on the tail." },
-  { roll: 4, name: "Grab", dice: 8, damage: 1, effect: "Victim grappled and carried toward the hive next round." },
-  { roll: 5, name: "Claws", dice: 9, damage: 2, effect: "Rakes with both sets of claws; may hit two engaged targets." },
-  { roll: 6, name: "Inner jaw", dice: 10, damage: 3, armorPiercing: true, effect: "Headbite." },
-];
+const FACEHUGGER_REMOVAL: Ability = {
+  name: "Removal",
+  text: "Pulling it off kills the host unless it is first frozen: one stretch with the right gear and a HEAVY MACHINERY roll. Each stretch, a stress die facehugger result means insemination is done.",
+  page: 214,
+};
 
-const workerAttacks: Attack[] = [
-  { roll: 1, name: "Retreat", dice: 0, damage: 0, effect: "Withdraws toward the hive carrying resin or a captive." },
-  { roll: 2, name: "Shriek", dice: 0, damage: 0, effect: "Everyone in short range makes an immediate Panic Roll." },
-  { roll: 3, name: "Shove", dice: 6, damage: 1, effect: "Victim knocked prone." },
-  { roll: 4, name: "Grab", dice: 8, damage: 0, effect: "Victim grappled; cocooned if not freed within a stretch." },
-  { roll: 5, name: "Claws", dice: 8, damage: 2, effect: "Slashes." },
-  { roll: 6, name: "Inner jaw", dice: 9, damage: 3, armorPiercing: true, effect: "Headbite." },
-];
+const BLIND_HUNTER: Ability = {
+  name: "Blind Hunter",
+  text: "Tracks by sound and heat. PCs who win an OBSERVATION roll in stealth mode can stay in its zone a turn unnoticed; near body temperature it gets -2 OBSERVATION dice.",
+  page: 214,
+};
 
-const scoutAttacks: Attack[] = [
-  { roll: 1, name: "Observe", dice: 0, damage: 0, effect: "Slips away unseen and reports to the hive; the next encounter brings more." },
-  { roll: 2, name: "Hiss", dice: 0, damage: 0, effect: "Everyone in the zone makes an immediate Panic Roll." },
-  { roll: 3, name: "Tail lash", dice: 6, damage: 1, effect: "Victim knocked prone." },
-  { roll: 4, name: "Pounce", dice: 7, damage: 1, effect: "Victim grappled; the scout drags them one zone." },
-  { roll: 5, name: "Claws", dice: 7, damage: 2, effect: "Slashes." },
-  { roll: 6, name: "Inner jaw", dice: 8, damage: 3, armorPiercing: true, effect: "Headbite." },
-];
+const DESTROYED_AT_ZERO: Ability = {
+  name: "Destroyed At Zero Health",
+  text: "Facehuggers and Chestbursters do not roll on the broken xenomorph table: at zero Health they are destroyed.",
+  page: 209,
+};
 
-const praetorianAttacks: Attack[] = [
-  { roll: 1, name: "Guard", dice: 0, damage: 0, effect: "Takes position between attackers and the hive; blocks movement through its zone." },
-  { roll: 2, name: "Roar", dice: 0, damage: 0, effect: "Everyone in medium range makes an immediate Panic Roll with +1." },
-  { roll: 3, name: "Tail sweep", dice: 9, damage: 2, effect: "Hits every engaged enemy; victims knocked prone." },
-  { roll: 4, name: "Trample", dice: 9, damage: 2, effect: "Charges through the zone; victims pushed aside and prone." },
-  { roll: 5, name: "Crushing claws", dice: 10, damage: 3, effect: "Both claws; victim grappled." },
-  { roll: 6, name: "Inner jaw", dice: 12, damage: 4, armorPiercing: true, effect: "Headbite." },
-];
+const BIRTH: Ability = {
+  name: "Birth",
+  text: "Bursting out kills the host. It shrieks and sprays blood; first-time witnesses make a panic roll.",
+  page: 216,
+};
 
-const crusherAttacks: Attack[] = [
-  { roll: 1, name: "Stomp", dice: 8, damage: 1, effect: "Victim knocked prone." },
-  { roll: 2, name: "Bellow", dice: 0, damage: 0, effect: "Everyone in medium range makes an immediate Panic Roll with +1." },
-  { roll: 3, name: "Tail smash", dice: 10, damage: 2, effect: "Victim thrown one zone and knocked prone." },
-  { roll: 4, name: "Charge", dice: 10, damage: 3, effect: "Moves one zone and rams; breaks through doors and light walls." },
-  { roll: 5, name: "Head ram", dice: 12, damage: 3, effect: "Crushes anyone in its path; vehicles take hull damage." },
-  { roll: 6, name: "Trample", dice: 14, damage: 4, armorPiercing: true, effect: "Runs down everything in the zone." },
-];
+const SILENT_ASSASSIN: Ability = { name: "Silent Assassin", text: "OBSERVATION rolls to spot it in stealth mode get -2 dice.", page: 217 };
 
-const queenAttacks: Attack[] = [
-  { roll: 1, name: "Command", dice: 0, damage: 0, effect: "All other xenomorphs within long range act immediately." },
-  { roll: 2, name: "Hateful shriek", dice: 0, damage: 0, effect: "Everyone in long range makes an immediate Panic Roll with +2." },
-  { roll: 3, name: "Tail stab", dice: 10, damage: 3, armorPiercing: true, effect: "Impales; victim grappled on the tail." },
-  { roll: 4, name: "Grab and lift", dice: 11, damage: 2, effect: "Victim grappled and lifted; crushed next round unless freed." },
-  { roll: 5, name: "Claws", dice: 12, damage: 3, effect: "May hit two engaged targets." },
-  { roll: 6, name: "Inner jaw", dice: 14, damage: 4, armorPiercing: true, effect: "Headbite." },
-];
+const OVOMORPHING: Ability = {
+  name: "Ovomorphing",
+  text: "Cut off from a hive, it cocoons captured hosts in resin and turns them into eggs over 24-36 hours (four to six shifts).",
+  page: 212,
+};
 
-const ovomorphRows: Attack[] = [
-  { roll: 1, name: "Dormant", dice: 0, damage: 0, effect: "The egg does nothing this round." },
-  { roll: 2, name: "Dormant", dice: 0, damage: 0, effect: "The egg does nothing this round." },
-  { roll: 3, name: "Stirring", dice: 0, damage: 0, effect: "Movement inside; anyone watching gains +1 stress." },
-  { roll: 4, name: "Petals open", dice: 0, damage: 0, effect: "Top opens with a wet sound; everyone engaged makes a Panic Roll." },
-  { roll: 5, name: "Petals open", dice: 0, damage: 0, effect: "Top opens; a facehugger is visible inside and acts next round." },
-  { roll: 6, name: "Release", dice: 6, damage: 0, effect: "A facehugger leaps at the nearest engaged victim; resolve a facehugger Leap." },
-];
-
-const brokenAttacks: Attack[] = [
-  { roll: 1, name: "Collapse", dice: 0, damage: 0, effect: "Loses a round twitching; acid pools in the zone." },
-  { roll: 2, name: "Wail", dice: 0, damage: 0, effect: "Everyone in the zone makes an immediate Panic Roll." },
-  { roll: 3, name: "Weak lash", dice: 4, damage: 1, effect: "Tail flails." },
-  { roll: 4, name: "Grab", dice: 5, damage: 0, effect: "Victim grappled; the creature's own weight pins them." },
-  { roll: 5, name: "Claws", dice: 6, damage: 2, effect: "Slashes." },
-  { roll: 6, name: "Inner jaw", dice: 7, damage: 3, armorPiercing: true, effect: "Headbite, then the creature may die of its wounds." },
-];
+const STAGE_IV_CONTAINMENT = "Independent and hard to kill. Stalkers and Scouts can be lured into hazards; Drones keep a routine and sleep somewhere warm, such as near a reactor.";
+const STAGE_V_CONTAINMENT = "Fire keeps them back. Workers barely resist; a Soldier's carapace stops ordinary rounds but not pulse fire, and Soldiers come in groups. Sentries stay in the inner hive.";
+const STAGE_VI_CONTAINMENT = "A charging Charger's head shield is nearly impervious, its body only Soldier-grade: use explosives or heavy weapons. Killing a Praetorian briefly disorients its Soldiers. Avoid the Queen.";
 
 const xx121Presets: AlienPreset[] = [
   creature({
     id: "xx121-ovomorph",
     name: "Ovomorph (Egg)",
-    summary: "Stage I. Leathery egg that waits for a host.",
-    page: 210,
+    summary: "Stage I. A leathery egg holding a facehugger, laid by a Queen or made from a cocooned host.",
+    page: 212,
     species: XX121,
     stage: "I",
+    variant: "egg",
     speed: 0,
-    health: 4,
-    mobility: 0,
-    observation: 6,
-    armor: 2,
+    health: 2,
+    ...armor(0),
     acidSplash: 4,
-    attacks: ovomorphRows,
-    abilities: [
-      { name: "Sense prey", text: "Detects living creatures in the zone; opens when a host is engaged." },
-      { name: "Dormancy", text: "Can remain viable for decades in a sealed environment." },
-    ],
-    lifecycleTrigger: "Opens when a potential host comes within engaged range; releases a facehugger.",
-    containment: "Cryogenic stasis or vacuum sealing halts development. Flame destroys the egg and its occupant.",
+    abilities: [OPENING_THE_EGG, ...XX121_COMMON],
+    lifecycleTrigger: "Releases its facehugger when a potential host comes near.",
+    containment: "Fire or explosives sterilize eggs, though they burst with acid. Extreme cold makes an egg dormant.",
+  }),
+  creature({
+    id: "xx121-queens-egg",
+    name: "The Queen's Egg",
+    summary: "Stage I. An egg laid by a Queen: hardier than one made by ovomorphing.",
+    page: 212,
+    species: XX121,
+    stage: "I",
+    variant: "queens-egg",
+    speed: 0,
+    health: 3,
+    ...armor(1, 0),
+    acidSplash: 5,
+    abilities: [OPENING_THE_EGG, ...XX121_COMMON],
+    lifecycleTrigger: "Releases its facehugger when a potential host comes near.",
+    containment: "Fire or explosives sterilize eggs, though they burst with acid. Extreme cold makes an egg dormant.",
   }),
   creature({
     id: "xx121-facehugger",
     name: "Facehugger",
-    summary: "Stage II. Parasitoid that implants an embryo in a host.",
-    page: 211,
+    summary: "Stage II. The parasite that leaps onto a host's face and inseminates it.",
+    page: [212, 214],
     species: XX121,
     stage: "II",
+    variant: "facehugger",
     speed: 2,
     health: 2,
     mobility: 8,
-    observation: 8,
-    armor: 2,
+    observation: 7,
+    ...armor(1, 0),
     acidSplash: 4,
-    attacks: facehuggerAttacks,
+    attackTable: "facehugger",
+    attacks: FACEHUGGER_ATTACKS,
     abilities: [
-      { name: "Grip", text: "Once attached, cannot be removed without a Close Combat test and a critical injury to the victim." },
-      { name: "Acid blood", text: "Damaging it splashes acid on everyone engaged." },
+      FACEHUGGING,
+      FACEHUGGER_REMOVAL,
+      BLIND_HUNTER,
+      { name: "Facehugger Swarms", text: "Several in one zone act as a Swarm with Speed by number: 1-2 Speed 2, 3-5 Speed 3, 6-10 Speed 4, 11-20 Speed 5, 21+ Speed 6. Each must be killed separately.", page: 213 },
+      DESTROYED_AT_ZERO,
+      ...XX121_COMMON,
     ],
-    lifecycleTrigger: "Implants an embryo and dies within a shift; chestburster emerges within one to two days.",
-    containment: "Sealed specimen jar or cryotube; sedation does not reliably stop it.",
+    lifecycleTrigger: "Dies and falls off one shift after facehugging; a Chestburster is born one shift later.",
+    containment: "Its skin shrugs off most melee attacks but not pulse rounds, laser tools or fire.",
+    extraFields: {
+      swarmSpeed: [
+        { min: 1, max: 2, speed: 2 },
+        { min: 3, max: 5, speed: 3 },
+        { min: 6, max: 10, speed: 4 },
+        { min: 11, max: 20, speed: 5 },
+        { min: 21, speed: 6 },
+      ],
+    },
+  }),
+  creature({
+    id: "xx121-praeto-facehugger",
+    name: "Praeto-Facehugger",
+    summary: "Stage II. A slightly larger, less dexterous facehugger carrying a Praetomorph seed.",
+    page: [212, 213],
+    species: XX121,
+    stage: "II",
+    variant: "praeto-facehugger",
+    speed: 2,
+    health: 2,
+    mobility: 6,
+    observation: 7,
+    ...armor(1, 0),
+    acidSplash: 4,
+    attackTable: "facehugger",
+    attacks: FACEHUGGER_ATTACKS,
+    abilities: [FACEHUGGING, FACEHUGGER_REMOVAL, BLIND_HUNTER, DESTROYED_AT_ZERO, ...XX121_COMMON],
+    lifecycleTrigger: "Its host gives birth to an Imp, the Praetomorph Stage III.",
+    containment: "Its skin shrugs off most melee attacks but not pulse rounds, laser tools or fire.",
+    tags: ["praetomorph"],
   }),
   creature({
     id: "xx121-royal-facehugger",
     name: "Royal Facehugger",
-    summary: "Stage II variant that implants a queen embryo.",
-    page: 211,
+    summary: "Stage II. A larger, armored facehugger that seeds a Queen.",
+    page: [212, 213],
     species: XX121,
     stage: "II",
     variant: "royal",
@@ -244,514 +270,545 @@ const xx121Presets: AlienPreset[] = [
     health: 3,
     mobility: 8,
     observation: 8,
-    armor: 3,
-    acidSplash: 4,
-    attacks: facehuggerAttacks,
+    ...armor(2, 1),
+    acidSplash: 5,
+    attackTable: "facehugger",
+    attacks: FACEHUGGER_ATTACKS,
     abilities: [
-      { name: "Double implant", text: "Can implant two hosts: the first with a queen embryo, the second with a regular drone." },
-      { name: "Acid blood", text: "Damaging it splashes acid on everyone engaged." },
+      { name: "Two Spores", text: "Thought to carry two spores: one Queen and one protector for the newborn royal.", page: 213 },
+      FACEHUGGING,
+      FACEHUGGER_REMOVAL,
+      BLIND_HUNTER,
+      DESTROYED_AT_ZERO,
+      ...XX121_COMMON,
     ],
-    lifecycleTrigger: "Queen embryo gestates longer than a drone; emergence after two to four days.",
-    containment: "As facehugger; company protocols flag it as a priority specimen.",
-  }),
-  creature({
-    id: "xx121-facehugger-swarm",
-    name: "Facehugger Swarm",
-    summary: "Stage II in numbers; a hatchery disturbed at once.",
-    page: 213,
-    species: XX121,
-    stage: "II",
-    variant: "swarm",
-    speed: 2,
-    health: 6,
-    mobility: 8,
-    observation: 8,
-    armor: 2,
-    acidSplash: 6,
-    attacks: facehuggerAttacks,
-    abilities: [
-      { name: "Swarm", text: "Roll on the swarm size table; the swarm attacks every engaged victim each round." },
-      { name: "Disperse", text: "Area attacks hit the whole swarm; single-target attacks kill one hugger per success." },
-    ],
-    lifecycleTrigger: "Each attached hugger starts its own countdown.",
-    containment: "Flame the hatchery; sealing the zone and venting atmosphere works on a ship.",
+    lifecycleTrigger: "Its host gives birth to a Queen Burster.",
+    containment: "Its skin shrugs off most melee attacks but not pulse rounds, laser tools or fire.",
   }),
   creature({
     id: "xx121-chestburster",
     name: "Chestburster",
-    summary: "Newly emerged larva; fast, frightened and fast-growing.",
-    page: 212,
+    summary: "Stage III. The snake-like newborn that erupts from its host's chest.",
+    page: [215, 216],
     species: XX121,
-    stage: "II-III",
+    stage: "III",
+    variant: "chestburster",
     speed: 2,
     health: 2,
-    mobility: 7,
-    observation: 6,
-    armor: 1,
+    mobility: 8,
+    observation: 4,
+    ...armor(0),
     acidSplash: 4,
-    attacks: chestbursterAttacks,
+    attackTable: "chestburster",
+    attacks: CHESTBURSTER_ATTACKS,
+    abilities: [BIRTH, DESTROYED_AT_ZERO, ...XX121_COMMON],
+    lifecycleTrigger: "Hides and eats metals and food; within one shift it molts into Stage IV.",
+    containment: "Surgery has never removed an embryo without killing the patient. Once born it is easy to kill, if it can be caught.",
+  }),
+  creature({
+    id: "xx121-bambi-burster",
+    name: "Bambi Burster",
+    summary: "Stage III. A fawn-like burster from a four-legged host, very fast on spindly legs.",
+    page: [215, 216],
+    species: XX121,
+    stage: "III",
+    variant: "bambi-burster",
+    speed: 2,
+    health: 2,
+    mobility: 10,
+    observation: 4,
+    ...armor(0),
+    acidSplash: 4,
+    attackTable: "chestburster",
+    attacks: CHESTBURSTER_ATTACKS,
+    abilities: [BIRTH, DESTROYED_AT_ZERO, ...XX121_COMMON],
+    lifecycleTrigger: "Hides and feeds; within one shift it molts into Stage IV.",
+    containment: "Easy to kill once born, if it can be caught.",
+  }),
+  creature({
+    id: "xx121-imp",
+    name: "Imp",
+    summary: "Stage III. The immature Praetomorph: a miniature of its adult form that mimics others.",
+    page: 216,
+    species: XX121,
+    stage: "III",
+    variant: "imp",
+    speed: 2,
+    health: 2,
+    mobility: 8,
+    observation: 6,
+    ...armor(0),
+    acidSplash: 4,
+    attackTable: "chestburster",
+    attacks: CHESTBURSTER_ATTACKS,
     abilities: [
-      { name: "Flee", text: "After emerging it tries to hide; hunting it is a stealth encounter." },
-      { name: "Rapid growth", text: "Molts into a drone within hours if it feeds." },
+      { name: "Mimicry", text: "If not threatened on emerging it may copy the actions of the nearest creature.", page: 216 },
+      BIRTH,
+      DESTROYED_AT_ZERO,
+      ...XX121_COMMON,
     ],
-    lifecycleTrigger: "Emerges from the host chest, killing them; molts to Stage III within a shift given food.",
-    containment: "Catching one alive requires a sealed room and a net; cryo stops growth.",
+    lifecycleTrigger: "Matures much faster than a Chestburster; grows into a Stalker.",
+    containment: "Easy to kill once born, if it can be caught.",
+    tags: ["praetomorph"],
+  }),
+  creature({
+    id: "xx121-queen-burster",
+    name: "Queen Burster",
+    summary: "Stage III. An embryonic Queen, gestated over days and born with crest, arms and legs.",
+    page: 216,
+    species: XX121,
+    stage: "III",
+    variant: "queen-burster",
+    speed: 2,
+    health: 3,
+    mobility: 8,
+    observation: 8,
+    ...armor(1, 0),
+    acidSplash: 5,
+    attackTable: "chestburster",
+    attacks: CHESTBURSTER_ATTACKS,
+    abilities: [BIRTH, DESTROYED_AT_ZERO, ...XX121_COMMON],
+    lifecycleTrigger: "Gestates over days rather than hours before bursting out.",
+    containment: "Easy to kill once born, if it can be caught.",
   }),
   creature({
     id: "xx121-drone",
     name: "Drone",
-    summary: "Stage III. The classic solitary hunter.",
-    page: 214,
+    summary: "Stage IV. The stealthy ambush hunter outside the hive mind; the Nostromo's creature.",
+    page: 217,
     species: XX121,
-    stage: "III",
+    stage: "IV",
+    variant: "drone",
     speed: 2,
-    health: 6,
+    health: 7,
     mobility: 8,
     observation: 8,
-    armor: 6,
-    armorNotes: "Armor doubles against fire damage.",
-    acidSplash: 6,
-    attacks: droneAttacks,
-    abilities: [
-      { name: "Hide in plain sight", text: "Gets +3 on Mobility rolls to stay hidden among machinery and pipes." },
-      { name: "Acid blood", text: "Damaging it splashes acid on everyone engaged." },
-      { name: "Adaptive", text: "Learns the crew's tactics; the GM may re-roll one attack per encounter." },
-    ],
-    lifecycleTrigger: "Can build a hive and lay eggs when no queen is present (egg-morphing).",
-    containment: "Reinforced cell with no vents; the company prefers it in cryo.",
+    ...armor(2, 1),
+    acidSplash: 8,
+    attackTable: "drone",
+    attacks: DRONE_SCOUT_STALKER_ATTACKS,
+    abilities: [SILENT_ASSASSIN, OVOMORPHING, ...XX121_COMMON],
+    lifecycleTrigger: "Stays at Stage IV until a Queen's pheromones make it molt into a Worker or Soldier.",
+    containment: STAGE_IV_CONTAINMENT,
   }),
   creature({
     id: "xx121-scout",
     name: "Scout",
-    summary: "Stage III variant: lighter, faster, and reports back to the hive.",
-    page: 215,
+    summary: "Stage IV. A fast, four-legged runner that finds hosts for the hive; the Fiorina 161 creature.",
+    page: [217, 218],
     species: XX121,
-    stage: "III",
+    stage: "IV",
     variant: "scout",
-    speed: 3,
+    speed: 2,
     health: 5,
+    mobility: 10,
+    observation: 10,
+    ...armor(2, 1),
+    acidSplash: 8,
+    attackTable: "drone",
+    attacks: DRONE_SCOUT_STALKER_ATTACKS,
+    abilities: [OVOMORPHING, ...XX121_COMMON],
+    lifecycleTrigger: "Once a Queen is born and the hive is secure, it matures into a Sentry.",
+    containment: STAGE_IV_CONTAINMENT,
+  }),
+  creature({
+    id: "xx121-stalker",
+    name: "Stalker",
+    summary: "Stage IV. The aggressive adult Praetomorph: bigger, tougher, more fire resistant, less clever.",
+    page: [217, 218],
+    species: XX121,
+    stage: "IV",
+    variant: "stalker",
+    speed: 2,
+    health: 9,
     mobility: 9,
-    observation: 9,
-    armor: 4,
-    acidSplash: 6,
-    attacks: scoutAttacks,
+    observation: 6,
+    ...armor(2),
+    acidSplash: 8,
+    attackTable: "drone",
+    attacks: DRONE_SCOUT_STALKER_ATTACKS,
     abilities: [
-      { name: "Pathfinder", text: "Always knows the shortest route back to the hive." },
-      { name: "Acid blood", text: "Damaging it splashes acid on everyone engaged." },
+      { name: "Feral Hunger", text: "After any attack that deals damage, it attacks the same target again as a free action: eight base dice, damage 1.", page: 218 },
+      ...XX121_COMMON,
     ],
-    lifecycleTrigger: "Molts into a soldier when the hive needs defenders.",
-    containment: "As drone.",
+    lifecycleTrigger: "An evolutionary dead end: no Stalker has been seen to molt further.",
+    containment: STAGE_IV_CONTAINMENT,
+    tags: ["praetomorph"],
   }),
   creature({
     id: "xx121-soldier",
     name: "Soldier",
-    summary: "Stage IV. Heavier warrior caste that defends the hive.",
-    page: 216,
+    summary: "Stage V. The armored adult Drone that attacks in numbers and carries prey back to the hive.",
+    page: [218, 219],
     species: XX121,
-    stage: "IV",
+    stage: "V",
+    variant: "soldier",
     speed: 2,
     health: 8,
-    mobility: 7,
-    observation: 6,
-    armor: 7,
-    armorNotes: "Armor doubles against fire damage.",
-    acidSplash: 6,
-    attacks: soldierAttacks,
-    abilities: [
-      { name: "Pack hunter", text: "Attacks together with other soldiers; +1 die per additional soldier engaged with the same victim, up to +3." },
-      { name: "Acid blood", text: "Damaging it splashes acid on everyone engaged." },
-    ],
-    lifecycleTrigger: "Molts to praetorian when the queen allows it.",
-    containment: "Rarely taken alive.",
+    mobility: 8,
+    observation: 8,
+    ...armor(2, 1),
+    acidSplash: 10,
+    attackTable: "soldier",
+    attacks: SOLDIER_SENTRY_ATTACKS,
+    abilities: [...XX121_COMMON],
+    lifecycleTrigger: "Fed royal jelly by the Queen's Workers, it becomes a Praetorian.",
+    containment: STAGE_V_CONTAINMENT,
   }),
   creature({
     id: "xx121-worker",
     name: "Worker",
-    summary: "Stage IV variant that builds the hive and tends the eggs.",
-    page: 216,
+    summary: "Stage V. A small, pale builder that spins resin, places eggs and tends the Queen.",
+    page: 219,
     species: XX121,
-    stage: "IV",
+    stage: "V",
     variant: "worker",
     speed: 1,
-    health: 7,
-    mobility: 6,
-    observation: 6,
-    armor: 6,
+    health: 4,
+    mobility: 4,
+    observation: 4,
+    ...armor(1, 0),
     acidSplash: 6,
-    attacks: workerAttacks,
     abilities: [
-      { name: "Resin", text: "Can seal a door or cocoon a victim in one stretch." },
-      { name: "Acid blood", text: "Damaging it splashes acid on everyone engaged." },
+      { name: "Non-Combatant", text: "Ignores threats inside the hive and runs if threatened, leaving defense to Soldiers and Sentries. The book gives it no attack table.", page: 219 },
+      ...XX121_COMMON,
     ],
-    lifecycleTrigger: "Stays a worker while the hive needs builders.",
-    containment: "As drone.",
+    lifecycleTrigger: "Molts from a Drone when the hive needs builders.",
+    containment: STAGE_V_CONTAINMENT,
+  }),
+  creature({
+    id: "xx121-sentry",
+    name: "Sentry",
+    summary: "Stage V. The matured Scout: an armored wall-climber that guards the Queen to the death.",
+    page: 219,
+    species: XX121,
+    stage: "V",
+    variant: "sentry",
+    speed: 2,
+    health: 8,
+    mobility: 12,
+    observation: 10,
+    ...armor(2, 1),
+    acidSplash: 10,
+    attackTable: "soldier",
+    attacks: SOLDIER_SENTRY_ATTACKS,
+    abilities: [...XX121_COMMON],
+    lifecycleTrigger: "Fed royal jelly and raw metals for weeks, it becomes a Charger.",
+    containment: STAGE_V_CONTAINMENT,
   }),
   creature({
     id: "xx121-praetorian",
     name: "Praetorian",
-    summary: "Stage V. Royal guard; a queen in waiting.",
-    page: 217,
+    summary: "Stage VI. The Queen's royal guard, twice a Soldier's height with a crested head.",
+    page: [219, 221],
     species: XX121,
-    stage: "V",
+    stage: "VI",
+    variant: "praetorian",
     speed: 2,
     health: 12,
-    mobility: 6,
-    observation: 6,
-    armor: 8,
-    armorNotes: "Armor doubles against fire damage.",
-    acidSplash: 8,
-    attacks: praetorianAttacks,
-    abilities: [
-      { name: "Royal guard", text: "Interposes itself; attacks against the queen in its zone hit the praetorian instead." },
-      { name: "Acid blood", text: "Damaging it splashes acid on everyone in the zone." },
-    ],
-    lifecycleTrigger: "Becomes a queen if the hive loses its queen; otherwise may be driven out to found a new hive.",
-    containment: "Not practical.",
+    mobility: 5,
+    observation: 8,
+    ...armor(3, 1),
+    acidSplash: 10,
+    attackTable: "queen",
+    attacks: PRAETORIAN_CHARGER_QUEEN_ATTACKS,
+    abilities: [...XX121_COMMON],
+    lifecycleTrigger: "If the hive loses its Queen, a Praetorian may molt into a new one.",
+    containment: STAGE_VI_CONTAINMENT,
   }),
   creature({
-    id: "xx121-crusher",
-    name: "Crusher",
-    summary: "Stage V variant; armored battering ram.",
-    page: 218,
+    id: "xx121-charger",
+    name: "Charger (Crusher)",
+    summary: "Stage VI. A four-legged living battering ram with a huge armored crest.",
+    page: [219, 221],
     species: XX121,
-    stage: "V",
-    variant: "crusher",
-    speed: 2,
-    health: 16,
+    stage: "VI",
+    variant: "charger",
+    speed: 1,
+    health: 20,
     mobility: 4,
     observation: 5,
-    armor: 8,
-    armorNotes: "Head carapace armor 12 against attacks from the front.",
-    acidSplash: 8,
-    attacks: crusherAttacks,
+    armor: 5,
+    armorVsFire: 3,
+    armorNotes: "5 (3 vs fire) against attacks to the front, 3 (1 vs fire) otherwise, at the GM's discretion",
+    acidSplash: 10,
+    attackTable: "queen",
+    attacks: PRAETORIAN_CHARGER_QUEEN_ATTACKS,
     abilities: [
-      { name: "Siege beast", text: "Breaks through doors, walls and light vehicles on a charge." },
-      { name: "Acid blood", text: "Damaging it splashes acid on everyone in the zone." },
+      { name: "Head Shield", text: "The higher armor applies to attacks from the front. It climbs and jumps poorly.", page: [219, 220] },
+      ...XX121_COMMON,
     ],
-    lifecycleTrigger: "Terminal form.",
-    containment: "Not practical.",
+    lifecycleTrigger: "Terminal form; only found in long-established hives.",
+    containment: STAGE_VI_CONTAINMENT,
   }),
   creature({
     id: "xx121-queen",
     name: "Queen",
-    summary: "Stage VI. The egg-layer and ruler of the hive.",
-    page: 219,
+    summary: "Stage VI. The six-meter mother of the hive, laying eggs from a vast egg sac.",
+    page: [220, 221],
     species: XX121,
     stage: "VI",
+    variant: "queen",
     speed: 2,
-    health: 20,
-    mobility: 5,
-    observation: 8,
-    armor: 10,
-    armorNotes: "Armor doubles against fire damage.",
+    health: 18,
+    mobility: 6,
+    observation: 12,
+    ...armor(4, 2),
     acidSplash: 10,
-    attacks: queenAttacks,
+    attackTable: "queen",
+    attacks: PRAETORIAN_CHARGER_QUEEN_ATTACKS,
     abilities: [
-      { name: "Hive mind", text: "Directs every xenomorph within the hive; they act on her initiative." },
-      { name: "Egg sac", text: "Immobile while attached to the ovipositor; tearing free takes a round and inflicts 2 damage on her." },
-      { name: "Acid blood", text: "Damaging her splashes acid on everyone in the zone." },
+      { name: "Egg Sac", text: "MOBILITY is zero while she is attached to the egg cocoon.", page: 220 },
+      ...XX121_COMMON,
     ],
-    lifecycleTrigger: "Lays eggs continuously while fed; a hive grows by hundreds within weeks.",
-    containment: "Company priority objective; no known successful containment.",
+    lifecycleTrigger: "Lays eggs en masse once fertile; may keep growing with her hive (Stage VII rumors).",
+    containment: STAGE_VI_CONTAINMENT,
   }),
   creature({
     id: "xx121-empress",
-    name: "Empress (Stage VII)",
-    summary: "Rumored queen of queens. No stats; lore only.",
+    name: "Empress / Queen Mother (Stage VII)",
+    summary: "Rumored giant Queens ruling several Queens and hives. No stats; lore only.",
     page: [220, 221],
     species: XX121,
     stage: "VII",
     loreOnly: true,
-    abilities: [{ name: "Lore", text: "Said to rule several hives at once. Treat as a plot device, not a combat encounter." }],
-    lifecycleTrigger: "Unknown.",
+    unverified: true,
+    abilities: [{ name: "Lore", text: "The book treats these stages as unconfirmed rumor. Use as a plot device, not a fight.", page: [220, 221] }],
   }),
   creature({
     id: "xx121-king",
-    name: "King / Rogue (Stage VII+)",
-    summary: "Engineered or aberrant apex forms. No stats; lore only.",
-    page: [220, 221],
+    name: "Palantine / Alien King (Stage VII+)",
+    summary: "Unconfirmed reports of Praetorians molting further, and of an Alien King. No stats; lore only.",
+    page: 221,
     species: XX121,
     stage: "VII+",
     loreOnly: true,
-    abilities: [{ name: "Lore", text: "Products of corporate experimentation or unnatural lineages; the GM invents stats if one must appear." }],
+    unverified: true,
+    abilities: [{ name: "Lore", text: "Hypothetical forms with no stats in the book; the GM invents them if one must appear.", page: 221 }],
   }),
 ];
 
 // ---------------------------------------------------------------------------
-// Neomorph
+// Neomorph (p. 223-225)
 // ---------------------------------------------------------------------------
 
 const NEO = "neomorph";
 
-const sporeRows: Attack[] = [
-  { roll: 1, name: "Dormant", dice: 0, damage: 0, effect: "Nothing happens this round." },
-  { roll: 2, name: "Dormant", dice: 0, damage: 0, effect: "Nothing happens this round." },
-  { roll: 3, name: "Twitch", dice: 0, damage: 0, effect: "The pod reacts to movement; onlookers gain +1 stress." },
-  { roll: 4, name: "Burst", dice: 5, damage: 0, effect: "A cloud of motes seeks the nearest engaged victim; Stamina roll or infected." },
-  { roll: 5, name: "Burst", dice: 6, damage: 0, effect: "As above; the cloud fills the zone." },
-  { roll: 6, name: "Mass release", dice: 7, damage: 0, effect: "Every unprotected creature in the zone rolls Stamina or is infected." },
-];
-
-const bloodbursterAttacks: Attack[] = [
-  { roll: 1, name: "Flee", dice: 0, damage: 0, effect: "Bolts for cover; stealth mode begins." },
-  { roll: 2, name: "Screech", dice: 0, damage: 0, effect: "Everyone in the zone makes an immediate Panic Roll." },
-  { roll: 3, name: "Bite", dice: 4, damage: 1, effect: "Victim gains +1 stress." },
-  { roll: 4, name: "Lash", dice: 5, damage: 1, effect: "Victim knocked prone." },
-  { roll: 5, name: "Savage bite", dice: 6, damage: 2, effect: "Tears at exposed flesh." },
-  { roll: 6, name: "Eruption", dice: 8, damage: 3, armorPiercing: true, effect: "Only on emerging from the host's back or throat; the host dies." },
-];
-
-const sprinterAttacks: Attack[] = [
-  { roll: 1, name: "Circle", dice: 0, damage: 0, effect: "Moves to another zone and attacks next round with +2 dice." },
-  { roll: 2, name: "Screech", dice: 0, damage: 0, effect: "Everyone in short range makes an immediate Panic Roll." },
-  { roll: 3, name: "Pounce", dice: 7, damage: 1, effect: "Victim knocked prone and grappled." },
-  { roll: 4, name: "Claws", dice: 7, damage: 2, effect: "Slashes." },
-  { roll: 5, name: "Bite", dice: 8, damage: 2, effect: "Latches on; victim takes 1 damage each round until freed." },
-  { roll: 6, name: "Frenzy", dice: 9, damage: 3, effect: "Multiple bites and slashes in a single leap." },
-];
-
-const neomorphAttacks: Attack[] = [
-  { roll: 1, name: "Stalk", dice: 0, damage: 0, effect: "Pale body vanishes against white or grey surfaces; next round it acts first." },
-  { roll: 2, name: "Screech", dice: 0, damage: 0, effect: "Everyone in short range makes an immediate Panic Roll." },
-  { roll: 3, name: "Tail stab", dice: 7, damage: 2, armorPiercing: true, effect: "Barbed tail impales the victim." },
-  { roll: 4, name: "Grab", dice: 8, damage: 1, effect: "Victim grappled." },
-  { roll: 5, name: "Claws", dice: 9, damage: 2, effect: "Slashes." },
-  { roll: 6, name: "Bite", dice: 10, damage: 3, armorPiercing: true, effect: "Toothed jaws crush bone." },
-];
+const SPRINT: Ability = { name: "Sprint", text: "If it moves instead of making a signature attack, it moves one extra zone.", page: 225 };
+const NO_ACID: Ability = { name: "No Acid", text: "Its yellow blood is not acidic.", page: 223 };
 
 const neomorphPresets: AlienPreset[] = [
   creature({
-    id: "neomorph-spore-pod",
-    name: "Neomorph Spore Pod",
-    summary: "Stage I-II. Fungal pod releasing airborne motes.",
-    page: 222,
+    id: "neomorph-egg-sacs",
+    name: "Neomorphic Egg Sacs",
+    summary: "Stage I. Fungus-like pods in clutches of 2D6 that hold the infectious motes. No stats.",
+    page: 223,
     species: NEO,
-    stage: "I-II",
-    speed: 0,
-    health: 2,
-    mobility: 0,
-    observation: 4,
-    armor: 0,
-    attacks: sporeRows,
-    abilities: [
-      { name: "Airborne infection", text: "Motes enter through nose, ears or wounds. A sealed suit or respirator protects." },
-      { name: "Pathogen origin", text: "Grows wherever the black pathogen has seeded a biosphere." },
-    ],
-    lifecycleTrigger: "Infected host gestates a bloodburster within hours.",
-    containment: "Isolate the area, decontaminate with heat; infected hosts cannot be saved by field surgery.",
+    stage: "I",
+    loreOnly: true,
+    abilities: [{ name: "Clutches", text: "Grow in clutches of 2D6, often several in one area; disturbing them releases Neomorphic Motes.", page: 223 }],
+    lifecycleTrigger: "Release a cloud of motes when disturbed.",
+    containment: "Fire destroys them; liquid nitrogen makes them inert until they thaw.",
+  }),
+  creature({
+    id: "neomorph-motes",
+    name: "Neomorphic Motes",
+    summary: "Stage II. A pollen-like swarm of tiny parasites that enters a host through any opening. No stats.",
+    page: 224,
+    species: NEO,
+    stage: "II",
+    loreOnly: true,
+    abilities: [{ name: "Infection", text: "Exposure is a disease with virulence -2. If the STAMINA roll fails, the host reaches Stage III within one shift.", page: 224 }],
+    lifecycleTrigger: "A failed STAMINA roll means a Bloodburster within one shift.",
+    containment: "They avoid smoke and die in fire.",
   }),
   creature({
     id: "neomorph-bloodburster",
-    name: "Bloodburster",
-    summary: "Stage III. Pale larva that erupts from the host's back or throat.",
-    page: 223,
+    name: "Neomorphic Bloodburster",
+    summary: "Stage III. A rabid four-legged newborn that tears its way out of the host.",
+    page: [224, 225],
     species: NEO,
     stage: "III",
-    speed: 2,
-    health: 3,
-    mobility: 8,
-    observation: 7,
-    armor: 2,
-    attacks: bloodbursterAttacks,
+    variant: "bloodburster",
+    speed: 3,
+    health: 2,
+    mobility: 9,
+    observation: 5,
+    ...armor(0),
+    attackTable: "neomorph-bloodburster",
+    attacks: BLOODBURSTER_ATTACKS,
     abilities: [
-      { name: "Rapid growth", text: "Grows to a sprinter in hours, faster still if it feeds." },
-      { name: "Fast", text: "Moves two zones per action." },
+      { name: "Birth", text: "Its birth kills the host. It needs one round to free itself from its sac, then attacks in a rage.", page: 224 },
+      SPRINT,
+      NO_ACID,
     ],
-    lifecycleTrigger: "Emerges violently from the host; molts within a shift.",
-    containment: "Kill on sight; the company wants samples of its blood.",
+    lifecycleTrigger: "After a few stretches it becomes a juvenile Neomorph (Stage IV).",
+    containment: "Strike right after birth, while it is still in its sac; fire or heavy damage then drives it off to hide and grow.",
   }),
   creature({
-    id: "neomorph-sprinter",
-    name: "Sprinter",
-    summary: "Stage IV. Fast juvenile neomorph that hunts in the open.",
-    page: 224,
+    id: "neomorph-neophyte",
+    name: "Neophyte (Juvenile Neomorph)",
+    summary: "Stage IV. A four-legged hunter that singles out one prey and tracks it.",
+    page: 225,
     species: NEO,
     stage: "IV",
+    variant: "neophyte",
     speed: 3,
-    health: 6,
-    mobility: 9,
-    observation: 7,
-    armor: 4,
-    attacks: sprinterAttacks,
-    abilities: [
-      { name: "Fast", text: "Moves two zones per action and may attack after moving." },
-      { name: "No acid", text: "Neomorph blood is not corrosive." },
-    ],
-    lifecycleTrigger: "Molts into an adult neomorph after feeding.",
-    containment: "Not practical in the field.",
+    health: 4,
+    mobility: 10,
+    observation: 6,
+    ...armor(1, 0),
+    attackTable: "neomorph-adult",
+    attacks: NEOMORPH_ATTACKS,
+    abilities: [SPRINT, NO_ACID],
+    lifecycleTrigger: "After one shift it becomes an adult Neomorph.",
+    containment: "It ignores its wounds until they are critical; only sustained, concentrated fire brings it down.",
   }),
   creature({
     id: "neomorph-adult",
-    name: "Neomorph (adult)",
-    summary: "Stage V. Pale, barbed, relentless.",
-    page: 225,
+    name: "Adult Neomorph",
+    summary: "Stage V. A pale, eyeless biped that hunts by stealth and burns out within a day.",
+    page: [224, 225],
     species: NEO,
     stage: "V",
+    variant: "adult",
     speed: 2,
-    health: 8,
-    mobility: 7,
-    observation: 7,
-    armor: 6,
-    armorNotes: "No bonus against fire; neomorphs burn.",
-    attacks: neomorphAttacks,
+    health: 6,
+    mobility: 9,
+    observation: 8,
+    ...armor(1, 0),
+    attackTable: "neomorph-adult",
+    attacks: NEOMORPH_ATTACKS,
     abilities: [
-      { name: "Camouflage", text: "+2 Mobility to hide in pale or sterile environments." },
-      { name: "Relentless", text: "Ignores stress; never retreats while prey remains." },
-      { name: "No acid", text: "Neomorph blood is not corrosive." },
+      { name: "Short Lifespan", text: "Usually dies of natural causes within 24 hours (four shifts); fungus on the corpse grows new egg sacs.", page: 225 },
+      SPRINT,
+      NO_ACID,
     ],
-    lifecycleTrigger: "Terminal form; does not build hives or lay eggs.",
-    containment: "Company protocols treat it as a pathogen carrier: incinerate.",
+    lifecycleTrigger: "Dies within four shifts; its corpse seeds new egg sacs.",
+    containment: "A full pulse rifle burst drops it, any automatic weapon eventually. Finish it with a head shot: they have risen after seeming dead.",
   }),
 ];
 
 // ---------------------------------------------------------------------------
-// Other species
+// Engineers and other extrasolar species (p. 204-207, 227-231)
 // ---------------------------------------------------------------------------
-
-const scorpionidAttacks: Attack[] = [
-  { roll: 1, name: "Burrow", dice: 0, damage: 0, effect: "Disappears into sand or rubble; surprise attack next round." },
-  { roll: 2, name: "Threat display", dice: 0, damage: 0, effect: "Rattling carapace; everyone in the zone makes a Panic Roll." },
-  { roll: 3, name: "Pincer", dice: 7, damage: 2, effect: "Victim grappled." },
-  { roll: 4, name: "Double pincer", dice: 8, damage: 2, effect: "May hit two engaged victims." },
-  { roll: 5, name: "Sting", dice: 8, damage: 1, armorPiercing: true, effect: "Venom: victim rolls Stamina each round or takes 1 further damage." },
-  { roll: 6, name: "Crush and sting", dice: 10, damage: 3, armorPiercing: true, effect: "Grappled victim is crushed and stung." },
-];
-
-const harvesterAttacks: Attack[] = [
-  { roll: 1, name: "Lurk", dice: 0, damage: 0, effect: "Hangs motionless in rafters or canopy; nearly invisible." },
-  { roll: 2, name: "Spray", dice: 6, damage: 0, effect: "Blinding mucus; victim acts at -2 next round." },
-  { roll: 3, name: "Tendril grab", dice: 7, damage: 1, effect: "Victim grappled and pulled one zone." },
-  { roll: 4, name: "Drain", dice: 8, damage: 2, effect: "Feeds on a grappled victim; damage is Health drained." },
-  { roll: 5, name: "Tendril storm", dice: 8, damage: 2, effect: "Hits every engaged enemy." },
-  { roll: 6, name: "Devour", dice: 10, damage: 3, armorPiercing: true, effect: "Swallows a grappled victim whole." },
-];
-
-const bodybursterAttacks: Attack[] = [
-  { roll: 1, name: "Convulse", dice: 0, damage: 0, effect: "The hybrid loses a round; something inside it moves." },
-  { roll: 2, name: "Howl", dice: 0, damage: 0, effect: "Everyone in short range makes an immediate Panic Roll." },
-  { roll: 3, name: "Claws", dice: 7, damage: 2, effect: "Slashes." },
-  { roll: 4, name: "Grab", dice: 8, damage: 1, effect: "Victim grappled." },
-  { roll: 5, name: "Bite", dice: 9, damage: 3, armorPiercing: true, effect: "Half-human jaws, fully xenomorph teeth." },
-  { roll: 6, name: "Burst", dice: 10, damage: 3, effect: "Its ribcage splits and a new creature emerges; the hybrid dies." },
-];
 
 const otherSpeciesPresets: AlienPreset[] = [
   creature({
-    id: "tanakan-scorpionid",
-    name: "Tanakan Scorpionid",
-    summary: "Native burrowing predator of a frontier desert world.",
-    page: 228,
-    species: "tanakan-scorpionid",
-    stage: "adult",
-    speed: 1,
-    health: 7,
-    mobility: 5,
-    observation: 6,
-    armor: 6,
-    attacks: scorpionidAttacks,
-    abilities: [
-      { name: "Burrower", text: "Moves through loose ground; surprise on 1-3 when the party enters its zone." },
-      { name: "Venom", text: "Victims stung must roll Stamina each round or take 1 damage." },
-    ],
-    containment: "Can be captured with a loader and a cargo pod; company bio-labs pay for live ones.",
-  }),
-  creature({
-    id: "harvester",
-    name: "Harvester",
-    summary: "Arboreal ambush predator that drains its prey.",
-    page: 229,
-    species: "harvester",
-    stage: "adult",
-    speed: 1,
-    health: 6,
-    mobility: 7,
-    observation: 7,
-    armor: 3,
-    attacks: harvesterAttacks,
-    abilities: [
-      { name: "Ambush", text: "Mobility 9 while motionless in cover." },
-      { name: "Drain", text: "Feeds on grappled victims; recovers 1 Health per Health drained." },
-    ],
-    containment: "Sedatives work; it is an animal, not an engineered weapon.",
-  }),
-  creature({
     id: "engineer",
-    name: "Engineer (Space Jockey)",
-    summary: "The giant precursors found at Acheron. No stats; lore only.",
-    page: 230,
+    name: "Engineer",
+    summary: "The giant precursors who made humanity and later tried to undo it. None are known alive. No stats; lore only.",
+    page: [204, 207],
     species: "engineer",
     stage: "adult",
     loreOnly: true,
     abilities: [
-      { name: "Lore", text: "Creators or carriers of the black pathogen; their derelicts hold eggs and worse. A living one is a scenario, not a stat block." },
+      { name: "Lore", text: "Known from ruins, derelicts, holographic records and biosuits. Their black accelerant breeds Neomorphs and worse.", page: [204, 207] },
     ],
-  }),
-  creature({
-    id: "bodyburster",
-    name: "Bodyburster",
-    summary: "Mutated host whose body is still becoming something else.",
-    page: 231,
-    species: "bodyburster",
-    stage: "hybrid",
-    speed: 1,
-    health: 9,
-    mobility: 4,
-    observation: 5,
-    armor: 3,
-    acidSplash: 4,
-    attacks: bodybursterAttacks,
-    abilities: [
-      { name: "Unstable", text: "When reduced to 0 Health it bursts: everyone engaged takes 2 damage and a new creature of the GM's choice emerges." },
-      { name: "Still human", text: "Can be reasoned with for a round on a successful Manipulation roll; it then attacks anyway." },
-    ],
-    lifecycleTrigger: "Terminal; whatever is inside emerges when the host dies.",
-    containment: "Quarantine the host before the change completes; after that, incinerate.",
   }),
   creature({
     id: "deacon",
     name: "Deacon",
-    summary: "Pale proto-xenomorph born of a trilobite and an Engineer. No stats; lore only.",
-    page: 231,
+    summary: "A rumored dark blue, goblin-jawed missing link between Neomorph and XX121. No stats; lore only.",
+    page: 220,
     species: "deacon",
     stage: "adult",
     loreOnly: true,
-    abilities: [{ name: "Lore", text: "A single known specimen; use neomorph adult stats if it must fight." }],
+    abilities: [{ name: "Lore", text: "Mentioned only among unconfirmed xenomorph types; no stats in the book.", page: 220 }],
   }),
-];
-
-// ---------------------------------------------------------------------------
-// Broken xenomorph
-// ---------------------------------------------------------------------------
-
-const brokenPresets: AlienPreset[] = [
   creature({
-    id: "xx121-broken",
-    name: "Broken Xenomorph",
-    summary: "A drone crippled by damage, cold or captivity; still deadly, now unpredictable.",
-    page: 213,
-    species: XX121,
-    stage: "III",
-    variant: "broken",
+    id: "harvester",
+    name: "Harvester",
+    summary: "A six-legged, six-meter burrower with a meat-grinder mouth that wrecked the Tartarus colony.",
+    page: [227, 228],
+    species: "harvester",
+    stage: "adult",
+    speed: 1,
+    health: 15,
+    mobility: 4,
+    armor: 5,
+    armorNotes: "2 on the underbelly",
+    attackTable: "harvester",
+    attacks: HARVESTER_ATTACKS,
+    abilities: [
+      { name: "Hidden Behemoth", text: "Sleeps under a thin crust. Walkers get an OBSERVATION roll to spot it; otherwise the ground gives way and it gets a surprise attack.", page: 228 },
+      { name: "Harvester Juveniles", text: "Carries up to 2D6 young under its armor; they join the fight if it is in real danger.", page: 228 },
+    ],
+    containment: "Go for the soft underbelly. Luring them to the surface for air strikes worked only until they learned.",
+    extraFields: { classification: "Mammalian Omnivore", habitat: "Tartarus and several mining colonies", size: "6 meters or more" },
+  }),
+  creature({
+    id: "harvester-juvenile",
+    name: "Harvester Juvenile",
+    summary: "A boar-sized Harvester young that leaps to its mother's defense.",
+    page: 228,
+    species: "harvester",
+    stage: "juvenile",
     speed: 1,
     health: 4,
-    mobility: 5,
+    mobility: 8,
+    armor: 1,
+    attacks: [{ roll: 1, rollTo: 6, name: "Attack", dice: 4, damage: 1, effect: "The book gives the young a single attack: four base dice, damage 1." }],
+    abilities: [{ name: "Defend Mother", text: "Only detaches and fights when its mother is in genuine danger.", page: 228 }],
+  }),
+  creature({
+    id: "lion-worm",
+    name: "Lion Worm",
+    summary: "A golden-ciliated burrowing ambush predator from the jungles of Zagreus.",
+    page: [228, 229],
+    species: "lion-worm",
+    stage: "adult",
+    speed: 2,
+    health: 8,
+    mobility: 10,
+    observation: 8,
+    armor: 1,
+    attackTable: "lion-worm",
+    attacks: LION_WORM_ATTACKS,
+    abilities: [{ name: "Ambush Predator", text: "In its own territory, its prey gets -2 dice to OBSERVATION rolls in stealth mode.", page: 229 }],
+    containment: "Pollen or pollutants disorient it; another Lion Worm's scent distracts it and draws it to attack the rival.",
+    extraFields: { classification: "Invertebrate Carnivore", habitat: "Wilds of Zagreus", size: "1.8-3 meters" },
+  }),
+  creature({
+    id: "tanakan-scorpionid",
+    name: "Tanakan Scorpionid",
+    summary: "A venomous desert sea-scorpion of Tanaka 5 that hunts at night and swims well.",
+    page: [229, 230],
+    species: "tanakan-scorpionid",
+    stage: "adult",
+    speed: 1,
+    health: 5,
+    mobility: 6,
     observation: 6,
-    armor: 4,
-    acidSplash: 6,
-    attacks: brokenAttacks,
+    armor: 1,
+    armorNotes: "0 vs firearms",
+    attackTable: "tanakan-scorpionid",
+    attacks: SCORPIONID_ATTACKS,
     abilities: [
-      { name: "Damaged", text: "Roll on the broken xenomorph table when it is first encountered to find what is wrong with it." },
-      { name: "Acid blood", text: "Damaging it splashes acid on everyone engaged." },
+      { name: "In Water", text: "In water: Speed 3, MOBILITY 10, OBSERVATION 10 (other stats unchanged).", page: 230 },
+      { name: "Underwater Sprint", text: "Starting its turn in water, it moves one extra zone if it moves instead of attacking.", page: 230 },
     ],
-    lifecycleTrigger: "Does not recover; dies within days unless it reaches a hive.",
-    containment: "Already partly contained; this is what escapes.",
-    tags: ["broken"],
+    containment: "Its shell stops knives and melee weapons, not bullets. Its venom is valuable for medicine.",
+    extraFields: { inWater: { speed: 3, health: 5, mobility: 10, observation: 10 }, classification: "Arthropod Carnivore", habitat: "Tanaka 5, deserts and cavernous springs", size: "1.5-2.4 meters" },
+  }),
+  creature({
+    id: "swarm",
+    name: "The Swarm",
+    summary: "Space locusts from LV-KR 115 that blanket whole zones and eat everything but metal.",
+    page: [230, 231],
+    species: "swarm",
+    stage: "adult",
+    speed: 1,
+    health: 5,
+    armorNotes: "Impervious to all attacks except fire, explosions and electricity",
+    attackTable: "swarm",
+    attacks: SWARM_ATTACKS,
+    abilities: [
+      { name: "Swarm Rules", text: "Size is counted in zones covered: Speed 1 and Health 5 per zone. It cannot be killed; at zero Health it leaves for easier pickings.", page: 231 },
+    ],
+    containment: "Shooting is pointless. In space, burn dormant swarms with the engines; planetside only fire, electricity and pesticides work.",
+    extraFields: { perZone: true, classification: "Insect Omnivores", habitat: "LV-KR 115, fertile grass and farmlands, or drifting through space", size: "Around 15 centimeters each; swarms span many kilometers" },
   }),
 ];
 
-export const creaturePresets: AlienPreset[] = [
-  ...xx121Presets,
-  ...neomorphPresets,
-  ...otherSpeciesPresets,
-  ...brokenPresets,
-];
+export const creaturePresets: AlienPreset[] = [...xx121Presets, ...neomorphPresets, ...otherSpeciesPresets];
