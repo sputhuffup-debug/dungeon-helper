@@ -105,7 +105,7 @@ export function RuleCardList({ cards, modes, mode, onOpen, className }: RuleCard
           {shown.map((c) => (
             <li key={c.id}>
               <button type="button" className="cf-rulelist__item" onClick={() => onOpen?.(c)}>
-                <span>
+                <span className="cf-rulelist__item-text">
                   <span className="cf-rulelist__item-title">{c.title}</span>
                   <span className="cf-rulelist__item-summary">{c.summary}</span>
                 </span>

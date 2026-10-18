@@ -833,7 +833,7 @@
 }
 .cf-rulelist__item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: var(--cf-space-3);
   width: 100%;
@@ -853,13 +853,22 @@
 .cf-rulelist__item-title {
   font-weight: 600;
 }
+/* The text column may shrink below its content so long summaries wrap inside the card. */
+.cf-rulelist__item-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: left;
+}
+.cf-rulelist__item .cf-page {
+  flex: none;
+  white-space: nowrap;
+}
 .cf-rulelist__item-summary {
   display: block;
   color: var(--cf-muted);
   font-size: var(--cf-text-xs);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .cf-prompt__text {
