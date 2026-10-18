@@ -24,8 +24,10 @@ import * as Y from "yjs";
 import { loadModuleById } from "../modules/registry";
 
 /** Per-map change counters so list hooks can hand React a stable snapshot. */
+export type VersionKey = MapName | "meta" | "*" | "docs";
+
 export class StoreVersions {
-  readonly #versions = new Map<MapName | "meta" | "*", number>();
+  readonly #versions = new Map<VersionKey, number>();
   readonly #listeners = new Set<() => void>();
   readonly #unsubscribe: () => void;
 
@@ -33,11 +35,21 @@ export class StoreVersions {
     this.#unsubscribe = store.subscribe((change: StoreChange) => {
       this.#versions.set(change.map, (this.#versions.get(change.map) ?? 0) + 1);
       this.#versions.set("*", (this.#versions.get("*") ?? 0) + 1);
-      for (const l of [...this.#listeners]) l();
+      this.#emit();
     });
   }
 
-  get(map: MapName | "meta" | "*"): number {
+  /** Rich-text bodies changed (loaded from storage or edited). */
+  bumpDocs(): void {
+    this.#versions.set("docs", (this.#versions.get("docs") ?? 0) + 1);
+    this.#emit();
+  }
+
+  #emit(): void {
+    for (const l of [...this.#listeners]) l();
+  }
+
+  get(map: VersionKey): number {
     return this.#versions.get(map) ?? 0;
   }
 
@@ -88,8 +100,10 @@ export async function openCampaign(campaignId: Id): Promise<CampaignContextValue
   let search: SearchIndex | undefined;
   let versions: StoreVersions | undefined;
   let unsubIndex: (() => void) | undefined;
+  let unsubDocs: (() => void) | undefined;
   const close = () => {
     if (unsubIndex) unsubIndex();
+    if (unsubDocs) unsubDocs();
     search?.detach();
     refIndex?.dispose();
     versions?.dispose();
@@ -108,8 +122,10 @@ export async function openCampaign(campaignId: Id): Promise<CampaignContextValue
     refIndex = new RefIndex(registry);
     search = new SearchIndex();
     search.attach(store);
+    const v = new StoreVersions(store);
+    versions = v;
+    unsubDocs = watchDocs(registry, () => v.bumpDocs());
     refIndex.indexAll(store);
-    versions = new StoreVersions(store);
     // keep the device's campaign index fresh (name and last-updated)
     let timer: ReturnType<typeof setTimeout> | undefined;
     unsubIndex = store.subscribe(() => {
@@ -135,6 +151,42 @@ export async function openCampaign(campaignId: Id): Promise<CampaignContextValue
     versions,
     whenDocSynced: (id) => persistence.whenDocSynced(id),
     close,
+  };
+}
+
+/** Call `onChange` (debounced) whenever any rich-text doc opened through the registry changes. */
+function watchDocs(registry: RichTextRegistry, onChange: () => void): () => void {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const bump = () => {
+    if (timer) return;
+    timer = setTimeout(() => {
+      timer = undefined;
+      onChange();
+    }, 150);
+  };
+  const attached = new Map<Id, { doc: Y.Doc; handler: () => void }>();
+  const attach = (id: Id, doc: Y.Doc) => {
+    if (attached.has(id)) return;
+    const handler = () => bump();
+    doc.on("update", handler);
+    attached.set(id, { doc, handler });
+  };
+  for (const id of registry.ids()) {
+    const doc = registry.peek(id);
+    if (doc) attach(id, doc);
+  }
+  const offOpen = registry.onOpen(attach);
+  const offClose = registry.onClose((id) => {
+    const a = attached.get(id);
+    if (a) a.doc.off("update", a.handler);
+    attached.delete(id);
+  });
+  return () => {
+    offOpen();
+    offClose();
+    if (timer) clearTimeout(timer);
+    for (const a of attached.values()) a.doc.off("update", a.handler);
+    attached.clear();
   };
 }
 

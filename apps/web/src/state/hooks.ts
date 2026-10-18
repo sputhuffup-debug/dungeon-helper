@@ -6,12 +6,12 @@
 import type { CampaignMeta, Entity, Id, MapName, RecordOf } from "@campaign-forge/core";
 import { computeFields, type EntityTypeDef } from "@campaign-forge/module-sdk";
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
-import { useCampaign } from "./CampaignProvider";
+import { useCampaign, type VersionKey } from "./CampaignProvider";
 
 export { useCampaign, useOptionalCampaign } from "./CampaignProvider";
 
-/** A counter that changes whenever `map` changes ("*" for any map). */
-export function useMapVersion(map: MapName | "meta" | "*"): number {
+/** A counter that changes whenever `map` changes ("*" for any map, "docs" for rich-text bodies). */
+export function useMapVersion(map: VersionKey): number {
   const { versions } = useCampaign();
   const subscribe = useCallback((cb: () => void) => versions.subscribe(cb), [versions]);
   const get = useCallback(() => versions.get(map), [versions, map]);
