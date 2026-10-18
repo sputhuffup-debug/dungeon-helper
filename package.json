@@ -1,0 +1,22 @@
+{
+  "name": "campaign-forge",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Campaign Forge: a Game Master's workspace for tabletop RPG campaigns, with the Alien RPG Evolved Edition as the first module.",
+  "packageManager": "pnpm@10.28.0",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "pnpm --filter @campaign-forge/web dev",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "lint": "turbo run lint",
+    "table-lint": "pnpm --filter @campaign-forge/table-lint run lint-tables"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "turbo": "^2.11.9",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.5"
+  }
+}
