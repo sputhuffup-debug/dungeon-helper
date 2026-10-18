@@ -53,6 +53,29 @@ function runningSession(ctx: CampaignContextValue) {
 }
 
 describe("table actions", () => {
+  it("rolls an android's critical injury on the system damage table, moving past damage it already has", async () => {
+    const ctx = await open(alienCampaign);
+    const bishop = pc(ctx, "Bishop", { android: true });
+    const session = runningSession(ctx);
+    const op = ctx.module.module.dice.operations!.criticalInjury!;
+
+    const input = operationInput(ctx.module, op, bishop);
+    expect(input).toMatchObject({ entity: bishop.id, android: true, conditions: [] });
+
+    const first = rollOperation(ctx, session.id, "criticalInjury", bishop.id);
+    const afterFirst = ctx.store.get("entities", bishop.id)!.conditions ?? [];
+    expect(afterFirst).toHaveLength(1);
+    expect(afterFirst[0]!.id).toMatch(/^android-critical:/);
+    expect(afterFirst[0]!.page).toBe(78);
+    expect(first.result.label).toBe(afterFirst[0]!.label);
+
+    // The second roll sees the first result and can never repeat it.
+    rollOperation(ctx, session.id, "criticalInjury", bishop.id);
+    const ids = (ctx.store.get("entities", bishop.id)!.conditions ?? []).map((c) => c.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(ids.every((id) => id.startsWith("android-critical:"))).toBe(true);
+  });
+
   it("rolls a panic operation with a seeded rng, applies its effects and appends to the stress tracker's panicLog", async () => {
     const ctx = await open(alienCampaign);
     const ripley = pc(ctx, "Ripley");
