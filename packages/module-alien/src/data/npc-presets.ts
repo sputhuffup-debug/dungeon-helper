@@ -1,0 +1,443 @@
+import type { AlienPreset } from "./types";
+
+/**
+ * Typical NPC stat blocks (Evolved Edition p. 258-259).
+ *
+ * Reference data only: attribute lines, a few skills, at most one talent,
+ * a short gear list and one-line trait / goal / appearance hooks. Values are
+ * from general knowledge of the game and are flagged `unverified`.
+ *
+ * Health and Resolve are never stored; the character entity computes them.
+ */
+
+interface NpcSpec {
+  id: string;
+  name: string;
+  summary: string;
+  android?: boolean;
+  career?: string;
+  attributes: { strength: number; agility: number; wits: number; empathy: number };
+  skills: Record<string, number>;
+  talent?: string;
+  gear: Array<{ name: string; weight: number; qty?: number; supply?: number }>;
+  trait: string;
+  goal: string;
+  appearance: string;
+  tags?: string[];
+}
+
+const PAGE: [number, number] = [258, 259];
+
+function npc(spec: NpcSpec): AlienPreset {
+  const { id, name, summary, android = false, career, attributes, skills, talent, gear, trait, goal, appearance, tags = [] } = spec;
+  const fields: Record<string, unknown> = {
+    isPC: false,
+    android,
+    attributes,
+    skills,
+    talents: talent ? [{ id: talent, count: 1 }] : [],
+    stress: 0,
+    gear: gear.map((g) => ({ name: g.name, weight: g.weight, qty: g.qty ?? 1, ...(g.supply !== undefined ? { supply: g.supply } : {}) })),
+    cash: 0,
+    trait,
+    goal,
+    appearance,
+  };
+  if (career) fields.career = career;
+  return {
+    id: `alien.npc.${id}`,
+    entityType: "alien.character",
+    name,
+    summary,
+    page: PAGE,
+    tags: ["npc", ...(android ? ["android"] : []), ...tags],
+    fields,
+    unverified: true,
+  };
+}
+
+export const npcPresets: AlienPreset[] = [
+  npc({
+    id: "android-covert",
+    name: "Android (covert)",
+    summary: "Synthetic passing as human; the crew does not know.",
+    android: true,
+    attributes: { strength: 6, agility: 6, wits: 6, empathy: 4 },
+    skills: { closeCombat: 2, observation: 3, comtech: 3, manipulation: 2, medicalAid: 2 },
+    gear: [{ name: "Pr-Put personal data transmitter", weight: 0.5 }],
+    trait: "Unfailingly polite, never sweats",
+    goal: "Complete the company directive without being exposed",
+    appearance: "Unremarkable crew uniform, eyes that linger a moment too long",
+  }),
+  npc({
+    id: "android-overt",
+    name: "Android (overt)",
+    summary: "Openly synthetic crew member or company asset.",
+    android: true,
+    attributes: { strength: 8, agility: 6, wits: 6, empathy: 3 },
+    skills: { heavyMachinery: 3, closeCombat: 2, observation: 2, comtech: 3, medicalAid: 3 },
+    gear: [{ name: "Maintenance jack", weight: 1 }],
+    trait: "Calm to the point of unsettling",
+    goal: "Protect the crew within the bounds of its directives",
+    appearance: "Company-issue coveralls, white synthetic blood at an old scar",
+  }),
+  npc({
+    id: "colonial-marine",
+    name: "Colonial Marine",
+    summary: "USCMC rifleman, dropship-ready.",
+    career: "colonial-marine",
+    attributes: { strength: 5, agility: 4, wits: 3, empathy: 2 },
+    skills: { closeCombat: 2, stamina: 2, rangedCombat: 3, mobility: 1, survival: 1 },
+    talent: "overkill",
+    gear: [
+      { name: "M41A pulse rifle", weight: 1, supply: 5 },
+      { name: "M3 personnel armor", weight: 1 },
+      { name: "Frag grenade", weight: 0.5, qty: 2 },
+    ],
+    trait: "Swagger that covers a short fuse",
+    goal: "Get the squad home, then get a drink",
+    appearance: "Battered camo, helmet scrawled with slogans",
+  }),
+  npc({
+    id: "marshal",
+    name: "Colonial Marshal",
+    summary: "Frontier lawman with a wide jurisdiction and few deputies.",
+    career: "colonial-marshal",
+    attributes: { strength: 4, agility: 3, wits: 4, empathy: 3 },
+    skills: { closeCombat: 1, rangedCombat: 2, observation: 3, manipulation: 2, command: 1 },
+    talent: "subdue",
+    gear: [
+      { name: ".357 Magnum revolver", weight: 1 },
+      { name: "Stun baton", weight: 1 },
+      { name: "Binoculars", weight: 0.5 },
+    ],
+    trait: "Slow to anger, impossible to bribe",
+    goal: "Keep the peace on a world nobody else cares about",
+    appearance: "Weathered duster over a flak vest, badge polished bright",
+  }),
+  npc({
+    id: "company-agent",
+    name: "Company Agent",
+    summary: "Corporate fixer with a mandate and a budget.",
+    career: "company-agent",
+    attributes: { strength: 3, agility: 3, wits: 4, empathy: 4 },
+    skills: { rangedCombat: 1, observation: 2, comtech: 2, manipulation: 3, command: 1 },
+    talent: "personal-safety",
+    gear: [
+      { name: "M4A3 service pistol", weight: 1 },
+      { name: "Pr-Put personal data transmitter", weight: 0.5 },
+      { name: "Expense account", weight: 0 },
+    ],
+    trait: "Smiles while reading the fine print",
+    goal: "Secure the asset and the deniability",
+    appearance: "Pressed business suit that looks wrong on a frontier dock",
+  }),
+  npc({
+    id: "corporate-exec",
+    name: "Corporate Executive",
+    summary: "Senior company officer; never travels without security.",
+    attributes: { strength: 2, agility: 2, wits: 4, empathy: 5 },
+    skills: { observation: 1, comtech: 1, manipulation: 4, command: 3 },
+    talent: "take-control",
+    gear: [
+      { name: "Personal data pad", weight: 0.5 },
+      { name: "Tailored suit", weight: 0 },
+    ],
+    trait: "Treats everyone as a line item",
+    goal: "Deliver quarterly results no matter the body count",
+    appearance: "Immaculate, expensive, faintly bored",
+  }),
+  npc({
+    id: "colonist",
+    name: "Colonist",
+    summary: "Frontier settler, farmer, miner or technician.",
+    attributes: { strength: 3, agility: 3, wits: 3, empathy: 3 },
+    skills: { heavyMachinery: 2, stamina: 1, survival: 2, comtech: 1 },
+    gear: [
+      { name: "Hand welder", weight: 1 },
+      { name: "Flashlight", weight: 0.5 },
+    ],
+    trait: "Stubborn pride in a hard life",
+    goal: "Make the next harvest, keep the family safe",
+    appearance: "Patched work clothes, dust in every seam",
+  }),
+  npc({
+    id: "kid",
+    name: "Kid",
+    summary: "Colony child who knows every vent and crawlspace.",
+    career: "kid",
+    attributes: { strength: 2, agility: 4, wits: 3, empathy: 3 },
+    skills: { mobility: 3, observation: 2, survival: 1 },
+    talent: "sneaky",
+    gear: [
+      { name: "Flashlight", weight: 0.5 },
+      { name: "Stuffed toy", weight: 0 },
+    ],
+    trait: "Braver than the adults when it counts",
+    goal: "Find a grown-up who will actually listen",
+    appearance: "Oversized jacket, grimy face, quick eyes",
+  }),
+  npc({
+    id: "medic",
+    name: "Medic",
+    summary: "Ship or colony doctor, often overworked.",
+    career: "medic",
+    attributes: { strength: 2, agility: 3, wits: 4, empathy: 4 },
+    skills: { observation: 2, comtech: 1, manipulation: 1, medicalAid: 3 },
+    talent: "field-surgeon",
+    gear: [
+      { name: "Personal medkit", weight: 0.5 },
+      { name: "Surgical kit", weight: 1 },
+      { name: "Naproleve", weight: 0, qty: 3 },
+    ],
+    trait: "Cares too much and sleeps too little",
+    goal: "Keep everyone alive, even the ones who do not deserve it",
+    appearance: "Stained scrubs under a company jacket",
+  }),
+  npc({
+    id: "officer",
+    name: "Officer",
+    summary: "Military or corporate commander used to being obeyed.",
+    career: "officer",
+    attributes: { strength: 3, agility: 3, wits: 4, empathy: 4 },
+    skills: { rangedCombat: 2, observation: 2, manipulation: 1, command: 3 },
+    talent: "influence",
+    gear: [
+      { name: "M4A3 service pistol", weight: 1 },
+      { name: "Data pad with mission orders", weight: 0.5 },
+    ],
+    trait: "By the book until the book runs out",
+    goal: "Complete the mission and keep the record clean",
+    appearance: "Crisp uniform, rank insignia, a faint tremor in one hand",
+  }),
+  npc({
+    id: "pilot",
+    name: "Pilot",
+    summary: "Shuttle, dropship or freighter jockey.",
+    career: "pilot",
+    attributes: { strength: 3, agility: 4, wits: 4, empathy: 2 },
+    skills: { rangedCombat: 1, piloting: 3, comtech: 2, observation: 1 },
+    talent: "full-throttle",
+    gear: [
+      { name: "Flight suit", weight: 1 },
+      { name: "Pr-Put personal data transmitter", weight: 0.5 },
+      { name: "Hip flask", weight: 0.5 },
+    ],
+    trait: "Jokes louder as things get worse",
+    goal: "Fly anything, anywhere, and get paid",
+    appearance: "Worn flight jacket covered in squadron patches",
+  }),
+  npc({
+    id: "roughneck",
+    name: "Roughneck",
+    summary: "Deckhand, miner or rig worker; tough and unimpressed.",
+    career: "roughneck",
+    attributes: { strength: 5, agility: 3, wits: 2, empathy: 2 },
+    skills: { heavyMachinery: 3, closeCombat: 2, stamina: 2, survival: 1 },
+    talent: "tough",
+    gear: [
+      { name: "Cutting torch", weight: 1, supply: 5 },
+      { name: "Wrench", weight: 1 },
+      { name: "Compression suit", weight: 1, supply: 5 },
+    ],
+    trait: "Complains about everything, finishes every shift",
+    goal: "Collect the bonus, then never see this rock again",
+    appearance: "Grease-stained coveralls and a permanent squint",
+  }),
+  npc({
+    id: "scientist",
+    name: "Scientist",
+    summary: "Company or academic researcher chasing a result.",
+    career: "scientist",
+    attributes: { strength: 2, agility: 2, wits: 5, empathy: 3 },
+    skills: { observation: 3, survival: 1, comtech: 2, medicalAid: 2 },
+    talent: "analysis",
+    gear: [
+      { name: "Hand-held scanner", weight: 0.5 },
+      { name: "Sample containers", weight: 0.5 },
+      { name: "Data pad", weight: 0.5 },
+    ],
+    trait: "Curiosity that overrides caution",
+    goal: "Document the specimen before the company buries it",
+    appearance: "Lab coat over thermal layers, pockets full of instruments",
+  }),
+  npc({
+    id: "security-guard",
+    name: "Security Guard",
+    summary: "Corporate or colony security contractor.",
+    attributes: { strength: 4, agility: 3, wits: 3, empathy: 2 },
+    skills: { closeCombat: 2, rangedCombat: 2, observation: 2, stamina: 1 },
+    gear: [
+      { name: "Shotgun", weight: 1 },
+      { name: "Stun baton", weight: 1 },
+      { name: "Light armor vest", weight: 1 },
+    ],
+    trait: "Follows orders, resents them",
+    goal: "Finish the contract without an incident report",
+    appearance: "Company security uniform, mirrored visor",
+  }),
+  npc({
+    id: "smuggler",
+    name: "Smuggler",
+    summary: "Independent hauler who never declares the whole cargo.",
+    attributes: { strength: 3, agility: 4, wits: 4, empathy: 3 },
+    skills: { rangedCombat: 2, piloting: 2, observation: 1, comtech: 1, manipulation: 2 },
+    talent: "bluff",
+    gear: [
+      { name: "Rexim RXF-M5 EVA pistol", weight: 1 },
+      { name: "Forged manifest", weight: 0 },
+    ],
+    trait: "Every answer is half true",
+    goal: "Move the cargo past the customs cutter",
+    appearance: "Mismatched gear, good boots, a nervous laugh",
+  }),
+  npc({
+    id: "thug",
+    name: "Thug",
+    summary: "Hired muscle, gang enforcer or dock bully.",
+    attributes: { strength: 5, agility: 3, wits: 2, empathy: 2 },
+    skills: { closeCombat: 3, stamina: 1, rangedCombat: 1 },
+    gear: [
+      { name: "Blunt instrument", weight: 1 },
+      { name: "Knife", weight: 0.5 },
+    ],
+    trait: "Hits first, asks nothing",
+    goal: "Get paid, hurt someone if possible",
+    appearance: "Scarred knuckles, cheap tattoos, cheaper jacket",
+  }),
+  npc({
+    id: "mercenary",
+    name: "Mercenary",
+    summary: "Ex-military gun for hire; loyal to the contract.",
+    attributes: { strength: 4, agility: 4, wits: 3, empathy: 2 },
+    skills: { closeCombat: 2, rangedCombat: 3, stamina: 2, mobility: 1, survival: 1 },
+    talent: "rapid-fire",
+    gear: [
+      { name: "AK-4047 pulse rifle", weight: 1, supply: 5 },
+      { name: "Light armor vest", weight: 1 },
+      { name: "Knife", weight: 0.5 },
+    ],
+    trait: "Professional until the money runs out",
+    goal: "Complete the job and renegotiate the price",
+    appearance: "Surplus armor with the insignia filed off",
+  }),
+  npc({
+    id: "prisoner",
+    name: "Prisoner",
+    summary: "Inmate of a penal colony or brig; dangerous when cornered.",
+    attributes: { strength: 4, agility: 3, wits: 3, empathy: 2 },
+    skills: { closeCombat: 2, stamina: 2, survival: 1, manipulation: 1 },
+    gear: [{ name: "Improvised shiv", weight: 0.5 }],
+    trait: "Reads people like a survival skill",
+    goal: "Stay alive long enough to get out",
+    appearance: "Shaved head, prison fatigues, watchful stillness",
+  }),
+  npc({
+    id: "cultist",
+    name: "Cultist",
+    summary: "True believer in something out among the stars.",
+    attributes: { strength: 3, agility: 3, wits: 3, empathy: 4 },
+    skills: { closeCombat: 1, observation: 1, manipulation: 3, survival: 1 },
+    talent: "fanatic",
+    gear: [
+      { name: "Ritual blade", weight: 0.5 },
+      { name: "Devotional icon", weight: 0 },
+    ],
+    trait: "Serene in the face of horror",
+    goal: "Bring the chosen to the perfect organism",
+    appearance: "Plain robes over work clothes, a symbol scratched into the skin",
+  }),
+  npc({
+    id: "weyland-yutani-rep",
+    name: "Weyland-Yutani Representative",
+    summary: "Company liaison with sealed orders and Special Order clearance.",
+    attributes: { strength: 2, agility: 3, wits: 4, empathy: 4 },
+    skills: { observation: 2, comtech: 2, manipulation: 3, command: 2 },
+    talent: "bluff",
+    gear: [
+      { name: "Company data pad", weight: 0.5 },
+      { name: "Sealed orders", weight: 0 },
+      { name: "M4A3 service pistol", weight: 1 },
+    ],
+    trait: "Reasonable right up until the moment it is not",
+    goal: "Bring the specimen home; crew expendable",
+    appearance: "Company windbreaker, company smile",
+  }),
+  npc({
+    id: "upp-soldier",
+    name: "UPP Soldier",
+    summary: "Union of Progressive Peoples infantry, well drilled and under-supplied.",
+    attributes: { strength: 4, agility: 4, wits: 3, empathy: 2 },
+    skills: { closeCombat: 2, rangedCombat: 3, stamina: 2, survival: 1 },
+    talent: "overkill",
+    gear: [
+      { name: "AK-4047 pulse rifle", weight: 1, supply: 4 },
+      { name: "UPP combat armor", weight: 1 },
+    ],
+    trait: "Suspicious of every capitalist and most comrades",
+    goal: "Hold the line and report the enemy's secrets",
+    appearance: "Drab armor, red star patch, cold-weather gear",
+  }),
+  npc({
+    id: "seegson-tech",
+    name: "Seegson Technician",
+    summary: "Engineer keeping second-rate hardware running on a first-rate schedule.",
+    attributes: { strength: 3, agility: 3, wits: 4, empathy: 2 },
+    skills: { heavyMachinery: 2, comtech: 3, observation: 2, piloting: 1 },
+    talent: "quick-fix",
+    gear: [
+      { name: "Electronic tool kit", weight: 1 },
+      { name: "Maintenance jack", weight: 1 },
+      { name: "Flashlight", weight: 0.5 },
+    ],
+    trait: "Resents the Working Joes more than the bosses",
+    goal: "Keep the station alive one more cycle",
+    appearance: "Seegson-orange coveralls, soldering burns on the fingers",
+  }),
+  npc({
+    id: "ship-captain",
+    name: "Ship Captain",
+    summary: "Master of a freighter, tug or survey vessel.",
+    attributes: { strength: 3, agility: 3, wits: 4, empathy: 4 },
+    skills: { piloting: 2, comtech: 1, observation: 2, command: 3, manipulation: 1 },
+    talent: "take-control",
+    gear: [
+      { name: "Captain's log pad", weight: 0.5 },
+      { name: "Flight suit", weight: 1 },
+      { name: "M4A3 service pistol", weight: 1 },
+    ],
+    trait: "Argues with the ship's computer and usually wins",
+    goal: "Deliver the cargo and keep the ship out of hock",
+    appearance: "Faded captain's jacket, coffee stains, tired eyes",
+  }),
+  npc({
+    id: "dock-worker",
+    name: "Dock Worker",
+    summary: "Cargo handler on a station or colony landing pad.",
+    attributes: { strength: 4, agility: 3, wits: 2, empathy: 3 },
+    skills: { heavyMachinery: 3, stamina: 2, closeCombat: 1, observation: 1 },
+    gear: [
+      { name: "Power loader keycard", weight: 0 },
+      { name: "Work gloves", weight: 0 },
+      { name: "Wrench", weight: 1 },
+    ],
+    trait: "Knows every ship that comes and goes",
+    goal: "Earn overtime and avoid the foreman",
+    appearance: "Hi-vis vest, hard hat, ear protectors around the neck",
+  }),
+  npc({
+    id: "union-organizer",
+    name: "Union Organizer",
+    summary: "Labor agitator the company would prefer to see disappear.",
+    attributes: { strength: 3, agility: 3, wits: 4, empathy: 5 },
+    skills: { observation: 2, comtech: 1, manipulation: 3, command: 2 },
+    talent: "influence",
+    gear: [
+      { name: "Hand-printed pamphlets", weight: 0.5 },
+      { name: "Pr-Put personal data transmitter", weight: 0.5 },
+    ],
+    trait: "Never stops talking about what the workers are owed",
+    goal: "Organize the colony before the company sends marshals",
+    appearance: "Work shirt with the sleeves rolled, hoarse voice",
+  }),
+];
