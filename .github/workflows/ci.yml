@@ -10,9 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # The pnpm version comes from "packageManager" in package.json.
       - uses: pnpm/action-setup@v4
-        with:
-          version: 10
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -28,7 +27,8 @@ jobs:
         run: pnpm --filter @campaign-forge/web build
       - name: End-to-end
         if: hashFiles('apps/web/e2e/**/*.spec.ts') != ''
+        working-directory: apps/web
         run: |
           pnpm exec playwright install --with-deps chromium
           PLAYWRIGHT_CHROMIUM_PATH="$(node -e "console.log(require('@playwright/test').chromium.executablePath())")" \
-            pnpm --filter @campaign-forge/web test:e2e
+            pnpm test:e2e

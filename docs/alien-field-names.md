@@ -19,7 +19,7 @@ Agents working in parallel on `packages/module-alien` must use these exact ids a
 Subtype is stored at `entity.subtype` (core), not inside `fields`.
 
 ## Relationship ids added by the module
-`buddy_of`, `rival_of` (character to character, symmetric), `employer_of` (faction to job), `sponsor_of` (faction to job), `crew_of` (character to spaceship), `stationed_at` (faction to location).
+`buddy_of`, `rival_of` (character to character, symmetric), `employer_of` (faction to job), `sponsor_of` (faction to job), `crew_of` (character to spaceship), `stationed_at` (faction to location), `emerged_from` (creature to the host it burst from or was ovomorphed out of; written by the life-cycle tracker).
 
 ## Play modes
 `cinematic`, `campaign`.
@@ -95,7 +95,11 @@ tool/medical/food/pharmaceutical/other: `effect?: string`, `weight`, `cost`, `su
 `shipClass` (C G J M R U X), `manufacturer`, `cost`, `crew`, `signature: number`, `ai: string`, `thrusters: number`, `length`, `hull: number`, `ftl: number`, `armor: number`, `passengers`, `modules: string[]` (ship-module ids), `upgrades: string[]`, `armaments: string[]`
 
 ## Tracker ids
-`alien.stress`, `alien.story-points`, `alien.clock`, `alien.countdown`, `alien.supply`, `alien.initiative`, `alien.stealth`.
+`alien.stress`, `alien.story-points`, `alien.clock`, `alien.countdown`, `alien.supply`, `alien.initiative`, `alien.stealth`, `alien.gestation`.
+
+`alien.gestation` is kind `lifecycle`, scope `campaign`: its state lives in `meta.settings["tracker:alien.gestation"]` (`{ instances: LifecycleInstance[] }`, see module-sdk `lifecycle.ts`) and advances with the in-world minutes in `meta.settings.worldMinutes`, which the table clock moves forward. Config: `src/lifecycle.ts`. Variant ids: `standard`, `bambi`, `praetomorph`, `queen`, `ovomorphing`.
+
+Host conditions it sets: `xx121:facehugged`, `xx121:implanted` (set by the `inseminationCheck` dice operation), `xx121:embryo`, `xx121:killed-by-chestburster`, `xx121:killed-by-removal`, `xx121:died-in-surgery`, `xx121:cocooned`, `xx121:ovomorphed`.
 
 ## Procedure ids
 `alien.world.create`, `alien.system.create`, `alien.job.create`, `alien.lifepath`, `alien.encounter.check`, `alien.shore-leave`, `alien.session-end` (the last is implemented as a hook, not a procedure).

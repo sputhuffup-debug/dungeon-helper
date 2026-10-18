@@ -24,6 +24,7 @@ import {
 } from "@campaign-forge/core";
 import type { Effect, GeneratedGraph, LoadedModule, Template, TemplateAdventure, TemplateScene } from "@campaign-forge/module-sdk";
 import type { CampaignContextValue } from "./CampaignProvider";
+import { effectContext } from "./tableActions";
 
 type StoreCtx = { store: CampaignStore };
 type DocCtx = StoreCtx & { registry: RichTextRegistry; whenDocSynced?: (id: Id) => Promise<void> };
@@ -396,8 +397,8 @@ export function acceptGenerated(ctx: StoreCtx & { module: Pick<LoadedModule, "ma
 }
 
 /** Apply module effects (for example shore-leave outcomes) to campaign data. */
-export function applyGeneratorEffects(ctx: StoreCtx, effects: Effect[], sessionId?: Id): ApplyEffectsResult {
-  return applyEffects(ctx.store, effects, sessionId ? { sessionId } : {});
+export function applyGeneratorEffects(ctx: Pick<CampaignContextValue, "store" | "module">, effects: Effect[], sessionId?: Id): ApplyEffectsResult {
+  return applyEffects(ctx.store, effects, effectContext(ctx, sessionId));
 }
 
 export type PrepCtx = Pick<CampaignContextValue, "store" | "module" | "registry" | "whenDocSynced">;

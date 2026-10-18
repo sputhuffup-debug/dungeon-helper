@@ -31,6 +31,7 @@ export * from "./reference";
 export { rules, ruleIds } from "./rules";
 export * from "./templates";
 export * from "./trackers";
+export { gestationConfig, gestationVariants, LIFECYCLE_CONDITIONS, EMERGED_FROM } from "./lifecycle";
 export { calendar } from "./calendar";
 export { hooks, onSessionEnd, onEntityChange, XP_QUESTIONS, TRAUMA_THRESHOLD } from "./hooks";
 export { styleNotes, gmPrinciples, themes } from "./styleNotes";

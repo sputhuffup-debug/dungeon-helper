@@ -95,6 +95,7 @@ function GmTable({ sessionId }: { sessionId: Id }) {
         }
       },
       onLog: (trackerId, text) => appendTrackerLog(ctx.store, sessionId, { tracker: trackerId, text }),
+      onPrompts: (raised: Prompt[]) => setPrompts((p) => [...p, ...raised]),
     }),
     [ctx, sessionId],
   );
@@ -190,7 +191,7 @@ function GmTable({ sessionId }: { sessionId: Id }) {
         <div className="app-table__grid">
           <div className="app-table__col">
             <SceneCard sessionId={sessionId} scenes={scenes} scene={scene} onOpenEntity={setDrawer} />
-            <Participants pcs={pcs} others={others} onOpen={setDrawer} onRoll={(op, id) => handlers.onRollOperation(op, id)} />
+            <Participants pcs={pcs} others={others} onOpen={setDrawer} onRoll={(op, id) => handlers.onRollOperation(op, id)} lifecycle={{ sessionId, onPrompts: handlers.onPrompts }} />
             <RevealPanel sessionId={sessionId} scene={scene} />
             {map && <SceneMap sessionId={sessionId} map={map} participants={[...pcs, ...others]} />}
           </div>

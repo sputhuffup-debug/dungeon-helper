@@ -90,9 +90,9 @@ describe("templates", () => {
 });
 
 describe("trackers and manifest", () => {
-  it("has the seven tracker ids from the field-name doc", () => {
+  it("has the eight tracker ids from the field-name doc", () => {
     expect(trackers.map((t) => t.id).sort()).toEqual(
-      ["alien.clock", "alien.countdown", "alien.initiative", "alien.stealth", "alien.story-points", "alien.stress", "alien.supply"].sort(),
+      ["alien.clock", "alien.countdown", "alien.gestation", "alien.initiative", "alien.stealth", "alien.story-points", "alien.stress", "alien.supply"].sort(),
     );
     const ruleIds = new Set(rules.map((r) => r.id));
     for (const t of trackers) for (const r of t.rules ?? []) expect(ruleIds.has(r), `${t.id} -> ${r}`).toBe(true);

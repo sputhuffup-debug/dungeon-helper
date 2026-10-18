@@ -1,6 +1,6 @@
 /** Quick-stat cards for the PCs and the scene's participants; a tap opens the full sheet in a drawer. */
 import { getPath, type Entity, type Id } from "@campaign-forge/core";
-import { validateEntityFields, type EntityTypeDef, type LoadedModule, type ReferenceList, type SheetField } from "@campaign-forge/module-sdk";
+import { validateEntityFields, type EntityTypeDef, type LoadedModule, type Prompt, type ReferenceList, type SheetField } from "@campaign-forge/module-sdk";
 import { useMemo, useState } from "react";
 import { EntityIcon } from "../../components/EntityIcon";
 import { RuleDrawer } from "../../components/RulePanel";
@@ -10,6 +10,7 @@ import { useCampaign, useMeta, useRecord } from "../../state/hooks";
 import { computedOf } from "../../state/tableActions";
 import { changedPaths } from "../entities/SheetTab";
 import { SessionRollPanel, skillInput } from "./DicePanel";
+import { LifecycleStart } from "./LifecycleStart";
 
 function fieldOf(def: EntityTypeDef, path: string): SheetField | undefined {
   for (const s of def.sheet.sections) {
@@ -54,7 +55,12 @@ export function characterRolls(module: LoadedModule, def: EntityTypeDef | undefi
     .map((op) => ({ id: op.id, name: op.name }));
 }
 
-export function ParticipantCard({ entity, onOpen, role, onRoll }: { entity: Entity; onOpen: (id: Id) => void; role?: string; onRoll?: (operationId: string, entityId: Id) => void }) {
+export interface ParticipantLifecycle {
+  sessionId: Id;
+  onPrompts?: (prompts: Prompt[]) => void;
+}
+
+export function ParticipantCard({ entity, onOpen, role, onRoll, lifecycle }: { entity: Entity; onOpen: (id: Id) => void; role?: string; onRoll?: (operationId: string, entityId: Id) => void; lifecycle?: ParticipantLifecycle }) {
   const { module } = useCampaign();
   const def = module.entityType(entity.type);
   const rolls = onRoll ? characterRolls(module, def) : [];
@@ -84,6 +90,7 @@ export function ParticipantCard({ entity, onOpen, role, onRoll }: { entity: Enti
           ))}
         </span>
       )}
+      {lifecycle && <LifecycleStart entity={entity} sessionId={lifecycle.sessionId} onPrompts={lifecycle.onPrompts} />}
       {rolls.length > 0 && (
         <span className="app-participant__rolls">
           {rolls.map((r) => (
@@ -97,21 +104,21 @@ export function ParticipantCard({ entity, onOpen, role, onRoll }: { entity: Enti
   );
 }
 
-export function Participants({ pcs, others, onOpen, onRoll }: { pcs: Entity[]; others: Entity[]; onOpen: (id: Id) => void; onRoll?: (operationId: string, entityId: Id) => void }) {
+export function Participants({ pcs, others, onOpen, onRoll, lifecycle }: { pcs: Entity[]; others: Entity[]; onOpen: (id: Id) => void; onRoll?: (operationId: string, entityId: Id) => void; lifecycle?: ParticipantLifecycle }) {
   return (
     <Card title="Participants" className="app-table__participants">
       {pcs.length === 0 && others.length === 0 && <p className="cf-muted">No player characters or scene participants.</p>}
       {pcs.length > 0 && (
         <ul className="app-participants" aria-label="Player characters">
           {pcs.map((e) => (
-            <ParticipantCard key={e.id} entity={e} onOpen={onOpen} role="PC" onRoll={onRoll} />
+            <ParticipantCard key={e.id} entity={e} onOpen={onOpen} role="PC" onRoll={onRoll} lifecycle={lifecycle} />
           ))}
         </ul>
       )}
       {others.length > 0 && (
         <ul className="app-participants" aria-label="Scene participants">
           {others.map((e) => (
-            <ParticipantCard key={e.id} entity={e} onOpen={onOpen} onRoll={onRoll} />
+            <ParticipantCard key={e.id} entity={e} onOpen={onOpen} onRoll={onRoll} lifecycle={lifecycle} />
           ))}
         </ul>
       )}

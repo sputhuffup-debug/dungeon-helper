@@ -194,9 +194,10 @@ export class CampaignStore {
     return this.#top(map).size;
   }
 
-  insert<M extends MapName>(map: M, record: NewRecord<M>): RecordOf<M> {
+  /** Insert a record under a new id, or under `id` when given (it must be unused). */
+  insert<M extends MapName>(map: M, record: NewRecord<M>, id: Id = newId()): RecordOf<M> {
+    if (this.#top(map).has(id)) throw new Error(`${map}/${id} already exists`);
     const ts = now();
-    const id = newId();
     const full = { ...(record as Record<string, unknown>), id, created: ts, updated: ts };
     this.transact(() => {
       const rec = new Y.Map<unknown>();
@@ -247,6 +248,8 @@ export class CampaignStore {
   // -------------------------------------------------------------------------
 
   createEntity(input: {
+    /** Use this id (must be unused); a new id otherwise. */
+    id?: Id;
     type: string;
     name: string;
     fields?: Record<string, unknown>;
@@ -272,7 +275,7 @@ export class CampaignStore {
     if (input.ownerMemberId !== undefined) rec.ownerMemberId = input.ownerMemberId;
     if (input.provenance !== undefined) rec.provenance = input.provenance;
     if (input.conditions !== undefined) rec.conditions = input.conditions;
-    return this.insert("entities", rec);
+    return input.id !== undefined ? this.insert("entities", rec, input.id) : this.insert("entities", rec);
   }
 
   createRelationship(type: string, from: Id, to: Id, note?: string, visibility?: Visibility): Relationship {

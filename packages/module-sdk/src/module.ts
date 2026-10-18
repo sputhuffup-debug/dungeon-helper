@@ -7,6 +7,7 @@ import { diceOutcomes, parseDiceExpression } from "./dice";
 import { computeFields, defaultFieldsFor, fieldSchemaAt, schemaDefaults, validateAgainstSchema, validateEntityFields } from "./entities";
 import { runProcedure } from "./procedures";
 import { createTableRegistry } from "./tables";
+import { lifecycleConfig, lifecycleConfigIssues } from "./lifecycle";
 import {
   CONTRACT_VERSION,
   CORE_RELATIONSHIP_TYPES,
@@ -349,6 +350,9 @@ function checkTracker(tracker: TrackerDef, module: GameModule, declaredModes: Se
     } else if (!module.entityTypes.some((t) => fieldPathExists(t, b))) {
       c.error(where, `binds path "${b}" that exists on no entity type`);
     }
+  }
+  if (tracker.kind === "lifecycle") {
+    for (const issue of lifecycleConfigIssues(lifecycleConfig(tracker.config), module)) c.error(where, issue);
   }
 }
 

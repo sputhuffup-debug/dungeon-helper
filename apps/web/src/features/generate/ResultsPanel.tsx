@@ -33,7 +33,7 @@ export function outcomesOf(results: Record<string, unknown>): Array<{ key: strin
   return out;
 }
 
-export function describeEffect(e: Effect, name: (id: Id) => string): string {
+export function describeEffect(e: Effect, name: (id: Id) => string, presetName: (id: string) => string = (id) => id): string {
   switch (e.kind) {
     case "setField":
       return `${name(e.entity)}: set ${humanize(e.path)} to ${JSON.stringify(e.value)}`;
@@ -47,12 +47,17 @@ export function describeEffect(e: Effect, name: (id: Id) => string): string {
       return e.text;
     case "prompt":
       return e.prompt.text;
+    case "createFromPreset":
+      return e.name ? `New ${e.name} (${presetName(e.preset)})` : `New ${presetName(e.preset)}`;
+    case "applyPreset":
+      return `${name(e.entity)}: becomes ${presetName(e.preset)}`;
   }
 }
 
 export function ResultsPanel({ results }: { results: Record<string, unknown> }) {
   const ctx = useCampaign();
   const name = (id: Id) => ctx.store.get("entities", id)?.name ?? id;
+  const presetName = (id: string) => ctx.module.preset(id)?.name ?? id;
   const outcomes = useMemo(() => outcomesOf(results), [results]);
   const effects = useMemo(() => effectsOf(results), [results]);
   const plain = effects.map((e, i) => ({ e, i })).filter((x) => x.e.kind !== "prompt");
@@ -110,7 +115,7 @@ export function ResultsPanel({ results }: { results: Record<string, unknown> }) 
                       })
                     }
                   />
-                  {describeEffect(e, name)}
+                  {describeEffect(e, name, presetName)}
                 </label>
               </li>
             ))}

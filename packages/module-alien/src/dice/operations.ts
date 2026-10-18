@@ -328,6 +328,45 @@ export const criticalInjury: DiceOperation = {
   },
 };
 
+/** Host condition set when the facehugger has implanted its embryo (p. 214). */
+export const IMPLANTED_CONDITION = "xx121:implanted";
+
+/**
+ * The facehug insemination check (p. 214): every stretch after the facehug,
+ * one stress die; the facehugger result means the host is implanted, and
+ * removing the facehugger can no longer save them. Run by the life-cycle
+ * tracker on each stretch of the facehug stage, or by the GM.
+ */
+export const inseminationCheck: DiceOperation = {
+  id: "inseminationCheck",
+  name: "Insemination check",
+  page: 214,
+  input: {
+    type: "object",
+    properties: {
+      entity: { type: "string", description: "The facehugged host." },
+      conditions: { type: "array", items: { type: "string" }, description: "The host's condition ids." },
+    },
+  },
+  run(input, rng): DiceOperationResult {
+    const entity = str(input.entity);
+    const conditions = Array.isArray(input.conditions) ? input.conditions : [];
+    if (conditions.includes(IMPLANTED_CONDITION)) {
+      const label = "Already implanted: no roll needed";
+      return { rolls: [], result: { implanted: true, rolled: false }, label, effects: [{ kind: "log", text: `Insemination check (p. 214): ${label}.` }] };
+    }
+    const value = rng.int(1, 6);
+    const implanted = value === 1;
+    const label = implanted ? "Facehugger symbol: implanted" : `Stress die ${value}: not yet`;
+    const record: RollRecord = { step: "inseminationCheck", dice: "1d6", raw: [value], modifier: 0, total: value, rowLabel: label, result: { implanted }, page: 214 };
+    const effects: Effect[] = [{ kind: "log", text: `Insemination check (p. 214): ${label}.` }];
+    if (implanted && entity) {
+      effects.push({ kind: "addCondition", entity, condition: { id: IMPLANTED_CONDITION, label: "Implanted", source: "inseminationCheck", page: 214 } });
+    }
+    return { total: value, rolls: [record], result: { implanted, rolled: true, die: value }, label, effects };
+  },
+};
+
 export const operations: Record<string, DiceOperation> = {
   stressResponse,
   panicRoll,
@@ -336,6 +375,7 @@ export const operations: Record<string, DiceOperation> = {
   mentalTrauma,
   criticalInjury,
   androidCriticalDamage,
+  inseminationCheck,
 };
 
 export { FACEHUGGER };

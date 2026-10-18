@@ -73,6 +73,7 @@ export const fixtureModule: GameModule = {
   referenceLists: [],
   presets: [
     { id: "example.preset.guard", entityType: "example.person", name: "Guard", summary: "A bored guard", tags: ["npc"], fields: { role: "guard", stats: { grit: 3, wit: 2 } } },
+    { id: "example.preset.captain", entityType: "example.person", name: "Captain", summary: "A promoted guard", tags: ["officer"], fields: { role: "captain", stats: { grit: 4, wit: 3 } } },
   ],
   tables: [],
   procedures: [],

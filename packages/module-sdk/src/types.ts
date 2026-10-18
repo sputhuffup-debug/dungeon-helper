@@ -573,7 +573,12 @@ export interface RuleCard {
 // Trackers
 // ---------------------------------------------------------------------------
 
-export type TrackerScope = "character" | "session" | "scene" | "encounter";
+/**
+ * Where a tracker's state lives. `session`, `scene` and `encounter` state is
+ * kept per session and archived at wrap-up; `campaign` state lives on the
+ * campaign itself and carries across sessions (and export/import).
+ */
+export type TrackerScope = "character" | "session" | "scene" | "encounter" | "campaign";
 
 export interface TrackerDef {
   id: string;
@@ -616,7 +621,40 @@ export type Effect =
   | { kind: "addCondition"; entity: string; condition: { id: string; label: string; source?: string; page?: PageRef } }
   | { kind: "removeCondition"; entity: string; conditionId: string }
   | { kind: "log"; text: string }
-  | { kind: "prompt"; prompt: Prompt };
+  | { kind: "prompt"; prompt: Prompt }
+  | CreateFromPresetEffect
+  | ApplyPresetEffect;
+
+/**
+ * Create a new entity from one of the module's presets. `id` asks for a
+ * specific (unused) entity id so the caller can refer to the entity before
+ * the effect is applied; `tempId` names it for later effects in the same
+ * batch (their `entity` or `link.to` may be the tempId). `link` adds a
+ * relationship from the new entity to `link.to`.
+ */
+export interface CreateFromPresetEffect {
+  kind: "createFromPreset";
+  preset: string;
+  name?: string;
+  id?: string;
+  tempId?: string;
+  /** Fields merged over the preset's fields. */
+  fields?: Record<string, unknown>;
+  tags?: string[];
+  link?: { type: string; to: string; note?: string };
+}
+
+/**
+ * Replace an entity's fields with a preset's fields (same entity type), keeping
+ * its id, name, notes, relationships and conditions, plus any field paths in
+ * `keep`. The change is recorded in the entity's provenance.
+ */
+export interface ApplyPresetEffect {
+  kind: "applyPreset";
+  entity: string;
+  preset: string;
+  keep?: string[];
+}
 
 export interface Prompt {
   id: string;

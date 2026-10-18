@@ -1,4 +1,5 @@
 import type { TrackerDef } from "@campaign-forge/module-sdk";
+import { gestationConfig } from "./lifecycle";
 import { CAMPAIGN, CINEMATIC } from "./modes";
 
 export const STRESS_TRACKER = "alien.stress";
@@ -8,8 +9,9 @@ export const COUNTDOWN_TRACKER = "alien.countdown";
 export const SUPPLY_TRACKER = "alien.supply";
 export const INITIATIVE_TRACKER = "alien.initiative";
 export const STEALTH_TRACKER = "alien.stealth";
+export const GESTATION_TRACKER = "alien.gestation";
 
-/** Seven live table widgets (architecture seed, Trackers table), with numbers checked against the Evolved Edition. */
+/** Eight live table widgets (architecture seed, Trackers table), with numbers checked against the Evolved Edition. */
 export const trackers: TrackerDef[] = [
   {
     id: STRESS_TRACKER,
@@ -143,6 +145,27 @@ export const trackers: TrackerDef[] = [
       motionTrackerZones: 4,
       creatureSpeedPath: "fields.speed",
     },
+  },
+  {
+    id: GESTATION_TRACKER,
+    name: "Xenomorph life cycle",
+    kind: "lifecycle",
+    // Infections outlive a session: state lives on the campaign and moves with the table clock.
+    scope: "campaign",
+    page: [212, 219],
+    rules: [
+      "alien.rule.lifecycle",
+      "alien.rule.facehugger",
+      "alien.rule.chestburster",
+      "alien.rule.burster-variants",
+      "alien.rule.variable-gestation",
+      "alien.rule.stage-iv-molting",
+      "alien.rule.hive-mind",
+      "alien.rule.ovomorph",
+    ],
+    // Stages, timings (facehug one shift, embryo one shift, Stage III one shift, ovomorphing 4-6 shifts),
+    // the insemination check and the creature presets per stage: see lifecycle.ts.
+    config: gestationConfig as unknown as Record<string, unknown>,
   },
 ];
 
