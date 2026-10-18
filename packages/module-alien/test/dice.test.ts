@@ -159,11 +159,29 @@ describe("operations", () => {
     if (ones > 0) expect(res.effects?.some((e) => e.kind === "incrementField" && e.by === -ones)).toBe(true);
   });
 
-  it("mentalTrauma and criticalInjury roll d6 / d66 against their tables", () => {
+  it("supplyRoll rolls at most six dice and talents roll two fewer, never below one (p. 28, 48, 51)", () => {
+    expect(ops.supplyRoll!.run({ rating: 9 }, createRng("cap"), registry).rolls[0]!.raw).toHaveLength(6);
+    expect(ops.supplyRoll!.run({ rating: 5, reduceBy: 2 }, createRng("ps"), registry).rolls[0]!.raw).toHaveLength(3);
+    expect(ops.supplyRoll!.run({ rating: 2, reduceBy: 2 }, createRng("min"), registry).rolls[0]!.raw).toHaveLength(1);
+    expect(ops.supplyRoll!.run({ rating: 0 }, createRng("zero"), registry).rolls[0]!.raw).toHaveLength(0);
+  });
+
+  it("stress response and panic read the book's thresholds (p. 44, 73)", () => {
+    const calm = ops.stressResponse!.run({ stress: 1, resolve: 4 }, createRng("k"), registry);
+    expect(calm.label).toBe("Keeping Cool");
+    const messUp = ops.stressResponse!.run({ stress: 9, resolve: 1 }, createRng("m"), registry);
+    expect(messUp.label).toBe("Mess Up");
+    const cat = ops.panicRoll!.run({ stress: 12, resolve: 1 }, createRng("c"), registry);
+    expect(cat.label).toBe("Catatonic");
+  });
+
+  it("mentalTrauma and criticalInjury roll d66 against their tables", () => {
     const mt = ops.mentalTrauma!.run({ entity: "pc1" }, createRng("mt"), registry);
-    expect(mt.rolls[0]!.raw).toHaveLength(1);
-    expect(mt.total).toBeGreaterThanOrEqual(1);
-    expect(mt.total).toBeLessThanOrEqual(6);
+    expect(mt.rolls[0]!.raw).toHaveLength(2);
+    expect(mt.total).toBeGreaterThanOrEqual(11);
+    expect(mt.total).toBeLessThanOrEqual(66);
+    const cond = mt.effects?.find((e): e is Extract<Effect, { kind: "addCondition" }> => e.kind === "addCondition");
+    expect(cond?.condition.id).toMatch(/^mental-trauma:[a-z-]+$/);
     const ci = ops.criticalInjury!.run({ entity: "pc1" }, createRng("ci"), registry);
     expect(ci.rolls[0]!.raw).toHaveLength(2);
     expect(ci.total).toBeGreaterThanOrEqual(11);
@@ -178,7 +196,7 @@ describe("operations", () => {
   });
 });
 
-describe("android exemption (p. 25)", () => {
+describe("android exemption (p. 25, 77)", () => {
   const registry = createTableRegistry(tables);
   for (const op of ["panicRoll", "stressResponse"] as const) {
     it(`${op} makes no roll and adds no condition for an android`, () => {

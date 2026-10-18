@@ -1,5 +1,6 @@
 import type { EntityTypeDef, JsonLogicRule, SheetSection } from "@campaign-forge/module-sdk";
 import { CAMPAIGN, CINEMATIC } from "../modes";
+import { OVERWHELMED_TRAUMA } from "../reference/mentalTraumas";
 import {
   ATTRIBUTE_IDS,
   CAREER_IDS,
@@ -15,9 +16,16 @@ import {
   textarea,
 } from "./common";
 
-/** Talent ids the computed rules look for (reference/talents.ts). */
+/** Talent ids the computed rules look for (reference/talents.ts, p. 51). */
 export const HARDENED_TALENT = "hardened";
 export const SEEN_IT_ALL_TALENT = "seen-it-all";
+export const PACK_MULE_TALENT = "pack-mule";
+/** Hardened and Seen It All can each be taken up to three times (p. 51). */
+export const TALENT_STACK_CAP = 3;
+/** Attribute caps (p. 25): humans 5 (2-4 at creation, 5 only in the key attribute); androids 8 in the key attribute, 7 in another. */
+export const HUMAN_ATTRIBUTE_MAX = 5;
+export const ANDROID_ATTRIBUTE_MAX = 8;
+export const SKILL_MAX = 5;
 
 const attributeProps = (max: number) =>
   Object.fromEntries(ATTRIBUTE_IDS.map((a) => [a, { type: "integer", minimum: 1, maximum: max }]));
@@ -40,20 +48,22 @@ const conditionList = (description: string) => ({
 export const characterSchema = objectSchema(
   {
     isPC: { type: "boolean", default: false, description: "Player character (true) or NPC (false)." },
-    android: { type: "boolean", default: false, description: "Androids never push and never panic (p. 25)." },
+    android: { type: "boolean", default: false, description: "Androids cannot push, have no stress level and never panic (p. 25, 77)." },
     career: { type: "string", enum: [...CAREER_IDS, ""], default: "", description: "Career id (alien.careers)." },
     attributes: {
       type: "object",
       additionalProperties: false,
       required: [...ATTRIBUTE_IDS],
-      properties: attributeProps(8),
+      properties: attributeProps(ANDROID_ATTRIBUTE_MAX),
       default: { strength: 3, agility: 3, wits: 3, empathy: 3 },
+      description: "14 points at creation, 2-4 each, 5 allowed in the career's key attribute; androids add +3 to two (p. 25).",
     },
     skills: {
       type: "object",
       additionalProperties: false,
-      properties: Object.fromEntries(SKILL_IDS.map((s) => [s, intField(0, 5, 0)])),
+      properties: Object.fromEntries(SKILL_IDS.map((s) => [s, intField(0, SKILL_MAX, 0)])),
       default: Object.fromEntries(SKILL_IDS.map((s) => [s, 0])),
+      description: "Levels 0-5; 10 points at creation, up to 3 in career key skills and 1 elsewhere (p. 26).",
     },
     talents: {
       type: "array",
@@ -64,7 +74,7 @@ export const characterSchema = objectSchema(
         properties: { id: { type: "string" }, count: intField(1, undefined, 1, "Stack count for talents that stack.") },
       },
     },
-    stress: intField(0, undefined, 0, "Current stress level; one stress die per point (p. 44)."),
+    stress: intField(0, undefined, 0, "Current stress level; one stress die per point (p. 42, 72)."),
     personalAgenda: stringField("Campaign mode: chosen, persistent, rewards XP (p. 27)."),
     agendas: {
       type: "array",
@@ -84,55 +94,86 @@ export const characterSchema = objectSchema(
         required: ["name"],
         properties: {
           name: { type: "string" },
-          weight: { type: "number", minimum: 0, default: 1, description: "Encumbrance units; 0 for tiny items (p. 28)." },
+          weight: { type: "number", minimum: 0, default: 1, description: "Regular item = 1, light 1/2 or 1/4, tiny 0, heavy 2+ (p. 28)." },
           qty: { type: "integer", minimum: 0, default: 1 },
           supply: intField(0, undefined, undefined, "Supply rating for consumables (p. 28-29)."),
           itemId: { type: "string", description: "Linked alien.item entity id." },
         },
       },
     },
-    signatureItem: stringField("A small personal item that helps relieve stress (p. 27)."),
+    signatureItem: stringField("A tiny keepsake of sentimental, not practical, value (p. 28)."),
     cash: { type: "number", minimum: 0, default: 0 },
-    storyPoints: intField(0, 3, 0, "Cinematic mode only, max 3 (p. 44)."),
+    storyPoints: intField(0, 3, 0, "Cinematic mode only, max 3; one per act for pursuing the agenda (p. 44, 158)."),
     xp: intField(0, undefined, 0, "Campaign mode experience points (p. 30)."),
     trait: stringField("One-line personality trait (NPCs)."),
     goal: stringField("What this character wants; GM-only by default."),
     appearance: stringField(),
-    buddy: stringField("Free text; the real link is the buddy_of relationship (p. 158)."),
-    rival: stringField("Free text; the real link is the rival_of relationship (p. 158)."),
-    criticalInjuries: conditionList("Critical injuries currently suffered (p. 69-70)."),
+    buddy: stringField("Free text; the real link is the buddy_of relationship (p. 27)."),
+    rival: stringField("Free text; the real link is the rival_of relationship (p. 27)."),
+    fatigued: { type: "boolean", default: false, description: "Fatigued: no Health recovery, keep rolling Survival (p. 75). Androids are immune." },
+    rads: intField(0, undefined, 0, "Accumulated radiation points (p. 77)."),
+    criticalInjuries: conditionList("Critical injuries currently suffered (p. 70)."),
     mentalTraumas: conditionList("Mental traumas acquired (p. 74)."),
     lifePath: { type: "object", additionalProperties: true, description: "Provenance of Life Path rolls (p. 282-289)." },
   },
   {
-    // Humans cap attributes at 5; androids may go to 8 in the key attribute and 7 in others (p. 25).
+    // Humans cap attributes at 5; androids may reach 8 in the key attribute and 7 in another (p. 25).
     if: { properties: { android: { const: true } }, required: ["android"] },
-    then: { properties: { attributes: { properties: attributeProps(8) } } },
-    else: { properties: { attributes: { properties: attributeProps(5) } } },
+    then: { properties: { attributes: { properties: attributeProps(ANDROID_ATTRIBUTE_MAX) } } },
+    else: { properties: { attributes: { properties: attributeProps(HUMAN_ATTRIBUTE_MAX) } } },
   },
 );
 
-const talentCount = (talentId: string): JsonLogicRule => ({
-  sum: [
+/** Stacks of a talent; an entry without a count counts once. */
+const talentCount = (talentId: string, cap?: number): JsonLogicRule => {
+  const total: JsonLogicRule = {
+    sum: [
+      {
+        map: [
+          { filter: [{ var: "fields.talents" }, { "==": [{ var: "id" }, talentId] }] },
+          { if: [{ var: "count" }, { var: "count" }, 1] },
+        ],
+      },
+    ],
+  };
+  return cap === undefined ? total : { min: [total, cap] };
+};
+
+/** Entries in fields.mentalTraumas matching a trauma id (bare, or as a `mental-trauma:<id>` condition id). */
+const traumaCount = (traumaId: string): JsonLogicRule => ({
+  count: [
     {
-      map: [
-        { filter: [{ var: "fields.talents" }, { "==": [{ var: "id" }, talentId] }] },
-        { "+": [{ var: "count" }, 0] },
-      ],
+      filter: [{ var: "fields.mentalTraumas" }, { in: [{ var: "id" }, [traumaId, `mental-trauma:${traumaId}`]] }],
     },
   ],
 });
+
+const encumbranceLimit: JsonLogicRule = {
+  "*": [{ var: "fields.attributes.strength" }, 2, { if: [{ ">": [talentCount(PACK_MULE_TALENT), 0] }, 2, 1] }],
+};
 
 const half = (a: string, b: string): JsonLogicRule => ({
   ceil: [{ "/": [{ "+": [{ var: `fields.attributes.${a}` }, { var: `fields.attributes.${b}` }] }, 2] }],
 });
 
+/**
+ * Derived at render time, never stored (p. 26, 28, 51, 74):
+ * maximum Health = ceil((Strength + Agility) / 2) + Hardened (max 3);
+ * Resolve = ceil((Wits + Empathy) / 2) + Seen It All (max 3) − 2 per Overwhelmed trauma;
+ * encumbrance limit = Strength × 2 regular items (doubled by Pack Mule); over-encumbered up to twice that.
+ */
 export const characterComputed: Record<string, JsonLogicRule> = {
-  hardened: talentCount(HARDENED_TALENT),
-  seenItAll: talentCount(SEEN_IT_ALL_TALENT),
-  health: { "+": [half("strength", "agility"), talentCount(HARDENED_TALENT)] },
-  resolve: { "+": [half("wits", "empathy"), talentCount(SEEN_IT_ALL_TALENT)] },
-  encumbranceLimit: { "*": [{ var: "fields.attributes.strength" }, 2] },
+  hardened: talentCount(HARDENED_TALENT, TALENT_STACK_CAP),
+  seenItAll: talentCount(SEEN_IT_ALL_TALENT, TALENT_STACK_CAP),
+  health: { "+": [half("strength", "agility"), talentCount(HARDENED_TALENT, TALENT_STACK_CAP)] },
+  resolve: {
+    max: [
+      0,
+      { "-": [{ "+": [half("wits", "empathy"), talentCount(SEEN_IT_ALL_TALENT, TALENT_STACK_CAP)] }, { "*": [2, traumaCount(OVERWHELMED_TRAUMA)] }] },
+    ],
+  },
+  encumbranceLimit,
+  maxEncumbrance: { "*": [encumbranceLimit, 2] },
   encumbrance: {
     sum: [{ map: [{ var: "fields.gear" }, { "*": [{ var: "weight" }, { var: "qty" }] }] }],
   },
@@ -177,7 +218,7 @@ const sections: SheetSection[] = [
         span: 12,
         rule: "alien.rule.skill-rolls",
         options: { ref: "alien.skills" },
-        config: { skills: SKILL_BINDINGS, max: 5, attributesPath: "attributes", stressPath: "stress" },
+        config: { skills: SKILL_BINDINGS, max: SKILL_MAX, attributesPath: "attributes", stressPath: "stress" },
       },
     ],
   },
@@ -192,7 +233,7 @@ const sections: SheetSection[] = [
         span: 12,
         rule: "alien.rule.talents",
         options: { ref: "alien.talents" },
-        config: { careerPath: "career", stackable: true },
+        config: { ref: "alien.talents", careerPath: "career", stackable: true },
       },
     ],
   },
@@ -211,6 +252,8 @@ const sections: SheetSection[] = [
       },
       { path: "health", label: "Health", widget: "computed", span: 3, readonly: true, rule: "alien.rule.health" },
       { path: "resolve", label: "Resolve", widget: "computed", span: 3, readonly: true, rule: "alien.rule.resolve" },
+      checkbox("fatigued", "Fatigued"),
+      number("rads", "Rads"),
       { path: "criticalInjuries", label: "Critical injuries", widget: "conditions", span: 6, rule: "alien.rule.critical-injuries" },
       { path: "mentalTraumas", label: "Mental traumas", widget: "conditions", span: 6, rule: "alien.rule.mental-trauma" },
     ],
@@ -228,6 +271,7 @@ const sections: SheetSection[] = [
         config: {
           encumbrance: "computed.encumbrance",
           encumbranceLimit: "computed.encumbranceLimit",
+          maxEncumbrance: "computed.maxEncumbrance",
           supplyOperation: "supplyRoll",
           itemEntityType: "alien.item",
         },

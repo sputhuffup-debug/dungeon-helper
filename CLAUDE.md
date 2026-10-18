@@ -4,7 +4,8 @@ A Game Master's workspace for tabletop RPG campaigns. Every game system is a plu
 
 ## v1 decisions (confirmed with the owner, Oct 2026)
 - GM-only, local-first PWA. No server, no accounts, no player sync in v1. Data model keeps visibility and member shapes so sync can come later.
-- Alien rulebook data: structure is exact (dice ranges, page refs, step graphs); rows and stat lines come from general knowledge and are flagged `unverified: true` until checked against the book.
+- Alien rulebook data was verified against the owner's copy of the Evolved Edition core rules (Oct 2026); see `docs/verification/`. Numbers, names and stat lines are exact; effects and rule summaries are short paraphrases, never book prose. Only entries the book does not supply keep `unverified: true`.
+- Never commit the rulebook PDF, its extracted text, or its per-copy purchase watermark.
 - Maps: imported images with rectangular zone overlays (cluttered/open, borders open/blocked/door) stored as data.
 - No AI layer in v1. Provenance fields stay in the model.
 

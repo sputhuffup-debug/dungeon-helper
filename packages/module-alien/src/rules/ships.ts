@@ -1,44 +1,49 @@
 import type { RuleCard } from "@campaign-forge/module-sdk";
 import { card } from "./card";
 
+/** Spaceship parts (p. 121-127) and space combat (p. 140-149). */
 export const shipRules: RuleCard[] = [
-  card("ship-combat", "Ship combat basics", "Ship fights run in rounds at ranges measured in zones of space. Each round the crew acts in their roles: the pilot manoeuvres, sensors lock on, gunners fire, engineers patch. Thrusters set how many manoeuvres a ship can afford.", [138, 146], {
+  card("ship-combat", "Space combat", "Ship fights are short duels between two fleets, played in stretches on a one-dimensional track of segments. Each crew member takes one action per stretch according to their post, with no full or quick actions. The engagement ends when the ships are more than 8 segments apart.", [140, 149], {
     tags: ["space", "ships", "combat"],
-    links: { rules: ["alien.rule.ship-combat-round", "alien.rule.ship-actions", "alien.rule.ship-damage", "alien.rule.ship-crew-roles"] },
+    links: { rules: ["alien.rule.ship-combat-round", "alien.rule.ship-actions", "alien.rule.ship-damage", "alien.rule.ship-crew-roles", "alien.rule.ship-sensors"] },
   }),
-  card("ship-combat-round", "The ship combat round", "Each round: compare initiative, resolve manoeuvres with opposed Piloting, then fire weapons that have a lock, then apply damage and repairs.", 139, {
+  card("ship-combat-round", "Initiative and phases", "After detection the executive officers make an open, opposed Command roll; the winner picks whether their side acts first or last in every phase for the whole fight. Each stretch runs five phases (command, sensors, movement, attack, engineering) and ships move by their approach velocity at the end of the movement phase.", 142, {
     tags: ["space", "ships", "combat"],
-    links: { rules: ["alien.rule.ship-combat"] },
+    links: { rules: ["alien.rule.ship-combat", "alien.rule.ship-actions"] },
   }),
-  card("ship-actions", "Ship actions", "Pilot: accelerate, evade, ram, flee. Sensor operator: target lock, jam, scan. Gunner: fire a weapon. Engineer: reroute power, repair, overload. Each is one roll by one crew member.", 140, {
+  card("ship-actions", "Ship actions by phase", "The executive officer rolls Command to hand out bonus dice. The science officer target-locks with Comtech, evades locks, or switches sensors; the navigation officer speeds up, slows down, rams or docks with Piloting plus Thrusters. One gunner fires a locked target or launches countermeasures, and one engineer patches damage, toggles the engines, opens a docked airlock or overloads the reactor.", [143, 144], {
     tags: ["space", "ships", "combat"],
-    links: { rules: ["alien.rule.ship-combat", "alien.rule.ship-crew-roles"] },
+    links: { rules: ["alien.rule.ship-combat", "alien.rule.ship-crew-roles", "alien.rule.ship-sensors"] },
   }),
-  card("ship-armaments", "Ship armaments", "Ship weapons list a bonus, damage against hulls, a range and special tags; missiles and railguns differ in ammo, range and what they do to armor.", [136, 137], {
+  card("ship-space-panic", "Stress and panic in space combat", "In a space fight stress rises only from pushing, stress effects and minor component damage, and stress cannot be relieved. Major damage, a disabled ship or a crewmate bailing out triggers panic on a short table: Spooked, Freeze, Bail Out for an escape pod, or Catatonic.", 144, {
+    tags: ["space", "ships", "combat", "stress"],
+    links: { rules: ["alien.rule.ship-combat", "alien.rule.panic-roll"] },
+  }),
+  card("ship-armaments", "Ship armaments", "Armaments sit on external hardpoints by size: offensive missiles, railguns, particle beams, mines and nukes, and defensive decoys, drones and CIWS lasers. Particle beams ignore countermeasures, weaken with range and cause only component damage, and armaments cannot target individuals.", [124, 126], {
     tags: ["space", "ships", "combat", "gear"],
-    links: { rules: ["alien.rule.ship-damage"] },
+    links: { rules: ["alien.rule.ship-damage", "alien.rule.ship-classes"] },
   }),
-  card("ship-damage", "Ship damage", "A hit rolls the ship's Armor Rating; what gets through reduces Hull. At zero Hull the ship is crippled or destroyed. Large hits also roll on the component damage table.", 143, {
+  card("ship-damage", "Ship damage", "Armor reduces each hit just as for people. A hit below half the Hull rating (rounded up) causes minor component damage, half or more causes major component damage, and a single hit of the full Hull destroys the ship. Once total damage reaches Hull, the ship is disabled and decompresses but can be repaired.", [144, 146], {
     tags: ["space", "ships", "combat", "damage"],
     links: { rules: ["alien.rule.ship-critical-damage", "alien.rule.ship-repairs"] },
   }),
-  card("ship-critical-damage", "Component damage", "Hits that get through may knock out a specific system: thrusters, sensors, life support, a weapon, the reactor. Each has its own consequences and repair difficulty.", 144, {
+  card("ship-critical-damage", "Component damage", "Minor damage rolls D66 on one table (from a broken coffee maker to decompression or a reactor leak); major damage rolls 2D6 on another (from AI failure to reactor detonation). Each entry names the repair rolls it needs, and any component damage gives the crew +1 stress.", [145, 146], {
     tags: ["space", "ships", "combat", "damage"],
     links: { rules: ["alien.rule.ship-damage", "alien.rule.ship-repairs"] },
   }),
-  card("ship-repairs", "Ship repairs", "Patching a damaged component is a Heavy Machinery roll that takes a Round in combat or a Shift at rest; a full refit needs a dock and money.", 146, {
+  card("ship-repairs", "Ship repairs", "Hull repair is one Heavy Machinery roll per shift, each success restoring a point. Component repairs need the listed rolls plus a mechanical or electronic spare part per roll; in combat, emergency repairs take a stretch, need no parts and hold for one shift.", [146, 147], {
     tags: ["space", "ships"],
-    links: { rules: ["alien.rule.ship-damage"] },
+    links: { rules: ["alien.rule.ship-damage", "alien.rule.ship-critical-damage"] },
   }),
-  card("ship-modules", "Spaceship modules", "A ship's interior is a set of modules: bridge, quarters, cryo deck, medlab, cargo, workshop, reactor and more. Each gives an ability or a bonus and some can be bought or lost.", [128, 133], {
+  card("ship-modules", "Internal modules", "Modules are optional, replaceable rooms sized I to V, such as AI, air scrubbers, cargo bay, cryo deck, docking umbilical, escape vehicles, galley, hangar, medlab, science lab or vehicle bay. A smaller module fits a bigger slot but not the reverse.", [122, 124], {
     tags: ["space", "ships"],
     links: { rules: ["alien.rule.ship-classes", "alien.rule.ship-upgrades"] },
   }),
-  card("ship-upgrades", "Ship upgrades", "Upgrades improve a stat or add a capability: better sensors, armor plating, extra thrusters, stealth coatings. Each has a cost and sometimes a class limit.", [134, 135], {
+  card("ship-upgrades", "Ship upgrades", "Upgrades buy extra hardpoints, armored bulkheads, boosted drives, enhanced sensors, external modules, stronger thrusters, stealth technology and similar improvements. Refits need a dry dock and take a week or more.", [126, 127], {
     tags: ["space", "ships"],
     links: { rules: ["alien.rule.ship-modules"] },
   }),
-  card("ship-ownership", "Owning a ship", "Campaign crews rarely own their ship outright; a loan, a corporate lease or a military charter sets who can tell them where to go and what the running costs are.", 123, {
+  card("ship-ownership", "Owning a ship", "Ships are hugely expensive, so most belong to corporations or the military and their crews are employees or hired hands. A company may lease a ship to a proven crew for about 2% of its price a year, with an option to buy.", 121, {
     tags: ["space", "ships", "campaign"],
     links: { rules: ["alien.rule.job-frames", "alien.rule.campaign-structure"] },
   }),

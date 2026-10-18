@@ -1,5 +1,5 @@
 import type { EntityTypeDef } from "@campaign-forge/module-sdk";
-import { ALLEGIANCE_IDS, checkbox, enumField, intField, objectSchema, select, stringField, textarea } from "./common";
+import { ALLEGIANCE_IDS, checkbox, enumField, intField, objectSchema, select, stringField, text, textarea } from "./common";
 
 export const FACTION_TYPES = ["corporation", "government", "military", "colonial", "other"] as const;
 
@@ -14,7 +14,13 @@ export const factionSchema = objectSchema({
   relations: stringField("Relations with other factions."),
   currentActivities: stringField(),
   reputation: intField(-5, 5, 0, "How the crew stands with this faction; module convention, not a book rule."),
-  minor: { type: "boolean", default: false, description: "A minor corporation from the list (p. 176-177)." },
+  minor: { type: "boolean", default: false, description: "A minor corporation from the list (p. 162)." },
+  sector: stringField("Line of business (minor corporations)."),
+  notableNpc: {
+    type: "object",
+    description: "The featured NPC of a book entry (p. 163-177).",
+    properties: { name: { type: "string" }, role: { type: "string" }, hook: { type: "string" } },
+  },
 });
 
 export const factionType: EntityTypeDef = {
@@ -51,8 +57,14 @@ export const factionType: EntityTypeDef = {
           textarea("currentActivities", "Current activities"),
         ],
       },
+      {
+        id: "notable-npc",
+        title: "Featured NPC",
+        columns: 1,
+        fields: [text("notableNpc.name", "Name"), text("notableNpc.role", "Role"), textarea("notableNpc.hook", "Hook")],
+      },
     ],
     summary: ["factionType", "allegiance", "reputation"],
   },
-  defaultVisibility: { currentActivities: "gm", relations: "gm", reputation: "gm" },
+  defaultVisibility: { currentActivities: "gm", relations: "gm", reputation: "gm", notableNpc: "gm" },
 };

@@ -13,23 +13,28 @@ import { rollOnTable } from "./tableLookup";
 
 const num = (v: unknown, fallback = 0): number => (typeof v === "number" && Number.isFinite(v) ? v : fallback);
 const str = (v: unknown): string | undefined => (typeof v === "string" && v.length > 0 ? v : undefined);
+const rowId = (result: unknown): string | undefined =>
+  result && typeof result === "object" ? str((result as { id?: unknown }).id) : undefined;
 
 const characterInput = {
   entity: { type: "string", description: "Character entity id the effects apply to." },
   stress: { type: "integer", minimum: 0, default: 0 },
   resolve: { type: "integer", minimum: 0, default: 0, description: "Computed Resolve." },
   extraModifier: { type: "integer", default: 0 },
-  android: { type: "boolean", default: false, description: "Androids never roll for stress or panic (p. 25)." },
+  android: { type: "boolean", default: false, description: "Androids have no stress level and never make panic rolls (p. 25, 77)." },
 };
 
-/** Androids are immune to stress and panic (p. 25): no roll, no effects beyond a log line. */
+/** A panic result at or above this calls for a mental trauma check after the session (p. 74). */
+export const PANIC_TRAUMA_THRESHOLD = 9;
+
+/** Androids have no stress and never panic (p. 25, 77): no roll, no effects beyond a log line. */
 function androidExempt(name: string, input: Record<string, unknown>): DiceOperationResult | undefined {
   if (input.android !== true) return undefined;
   const label = "No effect: androids do not suffer stress or panic";
-  return { rolls: [], result: { exempt: true, label }, label, effects: [{ kind: "log", text: `${name} (p. 25): ${label}.` }] };
+  return { rolls: [], result: { exempt: true, label }, label, effects: [{ kind: "log", text: `${name} (p. 25, 77): ${label}.` }] };
 }
 
-/** D6 + stress − Resolve; same formula for stress response (p. 44) and panic (p. 72). */
+/** D6 + stress − Resolve; same formula for stress response (p. 44) and panic (p. 72-73). */
 function stressLookup(
   tables: TableRegistry,
   rng: Rng,
@@ -86,13 +91,13 @@ export const panicRoll: DiceOperation = {
     if (exempt) return exempt;
     const { record, row } = stressLookup(tables, rng, input, PANIC_TABLE, "panicRoll");
     const total = record.total;
-    const traumaCheck = total >= 9;
+    const traumaCheck = total >= PANIC_TRAUMA_THRESHOLD;
     const label = record.rowLabel ?? `Panic ${total}`;
     const entity = str(input.entity);
     const effects: Effect[] = [
       {
         kind: "log",
-        text: `Panic roll (p. 72-73): ${label} (total ${total})${traumaCheck ? "; counts toward the mental trauma check at session end (p. 74)" : ""}.`,
+        text: `Panic roll (p. 72-73): ${label} (total ${total})${traumaCheck ? "; calls for a mental trauma check after the session (p. 74)" : ""}.`,
       },
     ];
     if (entity) {
@@ -112,11 +117,11 @@ export const panicRoll: DiceOperation = {
   },
 };
 
-/** Spend a Story Point to turn one base die into a success, before or after a push (p. 44). */
+/** Cinematic play: spend a Story Point to turn one base die into a success, before or after a push (p. 44, 158). */
 export const storyPoint: DiceOperation = {
   id: "storyPoint",
   name: "Spend a Story Point",
-  page: 44,
+  page: [44, 158],
   input: {
     type: "object",
     required: ["result"],
@@ -153,7 +158,14 @@ export const storyPoint: DiceOperation = {
   },
 };
 
-/** Supply roll (p. 28-29): roll stress dice equal to the rating; every 1 reduces it by one. */
+/** Most stress dice a supply roll uses (p. 28). */
+export const SUPPLY_MAX_DICE = 6;
+
+/**
+ * Supply roll (p. 28-29): roll stress dice equal to the rating (at most six); every 1
+ * reduces it by one. Precise Shooter, Calm Breather and Tech Savvy roll two dice fewer,
+ * to a minimum of one (`reduceBy: 2`, p. 48, 51).
+ */
 export const supplyRoll: DiceOperation = {
   id: "supplyRoll",
   name: "Supply roll",
@@ -166,18 +178,22 @@ export const supplyRoll: DiceOperation = {
       rating: { type: "integer", minimum: 0 },
       path: { type: "string", description: "Field path holding the rating, e.g. gear.2.supply" },
       label: { type: "string", description: "What is being consumed: air, ammo, power, food, water..." },
+      reduceBy: { type: "integer", minimum: 0, default: 0, description: "Dice fewer to roll (talents), never below one die." },
     },
   },
   run(input, rng): DiceOperationResult {
     const rating = Math.max(0, Math.floor(num(input.rating)));
+    const reduceBy = Math.max(0, Math.floor(num(input.reduceBy)));
+    const capped = Math.min(SUPPLY_MAX_DICE, rating);
+    const diceCount = rating === 0 ? 0 : Math.max(1, capped - reduceBy);
     const raw: number[] = [];
-    for (let n = 0; n < rating; n++) raw.push(rng.int(1, 6));
+    for (let n = 0; n < diceCount; n++) raw.push(rng.int(1, 6));
     const ones = raw.filter((v) => v === 1).length;
     const after = Math.max(0, rating - ones);
     const what = str(input.label) ?? "supply";
     const record: RollRecord = {
       step: "supplyRoll",
-      dice: `${rating}d6`,
+      dice: `${diceCount}d6`,
       raw,
       modifier: 0,
       total: ones,
@@ -205,7 +221,7 @@ export const mentalTrauma: DiceOperation = {
   page: 74,
   input: { type: "object", properties: { entity: { type: "string" } } },
   run(input, rng, tables): DiceOperationResult {
-    const { record, row } = rollOnTable(tables, MENTAL_TRAUMA_TABLE, rng, { step: "mentalTrauma", fallbackDice: "1d6" });
+    const { record, row } = rollOnTable(tables, MENTAL_TRAUMA_TABLE, rng, { step: "mentalTrauma", fallbackDice: "d66" });
     const label = record.rowLabel ?? `Mental trauma ${record.total}`;
     const entity = str(input.entity);
     const effects: Effect[] = [{ kind: "log", text: `Mental trauma (p. 74): ${label}.` }];
@@ -213,7 +229,7 @@ export const mentalTrauma: DiceOperation = {
       effects.push({
         kind: "addCondition",
         entity,
-        condition: { id: `mental-trauma:${record.total}`, label, source: MENTAL_TRAUMA_TABLE, page: 74 },
+        condition: { id: `mental-trauma:${rowId(row?.result) ?? record.total}`, label, source: MENTAL_TRAUMA_TABLE, page: 74 },
       });
     }
     return { total: record.total, rolls: [record], result: { row: row?.result ?? null, total: record.total }, label, effects };
@@ -223,18 +239,20 @@ export const mentalTrauma: DiceOperation = {
 export const criticalInjury: DiceOperation = {
   id: "criticalInjury",
   name: "Critical injury",
-  page: [69, 70],
+  page: 70,
   input: { type: "object", properties: { entity: { type: "string" } } },
   run(input, rng, tables): DiceOperationResult {
     const { record, row } = rollOnTable(tables, CRITICAL_INJURY_TABLE, rng, { step: "criticalInjury", fallbackDice: "d66" });
     const label = record.rowLabel ?? `Critical injury ${record.total}`;
     const entity = str(input.entity);
-    const effects: Effect[] = [{ kind: "log", text: `Critical injury (p. 69-70): ${label} (${record.total}).` }];
+    const res = (row?.result ?? {}) as { fatal?: boolean; timeLimit?: string | null; instantDeath?: boolean };
+    const lethal = res.instantDeath ? "; killed outright" : res.fatal && res.timeLimit ? `; lethal, death roll every ${res.timeLimit}` : "";
+    const effects: Effect[] = [{ kind: "log", text: `Critical injury (p. 70): ${label} (${record.total})${lethal}.` }];
     if (entity) {
       effects.push({
         kind: "addCondition",
         entity,
-        condition: { id: `critical-injury:${record.total}`, label, source: CRITICAL_INJURY_TABLE, page: [69, 70] },
+        condition: { id: `critical-injury:${record.total}`, label, source: CRITICAL_INJURY_TABLE, page: 70 },
       });
     }
     return { total: record.total, rolls: [record], result: { row: row?.result ?? null, total: record.total }, label, effects };

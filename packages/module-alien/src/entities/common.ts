@@ -1,9 +1,11 @@
 import type { JsonSchema, SheetField } from "@campaign-forge/module-sdk";
 
 /** Shared enums from docs/alien-field-names.md. */
+/** Four attributes (p. 25). */
 export const ATTRIBUTE_IDS = ["strength", "agility", "wits", "empathy"] as const;
 export type AttributeId = (typeof ATTRIBUTE_IDS)[number];
 
+/** Twelve skills and their attributes (p. 42). */
 export const SKILL_BINDINGS: Array<{ id: string; attribute: AttributeId }> = [
   { id: "heavyMachinery", attribute: "strength" },
   { id: "closeCombat", attribute: "strength" },
@@ -35,7 +37,24 @@ export const CAREER_IDS = [
 export const FRAME_IDS = ["space-truckers", "colonial-marines", "frontier-colonists"] as const;
 export const REGION_IDS = ["core", "outer-veil", "outer-rim", "frontier", "far-reach"] as const;
 export const ALLEGIANCE_IDS = ["uas", "3we", "upp", "icsc", "independent", "unknown"] as const;
-export const RANGE_IDS = ["engaged", "short", "medium", "long", "extreme"] as const;
+/** The five range bands of the Evolved Edition (p. 55); the closest is "Adjacent", not "Engaged". */
+export const RANGE_IDS = ["adjacent", "short", "medium", "long", "extreme"] as const;
+export type RangeId = (typeof RANGE_IDS)[number];
+export const RANGE_LABELS: Record<RangeId, string> = {
+  adjacent: "Adjacent",
+  short: "Short",
+  medium: "Medium",
+  long: "Long",
+  extreme: "Extreme",
+};
+/** What each band means on the zone map (p. 55). */
+export const RANGE_DESCRIPTIONS: Record<RangeId, string> = {
+  adjacent: "In your face",
+  short: "Same zone",
+  medium: "Adjacent zone",
+  long: "Up to four zones away",
+  extreme: "Farther away",
+};
 export const SHIP_CLASS_IDS = ["C", "G", "J", "M", "R", "U", "X"] as const;
 
 export const DRAFT07 = "http://json-schema.org/draft-07/schema#";

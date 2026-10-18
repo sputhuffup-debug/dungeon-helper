@@ -1,66 +1,117 @@
 /**
- * Star System Generator tables (p. 243). The objects table is modified by the
- * star's brightness class, read from the roll context as `brightness`.
- * Rows are unverified paraphrases.
+ * Star System Generator tables (p. 243), checked against the book.
+ *
+ * System objects: one roll per body type, each with its own dice and
+ * modifiers by star type. The modifiers read `starType` from the roll
+ * context (a step of `alien.system.create` derived from the star's spectral
+ * and brightness class): "giant" (III), "subgiant" (IV), "main-sequence" (V),
+ * "red-dwarf" (MV), "white-main-sequence" (AV) or "white-dwarf" (D).
+ * A negative result means none of that type.
  */
-import type { RollTable } from "@campaign-forge/module-sdk";
-import { d6, defineTable, ranges } from "./_helpers";
+import type { RollTable, TableRow } from "@campaign-forge/module-sdk";
+import { d6, ranges, type TableSpec } from "./_helpers";
 
 const FAMILY = "system";
 
-export const systemObjects: RollTable = defineTable({
-  id: "alien.system.objects",
-  name: "System objects",
+/** A table checked against the book: no `unverified` flag. */
+const table = (spec: TableSpec): RollTable => ({ ...spec });
+
+const star = (type: string) => ({ "==": [{ var: "starType" }, type] });
+
+/** Count rows: [-99..0] none, then one row per count up to `max`. */
+function countRows(noun: string, max: number): TableRow[] {
+  const rows: Array<[number, number, string, Record<string, unknown>]> = [[-99, 0, `No ${noun}`, { count: 0 }]];
+  for (let n = 1; n <= max; n++) rows.push([n, n === max ? 99 : n, `${n} ${noun}`, { count: n }]);
+  return ranges(rows);
+}
+
+export const gasGiants: RollTable = table({
+  id: "alien.system.gas-giants",
+  name: "Number of gas giants",
+  family: FAMILY,
+  page: 243,
+  dice: "1d6-1",
+  notes: "D6−1; −1 if subgiant, −4 if white dwarf. Each gas giant has D6+4 significant moons.",
+  modifiers: [
+    { when: star("subgiant"), add: -1, label: "subgiant" },
+    { when: star("white-dwarf"), add: -4, label: "white dwarf" },
+  ],
+  rows: countRows("gas giants", 5),
+});
+
+export const terrestrialPlanets: RollTable = table({
+  id: "alien.system.terrestrial-planets",
+  name: "Number of terrestrial planets",
   family: FAMILY,
   page: 243,
   dice: "1d6",
-  notes: "Counts of bodies by brightness class: supergiants (Ia, Ib) −2, giants (II, III) −1, main sequence (V) +1, white dwarfs (D) −3.",
+  notes: "D6; −3 if red dwarf, −3 if white dwarf. Detail each with Main World Creation, stopping at colony size.",
   modifiers: [
-    { when: { in: [{ var: "brightness" }, ["Ia", "Ib"]] }, add: -2, label: "supergiant" },
-    { when: { in: [{ var: "brightness" }, ["II", "III"]] }, add: -1, label: "giant" },
-    { when: { "==": [{ var: "brightness" }, "V"] }, add: 1, label: "main sequence" },
-    { when: { "==": [{ var: "brightness" }, "D"] }, add: -3, label: "white dwarf" },
+    { when: star("red-dwarf"), add: -3, label: "red dwarf" },
+    { when: star("white-dwarf"), add: -3, label: "white dwarf" },
   ],
-  rows: ranges([
-    [-99, 1, "Barren system", { gasGiants: 0, terrestrials: 0, icePlanets: 1, asteroidBelts: 1 }],
-    [2, 2, "Sparse system", { gasGiants: 1, terrestrials: 0, icePlanets: 1, asteroidBelts: 0 }],
-    [3, 3, "Outer-heavy system", { gasGiants: 1, terrestrials: 1, icePlanets: 2, asteroidBelts: 1 }],
-    [4, 4, "Balanced system", { gasGiants: 1, terrestrials: 2, icePlanets: 1, asteroidBelts: 1 }],
-    [5, 5, "Inner-heavy system", { gasGiants: 2, terrestrials: 2, icePlanets: 2, asteroidBelts: 0 }],
-    [6, 99, "Crowded system", { gasGiants: 2, terrestrials: 3, icePlanets: 3, asteroidBelts: 2 }],
-  ]),
+  rows: countRows("terrestrial planets", 6),
 });
 
-export const gasGiantFeatures: RollTable = defineTable({
+export const icePlanets: RollTable = table({
+  id: "alien.system.ice-planets",
+  name: "Number of ice planets",
+  family: FAMILY,
+  page: 243,
+  dice: "1d6+1",
+  notes: "D6+1; −1 if subgiant, −1 if giant, −1 if white main sequence. Detail each with Main World Creation at frozen temperature, stopping at colony size.",
+  modifiers: [
+    { when: star("subgiant"), add: -1, label: "subgiant" },
+    { when: star("giant"), add: -1, label: "giant" },
+    { when: star("white-main-sequence"), add: -1, label: "white main sequence" },
+  ],
+  rows: countRows("ice planets", 7),
+});
+
+export const asteroidBelts: RollTable = table({
+  id: "alien.system.asteroid-belts",
+  name: "Number of asteroid belts",
+  family: FAMILY,
+  page: 243,
+  dice: "1d6-3",
+  notes: "D6−3; −2 if white dwarf, −2 if subgiant.",
+  modifiers: [
+    { when: star("white-dwarf"), add: -2, label: "white dwarf" },
+    { when: star("subgiant"), add: -2, label: "subgiant" },
+  ],
+  rows: countRows("asteroid belts", 3),
+});
+
+export const gasGiantFeatures: RollTable = table({
   id: "alien.system.gas-giant-features",
   name: "Gas giant features",
   family: FAMILY,
   page: 243,
   dice: "1d6",
   rows: d6([
-    { label: "Extensive ring system", result: { feature: "rings" } },
-    { label: "A habitable moon", result: { feature: "habitable-moon" } },
-    { label: "Permanent super-storm", result: { feature: "storm" } },
-    { label: "Automated fuel skimming station", result: { feature: "fuel-station" } },
-    { label: "Derelict in a decaying orbit", result: { feature: "derelict" } },
-    { label: "Mining outposts on the moons", result: { feature: "moon-mining" } },
+    { label: "Storms", result: { feature: "storms" } },
+    { label: "Single super storm", result: { feature: "super-storm" } },
+    { label: "Rings", result: { feature: "rings" } },
+    { label: "High winds", result: { feature: "high-winds" } },
+    { label: "Intense radiation fields", result: { feature: "radiation" } },
+    { label: "Small gas giant", result: { feature: "small" } },
   ]),
 });
 
-export const asteroidBeltFeatures: RollTable = defineTable({
+export const asteroidBeltFeatures: RollTable = table({
   id: "alien.system.asteroid-belt-features",
   name: "Asteroid belt features",
   family: FAMILY,
   page: 243,
   dice: "1d6",
   rows: d6([
-    { label: "Dense, hazardous to navigate", result: { feature: "dense" } },
-    { label: "Rich in rare metals", result: { feature: "rich-metals" } },
-    { label: "Mining claim markers everywhere", result: { feature: "claims" } },
-    { label: "Abandoned mining station", result: { feature: "abandoned-station" } },
-    { label: "Pirate or smuggler hideout", result: { feature: "hideout" } },
-    { label: "Ice-rich, used for water and fuel", result: { feature: "ice" } },
+    { label: "Bright and highly visible", result: { feature: "bright" } },
+    { label: "High orbital inclination", result: { feature: "high-inclination" } },
+    { label: "Dust belt", result: { feature: "dust" } },
+    { label: "Contains several large dwarf planets", result: { feature: "dwarf-planets" } },
+    { label: "Very wide – covering several orbits", result: { feature: "very-wide" } },
+    { label: "Intensely mineral rich asteroids", result: { feature: "mineral-rich" } },
   ]),
 });
 
-export const systemTables: RollTable[] = [systemObjects, gasGiantFeatures, asteroidBeltFeatures];
+export const systemTables: RollTable[] = [gasGiants, terrestrialPlanets, icePlanets, asteroidBelts, gasGiantFeatures, asteroidBeltFeatures];

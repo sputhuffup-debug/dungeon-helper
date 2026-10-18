@@ -1,5 +1,6 @@
 import "fake-indexeddb/auto";
 import { plainText } from "@campaign-forge/core";
+import type { TemplateAdventure } from "@campaign-forge/module-sdk";
 import { afterEach, describe, expect, it } from "vitest";
 import { createCampaign } from "../../state/actions";
 import { openCampaign, type CampaignContextValue } from "../../state/CampaignProvider";
@@ -56,7 +57,7 @@ describe("adventure templates", () => {
     expect(adventure.acts).toHaveLength(3);
     expect(text(ctx, adventure.playerIntroDoc)).toContain("What's the story, Mother?");
     expect(text(ctx, adventure.gmSituationDoc)).toContain("GM-only");
-    expect(text(ctx, adventure.epilogueDoc)).toContain("survivor");
+    expect(text(ctx, adventure.epilogueDoc)).toContain("sign-off message");
 
     const acts = adventure.acts.map((id) => ctx.store.get("acts", id)!);
     expect(acts.map((a) => [a.number, a.title])).toEqual([
@@ -64,30 +65,36 @@ describe("adventure templates", () => {
       [2, "Tilt"],
       [3, "Showdown"],
     ]);
-    expect(acts[0]?.goal).toMatch(/Establish the crew/);
-    expect(text(ctx, acts[0]?.pacingDoc)).toMatch(/Slow burn/);
+    // Expectations come from the module's scaffold, so template wording can change freely.
+    const scaffold = template!.scaffold as TemplateAdventure;
+    const firstAct = scaffold.acts[0]!;
+    const firstScene = firstAct.scenes![0]!;
+    expect(acts[0]?.goal).toBe(firstAct.goal);
+    expect(text(ctx, acts[0]?.pacingDoc)).toContain(plainTemplateText(firstAct.pacing!).slice(0, 30));
 
     const scenes = acts.flatMap((a) => a.scenes.map((id) => ctx.store.get("scenes", id)!));
-    expect(scenes).toHaveLength(9);
-    expect(scenes[0]?.title).toBe("Arrival");
-    expect(scenes[0]?.purpose).toMatch(/^Arrival: the crew reaches/);
+    expect(scenes).toHaveLength(scaffold.acts.reduce((n, a) => n + (a.scenes?.length ?? 0), 0));
+    expect(scenes[0]?.title).toBe(sceneTitleFromPurpose(firstScene.purpose));
+    expect(scenes[0]?.purpose).toBe(firstScene.purpose);
     expect(scenes[0]?.events).toEqual([expect.objectContaining({ mandatory: true, text: scenes[0]?.purpose })]);
     expect(scenes[0]?.tags).toContain("mandatory");
-    expect(scenes[2]?.events[0]?.mandatory).toBe(false);
-    expect(scenes[2]?.tags).toContain("optional");
-    expect(text(ctx, scenes[0]?.bodyDoc)).toContain("Location, NPCs present");
+    const optionalIndex = scaffold.acts.flatMap((a) => a.scenes ?? []).findIndex((sc) => !sc.mandatory);
+    expect(scenes[optionalIndex]?.events[0]?.mandatory).toBe(false);
+    expect(scenes[optionalIndex]?.tags).toContain("optional");
+    expect(text(ctx, scenes[0]?.bodyDoc)).toContain(plainTemplateText(firstScene.body!));
 
-    for (const act of acts) {
+    for (const [i, act] of acts.entries()) {
       const handouts = actHandouts(ctx.store, act);
-      expect(handouts).toHaveLength(6);
+      const planned = scaffold.acts[i]!.handouts ?? [];
+      expect(handouts).toHaveLength(planned.length);
       for (const h of handouts) {
         expect(h.kind).toBe("agenda");
         expect(h.visibility.level).toBe("some_players");
         expect(h.attachedTo).toEqual({ kind: "act", id: act.id });
-        expect(text(ctx, h.bodyDoc)).toMatch(/secret goal/);
+        expect(text(ctx, h.bodyDoc)).toContain(plainTemplateText(planned[0]!.body!));
       }
     }
-    expect(ctx.store.count("handouts")).toBe(18);
+    expect(ctx.store.count("handouts")).toBe(scaffold.acts.reduce((n, a) => n + (a.handouts?.length ?? 0), 0));
   });
 
   it("instantiates a blank adventure and a fixture-module template the same way", async () => {
@@ -139,13 +146,13 @@ describe("adventure templates", () => {
     expect(md).toContain("(mandatory)");
     expect(md).not.toMatch(/\[\[/);
     expect(md).not.toContain("\\_");
-    expect(md).toContain("*Location, NPCs present, what looks normal.*");
+    expect(md).toContain("*Who is present, what the crew is here to do.*"); // first scene body of the Alien cinematic scaffold
     expect(adventureDocIds(ctx.store, adventure.id).length).toBeGreaterThan(30);
 
     const cards = await agendaCards(ctx, adventure.id);
     expect(cards).toHaveLength(19);
     expect(cards.at(-1)?.character).toBe("Ripley");
-    expect(cards[0]?.body).toMatch(/secret goal/);
+    expect(cards[0]?.body).toMatch(/secret agenda/);
 
     deleteAct(ctx, a2!);
     expect(ctx.store.get("adventures", adventure.id)?.acts).not.toContain(a2);

@@ -84,7 +84,7 @@ site: `description`, `mapId?` (core SiteMap id)
 `frame`, `jobType` ("job"|"mission"|"expedition"), `distance: number 0..5`, `difficulty: number 1..3`, `payment: number`, `employer: string`, `bonusRewards: string[]`, `mission?: string`, `cargo?: string`, `destination: string`, `complications: string[]`, `plotTwist?: string`, `status` ("offered"|"accepted"|"done"|"declined")
 
 ## `alien.item.fields`
-weapon: `bonus: number`, `damage: number`, `damageType?` ("normal"|"stun"|"fire"|"energy"), `range` ("engaged"|"short"|"medium"|"long"|"extreme"), `rangeMin?`, `ammo?` , `power?: number`, `weight: number`, `cost: number`, `special: string[]`
+weapon: `bonus: number`, `damage: number`, `damageType?` ("normal"|"stun"|"fire"|"energy"), `range` ("adjacent"|"short"|"medium"|"long"|"extreme"), `rangeMin?`, `ammo?` , `power?: number`, `weight: number`, `cost: number`, `special: string[]`
 armor: `armorRating: number`, `airSupply?: number`, `weight`, `cost`, `special`
 tool/medical/food/pharmaceutical/other: `effect?: string`, `weight`, `cost`, `supply?: number`
 

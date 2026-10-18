@@ -2,68 +2,76 @@ import type { RuleCard } from "@campaign-forge/module-sdk";
 import { CAMPAIGN } from "../modes";
 import { TR, card } from "./card";
 
+/** Chapter 10: alien species (p. 204-231) and Xenomorphs in campaign play (p. 159). */
 export const creatureRules: RuleCard[] = [
-  card("creature-attacks", "Creature attacks", "Creatures have no attributes. Each round they draw one initiative card per point of Speed, and on their turn the GM rolls a D6 on the creature's signature attack table; the row gives dice, damage and effect. Creatures never push and never dodge.", 208, {
+  card("creature-attacks", "Xenomorph combat", "Xenomorphs have no attributes: they roll base dice equal to a skill level, often far above human levels, and never push. On each turn one either moves or makes a signature attack chosen by a D6 roll (re-roll the same attack twice running, or simply pick one), at Adjacent range unless stated. They never defend or dodge, but their attacks can be defended against.", 208, {
     tags: ["creatures", "combat"],
-    links: { rules: ["alien.rule.creature-speed", "alien.rule.creature-armor", "alien.rule.acid-splash"], trackers: [TR.initiative] },
+    links: { tables: ["alien.creatures.attack.drone"], rules: ["alien.rule.creature-speed", "alien.rule.creature-armor", "alien.rule.acid-splash", "alien.rule.broken-xenomorph"], trackers: [TR.initiative] },
   }),
-  card("creature-speed", "Speed", "A creature's Speed is the number of initiative cards it draws each round; it acts on every one of them. It also sets how many zones it covers in stealth mode.", 208, {
+  card("creature-speed", "Speed", "A Xenomorph gets one full turn and one initiative card per point of Speed. Moving instead of attacking covers two zones, or a zone then Short to Adjacent range, and in stealth mode it moves one zone per point of Speed each stretch. An ambushing Xenomorph takes card #1 only for its first turn.", [55, 208], {
     tags: ["creatures", "combat", "initiative"],
-    links: { rules: ["alien.rule.initiative", "alien.rule.stealth-mode"], trackers: [TR.initiative, TR.stealth] },
+    links: { rules: ["alien.rule.initiative", "alien.rule.stealth-mode", "alien.rule.ambush"], trackers: [TR.initiative, TR.stealth] },
   }),
-  card("creature-armor", "Creature armor", "Creatures have an Armor Rating rolled like any armor, with notes for situations where it changes (such as fire). Some weapons bypass it.", 208, {
+  card("creature-armor", "Armor, stun and recovery", "Many Xenomorphs have a natural armor level, often lower against fire. They are immune to stun damage unless noted, resisting with Mobility when they are not, and a stretch spent immobile restores all lost Health.", 209, {
     tags: ["creatures", "combat", "damage"],
-    links: { rules: ["alien.rule.damage-armor"] },
+    links: { rules: ["alien.rule.damage-armor", "alien.rule.damage-types"] },
   }),
-  card("acid-splash", "Acid splash", "When a xenomorph is damaged at engaged or short range, its acid blood sprays: everyone nearby suffers an attack with the creature's acid splash dice. Acid keeps burning through armor and decks.", 208, {
+  card("acid-splash", "Acid splash", "When a Xenomorph XX121 takes damage other than fire, everyone Adjacent and the floor suffer an attack with base dice equal to its Acid Splash rating plus the damage taken, base damage 1. Armor reduces the damage but loses a point per point of damage, and the acid attacks again each round with half the dice (rounded up) until it deals none.", 210, {
     tags: ["creatures", "combat", "damage"],
-    links: { rules: ["alien.rule.creature-attacks", "alien.rule.damage-types"] },
+    links: { rules: ["alien.rule.creature-attacks", "alien.rule.armor", "alien.rule.barriers"] },
   }),
-  card("creature-abilities", "Special abilities", "Beyond attacks, each creature has named abilities: wall crawling, camouflage, a tail that pins, pheromone signals. They work as written on the stat block, no roll unless stated.", 208, {
+  card("creature-abilities", "Special abilities", "Some creatures have special actions besides their signature attacks, given in their entries. Every XX121 also shrugs off cold and vacuum, treats radiation as two levels weaker, and ignores darkness.", [209, 210], {
     tags: ["creatures"],
-    links: { rules: ["alien.rule.creature-attacks"] },
+    links: { rules: ["alien.rule.creature-attacks", "alien.rule.darkness", "alien.rule.radiation"] },
   }),
-  card("lifecycle", "The xenomorph lifecycle", "Stages follow a path: egg, facehugger, chestburster, then adult forms that grow and specialise. Each stage lists a trigger (time, a host, a queen's presence) that moves it to the next.", [209, 221], {
+  card("lifecycle", "The XX121 life cycle", "Xenomorph XX121 passes from egg to Facehugger to Chestburster to adult: Stage IV drone, scout or stalker, Stage V soldier, worker or sentry, and Stage VI praetorian, charger or queen. Stages beyond that are rumor.", [209, 221], {
     tags: ["creatures", "lifecycle"],
     links: { rules: ["alien.rule.facehugger", "alien.rule.chestburster", "alien.rule.xenomorph-stages", "alien.rule.queen", "alien.rule.containment"] },
   }),
-  card("facehugger", "Facehugger", "Fast, small and almost impossible to remove without killing the host. A successful attack means implantation; the host wakes with no memory of it and a countdown has begun.", 211, {
+  card("ovomorph", "The egg", "With a potential host (not an android) within Short range, roll a stress die each round, and a facehugger releases the parasite. A host at Adjacent range must pass a Mobility roll, no action, each turn to avoid disturbing it. A lone drone can also turn cocooned hosts into eggs over 24 to 36 hours.", 212, {
     tags: ["creatures", "lifecycle"],
-    links: { rules: ["alien.rule.lifecycle", "alien.rule.chestburster"] },
+    links: { rules: ["alien.rule.facehugger", "alien.rule.lifecycle"] },
   }),
-  card("chestburster", "Chestburster", "After a delay the embryo erupts, killing the host and forcing panic rolls for everyone watching. It then hides and grows within hours.", 212, {
+  card("facehugger", "Facehugger", "Its D6 attacks escalate from a menacing scuttle through tail grapples to a face leap and the Final Embrace, eight dice that only an APEsuit's armor resists. A facehugged victim is broken and unconscious; within a shift it falls off, and a shift later a Chestburster emerges. Removing it kills the host unless it is frozen first, and each stretch a stress die may show the host is already implanted.", [212, 214], {
     tags: ["creatures", "lifecycle"],
-    links: { rules: ["alien.rule.lifecycle", "alien.rule.panic-triggers"] },
+    links: { tables: ["alien.creatures.attack.facehugger"], rules: ["alien.rule.lifecycle", "alien.rule.chestburster", "alien.rule.facehugger-swarm"] },
   }),
-  card("xenomorph-stages", "Adult xenomorph forms", "Adults range from stalkers and drones to soldiers, sentries and praetorians, each with its own attack table, armor and Speed. Variants exist by host and environment.", [213, 218], {
-    tags: ["creatures", "lifecycle"],
-    links: { rules: ["alien.rule.lifecycle", "alien.rule.creature-attacks"] },
-  }),
-  card("queen", "The queen", "A hive's queen is a siege-class threat with high armor, multiple attacks and an egg-laying drive. Later stages beyond the queen are lore only, without stats.", [219, 221], {
-    tags: ["creatures", "lifecycle"],
-    links: { rules: ["alien.rule.lifecycle"] },
-  }),
-  card("broken-xenomorph", "Broken xenomorph", "When a xenomorph reaches zero Health, roll on the broken xenomorph table: it may die, flee, play dead or lash out one last time in a spray of acid.", 213, {
+  card("facehugger-swarm", "Facehugger swarms", "Several facehuggers in one zone can act as a swarm whose Speed depends on how many there are, from 2 for one or two up to 6 for 21 or more. Each one must still be killed separately.", 213, {
     tags: ["creatures", "combat"],
-    links: { rules: ["alien.rule.acid-splash"] },
+    links: { rules: ["alien.rule.facehugger", "alien.rule.creature-speed"] },
   }),
-  card("facehugger-swarm", "Facehugger swarms", "Several facehuggers act as one swarm with a size rolled when encountered; damage reduces the size rather than Health.", 213, {
-    tags: ["creatures", "combat"],
-    links: { rules: ["alien.rule.facehugger"] },
-  }),
-  card("neomorph", "Neomorphs", "A second species with its own lifecycle via spores: the host grows a bloodburster or backburster, which matures into a pale, fast adult. Different triggers, different attack tables.", [222, 225], {
+  card("chestburster", "Chestburster", "The birth kills the host outright. The Stage III creature, including the Bambi Burster and Imp variants, attacks or flees to hide, feed and grow into Stage IV; facehuggers and chestbursters at zero Health are simply destroyed.", [215, 216], {
     tags: ["creatures", "lifecycle"],
-    links: { rules: ["alien.rule.lifecycle"] },
+    links: { tables: ["alien.creatures.attack.chestburster"], rules: ["alien.rule.lifecycle", "alien.rule.panic-triggers"] },
   }),
-  card("other-species", "Other species", "The book also covers a handful of other hostile lifeforms with simpler stat blocks: use them for variety when the xenomorph would be too familiar.", [226, 227], {
+  card("xenomorph-stages", "Adult xenomorph forms", "Stage IV drones, scouts and stalkers and Stage V soldiers, workers and sentries each have their own Speed, Health, skills, armor, acid splash and attack table. Workers avoid fights, soldiers attack in groups, and sentries guard the queen.", [217, 221], {
+    tags: ["creatures", "lifecycle"],
+    links: { tables: ["alien.creatures.attack.drone", "alien.creatures.attack.soldier"], rules: ["alien.rule.lifecycle", "alien.rule.creature-attacks"] },
+  }),
+  card("queen", "Stage VI and the hive", "Royal jelly turns soldiers and sentries into praetorians and chargers, and only a queen lays eggs in quantity. Their shared attack table includes calling guards, a frenzy, a charge and a lethal headbite. The hive is a hot resin maze where hosts are cocooned, and the queen sits at its guarded heart.", [219, 221], {
+    tags: ["creatures", "lifecycle"],
+    links: { tables: ["alien.creatures.attack.queen"], rules: ["alien.rule.lifecycle"] },
+  }),
+  card("broken-xenomorph", "Broken xenomorph", "A Xenomorph at zero Health rolls D6: it may rise again, fight on wounded, flee, make one last attack, or (5-6) die. In \"Aliens mode\" the GM may rule that Xenomorphs at zero Health simply die.", [208, 209], {
+    tags: ["creatures", "combat"],
+    links: { tables: ["alien.creatures.broken-xenomorph"], rules: ["alien.rule.creature-attacks"] },
+  }),
+  card("neomorph", "Neomorphs", "A separate strain with its own cycle: disturbed egg sacs release a cloud of motes, and infection works as a disease (virulence −2). A failed Stamina roll means a bloodburster erupts within a shift, killing the host, then grows into a neophyte and finally an adult neomorph, each stage with its own stats and attacks.", [223, 225], {
+    tags: ["creatures", "lifecycle"],
+    links: { tables: ["alien.creatures.attack.neomorph-bloodburster", "alien.creatures.attack.neomorph-adult"], rules: ["alien.rule.lifecycle"] },
+  }),
+  card("other-species", "Other extrasolar species", "Harvesters, lion worms, Tanakan scorpionids and the Swarm are other hostile lifeforms, each with stats and a signature attack table.", [227, 231], {
     tags: ["creatures"],
-    links: { rules: ["alien.rule.creature-attacks"] },
+    links: {
+      tables: ["alien.creatures.attack.harvester", "alien.creatures.attack.lion-worm", "alien.creatures.attack.tanakan-scorpionid", "alien.creatures.attack.swarm"],
+      rules: ["alien.rule.creature-attacks"],
+    },
   }),
-  card("containment", "Containment protocols", "Guidelines for keeping a specimen: what the company wants, what holds each stage, and how long before it gets out. Useful as a countdown when the crew is told to bring one back alive.", [227, 231], {
+  card("containment", "Containment and termination", "Each creature entry ends with known ways to keep or kill it: fire works on most stages, extreme cold makes eggs dormant and loosens facehuggers, and blind facehuggers can be avoided by keeping still. Best advice for a hive: stay out.", [212, 231], {
     tags: ["creatures", "gm"],
-    links: { rules: ["alien.rule.lifecycle", "alien.rule.xenomorphs-campaign"], trackers: [TR.countdown] },
+    links: { rules: ["alien.rule.lifecycle", "alien.rule.xenomorphs-campaign"] },
   }),
-  card("xenomorphs-campaign", "Xenomorphs in campaign play", "In a campaign the creature is rare and should stay rare: build toward it over several jobs, let rumours and company interest precede it, and treat an outbreak as a season finale rather than a weekly fight.", 159, {
+  card("xenomorphs-campaign", "Xenomorphs in campaign play", "Unlike cinematic play, a campaign should not meet a Xenomorph on every job. Use other threats such as corporate agents, soldiers, rival crews, rogue androids and critters, and save the Xenomorph for special occasions.", 159, {
     mode: [CAMPAIGN],
     tags: ["creatures", "campaign", "gm"],
     links: { rules: ["alien.rule.campaign-structure", "alien.rule.containment"] },

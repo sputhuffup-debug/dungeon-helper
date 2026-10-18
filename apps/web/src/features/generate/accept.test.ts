@@ -104,6 +104,8 @@ describe("accepting generator output", () => {
     const applied = applyGeneratorEffects(ctx, effects);
     expect(applied.skipped).toEqual([]);
     expect(ctx.store.get("entities", hicks.id)?.fields.stress).toBe(0);
-    expect(ctx.store.get("entities", vasquez.id)?.fields.xp).toBe(2);
+    // Pursue Agenda grants +1 XP only on a successful roll (p. 257), so it arrives as a prompt, not an automatic effect.
+    expect(ctx.store.get("entities", vasquez.id)?.fields.xp).toBe(1);
+    expect(effectsOf(res.run.results).some((e) => e.kind === "prompt")).toBe(true);
   });
 });

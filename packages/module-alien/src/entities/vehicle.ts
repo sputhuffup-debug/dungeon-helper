@@ -1,16 +1,18 @@
 import type { EntityTypeDef } from "@campaign-forge/module-sdk";
 import { intField, number, numberField, objectSchema, stringArray, stringField, tags, text, textarea } from "./common";
 
+/** Vehicle stat line as listed on p. 100 (features) and p. 313 (table). */
 export const vehicleSchema = objectSchema({
-  length: stringField("e.g. 6 m"),
-  passengers: { type: ["integer", "string"] },
-  maneuverability: intField(undefined, undefined, 0, "Modifier to Piloting (p. 100)."),
-  speed: intField(0, undefined, 1),
-  hull: intField(0, undefined, 1, "Hull points, the vehicle's health."),
-  armor: intField(0, undefined, 0),
-  weapons: stringArray(),
-  cost: numberField({ minimum: 0, default: 0 }),
-  encountered: stringField("Where it is typically seen."),
+  encountered: stringField("Where the vehicle is likely to be met."),
+  length: stringField("Length in meters, e.g. 6.6 m."),
+  passengers: { type: ["integer", "string"], description: "Riders, not counting the driver." },
+  maneuverability: intField(undefined, undefined, 0, "Modifier to PILOTING rolls for hard maneuvers (\"–\" = 0)."),
+  speed: intField(0, undefined, 1, "Zones per driving action."),
+  hull: intField(0, undefined, 1, "Damage the vehicle takes before it is wrecked."),
+  armor: intField(0, undefined, 0, "Armor level."),
+  armorNote: stringField("Footnote on the armor value, e.g. exposed occupants."),
+  weapons: stringArray("Typical mounted weapons, as the book names them (stats on p. 313)."),
+  cost: numberField({ minimum: 0, default: 0 }, "Typical price in W-Y dollars."),
 });
 
 export const vehicleType: EntityTypeDef = {
@@ -33,6 +35,7 @@ export const vehicleType: EntityTypeDef = {
           number("speed", "Speed", { rule: "alien.rule.vehicles" }),
           number("hull", "Hull", { rule: "alien.rule.vehicles" }),
           number("armor", "Armor", { rule: "alien.rule.vehicles" }),
+          text("armorNote", "Armor note", { span: 6 }),
           number("cost", "Cost ($)"),
           tags("weapons", "Weapons"),
           textarea("encountered", "Encountered"),

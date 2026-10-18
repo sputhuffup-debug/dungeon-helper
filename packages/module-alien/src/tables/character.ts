@@ -1,156 +1,148 @@
 /**
- * Character tables: stress response, panic, mental trauma, critical injuries,
- * campaign theme (p. 30, 44, 69-74, 158). Rows are paraphrased labels from
- * general knowledge of the game and are unverified against the book.
+ * Character tables: stress response (p. 44), panic (p. 73), mental trauma (p. 74),
+ * critical injuries (p. 70) and campaign theme (p. 158). Checked against the
+ * Evolved Edition: labels, ranges and dice are data; effects are short paraphrases.
  */
 import type { RollTable, TableModifier } from "@campaign-forge/module-sdk";
+import { criticalInjuryItems } from "../reference/criticalInjuries";
+import { mentalTraumaItems } from "../reference/mentalTraumas";
 import { d6, d66, defineTable, ranges } from "./_helpers";
 
 const FAMILY = "character";
+
+/** `defineTable` flags every table unverified; these were checked against the book. */
+function verified(table: RollTable): RollTable {
+  const { unverified: _t, ...rest } = table;
+  return {
+    ...rest,
+    rows: rest.rows.map((r) => {
+      const { unverified: _r, ...row } = r;
+      return row;
+    }),
+  };
+}
 
 /** D6 + stress − Resolve. Both values are read from the roll context. */
 const stressModifiers: TableModifier[] = [
   { add: { "-": [{ var: "stress" }, { var: "resolve" }] }, label: "+ stress level − Resolve" },
 ];
 
-export const stressResponse: RollTable = defineTable({
-  id: "alien.character.stress-response",
-  name: "Stress response",
-  family: FAMILY,
-  page: 44,
-  dice: "1d6",
-  modifiers: stressModifiers,
-  notes: "Roll when a stress die shows a 1. D6 + stress level − Resolve.",
-  tags: ["stress"],
-  rows: ranges([
-    [-99, 3, "Keeping Cool", { effect: "No effect; the character holds it together." }],
-    [4, 4, "Jumpy", { effect: "Startled; −1 to the next skill roll this round." }],
-    [5, 5, "Distracted", { effect: "Loses track of the task; the action takes an extra round." }],
-    [6, 6, "Shouting", { effect: "Yells or curses loudly; the noise may attract attention." }],
-    [7, 7, "Fumble", { effect: "Drops or jams the item in hand; a stretch to recover it." }],
-    [8, 8, "Lose Focus", { effect: "Stress +1 and the action gets no bonus effects." }],
-    [9, 9, "Freeze Up", { effect: "Loses the action this round; stress +1." }],
-    [10, 99, "Mess Up", { effect: "The action fails outright and a Panic Roll is triggered." }],
-  ]),
-});
+export const stressResponse: RollTable = verified(
+  defineTable({
+    id: "alien.character.stress-response",
+    name: "Stress response",
+    family: FAMILY,
+    page: 44,
+    dice: "1d6",
+    modifiers: stressModifiers,
+    notes:
+      "Roll when a stress die shows a facehugger. D6 + stress level − Resolve. Rolling a response you already have gives +1 stress instead; responses are removed by relieving stress (p. 73).",
+    tags: ["stress"],
+    rows: ranges([
+      [-99, 0, "Keeping Cool", { effect: "No effect." }],
+      [1, 1, "Jumpy", { effect: "Pushing a roll costs +2 stress instead of +1." }],
+      [2, 2, "Tunnel Vision", { effect: "−2 dice on Wits-based skill rolls." }],
+      [3, 3, "Aggravated", { effect: "−2 dice on Empathy-based skill rolls." }],
+      [4, 4, "Shakes", { effect: "−2 dice on Agility-based skill rolls." }],
+      [5, 5, "Frantic", { effect: "−2 dice on Strength-based skill rolls." }],
+      [6, 6, "Deflated", { effect: "No pushing skill rolls; removes Jumpy and ignores further Jumpy results while it lasts." }],
+      [7, 99, "Mess Up", { effect: "The action fails whatever the successes, and stress +1." }],
+    ]),
+  }),
+);
 
-export const panic: RollTable = defineTable({
-  id: "alien.character.panic",
-  name: "Panic roll",
-  family: FAMILY,
-  page: [72, 73],
-  dice: "1d6",
-  modifiers: stressModifiers,
-  notes: "Roll on a panic trigger. D6 + stress level − Resolve. Results of 9 or more count toward the session-end trauma check (p. 74).",
-  tags: ["stress", "panic"],
-  rows: ranges([
-    [-99, 6, "Keeping Cool", { effect: "Keeps a steady hand; no further effect.", traumaCheck: false }],
-    [7, 7, "Spooked", { effect: "Stress +1; nearby friends also take stress +1.", traumaCheck: false }],
-    [8, 8, "Noisy", { effect: "Makes a loud noise; stress +1 for friends nearby.", traumaCheck: false }],
-    [9, 9, "Twitchy", { effect: "Shakes; −2 to the next roll this round.", traumaCheck: true }],
-    [10, 10, "Lose Item", { effect: "Drops a held or ready item; recover it later.", traumaCheck: true }],
-    [11, 11, "Paranoid", { effect: "Turns on the others; may not help or be helped this stretch.", traumaCheck: true }],
-    [12, 12, "Hesitant", { effect: "Loses the next action; acts last in the next round.", traumaCheck: true }],
-    [13, 13, "Freeze", { effect: "Frozen for one round; others nearby make a Panic Roll.", traumaCheck: true }],
-    [14, 14, "Seek Cover", { effect: "Must move to cover or away from the threat this round.", traumaCheck: true }],
-    [15, 15, "Scream", { effect: "Screams for a round; everyone nearby takes stress +1.", traumaCheck: true }],
-    [16, 16, "Flee", { effect: "Runs from the threat and will not stop until safe.", traumaCheck: true }],
-    [17, 17, "Frenzy", { effect: "Attacks the nearest person or thing; keeps going until no one is in reach.", traumaCheck: true }],
-    [18, 99, "Catatonic", { effect: "Collapses, unresponsive for a full shift.", traumaCheck: true }],
-  ]),
-});
+export const panic: RollTable = verified(
+  defineTable({
+    id: "alien.character.panic",
+    name: "Panic roll",
+    family: FAMILY,
+    page: [72, 73],
+    dice: "1d6",
+    modifiers: stressModifiers,
+    notes:
+      "Roll on a panic trigger. D6 + stress level − Resolve. A second panic stacks both responses where possible; rolling one you already have moves one step up. A result of 9 or more calls for a trauma check after the session (p. 74).",
+    tags: ["stress", "panic"],
+    rows: ranges([
+      [-99, 0, "Keeping Cool", { effect: "No effect.", traumaCheck: false }],
+      [1, 1, "Spooked", { effect: "Stress +1.", traumaCheck: false }],
+      [2, 2, "Noisy", { effect: "Enemies nearby (GM's call) are alerted to you.", traumaCheck: false }],
+      [3, 3, "Twitchy", { effect: "Make a supply roll right away for air, ammo or power (GM's choice).", traumaCheck: false }],
+      [4, 4, "Lose Item", { effect: "Drop a weapon or key item (GM picks); a quick action to grab it in combat, else Observation and a stretch.", traumaCheck: false }],
+      [5, 5, "Paranoid", { effect: "You cannot give or get help on skill rolls until the panic ends.", traumaCheck: false }],
+      [6, 6, "Hesitant", { effect: "You take initiative card #10 in combat until the panic ends.", traumaCheck: false }],
+      [7, 7, "Freeze", { effect: "Lose your next turn and any interrupt actions before it.", traumaCheck: false }],
+      [8, 8, "Seek Cover", { effect: "Dive into full cover if the zone is cluttered (else Scream); stress −1, lose your next turn.", traumaCheck: false }],
+      [9, 9, "Scream", { effect: "Lose your next turn; stress −1, and every friendly PC in the zone makes a panic roll.", traumaCheck: true }],
+      [10, 10, "Flee", { effect: "Flee to an adjacent zone at once, stress −1, friends left behind +1 stress; keep fleeing to safety. If trapped, Catatonic.", traumaCheck: true }],
+      [11, 11, "Frenzy", { effect: "Attack the nearest person or creature, friend or foe, until someone is broken or the panic ends; zone allies roll panic.", traumaCheck: true }],
+      [12, 99, "Catatonic", { effect: "Collapse, unable to move or act, until the panic ends.", traumaCheck: true }],
+    ]),
+  }),
+);
 
-export const mentalTrauma: RollTable = defineTable({
-  id: "alien.character.mental-trauma",
-  name: "Mental trauma",
-  family: FAMILY,
-  page: 74,
-  dice: "1d6",
-  notes: "Rolled at session end on a failed Empathy roll after a panic result of 9+. Healed only on shore leave (campaign play).",
-  tags: ["stress", "trauma"],
-  mode: ["campaign"],
-  rows: d6([
-    { label: "Phobia", result: { id: "phobia", effect: "A specific fear; stress +1 when exposed to it." } },
-    { label: "Alcoholism", result: { id: "alcoholism", effect: "Needs a drink each shift or suffers −1 to rolls." } },
-    { label: "Nightmares", result: { id: "nightmares", effect: "Roll Stamina after each shift of rest or lose the rest." } },
-    { label: "Depression", result: { id: "depression", effect: "Starts each session with stress +1." } },
-    { label: "Drug Abuse", result: { id: "drug-abuse", effect: "Dependent on a pharmaceutical; −1 without a dose." } },
-    { label: "Amnesia", result: { id: "amnesia", effect: "Loses memory of the traumatic events; may lose an XP question." } },
-  ]),
-});
+export const mentalTrauma: RollTable = verified(
+  defineTable({
+    id: "alien.character.mental-trauma",
+    name: "Mental trauma",
+    family: FAMILY,
+    page: 74,
+    dice: "d66",
+    notes:
+      "After a session with a panic result of 9+, roll Empathy alone (no push); on a failure roll here. Healed only on shore leave in campaign play (p. 257).",
+    tags: ["stress", "trauma"],
+    rows: ranges(mentalTraumaItems.map((m) => [m.range[0], m.range[1], m.name, { id: m.id, effect: m.effects }])),
+  }),
+);
 
-type Crit = [name: string, fatal: boolean, timeLimit: string | null, effect: string];
-const CRITS: Crit[] = [
-  ["Winded", false, null, "Stunned for one round."],
-  ["Stunned", false, null, "Loses the next action."],
-  ["Sprained Ankle", false, null, "−1 Mobility until healed."],
-  ["Sprained Wrist", false, null, "−1 Close Combat and Ranged Combat until healed."],
-  ["Concussion", false, null, "−1 Wits-based skills until healed."],
-  ["Broken Nose", false, null, "−1 Manipulation and Observation until healed."],
-  ["Knocked Teeth", false, null, "−1 Manipulation until healed."],
-  ["Broken Fingers", false, null, "−1 to actions needing fine motor skills."],
-  ["Broken Toes", false, null, "−1 Mobility until healed."],
-  ["Dislocated Shoulder", false, null, "−2 Close Combat and Heavy Machinery until healed."],
-  ["Broken Ribs", false, null, "−1 Agility-based skills until healed."],
-  ["Deep Cut", false, null, "Bleeding; −1 until bandaged."],
-  ["Broken Arm", false, null, "Cannot use the arm until healed."],
-  ["Broken Leg", false, null, "Cannot move farther than a short range per round."],
-  ["Crushed Foot", false, null, "−2 Mobility until healed."],
-  ["Torn Ear", false, null, "−1 Observation until healed; scars."],
-  ["Gouged Eye", false, null, "−2 Observation and Ranged Combat until healed."],
-  ["Severe Burns", false, null, "−1 to everything until healed; scars."],
-  ["Punctured Lung", true, "1 shift", "Cannot shout or run; collapses if untreated."],
-  ["Ruptured Spleen", true, "1 shift", "Internal bleeding; −2 to everything."],
-  ["Crushed Elbow", false, null, "Arm unusable until surgery."],
-  ["Crushed Knee", false, null, "Leg unusable until surgery."],
-  ["Severed Hand", true, "1 shift", "Loses the hand; bleeding out."],
-  ["Severed Foot", true, "1 shift", "Loses the foot; bleeding out."],
-  ["Severed Arm", true, "1 stretch", "Loses the arm; bleeding out fast."],
-  ["Severed Leg", true, "1 stretch", "Loses the leg; bleeding out fast."],
-  ["Crushed Groin", true, "1 shift", "Agony; −3 to everything."],
-  ["Broken Jaw", false, null, "Cannot speak clearly; −2 Manipulation and Command."],
-  ["Internal Bleeding", true, "1 shift", "−2 to everything; needs surgery."],
-  ["Shattered Pelvis", true, "1 shift", "Cannot move; needs surgery."],
-  ["Crushed Chest", true, "1 stretch", "Cannot act; needs immediate surgery."],
-  ["Ruptured Intestines", true, "1 shift", "−3 to everything; needs surgery."],
-  ["Broken Back", true, "1 stretch", "Paralysed; needs immediate surgery."],
-  ["Crushed Skull", true, "1 round", "Unconscious; dies without immediate care."],
-  ["Impaled", true, "1 round", "Pinned and bleeding out."],
-  ["Instant Death", true, "immediate", "Dead. No roll to save."],
-];
+export const criticalInjury: RollTable = verified(
+  defineTable({
+    id: "alien.character.critical-injury",
+    name: "Critical injuries",
+    family: FAMILY,
+    page: 70,
+    dice: "d66",
+    notes:
+      "Roll when broken (Health 0) or when hurt again while broken. Re-roll an injury you already have (14+). Lethal injuries call for a Stamina death roll (no push, no stress dice) each time limit; 64-66 kill outright. Healing times are in days.",
+    tags: ["combat", "injury"],
+    rows: d66(
+      criticalInjuryItems.map((c) => ({
+        label: c.name,
+        page: 70,
+        result: {
+          id: c.name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+          name: c.name,
+          fatal: c.fatal,
+          timeLimit: c.timeLimit,
+          instantDeath: c.instantDeath,
+          healingTime: c.healingTime,
+          surgery: c.surgery,
+          effect: c.effects,
+        },
+        // Traumatized: roll once on the mental trauma table.
+        ...(c.roll === 43 ? { roll: [{ table: "alien.character.mental-trauma", as: "trauma" }] } : {}),
+      })),
+    ),
+  }),
+);
 
-export const criticalInjury: RollTable = defineTable({
-  id: "alien.character.critical-injury",
-  name: "Critical injuries",
-  family: FAMILY,
-  page: [69, 70],
-  dice: "d66",
-  notes: "Roll when a character is Broken by damage. Fatal injuries kill at the end of the time limit unless treated.",
-  tags: ["combat", "injury"],
-  rows: d66(
-    CRITS.map(([name, fatal, timeLimit, effect]) => ({
-      label: name,
-      result: { name, id: name.toLowerCase().replace(/[^a-z0-9]+/g, "-"), fatal, timeLimit, effect },
-    })),
-  ),
-});
-
-export const campaignTheme: RollTable = defineTable({
-  id: "alien.character.campaign-theme",
-  name: "Campaign theme",
-  family: FAMILY,
-  page: 158,
-  dice: "1d6",
-  mode: ["campaign"],
-  notes: "A starting theme for a campaign; roll or choose during session zero.",
-  rows: d6([
-    { label: "Corporate Intrigue", result: { theme: "corporate-intrigue" } },
-    { label: "Infestation", result: { theme: "infestation" } },
-    { label: "Frontier War", result: { theme: "frontier-war" } },
-    { label: "Lost Expedition", result: { theme: "lost-expedition" } },
-    { label: "Salvage and Smuggling", result: { theme: "salvage-and-smuggling" } },
-    { label: "Colony Survival", result: { theme: "colony-survival" } },
-  ]),
-});
+export const campaignTheme: RollTable = verified(
+  defineTable({
+    id: "alien.character.campaign-theme",
+    name: "Campaign theme",
+    family: FAMILY,
+    page: 158,
+    dice: "1d6",
+    mode: ["campaign"],
+    notes: "An overarching focus for a new campaign; choose, roll or invent one.",
+    rows: d6([
+      { label: "Killing Greed", result: { theme: "killing-greed" } },
+      { label: "Corporate Intrigue", result: { theme: "corporate-intrigue" } },
+      { label: "Tidings of War", result: { theme: "tidings-of-war" } },
+      { label: "New Opportunities", result: { theme: "new-opportunities" } },
+      { label: "Secret Research", result: { theme: "secret-research" } },
+      { label: "Echoes from the Past", result: { theme: "echoes-from-the-past" } },
+    ]),
+  }),
+);
 
 export const characterTables: RollTable[] = [stressResponse, panic, mentalTrauma, criticalInjury, campaignTheme];

@@ -22,8 +22,8 @@ test("create an Alien campaign, add an NPC from a preset, mention it in a note, 
   // 2. NPC from a preset
   await page.getByTestId("quick-npc").click();
   await expect(page).toHaveURL(/entities\/new/);
-  await page.getByRole("searchbox", { name: "Search presets" }).fill("Colonial Marine");
-  await page.getByRole("radio", { name: /^Colonial Marine/ }).first().check();
+  await page.getByRole("searchbox", { name: "Search presets" }).fill("Mercenary");
+  await page.getByRole("radio", { name: /^Mercenary/ }).first().check();
   await page.getByTestId("entity-name").fill("Corporal Hicks");
   await page.getByTestId("create-entity").click();
 

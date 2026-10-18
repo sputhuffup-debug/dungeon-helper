@@ -81,10 +81,35 @@ describe("alien.character computed", () => {
     expect(c.health).toBe(5);
     expect(c.resolve).toBe(4);
   });
+  it("caps Hardened and Seen It All at three stacks (p. 51)", () => {
+    const c = computeFields(characterType, { ...samplePC, talents: [{ id: "hardened", count: 5 }, { id: "seen-it-all" }] });
+    expect(c.hardened).toBe(3);
+    expect(c.health).toBe(4 + 3);
+    expect(c.seenItAll).toBe(1);
+  });
+  it("Overwhelmed lowers Resolve by 2 (p. 74)", () => {
+    const c = computeFields(characterType, { ...samplePC, mentalTraumas: [{ id: "overwhelmed", label: "Overwhelmed" }] });
+    expect(c.resolve).toBe(3 - 2);
+  });
+  it("Pack Mule doubles the encumbrance limit; over-encumbered allows twice the limit (p. 28, 51)", () => {
+    expect(computeFields(characterType, samplePC).maxEncumbrance).toBe(16);
+    const c = computeFields(characterType, { ...samplePC, talents: [{ id: "pack-mule", count: 1 }] });
+    expect(c.encumbranceLimit).toBe(16);
+    expect(c.maxEncumbrance).toBe(32);
+  });
   it("does not throw on default fields", () => {
     const c = computeFields(characterType, defaultFieldsFor(characterType));
     expect(c.health).toBe(3);
     expect(c.encumbrance).toBe(0);
+  });
+});
+
+describe("alien.character sheet", () => {
+  it("points the talents widget at the talents list via config.ref", () => {
+    const field = characterType.sheet!.sections.flatMap((s) => s.fields).find((f) => f.path === "talents")!;
+    expect(field.config?.ref).toBe("alien.talents");
+    const talentList = referenceLists.find((l) => l.id === "alien.talents")!;
+    expect(talentList.items.every((i) => typeof i.maxStack === "number")).toBe(true);
   });
 });
 

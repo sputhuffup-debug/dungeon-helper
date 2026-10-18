@@ -2,46 +2,51 @@ import type { RuleCard } from "@campaign-forge/module-sdk";
 import { CAMPAIGN } from "../modes";
 import { F, T, TR, card } from "./card";
 
+/** Stress, stress responses and panic (p. 44, 72-74). */
 export const stressPanicRules: RuleCard[] = [
-  card("stress", "Stress", "Stress is a number that rises when you push, get hurt, see horrors or run out of things. Every point adds a stress die to your rolls: more chances to succeed, more chances of a facehugger.", 44, {
+  card("stress", "Stress level", "Stress starts at zero and adds one stress die per level to every skill roll. It rises when you push, when you or a nearby PC suffer certain stress or panic responses, when a nearby NPC panics, on extra full-auto bursts, fatigue, an attack by your own crew, a nearby person revealed as an android, or any unnerving event the GM chooses.", 72, {
     tags: ["stress"],
     links: { fields: [F.stress], rules: ["alien.rule.push", "alien.rule.stress-response", "alien.rule.panic-triggers", "alien.rule.stress-recovery"], trackers: [TR.stress] },
   }),
-  card("stress-response", "Stress response", "When a stress die shows a facehugger, the roll cannot be pushed and you make a stress response roll: D6 plus stress minus Resolve, read on an eight-row table from Keeping Cool to Mess Up.", 44, {
+  card("stress-response", "Stress response", "A facehugger on any stress die triggers a stress response: D6 plus stress level minus Resolve, from Keeping Cool (0 or less) through Jumpy, Tunnel Vision, Aggravated, Shakes, Frantic and Deflated to Mess Up (7+). Rolling a response you already have gives +1 stress instead; responses go away as stress is relieved.", 44, {
     tags: ["stress", "dice"],
-    links: { tables: [T.stressResponse], fields: [F.stress], rules: ["alien.rule.resolve"], trackers: [TR.stress] },
+    links: { tables: [T.stressResponse], fields: [F.stress], rules: ["alien.rule.resolve", "alien.rule.stress-recovery"], trackers: [TR.stress] },
   }),
-  card("stress-recovery", "Recovering stress", "A quiet scene, a successful Command roll from a friend, a meal, a drink or your signature item each knock stress down by one. A full rest in safety clears it entirely.", 45, {
+  card("stress-recovery", "Relieving stress", "Each stretch of rest in a safe area lowers stress by one and removes one stress response of your choice per level lost. You cannot make skill rolls while resting, and an interrupted rest does not count. Some panic results and certain drugs also lower stress.", 73, {
     tags: ["stress", "recovery"],
-    links: { fields: [F.stress, F.signatureItem], rules: ["alien.rule.signature-item"], trackers: [TR.stress] },
+    links: { fields: [F.stress], rules: ["alien.rule.pharmaceuticals", "alien.rule.panic-results"], trackers: [TR.stress] },
   }),
-  card("panic-triggers", "Panic triggers", "Certain events force a panic roll regardless of the dice: taking damage, seeing a friend Broken or killed, facing a creature for the first time, running out of air, and similar shocks.", 72, {
+  card("panic-triggers", "When to roll for panic", "Roll for panic when you see another PC broken, see a Xenomorph for the first time, have one come within Adjacent range, see another PC suffer certain panic responses, or face anything the adventure or GM deems truly horrifying.", 72, {
     tags: ["stress", "panic"],
     links: { rules: ["alien.rule.panic-roll"], trackers: [TR.stress] },
   }),
-  card("panic-roll", "Panic roll", "Roll D6 plus stress minus Resolve and read the thirteen-row panic table. A total of 9 or more marks the character for a mental trauma check at the end of the session.", [72, 73], {
+  card("panic-roll", "Panic roll", "Roll D6, add your stress level, subtract Resolve and read the panic table. While already panicking you suffer both responses where they combine, otherwise the higher one; repeating a response you have moves you one row up.", 72, {
     tags: ["stress", "panic", "dice"],
-    links: { tables: [T.panic], fields: [F.stress], rules: ["alien.rule.panic-results", "alien.rule.mental-trauma"], trackers: [TR.stress] },
+    links: { tables: [T.panic], fields: [F.stress], rules: ["alien.rule.panic-results", "alien.rule.stopping-panic", "alien.rule.mental-trauma"], trackers: [TR.stress] },
   }),
-  card("panic-results", "Panic results", "Results climb from Keeping Cool through Spooked, Noisy, Twitchy, Lose Item, Paranoid, Hesitant, Freeze, Seek Cover, Scream, Flee and Frenzy to Catatonic. Most spread stress to everyone nearby.", 73, {
+  card("panic-results", "Panic responses", "Thirteen results from Keeping Cool (0 or less) through Spooked, Noisy, Twitchy, Lose Item, Paranoid, Hesitant, Freeze, Seek Cover, Scream, Flee and Frenzy to Catatonic (12+). The worse results cost turns or control, and Seek Cover, Scream and Flee also lower your own stress by one.", 73, {
     tags: ["stress", "panic"],
-    links: { tables: [T.panic], rules: ["alien.rule.panic-roll"] },
+    links: { tables: [T.panic], rules: ["alien.rule.panic-roll", "alien.rule.panic-contagion"] },
   }),
-  card("panic-contagion", "Panic is contagious", "Many panic results raise the stress of every friendly character who sees it, which can set off their own panic rolls in a chain.", 73, {
+  card("stopping-panic", "Stopping panic", "Some responses are immediate or last until your next turn. The rest last until another character within speaking range, comms included, succeeds at a Command roll (a full action in combat), you are broken, or a stretch passes.", 72, {
     tags: ["stress", "panic"],
-    links: { tables: [T.panic], trackers: [TR.stress] },
+    links: { rules: ["alien.rule.panic-results", "alien.rule.giving-orders"] },
   }),
-  card("mental-trauma", "Mental trauma", "At session end, a character who had a panic result of 9 or more rolls Empathy; on a failure roll a D6 on the mental trauma table and keep the result as a lasting condition.", 74, {
+  card("panic-contagion", "Panic spreads", "A Scream or a Frenzy forces every friendly PC in the zone to roll for panic, and Flee gives +1 stress to friendly PCs in the zone you left. Seeing another PC suffer such a response is itself a panic trigger, so one bad roll can start a chain.", 73, {
+    tags: ["stress", "panic"],
+    links: { tables: [T.panic], rules: ["alien.rule.panic-triggers"], trackers: [TR.stress] },
+  }),
+  card("mental-trauma", "Mental trauma", "A PC who rolled 9 or more on a panic roll during the session rolls Empathy alone, unpushed, after the session. On a failure, roll D66 on the mental trauma table. Discuss the topic as a group first, and drop the rule if anyone prefers.", 74, {
     tags: ["stress", "panic", "trauma"],
-    links: { tables: [T.mentalTrauma], fields: [F.mentalTraumas], rules: ["alien.rule.panic-roll", "alien.rule.mental-trauma-healing"], trackers: [TR.stress] },
+    links: { tables: [T.mentalTrauma], fields: [F.mentalTraumas], rules: ["alien.rule.panic-roll", "alien.rule.mental-trauma-healing", "alien.rule.session-end"], trackers: [TR.stress] },
   }),
-  card("mental-trauma-healing", "Healing mental trauma", "Traumas do not fade on their own. In campaign play they can be treated during shore leave; cinematic characters carry them to the end.", [74, 257], {
+  card("mental-trauma-healing", "Healing mental trauma", "Mental trauma heals only during shore leave in campaign play. The Recover activity is an unpushed Empathy roll that removes one trauma on a success.", 257, {
     mode: [CAMPAIGN],
     tags: ["stress", "trauma", "campaign"],
-    links: { fields: [F.mentalTraumas], rules: ["alien.rule.shore-leave"] },
+    links: { fields: [F.mentalTraumas], rules: ["alien.rule.shore-leave", "alien.rule.mental-trauma"] },
   }),
-  card("npcs-and-panic", "NPCs and panic", "The GM decides when an NPC panics rather than rolling every time; creatures never panic and never roll stress dice.", 155, {
+  card("npcs-and-panic", "NPCs, stress and panic", "NPCs never push and have no stress level; the GM simply decides when an NPC panics, which raises the stress of nearby PCs. Xenomorphs never push either.", [42, 72], {
     tags: ["stress", "panic", "npc"],
-    links: { rules: ["alien.rule.npcs"] },
+    links: { rules: ["alien.rule.npcs", "alien.rule.stress"] },
   }),
 ];

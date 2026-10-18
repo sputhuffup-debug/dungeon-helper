@@ -57,9 +57,20 @@ describe("hooks", () => {
     expect(rolls[0]!.roll?.operation).toBe("mentalTrauma");
   });
 
-  it("asks nothing but a story-point reset in cinematic mode", () => {
+  it("asks one story-point award per PC in cinematic mode (p. 158), capped at 3", () => {
     const prompts = onSessionEnd({ mode: "cinematic", characters: pcs, trackerState: {} });
-    expect(prompts.every((p) => p.id === "alien.cinematic.reset-story-points")).toBe(true);
+    expect(prompts.map((p) => p.id)).toEqual(["alien.cinematic.story-point:pc1", "alien.cinematic.story-point:pc2"]);
+    expect(prompts[0]!.onYes).toEqual([{ kind: "incrementField", entity: "pc1", path: "storyPoints", by: 1, min: 0, max: 3 }]);
+  });
+
+  it("lowers the trauma threshold to 1 for a character with Panic Attacks (p. 74)", () => {
+    const chars = [{ id: "pc3", name: "Kane", fields: { isPC: true, mentalTraumas: [{ id: "panic-attacks", label: "Panic Attacks" }] } }, ...pcs];
+    const prompts = onSessionEnd({
+      mode: "campaign",
+      characters: chars,
+      trackerState: { "alien.stress": { panicLog: [{ entity: "pc3", total: 2 }, { entity: "pc1", total: 8 }] } },
+    });
+    expect(prompts.filter((p) => p.kind === "roll").map((p) => p.entity)).toEqual(["pc3"]);
   });
 
   it("clamps negative stress to zero on entity change", () => {

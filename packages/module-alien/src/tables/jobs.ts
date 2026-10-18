@@ -1,568 +1,499 @@
 /**
- * Job Generator tables (p. 244-252), one pipeline per campaign frame:
- * employer (with nested sub-tables), bonus rewards, mission or cargo,
- * destination, complications, plus the shared plot twist table.
- * Rows are unverified paraphrases. Known data gap: the Expedition sponsors
- * corporation sub-table (p. 250) covers 11-43 only; 44-66 are filled here from
- * the Cargo Run corporation list as a module decision (see row notes).
+ * Job Generator tables (p. 244-252), checked against the book. One pipeline
+ * per campaign frame: employer or sponsor (with nested sub-tables where the
+ * book has them), bonus rewards, cargo or mission, destination and
+ * complications, plus the shared plot twist table. Colonial Marines have no
+ * employer table: their orders come from Marine Corps HQ (p. 235).
+ *
+ * Labels are the book's; descriptions are paraphrased.
+ *
+ * Known data gap: the Expedition sponsors major corporation sub-table
+ * (p. 250) lists 11-43 only. Rows 44-66 are a module decision, filled from
+ * the Cargo Run major corporation list (p. 244), and stay `unverified`.
  */
 import type { RollTable, TableRow } from "@campaign-forge/module-sdk";
-import { d6, d66, d66Grouped, defineTable, labelled, ranges, row } from "./_helpers";
+import { d6, ranges, row, type RangeSpec, type TableSpec } from "./_helpers";
 
 const FAMILY = "jobs";
 
-const corp = (name: string) => ({ label: name, result: { name, factionType: "corporation" } });
-const gov = (name: string) => ({ label: name, result: { name, factionType: "government" } });
-const mil = (name: string) => ({ label: name, result: { name, factionType: "military" } });
-const other = (name: string) => ({ label: name, result: { name, factionType: "other" } });
+/** A table checked against the book: no `unverified` flag. */
+const table = (spec: TableSpec): RollTable => ({ ...spec });
+
+type FactionType = "corporation" | "government" | "military" | "colonial" | "other";
+const who = (name: string, factionType: FactionType, extra: Record<string, unknown> = {}) => ({ name, factionType, ...extra });
+
+/** Rows of [lo, hi, label, description] stored under `key` (the label) plus `description`. */
+function described(key: string, specs: Array<[number, number, string, string]>): TableRow[] {
+  return ranges(specs.map(([lo, hi, label, description]): RangeSpec => [lo, hi, label, { [key]: label, description }]));
+}
 
 // ---------------------------------------------------------------------------
-// Space Truckers (p. 244-246)
+// Shared sub-tables
 // ---------------------------------------------------------------------------
 
-export const truckersEmployerCorporation: RollTable = defineTable({
+export const shipType: RollTable = table({
+  id: "alien.jobs.ship-type",
+  name: "Starship type",
+  family: FAMILY,
+  page: 246,
+  dice: "1d6",
+  notes: "Used by the Cargo Run Starship destination (p. 246) and the Expedition Wreckage destination (p. 251).",
+  rows: ranges([
+    [1, 1, "M-Class Starfreighter", { ship: "M-Class Starfreighter" }],
+    [2, 2, "G-Class Deep Space Salvage Vessel", { ship: "G-Class Deep Space Salvage Vessel" }],
+    [3, 3, "M-Class Commercial Towing Vehicle", { ship: "M-Class Commercial Towing Vehicle" }],
+    [4, 4, "M-Class Commercial Transport Ship", { ship: "M-Class Commercial Transport Ship" }],
+    [5, 6, "Other type of vessel", { ship: "Other type of vessel" }],
+  ]),
+});
+
+// ---------------------------------------------------------------------------
+// Space Truckers: Cargo Runs (p. 244-246)
+// ---------------------------------------------------------------------------
+
+export const truckersEmployerMining: RollTable = table({
+  id: "alien.jobs.truckers.employer.mining",
+  name: "Cargo Run employer: mining corporation",
+  family: FAMILY,
+  page: 244,
+  dice: "1d6",
+  rows: ranges([
+    [1, 2, "Chigusa", who("Chigusa", "corporation")],
+    [3, 3, "Weyland-Yutani", who("Weyland-Yutani", "corporation")],
+    [4, 4, "Gorham", who("Gorham", "corporation")],
+    [5, 5, "Kelland Mining", who("Kelland Mining", "corporation")],
+    [6, 6, "Farside Mining", who("Farside Mining", "corporation")],
+  ]),
+});
+
+/** The major corporation list of the Cargo Run employer table (p. 244). */
+const MAJOR_CORPORATIONS: Array<[number, number, string]> = [
+  [11, 13, "Alphatech"],
+  [14, 16, "Chigusa"],
+  [21, 23, "Gemba"],
+  [24, 26, "Jĭngtì Lóng"],
+  [31, 33, "Lorenz"],
+  [34, 36, "Lockmart"],
+  [41, 43, "Seegson"],
+  [44, 46, "Lasalle Bionational"],
+  [51, 53, "Gemini Exoplanet"],
+  [54, 66, "Weyland-Yutani"],
+];
+
+export const truckersEmployerCorporation: RollTable = table({
   id: "alien.jobs.truckers.employer.corporation",
-  name: "Cargo Run employer: corporation",
+  name: "Cargo Run employer: major corporation",
   family: FAMILY,
-  page: 245,
+  page: 244,
   dice: "d66",
-  rows: d66Grouped(3, [
-    corp("Weyland-Yutani"),
-    corp("Weyland-Yutani (subsidiary)"),
-    corp("Seegson"),
-    corp("Hyperdyne Systems"),
-    corp("Lasalle Bionational"),
-    corp("Kelland Mining Company"),
-    corp("Jingti Long Corporation"),
-    corp("Lorenz SysTech"),
-    corp("Chigusa Corporation"),
-    corp("Farside Lunar Mining"),
-    corp("Grant Corp"),
-    corp("Gemini Exoplanetary"),
-  ]),
+  rows: ranges(MAJOR_CORPORATIONS.map(([lo, hi, name]): RangeSpec => [lo, hi, name, who(name, "corporation")])),
 });
 
-export const truckersEmployerMinor: RollTable = defineTable({
-  id: "alien.jobs.truckers.employer.minor-corporation",
-  name: "Cargo Run employer: minor corporation",
-  family: FAMILY,
-  page: 245,
-  dice: "1d6",
-  rows: d6([
-    corp("A struggling shipping line"),
-    corp("A colony supply co-op"),
-    corp("A pharmaceutical start-up"),
-    corp("An independent mining outfit"),
-    corp("A salvage brokerage"),
-    corp("A frontier trading house"),
-  ]),
-});
-
-export const truckersEmployerGovernment: RollTable = defineTable({
-  id: "alien.jobs.truckers.employer.government",
-  name: "Cargo Run employer: government",
-  family: FAMILY,
-  page: 245,
-  dice: "1d6",
-  rows: d6([
-    gov("Colonial Administration"),
-    gov("Interstellar Commerce Commission"),
-    gov("Colonial Marshal's office"),
-    mil("USCMC supply command"),
-    gov("Three World Empire trade office"),
-    gov("ICSC trade council"),
-  ]),
-});
-
-export const truckersEmployerPrivate: RollTable = defineTable({
-  id: "alien.jobs.truckers.employer.private",
-  name: "Cargo Run employer: private client",
-  family: FAMILY,
-  page: 245,
-  dice: "1d6",
-  rows: d6([
-    other("A wealthy colonist family"),
-    other("A retired ship captain"),
-    other("A scientist with a private grant"),
-    other("A union organiser"),
-    other("A preacher with a flock to move"),
-    other("An anonymous broker"),
-  ]),
-});
-
-export const truckersEmployerCriminal: RollTable = defineTable({
-  id: "alien.jobs.truckers.employer.criminal",
-  name: "Cargo Run employer: criminal",
-  family: FAMILY,
-  page: 245,
-  dice: "1d6",
-  rows: d6([
-    other("A smuggling ring"),
-    other("A black-market medical supplier"),
-    other("A pirate fence"),
-    other("A corporate insider selling secrets"),
-    other("A rebel cell"),
-    other("A loan shark collecting a debt"),
-  ]),
-});
-
-export const truckersEmployer: RollTable = defineTable({
+export const truckersEmployer: RollTable = table({
   id: "alien.jobs.truckers.employer",
   name: "Cargo Run employer",
   family: FAMILY,
-  page: 245,
+  page: 244,
   dice: "d66",
-  notes: "Roll the employer category, then the nested sub-table for the detail.",
+  notes: "Mining representatives and major corporations roll a sub-table for the specific corporation.",
   rows: ranges([
-    [11, 26, "Major corporation", { category: "corporation" }, { roll: [{ table: "alien.jobs.truckers.employer.corporation", as: "detail" }] }],
-    [31, 36, "Minor corporation", { category: "minor-corporation" }, { roll: [{ table: "alien.jobs.truckers.employer.minor-corporation", as: "detail" }] }],
-    [41, 46, "Government", { category: "government" }, { roll: [{ table: "alien.jobs.truckers.employer.government", as: "detail" }] }],
-    [51, 56, "Private client", { category: "private" }, { roll: [{ table: "alien.jobs.truckers.employer.private", as: "detail" }] }],
-    [61, 66, "Criminal", { category: "criminal" }, { roll: [{ table: "alien.jobs.truckers.employer.criminal", as: "detail" }] }],
+    [11, 16, "Colony representative", who("Colony representative", "colonial")],
+    [21, 24, "Colonial Administration", who("Colonial Administration", "government")],
+    [25, 36, "Mining representative", who("Mining representative", "corporation"), { roll: [{ table: "alien.jobs.truckers.employer.mining", as: "detail" }] }],
+    [41, 43, "Shipping Corporation", who("Shipping Corporation", "corporation")],
+    [44, 46, "USCMC Colonel or other military officer", who("USCMC Colonel or other military officer", "military", { allegiance: "uas" })],
+    [51, 52, "Wealthy Individual", who("Wealthy Individual", "other")],
+    [53, 56, "Geofund (or other group of investors)", who("Geofund", "corporation")],
+    [61, 66, "Major corporation", who("Major corporation", "corporation"), { roll: [{ table: "alien.jobs.truckers.employer.corporation", as: "detail" }] }],
   ]),
 });
 
-export const truckersBonus: RollTable = defineTable({
+export const truckersBonus: RollTable = table({
   id: "alien.jobs.truckers.bonus",
   name: "Cargo Run bonus rewards",
   family: FAMILY,
-  page: 245,
-  dice: "1d6",
-  rows: d6(labelled("bonus", [
-    "Free fuel and docking at the destination",
-    "A crate of good liquor",
-    "Spare parts for the ship",
-    "A favour from the employer",
-    "Double pay if delivered early",
-    "Salvage rights on anything found en route",
-  ])),
+  page: 244,
+  dice: "d66",
+  notes: "Roll once for each success spent on a bonus reward when negotiating the payment.",
+  rows: ranges([
+    [11, 13, "Discount on new cargo", { bonus: "Discount on new cargo" }],
+    [14, 16, "New, guaranteed contract", { bonus: "New, guaranteed contract" }],
+    [21, 46, "Additional financial bonus", { bonus: "Additional financial bonus" }],
+    [51, 53, "Ship module/feature", { bonus: "Ship module/feature" }],
+    [54, 56, "Faction contact", { bonus: "Faction contact" }],
+    [61, 66, "Debt cancellation (or credit granted)", { bonus: "Debt cancellation (or credit granted)" }],
+  ]),
 });
 
-const CARGO = [
-  "Terraforming chemicals", "Mining explosives", "Prefab habitat modules", "Frozen livestock embryos",
-  "Medical supplies", "Pharmaceutical samples", "Cryosleep passengers", "Corporate executives",
-  "Colonist families", "Convict labour", "Military hardware, sealed", "Ammunition and spare parts",
-  "Reactor fuel rods", "Heavy machinery", "Mail and data cores", "Luxury goods",
-  "Seed stock and soil cultures", "Live animals", "Industrial androids, crated", "Scientific instruments",
-  "Water ice", "Refined ore", "Scrap and salvage", "Food rations",
-  "Unlabelled sealed containers", "A single locked crate", "Biological specimens in stasis", "Art and antiques",
-  "Alcohol and narcotics", "Weapons for a militia", "Refugees", "A dignitary and retinue",
-  "Hull plating", "Communication relay parts", "Hazardous waste", "An unregistered shuttle",
-];
-
-export const truckersMission: RollTable = defineTable({
+export const truckersMission: RollTable = table({
   id: "alien.jobs.truckers.mission",
   name: "Cargo Run cargo",
   family: FAMILY,
   page: 245,
   dice: "d66",
-  rows: d66(labelled("cargo", CARGO)),
+  rows: described("cargo", [
+    [11, 12, "Industrial Gases", "Bulk industrial gases such as propane, ammonia or sulfur dioxide."],
+    [13, 14, "Metal Ingots Or Pellets", "Precious and industrial metals: gold, platinum, tungsten, copper, iron."],
+    [15, 16, "Colonists", "Settlers in stasis, bound for a new colony."],
+    [21, 21, "Timber", "Exotic alien wood bound for Earth."],
+    [22, 22, "Ice/Water", "Water, water ice or some other rare frozen substance."],
+    [23, 23, "Industrial Chemicals", "Bulk process chemicals: acids, chlorides, sulfates, hydroxides and the like."],
+    [24, 24, "Fertilizer", "Nitrogen, potassium or phosphate fertilizer compounds."],
+    [25, 26, "Oil", "Crude oil or liquid petroleum products."],
+    [31, 32, "Foodstuff", "Bulk legumes and grains, raw or refined."],
+    [33, 36, "Ore", "Unrefined ores of aluminum, lead, nickel, tin, copper, iron or tungsten."],
+    [41, 41, "Medicinal Goods", "Vaccines, medicines, surgical gear and hospital equipment."],
+    [42, 43, "Technical Parts", "Spares for suits, refineries, vehicles, power plants, life support and more."],
+    [44, 45, "Starship Technical Parts", "Ship modules, features or parts from dismantled ships."],
+    [46, 46, "Pressure Suits", "Space suits for the colonies."],
+    [51, 51, "Single Oversized Item", "One huge item: a turbine, generator, hull frame or drilling rig."],
+    [52, 52, "Vehicles", "Diggers, tractors, all-terrain vehicles, power loaders."],
+    [53, 54, "Weapons & Armor", "Guns, ammunition and armor for colonies or remote stations."],
+    [55, 56, "Radioactives", "Processed uranium or fusion fuel such as deuterium or helium-3."],
+    [61, 62, "Colony Construction", "Beams, modules, airlocks, outer shells and roofing."],
+    [63, 63, "Animal Feed", "Grain and protein feed concentrates."],
+    [64, 65, "Livestock/Animals", "Cattle in stasis for an off-world ranch."],
+    [66, 66, "Wreckage/Salvage", "A shuttle or escape or cargo pod that needs investigating."],
+  ]),
 });
 
-export const truckersDestination: RollTable = defineTable({
+const OUTPOST = "A small, usually planetside complex with one corporate, military or scientific purpose.";
+
+export const truckersDestination: RollTable = table({
   id: "alien.jobs.truckers.destination",
   name: "Cargo Run destination",
   family: FAMILY,
   page: 246,
-  dice: "1d6",
-  rows: d6(labelled("destination", [
-    "An established colony",
-    "A young colony",
-    "A start-up colony",
-    "A space station",
-    "A ship in deep space",
-    "An uncharted system",
-  ])),
+  dice: "d66",
+  rows: [
+    ...described("destination", [
+      [11, 13, "Only Coordinates", "A set of coordinates in deep space."],
+      [14, 16, "Hostile Forest/Jungles/Desert", "Planetside wilderness far from people, or an uninhabited world."],
+      [21, 26, "Mine", "A mining facility far from any colony or starport."],
+      [31, 33, "Spaceport", "On an asteroid or moon, or a landing field near a larger settlement."],
+      [34, 36, "Asteroid/Moon", "The surface of an asteroid or small moon; vacuum or a dangerous atmosphere."],
+      [41, 43, "Space Station", "A station in orbit."],
+      [44, 46, "Earth, Gateway Station", "The busy hub of interstellar traffic and trade."],
+      [51, 53, "Young Colony", "A small colony of a few hundred people."],
+      [54, 56, "Established Colony", "A busy colony of several thousand with local industry."],
+    ]),
+    row([61, 63], "Starship", { destination: "Starship", description: "A ship in orbit waiting for the PCs; roll its type." }, { roll: [{ table: "alien.jobs.ship-type", as: "ship" }] }),
+    ...described("destination", [[64, 66, "Outpost", OUTPOST]]),
+  ],
 });
 
-const TRUCKER_COMPLICATIONS = [
-  "The cargo is not what the manifest says", "A stowaway is aboard", "The ship develops a fault en route",
-  "Pirates track the ship", "The destination has gone silent", "Customs impound the cargo",
-  "A crew member falls ill", "The employer has not paid the fuel bill", "A rival crew wants the same job",
-  "The cargo is leaking", "A passenger is a wanted fugitive", "The route crosses a quarantine zone",
-  "The destination refuses the delivery", "The ship's AI starts hiding data", "A distress call en route",
-  "The cargo is alive", "A marshal boards for inspection", "A storm closes the landing site",
-];
-
-export const truckersComplications: RollTable = defineTable({
+export const truckersComplications: RollTable = table({
   id: "alien.jobs.truckers.complications",
   name: "Cargo Run complications",
   family: FAMILY,
   page: 246,
   dice: "d66",
-  rows: d66Grouped(2, labelled("complication", TRUCKER_COMPLICATIONS)),
+  notes: "Roll once per point of difficulty (1-3).",
+  rows: described("complication", [
+    [11, 13, "Embargo/Quarantine", "The ICC quarantines or embargoes the destination."],
+    [14, 16, "Intermission", "MU/TH/UR drops out of hyperspace early and wakes the crew."],
+    [21, 26, "Military", "A military ship sends a small search party aboard for a 'routine' check."],
+    [31, 33, "Delay", "Departure is held up: fuel or coolant problems, a strike, red tape or broken loaders."],
+    [34, 43, "Maintenance", "A critical part must be replaced before it fails; most of the crew is needed."],
+    [44, 53, "Waiting Game", "The destination cannot take the cargo yet. Can the crew speed things up?"],
+    [54, 56, "Cargo Mishap", "The cargo shifts, leaks, overheats or catches fire."],
+    [61, 66, "Wreckage", "Sensors pick up a piece of wreckage: a container, EEV, frozen corpse or ship part."],
+  ]),
 });
 
 // ---------------------------------------------------------------------------
-// Colonial Marines (p. 247-249)
+// Colonial Marines: Military Missions (p. 247-249). No employer table.
 // ---------------------------------------------------------------------------
 
-export const marinesEmployerCommand: RollTable = defineTable({
-  id: "alien.jobs.marines.employer.command",
-  name: "Marine mission: chain of command",
-  family: FAMILY,
-  page: 248,
-  dice: "1d6",
-  rows: d6([
-    mil("Platoon lieutenant"),
-    mil("Company commander"),
-    mil("Battalion HQ"),
-    mil("Fleet command"),
-    mil("Sector command"),
-    mil("USCMC Special Operations"),
-  ]),
-});
-
-export const marinesEmployerCivilian: RollTable = defineTable({
-  id: "alien.jobs.marines.employer.civilian",
-  name: "Marine mission: civilian authority",
-  family: FAMILY,
-  page: 248,
-  dice: "1d6",
-  rows: d6([
-    gov("Colonial Administration"),
-    gov("Colonial Marshal's office"),
-    gov("Interstellar Commerce Commission"),
-    gov("A colony governor"),
-    gov("A planetary senate"),
-    gov("A disaster relief agency"),
-  ]),
-});
-
-export const marinesEmployerCovert: RollTable = defineTable({
-  id: "alien.jobs.marines.employer.covert",
-  name: "Marine mission: covert agency",
-  family: FAMILY,
-  page: 248,
-  dice: "1d6",
-  rows: d6([
-    other("Military intelligence"),
-    other("A corporate black-ops liaison"),
-    other("An unnamed government agency"),
-    other("Weyland-Yutani Special Projects"),
-    other("A Three World Empire attache"),
-    other("Orders with no visible source"),
-  ]),
-});
-
-export const marinesEmployer: RollTable = defineTable({
-  id: "alien.jobs.marines.employer",
-  name: "Marine mission: who gives the orders",
-  family: FAMILY,
-  page: 248,
-  dice: "d66",
-  rows: ranges([
-    [11, 36, "USCMC chain of command", { category: "military" }, { roll: [{ table: "alien.jobs.marines.employer.command", as: "detail" }] }],
-    [41, 46, "Corporate request", { category: "corporation" }, { roll: [{ table: "alien.jobs.truckers.employer.corporation", as: "detail" }] }],
-    [51, 56, "Civilian authority", { category: "government" }, { roll: [{ table: "alien.jobs.marines.employer.civilian", as: "detail" }] }],
-    [61, 66, "Covert agency", { category: "covert" }, { roll: [{ table: "alien.jobs.marines.employer.covert", as: "detail" }] }],
-  ]),
-});
-
-export const marinesBonus: RollTable = defineTable({
+export const marinesBonus: RollTable = table({
   id: "alien.jobs.marines.bonus",
-  name: "Marine mission bonus rewards",
+  name: "Military mission bonus rewards",
   family: FAMILY,
-  page: 248,
+  page: 247,
   dice: "1d6",
-  rows: d6(labelled("bonus", [
-    "Extended shore leave",
-    "A commendation and promotion points",
-    "First pick of new equipment",
-    "Hazard pay",
-    "A favour from an officer",
-    "Transfer to a posting of choice",
-  ])),
+  notes: "For mercenary outfits only, not USCMC personnel. Roll once for each success spent on a bonus reward.",
+  rows: ranges([
+    [1, 1, "Faction contact", { bonus: "Faction contact" }],
+    [2, 2, "Ship module", { bonus: "Ship module" }],
+    [3, 4, "New gear", { bonus: "New gear" }],
+    [5, 6, "New weapon", { bonus: "New weapon" }],
+  ]),
 });
 
-const MARINE_MISSIONS = [
-  "Garrison a colony", "Escort a convoy", "Search and rescue", "Recover a downed dropship",
-  "Secure a derelict", "Evacuate colonists", "Suppress a riot", "Hunt a deserter",
-  "Guard a research team", "Board a suspect vessel", "Destroy a rebel base", "Protect a corporate asset",
-  "Investigate lost contact", "Quarantine a settlement", "Recon an uncharted moon", "Deliver a sealed package",
-  "Train colonial militia", "Hold a bridge against raiders", "Retrieve a black box", "Arrest a corporate officer",
-  "Clear a mine of squatters", "Escort a diplomat", "Recover stolen weapons", "Survey a crash site",
-  "Defend a relay station", "Rescue hostages", "Sweep a station for sabotage", "Test new equipment in the field",
-  "Secure a landing zone", "Hunt a dangerous animal", "Suppress a mutiny", "Observe a UPP border post",
-  "Recover a lost patrol", "Escort a prisoner transfer", "Contain a lab accident", "Classified; sealed orders",
-];
-
-export const marinesMission: RollTable = defineTable({
+export const marinesMission: RollTable = table({
   id: "alien.jobs.marines.mission",
-  name: "Marine missions",
+  name: "Military missions",
   family: FAMILY,
   page: 248,
   dice: "d66",
-  rows: d66(labelled("mission", MARINE_MISSIONS)),
+  rows: described("mission", [
+    [11, 13, "Recon", "Scout a location, gather intelligence and report back."],
+    [14, 15, "Assault", "Take and hold an objective by force."],
+    [16, 21, "Defense", "Hold a location, person or group against attack until relieved or a set time."],
+    [22, 23, "Combat patrol", "Patrol an area for signs of the enemy, then attack."],
+    [24, 26, "Sabotage", "Infiltrate and destroy a key enemy asset such as a bridge or uplink tower."],
+    [31, 32, "Raid", "Hit targets of opportunity behind enemy lines."],
+    [33, 35, "Search And Rescue", "Find a downed pilot, lost colonists or the like."],
+    [36, 42, "Peacekeeping", "Quell a riot and protect communications and services until authority returns."],
+    [43, 46, "Bug Hunt", "Wipe out local alien life that threatens colonists."],
+    [51, 52, "Civil Evacuation", "Get a colony or station population out of a crisis or disaster."],
+    [53, 54, "Space Assault", "Board and seize, or retake, a station, platform or starship."],
+    [55, 55, "Space Traffic Security", "From a Conestoga frigate, search civilian ships for contraband and trafficking."],
+    [56, 62, "Snatch And Grab", "Seize an item, person or group from behind enemy lines."],
+    [63, 66, "Investigation", "A station, colony or installation has gone silent on the Network. Find out why."],
+  ]),
 });
 
-export const marinesDestination: RollTable = defineTable({
+export const marinesDestination: RollTable = table({
   id: "alien.jobs.marines.destination",
-  name: "Marine mission destination",
+  name: "Military mission destinations",
   family: FAMILY,
-  page: 249,
+  page: 248,
   dice: "d66",
-  rows: d66Grouped(3, labelled("destination", [
-    "An established colony", "A young colony", "A start-up colony", "A forward operating base",
-    "A space station", "A derelict ship", "A corporate facility", "An uncharted world",
-    "A ship under way", "A UPP border zone", "A research outpost", "A mining platform",
-  ])),
+  rows: described("destination", [
+    [11, 23, "Colony", "An established or young colony."],
+    [24, 26, "Isolated Outpost", "A research station or remote military post."],
+    [31, 32, "Starship In Orbit", "An enemy ship, or an abandoned one."],
+    [33, 34, "Orbital Space Station", "A transfer station, space colony or orbital survey platform."],
+    [35, 36, "Wilderness Location", "A remote spot on a planet's surface."],
+    [41, 43, "Planetary Warzone", "An active war zone of ruins, wrecks and fortifications."],
+    [44, 46, "Isolated Spaceport", "A remote landing field owned by a corporation, individual or the military."],
+    [51, 52, "Scattered Homesteads", "Remote colonial farmsteads spread across the surface."],
+    [53, 55, "Mine And Refinery", "A huge mining and refining complex with hundreds of workers."],
+    [56, 61, "Prison Complex", "A remote penal colony of violent inmates."],
+    [62, 63, "Radar/Sensor Site", "An automated sensor site, perhaps with its own defenses."],
+    [64, 66, "Impenetrable Area", "Harsh wilderness such as dense jungle, deep caverns or lava fields."],
+  ]),
 });
 
-const MARINE_COMPLICATIONS = [
-  "The intel is wrong", "The LZ is hot", "The locals are hostile", "A corporate observer tags along",
-  "Orders change mid-mission", "The dropship is grounded", "Comms are jammed", "A squad member is a plant",
-  "Civilians are in the line of fire", "The objective has already been taken", "A sergeant cracks under pressure",
-  "The enemy is not what was briefed", "Ammo resupply never comes", "An officer has a private agenda",
-  "The weather turns deadly", "A UPP unit is already there", "The colony is under quarantine", "Something is in the walls",
-];
-
-export const marinesComplications: RollTable = defineTable({
+export const marinesComplications: RollTable = table({
   id: "alien.jobs.marines.complications",
-  name: "Marine mission complications",
+  name: "Military mission complications",
   family: FAMILY,
   page: 249,
   dice: "d66",
-  rows: d66Grouped(2, labelled("complication", MARINE_COMPLICATIONS)),
+  notes: "Roll once per point of difficulty (1-3).",
+  rows: described("complication", [
+    [11, 12, "Role Reversal", "The supposed bad guys turn out to be the good guys."],
+    [13, 15, "Passengers", "The squad must now guard prisoners or civilians."],
+    [16, 16, "Observer", "A senior officer or a Colonial Times reporter tags along and gets in the way."],
+    [21, 23, "Company Meddling", "A corporate representative joins to protect company interests."],
+    [24, 25, "Civilian Advisor", "A civilian expert with no military experience comes along and may panic."],
+    [26, 32, "Captured", "An NPC, or even a PC, is captured by hostile forces."],
+    [33, 36, "Gear Problems", "Faulty gear: ammo, weapons, sensors or vehicles."],
+    [41, 44, "Tough Resistance", "The enemy is tougher and more ruthless than expected."],
+    [45, 46, "Trapped", "The team finds itself trapped, physically or tactically."],
+    [51, 53, "Under Fire!", "Airstrike, mines or heavy weapons hit the site, from the enemy or friendly forces."],
+    [54, 55, "Glory Hound", "A medal-hungry new lieutenant pushes the squad into deadly danger."],
+    [56, 62, "Traps", "Hidden hazards across the site: mines, IEDs, carnivorous plants, booby traps."],
+    [63, 64, "Restrictions", "Tactical limits on how the squad acts, where it goes or what it may use."],
+    [65, 66, "Green Commander", "An untested new lieutenant who will fall apart once the shooting starts."],
+  ]),
 });
 
 // ---------------------------------------------------------------------------
-// Frontier Colonists (p. 250-251)
+// Frontier Colonists: Expeditions (p. 250-251)
 // ---------------------------------------------------------------------------
 
-const GAP_NOTE = "Module decision: the book's sponsor list covers 11-43 only; this row is filled from the Cargo Run corporation list (p. 245).";
-function gapRow(lo: number, hi: number, name: string): TableRow {
-  return row([lo, hi], name, { name, factionType: "corporation", note: GAP_NOTE }, { page: 250, unverified: true });
-}
+const GAP_NOTE = "Module decision: the book lists 11-43 only; 44-66 are filled from the Cargo Run major corporation list (p. 244).";
 
-export const colonistsEmployerCorporation: RollTable = defineTable({
+export const colonistsEmployerCorporation: RollTable = table({
   id: "alien.jobs.colonists.employer.corporation",
-  name: "Expedition sponsor: corporation",
+  name: "Expedition sponsor: major corporation",
   family: FAMILY,
   page: 250,
   dice: "d66",
-  notes: "Known data gap: the book defines 11-43 only. Rows 44-66 are a module decision, filled from the Cargo Run corporation list (p. 245), and are marked unverified.",
-  rows: [
-    ...ranges([
-      [11, 13, "Weyland-Yutani", { name: "Weyland-Yutani", factionType: "corporation" }],
-      [14, 16, "Weyland-Yutani Exploration Division", { name: "Weyland-Yutani Exploration Division", factionType: "corporation" }],
-      [21, 23, "Seegson", { name: "Seegson", factionType: "corporation" }],
-      [24, 26, "Lasalle Bionational", { name: "Lasalle Bionational", factionType: "corporation" }],
-      [31, 33, "Hyperdyne Systems", { name: "Hyperdyne Systems", factionType: "corporation" }],
-      [34, 36, "Kelland Mining Company", { name: "Kelland Mining Company", factionType: "corporation" }],
-      [41, 43, "Jingti Long Corporation", { name: "Jingti Long Corporation", factionType: "corporation" }],
-    ]),
-    gapRow(44, 46, "Lorenz SysTech"),
-    gapRow(51, 53, "Chigusa Corporation"),
-    gapRow(54, 56, "Farside Lunar Mining"),
-    gapRow(61, 63, "Grant Corp"),
-    gapRow(64, 66, "Gemini Exoplanetary"),
-  ],
+  notes:
+    "Known data gap: the book's list stops at 41-43 (Seegson). Rows 44-66 are a module decision copied from the Cargo Run major corporation list (p. 244) and stay unverified.",
+  rows: MAJOR_CORPORATIONS.map(([lo, hi, name]) =>
+    lo >= 44
+      ? row([lo, hi], name, { ...who(name, "corporation"), note: GAP_NOTE }, { page: 250, unverified: true })
+      : row([lo, hi], name, who(name, "corporation")),
+  ),
 });
 
-export const colonistsEmployerGovernment: RollTable = defineTable({
+export const colonistsEmployerMining: RollTable = table({
+  id: "alien.jobs.colonists.employer.mining",
+  name: "Expedition sponsor: mining corporation",
+  family: FAMILY,
+  page: 250,
+  dice: "1d6",
+  rows: ranges([
+    [1, 1, "Chigusa", who("Chigusa", "corporation")],
+    [2, 3, "Weyland-Yutani", who("Weyland-Yutani", "corporation")],
+    [4, 4, "Gorham Mining", who("Gorham Mining", "corporation")],
+    [5, 5, "Kelland Mining", who("Kelland Mining", "corporation")],
+    [6, 6, "Farside Mining", who("Farside Mining", "corporation")],
+  ]),
+});
+
+export const colonistsEmployerGovernment: RollTable = table({
   id: "alien.jobs.colonists.employer.government",
   name: "Expedition sponsor: government",
   family: FAMILY,
   page: 250,
   dice: "1d6",
-  rows: d6([
-    gov("Colonial Administration"),
-    gov("Interstellar Commerce Commission"),
-    gov("United Americas colonial office"),
-    gov("Three World Empire survey office"),
-    gov("ICSC settlement council"),
-    mil("USCMC survey detachment"),
+  rows: ranges([
+    [1, 2, "Three World Empire", who("Three World Empire", "government", { allegiance: "3we" })],
+    [3, 5, "United Americas", who("United Americas", "government", { allegiance: "uas" })],
+    [6, 6, "Independent Core Systems Colonies (ICSC)", who("Independent Core Systems Colonies (ICSC)", "government", { allegiance: "icsc" })],
   ]),
 });
 
-export const colonistsEmployerInstitution: RollTable = defineTable({
-  id: "alien.jobs.colonists.employer.institution",
-  name: "Expedition sponsor: scientific institution",
-  family: FAMILY,
-  page: 250,
-  dice: "1d6",
-  rows: d6([
-    other("A core-world university"),
-    other("A xenobiology institute"),
-    other("A terraforming research foundation"),
-    other("A medical research trust"),
-    other("An astronomical survey"),
-    other("An archaeological society"),
-  ]),
-});
-
-export const colonistsEmployerPrivate: RollTable = defineTable({
-  id: "alien.jobs.colonists.employer.private",
-  name: "Expedition sponsor: private backer",
-  family: FAMILY,
-  page: 250,
-  dice: "1d6",
-  rows: d6([
-    other("A wealthy eccentric"),
-    other("A religious movement"),
-    other("A colonists' co-operative"),
-    other("A retired executive"),
-    other("A media network"),
-    other("An anonymous trust"),
-  ]),
-});
-
-export const colonistsEmployer: RollTable = defineTable({
+export const colonistsEmployer: RollTable = table({
   id: "alien.jobs.colonists.employer",
-  name: "Expedition sponsor",
+  name: "Expedition sponsors",
   family: FAMILY,
   page: 250,
   dice: "d66",
+  notes: "Major corporations, mining corporations and government representatives roll a sub-table.",
   rows: ranges([
-    [11, 36, "Major corporation", { category: "corporation" }, { roll: [{ table: "alien.jobs.colonists.employer.corporation", as: "detail" }] }],
-    [41, 46, "Government agency", { category: "government" }, { roll: [{ table: "alien.jobs.colonists.employer.government", as: "detail" }] }],
-    [51, 56, "Scientific institution", { category: "institution" }, { roll: [{ table: "alien.jobs.colonists.employer.institution", as: "detail" }] }],
-    [61, 66, "Private backer", { category: "private" }, { roll: [{ table: "alien.jobs.colonists.employer.private", as: "detail" }] }],
+    [11, 16, "Colonial Administration", who("Colonial Administration", "government")],
+    [21, 26, "Scientist", who("Scientist", "other")],
+    [31, 36, "Geofund (or other group of investors)", who("Geofund", "corporation")],
+    [41, 46, "Major corporation", who("Major corporation", "corporation"), { roll: [{ table: "alien.jobs.colonists.employer.corporation", as: "detail" }] }],
+    [51, 56, "Mining corporation", who("Mining corporation", "corporation"), { roll: [{ table: "alien.jobs.colonists.employer.mining", as: "detail" }] }],
+    [61, 66, "Government representative", who("Government representative", "government"), { roll: [{ table: "alien.jobs.colonists.employer.government", as: "detail" }] }],
   ]),
 });
 
-export const colonistsBonus: RollTable = defineTable({
+export const colonistsBonus: RollTable = table({
   id: "alien.jobs.colonists.bonus",
   name: "Expedition bonus rewards",
   family: FAMILY,
   page: 250,
   dice: "1d6",
-  rows: d6(labelled("bonus", [
-    "A share of any claim",
-    "New equipment for the colony",
-    "A seat on the colony council",
-    "Medical supplies for a year",
-    "A favour from the sponsor",
-    "Passage home for anyone who wants it",
-  ])),
+  notes: "Roll once for each success spent on a bonus reward when negotiating the payment.",
+  rows: ranges([
+    [1, 2, "Ship module", { bonus: "Ship module" }],
+    [3, 4, "Gear", { bonus: "Gear" }],
+    [5, 6, "Knowledge to use or sell", { bonus: "Knowledge to use or sell" }],
+  ]),
 });
 
-const EXPEDITIONS = [
-  "Survey a new claim", "Prospect for ore", "Map a cave system", "Recover a lost survey team",
-  "Catalogue local wildlife", "Sample the atmosphere at altitude", "Scout a site for a new settlement", "Investigate a signal",
-  "Salvage a crashed shuttle", "Study a geological anomaly", "Test terraforming soil", "Find a missing colonist",
-  "Repair a remote relay", "Retrieve seed stock from an old outpost", "Escort a scientist to a dig", "Hunt a predator threatening livestock",
-  "Chart a river to the sea", "Inspect an abandoned mine", "Record weather data in the storm belt", "Negotiate with squatters",
-  "Recover a crashed probe", "Collect ice from the polar cap", "Search for water", "Mark a road to the next settlement",
-  "Trace a chemical leak to its source", "Investigate animal deaths", "Deliver supplies to a far homestead", "Dig for fossils",
-  "Scout a volcanic vent", "Survey a derelict found on the surface", "Build a relay on a high ridge", "Collect plant samples",
-  "Track a tremor's epicentre", "Find the source of a glow in the night", "Rescue a stranded truck crew", "Explore ruins nobody built",
-];
-
-export const colonistsMission: RollTable = defineTable({
+export const colonistsMission: RollTable = table({
   id: "alien.jobs.colonists.mission",
-  name: "Expeditions",
+  name: "Expedition missions",
   family: FAMILY,
   page: 250,
   dice: "d66",
-  rows: d66(labelled("mission", EXPEDITIONS)),
+  rows: described("mission", [
+    [11, 16, "Salvage", "Find an abandoned or destroyed ship, station or facility and recover valuables without sharing its fate."],
+    [21, 24, "Survey", "Map a location or area for the employer and bring back sensor data."],
+    [25, 32, "Mining", "Test-mine to judge viability for investors: cobalt, gold, tungsten, oil, gas or other."],
+    [33, 36, "Colony Assistance", "Help a start-up colony with gear, information or expertise."],
+    [41, 45, "Prospecting", "Lead a prospecting expedition or secure a claim: mining, asteroids, logging or gas trawling."],
+    [46, 52, "Data Collection", "Obtain a specific piece of information; its purpose may be kept from the PCs."],
+    [53, 55, "Courier", "Deliver sensitive information, resources or goods safely and without delay."],
+    [56, 62, "Anomaly Exploration", "Quickly investigate a unique phenomenon such as a wormhole, gravity lens or radiation source."],
+    [63, 66, "Rescue Expedition", "Rescue a group, colony or expedition from an attack or other peril."],
+  ]),
 });
 
-const EXPEDITION_DESTINATIONS = [
-  "A nearby valley", "A mountain pass", "A river delta", "A cave system",
-  "A distant homestead", "An abandoned outpost", "A crash site", "A frozen plateau",
-  "A storm belt", "A coastline", "WRECKAGE", "A site with no name",
+const COLONIST_DESTINATIONS_BEFORE: Array<[number, number, string, string]> = [
+  [11, 14, "Abandoned Orbital Station", "Forgotten, abandoned, barely working and drifting."],
+  [15, 21, "Rogue Asteroid", "A fast interstellar asteroid or planet passing through the system."],
+  [22, 24, "Abandoned Mine", "A failed Kelland mining project, its tunnels and buildings decaying."],
+  [25, 31, "Moon", "A rocky moon of a gas giant or planet."],
+  [32, 35, "Asteroid Belt", "An asteroid deep inside a dense, complex belt."],
+  [36, 36, "Colonized World", "Wilderness on a world that already has colonists."],
+  [41, 43, "Terrestrial Planet", "Somewhere on an uninhabited terrestrial planet."],
+  [44, 44, "Abandoned Colony", "A failed colony, its structures abandoned and decaying."],
+  [45, 51, "Ice Planet", "Somewhere on an uninhabited ice planet."],
 ];
+const WRECKAGE_TEXT = "The smashed wreck of a spacecraft: roll its type, then roll on this table again for where it lies.";
 
-const destinationSpecs = (wreckageAsNested: boolean) =>
-  EXPEDITION_DESTINATIONS.map((d) => {
-    if (d !== "WRECKAGE") return { label: d, result: { destination: d } };
-    if (wreckageAsNested) {
-      return {
-        label: "Wreckage",
-        result: { destination: "Wreckage", wreckage: true },
-        roll: [{ table: "alien.jobs.colonists.destination-reroll", as: "near" }],
-      };
-    }
-    return { label: "A deep canyon", result: { destination: "A deep canyon" } };
-  });
-
-export const colonistsDestination: RollTable = defineTable({
+export const colonistsDestination: RollTable = table({
   id: "alien.jobs.colonists.destination",
   name: "Expedition destination",
   family: FAMILY,
   page: 251,
   dice: "d66",
-  notes: "Wreckage re-rolls the destination on the reroll table to place the wreck somewhere.",
-  rows: d66Grouped(3, destinationSpecs(true)),
+  notes: "Wreckage rolls the ship type and re-rolls the destination (on the re-roll table) for where the wreck lies.",
+  rows: [
+    ...described("destination", COLONIST_DESTINATIONS_BEFORE),
+    row([52, 63], "Wreckage", { destination: "Wreckage", wreckage: true, description: WRECKAGE_TEXT }, {
+      roll: [
+        { table: "alien.jobs.ship-type", as: "ship" },
+        { table: "alien.jobs.colonists.destination-reroll", as: "near" },
+      ],
+    }),
+    ...described("destination", [[64, 66, "Outpost", OUTPOST]]),
+  ],
 });
 
-export const colonistsDestinationReroll: RollTable = defineTable({
+export const colonistsDestinationReroll: RollTable = table({
   id: "alien.jobs.colonists.destination-reroll",
-  name: "Expedition destination (re-roll, no wreckage)",
+  name: "Expedition destination (re-roll for a wreck's location)",
   family: FAMILY,
   page: 251,
   dice: "d66",
-  rows: d66Grouped(3, destinationSpecs(false)),
+  notes: "The same table, used for where a wreck lies. Module decision: Wreckage again is left to the GM (roll again or choose) instead of recursing.",
+  rows: [
+    ...described("destination", COLONIST_DESTINATIONS_BEFORE),
+    row([52, 63], "Wreckage (roll again or choose)", { destination: "Wreckage", description: "Roll again or choose where the wreck lies." }, { gmDecides: true }),
+    ...described("destination", [[64, 66, "Outpost", OUTPOST]]),
+  ],
 });
 
-const COLONIST_COMPLICATIONS = [
-  "The vehicle breaks down", "A storm rolls in", "A member is injured", "Supplies run short",
-  "The map is wrong", "Someone else got there first", "Wildlife stalks the party", "A sponsor's observer interferes",
-  "The find is bigger than expected", "The colony recalls the team", "Radio contact is lost", "A member has a secret agenda",
-  "Ground gives way", "The site is contaminated", "Squatters claim the site", "Night falls early and cold",
-  "The find should not exist", "Something follows the team home",
-];
-
-export const colonistsComplications: RollTable = defineTable({
+export const colonistsComplications: RollTable = table({
   id: "alien.jobs.colonists.complications",
   name: "Expedition complications",
   family: FAMILY,
   page: 251,
   dice: "d66",
-  rows: d66Grouped(2, labelled("complication", COLONIST_COMPLICATIONS)),
+  notes: "Roll once per point of difficulty (1-3).",
+  rows: described("complication", [
+    [11, 21, "Natural Phenomenon", "A severe natural event: sudden temperature swing, fire, hurricane, tsunami, quake or mudslide."],
+    [22, 32, "Survey Blues", "The target area is hard to find, or hard to survey safely or efficiently."],
+    [33, 35, "Presumed Missing", "The PCs' permit may come from an earlier expedition that vanished without a trace."],
+    [36, 44, "Rival Expedition", "A similarly equipped rival party races the PCs or tries to stop them."],
+    [45, 52, "Quarantine", "The area is quarantined or off-limits; going in without a permit breaks the law."],
+    [53, 62, "Deadly Treasure", "Something lethal waits there unknown to the PCs: nuclear waste, bioweapons, xenomorph eggs or worse."],
+    [63, 66, "Surveillance", "The military, a government or someone else is watching the expedition. Why?"],
+  ]),
 });
 
 // ---------------------------------------------------------------------------
-// Plot twists (p. 252)
+// Plot twists (p. 252), any frame
 // ---------------------------------------------------------------------------
 
-const PLOT_TWISTS = [
-  "The employer is a front", "The cargo is the mission", "A crew member is a corporate spy", "The destination no longer exists",
-  "A rival crew has the same orders", "The payment is counterfeit", "An old enemy is waiting", "The job is a test",
-  "The ship is being tracked", "A passenger is not human", "The employer dies before payday", "The real client is the Company",
-  "Somebody wants the crew dead", "The mission was already done", "The crew is the bait", "A distress call changes everything",
-  "The job is legal, the cargo is not", "A crew member's past catches up", "A debt comes due at the worst moment", "The destination is under quarantine",
-  "The employer wants a witness silenced", "The specimen is awake", "An android has secret orders", "The route is a trap",
-  "A storm strands the crew with the problem", "The locals know more than they say", "Two factions want the same thing", "The job pays in information",
-  "A relative of a crew member is involved", "The derelict has a survivor", "A bounty is posted on the crew", "The contract has a hidden clause",
-  "Rescue arrives with its own agenda", "The colony is already lost", "A marshal is building a case", "Nothing is what it seems",
-];
-
-export const plotTwist: RollTable = defineTable({
+export const plotTwist: RollTable = table({
   id: "alien.jobs.plot-twist",
   name: "Plot twists",
   family: FAMILY,
   page: 252,
   dice: "d66",
-  rows: d66(labelled("twist", PLOT_TWISTS)),
+  rows: described("twist", [
+    [11, 15, "Mayday", "A distress call, in space or on-planet, that the crew is legally bound to answer."],
+    [16, 22, "Bad Intel", "Key mission information proves false or misleading."],
+    [23, 25, "Sabotage", "MU/TH/UR fails, causing a fire or decompression. It was sabotage, but by whom?"],
+    [26, 35, "Secret Plot", "NPCs or PCs are secretly working on an agenda against the group's."],
+    [36, 43, "Murder", "An NPC is suddenly murdered. Who did it, and why?"],
+    [44, 46, "Flare Event", "A burst of stellar radiation causes power interruptions or a total comms blackout."],
+    [51, 55, "Malfunction", "A key piece of equipment fails exactly when needed."],
+    [56, 64, "Time Limit", "The mission has a deadline, and lives depend on it."],
+    [65, 66, "Xenomorph Outbreak", "Xenomorph XX121 is at the heart of the job: eggs, a warrior, or the remains of its victims."],
+  ]),
 });
 
 export const jobTables: RollTable[] = [
+  shipType,
   truckersEmployer,
+  truckersEmployerMining,
   truckersEmployerCorporation,
-  truckersEmployerMinor,
-  truckersEmployerGovernment,
-  truckersEmployerPrivate,
-  truckersEmployerCriminal,
   truckersBonus,
   truckersMission,
   truckersDestination,
   truckersComplications,
-  marinesEmployer,
-  marinesEmployerCommand,
-  marinesEmployerCivilian,
-  marinesEmployerCovert,
   marinesBonus,
   marinesMission,
   marinesDestination,
   marinesComplications,
   colonistsEmployer,
   colonistsEmployerCorporation,
+  colonistsEmployerMining,
   colonistsEmployerGovernment,
-  colonistsEmployerInstitution,
-  colonistsEmployerPrivate,
   colonistsBonus,
   colonistsMission,
   colonistsDestination,

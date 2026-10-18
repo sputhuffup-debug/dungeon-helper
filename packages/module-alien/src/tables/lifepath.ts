@@ -1,336 +1,564 @@
 /**
- * Life Path tables (p. 282-289). Each row result carries
- * `{ label, attributes?, skills?, psych?, bonusRoll? }` so the life path
- * procedure can sum deltas. Rows are unverified paraphrases.
+ * Life Path tables (appendix, p. 282-289), checked against the Evolved Edition.
+ *
+ * Dice, ranges, attribute and skill deltas, psych modifiers and bonus rolls are
+ * data and match the book; labels and notes are short paraphrases. Every row's
+ * result uses the keys the life path procedure folds into a running total:
+ * `attributes`, `skills` (both { id: delta }), `psych` (modifier to the final
+ * psych evaluation roll) plus a few row-specific extras (`cashRoll`,
+ * `bonusGearRolls`, `generalSkills`, `careerEnded`, `notes`).
  */
 import type { RollTable } from "@campaign-forge/module-sdk";
-import { d6, d66, defineTable, ranges } from "./_helpers";
+import { d6, d66Grouped, defineTable, ranges, sequence, type RowSpec } from "./_helpers";
 
 const FAMILY = "lifepath";
-const PAGE: [number, number] = [282, 289];
 
-type Attr = "strength" | "agility" | "wits" | "empathy";
-type Skill =
+/** `defineTable` flags tables unverified; everything here was checked against the book. */
+function verified(table: RollTable): RollTable {
+  const { unverified: _t, ...rest } = table;
+  return {
+    ...rest,
+    rows: rest.rows.map((r) => {
+      const { unverified: _r, ...row } = r;
+      return row;
+    }),
+  };
+}
+
+function lifepathTable(spec: Omit<Parameters<typeof defineTable>[0], "family">): RollTable {
+  return verified(defineTable({ ...spec, family: FAMILY }));
+}
+
+export type Attr = "strength" | "agility" | "wits" | "empathy";
+export type Skill =
   | "heavyMachinery" | "closeCombat" | "stamina" | "rangedCombat" | "mobility" | "piloting"
   | "observation" | "survival" | "comtech" | "manipulation" | "command" | "medicalAid";
 
-function delta(attr: Attr | null, skill: Skill | null, psych: number, bonusRoll?: string): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
-  if (attr) out.attributes = { [attr]: 1 };
-  if (skill) out.skills = { [skill]: 1 };
-  if (psych !== 0) out.psych = psych;
-  if (bonusRoll) out.bonusRoll = bonusRoll;
-  return out;
-}
+const plus = (...ids: string[]): Record<string, number> => Object.fromEntries(ids.map((id) => [id, 1]));
 
-export const humanOrAndroid: RollTable = defineTable({
+// ---------------------------------------------------------------------------
+// Step 1: human or android (p. 282)
+// ---------------------------------------------------------------------------
+
+export const humanOrAndroid: RollTable = lifepathTable({
   id: "alien.lifepath.human-or-android",
   name: "Human or android",
-  family: FAMILY,
-  page: PAGE,
-  dice: "1d6",
-  notes: "Androids follow the same path but never gain stress-related psych flags.",
+  page: 282,
+  dice: "2d6",
+  notes: "11 or 12 makes the PC an android; agree with the GM whether it is a secret android (p. 25). Androids add +3 to two attributes before the life path.",
   rows: ranges([
-    [1, 5, "Human", { android: false }],
-    [6, 6, "Android", { android: true }],
+    [2, 10, "Human", { android: false }],
+    [11, 12, "Android", { android: true }],
   ]),
 });
 
-export const origin: RollTable = defineTable({
+// ---------------------------------------------------------------------------
+// Step 2: origin (p. 282-283): 2D6 super-nation, then D6 sub-affiliation and D6 home
+// ---------------------------------------------------------------------------
+
+type D6Spec = [lo: number, hi: number, label: string, extra?: Record<string, unknown>];
+
+function subTable(id: string, name: string, key: "subAffiliation" | "home", rows: D6Spec[]): RollTable {
+  return lifepathTable({
+    id,
+    name,
+    page: 283,
+    dice: "1d6",
+    rows: ranges(rows.map(([lo, hi, label, extra]) => [lo, hi, label, { [key]: label, ...(extra ?? {}) }] as const)),
+  });
+}
+
+interface Nation {
+  key: string;
+  label: string;
+  allegiance: string;
+  affiliation: D6Spec[];
+  home: D6Spec[];
+}
+
+const NATIONS: Nation[] = [
+  {
+    key: "icsc",
+    label: "Independent Core System Colonies",
+    allegiance: "icsc",
+    affiliation: [
+      [1, 1, "Central Space Consortium"],
+      [2, 2, "Weyland-Yutani"],
+      [3, 3, "Hyperdyne Systems"],
+      [4, 4, "Jĭngtì Lóng Corporation"],
+      [5, 5, "Lockmart"],
+      [6, 6, "Minor corporation"],
+    ],
+    home: [
+      [1, 1, "Sol Sector", { region: "core" }],
+      [2, 5, "New Eden Sector", { region: "core" }],
+      [6, 6, "Frontier colony", { region: "frontier" }],
+    ],
+  },
+  {
+    key: "3we",
+    label: "Three World Empire",
+    allegiance: "3we",
+    affiliation: [
+      [1, 3, "Weyland-Yutani"],
+      [4, 4, "Lasalle Bionational"],
+      [5, 5, "Seegson"],
+      [6, 6, "Minor corporation"],
+    ],
+    home: [
+      [1, 1, "Sol Sector", { region: "core" }],
+      [2, 3, "Core Systems", { region: "core" }],
+      [4, 5, "Frontier", { region: "frontier" }],
+      [6, 6, "Far Spinward Colonies"],
+    ],
+  },
+  {
+    key: "ua",
+    label: "United Americas",
+    allegiance: "uas",
+    affiliation: [
+      [1, 3, "Weyland-Yutani"],
+      [4, 4, "Lasalle Bionational"],
+      [5, 5, "Alphatech Hardware"],
+      [6, 6, "Minor corporation"],
+    ],
+    home: [
+      [1, 1, "Sol Sector", { region: "core" }],
+      [2, 2, "Outer Veil", { region: "outer-veil" }],
+      [3, 3, "Crestus Prime/Borodino/Cerberus Sectors"],
+      [4, 4, "Tartarus/Micor Sectors"],
+      [5, 5, "Frontier", { region: "frontier" }],
+      [6, 6, "Far Reach of the American Arm", { region: "far-reach" }],
+    ],
+  },
+  {
+    key: "upp",
+    label: "Union of Progressive Peoples",
+    allegiance: "upp",
+    affiliation: [
+      [1, 1, "Space Operating Forces"],
+      [2, 2, "UPP Frontier Colony Directorate"],
+      [3, 3, "Ministry of Space Security"],
+      [4, 4, "Ministry of Public Health"],
+      [5, 5, "Cosmos Exploration Corps"],
+      [6, 6, "Proletariat"],
+    ],
+    home: [
+      [1, 2, "Outer Veil/Sol Sector"],
+      [3, 4, "Outer Rim colony", { region: "outer-rim" }],
+      // The table prints "Bau Sau"; the sector is spelled Bao Sau elsewhere (p. 187).
+      [5, 5, "Bau Sau Sector"],
+      [6, 6, "Frontier", { region: "frontier" }],
+    ],
+  },
+  {
+    key: "independent",
+    label: "Independents",
+    allegiance: "independent",
+    affiliation: [
+      [1, 1, "Minor corporation"],
+      [2, 2, "Weyland-Yutani"],
+      [3, 3, "Seegson"],
+      [4, 4, "Lasalle Bionational"],
+      [5, 5, "United Nations"],
+      [6, 6, "None"],
+    ],
+    home: [
+      [1, 1, "Core Systems", { region: "core" }],
+      [2, 2, "Rimward Frontier", { region: "frontier" }],
+      [3, 3, "Spinward Frontier", { region: "frontier" }],
+      [4, 4, "Trailward Frontier", { region: "frontier" }],
+      [5, 5, "Coreward Frontier", { region: "frontier" }],
+      [6, 6, "Far Spinward Colonies"],
+    ],
+  },
+];
+
+const affiliationId = (n: Nation) => `alien.lifepath.origin.${n.key}.affiliation`;
+const homeId = (n: Nation) => `alien.lifepath.origin.${n.key}.home`;
+
+export const originSubTables: RollTable[] = NATIONS.flatMap((n) => [
+  subTable(affiliationId(n), `Origin: ${n.label} sub-affiliation`, "subAffiliation", n.affiliation),
+  subTable(homeId(n), `Origin: ${n.label} home`, "home", n.home),
+]);
+
+const ORIGIN_RANGES: Record<string, [number, number]> = {
+  icsc: [2, 4],
+  "3we": [5, 6],
+  ua: [7, 8],
+  upp: [9, 10],
+  independent: [11, 12],
+};
+
+export const origin: RollTable = lifepathTable({
   id: "alien.lifepath.origin",
   name: "Origin",
-  family: FAMILY,
-  page: PAGE,
+  page: 283,
   dice: "2d6",
-  notes: "Three levels: core worlds, outer colonies, frontier. The level drives later modifiers.",
-  rows: ranges([
-    [2, 2, "Earth", { level: "core", region: "core", ...delta("empathy", null, 0) }],
-    [3, 3, "Luna or Mars", { level: "core", region: "core", ...delta(null, "comtech", 0) }],
-    [4, 4, "Core-system colony", { level: "core", region: "core", ...delta(null, "manipulation", 0) }],
-    [5, 5, "Outer Veil station", { level: "outer", region: "outer-veil", ...delta(null, "comtech", 0) }],
-    [6, 6, "Outer Veil colony", { level: "outer", region: "outer-veil", ...delta(null, "heavyMachinery", 0) }],
-    [7, 7, "Born aboard a ship", { level: "outer", region: "outer-rim", ...delta(null, "piloting", 0) }],
-    [8, 8, "Outer Rim colony", { level: "outer", region: "outer-rim", ...delta("strength", null, 0) }],
-    [9, 9, "Frontier homestead", { level: "frontier", region: "frontier", ...delta(null, "survival", 1) }],
-    [10, 10, "Frontier mining camp", { level: "frontier", region: "frontier", ...delta("strength", null, 1) }],
-    [11, 11, "Far Reach outpost", { level: "frontier", region: "far-reach", ...delta(null, "survival", 1) }],
-    [12, 12, "Unknown or orphaned", { level: "frontier", region: "far-reach", ...delta("wits", null, 2) }],
-  ]),
-});
-
-type Early = [label: string, attr: Attr | null, skill: Skill | null, psych: number];
-const EARLY_LIFE: Early[] = [
-  ["Corporate arcology childhood", "wits", "comtech", 0],
-  ["Raised by a single working parent", "empathy", "manipulation", 1],
-  ["Company school scholarship", "wits", "observation", 0],
-  ["Boarding school on Luna", "wits", "manipulation", 0],
-  ["Military family, moved every year", "strength", "command", 1],
-  ["Grew up in a medical ward", "empathy", "medicalAid", 1],
-  ["Dockside gang kid", "agility", "closeCombat", 1],
-  ["Farm colony upbringing", "strength", "survival", 0],
-  ["Child of colony administrators", "empathy", "command", 0],
-  ["Spaceship-born, raised by the crew", "agility", "piloting", 0],
-  ["Orphanage run by the Company", "wits", "manipulation", 2],
-  ["Mining camp childhood", "strength", "heavyMachinery", 1],
-  ["Religious frontier commune", "empathy", "survival", 1],
-  ["Rich family, private tutors", "wits", "comtech", 0],
-  ["Street kid on a station", "agility", "mobility", 2],
-  ["Survived a colony disaster as a child", "strength", "stamina", 3],
-  ["Scientist parents, lab playground", "wits", "observation", 0],
-  ["Refugee from a border conflict", "agility", "survival", 2],
-  ["Marine brat on a forward base", "strength", "rangedCombat", 1],
-  ["Trucker family, always in transit", "agility", "piloting", 0],
-  ["Raised by an android caretaker", "wits", "comtech", 1],
-  ["Marshal's kid, saw the cells early", "empathy", "observation", 1],
-  ["Terraforming crew family", "strength", "heavyMachinery", 0],
-  ["Wealthy but neglected", "wits", "manipulation", 2],
-  ["Athletic prodigy", "agility", "mobility", 0],
-  ["Shipyard apprentice as a teen", "strength", "heavyMachinery", 0],
-  ["Hospital volunteer as a teen", "empathy", "medicalAid", 0],
-  ["Youth militia cadet", "agility", "rangedCombat", 1],
-  ["Trading post childhood", "empathy", "manipulation", 0],
-  ["Lost a sibling to an accident", "empathy", "stamina", 2],
-  ["Grew up in a research outpost", "wits", "observation", 1],
-  ["Pit fighter's apprentice", "strength", "closeCombat", 2],
-  ["Station maintenance family", "wits", "comtech", 0],
-  ["Hunter in frontier wilderness", "agility", "survival", 0],
-  ["Child actor on the core-world feeds", "empathy", "manipulation", 1],
-  ["Unknown: records sealed", "wits", null, 3],
-];
-
-export const earlyLife: RollTable = defineTable({
-  id: "alien.lifepath.early-life",
-  name: "Early life",
-  family: FAMILY,
-  page: PAGE,
-  dice: "d66",
-  notes: "Three columns: attribute increase, skill increase, psych modifier.",
-  rows: d66(EARLY_LIFE.map(([label, attr, skill, psych]) => ({ label, result: delta(attr, skill, psych) }))),
-});
-
-type Event = [label: string, skill: Skill | null, psych: number, bonus?: "favor" | "disaster"];
-const FAVOR = "alien.lifepath.favors";
-const DISASTER = "alien.lifepath.disasters";
-const LIFE_EVENTS: Event[] = [
-  ["Saved a stranger's life", "medicalAid", 0, "favor"],
-  ["Survived a hull breach", "stamina", 1],
-  ["Won a shipboard poker ring", "manipulation", 0],
-  ["Lost everything in a bad deal", null, 1, "disaster"],
-  ["Crewed a long haul without incident", "piloting", 0],
-  ["Was framed for a crime", null, 2, "disaster"],
-  ["Mentored by a veteran", "command", 0, "favor"],
-  ["Watched a friend die in an accident", null, 2],
-  ["Got a corporate commendation", "manipulation", 0, "favor"],
-  ["Wounded in a riot", "closeCombat", 1],
-  ["Discovered a smuggling ring", "observation", 0],
-  ["Lost a limb, replaced with a prosthetic", "stamina", 1, "disaster"],
-  ["Married and divorced within a year", null, 1],
-  ["Rescued from a drifting wreck", "survival", 1, "favor"],
-  ["Took the blame for a superior", "command", 1, "favor"],
-  ["Spent a year in a company brig", "closeCombat", 1, "disaster"],
-  ["Ran a colony's comm relay", "comtech", 0],
-  ["Became a parent", null, 0],
-  ["Witnessed something the Company covered up", "observation", 2],
-  ["Survived a mining collapse", "heavyMachinery", 1],
-  ["Deserted a post and got away with it", "mobility", 1],
-  ["Studied for a degree on a ship", "comtech", 0],
-  ["Lost a fortune to a corporate takeover", null, 1, "disaster"],
-  ["Crossed the frontier alone", "survival", 1],
-  ["Caught in a station quarantine", "medicalAid", 1],
-  ["Found a patron in a minor corporation", null, 0, "favor"],
-  ["Fought off a raider boarding party", "rangedCombat", 1],
-  ["Treated for radiation sickness", "stamina", 1, "disaster"],
-  ["Smuggled refugees across a border", "piloting", 0, "favor"],
-  ["Recognised by a marshal and let go", "manipulation", 0],
-  ["Nearly died in cryosleep", null, 2],
-  ["Promoted over an old friend", "command", 0],
-  ["Fired for refusing an order", null, 1],
-  ["Learned a dead colleague's secret", "observation", 1],
-  ["Buried a crewmate on an alien world", "survival", 2],
-  ["Woke with missing memories", null, 3, "disaster"],
-];
-
-export const lifeEvent: RollTable = defineTable({
-  id: "alien.lifepath.life-event",
-  name: "Life event",
-  family: FAMILY,
-  page: PAGE,
-  dice: "d66",
-  notes: "Some rows call for a bonus roll on favors or disasters (bonusRoll holds the table id).",
-  rows: d66(
-    LIFE_EVENTS.map(([label, skill, psych, bonus]) => ({
-      label,
-      result: delta(null, skill, psych, bonus === "favor" ? FAVOR : bonus === "disaster" ? DISASTER : undefined),
-    })),
+  notes: "Roll the super-nation, then D6 for the sub-affiliation and D6 for home (nested). Afterwards gain 3 points in random general skills (p. 282).",
+  rows: ranges(
+    NATIONS.map((n) => {
+      const [lo, hi] = ORIGIN_RANGES[n.key]!;
+      return [
+        lo,
+        hi,
+        n.label,
+        { supernation: n.label, allegiance: n.allegiance },
+        {
+          roll: [
+            { table: affiliationId(n), as: "subAffiliation" },
+            { table: homeId(n), as: "home" },
+          ],
+        },
+      ] as const;
+    }),
   ),
 });
 
-export const careerEntry: RollTable = defineTable({
-  id: "alien.lifepath.career-entry",
-  name: "Career entry",
-  family: FAMILY,
-  page: PAGE,
-  dice: "2d6",
-  notes: "Which career the character fell into. Result carries the career id.",
-  rows: ranges([
-    [2, 2, "Kid", { career: "kid" }],
-    [3, 3, "Company Agent", { career: "company-agent" }],
-    [4, 4, "Scientist", { career: "scientist" }],
-    [5, 5, "Medic", { career: "medic" }],
-    [6, 6, "Pilot", { career: "pilot" }],
-    [7, 7, "Roughneck", { career: "roughneck" }],
-    [8, 8, "Colonial Marine", { career: "colonial-marine" }],
-    [9, 9, "Officer", { career: "officer" }],
-    [10, 10, "Colonial Marshal", { career: "colonial-marshal" }],
-    [11, 11, "Scientist (specialist)", { career: "scientist" }],
-    [12, 12, "Company Agent (senior)", { career: "company-agent" }],
-  ]),
-});
+// ---------------------------------------------------------------------------
+// Random general skills (p. 286)
+// ---------------------------------------------------------------------------
 
-export const favors: RollTable = defineTable({
-  id: "alien.lifepath.favors",
-  name: "Favors",
-  family: FAMILY,
-  page: PAGE,
-  dice: "1d6",
-  notes: "Someone owes the character; the GM can cash it in as a contact.",
-  rows: d6([
-    { label: "A corporate executive owes you", result: { contact: "corporate", ...delta(null, "manipulation", 0) } },
-    { label: "A marshal looks the other way", result: { contact: "marshal", ...delta(null, "observation", 0) } },
-    { label: "A ship captain will give you passage", result: { contact: "captain", ...delta(null, "piloting", 0) } },
-    { label: "A medic will treat you off the books", result: { contact: "medic", ...delta(null, "medicalAid", 0) } },
-    { label: "A union boss has your back", result: { contact: "union", ...delta(null, "heavyMachinery", 0) } },
-    { label: "A marine sergeant remembers you", result: { contact: "military", ...delta(null, "rangedCombat", 0) } },
-  ]),
-});
-
-export const disasters: RollTable = defineTable({
-  id: "alien.lifepath.disasters",
-  name: "Disasters",
-  family: FAMILY,
-  page: PAGE,
-  dice: "1d6",
-  notes: "Something went badly wrong; usually adds a psych modifier or a lasting mark.",
-  rows: d6([
-    { label: "Blacklisted by a corporation", result: { ...delta(null, null, 1) } },
-    { label: "Deep in debt", result: { debt: true, ...delta(null, null, 1) } },
-    { label: "Wanted by the authorities", result: { wanted: true, ...delta(null, null, 1) } },
-    { label: "Lasting injury", result: { ...delta(null, "stamina", 1) } },
-    { label: "Lost someone you loved", result: { ...delta(null, null, 2) } },
-    { label: "Saw something you cannot explain", result: { ...delta(null, "observation", 3) } },
-  ]),
-});
-
-type Posting = [label: string, skill: Skill, psych: number];
-const POSTINGS: Record<string, Posting[]> = {
-  "colonial-marine": [
-    ["Garrison duty on a quiet colony", "rangedCombat", 0],
-    ["Border patrol in the Outer Veil", "observation", 1],
-    ["Boarding team on a corvette", "closeCombat", 1],
-    ["Riot control on a company world", "command", 1],
-    ["Search and rescue flight", "mobility", 0],
-    ["Black-ops deployment, classified", "stamina", 2],
-  ],
-  "colonial-marshal": [
-    ["Deputy at a mining camp", "observation", 0],
-    ["Riding circuit on frontier homesteads", "survival", 0],
-    ["Station security chief", "command", 1],
-    ["Corporate liaison desk", "manipulation", 0],
-    ["Manhunt across three systems", "rangedCombat", 1],
-    ["Quarantine enforcement", "medicalAid", 2],
-  ],
-  "company-agent": [
-    ["Colony administration office", "manipulation", 0],
-    ["Cargo audit on freighters", "observation", 0],
-    ["Labour negotiations", "command", 1],
-    ["Special projects, need to know", "comtech", 2],
-    ["Asset recovery team", "closeCombat", 1],
-    ["Executive assistant to a director", "manipulation", 1],
-  ],
-  kid: [
-    ["Stowaway on a freighter", "mobility", 1],
-    ["Colony school dropout", "comtech", 0],
-    ["Scavenger in the maintenance decks", "observation", 0],
-    ["Runner for a gang", "mobility", 1],
-    ["Helped in the colony clinic", "medicalAid", 0],
-    ["Hid during an attack", "survival", 2],
-  ],
-  medic: [
-    ["Colony clinic", "medicalAid", 0],
-    ["Ship's medic on a long haul", "comtech", 0],
-    ["Field hospital in a war zone", "stamina", 2],
-    ["Corporate research ward", "observation", 1],
-    ["Quarantine station", "medicalAid", 1],
-    ["Mining camp doctor", "heavyMachinery", 0],
-  ],
-  officer: [
-    ["First officer on a hauler", "command", 0],
-    ["Navigation on a survey vessel", "piloting", 0],
-    ["Commanded a station security detail", "rangedCombat", 1],
-    ["Corporate liaison officer", "manipulation", 0],
-    ["Rescue coordinator after a disaster", "command", 2],
-    ["Court martial, acquitted", "manipulation", 1],
-  ],
-  pilot: [
-    ["Shuttle runs between stations", "piloting", 0],
-    ["Dropship pilot for the marines", "piloting", 1],
-    ["Long-haul tug", "comtech", 0],
-    ["Atmospheric survey flights", "observation", 0],
-    ["Smuggling runs, never caught", "manipulation", 1],
-    ["Crash survivor", "survival", 2],
-  ],
-  roughneck: [
-    ["Deep-core mining rig", "heavyMachinery", 0],
-    ["Cargo loader on a freighter", "stamina", 0],
-    ["Terraforming plant maintenance", "comtech", 0],
-    ["Salvage crew on a derelict", "observation", 1],
-    ["Fuel refinery accident survivor", "stamina", 2],
-    ["Bar bouncer between contracts", "closeCombat", 1],
-  ],
-  scientist: [
-    ["Corporate lab on a core world", "comtech", 0],
-    ["Xenobiology survey", "observation", 1],
-    ["Terraforming research station", "survival", 0],
-    ["Medical research ward", "medicalAid", 0],
-    ["Expedition to a derelict", "observation", 2],
-    ["Classified weapons project", "comtech", 1],
-  ],
+const GENERAL_SKILLS: Skill[] = [
+  "closeCombat", "heavyMachinery", "stamina", "mobility", "piloting", "rangedCombat",
+  "comtech", "observation", "survival", "command", "manipulation", "medicalAid",
+];
+const SKILL_LABELS: Record<Skill, string> = {
+  heavyMachinery: "Heavy Machinery", closeCombat: "Close Combat", stamina: "Stamina", rangedCombat: "Ranged Combat",
+  mobility: "Mobility", piloting: "Piloting", observation: "Observation", survival: "Survival", comtech: "Comtech",
+  manipulation: "Manipulation", command: "Command", medicalAid: "Medical Aid",
 };
 
-export const postingTables: RollTable[] = Object.entries(POSTINGS).map(([career, rows]) =>
-  defineTable({
-    id: `alien.lifepath.posting.${career}`,
-    name: `Posting: ${career.replace(/-/g, " ")}`,
-    family: FAMILY,
-    page: PAGE,
-    dice: "1d6",
-    tags: ["posting", career],
-    rows: d6(rows.map(([label, skill, psych]) => ({ label, result: { career, ...delta(null, skill, psych) } }))),
+export const generalSkill: RollTable = lifepathTable({
+  id: "alien.lifepath.general-skill",
+  name: "Random general skill",
+  page: 286,
+  dice: "d66",
+  notes: "Each roll gives +1 to the skill. Re-roll a result that would take a skill above 5 (p. 282).",
+  rows: d66Grouped(3, GENERAL_SKILLS.map((s) => ({ label: SKILL_LABELS[s], result: { skill: s, skills: plus(s) } }))),
+});
+
+// ---------------------------------------------------------------------------
+// Step 3: early life (p. 284): D66 three times, once per column
+// ---------------------------------------------------------------------------
+
+const EARLY_WHO: Array<[label: string, a: Attr, b: Attr]> = [
+  ["Prisoner, convict or warden", "strength", "wits"],
+  ["Space trucker who lived in hypersleep", "agility", "empathy"],
+  ["Troublemaker who made their own rules", "wits", "empathy"],
+  ["Homeless, scraping by", "strength", "agility"],
+  ["Indentured worker bound to masters", "agility", "empathy"],
+  ["Refugee fleeing a war zone", "strength", "empathy"],
+  ["Adept of a brutal cult", "wits", "empathy"],
+  ["Colonist on a backwater world", "agility", "wits"],
+  ["Stranded colonist or crew awaiting rescue", "agility", "wits"],
+  ["Wildcatter living out of a Daihotai tractor", "strength", "agility"],
+  ["Minion at research facilities", "strength", "wits"],
+  ["Ward of a wealthy patron", "strength", "empathy"],
+];
+
+export const earlyLife: RollTable = lifepathTable({
+  id: "alien.lifepath.early-life",
+  name: "Early life: you were",
+  page: 284,
+  dice: "d66",
+  notes: "First of three D66 rolls, one per column: +1 to each of two attributes.",
+  rows: d66Grouped(3, EARLY_WHO.map(([label, a, b]) => ({ label, result: { attributes: plus(a, b) } }))),
+});
+
+const EARLY_COMPANY: string[] = [
+  "Parents or siblings",
+  "Your closest friends",
+  "Dangerous convicts",
+  "Strangers",
+  "A lover or former lover",
+  "A bitter rival or enemy",
+  "Embittered indentured workers",
+  "Soldiers or paramilitaries",
+  "Androids",
+  "A very rich benefactor",
+  "Desperate or sick people",
+  "Nobody",
+];
+
+export const earlyLifeCompany: RollTable = lifepathTable({
+  id: "alien.lifepath.early-life.company",
+  name: "Early life: in the company of",
+  page: 284,
+  dice: "d66",
+  notes: "Second D66 roll: who shared your early life. Story only, no modifiers.",
+  rows: d66Grouped(3, EARLY_COMPANY.map((label) => ({ label, result: { company: label } }))),
+});
+
+const EARLY_EXPERIENCE: Array<[label: string, a: Skill, b: Skill, psych: number]> = [
+  ["A lucky break that set you up", "heavyMachinery", "mobility", 2],
+  ["Kept as a rich patron's plaything", "manipulation", "piloting", 1],
+  ["A job you liked, with a way up", "stamina", "survival", 1],
+  ["Helping others at real cost to yourself", "medicalAid", "command", 0],
+  ["Locked up, guilty or not (or warehoused, for androids)", "closeCombat", "survival", 0],
+  ["Forced labor under a cruel boss", "stamina", "observation", 0],
+  ["Lonely, underpaid years in deep space", "piloting", "heavyMachinery", 0],
+  ["Surviving alone on an abandoned colony", "closeCombat", "comtech", 0],
+  ["A low-level overseer sending workers to die", "command", "rangedCombat", 0],
+  ["A test subject in painful experiments", "mobility", "comtech", -1],
+  ["A no-win choice that cost a life", "rangedCombat", "manipulation", -1],
+  ["A research station disaster with escaped specimens", "observation", "medicalAid", -2],
+];
+
+export const earlyLifeExperience: RollTable = lifepathTable({
+  id: "alien.lifepath.early-life.experience",
+  name: "Early life: and experienced",
+  page: 284,
+  dice: "d66",
+  notes: "Third D66 roll: +1 to each of two skills and, on some rows, a modifier to the psych evaluation roll.",
+  rows: d66Grouped(
+    3,
+    EARLY_EXPERIENCE.map(([label, a, b, psych]): RowSpec => ({ label, result: { skills: plus(a, b), ...(psych !== 0 ? { psych } : {}) } })),
+  ),
+});
+
+// ---------------------------------------------------------------------------
+// Step 4: life event (p. 285): D66 in pairs; 2 specified attribute points
+// plus 2 random general skills (the procedure rolls those)
+// ---------------------------------------------------------------------------
+
+const LIFE_EVENTS: Array<[label: string, a: Attr, b: Attr, extra?: Record<string, unknown>]> = [
+  ["A charmed life", "strength", "empathy", { psych: 2, cashRoll: { dice: "2d6", multiplier: 50 }, bonusGearRolls: 1 }],
+  ["Got away with a crime", "strength", "wits", { psych: 1 }],
+  ["Strings pulled for a specialist school", "strength", "agility", { psych: 1, generalSkills: 1 }],
+  ["Caught for a crime, freed by a deal, now in debt", "agility", "wits", { notes: ["In debt to someone"] }],
+  ["Read Space Beast; a W-Y exec left a card", "wits", "empathy", { notes: ["Holds a Weyland-Yutani executive's card"] }],
+  ["Survived a grave illness; obsessed with grime", "agility", "empathy"],
+  ["Survived a bad crash; insists on driving", "strength", "agility"],
+  ["Woke from hypersleep to a dead crew", "strength", "wits"],
+  ["Stumbled on an official secret", "strength", "empathy"],
+  ["Legally scammed someone who wants it back", "wits", "empathy"],
+  ["A quake destroyed your home", "agility", "empathy"],
+  ["Trapped in an accident; now mildly claustrophobic", "agility", "wits"],
+  ["Earned your way out until the quota doubled", "strength", "agility"],
+  ["Killed someone, or let them die", "wits", "empathy", { psych: -1 }],
+  ["Badly burned in a fire", "strength", "wits", { psych: -1 }],
+  ["Someone died saving you in an accident", "agility", "wits", { psych: -1 }],
+  ["Betrayed and left to die", "strength", "empathy", { psych: -2 }],
+  ["Escaped monsters nobody believes in", "agility", "empathy", { psych: -2 }],
+];
+
+export const lifeEvent: RollTable = lifepathTable({
+  id: "alien.lifepath.life-event",
+  name: "Life event",
+  page: 285,
+  dice: "d66",
+  notes:
+    "Two specified attribute points, then 2 random general skills. 11-12 also rolls 2D6×50 W-Y dollars and a bonus career gear roll; 15-16 adds one more random general skill.",
+  rows: d66Grouped(2, LIFE_EVENTS.map(([label, a, b, extra]) => ({ label, result: { attributes: plus(a, b), ...(extra ?? {}) } }))),
+});
+
+// ---------------------------------------------------------------------------
+// Step 5: careers (p. 286): requirements, paycheck and three career skills
+// ---------------------------------------------------------------------------
+
+export interface LifepathCareer {
+  id: string;
+  name: string;
+  requirements: Partial<Record<Attr, number>>;
+  /** Paycheck is D6 × this many W-Y dollars. */
+  paycheck: number;
+  skills: [Skill, Skill, Skill];
+  /** Kids need no application and serve a single term (p. 286). */
+  noApplication?: boolean;
+  maxTerms: number;
+}
+
+export const LIFEPATH_CAREERS: LifepathCareer[] = [
+  { id: "colonial-marine", name: "Colonial Marine", requirements: { strength: 4 }, paycheck: 50, skills: ["closeCombat", "stamina", "rangedCombat"], maxTerms: 3 },
+  { id: "colonial-marshal", name: "Colonial Marshal", requirements: { agility: 3, wits: 4 }, paycheck: 100, skills: ["rangedCombat", "observation", "manipulation"], maxTerms: 3 },
+  { id: "company-agent", name: "Company Agent", requirements: { wits: 4 }, paycheck: 500, skills: ["comtech", "observation", "manipulation"], maxTerms: 3 },
+  { id: "kid", name: "Kid", requirements: {}, paycheck: 5, skills: ["mobility", "observation", "survival"], noApplication: true, maxTerms: 1 },
+  { id: "medic", name: "Medic", requirements: { empathy: 4 }, paycheck: 100, skills: ["mobility", "observation", "medicalAid"], maxTerms: 3 },
+  { id: "officer", name: "Officer", requirements: { wits: 3, empathy: 4 }, paycheck: 150, skills: ["rangedCombat", "command", "manipulation"], maxTerms: 3 },
+  { id: "pilot", name: "Pilot", requirements: { agility: 4 }, paycheck: 100, skills: ["piloting", "rangedCombat", "comtech"], maxTerms: 3 },
+  { id: "roughneck", name: "Roughneck", requirements: { strength: 4 }, paycheck: 50, skills: ["closeCombat", "heavyMachinery", "stamina"], maxTerms: 3 },
+  { id: "scientist", name: "Scientist", requirements: { wits: 4 }, paycheck: 150, skills: ["comtech", "observation", "survival"], maxTerms: 3 },
+];
+
+export const careerSkillTableId = (career: string) => `alien.lifepath.career-skill.${career}`;
+
+export const careerSkillTables: RollTable[] = LIFEPATH_CAREERS.map((c) =>
+  lifepathTable({
+    id: careerSkillTableId(c.id),
+    name: `Career skill: ${c.name}`,
+    page: 286,
+    dice: "d3",
+    tags: ["career-skill", c.id],
+    notes: "D3 picks skill 1, 2 or 3 of the career; +1 to that skill. Re-roll if it is already 5.",
+    rows: sequence([1, 2, 3], c.skills.map((s) => ({ label: SKILL_LABELS[s], result: { skill: s, skills: plus(s) } }))),
   }),
 );
 
-export const psychEvaluation: RollTable = defineTable({
+// ---------------------------------------------------------------------------
+// Favors and disasters (p. 287)
+// ---------------------------------------------------------------------------
+
+export const favors: RollTable = lifepathTable({
+  id: "alien.lifepath.favors",
+  name: "Favors",
+  page: 287,
+  dice: "1d6",
+  notes: "Gained on a strong application (two or more successes) or a strong term performance. Re-roll favors you already have.",
+  rows: d6([
+    { label: "Popular", result: { favor: "popular", notes: ["Popular: +1 to Manipulation when dealing with your own organization"] } },
+    { label: "Free Rein In The Company Warehouse", result: { favor: "warehouse", bonusGearRolls: 1 } },
+    { label: "Generalist Training Program", result: { favor: "generalist", generalSkills: 1, notes: ["Owes someone a favor for a training place"] } },
+    { label: "Specialist Training Program", result: { favor: "specialist", careerSkills: 1, notes: ["Owes someone a favor for a training place"] } },
+    { label: "Bonus", result: { favor: "bonus", bonusPaychecks: 1, notes: ["A bonus that made colleagues envious"] } },
+    { label: "New Friend", result: { favor: "new-friend", notes: ["Someone owes you a favor, if they can be trusted"] } },
+  ]),
+});
+
+export const disasters: RollTable = lifepathTable({
+  id: "alien.lifepath.disasters",
+  name: "Disasters",
+  page: 287,
+  dice: "1d6",
+  notes: "Suffered on a failed term performance, along with −1 on the psych evaluation roll. Sacked or stitched up means the career ends.",
+  rows: d6([
+    { label: "Injured", result: { disaster: "injured", loseAttribute: ["strength", "agility"] } },
+    { label: "Trauma", result: { disaster: "trauma", loseAttribute: ["wits", "empathy"] } },
+    { label: "Lost Something", result: { disaster: "lost-something", loseRandomItem: true } },
+    { label: "Misfortune", result: { disaster: "misfortune", notes: ["Branded a Jonah after a death blamed on you"] } },
+    { label: "Nemesis", result: { disaster: "nemesis", careerEnded: true, notes: ["A rival had you sacked"] } },
+    { label: "Sacked", result: { disaster: "sacked", careerEnded: true, notes: ["Contract canceled for negligence or incompetence"] } },
+  ]),
+});
+
+// ---------------------------------------------------------------------------
+// Career postings (p. 288-289): one D6 per term; 5-6 give a bonus gear roll
+// ---------------------------------------------------------------------------
+
+type Posting = [name: string, note: string];
+const POSTINGS: Record<string, Posting[]> = {
+  "colonial-marine": [
+    ["Garrison Duty", "Dull but safe."],
+    ["Colonial Defense", "A risky bug hunt nobody wants."],
+    ["Peacekeeping", "Winning over the locals."],
+    ["Population Control", "Breaking up riots and strikes."],
+    ["Assault Operations", "Fast raids and orbital strikes."],
+    ["Combat Operations", "Front-line fighting."],
+  ],
+  "colonial-marshal": [
+    ["Backwater Posting", "Nothing worth investigating."],
+    ["Frontier Policing", "Drunks and bar fights."],
+    ["Authority's Stooge", "Doing the company's dirty work."],
+    ["Lawless Frontier", "Alone against gangs and rackets."],
+    ["Big Colony Beat", "Thankless, dangerous city policing."],
+    ["Roving Marshal", "Chasing the big cases."],
+  ],
+  "company-agent": [
+    ["Filing", "Grim work, but the files hold secrets."],
+    ["Seconded", "A dead-end errand job."],
+    ["Recruitment", "Awful work, but you know everyone."],
+    ["Exec Without Portfolio", "Free to chase the next big thing."],
+    ["Special Ops", "Secret facilities and weapons work."],
+    ["Troubleshooter", "Surprise inspections and power."],
+  ],
+  kid: [
+    ["Bad Kid", "Time in juvenile detention."],
+    ["Troubled Kid", "Bored, unpopular troublemaker."],
+    ["Put To Work", "Stuck in a miserable job."],
+    ["School's Out", "Classes by day, wild after."],
+    ["Permanent Vacation", "Free to do as you please."],
+    ["On Your Own", "Unwatched, finding all sorts of things."],
+  ],
+  medic: [
+    ["Disaster Relief", "Always arriving too late."],
+    ["Bad Side Of Town", "Unwelcome help in a rough place."],
+    ["Lawless Frontier", "Patching gunshots and stabbings."],
+    ["Training School", "Teaching students who do not care."],
+    ["Military", "Keeping grunts alive in the field."],
+    ["Industrial Paramedic", "Keeping workers alive and working."],
+  ],
+  officer: [
+    ["Security Detail", "A punishment posting."],
+    ["Prison Detail", "Making convicts productive."],
+    ["Colony Teams", "Unpopular frontier fixer."],
+    ["Tough Decisions", "Getting it done at a cost in lives."],
+    ["Cool Head", "Leading survivors until rescue."],
+    ["Big Boss", "Running a big, dangerous frontier crew."],
+  ],
+  pilot: [
+    ["Dusting Crops", "Bad work, bad place, no future."],
+    ["Cargo Hauling", "Short hauls of everyday goods."],
+    ["Smuggler", "Pays well while you stay uncaught."],
+    ["Space Truckers", "Respected haulage, poor pay."],
+    ["Military", "Dropships and nukes."],
+    ["Chauffeur", "Flying the rich and powerful."],
+  ],
+  roughneck: [
+    ["Colony Miner", "Dark, toxic, but steady work."],
+    ["Lawless Colony", "Endless repairs and all the blame."],
+    ["Stevedore", "Moving cargo, blamed when it goes missing."],
+    ["Wrecking Crew", "Salvage pays better than wages."],
+    ["Hauler Engineer", "Decent pay, mostly asleep."],
+    ["Big Colony Maintenance", "Keeping the lights and air on."],
+  ],
+  scientist: [
+    ["Backwater Lab", "The lab tech who cleans up."],
+    ["Lawless Colony", "Good title, terrible colony."],
+    ["Headhunted", "A secret project, then fired."],
+    ["Science Officer", "Decent pay aboard a hauler."],
+    ["Pristine Lab", "Top facilities, real progress."],
+    ["Field Research", "A well-funded field team."],
+  ],
+};
+
+export const postingTableId = (career: string) => `alien.lifepath.posting.${career}`;
+
+export const postingTables: RollTable[] = Object.entries(POSTINGS).map(([career, rows]) =>
+  lifepathTable({
+    id: postingTableId(career),
+    name: `Posting: ${LIFEPATH_CAREERS.find((c) => c.id === career)!.name}`,
+    page: [288, 289],
+    dice: "1d6",
+    tags: ["posting", career],
+    notes: "Each term: roll the posting, then gain 1 point in a random career skill. Results 5-6 add a bonus career gear roll.",
+    rows: d6(rows.map(([name, note], i) => ({ label: name, result: { career, note, ...(i >= 4 ? { bonusGearRolls: 1 } : {}) } }))),
+  }),
+);
+
+// ---------------------------------------------------------------------------
+// Psych evaluation (p. 288-289): 2D6 plus the modifiers gathered on the way
+// ---------------------------------------------------------------------------
+
+export const psychEvaluation: RollTable = lifepathTable({
   id: "alien.lifepath.psych-evaluation",
   name: "Psych evaluation",
-  family: FAMILY,
-  page: PAGE,
+  page: [288, 289],
   dice: "2d6",
-  notes: "The procedure adds the accumulated psych modifier to this roll. Higher is worse.",
+  notes: "Add every psych modifier from the life path; low is unstable, high is over-eager. Androids roll it as a cognitive stability test. Roleplay the result.",
   rows: ranges([
-    [-99, 4, "Cleared for duty", { rating: "cleared", startingStress: 0 }],
-    [5, 7, "Stable", { rating: "stable", startingStress: 0 }],
-    [8, 10, "Flagged for monitoring", { rating: "flagged", startingStress: 1 }],
-    [11, 13, "Borderline", { rating: "borderline", startingStress: 1, suggestedTrauma: true }],
-    [14, 99, "Unfit for duty", { rating: "unfit", startingStress: 2, suggestedTrauma: true }],
+    [-99, 0, "Dangerous and volatile, prone to psychotic outbursts", { rating: "dangerous" }],
+    [1, 1, "Flashbacks and hallucinations; unpredictable", { rating: "unhinged" }],
+    [2, 2, "Defensive and quick to anger; hard to trust", { rating: "defensive" }],
+    [3, 4, "Nightmares and outbursts; moody and self-pitying", { rating: "troubled" }],
+    [5, 6, "Mild trauma and nerves; a complainer", { rating: "mild-trauma" }],
+    [7, 8, "Well balanced; a good worker", { rating: "balanced" }],
+    [9, 10, "Positive and compliant", { rating: "compliant" }],
+    [11, 12, "Invested and ambitious; promotion material", { rating: "invested" }],
+    [13, 13, "Overconfident and eager to please; what are they hiding?", { rating: "overeager" }],
+    [14, 99, "Fanatically loyal to authority; possible mood drugs; monitor", { rating: "fanatical" }],
   ]),
 });
 
 export const lifepathTables: RollTable[] = [
   humanOrAndroid,
   origin,
+  ...originSubTables,
+  generalSkill,
   earlyLife,
+  earlyLifeCompany,
+  earlyLifeExperience,
   lifeEvent,
-  careerEntry,
+  ...careerSkillTables,
   favors,
   disasters,
   ...postingTables,

@@ -1,115 +1,160 @@
 /**
- * Main World Creation (p. 237-242). Step ids match the `var` paths the world
- * tables read (`size.diameterKm`, `atmosphere.atmosphere`, ...). Colony steps
- * are skipped for uninhabited worlds. Produces one planet, one colony when
- * inhabited (within the planet) and one faction per faction roll, each
- * `stationed_at` the colony.
+ * Main World Creation (p. 236-242), in the book's order: size, atmosphere,
+ * temperature, geosphere, one terrain feature, then (colonized worlds only)
+ * colony size with population and number of missions, the missions, D3
+ * factions, orbital components, allegiance and an optional campaign hook.
+ * An uninhabited body skips the colony tables and rolls D3−1 moons instead of
+ * orbital components (p. 240).
+ *
+ * Inputs used by the star system generator (p. 243): `planetType: "ice"`
+ * (size −2, temperature set to frozen, ice planet terrain table) and
+ * `gasGiantMoon: true` (size −4). Those bodies pass `inhabited: false`.
+ *
+ * Produces one planet, one colony when inhabited (within the planet) and one
+ * faction per faction roll, each `stationed_at` the colony.
  */
-import type { Procedure, ProcedureContext, ProducedEntity, ProducedRelationship } from "@campaign-forge/module-sdk";
+import { rollDice, type Procedure, type ProcedureContext, type ProducedEntity, type ProducedRelationship } from "@campaign-forge/module-sdk";
+import { PLANET_NAMES } from "../tables/world";
 import { bool, input, isObj, list, num, obj, str } from "./helpers";
 
-export type PlanetType = "terrestrial" | "ice" | "gas-giant";
+export type PlanetType = "terrestrial" | "ice";
 
-function planetType(ctx: ProcedureContext): PlanetType {
-  const forced = input<string>(ctx, "planetType");
-  if (forced === "terrestrial" || forced === "ice" || forced === "gas-giant") return forced;
-  if (bool(obj(ctx, "size").gasGiant)) return "gas-giant";
-  return str(obj(ctx, "temperature").temperature) === "frozen" ? "ice" : "terrestrial";
-}
-
-function inhabited(ctx: ProcedureContext): boolean {
-  return bool(ctx.get("inhabited"), false);
-}
-
-const FACTION_NAMES: Record<string, string> = {
-  government: "Colonial Administration",
-  corporation: "Corporate office",
-  military: "Garrison",
-  colonial: "Workers' union",
-  other: "Local group",
+/** World input `allegianceBloc` -> colony allegiance id and the allegiance table to roll. */
+const BLOCS: Record<string, { allegiance: string; table?: string; government: string }> = {
+  "american-arm": { allegiance: "uas", table: "alien.world.allegiance-arms", government: "United Americas" },
+  "anglo-japanese-arm": { allegiance: "3we", table: "alien.world.allegiance-arms", government: "Three World Empire" },
+  icsc: { allegiance: "icsc", table: "alien.world.allegiance-icsc", government: "ICSC" },
+  upp: { allegiance: "upp", government: "Union of Progressive Peoples" },
 };
 
+function bloc(ctx: ProcedureContext): { allegiance: string; table?: string; government: string } {
+  return BLOCS[str(input(ctx, "allegianceBloc"), "american-arm")] ?? BLOCS["american-arm"]!;
+}
+
+function planetType(ctx: ProcedureContext): PlanetType {
+  return input<string>(ctx, "planetType") === "ice" ? "ice" : "terrestrial";
+}
+
+/** A main world is colonized unless the input says otherwise (bodies from the system generator are not). */
+function inhabited(ctx: ProcedureContext): boolean {
+  const v = input<unknown>(ctx, "inhabited");
+  return typeof v === "boolean" ? v : true;
+}
+
+/** Orbital component labels; "D3 moons" becomes "N moons", "Roll D6 times" expands to its extra rolls. */
 function orbitalList(ctx: ProcedureContext): string[] {
-  const o = obj(ctx, "orbital");
-  const comp = str(o.component);
-  if (comp === "multiple") {
-    const extra = Array.isArray(o.extra) ? o.extra : [];
-    return extra.filter(isObj).map((e) => str(e.component)).filter((c) => c !== "" && c !== "none");
+  if (!inhabited(ctx)) {
+    const n = num(obj(ctx, "moons").moons);
+    return n > 0 ? [n === 1 ? "1 moon" : `${n} moons`] : [];
   }
-  return comp === "" || comp === "none" ? [] : [comp];
+  const describe = (o: Record<string, unknown>): string[] => {
+    const comp = str(o.component);
+    if (comp === "" || comp === "none" || comp === "more") return [];
+    if (comp === "multiple") return (Array.isArray(o.extra) ? o.extra : []).filter(isObj).flatMap(describe);
+    if (comp === "moons") {
+      const n = isObj(o.moons) ? num(o.moons.moons, 1) : 1;
+      return [n === 1 ? "1 moon" : `${n} moons`];
+    }
+    return [str(o.label, comp)];
+  };
+  return describe(obj(ctx, "orbital"));
 }
 
 export const worldCreate: Procedure = {
   id: "alien.world.create",
   name: "Main World Creation",
-  description: "Size, atmosphere, temperature, geosphere and terrain, then colony size, missions, factions, orbital components, allegiance and a campaign hook.",
-  page: [237, 242],
+  description: "Size, atmosphere, temperature, geosphere and terrain, then colony size, population, missions, factions, orbital components, allegiance and a campaign hook.",
+  page: [236, 242],
   inputs: {
     type: "object",
     properties: {
       region: { type: "string", enum: ["core", "outer-veil", "outer-rim", "frontier", "far-reach"], default: "frontier" },
-      allegianceBloc: { type: "string", enum: ["arms", "icsc", "upp"], default: "arms" },
-      inhabited: { type: "boolean", description: "Override; when absent the `inhabited` step decides from size and atmosphere." },
-      planetType: { type: "string", enum: ["terrestrial", "ice", "gas-giant"], description: "Override; when absent decided by size and temperature." },
-      name: { type: "string", description: "Planet designation; generated when absent." },
+      allegianceBloc: {
+        type: "string",
+        enum: ["american-arm", "anglo-japanese-arm", "icsc", "upp"],
+        default: "american-arm",
+        description: "Where the colony lies: decides the allegiance table (p. 241). UPP colonies always owe allegiance to the UPP.",
+      },
+      inhabited: { type: "boolean", default: true, description: "A colonized main world. Off for unexplored bodies, which skip the colony tables (p. 240)." },
+      planetType: { type: "string", enum: ["terrestrial", "ice"], default: "terrestrial", description: "Ice planets (star system generator, p. 243): size −2, always frozen, ice terrain table." },
+      gasGiantMoon: { type: "boolean", description: "A moon of a gas giant: size −4 (p. 237)." },
+      name: { type: "string", description: "Planet name; when absent, inhabited worlds take a suggested name (p. 236) and others an LV designation." },
     },
   },
   steps: [
-    { id: "size", title: "Planet size", table: "alien.world.size", page: 237 },
-    { id: "atmosphere", title: "Atmosphere", table: "alien.world.atmosphere", reads: ["size"], page: 238 },
-    { id: "temperature", title: "Temperature", table: "alien.world.temperature", reads: ["atmosphere"], page: 238 },
-    { id: "geosphere", title: "Geosphere", table: "alien.world.geosphere", reads: ["atmosphere", "temperature"], page: 238 },
-    {
-      id: "inhabited",
-      title: "Inhabited?",
-      reads: ["size", "atmosphere"],
-      compute: (ctx) => {
-        const forced = input<unknown>(ctx, "inhabited");
-        if (typeof forced === "boolean") return forced;
-        if (planetType(ctx) === "gas-giant") return false;
-        const atmo = str(obj(ctx, "atmosphere").atmosphere);
-        return !bool(obj(ctx, "size").uninhabitable) && atmo !== "corrosive" && atmo !== "infiltrating";
-      },
-    },
     {
       id: "designation",
-      title: "Designation",
+      title: "Name or designation",
+      page: 236,
       compute: (ctx, rng) => {
         const given = input<string>(ctx, "name");
         if (typeof given === "string" && given.trim() !== "") return given.trim();
+        if (inhabited(ctx)) return PLANET_NAMES[rng.int(0, PLANET_NAMES.length - 1)] ?? "Hannibal";
         return `LV-${rng.int(100, 999)}`;
       },
+    },
+    { id: "size", title: "Planet size", table: "alien.world.size", page: 237 },
+    { id: "atmosphere", title: "Atmosphere", table: "alien.world.atmosphere", reads: ["size"], page: 238 },
+    { id: "temperature", title: "Temperature", table: "alien.world.temperature", reads: ["atmosphere"], page: 238 },
+    {
+      id: "geosphere",
+      title: "Geosphere",
+      table: "alien.world.geosphere",
+      reads: ["atmosphere", "temperature"],
+      page: 239,
+      // No atmosphere at all (a GM pin) means a desert world.
+      after: (ctx, result) =>
+        str(obj(ctx, "atmosphere").atmosphere) === "none" ? { label: "Desert World", geosphere: "desert", description: "No surface water." } : result,
     },
     {
       id: "terrain",
       title: "Terrain",
       page: 239,
       table: (ctx) => (planetType(ctx) === "ice" ? "alien.world.terrain-ice" : "alien.world.terrain"),
-      reads: ["temperature"],
-      skipIf: (ctx) => planetType(ctx) === "gas-giant",
     },
     {
       id: "colonySize",
       title: "Colony size",
       table: "alien.world.colony-size",
-      reads: ["atmosphere", "size", "inhabited"],
+      reads: ["size", "atmosphere"],
       skipIf: (ctx) => !inhabited(ctx),
       page: 240,
+    },
+    {
+      id: "population",
+      title: "Population",
+      reads: ["colonySize"],
+      skipIf: (ctx) => !inhabited(ctx),
+      page: 240,
+      compute: (ctx, rng) => {
+        const c = obj(ctx, "colonySize");
+        return rollDice(str(c.populationDice, "3d6"), rng).total * num(c.populationMultiplier, 10);
+      },
+    },
+    {
+      id: "missionCount",
+      title: "Number of missions",
+      reads: ["colonySize"],
+      skipIf: (ctx) => !inhabited(ctx),
+      page: 240,
+      compute: (ctx, rng) => {
+        const expr = str(obj(ctx, "colonySize").missionsDice, "1");
+        return Math.max(0, /^\d+$/.test(expr) ? Number(expr) : rollDice(expr, rng).total);
+      },
     },
     {
       id: "missions",
       title: "Colony missions",
       table: "alien.world.colony-mission",
-      reads: ["atmosphere", "colonySize"],
+      reads: ["atmosphere", "colonySize", "missionCount"],
       skipIf: (ctx) => !inhabited(ctx),
-      repeat: (ctx) => Math.max(1, num(obj(ctx, "colonySize").missionCount, 1)),
+      repeat: (ctx) => num(ctx.get("missionCount")),
       page: 240,
     },
     {
       id: "factionCount",
       title: "Number of factions",
       table: "alien.world.faction-count",
-      reads: ["inhabited"],
       skipIf: (ctx) => !inhabited(ctx),
       page: 241,
     },
@@ -122,16 +167,29 @@ export const worldCreate: Procedure = {
       repeat: (ctx) => num(obj(ctx, "factionCount").count, 1),
       page: 241,
     },
-    { id: "orbital", title: "Orbital components", table: "alien.world.orbital-components", reads: ["colonySize"], page: 241 },
+    {
+      id: "orbital",
+      title: "Orbital components",
+      table: "alien.world.orbital-components",
+      reads: ["colonySize"],
+      skipIf: (ctx) => !inhabited(ctx),
+      page: 240,
+    },
+    {
+      id: "moons",
+      title: "Moons (D3−1)",
+      table: "alien.world.moons-uninhabited",
+      skipIf: (ctx) => inhabited(ctx),
+      page: 240,
+    },
     {
       id: "allegiance",
-      title: "Allegiance",
-      table: (ctx) => (input<string>(ctx, "allegianceBloc") === "icsc" ? "alien.world.allegiance-icsc" : "alien.world.allegiance-arms"),
-      reads: ["inhabited"],
-      skipIf: (ctx) => !inhabited(ctx) || input<string>(ctx, "allegianceBloc") === "upp",
-      page: 242,
+      title: "Colony allegiance",
+      table: (ctx) => bloc(ctx).table ?? "alien.world.allegiance-arms",
+      skipIf: (ctx) => !inhabited(ctx) || bloc(ctx).table === undefined,
+      page: 241,
     },
-    { id: "hook", title: "Campaign hook", table: "alien.world.campaign-hook", optional: true, reads: ["inhabited"], skipIf: (ctx) => !inhabited(ctx), page: 242 },
+    { id: "hook", title: "Campaign hook", table: "alien.world.campaign-hook", optional: true, skipIf: (ctx) => !inhabited(ctx), page: 242 },
   ],
   produce: (ctx) => {
     const name = str(ctx.get("designation"), "Unnamed world");
@@ -139,30 +197,37 @@ export const worldCreate: Procedure = {
     const type = planetType(ctx);
     const isInhabited = inhabited(ctx);
     const colonySize = obj(ctx, "colonySize");
-    const allegiance = input<string>(ctx, "allegianceBloc") === "upp" ? "upp" : str(obj(ctx, "allegiance").allegiance, "unknown");
-    const missions = list(ctx, "missions").map((m) => str(m.mission, str(m.label)));
+    const b = bloc(ctx);
+    const alleg = obj(ctx, "allegiance");
+    const affType = str(alleg.affiliationType);
+    const allegiance = affType === "independent" ? "independent" : b.allegiance;
+    const affiliation = b.table === undefined ? b.government : affType === "government" ? b.government : str(alleg.affiliation, b.government);
+    const missions = list(ctx, "missions").map((m) => str(m.label, str(m.mission)));
     const factionRows = list(ctx, "factions");
+    const population = isInhabited ? num(ctx.get("population")) : 0;
     const colonyName = `${name} colony`;
+    const atmo = str(obj(ctx, "atmosphere").atmosphere);
+    const temp = str(obj(ctx, "temperature").temperature);
 
     const planet: ProducedEntity = {
       tempId: "planet",
       type: "alien.location",
       name,
-      summary: `${type} world, ${str(obj(ctx, "atmosphere").atmosphere, "unknown")} atmosphere, ${str(obj(ctx, "temperature").temperature, "unknown")}`,
-      tags: ["planet", type],
+      summary: `${type === "ice" ? "Ice" : "Terrestrial"} ${bool(input(ctx, "gasGiantMoon")) ? "moon" : "world"}, ${str(size.label)}, ${atmo || "unknown"} atmosphere, ${temp || "unknown"}`,
+      tags: ["planet", type, ...(bool(input(ctx, "gasGiantMoon")) ? ["moon"] : [])],
       fields: {
         subtype: "planet",
         planetType: type,
         diameterKm: num(size.diameterKm),
         gravity: str(size.gravity),
-        atmosphere: str(obj(ctx, "atmosphere").atmosphere),
-        temperature: str(obj(ctx, "temperature").temperature),
+        atmosphere: atmo,
+        temperature: temp,
         geosphere: str(obj(ctx, "geosphere").geosphere),
         terrain: str(obj(ctx, "terrain").terrain),
         inhabited: isInhabited,
-        population: isInhabited ? str(colonySize.population) : 0,
+        population,
         orbitalComponents: orbitalList(ctx),
-        affiliation: isInhabited ? allegiance : "unknown",
+        ...(isInhabited ? { affiliation, allegiance } : {}),
         region: str(input(ctx, "region"), "frontier"),
         colonies: isInhabited ? [colonyName] : [],
       },
@@ -170,22 +235,25 @@ export const worldCreate: Procedure = {
     const entities: ProducedEntity[] = [planet];
     const relationships: ProducedRelationship[] = [];
     if (isInhabited) {
-      const factions = factionRows.map((f, i) => ({ type: str(f.factionType, "other"), name: `${FACTION_NAMES[str(f.factionType)] ?? str(f.label)} (${name})`, index: i }));
+      const factions = factionRows.map((f) => ({ type: str(f.factionType, "other"), name: `${str(f.label, "Faction")} (${name})` }));
+      const hook = str(obj(ctx, "hook").hook);
       entities.push({
         tempId: "colony",
         type: "alien.location",
         name: colonyName,
         within: "planet",
-        summary: `${str(colonySize.colonySize)} colony; ${missions.join(", ")}`,
+        summary: `${str(colonySize.label)} colony of ${population.toLocaleString("en-US")}${missions.length > 0 ? `; ${missions.join(", ")}` : ""}`,
         tags: ["colony"],
         fields: {
           subtype: "colony",
           colonySize: str(colonySize.colonySize),
-          population: str(colonySize.population),
+          population,
           missions,
-          factions: factions.map(({ type: t, name: n }) => ({ type: t, name: n })),
+          factions,
           allegiance,
-          campaignHook: str(obj(ctx, "hook").hook) || undefined,
+          affiliation,
+          region: str(input(ctx, "region"), "frontier"),
+          ...(hook ? { campaignHook: hook } : {}),
         },
       });
       factions.forEach((f, i) => {
@@ -194,7 +262,7 @@ export const worldCreate: Procedure = {
           tempId,
           type: "alien.faction",
           name: f.name,
-          summary: str(factionRows[i]?.label),
+          summary: `${str(factionRows[i]?.label)} at ${colonyName}`,
           fields: { factionType: f.type, allegiance, minor: true, reputation: 0, locations: colonyName },
         });
         relationships.push({ type: "stationed_at", from: tempId, to: "colony" });
