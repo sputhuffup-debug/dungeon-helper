@@ -16,6 +16,7 @@ import {
   WITHIN_TAG,
 } from "../src/data";
 import { shipClasses, shipModules, shipUpgrades, shipArmaments } from "../src/data";
+import { talentItems } from "../src/reference";
 
 const ENTITY_TYPE_IDS = [
   "alien.character",
@@ -105,45 +106,77 @@ describe("NPC presets", () => {
     }
   });
 
-  it("each have a trait, goal and appearance", () => {
+  it("are the 25 typical NPCs of p. 258-259 with book talents and gear linked to item presets", () => {
+    expect(npcPresets).toHaveLength(25);
+    const talentIds = new Set(talentItems.map((t) => t.id));
+    const itemIds = new Set(itemPresets.map((i) => i.id));
     for (const p of npcPresets) {
-      const f = fields<{ trait: string; goal: string; appearance: string }>(p);
-      expect(f.trait, p.id).toBeTruthy();
-      expect(f.goal, p.id).toBeTruthy();
-      expect(f.appearance, p.id).toBeTruthy();
+      expect(p.page, p.id).toEqual([258, 259]);
+      const f = fields<{ talents: Array<{ id: string }>; gear: Array<{ name: string; weight: unknown; itemId?: string }> }>(p);
+      for (const t of f.talents) expect(talentIds.has(t.id), `${p.id} talent ${t.id}`).toBe(true);
+      for (const g of f.gear) {
+        expect(typeof g.weight, `${p.id} gear ${g.name}`).toBe("number");
+        if (g.itemId) expect(itemIds.has(g.itemId), `${p.id} gear ${g.itemId}`).toBe(true);
+      }
     }
+    const byId = Object.fromEntries(npcPresets.map((p) => [p.id, fields<{ attributes: Record<string, number>; skills: Record<string, number> }>(p)]));
+    expect(byId["alien.npc.android-covert"]!.attributes).toEqual({ strength: 7, agility: 6, wits: 3, empathy: 1 });
+    expect(byId["alien.npc.medic"]!.skills).toEqual({ stamina: 3, mobility: 2, observation: 3, manipulation: 3, medicalAid: 4 });
   });
 });
 
 describe("creature presets", () => {
-  it("have six signature-attack rows numbered 1..6, or are lore-only", () => {
+  it("have signature-attack rows covering D6 1..6 without gaps, none (eggs, Worker), or are lore-only", () => {
     for (const p of creaturePresets) {
       expect(p.entityType).toBe("alien.creature");
-      const f = fields<{ loreOnly?: boolean; attacks?: Array<{ roll: number; name: string; dice: number; damage: unknown; effect: string }> }>(p);
+      const f = fields<{ loreOnly?: boolean; attacks?: Array<{ roll: number; rollTo?: number; name: string; dice: number; damage: unknown; effect: string }> }>(p);
       if (f.loreOnly) {
         expect(f.attacks, p.id).toBeUndefined();
         continue;
       }
-      expect(f.attacks, p.id).toHaveLength(6);
-      expect(f.attacks!.map((a) => a.roll), p.id).toEqual([1, 2, 3, 4, 5, 6]);
+      if (f.attacks!.length === 0) continue;
+      let next = 1;
       for (const a of f.attacks!) {
+        expect(a.roll, `${p.id} ${a.name}`).toBe(next);
+        next = (a.rollTo ?? a.roll) + 1;
         expect(a.name, p.id).toBeTruthy();
         expect(typeof a.dice, p.id).toBe("number");
         expect(a.effect, p.id).toBeTruthy();
       }
+      expect(next, p.id).toBeGreaterThan(6);
     }
   });
 
-  it("carry the core stat line unless lore-only", () => {
+  it("carry Speed, Health and armor unless lore-only; skills are numbers where given", () => {
     for (const p of creaturePresets) {
       const f = fields<Record<string, unknown>>(p);
       expect(typeof f.species, p.id).toBe("string");
       expect(typeof f.stage, p.id).toBe("string");
       if (f.loreOnly) continue;
-      for (const key of ["speed", "health", "mobility", "observation", "armor"]) {
-        expect(typeof f[key], `${p.id}.${key}`).toBe("number");
-      }
+      for (const key of ["speed", "health"]) expect(typeof f[key], `${p.id}.${key}`).toBe("number");
+      expect(typeof f.armor === "number" || typeof f.armorNotes === "string", `${p.id}.armor`).toBe(true);
+      for (const key of ["mobility", "observation"]) if (f[key] !== undefined) expect(typeof f[key], `${p.id}.${key}`).toBe("number");
     }
+  });
+
+  it("match the book's roster and spot-checked stat lines (p. 212-231)", () => {
+    const byId = Object.fromEntries(creaturePresets.map((p) => [p.id.replace("alien.creature.", ""), fields<Record<string, unknown>>(p)]));
+    expect(Object.keys(byId)).toHaveLength(32);
+    const line = (id: string) => {
+      const f = byId[id]!;
+      return [f.speed, f.health, f.mobility, f.observation, f.armor, f.acidSplash];
+    };
+    expect(line("xx121-drone")).toEqual([2, 7, 8, 8, 2, 8]);
+    expect(line("xx121-sentry")).toEqual([2, 8, 12, 10, 2, 10]);
+    expect(line("xx121-queen")).toEqual([2, 18, 6, 12, 4, 10]);
+    expect(line("xx121-charger")).toEqual([1, 20, 4, 5, 5, 10]);
+    expect(line("neomorph-adult")).toEqual([2, 6, 9, 8, 1, undefined]);
+    expect(line("lion-worm")).toEqual([2, 8, 10, 8, 1, undefined]);
+    expect(byId["xx121-drone"]!.stage).toBe("IV");
+    expect(byId["xx121-soldier"]!.stage).toBe("V");
+    expect(byId["xx121-queen"]!.stage).toBe("VI");
+    const stage7 = creaturePresets.filter((p) => fields<{ stage: string }>(p).stage.startsWith("VII"));
+    for (const p of stage7) expect(p.unverified, p.id).toBe(true);
   });
 });
 
@@ -245,22 +278,36 @@ describe("vehicle and spaceship presets", () => {
 });
 
 describe("faction presets", () => {
-  it("have eight major and ten minor entries", () => {
-    const major = factionPresets.filter((p) => fields<{ minor: boolean }>(p).minor === false);
+  it("have the eight chapter entries (p. 162-177), two other organizations and the ten minor corporations of p. 162", () => {
+    const major = factionPresets.filter((p) => p.tags?.includes("major"));
+    const other = factionPresets.filter((p) => p.tags?.includes("organization"));
     const minor = factionPresets.filter((p) => fields<{ minor: boolean }>(p).minor === true);
-    expect(major).toHaveLength(8);
+    expect(major.map((p) => p.id.replace("alien.faction.", ""))).toEqual([
+      "three-world-empire",
+      "united-americas",
+      "upp",
+      "icsc",
+      "icc",
+      "weyland-yutani",
+      "lasalle-bionational",
+      "seegson",
+    ]);
+    expect(other.map((p) => p.id.replace("alien.faction.", ""))).toEqual(["colonial-administration", "church-of-immaculate-incubation"]);
     expect(minor).toHaveLength(10);
+    for (const p of minor) expect(p.page, p.id).toBe(162);
   });
 
-  it("major factions carry every section and a notable NPC", () => {
+  it("non-minor factions carry every section as a string, and chapter entries a featured NPC", () => {
     for (const p of factionPresets) {
       if (fields<{ minor: boolean }>(p).minor) continue;
       const f = fields<Record<string, unknown>>(p);
       for (const key of ["history", "products", "military", "leaders", "locations", "relations", "currentActivities"]) {
         expect(typeof f[key], `${p.id}.${key}`).toBe("string");
+      }
+      for (const key of ["history", "leaders", "locations", "relations", "currentActivities"]) {
         expect((f[key] as string).length, `${p.id}.${key}`).toBeGreaterThan(0);
       }
-      expect(f.notableNpc, p.id).toBeTruthy();
+      if (p.tags?.includes("major")) expect(f.notableNpc, p.id).toBeTruthy();
     }
   });
 });

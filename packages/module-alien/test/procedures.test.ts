@@ -76,12 +76,16 @@ describe("alien procedures: static shape", () => {
   it("resolves every function-chosen table id to an existing table", () => {
     const world = byId("alien.world.create");
     const terrain = world.steps.find((s) => s.id === "terrain")!.table as (ctx: ProcedureContext) => string;
-    for (const planetType of ["terrestrial", "ice", "gas-giant", undefined]) {
+    for (const planetType of ["terrestrial", "ice", "nonsense", undefined]) {
       expect(registry.get(terrain(fakeCtx({ planetType }, { temperature: { temperature: "frozen" } })))).toBeDefined();
       expect(registry.get(terrain(fakeCtx({ planetType }, { temperature: { temperature: "hot" } })))).toBeDefined();
     }
+    expect(terrain(fakeCtx({ planetType: "ice" }))).toBe("alien.world.terrain-ice");
+    expect(terrain(fakeCtx({}, { temperature: { temperature: "frozen" } }))).toBe("alien.world.terrain");
     const allegiance = world.steps.find((s) => s.id === "allegiance")!.table as (ctx: ProcedureContext) => string;
-    for (const bloc of ["arms", "icsc", "upp", undefined]) expect(registry.get(allegiance(fakeCtx({ allegianceBloc: bloc })))).toBeDefined();
+    for (const bloc of ["american-arm", "anglo-japanese-arm", "icsc", "upp", "nonsense", undefined]) expect(registry.get(allegiance(fakeCtx({ allegianceBloc: bloc })))).toBeDefined();
+    expect(allegiance(fakeCtx({ allegianceBloc: "icsc" }))).toBe("alien.world.allegiance-icsc");
+    expect(allegiance(fakeCtx({ allegianceBloc: "anglo-japanese-arm" }))).toBe("alien.world.allegiance-arms");
 
     const job = byId("alien.job.create");
     for (const frame of ["space-truckers", "colonial-marines", "frontier-colonists", "nonsense", undefined]) {
@@ -108,10 +112,14 @@ const INPUT_VARIANTS: Record<string, Array<Record<string, unknown>>> = {
     {},
     { region: "core", allegianceBloc: "icsc", inhabited: true, planetType: "ice" },
     { allegianceBloc: "upp", inhabited: false },
-    { planetType: "gas-giant" },
+    { planetType: "ice", inhabited: false, gasGiantMoon: true, allegianceBloc: "anglo-japanese-arm" },
   ],
-  "alien.system.create": [{}, { starClass: "M", brightness: "D", region: "far-reach", allegiance: "icsc" }, { brightness: "Ia" }],
-  "alien.job.create": [{}, { frame: "colonial-marines", pcCount: 6 }, { frame: "frontier-colonists", pcCount: 2 }],
+  "alien.system.create": [{}, { starClass: "M", brightness: "D", region: "far-reach", allegiance: "icsc" }, { brightness: "IV" }, { starClass: "A", brightness: "V" }, { brightness: "III" }],
+  "alien.job.create": [
+    {},
+    { frame: "colonial-marines", pcCount: 6, marineCorps: "royal-marines-commandos", bonusRolls: 2 },
+    { frame: "frontier-colonists", pcCount: 2, paymentRaises: 1, bonusRolls: 3 },
+  ],
   "alien.lifepath": [{}, { name: "Ripley" }],
   "alien.encounter.check": [
     {},
@@ -180,6 +188,13 @@ describe("alien procedures: seeded runs", () => {
 });
 
 describe("alien.world.create", () => {
+  it("follows the book's step order (p. 237-242)", () => {
+    expect(byId("alien.world.create").steps.map((s) => s.id)).toEqual([
+      "designation", "size", "atmosphere", "temperature", "geosphere", "terrain",
+      "colonySize", "population", "missionCount", "missions", "factionCount", "factions", "orbital", "moons", "allegiance", "hook",
+    ]);
+  });
+
   it("produces a planet, a colony within it and stationed factions when inhabited", () => {
     const g = run("alien.world.create", { seed: "w1", inputs: { inhabited: true, region: "outer-rim" } });
     const planet = g.produced.entities.find((e) => e.tempId === "planet")!;
@@ -193,47 +208,92 @@ describe("alien.world.create", () => {
     expect(colony.fields.subtype).toBe("colony");
     expect(colony.within).toBe("planet");
     expect(["start-up", "young", "established"]).toContain(colony.fields.colonySize);
+    expect(typeof colony.fields.population).toBe("number");
+    expect(colony.fields.population).toBe(g.results.population);
     const missions = colony.fields.missions as string[];
-    const colonySize = g.results.colonySize as { missionCount: number };
-    expect(missions.length).toBe(colonySize.missionCount);
+    expect(missions.length).toBe(g.results.missionCount);
     const factions = g.produced.entities.filter((e) => e.type === "alien.faction");
     const count = (g.results.factionCount as { count: number }).count;
     expect(factions.length).toBe(count);
     expect(g.produced.relationships.filter((r) => r.type === "stationed_at" && r.to === "colony").length).toBe(count);
     expect((colony.fields.factions as unknown[]).length).toBe(count);
     expect(g.skipped.map((s) => s.step)).not.toContain("colonySize");
+    expect(g.skipped.map((s) => s.step)).toContain("moons");
   });
 
-  it("skips colony steps when uninhabited and honours the upp bloc", () => {
+  it("rolls population and mission count from the colony size row (p. 240)", () => {
+    for (const seed of SEEDS) {
+      const g = run("alien.world.create", { seed });
+      const size = (g.results.colonySize as { colonySize: string }).colonySize;
+      const pop = g.results.population as number;
+      const missions = g.results.missionCount as number;
+      if (size === "start-up") {
+        expect(pop % 10).toBe(0);
+        expect(pop).toBeGreaterThanOrEqual(30);
+        expect(pop).toBeLessThanOrEqual(180);
+        expect(missions).toBe(1);
+      } else if (size === "young") {
+        expect(pop).toBeGreaterThanOrEqual(300);
+        expect(pop).toBeLessThanOrEqual(1800);
+        expect(missions).toBeGreaterThanOrEqual(0);
+        expect(missions).toBeLessThanOrEqual(2);
+      } else {
+        expect(pop).toBeGreaterThanOrEqual(2000);
+        expect(pop).toBeLessThanOrEqual(12000);
+        expect(missions).toBeGreaterThanOrEqual(1);
+        expect(missions).toBeLessThanOrEqual(3);
+      }
+      expect((g.results.missions as unknown[]).length).toBe(missions);
+    }
+  });
+
+  it("skips colony steps when uninhabited, rolls D3-1 moons, and honours the upp bloc", () => {
     const g = run("alien.world.create", { seed: "w2", inputs: { inhabited: false, allegianceBloc: "upp" } });
     expect(g.produced.entities.map((e) => e.tempId)).toEqual(["planet"]);
     const skipped = g.skipped.map((s) => s.step);
-    for (const s of ["colonySize", "missions", "factionCount", "factions", "allegiance", "hook"]) expect(skipped).toContain(s);
-    expect(g.results.orbital).toBeDefined();
-    expect(g.produced.entities[0]!.fields.affiliation).toBe("unknown");
+    for (const s of ["colonySize", "population", "missionCount", "missions", "factionCount", "factions", "orbital", "allegiance", "hook"]) expect(skipped).toContain(s);
+    expect(g.rolls.find((r) => r.step === "moons")!.table).toBe("alien.world.moons-uninhabited");
+    expect(g.produced.entities[0]!.fields.affiliation).toBeUndefined();
+    expect(String(g.produced.entities[0]!.name)).toMatch(/^LV-\d{3}$/);
     const inhabitedUpp = run("alien.world.create", { seed: "w3", inputs: { inhabited: true, allegianceBloc: "upp" } });
     expect(inhabitedUpp.produced.entities.find((e) => e.tempId === "colony")!.fields.allegiance).toBe("upp");
+    expect(inhabitedUpp.skipped.map((s) => s.step)).toContain("allegiance");
   });
 
-  it("decides inhabited from size and atmosphere when not overridden", () => {
-    let decided = 0;
-    for (const seed of SEEDS) {
-      const g = run("alien.world.create", { seed });
-      const size = g.results.size as { gasGiant?: boolean };
-      const atmo = (g.results.atmosphere as { atmosphere: string }).atmosphere;
-      const expected = !size.gasGiant && atmo !== "corrosive" && atmo !== "infiltrating";
-      expect(g.results.inhabited).toBe(expected);
-      if (expected) decided++;
+  it("treats a main world as colonized by default and maps the allegiance roll", () => {
+    for (const seed of SEEDS.slice(0, 10)) {
+      const g = run("alien.world.create", { seed, inputs: { allegianceBloc: "icsc" } });
+      expect(g.produced.entities[0]!.fields.inhabited).toBe(true);
+      const roll = g.rolls.find((r) => r.step === "allegiance")!;
+      expect(roll.table).toBe("alien.world.allegiance-icsc");
+      const colony = g.produced.entities.find((e) => e.tempId === "colony")!;
+      expect(["icsc", "independent"]).toContain(colony.fields.allegiance);
     }
-    expect(decided).toBeGreaterThan(0);
   });
 
-  it("uses the ice terrain table for ice worlds and no terrain for gas giants", () => {
-    const ice = run("alien.world.create", { seed: "ice", inputs: { planetType: "ice" } });
-    expect(ice.rolls.find((r) => r.step === "terrain")!.table).toBe("alien.world.terrain-ice");
-    const gas = run("alien.world.create", { seed: "gas", inputs: { planetType: "gas-giant" } });
-    expect(gas.skipped.map((s) => s.step)).toContain("terrain");
-    expect(gas.results.inhabited).toBe(false);
+  it("ice planets are frozen with -2 size and use the ice terrain table; gas giant moons get -4 size (p. 237, 243)", () => {
+    for (const seed of SEEDS.slice(0, 20)) {
+      const ice = run("alien.world.create", { seed, inputs: { planetType: "ice", inhabited: false } });
+      expect(ice.rolls.find((r) => r.step === "terrain")!.table).toBe("alien.world.terrain-ice");
+      expect((ice.results.temperature as { temperature: string }).temperature).toBe("frozen");
+      expect(ice.rolls.find((r) => r.step === "size")!.modifier).toBe(-2);
+      const moon = run("alien.world.create", { seed, inputs: { gasGiantMoon: true, inhabited: false } });
+      expect(moon.rolls.find((r) => r.step === "size")!.modifier).toBe(-4);
+      expect(moon.rolls.find((r) => r.step === "terrain")!.table).toBe("alien.world.terrain");
+    }
+  });
+
+  it("applies the printed atmosphere modifiers by diameter (p. 238)", () => {
+    const mod = (diameterKm: number) => run("alien.world.create", { seed: "atmo", pinned: { size: { diameterKm } } }).rolls.find((r) => r.step === "atmosphere")!.modifier;
+    expect(mod(2000)).toBe(-2);
+    expect(mod(4000)).toBe(-2);
+    expect(mod(7000)).toBe(-4);
+    expect(mod(10000)).toBe(0);
+  });
+
+  it("a pinned airless world is a desert world", () => {
+    const g = run("alien.world.create", { seed: "airless", pinned: { atmosphere: { atmosphere: "none" } } });
+    expect((g.results.geosphere as { geosphere: string }).geosphere).toBe("desert");
   });
 });
 
@@ -243,23 +303,42 @@ describe("alien.system.create", () => {
     const system = g.produced.entities.find((e) => e.tempId === "system")!;
     expect(system.fields.subtype).toBe("star-system");
     expect(system.fields.starClass).toBe("K");
+    expect(g.results.starType).toBe("main-sequence");
     const bodies = system.fields.bodies as Array<{ type: string; name: string; moons?: number }>;
-    const objects = g.results.objects as { gasGiants: number; terrestrials: number; icePlanets: number; asteroidBelts: number };
-    expect(bodies.length).toBe(objects.gasGiants + objects.terrestrials + objects.icePlanets + objects.asteroidBelts);
+    const n = (step: string) => (g.results[step] as { count: number }).count;
+    expect(bodies.length).toBe(n("gasGiants") + n("terrestrialPlanets") + n("icePlanets") + n("asteroidBelts"));
     for (const b of bodies.filter((x) => x.type === "gas-giant")) {
       expect(b.moons).toBeGreaterThanOrEqual(5);
       expect(b.moons).toBeLessThanOrEqual(10);
     }
     const planets = g.produced.entities.filter((e) => e.tempId.startsWith("body-"));
-    expect(planets.length).toBe(objects.terrestrials + objects.icePlanets);
+    expect(planets.length).toBe(n("terrestrialPlanets") + n("icePlanets"));
     for (const p of planets) {
       expect(p.within).toBe("system");
       expect(["terrestrial", "ice"]).toContain(p.fields.planetType);
     }
     const proc = byId("alien.system.create");
+    expect(proc.chains!.length).toBe(13);
     const chainInputs = proc.chains!.map((c) => c.inputs!(fakeCtx(g.inputs, g.results)));
     expect(chainInputs[0]!.planetType).toBe(planets[0]?.fields.planetType ?? "terrestrial");
-    expect(chainInputs.every((c) => c.region === "frontier")).toBe(true);
+    expect(chainInputs.every((c) => c.region === "frontier" && c.inhabited === false)).toBe(true);
+    expect(chainInputs.filter((c) => c.name !== undefined).length).toBe(planets.length);
+  });
+
+  it("derives the star type and applies its modifiers (p. 236, 243)", () => {
+    const cases: Array<[string, string, string, Record<string, number>]> = [
+      ["G", "III", "giant", { gasGiants: 0, terrestrialPlanets: 0, icePlanets: -1, asteroidBelts: 0 }],
+      ["G", "IV", "subgiant", { gasGiants: -1, terrestrialPlanets: 0, icePlanets: -1, asteroidBelts: -2 }],
+      ["M", "V", "red-dwarf", { gasGiants: 0, terrestrialPlanets: -3, icePlanets: 0, asteroidBelts: 0 }],
+      ["A", "V", "white-main-sequence", { gasGiants: 0, terrestrialPlanets: 0, icePlanets: -1, asteroidBelts: 0 }],
+      ["A", "D", "white-dwarf", { gasGiants: -4, terrestrialPlanets: -3, icePlanets: 0, asteroidBelts: -2 }],
+      ["K", "V", "main-sequence", { gasGiants: 0, terrestrialPlanets: 0, icePlanets: 0, asteroidBelts: 0 }],
+    ];
+    for (const [starClass, brightness, type, mods] of cases) {
+      const g = run("alien.system.create", { seed: `star-${type}`, inputs: { starClass, brightness } });
+      expect(g.results.starType, type).toBe(type);
+      for (const [step, m] of Object.entries(mods)) expect(g.rolls.find((r) => r.step === step)!.modifier, `${type} ${step}`).toBe(m);
+    }
   });
 });
 
@@ -282,6 +361,7 @@ describe("alien.job.create", () => {
       expect(typeof job.fields.destination).toBe("string");
       expect(typeof job.fields.plotTwist).toBe("string");
       expect(job.fields.status).toBe("offered");
+      expect(job.fields.bonusRewards).toEqual([]);
       if (frame === "space-truckers") expect(typeof job.fields.cargo).toBe("string");
       else expect(typeof job.fields.mission).toBe("string");
       const faction = g.produced.entities.find((e) => e.type === "alien.faction")!;
@@ -290,26 +370,55 @@ describe("alien.job.create", () => {
       expect(rel.type).toBe(frame === "frontier-colonists" ? "sponsor_of" : "employer_of");
       expect(rel.from).toBe(faction.tempId);
       expect(rel.to).toBe(job.tempId);
-      expect(g.rolls.find((r) => r.step === "employer")!.nested?.length).toBe(1);
+      if (frame === "colonial-marines") {
+        expect(g.skipped.map((s) => s.step)).toContain("employer");
+        expect(job.fields.employer).toBe("USCMC");
+      } else {
+        expect(g.rolls.find((r) => r.step === "employer")).toBeDefined();
+      }
       const chain = byId("alien.job.create").chains![0]!;
       expect(chain.procedure).toBe("alien.system.create");
       const ci = chain.inputs!(fakeCtx(g.inputs, g.results));
       expect(typeof ci.starClass).toBe("string");
-      expect(typeof ci.brightness).toBe("string");
+      expect(["III", "IV", "V", "D"]).toContain(ci.brightness);
     }
   });
 
-  it("re-rolls the colonist Wreckage destination through the nested table", () => {
+  it("negotiation: +20% payment per raise and one bonus roll per success spent (p. 244)", () => {
+    const g = run("alien.job.create", { seed: "haggle", inputs: { frame: "space-truckers", pcCount: 4, paymentRaises: 2, bonusRolls: 3 } });
+    const base = ((g.results.distance as number) + (g.results.difficulty as number)) * 4 * 1000;
+    expect(g.results.payment).toBe(Math.round(base * 1.4));
+    expect(g.rolls.filter((r) => r.step === "bonus").length).toBe(3);
+    expect(g.rolls.find((r) => r.step === "bonus")!.table).toBe("alien.jobs.truckers.bonus");
+    const job = g.produced.entities.find((e) => e.type === "alien.job")!;
+    expect((job.fields.bonusRewards as string[]).length).toBe(3);
+  });
+
+  it("names the employer from the nested sub-table when there is one", () => {
+    let nested = 0;
+    for (const seed of SEEDS) {
+      const g = run("alien.job.create", { seed, inputs: { frame: "frontier-colonists" } });
+      const e = g.results.employer as { detail?: { name: string }; name: string };
+      const job = g.produced.entities.find((x) => x.type === "alien.job")!;
+      if (e.detail) {
+        nested++;
+        expect(job.fields.employer).toBe(e.detail.name);
+      } else expect(job.fields.employer).toBe(e.name);
+    }
+    expect(nested).toBeGreaterThan(0);
+  });
+
+  it("rolls the ship type and re-rolls the location for a colonist Wreckage destination", () => {
     let seen = false;
     for (let i = 0; i < 300 && !seen; i++) {
       const g = run("alien.job.create", { seed: `wreck-${i}`, inputs: { frame: "frontier-colonists" } });
-      const d = g.results.destination as { wreckage?: boolean; near?: { destination: string } };
+      const d = g.results.destination as { wreckage?: boolean; ship?: { ship: string }; near?: { destination: string } };
       if (d.wreckage) {
         seen = true;
+        expect(d.ship?.ship).toBeTruthy();
         expect(d.near?.destination).toBeTruthy();
-        expect(d.near?.destination).not.toBe("Wreckage");
         const job = g.produced.entities.find((e) => e.type === "alien.job")!;
-        expect(job.fields.destination).toMatch(/^Wreckage near: /);
+        expect(job.fields.destination).toBe(`Wreckage (${d.ship!.ship}) at: ${d.near!.destination}`);
       }
     }
     expect(seen).toBe(true);

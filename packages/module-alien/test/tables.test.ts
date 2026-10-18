@@ -348,12 +348,26 @@ describe("alien tables: seed-specified shapes", () => {
   });
 
   it("creature attack tables carry name, dice, damage, armorPiercing and effect", () => {
-    const variants = ["facehugger", "chestburster", "drone", "soldier", "worker", "queen", "neomorph-bloodburster", "neomorph-sprinter", "neomorph-adult"];
-    for (const v of variants) {
+    // One table per book table (p. 213-231); shared tables keep the id of their first creature.
+    const rowCounts: Record<string, number> = {
+      facehugger: 4,
+      chestburster: 4,
+      drone: 6,
+      soldier: 6,
+      queen: 6,
+      "neomorph-bloodburster": 4,
+      "neomorph-adult": 6,
+      harvester: 6,
+      "lion-worm": 6,
+      "tanakan-scorpionid": 6,
+      swarm: 6,
+    };
+    for (const [v, count] of Object.entries(rowCounts)) {
       const t = registry.get(`alien.creatures.attack.${v}`);
       expect(t, v).toBeDefined();
       expect(t!.dice).toBe("1d6");
-      expect(t!.rows.length).toBe(6);
+      expect(t!.rows.length, v).toBe(count);
+      expect(t!.unverified, v).toBeUndefined();
       for (const r of t!.rows) {
         const res = r.result as Record<string, unknown>;
         expect(typeof res.name).toBe("string");
@@ -363,10 +377,13 @@ describe("alien tables: seed-specified shapes", () => {
         expect(typeof res.effect).toBe("string");
       }
     }
-    expect(dice("alien.creatures.broken-xenomorph")).toBe("1d6");
-    const swarm = registry.get("alien.creatures.facehugger-swarm")!;
-    expect(swarm.dice).toBe("1d6");
-    for (const r of swarm.rows) expect(typeof (r.result as Record<string, unknown>).swarmSize).toBe("number");
+    const headbite = registry.get("alien.creatures.attack.drone")!.rows[5]!.result as Record<string, unknown>;
+    expect([headbite.name, headbite.dice, headbite.damage, headbite.armorPiercing]).toEqual(["Headbite", 9, 2, true]);
+    expect(registry.get("alien.creatures.attack.facehugger")!.rows.map((r) => r.range)).toEqual([[1, 2], [3, 4], [5, 5], [6, 99]]);
+    const broken = registry.get("alien.creatures.broken-xenomorph")!;
+    expect(broken.dice).toBe("1d6");
+    expect(broken.page).toBe(208);
+    expect(broken.rows.map((r) => r.label)).toEqual(["Rise Again", "Wounded", "Desperate Escape", "Last Breath", "Torn Apart"]);
   });
 });
 
