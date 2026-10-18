@@ -294,6 +294,7 @@ const expedition: Procedure = {
     {
       id: "omen",
       title: "Omen",
+      reads: ["terrain"],
       optional: true,
       compute: (ctx, rng) => ({ sign: rng.int(1, 3), terrain: ctx.get<TerrainResult>("terrain")?.terrain ?? "unknown" }),
     },

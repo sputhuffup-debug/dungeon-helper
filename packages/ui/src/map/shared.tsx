@@ -106,7 +106,15 @@ export function MapStage({ viewportRef, view, width, height, imageUrl, className
       role="application"
       aria-label={ariaLabel ?? "Zone map"}
       onWheel={onWheel}
-      onPointerDown={onPointerDown}
+      onPointerDown={(e) => {
+        // Capture so a drag released outside the viewport still ends with pointerup.
+        try {
+          e.currentTarget.setPointerCapture?.(e.pointerId);
+        } catch {
+          /* capture is best-effort (unsupported in some environments) */
+        }
+        onPointerDown?.(e);
+      }}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}

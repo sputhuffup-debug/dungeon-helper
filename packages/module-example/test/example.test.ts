@@ -92,7 +92,7 @@ describe("expedition procedure", () => {
   });
 
   it("re-seeding terrain changes dependents but pinned and optional steps behave", () => {
-    expect(dependentSteps(proc, "terrain")).toEqual(["danger", "encounters"]);
+    expect(dependentSteps(proc, "terrain")).toEqual(["danger", "encounters", "omen"]);
     const g = runProcedure(proc, exampleModule, {
       seed: "quest-2",
       inputs: { days: 2, cursed: true },

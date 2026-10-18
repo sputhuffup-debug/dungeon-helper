@@ -92,6 +92,11 @@ describe("richtext", () => {
     expect(heading.getAttribute("level") as unknown).toBe(1);
   });
 
+  it("reads _underscore_ emphasis but leaves snake_case words literal", () => {
+    const doc = docFromMarkdown("A _quiet_ hum near the snake_case_vent.");
+    expect(toMarkdown(doc)).toBe("A *quiet* hum near the snake_case_vent.");
+  });
+
   it("fromMarkdown replaces existing content and the registry caches docs", () => {
     const registry = new RichTextRegistry();
     const doc = registry.open("doc-1");

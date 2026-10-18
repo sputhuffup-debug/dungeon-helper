@@ -216,7 +216,11 @@ export function plainText(doc: Y.Doc): string {
 export type ResolveName = (id: Id) => string;
 
 function escapeMd(text: string): string {
-  return text.replace(/([*_`\\[\]])/g, "\\$1");
+  // Underscores inside a word (snake_case) are literal in Markdown; only escape
+  // the ones the parser would read as emphasis.
+  return text
+    .replace(/([*`\\[\]])/g, "\\$1")
+    .replace(/(?<![A-Za-z0-9_])_(?=[^\s_])|(?<=[^\s_])_(?![A-Za-z0-9_])/g, "\\_");
 }
 
 function inlineMarkdown(inlines: Inline[], resolveName: ResolveName): string {
@@ -309,7 +313,8 @@ export function toMarkdown(doc: Y.Doc, resolveName: ResolveName = (id) => id): s
 // from Markdown
 // ---------------------------------------------------------------------------
 
-const INLINE_TOKEN = /(\[\[[^\]]+\]\]|\*\*\*|\*\*|\*|`[^`]*`|\\[*_`\\[\]]|\n)/;
+// `_` toggles italics only at a word edge, so snake_case text stays literal.
+const INLINE_TOKEN = /(\[\[[^\]]+\]\]|\*\*\*|\*\*|\*|(?<![A-Za-z0-9_])_(?=[^\s_])|(?<=[^\s_])_(?![A-Za-z0-9_])|`[^`]*`|\\[*_`\\[\]]|\n)/;
 
 function parseInline(text: string): Inline[] {
   const out: Inline[] = [];
@@ -328,7 +333,7 @@ function parseInline(text: string): Inline[] {
       bold = !bold;
       italic = !italic;
     } else if (tok === "**") bold = !bold;
-    else if (tok === "*") italic = !italic;
+    else if (tok === "*" || tok === "_") italic = !italic;
     else if (tok === "\n") out.push({ text: "\n", hardBreak: true });
     else if (tok.startsWith("[[") && tok.endsWith("]]")) {
       const inner = tok.slice(2, -2);
