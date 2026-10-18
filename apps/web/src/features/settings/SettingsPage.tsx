@@ -1,4 +1,4 @@
-/** Settings: campaign name, mode, in-world date, members, export/import, delete, module info. */
+/** Settings: campaign name, mode, in-world date, members, session checklist, export/import, delete, module info. */
 import { exportMarkdown } from "@campaign-forge/core";
 import { useNavigate } from "@tanstack/react-router";
 import { useRef, useState } from "react";
@@ -9,6 +9,7 @@ import { errorMessage } from "../../lib/format";
 import { deleteCampaign, exportCampaignBundle, exportCampaignJSON, importBundleIntoCampaign, updateMeta } from "../../state/actions";
 import { useCampaign, useList, useMeta } from "../../state/hooks";
 import { pushToast } from "../../components/ui";
+import { ChecklistSettings } from "./ChecklistSettings";
 
 export function SettingsPage() {
   const ctx = useCampaign();
@@ -98,6 +99,8 @@ export function SettingsPage() {
           ))}
         </ul>
       </Card>
+
+      <ChecklistSettings />
 
       <Card title="Export and import">
         <div className="app-stack">

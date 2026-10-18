@@ -155,6 +155,8 @@ export interface Session extends BaseRecord {
   reveals: Array<{ at: string; handout?: Id; entity?: Id; field?: string; scene?: Id }>;
   /** Answers to module end-of-session prompts. */
   wrapUp?: Record<string, unknown>;
+  /** Session checklist ticks: item id -> done. `false` is an explicit untick (see checklist.ts). */
+  checklist?: Record<string, boolean>;
 }
 
 export interface TimelineEvent extends BaseRecord {

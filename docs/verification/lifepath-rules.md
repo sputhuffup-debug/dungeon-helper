@@ -10,6 +10,7 @@ Checked against *Alien: The Roleplaying Game, Core Rules, Evolved Edition*. All 
 | `src/procedures/lifepath.ts` | 282-289, plus career gear lists and career talents (31-39, 48-50) |
 | `src/rules/*.ts` (all cards) | whole book: chapters 1-7 (10-159), 8-11 (162-280), appendices (282-309) and the index |
 | `src/templates/cinematicAdventure.ts`, `scene.ts` | 54-55, 152-158 |
+| `src/templates/sessionChecklist.ts` (Oct 2026) | 27-30, 74, 158, 214, 244 |
 | `src/styleNotes.ts` | 19, 152-155 |
 | `src/trackers.ts` | 20, 28-29, 44, 55-60, 72-74, 158, 208 |
 | `src/modes.ts`, `manifest.ts`, `calendar.ts` | 18, 24, 108, star map |
@@ -48,6 +49,15 @@ Module decisions where the book leaves the choice to the player are listed in th
 ## Templates, style notes, trackers, modes
 
 - The cinematic adventure scaffold now follows p. 157-158: player intro, situation, characters with per-act agendas, locations, three acts of mostly optional, stand-alone events (one mandatory each), PvP in act III, and an epilogue as a survivor's sign-off. The scene template's page is 157 (zones p. 54-55).
+- The session checklist template (added Oct 2026; joins the core's generic session checklist) was checked item by item. Each label and guidance line is a short paraphrase:
+  - `alien.prep.agendas` (cinematic, p. 27, 158): a new hidden agenda handout per PC at the start of each act.
+  - `alien.prep.job` (campaign, p. 244): the job generator's basics (destination, difficulty, pay) plus the frame's tables, employer included.
+  - `alien.prep.infections` (both modes, p. 214): the facehugger falls off within a shift and the Chestburster comes after another shift, so about two shifts.
+  - `alien.play.supply` (both, p. 28-29): air after every stretch and strenuous activity, ammo after firing, power after each use; each 1 on a stress die lowers the rating.
+  - `alien.play.story-points` (cinematic, p. 158): at the end of each act, 1 Story Point for advancing the agenda despite risk or sacrifice, without saying why. The suggested p. 44 only mentions spending them, so the item cites p. 158.
+  - `alien.wrap.xp` (campaign, p. 30): one XP per question answered yes; the group discusses, the GM has the final say; XP is spent between sessions.
+  - `alien.wrap.trauma` (both, p. 74): a panic result of 9 or higher means an Empathy roll after the session (attribute only, no push); the book recommends agreeing on the rule as a group first.
+  - The XP and trauma items tick themselves when the module's end-of-session prompts (which already ask the XP questions and the trauma check) are all answered.
 - `styleNotes.ts` holds the real eight principles (Use the Films … Reveal the Universe), the three themes with their six sub-themes, and new `horrorNotes` from p. 154-155.
 - Trackers:
   - Supply: kinds are now air, ammo and power only, with `max: 6` and the book's roll cadence.

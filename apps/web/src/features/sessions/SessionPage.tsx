@@ -19,6 +19,7 @@ import {
   updateSession,
   wrapUpOf,
 } from "../../state/tableActions";
+import { ChecklistSummary, SessionChecklist } from "./SessionChecklist";
 import { WrapUpWizard } from "./WrapUp";
 
 const TONE = { planned: "warning", running: "success", done: "muted" } as const;
@@ -106,6 +107,8 @@ function PlanSession({ session }: { session: Session }) {
   const set = (patch: Partial<Session>) => updateSession(ctx, session.id, patch);
   return (
     <div className="app-stack">
+      <SessionChecklist session={session} focus={session.status === "running" ? "play" : "prep"} />
+
       <Card title="Details">
         <div className="app-form__row">
           <label className="app-label">
@@ -291,6 +294,7 @@ function DoneSession({ session }: { session: Session }) {
           </p>
         )}
       </Card>
+      <ChecklistSummary session={session} />
       <Card title="Scenes run">
         {session.scenesRun.length === 0 ? (
           <p className="cf-muted">None marked run.</p>

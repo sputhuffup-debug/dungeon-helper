@@ -11,6 +11,8 @@ import { lifecycleConfig, lifecycleConfigIssues } from "./lifecycle";
 import {
   CONTRACT_VERSION,
   CORE_RELATIONSHIP_TYPES,
+  SESSION_CHECKLIST_EVENTS,
+  SESSION_CHECKLIST_RESERVED_PREFIXES,
   type EntityPreset,
   type EntityTypeDef,
   type GameModule,
@@ -24,6 +26,7 @@ import {
   type RuleCard,
   type TableRegistry,
   type Template,
+  type TemplateChecklist,
   type TemplateKind,
   type TrackerDef,
 } from "./types";
@@ -370,11 +373,35 @@ function checkReferenceList(list: ReferenceList, declaredModes: Set<PlayModeId>,
   }
 }
 
-function checkTemplate(t: Template, declaredModes: Set<PlayModeId>, c: Collector): void {
+function checkTemplate(t: Template, moduleId: string, declaredModes: Set<PlayModeId>, c: Collector): void {
   const where = `template:${t.id}`;
   checkModes(t.mode, declaredModes, where, c);
   if (t.page !== undefined && !validPage(t.page)) c.error(where, "invalid page reference");
   if (!t.scaffold || typeof t.scaffold !== "object") c.error(where, "template has no scaffold");
+  if (t.appliesTo !== undefined && t.kind !== "checklist") c.error(where, "appliesTo is only for checklist templates");
+  if (t.appliesTo !== undefined && t.appliesTo !== "session" && t.appliesTo !== "session-zero") c.error(where, `unknown appliesTo "${String(t.appliesTo)}"`);
+  if (t.kind === "checklist" && t.appliesTo === "session" && t.scaffold && typeof t.scaffold === "object") checkSessionChecklist(t, moduleId, declaredModes, c);
+}
+
+/** A session checklist template: phases, namespaced unique ids, declared modes, pages and auto-tick events. */
+function checkSessionChecklist(t: Template, moduleId: string, declaredModes: Set<PlayModeId>, c: Collector): void {
+  const where = `template:${t.id}`;
+  const items = (t.scaffold as Partial<TemplateChecklist>).items;
+  if (!Array.isArray(items) || items.length === 0) {
+    c.error(where, "session checklist has no items");
+    return;
+  }
+  checkUnique(items, (i) => i.id, (i) => `${where}:item:${i.id}`, "checklist item", c);
+  for (const item of items) {
+    const iw = `${where}:item:${item.id}`;
+    if (item.phase !== "prep" && item.phase !== "play" && item.phase !== "wrap") c.error(iw, "session checklist item needs a phase (prep, play or wrap)");
+    if (!item.text) c.error(iw, "checklist item has no text");
+    if (typeof item.id !== "string" || !item.id.startsWith(`${moduleId}.`)) c.error(iw, `session checklist item ids must start with the module id ("${moduleId}.")`);
+    else if (SESSION_CHECKLIST_RESERVED_PREFIXES.some((p) => item.id.startsWith(p))) c.error(iw, "session checklist item id clashes with the core checklist");
+    checkModes(item.mode, declaredModes, iw, c);
+    if (item.page !== undefined && !validPage(item.page)) c.error(iw, "invalid page reference");
+    if (item.autoWhen !== undefined && !SESSION_CHECKLIST_EVENTS.includes(item.autoWhen)) c.error(iw, `unknown autoWhen event "${String(item.autoWhen)}"`);
+  }
 }
 
 function majorOf(version: string): number | undefined {
@@ -437,7 +464,7 @@ export function checkModule(module: GameModule, options: CheckModuleOptions = {}
   checkUnique(module.trackers, (t) => t.id, (t) => `tracker:${t.id}`, "tracker", c);
   for (const t of module.trackers) checkTracker(t, module, declaredModes, c);
   checkUnique(module.templates, (t) => t.id, (t) => `template:${t.id}`, "template", c);
-  for (const t of module.templates) checkTemplate(t, declaredModes, c);
+  for (const t of module.templates) checkTemplate(t, manifest?.id ?? "", declaredModes, c);
 
   // Procedures.
   checkUnique(module.procedures, (p) => p.id, (p) => `procedure:${p.id}`, "procedure", c);

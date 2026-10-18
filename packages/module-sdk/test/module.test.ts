@@ -121,6 +121,55 @@ describe("checkModule", () => {
     expect(errs.some((e) => /no row covers/.test(e.message) && /61/.test(e.message))).toBe(true);
   });
 
+  it("checks session checklist templates: phases, namespaced unique ids, modes, pages, events, appliesTo", () => {
+    const m = minimalModule();
+    m.templates = [
+      {
+        id: "min.session-checklist",
+        kind: "checklist",
+        appliesTo: "session",
+        name: "Session",
+        scaffold: {
+          title: "S",
+          items: [
+            { id: "min.prep.ok", phase: "prep", text: "Fine", guidance: "Fine indeed.", page: [2, 3], mode: ["a"], autoWhen: "revealed" },
+            { id: "min.nophase", text: "No phase" },
+            { id: "min.badmode", phase: "wrap", text: "Mode", mode: ["zzz"] },
+            { id: "prep.goal", phase: "prep", text: "Not namespaced" },
+            { id: "min.dup", phase: "play", text: "One" },
+            { id: "min.dup", phase: "play", text: "Two" },
+            { id: "min.event", phase: "play", text: "Event", autoWhen: "dinner" as never },
+            { id: "min.page", phase: "play", text: "Page", page: -1 },
+          ],
+        },
+      },
+      { id: "min.empty", kind: "checklist", appliesTo: "session", name: "Empty", scaffold: { title: "E", items: [] } },
+      { id: "min.adventure", kind: "adventure", appliesTo: "session", name: "A", scaffold: { title: "A", acts: [] } },
+    ];
+    const errors = checkModule(m).issues.filter((i) => i.severity === "error");
+    const where = (suffix: string) => errors.filter((e) => e.where === `template:min.session-checklist:item:${suffix}`).map((e) => e.message);
+    expect(where("min.prep.ok")).toEqual([]);
+    expect(where("min.nophase")).toEqual([expect.stringMatching(/phase/)]);
+    expect(where("min.badmode")).toEqual([expect.stringMatching(/undeclared mode/)]);
+    expect(where("prep.goal")).toEqual([expect.stringMatching(/module id/)]);
+    expect(where("min.dup")).toEqual([expect.stringMatching(/duplicate/)]);
+    expect(where("min.event")).toEqual([expect.stringMatching(/autoWhen/)]);
+    expect(where("min.page")).toEqual([expect.stringMatching(/page/)]);
+    expect(errors.find((e) => e.where === "template:min.empty")?.message).toMatch(/no items/);
+    expect(errors.find((e) => e.where === "template:min.adventure")?.message).toMatch(/appliesTo/);
+
+    // a session-zero checklist needs no phases or namespacing
+    m.templates = [{ id: "min.zero", kind: "checklist", name: "Zero", scaffold: { title: "Z", items: [{ id: "q", text: "Q?" }] } }];
+    expect(checkModule(m).ok).toBe(true);
+  });
+
+  it("rejects a module whose id would clash with the core checklist ids", () => {
+    const m = minimalModule();
+    m.manifest.id = "prep";
+    m.templates = [{ id: "prep.c", kind: "checklist", appliesTo: "session", name: "C", scaffold: { title: "C", items: [{ id: "prep.goal", phase: "prep", text: "Clash" }] } }];
+    expect(checkModule(m).issues.some((i) => i.severity === "error" && /clashes with the core/.test(i.message))).toBe(true);
+  });
+
   it("catches a missing rule page", () => {
     const m = minimalModule();
     (m.rules[0] as { page?: unknown }).page = undefined;
