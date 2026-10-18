@@ -1,8 +1,9 @@
 import { Button } from "../primitives/Button";
 import { Pips } from "../primitives/Pips";
+import { getPath } from "@campaign-forge/module-sdk";
 import { asNumber, isRecord } from "../sheet/paths";
 import { TrackerFrame } from "./TrackerFrame";
-import { stateRecord, type TrackerProps } from "./types";
+import { resolveBindPath, stateRecord, type TrackerProps } from "./types";
 
 export function storyPoints(state: unknown): Record<string, number> {
   const raw = stateRecord(state).points;
@@ -12,12 +13,19 @@ export function storyPoints(state: unknown): Record<string, number> {
 }
 
 /** Per character story point counter 0..cap with award and spend. */
-export function StoryPointsTracker({ def, state, onChange, entities = [], onLog, readonly, className }: TrackerProps) {
-  const cap = typeof def.config?.cap === "number" ? def.config.cap : 3;
-  const points = storyPoints(state);
+export function StoryPointsTracker({ def, state, onChange, entities = [], onLog, onEffects, readonly, className }: TrackerProps) {
+  const cfg = def.config ?? {};
+  const cap = typeof cfg.cap === "number" ? cfg.cap : typeof cfg.max === "number" ? cfg.max : 3;
+  const stored = storyPoints(state);
+  // With a bound entity field and an effects handler, the character's own field is the source of truth.
+  const bind = onEffects ? def.binds?.[0] : undefined;
+  const points: Record<string, number> = { ...stored };
+  if (bind) for (const e of entities) points[e.id] = asNumber(getPath(e.fields, resolveBindPath(bind, e)), 0);
   const set = (entityId: string, n: number) => {
     const v = Math.max(0, Math.min(cap, n));
-    onChange({ ...stateRecord(state), points: { ...points, [entityId]: v } });
+    const entity = entities.find((e) => e.id === entityId);
+    if (bind && entity && onEffects) onEffects([{ kind: "setField", entity: entityId, path: resolveBindPath(bind, entity), value: v }]);
+    else onChange({ ...stateRecord(state), points: { ...stored, [entityId]: v } });
     const name = entities.find((e) => e.id === entityId)?.name ?? entityId;
     onLog?.(`${name}: ${v} story point${v === 1 ? "" : "s"}`);
   };

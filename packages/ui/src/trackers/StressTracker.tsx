@@ -33,6 +33,9 @@ export function StressTracker({ def, state, onChange, entities = [], onEffects, 
   const responseOp = typeof cfg.stressResponseOperation === "string" ? cfg.stressResponseOperation : "stressResponse";
   const panicOp = typeof cfg.panicOperation === "string" ? cfg.panicOperation : "panicRoll";
   const panicThreshold = typeof cfg.panicThreshold === "number" ? cfg.panicThreshold : 9;
+  /** Optional field that, when truthy on a character, exempts it from stress and panic rolls. */
+  const exemptField = typeof cfg.exemptField === "string" ? cfg.exemptField : undefined;
+  const exemptLabel = typeof cfg.exemptLabel === "string" ? cfg.exemptLabel : "Exempt";
   const log = panicLog(state);
   const anyPanic = log.some((e) => e.total >= panicThreshold);
 
@@ -64,6 +67,7 @@ export function StressTracker({ def, state, onChange, entities = [], onEffects, 
         const path = resolveBindPath(bind, e);
         const stress = asNumber(getPath(e.fields, path), 0);
         const resolve = e.computed?.[resolveKey];
+        const exempt = exemptField !== undefined && Boolean(getPath(e.fields, exemptField));
         return (
           <div key={e.id} className={cx("cf-tracker__row", stress >= max && "cf-tracker__row--danger", stress >= warnAt && stress < max && "cf-tracker__row--warn")} data-entity={e.id}>
             <span className="cf-tracker__name">{e.name}</span>
@@ -83,7 +87,8 @@ export function StressTracker({ def, state, onChange, entities = [], onEffects, 
                 Resolve {String(resolve)}
               </Badge>
             )}
-            {!readonly && onRollOperation && (
+            {exempt && <Badge title="Does not roll for stress or panic">{exemptLabel}</Badge>}
+            {!readonly && onRollOperation && !exempt && (
               <span className="cf-toolbar__group">
                 <Button size="sm" onClick={() => onRollOperation(responseOp, e.id)}>
                   Stress response

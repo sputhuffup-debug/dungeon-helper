@@ -22,6 +22,13 @@ export const trackers: TrackerDef[] = [
     config: {
       min: 0,
       operations: { stressResponse: "stressResponse", panic: "panicRoll", mentalTrauma: "mentalTrauma" },
+      // Keys read by the ui StressTracker.
+      stressResponseOperation: "stressResponse",
+      panicOperation: "panicRoll",
+      panicThreshold: 9,
+      // Androids never roll for stress or panic (p. 25).
+      exemptField: "android",
+      exemptLabel: "Android",
       /** Every panic result is logged as { entity, total, label } so the session-end hook can find totals >= 9. */
       log: "panicLog",
       traumaThreshold: 9,
@@ -36,7 +43,7 @@ export const trackers: TrackerDef[] = [
     page: [27, 44],
     binds: ["alien.character.storyPoints"],
     rules: ["alien.rule.story-points", "alien.rule.story-point-award"],
-    config: { min: 0, max: 3, awardPerAct: 1, operation: "storyPoint" },
+    config: { min: 0, max: 3, cap: 3, awardPerAct: 1, operation: "storyPoint" },
   },
   {
     id: CLOCK_TRACKER,
@@ -47,9 +54,10 @@ export const trackers: TrackerDef[] = [
     rules: ["alien.rule.time-units"],
     config: {
       units: [
-        { id: "round", name: "Round", seconds: [5, 10] },
-        { id: "stretch", name: "Stretch", minutes: [5, 10] },
-        { id: "shift", name: "Shift", hours: [5, 10] },
+        // `duration` and `minutes` (the midpoint, used for elapsed time) are read by the ui ClockTracker.
+        { id: "round", name: "Round", seconds: [5, 10], duration: "5–10 seconds", minutes: 0.125 },
+        { id: "stretch", name: "Stretch", minutes: 7.5, range: [5, 10], duration: "5–10 minutes" },
+        { id: "shift", name: "Shift", hours: [5, 10], duration: "5–10 hours", minutes: 450 },
       ],
       calendar: "alien.gregorian",
     },
@@ -85,7 +93,8 @@ export const trackers: TrackerDef[] = [
     scope: "encounter",
     page: [59, 208],
     rules: ["alien.rule.initiative", "alien.rule.creature-speed", "alien.rule.actions"],
-    config: { cards: { min: 1, max: 10 }, creatureDrawsPerSpeed: true, speedPath: "fields.speed", allowSwap: true, actionsPerTurn: { slow: 1, fast: 1 } },
+    // `cards` is the deck size and `drawsField` the field giving draws per participant (creature Speed), as the ui InitiativeTracker reads them.
+    config: { cards: 10, drawsField: "speed", creatureDrawsPerSpeed: true, speedPath: "fields.speed", allowSwap: true, actionsPerTurn: { slow: 1, fast: 1 } },
   },
   {
     id: STEALTH_TRACKER,

@@ -19,7 +19,15 @@ const characterInput = {
   stress: { type: "integer", minimum: 0, default: 0 },
   resolve: { type: "integer", minimum: 0, default: 0, description: "Computed Resolve." },
   extraModifier: { type: "integer", default: 0 },
+  android: { type: "boolean", default: false, description: "Androids never roll for stress or panic (p. 25)." },
 };
+
+/** Androids are immune to stress and panic (p. 25): no roll, no effects beyond a log line. */
+function androidExempt(name: string, input: Record<string, unknown>): DiceOperationResult | undefined {
+  if (input.android !== true) return undefined;
+  const label = "No effect: androids do not suffer stress or panic";
+  return { rolls: [], result: { exempt: true, label }, label, effects: [{ kind: "log", text: `${name} (p. 25): ${label}.` }] };
+}
 
 /** D6 + stress − Resolve; same formula for stress response (p. 44) and panic (p. 72). */
 function stressLookup(
@@ -51,6 +59,8 @@ export const stressResponse: DiceOperation = {
   page: 44,
   input: { type: "object", properties: characterInput },
   run(input, rng, tables): DiceOperationResult {
+    const exempt = androidExempt("Stress response", input);
+    if (exempt) return exempt;
     const { record, row } = stressLookup(tables, rng, input, STRESS_RESPONSE_TABLE, "stressResponse");
     const label = record.rowLabel ?? `Stress response ${record.total}`;
     const entity = str(input.entity);
@@ -72,6 +82,8 @@ export const panicRoll: DiceOperation = {
   page: [72, 73],
   input: { type: "object", properties: { ...characterInput, trigger: { type: "string" } } },
   run(input, rng, tables): DiceOperationResult {
+    const exempt = androidExempt("Panic roll", input);
+    if (exempt) return exempt;
     const { record, row } = stressLookup(tables, rng, input, PANIC_TABLE, "panicRoll");
     const total = record.total;
     const traumaCheck = total >= 9;

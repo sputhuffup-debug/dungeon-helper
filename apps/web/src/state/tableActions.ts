@@ -416,8 +416,9 @@ function recordPanic(ctx: Ctx, sessionId: Id, operationId: string, entityId: Id,
     const ops = isRecord(cfg.operations) ? cfg.operations : {};
     const panicOp = str(cfg.panicOperation) ?? str(ops.panic) ?? "panicRoll";
     if (panicOp !== operationId) continue;
+    if (typeof result.total !== "number") continue; // no roll was made (e.g. an exempt android)
     const state = getTrackerState(ctx.store, sessionId).state[def.id];
-    updateTrackerState(ctx.store, sessionId, def.id, appendPanic(state, { entity: entityId, total: result.total as number, label: result.label }));
+    updateTrackerState(ctx.store, sessionId, def.id, appendPanic(state, { entity: entityId, total: result.total, label: result.label }));
   }
 }
 

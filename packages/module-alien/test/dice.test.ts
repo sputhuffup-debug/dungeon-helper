@@ -177,3 +177,19 @@ describe("operations", () => {
     }
   });
 });
+
+describe("android exemption (p. 25)", () => {
+  const registry = createTableRegistry(tables);
+  for (const op of ["panicRoll", "stressResponse"] as const) {
+    it(`${op} makes no roll and adds no condition for an android`, () => {
+      const res = diceSystem.operations![op]!.run({ entity: "e1", stress: 5, resolve: 1, android: true }, createRng("a"), registry);
+      expect(res.total).toBeUndefined();
+      expect(res.rolls).toHaveLength(0);
+      expect(res.effects?.every((e: Effect) => e.kind === "log")).toBe(true);
+    });
+  }
+  it("still rolls for a human", () => {
+    const res = diceSystem.operations!.panicRoll!.run({ entity: "e1", stress: 5, resolve: 1 }, createRng("a"), registry);
+    expect(typeof res.total).toBe("number");
+  });
+});

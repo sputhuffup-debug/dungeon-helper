@@ -161,3 +161,37 @@ describe("tracker registry", () => {
     expect(screen.getByText("custom Thing")).toBeInTheDocument();
   });
 });
+
+describe("story points tracker", () => {
+  const def: TrackerDef = { id: "sp", name: "Story points", kind: "story-points", scope: "character", binds: ["x.hero.storyPoints"], config: { max: 3 } };
+  it("reads and writes the bound entity field through effects", () => {
+    const onEffects = vi.fn();
+    const onChange = vi.fn();
+    render(
+      <TrackerHost def={def} state={{}} onChange={onChange} onEffects={onEffects} entities={[{ id: "h1", name: "Ripley", type: "x.hero", fields: { storyPoints: 2 } }]} />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Award Ripley story point" }));
+    expect(onEffects).toHaveBeenCalledWith([{ kind: "setField", entity: "h1", path: "storyPoints", value: 3 }]);
+    expect(onChange).not.toHaveBeenCalled();
+  });
+});
+
+describe("stress tracker exemption", () => {
+  it("hides roll buttons for characters flagged by exemptField", () => {
+    const def: TrackerDef = { id: "st", name: "Stress", kind: "stress", scope: "character", binds: ["stress"], config: { exemptField: "synthetic", exemptLabel: "Synthetic" } };
+    render(
+      <TrackerHost
+        def={def}
+        state={{}}
+        onChange={() => {}}
+        onRollOperation={() => {}}
+        entities={[
+          { id: "a", name: "Ash", fields: { stress: 0, synthetic: true } },
+          { id: "b", name: "Ripley", fields: { stress: 0 } },
+        ]}
+      />,
+    );
+    expect(screen.getAllByRole("button", { name: "Panic roll" })).toHaveLength(1);
+    expect(screen.getByText("Synthetic")).toBeInTheDocument();
+  });
+});
