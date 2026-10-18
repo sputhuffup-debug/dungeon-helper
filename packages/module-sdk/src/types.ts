@@ -533,9 +533,27 @@ export interface TemplateAdventure {
   epilogue?: string;
 }
 
+/** Phases of the session checklist: before, at and after the table. */
+export type SessionChecklistPhase = "prep" | "play" | "wrap";
+
+export interface TemplateChecklistItem {
+  id: string;
+  text: string;
+  page?: PageRef;
+  writesTo?: string;
+  kind?: "text" | "choice" | "entity" | "boolean";
+  options?: string[];
+  /** Session checklists (`appliesTo: "session"`): the phase the item belongs to. Required there. */
+  phase?: SessionChecklistPhase;
+  /** Session checklists: one or two sentences shown when the item is expanded. */
+  guidance?: string;
+  /** Play modes the item applies to; the template's modes when absent. */
+  mode?: PlayModeId[];
+}
+
 export interface TemplateChecklist {
   title: string;
-  items: Array<{ id: string; text: string; page?: PageRef; writesTo?: string; kind?: "text" | "choice" | "entity" | "boolean"; options?: string[] }>;
+  items: TemplateChecklistItem[];
 }
 
 export interface Template {
@@ -545,6 +563,12 @@ export interface Template {
   description?: string;
   mode?: PlayModeId[];
   page?: PageRef;
+  /**
+   * For `checklist` templates: what the checklist is for. `session` items are
+   * added to the generic session checklist every session (each item needs a
+   * `phase`); `session-zero` (or absent) is a one-off campaign checklist.
+   */
+  appliesTo?: "session" | "session-zero";
   scaffold: TemplateAdventure | TemplateAct | TemplateScene | TemplateChecklist | Record<string, unknown>;
 }
 

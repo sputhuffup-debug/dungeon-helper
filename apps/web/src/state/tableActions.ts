@@ -16,6 +16,7 @@ import {
   updateCampaignTrackerState,
   applyImportedDocs,
   archiveTrackerState,
+  autoTickChecklist,
   bodyOf,
   campaignDbName,
   getPath,
@@ -183,6 +184,51 @@ export function tableStateOf(state: Record<string, unknown> | undefined): TableS
 }
 
 // ---------------------------------------------------------------------------
+// session checklist auto-ticks
+// ---------------------------------------------------------------------------
+
+/**
+ * Checklist items the app ticks itself when the related action happens.
+ * Auto-ticks only ever set an item to done, and never one the GM unticked
+ * (see `autoTickChecklist` in core); the GM can always untick.
+ */
+export const AUTO_TICK = {
+  /** A scene is planned for the session. */
+  scenes: "prep.scenes",
+  /** The session log has text. */
+  notes: "play.notes",
+  /** Something is revealed in the session. */
+  reveals: "play.reveals",
+  /** The module's end-of-session prompts are all answered, or there are none. */
+  rewards: "wrap.rewards",
+  /** The session summary is saved. */
+  summary: "wrap.summary",
+  /** Loose ends are carried into the next session. */
+  looseEnds: "wrap.loose-ends",
+  /** Timeline entries are confirmed. */
+  timeline: "wrap.timeline",
+  /** The next session is planned. */
+  schedule: "wrap.schedule",
+} as const;
+
+function tick(ctx: Ctx, sessionId: Id, ...items: string[]): void {
+  if (items.length) autoTickChecklist(ctx.store, sessionId, items);
+}
+
+/** Tick "Note names and promises" when the session log has text. */
+export async function tickLogNotes(ctx: DocCtx, sessionId: Id): Promise<void> {
+  const text = await sessionLogText(ctx, sessionId);
+  if (text.trim() && ctx.store.has("sessions", sessionId)) tick(ctx, sessionId, AUTO_TICK.notes);
+}
+
+/** Whether every end-of-session prompt (and follow-up) has an answer; true when there are none. */
+export function sessionPromptsAnswered(ctx: Ctx, sessionId: Id, prompts: Prompt[] = sessionEndPrompts(ctx, sessionId)): boolean {
+  const wrapUp = wrapUpOf(ctx.store.get("sessions", sessionId));
+  const answers = wrapUp.answers ?? {};
+  return [...prompts, ...(wrapUp.followUps ?? [])].every((p) => !!answers[p.id]);
+}
+
+// ---------------------------------------------------------------------------
 // sessions
 // ---------------------------------------------------------------------------
 
@@ -213,6 +259,7 @@ export function planNextSession(ctx: Ctx, input: { title?: string; date?: string
   const nextPlan = input.nextPlan ?? [...(wrapUpOf(prev).looseEnds ?? [])];
   return store.transact(() => {
     const s = store.createSession({ number, date, status: "planned", attendees: store.meta().members.map((m) => m.id), ...(input.title ? { title: input.title } : {}) });
+    if (latest && latest.status !== "planned") tick(ctx, latest.id, AUTO_TICK.schedule);
     return store.update("sessions", s.id, { nextPlan });
   });
 }
@@ -222,7 +269,12 @@ export function updateSession(ctx: Ctx, sessionId: Id, patch: Partial<PlannedSes
 }
 
 export function setPlannedScenes(ctx: Ctx, sessionId: Id, sceneIds: Id[]): Session {
-  return updateSession(ctx, sessionId, { plannedScenes: [...new Set(sceneIds)] });
+  return ctx.store.transact(() => {
+    const ids = [...new Set(sceneIds)];
+    updateSession(ctx, sessionId, { plannedScenes: ids });
+    if (ids.length > 0) tick(ctx, sessionId, AUTO_TICK.scenes);
+    return ctx.store.get("sessions", sessionId)!;
+  });
 }
 
 /** Mark a session running and open its table state on its first scene. */
@@ -686,6 +738,7 @@ export function revealHandout(ctx: Ctx, sessionId: Id, handoutId: Id, sceneId?: 
   store.transact(() => {
     reveal(store, { kind: "handout", id: handoutId }, sessionId);
     tagLastReveal(store, sessionId, sceneId);
+    tick(ctx, sessionId, AUTO_TICK.reveals);
     const h = store.get("handouts", handoutId);
     appendTrackerLog(store, sessionId, { tracker: REVEAL_LOG, text: `Revealed handout: ${h?.title ?? handoutId}`, data: { handout: handoutId, scene: sceneId } });
   });
@@ -697,6 +750,7 @@ export function revealEntityAtTable(ctx: Ctx, sessionId: Id, entityId: Id, scene
   store.transact(() => {
     reveal(store, { kind: "entity", id: entityId }, sessionId);
     tagLastReveal(store, sessionId, sceneId);
+    tick(ctx, sessionId, AUTO_TICK.reveals);
     const e = store.get("entities", entityId);
     appendTrackerLog(store, sessionId, { tracker: REVEAL_LOG, text: `Revealed: ${e?.name ?? entityId}`, entity: entityId, data: { entity: entityId, scene: sceneId } });
   });
@@ -721,6 +775,7 @@ export async function appendLogLine(ctx: DocCtx, sessionId: Id, text: string, at
   run.insert(0, `[${clockTime(at)}] ${text.trim()}`);
   paragraph.insert(0, [run]);
   doc.transact(() => bodyOf(doc).push([paragraph]));
+  tick(ctx, sessionId, AUTO_TICK.notes);
 }
 
 /** Plain text of the session log. */
@@ -794,6 +849,7 @@ export function answerPrompt(ctx: Ctx, sessionId: Id, prompt: Prompt, answer: Pr
         const followUps = [...(wrapUp.followUps ?? []), ...prompts.filter((p) => !known.has(p.id))];
         ctx.store.update("sessions", sessionId, { wrapUp: { ...wrapUp, followUps } as Record<string, unknown> });
       }
+      if (sessionPromptsAnswered(ctx, sessionId)) tick(ctx, sessionId, AUTO_TICK.rewards);
     }
     return { prompts, ...(roll ? { roll } : {}) };
   });
@@ -856,6 +912,8 @@ export function finishSession(ctx: Ctx, sessionId: Id, input: FinishSessionInput
   return store.transact(() => {
     const session = store.get("sessions", sessionId);
     if (!session) throw new Error(`sessions/${sessionId} not found`);
+    // read before the tracker state is archived: the prompts depend on it
+    const promptsDone = sessionPromptsAnswered(ctx, sessionId);
     const date = store.meta().currentDate ?? "";
     const timeline = (input.timeline ?? [])
       .filter((t) => t.include && t.text.trim())
@@ -879,8 +937,19 @@ export function finishSession(ctx: Ctx, sessionId: Id, input: FinishSessionInput
     appendTrackerLog(store, sessionId, { tracker: TABLE_LOG, text: `${sessionLabel(updated)} ended` });
     archiveTrackerState(store, sessionId);
     if (!next) next = planNextSession(ctx, { nextPlan: looseEnds });
-    const done = store.update("sessions", sessionId, { wrapUp: { ...wrapUp, nextSession: next.id } as Record<string, unknown> });
-    return { session: done, timeline, next };
+    store.update("sessions", sessionId, { wrapUp: { ...wrapUp, nextSession: next.id } as Record<string, unknown> });
+    tick(
+      ctx,
+      sessionId,
+      ...[
+        promptsDone && AUTO_TICK.rewards,
+        input.summary.trim() && AUTO_TICK.summary,
+        looseEnds.length > 0 && AUTO_TICK.looseEnds,
+        timeline.length > 0 && AUTO_TICK.timeline,
+        AUTO_TICK.schedule,
+      ].filter((x): x is string => typeof x === "string"),
+    );
+    return { session: store.get("sessions", sessionId)!, timeline, next };
   });
 }
 

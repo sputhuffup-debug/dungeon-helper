@@ -20,6 +20,7 @@ import {
   recordEdit,
   registerCampaign,
   reveal,
+  autoTickChecklist,
   setPath,
   unregisterCampaign,
   type Asset,
@@ -41,6 +42,7 @@ import { downloadFile, slug } from "../lib/download";
 import { imageDimensions } from "../lib/image";
 import { loadModuleById } from "../modules/registry";
 import type { CampaignContextValue } from "./CampaignProvider";
+import { AUTO_TICK } from "./tableActions";
 
 type Ctx = Pick<CampaignContextValue, "store" | "module"> & Partial<Pick<CampaignContextValue, "registry" | "assets" | "refIndex" | "search">>;
 
@@ -281,7 +283,10 @@ export function setFieldVisibility(ctx: Ctx, id: Id, path: string, visibility: V
 
 /** Flip an entity (or one field) to `revealed` in a session. */
 export function revealEntity(ctx: Ctx, entityId: Id, sessionId: Id, field?: string): void {
-  reveal(ctx.store, { kind: "entity", id: entityId, field }, sessionId);
+  ctx.store.transact(() => {
+    reveal(ctx.store, { kind: "entity", id: entityId, field }, sessionId);
+    autoTickChecklist(ctx.store, sessionId, [AUTO_TICK.reveals]);
+  });
 }
 
 // ---------------------------------------------------------------------------

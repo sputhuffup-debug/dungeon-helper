@@ -24,6 +24,7 @@ import {
   type RuleCard,
   type TableRegistry,
   type Template,
+  type TemplateChecklist,
   type TemplateKind,
   type TrackerDef,
 } from "./types";
@@ -375,6 +376,21 @@ function checkTemplate(t: Template, declaredModes: Set<PlayModeId>, c: Collector
   checkModes(t.mode, declaredModes, where, c);
   if (t.page !== undefined && !validPage(t.page)) c.error(where, "invalid page reference");
   if (!t.scaffold || typeof t.scaffold !== "object") c.error(where, "template has no scaffold");
+  if (t.appliesTo !== undefined && t.kind !== "checklist") c.error(where, "appliesTo is only for checklist templates");
+  if (t.kind === "checklist" && t.appliesTo === "session" && t.scaffold && typeof t.scaffold === "object") {
+    const items = (t.scaffold as Partial<TemplateChecklist>).items;
+    if (!Array.isArray(items)) c.error(where, "session checklist has no items");
+    else {
+      checkUnique(items, (i) => i.id, (i) => `${where}:item:${i.id}`, "checklist item", c);
+      for (const item of items) {
+        const iw = `${where}:item:${item.id}`;
+        if (item.phase !== "prep" && item.phase !== "play" && item.phase !== "wrap") c.error(iw, "session checklist item needs a phase (prep, play or wrap)");
+        if (!item.text) c.error(iw, "checklist item has no text");
+        checkModes(item.mode, declaredModes, iw, c);
+        if (item.page !== undefined && !validPage(item.page)) c.error(iw, "invalid page reference");
+      }
+    }
+  }
 }
 
 function majorOf(version: string): number | undefined {

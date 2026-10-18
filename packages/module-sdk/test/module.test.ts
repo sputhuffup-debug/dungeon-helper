@@ -121,6 +121,29 @@ describe("checkModule", () => {
     expect(errs.some((e) => /no row covers/.test(e.message) && /61/.test(e.message))).toBe(true);
   });
 
+  it("checks session checklist templates: phases, item modes and appliesTo on other kinds", () => {
+    const m = minimalModule();
+    m.templates = [
+      {
+        id: "min.session-checklist",
+        kind: "checklist",
+        appliesTo: "session",
+        name: "Session",
+        scaffold: { title: "S", items: [{ id: "ok", phase: "prep", text: "Fine" }, { id: "nophase", text: "No phase" }, { id: "badmode", phase: "wrap", text: "Mode", mode: ["zzz"] }] },
+      },
+      { id: "min.adventure", kind: "adventure", appliesTo: "session", name: "A", scaffold: { title: "A", acts: [] } },
+    ];
+    const errors = checkModule(m).issues.filter((i) => i.severity === "error");
+    expect(errors.map((e) => e.where).sort()).toEqual([
+      "template:min.adventure",
+      "template:min.session-checklist:item:badmode",
+      "template:min.session-checklist:item:nophase",
+    ]);
+    // a session-zero checklist needs no phases
+    m.templates = [{ id: "min.zero", kind: "checklist", name: "Zero", scaffold: { title: "Z", items: [{ id: "q", text: "Q?" }] } }];
+    expect(checkModule(m).ok).toBe(true);
+  });
+
   it("catches a missing rule page", () => {
     const m = minimalModule();
     (m.rules[0] as { page?: unknown }).page = undefined;

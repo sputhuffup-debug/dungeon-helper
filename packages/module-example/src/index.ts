@@ -469,6 +469,22 @@ export const exampleModule: GameModule = {
       mode: ["hardcore"],
       scaffold: { title: "Hardcore session", items: [{ id: "doom", text: "Tally Doom", kind: "number" as const }] },
     },
+    {
+      // Added to the generic session checklist every session.
+      id: "example.template.session-checklist",
+      kind: "checklist",
+      appliesTo: "session",
+      name: "Example Quest session checklist",
+      page: 21,
+      scaffold: {
+        title: "Example Quest",
+        items: [
+          { id: "omens", phase: "prep", text: "Pick tonight's omen", guidance: "Choose one sign the heroes might notice." },
+          { id: "rest", phase: "wrap", text: "Ask whether the heroes rested", guidance: "Resting heals one wound.", page: 21 },
+          { id: "doom", phase: "wrap", text: "Tally Doom", mode: ["hardcore"] },
+        ],
+      },
+    },
   ],
   rules,
   trackers: [

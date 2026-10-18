@@ -28,6 +28,7 @@ describe("exampleModule conformance", () => {
     expect(loaded.forMode("hardcore").rules).toHaveLength(3);
     expect(loaded.templatesFor("session", "standard")).toHaveLength(0);
     expect(loaded.templatesFor("session", "hardcore")).toHaveLength(1);
+    expect(loaded.templatesFor("checklist", "standard").map((t) => t.appliesTo)).toEqual(["session"]);
     expect(loaded.relationshipTypes.some((r) => r.id === "example.guards")).toBe(true);
     expect(loaded.referenceItem("example.origins", "coast")?.name).toBe("Coast folk");
   });
