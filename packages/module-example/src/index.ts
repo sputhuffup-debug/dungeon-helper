@@ -479,9 +479,9 @@ export const exampleModule: GameModule = {
       scaffold: {
         title: "Example Quest",
         items: [
-          { id: "omens", phase: "prep", text: "Pick tonight's omen", guidance: "Choose one sign the heroes might notice." },
-          { id: "rest", phase: "wrap", text: "Ask whether the heroes rested", guidance: "Resting heals one wound.", page: 21 },
-          { id: "doom", phase: "wrap", text: "Tally Doom", mode: ["hardcore"] },
+          { id: "example.prep.omens", phase: "prep", text: "Pick tonight's omen", guidance: "Choose one sign the heroes might notice." },
+          { id: "example.wrap.rest", phase: "wrap", text: "Ask whether the heroes rested", guidance: "Resting heals one wound.", page: 21, autoWhen: "prompts-answered" },
+          { id: "example.wrap.doom", phase: "wrap", text: "Tally Doom", mode: ["hardcore"] },
         ],
       },
     },

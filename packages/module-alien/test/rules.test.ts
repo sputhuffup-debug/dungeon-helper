@@ -1,4 +1,6 @@
+import { checkModule, filterByMode, type TemplateChecklist } from "@campaign-forge/module-sdk";
 import { describe, expect, it } from "vitest";
+import { alienModule } from "../src";
 import { rules } from "../src/rules";
 import { templates } from "../src/templates";
 import { trackers } from "../src/trackers";
@@ -65,8 +67,8 @@ describe("rule cards", () => {
 });
 
 describe("templates", () => {
-  it("declares six templates, each with a declared mode and a page", () => {
-    expect(templates).toHaveLength(6);
+  it("declares seven templates, each with a declared mode and a page", () => {
+    expect(templates).toHaveLength(7);
     for (const t of templates) {
       expect(t.mode, t.id).toBeDefined();
       expect(t.mode!.length).toBeGreaterThan(0);
@@ -74,7 +76,7 @@ describe("templates", () => {
       expect(t.page).toBeDefined();
       expect(typeof t.scaffold).toBe("object");
     }
-    expect(templates.map((t) => t.kind).sort()).toEqual(["adventure", "adventure", "campaign", "checklist", "scene", "session"]);
+    expect(templates.map((t) => t.kind).sort()).toEqual(["adventure", "adventure", "campaign", "checklist", "checklist", "scene", "session"]);
   });
   it("cinematic adventure has three acts with agenda handouts", () => {
     const t = templates.find((x) => x.id === "alien.template.cinematic-adventure")!;
@@ -163,5 +165,35 @@ describe("reference lists", () => {
     const expected: number[] = [];
     for (let t = 1; t <= 6; t++) for (let u = 1; u <= 6; u++) expected.push(t * 10 + u);
     expect(rolls).toEqual(expected);
+  });
+});
+
+describe("session checklist", () => {
+  const template = templates.find((t) => t.id === "alien.template.session-checklist")!;
+  const items = (template.scaffold as TemplateChecklist).items;
+  const idsFor = (mode: string) => filterByMode(items, mode).map((i) => i.id);
+
+  it("adds to the generic session checklist with namespaced, paged, phased items", () => {
+    expect(template.kind).toBe("checklist");
+    expect(template.appliesTo).toBe("session");
+    expect(items.length).toBeGreaterThan(0);
+    for (const i of items) {
+      expect(i.id.startsWith("alien."), i.id).toBe(true);
+      expect(i.id.startsWith(`alien.${i.phase}.`), i.id).toBe(true);
+      expect(["prep", "play", "wrap"]).toContain(i.phase);
+      expect(i.page, i.id).toBeDefined();
+      expect(i.guidance, i.id).toBeTruthy();
+    }
+    const report = checkModule(alienModule);
+    expect(report.issues.filter((i) => i.where.startsWith("template:alien.template.session-checklist"))).toEqual([]);
+  });
+
+  it("filters by play mode", () => {
+    expect(idsFor("cinematic")).toEqual(["alien.prep.agendas", "alien.prep.infections", "alien.play.supply", "alien.play.story-points", "alien.wrap.trauma"]);
+    expect(idsFor("campaign")).toEqual(["alien.prep.job", "alien.prep.infections", "alien.play.supply", "alien.wrap.xp", "alien.wrap.trauma"]);
+  });
+
+  it("ticks the XP and trauma items when the end-of-session prompts are answered", () => {
+    expect(items.filter((i) => i.autoWhen).map((i) => `${i.id}:${i.autoWhen}`)).toEqual(["alien.wrap.xp:prompts-answered", "alien.wrap.trauma:prompts-answered"]);
   });
 });

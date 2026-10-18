@@ -24,6 +24,7 @@ import {
   timerElapsedMs,
   type OperationRoll,
 } from "../../state/tableActions";
+import { SessionChecklist, useLogNotesAutoTick } from "../sessions/SessionChecklist";
 import { WrapUpWizard } from "../sessions/WrapUp";
 import { DicePanel } from "./DicePanel";
 import { formatDuration, useCrossTabSync, useEntities, usePlayerCharacters, useSessionScenes, useSessionTrackerState, useTableState, useTick } from "./hooks";
@@ -62,6 +63,7 @@ function GmTable({ sessionId }: { sessionId: Id }) {
   const panelTrackers = trackers.filter((t) => t !== clock);
 
   const ts = useSessionTrackerState(sessionId);
+  useLogNotesAutoTick(sessionId, session?.logDoc, session?.status === "running");
   // a session started elsewhere (e.g. campaign home) gets its table state on first open
   const needsInit = session?.status === "running" && !ts?.state[TABLE_STATE];
   useEffect(() => {
@@ -202,6 +204,7 @@ function GmTable({ sessionId }: { sessionId: Id }) {
               tabs={[
                 { id: "trackers", label: "Trackers", content: <TrackersPanel sessionId={sessionId} trackers={panelTrackers} pcs={pcs} participants={others} map={map} handlers={handlers} /> },
                 { id: "dice", label: "Dice", content: <DicePanel sessionId={sessionId} pcs={pcs} /> },
+                { id: "checklist", label: "Checklist", content: <SessionChecklist session={session} focus="play" title="Checklist" className="app-table__checklist" /> },
                 {
                   id: "log",
                   label: "Log",

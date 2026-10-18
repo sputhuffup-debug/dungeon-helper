@@ -6,14 +6,18 @@
  *  - the core defaults (`DEFAULT_SESSION_CHECKLIST`), minus the ones the GM
  *    hid for this campaign;
  *  - items a module contributes through a `checklist` template with
- *    `appliesTo: "session"` (see `moduleChecklistItems`), filtered by mode;
+ *    `appliesTo: "session"` (see `moduleChecklistItems`), filtered by mode
+ *    and hideable like the defaults;
  *  - the GM's own campaign items.
+ *
+ * Items may declare `autoWhen`, a generic app event (see
+ * `SessionChecklistEvent` in the sdk); the app ticks them when it happens.
  *
  * Campaign choices live in `meta.settings.sessionChecklist`; per-session
  * ticks live on the session record (`Session.checklist`). Both travel with
  * the export bundle like any other campaign data.
  */
-import type { SessionChecklistPhase, Template, TemplateChecklist } from "@campaign-forge/module-sdk";
+import type { PageRef, SessionChecklistEvent, SessionChecklistPhase, Template, TemplateChecklist } from "@campaign-forge/module-sdk";
 import type { CampaignStore } from "./store";
 import type { CampaignMeta, Id, Session } from "./types";
 
@@ -38,6 +42,12 @@ export interface ChecklistItem {
   source: "core" | "module" | "campaign";
   /** Play modes the item applies to (module items); all modes when absent. */
   mode?: string[];
+  /** Module items: the module that contributed the item. */
+  moduleId?: string;
+  /** Module items: rulebook page. */
+  page?: PageRef;
+  /** The app ticks the item when this event happens (only ever to done). */
+  autoWhen?: SessionChecklistEvent;
 }
 
 /** A GM-written item, stored in campaign settings. */
@@ -58,14 +68,21 @@ export interface SessionChecklistSettings {
 
 export const SESSION_CHECKLIST_SETTING = "sessionChecklist";
 
-const core = (id: string, phase: ChecklistPhase, text: string, guidance: string): ChecklistItem => ({ id, phase, text, guidance, source: "core" });
+const core = (id: string, phase: ChecklistPhase, text: string, guidance: string, autoWhen?: SessionChecklistEvent): ChecklistItem => ({
+  id,
+  phase,
+  text,
+  guidance,
+  source: "core",
+  ...(autoWhen ? { autoWhen } : {}),
+});
 
 export const DEFAULT_SESSION_CHECKLIST: readonly ChecklistItem[] = [
   // Before the session
   core("prep.review-last", "prep", "Review the last session", "Reread the summary and loose ends. Pick the two or three threads most likely to come up."),
   core("prep.goal", "prep", "Set a goal for this session", "One sentence on what this session is about or what should change by the end. It keeps the night focused without scripting it."),
   core("prep.opening", "prep", "Plan a strong start", "Open in the middle of something: a threat, a discovery, a choice. Skip travel and shopping unless they matter."),
-  core("prep.scenes", "prep", "Sketch a few scenes, not a script", "Three to five likely scenes, each with a purpose. Expect the players to skip some and invent others."),
+  core("prep.scenes", "prep", "Sketch a few scenes, not a script", "Three to five likely scenes, each with a purpose. Expect the players to skip some and invent others.", "scenes-planned"),
   core("prep.secrets", "prep", "Prepare secrets and clues", "A handful of things the players could learn, not tied to one place, so they can surface wherever the players go."),
   core("prep.people", "prep", "Know who might show up", "The NPCs likely to appear, what each wants, plus a few spare names for anyone you improvise."),
   core("prep.threat", "prep", "Decide what the opposition does", "What happens if the players do nothing. A countdown or clock makes pressure visible."),
@@ -76,18 +93,18 @@ export const DEFAULT_SESSION_CHECKLIST: readonly ChecklistItem[] = [
   core("play.recap", "play", "Start with a recap", "Ask a player to recap the last session. It shows you what they remember and care about."),
   core("play.check-in", "play", "Check in on tone and comfort", "A quick reminder of the tone and any lines or veils. Invite people to speak up during play."),
   core("play.spotlight", "play", "Share the spotlight", "Notice who has not had a moment yet and turn the next scene toward them."),
-  core("play.notes", "play", "Note names and promises", "Write down every name you invent and every promise you make, so they stay consistent."),
+  core("play.notes", "play", "Note names and promises", "Write down every name you invent and every promise you make, so they stay consistent.", "log-written"),
   core("play.pacing", "play", "Watch the pace", "Cut scenes that drag, end scenes on tension, and take a short break around the midpoint."),
-  core("play.reveals", "play", "Track what the players learn", "Mark secrets and clues as revealed when they come out, so you never repeat or contradict them."),
+  core("play.reveals", "play", "Track what the players learn", "Mark secrets and clues as revealed when they come out, so you never repeat or contradict them.", "revealed"),
   core("play.ending", "play", "Leave time to land the ending", "About fifteen minutes before the end, steer toward a cliffhanger or a clean stopping point."),
   // After the session
   core("wrap.hook", "wrap", "End on a hook", "Close with a question, a threat or a choice that makes people want to come back."),
-  core("wrap.rewards", "wrap", "Hand out rewards and advancement", "Follow your game's rules for experience, loot or other rewards before people leave."),
+  core("wrap.rewards", "wrap", "Hand out rewards and advancement", "Follow your game's rules for experience, loot or other rewards before people leave.", "prompts-answered"),
   core("wrap.feedback", "wrap", "Ask what worked", "Ask each player one thing they enjoyed and one thing they want more of. Keep it short."),
-  core("wrap.summary", "wrap", "Write a short summary", "A few lines while it is fresh: what happened, what changed, what is unresolved."),
-  core("wrap.loose-ends", "wrap", "Record loose ends", "Unanswered questions, NPCs who changed, debts and promises. They become next session's plan."),
-  core("wrap.timeline", "wrap", "Update the timeline", "Add the in-world events that happened, so dates and consequences stay consistent."),
-  core("wrap.schedule", "wrap", "Schedule the next session", "Agree on a date before everyone leaves."),
+  core("wrap.summary", "wrap", "Write a short summary", "A few lines while it is fresh: what happened, what changed, what is unresolved.", "summary-saved"),
+  core("wrap.loose-ends", "wrap", "Record loose ends", "Unanswered questions, NPCs who changed, debts and promises. They become next session's plan.", "loose-ends-carried"),
+  core("wrap.timeline", "wrap", "Update the timeline", "Add the in-world events that happened, so dates and consequences stay consistent.", "timeline-confirmed"),
+  core("wrap.schedule", "wrap", "Schedule the next session", "Agree on a date before everyone leaves.", "next-session-planned"),
 ];
 
 const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
@@ -115,11 +132,11 @@ export function withChecklistSettings(meta: Pick<CampaignMeta, "settings">, next
 
 /**
  * Items a module contributes: every `checklist` template with
- * `appliesTo: "session"`. Item ids are namespaced by the template id. An
- * item's modes are its own, else its template's. Items without a valid phase
- * are skipped (the conformance check reports them).
+ * `appliesTo: "session"`. Ids are the module's own (namespaced with the
+ * module id, which the conformance check enforces). An item's modes are its
+ * own, else its template's. Items without a valid phase are skipped.
  */
-export function moduleChecklistItems(templates: readonly Template[]): ChecklistItem[] {
+export function moduleChecklistItems(templates: readonly Template[], moduleId?: string): ChecklistItem[] {
   const out: ChecklistItem[] = [];
   for (const t of templates) {
     if (t.kind !== "checklist" || t.appliesTo !== "session") continue;
@@ -128,12 +145,15 @@ export function moduleChecklistItems(templates: readonly Template[]): ChecklistI
       if (!isChecklistPhase(item.phase)) continue;
       const mode = item.mode ?? t.mode;
       out.push({
-        id: `${t.id}.${item.id}`,
+        id: item.id,
         phase: item.phase,
         text: item.text,
         ...(item.guidance ? { guidance: item.guidance } : {}),
         source: "module",
         ...(mode && mode.length ? { mode: [...mode] } : {}),
+        ...(moduleId ? { moduleId } : {}),
+        ...(item.page !== undefined ? { page: item.page } : {}),
+        ...(item.autoWhen ? { autoWhen: item.autoWhen } : {}),
       });
     }
   }
@@ -153,6 +173,11 @@ export function sessionChecklist(meta: Pick<CampaignMeta, "settings" | "mode">, 
   const fromModule = moduleItems.filter((i) => !hide.has(i.id) && (!i.mode || i.mode.length === 0 || i.mode.includes(meta.mode)));
   const own: ChecklistItem[] = custom.map((c) => ({ id: c.id, phase: c.phase, text: c.text, ...(c.guidance ? { guidance: c.guidance } : {}), source: "campaign" }));
   return CHECKLIST_PHASES.flatMap((phase) => [...defaults, ...fromModule, ...own].filter((i) => i.phase === phase).map((i) => ({ ...i })));
+}
+
+/** Ids of the items an app event ticks. */
+export function checklistItemsFor(items: readonly ChecklistItem[], event: SessionChecklistEvent): string[] {
+  return items.filter((i) => i.autoWhen === event).map((i) => i.id);
 }
 
 /** The ticks on a session (item id -> done). */

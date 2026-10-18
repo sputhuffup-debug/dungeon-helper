@@ -23,6 +23,7 @@ import {
   type WrapUpAnswer,
 } from "../../state/tableActions";
 import { SessionRollPanel, attributeIds, skillInput } from "../table/DicePanel";
+import { WrapChecklistPanel } from "./SessionChecklist";
 import { usePlayerCharacters } from "../table/hooks";
 
 const STEPS = [
@@ -127,39 +128,46 @@ export function WrapUpWizard({ sessionId, onCancel, onDone }: WrapUpWizardProps)
         ))}
       </ol>
 
-      {step === "summary" && (
-        <Card title="Summary" subtitle="Drafted from the first lines of the session log. Edit freely.">
-          <textarea className="cf-textarea app-wrapup__summary" aria-label="Session summary" rows={8} value={summary ?? ""} placeholder={summary === undefined ? "Reading the log…" : "What happened this session?"} onChange={(e) => setSummary(e.target.value)} />
-        </Card>
-      )}
+      <div className="app-wrapup__body">
+        <div className="app-wrapup__main">
+          {step === "summary" && (
+            <Card title="Summary" subtitle="Drafted from the first lines of the session log. Edit freely.">
+              <textarea className="cf-textarea app-wrapup__summary" aria-label="Session summary" rows={8} value={summary ?? ""} placeholder={summary === undefined ? "Reading the log…" : "What happened this session?"} onChange={(e) => setSummary(e.target.value)} />
+            </Card>
+          )}
 
-      {step === "prompts" && <PromptsStep sessionId={sessionId} prompts={prompts} answers={answers} pcs={pcs} />}
+          {step === "prompts" && <PromptsStep sessionId={sessionId} prompts={prompts} answers={answers} pcs={pcs} />}
 
-      {step === "rewards" && <RewardsStep pcs={pcs} rewards={rewards} setRewards={setRewards} />}
+          {step === "rewards" && <RewardsStep pcs={pcs} rewards={rewards} setRewards={setRewards} />}
 
-      {step === "timeline" && (
-        <Card title="Timeline entries" subtitle={`Dated ${meta.currentDate ?? "(no in-world date set)"}, the campaign's current in-world date.`}>
-          {timeline.length === 0 && <p className="cf-muted">No scenes were marked run and no handouts revealed. Add an entry by hand if something happened.</p>}
-          <ul className="app-list" aria-label="Timeline entries">
-            {timeline.map((t, i) => (
-              <li key={t.key} className="app-list__row">
-                <input type="checkbox" className="cf-checkbox" aria-label={`Include ${t.text}`} checked={t.include} onChange={(e) => setTimeline(timeline.map((x, j) => (j === i ? { ...x, include: e.target.checked } : x)))} />
-                <input className="cf-input app-grow" aria-label="Timeline text" value={t.text} onChange={(e) => setTimeline(timeline.map((x, j) => (j === i ? { ...x, text: e.target.value } : x)))} />
-                <EntityNames ids={t.entities} />
-              </li>
-            ))}
-          </ul>
-          <div className="app-row">
-            <Button onClick={() => setTimeline([...timeline, { key: `manual:${Date.now()}`, text: "", entities: [], include: true }])}>+ Entry</Button>
-          </div>
-        </Card>
-      )}
+          {step === "timeline" && (
+            <Card title="Timeline entries" subtitle={`Dated ${meta.currentDate ?? "(no in-world date set)"}, the campaign's current in-world date.`}>
+              {timeline.length === 0 && <p className="cf-muted">No scenes were marked run and no handouts revealed. Add an entry by hand if something happened.</p>}
+              <ul className="app-list" aria-label="Timeline entries">
+                {timeline.map((t, i) => (
+                  <li key={t.key} className="app-list__row">
+                    <input type="checkbox" className="cf-checkbox" aria-label={`Include ${t.text}`} checked={t.include} onChange={(e) => setTimeline(timeline.map((x, j) => (j === i ? { ...x, include: e.target.checked } : x)))} />
+                    <input className="cf-input app-grow" aria-label="Timeline text" value={t.text} onChange={(e) => setTimeline(timeline.map((x, j) => (j === i ? { ...x, text: e.target.value } : x)))} />
+                    <EntityNames ids={t.entities} />
+                  </li>
+                ))}
+              </ul>
+              <div className="app-row">
+                <Button onClick={() => setTimeline([...timeline, { key: `manual:${Date.now()}`, text: "", entities: [], include: true }])}>+ Entry</Button>
+              </div>
+            </Card>
+          )}
 
-      {step === "loose" && (
-        <Card title="Loose ends" subtitle="One per line. They become the plan of the next session.">
-          <textarea className="cf-textarea" aria-label="Loose ends" rows={6} value={looseEnds} placeholder="Who sent the signal?" onChange={(e) => setLooseEnds(e.target.value)} />
-        </Card>
-      )}
+          {step === "loose" && (
+            <Card title="Loose ends" subtitle="One per line. They become the plan of the next session.">
+              <textarea className="cf-textarea" aria-label="Loose ends" rows={6} value={looseEnds} placeholder="Who sent the signal?" onChange={(e) => setLooseEnds(e.target.value)} />
+            </Card>
+          )}
+        </div>
+        <aside className="app-wrapup__aside" aria-label="After the session checklist">
+          <WrapChecklistPanel session={session} />
+        </aside>
+      </div>
 
       <footer className="app-row app-wrapup__nav">
         <Button onClick={() => setStep(STEPS[idx - 1]!.id)} disabled={idx === 0}>

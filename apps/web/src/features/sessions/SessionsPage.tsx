@@ -6,6 +6,7 @@ import { Badge, Button, Card, EmptyState } from "../../components/ui";
 import { formatDate } from "../../lib/format";
 import { useCampaign, useList } from "../../state/hooks";
 import { plannedScenesOf, planNextSession, sortSessions, startPlannedSession } from "../../state/tableActions";
+import { ChecklistBadge, useCampaignChecklist } from "./SessionChecklist";
 
 const TONE = { planned: "warning", running: "success", done: "muted" } as const;
 
@@ -14,6 +15,7 @@ export function SessionsPage() {
   const navigate = useNavigate();
   const campaignId = ctx.campaignId;
   const sessions = useList("sessions");
+  const checklist = useCampaignChecklist();
   const sorted = useMemo(() => sortSessions(sessions), [sessions]);
   const running = sorted.filter((s) => s.status === "running");
   const planned = sorted.filter((s) => s.status === "planned");
@@ -35,6 +37,7 @@ export function SessionsPage() {
       </Link>
       <span className="cf-muted">{formatDate(s.date)}</span>
       <Badge tone={TONE[s.status]}>{s.status}</Badge>
+      <ChecklistBadge session={s} items={checklist} />
       {s.status === "planned" && (
         <span className="cf-muted">
           {plannedScenesOf(s).length} scene{plannedScenesOf(s).length === 1 ? "" : "s"} · {s.nextPlan.length} plan item{s.nextPlan.length === 1 ? "" : "s"}

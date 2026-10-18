@@ -536,19 +536,66 @@ export interface TemplateAdventure {
 /** Phases of the session checklist: before, at and after the table. */
 export type SessionChecklistPhase = "prep" | "play" | "wrap";
 
+/**
+ * Generic app events that can tick a session checklist item by themselves
+ * (`autoWhen`). The app emits them where the action happens; an auto-tick
+ * only ever marks an item done, never one the GM unticked.
+ */
+export type SessionChecklistEvent =
+  /** At least one scene is planned for the session. */
+  | "scenes-planned"
+  /** The session log has text. */
+  | "log-written"
+  /** Something (an entity, a field, a handout) is revealed in the session. */
+  | "revealed"
+  /** Every end-of-session prompt of the module is answered (or there are none). */
+  | "prompts-answered"
+  /** The session summary is saved at wrap-up. */
+  | "summary-saved"
+  /** Loose ends are carried into the next session at wrap-up. */
+  | "loose-ends-carried"
+  /** Timeline entries are confirmed at wrap-up. */
+  | "timeline-confirmed"
+  /** The next session is planned. */
+  | "next-session-planned";
+
+export const SESSION_CHECKLIST_EVENTS: readonly SessionChecklistEvent[] = [
+  "scenes-planned",
+  "log-written",
+  "revealed",
+  "prompts-answered",
+  "summary-saved",
+  "loose-ends-carried",
+  "timeline-confirmed",
+  "next-session-planned",
+];
+
+/** Id prefixes the core session checklist keeps for itself (defaults and the GM's own items). */
+export const SESSION_CHECKLIST_RESERVED_PREFIXES: readonly string[] = ["prep.", "play.", "wrap.", "custom."];
+
+/**
+ * One checklist item. Session zero checklists use `kind`, `options` and
+ * `writesTo` (answers go into campaign settings). Session checklists
+ * (`appliesTo: "session"`) use `phase`, `guidance`, `mode`, `page` and
+ * `autoWhen`; their ids must be namespaced with the module id
+ * (e.g. `alien.prep.agendas`) so they never clash with core items.
+ */
 export interface TemplateChecklistItem {
   id: string;
+  /** The question (session zero) or the checkbox label (session checklist): a short paraphrase, never book prose. */
   text: string;
   page?: PageRef;
   writesTo?: string;
   kind?: "text" | "choice" | "entity" | "boolean";
   options?: string[];
-  /** Session checklists (`appliesTo: "session"`): the phase the item belongs to. Required there. */
+  /** Session checklists: the phase the item belongs to. Required there. */
   phase?: SessionChecklistPhase;
   /** Session checklists: one or two sentences shown when the item is expanded. */
   guidance?: string;
   /** Play modes the item applies to; the template's modes when absent. */
   mode?: PlayModeId[];
+  /** Session checklists: tick the item when this app event happens. Manual when absent. */
+  autoWhen?: SessionChecklistEvent;
 }
 
 export interface TemplateChecklist {
@@ -564,9 +611,11 @@ export interface Template {
   mode?: PlayModeId[];
   page?: PageRef;
   /**
-   * For `checklist` templates: what the checklist is for. `session` items are
-   * added to the generic session checklist every session (each item needs a
-   * `phase`); `session-zero` (or absent) is a one-off campaign checklist.
+   * For `checklist` templates: what the checklist is for. `session` items
+   * join the core's generic session checklist (every session, after the core
+   * items of their phase, filtered by mode; the GM can hide them per
+   * campaign); each needs a `phase` and a module-namespaced id.
+   * `session-zero` (or absent) is a one-off campaign checklist.
    */
   appliesTo?: "session" | "session-zero";
   scaffold: TemplateAdventure | TemplateAct | TemplateScene | TemplateChecklist | Record<string, unknown>;

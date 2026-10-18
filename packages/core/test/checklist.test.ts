@@ -6,6 +6,7 @@ import {
   DEFAULT_SESSION_CHECKLIST,
   RichTextRegistry,
   autoTickChecklist,
+  checklistItemsFor,
   checklistProgress,
   checklistSettings,
   checklistStateOf,
@@ -29,13 +30,13 @@ const TEMPLATES: Template[] = [
     scaffold: {
       title: "Fixture",
       items: [
-        { id: "omens", phase: "prep", text: "Pick an omen", guidance: "One sign." },
-        { id: "doom", phase: "wrap", text: "Tally doom", mode: ["hard"] },
+        { id: "fx.prep.omens", phase: "prep", text: "Pick an omen", guidance: "One sign.", page: 12 },
+        { id: "fx.wrap.doom", phase: "wrap", text: "Tally doom", mode: ["hard"], autoWhen: "prompts-answered" },
       ],
     },
   },
   { id: "fx.zero", kind: "checklist", name: "Session zero", scaffold: { title: "Zero", items: [{ id: "frame", text: "Frame?" }] } },
-  { id: "fx.hard-only", kind: "checklist", appliesTo: "session", mode: ["hard"], name: "Hard", scaffold: { title: "Hard", items: [{ id: "grim", phase: "play", text: "Be grim" }] } },
+  { id: "fx.hard-only", kind: "checklist", appliesTo: "session", mode: ["hard"], name: "Hard", scaffold: { title: "Hard", items: [{ id: "fx.play.grim", phase: "play", text: "Be grim" }] } },
 ];
 
 describe("default session checklist", () => {
@@ -55,18 +56,36 @@ describe("default session checklist", () => {
 });
 
 describe("moduleChecklistItems", () => {
-  it("takes session checklist templates only, namespaced, with item or template modes", () => {
-    const items = moduleChecklistItems(TEMPLATES);
+  it("takes session checklist templates only, with item or template modes, page, event and module id", () => {
+    const items = moduleChecklistItems(TEMPLATES, "fx");
     expect(items).toEqual<ChecklistItem[]>([
-      { id: "fx.session.omens", phase: "prep", text: "Pick an omen", guidance: "One sign.", source: "module" },
-      { id: "fx.session.doom", phase: "wrap", text: "Tally doom", source: "module", mode: ["hard"] },
-      { id: "fx.hard-only.grim", phase: "play", text: "Be grim", source: "module", mode: ["hard"] },
+      { id: "fx.prep.omens", phase: "prep", text: "Pick an omen", guidance: "One sign.", source: "module", moduleId: "fx", page: 12 },
+      { id: "fx.wrap.doom", phase: "wrap", text: "Tally doom", source: "module", mode: ["hard"], moduleId: "fx", autoWhen: "prompts-answered" },
+      { id: "fx.play.grim", phase: "play", text: "Be grim", source: "module", mode: ["hard"], moduleId: "fx" },
+    ]);
+  });
+
+  it("maps events to the items they tick, core and module alike", () => {
+    const list = sessionChecklist({ mode: "hard", settings: {} }, moduleChecklistItems(TEMPLATES, "fx"));
+    expect(checklistItemsFor(list, "prompts-answered")).toEqual(["wrap.rewards", "fx.wrap.doom"]);
+    expect(checklistItemsFor(list, "scenes-planned")).toEqual(["prep.scenes"]);
+    expect(checklistItemsFor(list, "revealed")).toEqual(["play.reveals"]);
+    const auto = DEFAULT_SESSION_CHECKLIST.filter((i) => i.autoWhen).map((i) => `${i.id}:${i.autoWhen}`);
+    expect(auto).toEqual([
+      "prep.scenes:scenes-planned",
+      "play.notes:log-written",
+      "play.reveals:revealed",
+      "wrap.rewards:prompts-answered",
+      "wrap.summary:summary-saved",
+      "wrap.loose-ends:loose-ends-carried",
+      "wrap.timeline:timeline-confirmed",
+      "wrap.schedule:next-session-planned",
     ]);
   });
 });
 
 describe("sessionChecklist", () => {
-  const moduleItems = moduleChecklistItems(TEMPLATES);
+  const moduleItems = moduleChecklistItems(TEMPLATES, "fx");
 
   it("orders by phase: defaults, then module items, then the GM's items", () => {
     const meta = {
@@ -84,22 +103,22 @@ describe("sessionChecklist", () => {
     const phases = list.map((i) => i.phase);
     expect(phases).toEqual([...phases].sort((a, b) => CHECKLIST_PHASES.indexOf(a) - CHECKLIST_PHASES.indexOf(b)));
     const prep = list.filter((i) => i.phase === "prep").map((i) => i.id);
-    expect(prep.slice(-2)).toEqual(["fx.session.omens", "custom.snacks"]);
+    expect(prep.slice(-2)).toEqual(["fx.prep.omens", "custom.snacks"]);
     expect(prep.slice(0, 10)).toEqual(DEFAULT_SESSION_CHECKLIST.filter((i) => i.phase === "prep").map((i) => i.id));
-    expect(list.filter((i) => i.phase === "play").map((i) => i.id).at(-1)).toBe("fx.hard-only.grim");
-    expect(list.filter((i) => i.phase === "wrap").map((i) => i.id).slice(-2)).toEqual(["fx.session.doom", "custom.thanks"]);
+    expect(list.filter((i) => i.phase === "play").map((i) => i.id).at(-1)).toBe("fx.play.grim");
+    expect(list.filter((i) => i.phase === "wrap").map((i) => i.id).slice(-2)).toEqual(["fx.wrap.doom", "custom.thanks"]);
     expect(list.find((i) => i.id === "custom.thanks")).toEqual({ id: "custom.thanks", phase: "wrap", text: "Thank the host", guidance: "Be nice.", source: "campaign" });
     expect(list).toHaveLength(DEFAULT_SESSION_CHECKLIST.length + 3 + 2);
   });
 
   it("drops hidden items and module items outside the campaign's mode", () => {
-    const meta = { mode: "easy", settings: { sessionChecklist: { hidden: ["prep.logistics", "play.recap", "fx.session.omens"] } } };
+    const meta = { mode: "easy", settings: { sessionChecklist: { hidden: ["prep.logistics", "play.recap", "fx.prep.omens"] } } };
     const ids = sessionChecklist(meta, moduleItems).map((i) => i.id);
     expect(ids).not.toContain("prep.logistics");
     expect(ids).not.toContain("play.recap");
-    expect(ids).not.toContain("fx.session.omens");
-    expect(ids).not.toContain("fx.session.doom");
-    expect(ids).not.toContain("fx.hard-only.grim");
+    expect(ids).not.toContain("fx.prep.omens");
+    expect(ids).not.toContain("fx.wrap.doom");
+    expect(ids).not.toContain("fx.play.grim");
     expect(ids).toHaveLength(DEFAULT_SESSION_CHECKLIST.length - 2);
   });
 

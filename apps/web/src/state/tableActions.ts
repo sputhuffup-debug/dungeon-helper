@@ -17,6 +17,10 @@ import {
   applyImportedDocs,
   archiveTrackerState,
   autoTickChecklist,
+  checklistItemsFor,
+  moduleChecklistItems,
+  sessionChecklist,
+  type ChecklistItem,
   bodyOf,
   campaignDbName,
   getPath,
@@ -50,6 +54,7 @@ import {
   type Prompt,
   type RollRecord,
   type RollResult,
+  type SessionChecklistEvent,
   type TrackerDef,
 } from "@campaign-forge/module-sdk";
 import { appendPanic, clockState, clockUnits, type ClockUnit, type PromptAnswer } from "@campaign-forge/ui";
@@ -187,38 +192,25 @@ export function tableStateOf(state: Record<string, unknown> | undefined): TableS
 // session checklist auto-ticks
 // ---------------------------------------------------------------------------
 
-/**
- * Checklist items the app ticks itself when the related action happens.
- * Auto-ticks only ever set an item to done, and never one the GM unticked
- * (see `autoTickChecklist` in core); the GM can always untick.
- */
-export const AUTO_TICK = {
-  /** A scene is planned for the session. */
-  scenes: "prep.scenes",
-  /** The session log has text. */
-  notes: "play.notes",
-  /** Something is revealed in the session. */
-  reveals: "play.reveals",
-  /** The module's end-of-session prompts are all answered, or there are none. */
-  rewards: "wrap.rewards",
-  /** The session summary is saved. */
-  summary: "wrap.summary",
-  /** Loose ends are carried into the next session. */
-  looseEnds: "wrap.loose-ends",
-  /** Timeline entries are confirmed. */
-  timeline: "wrap.timeline",
-  /** The next session is planned. */
-  schedule: "wrap.schedule",
-} as const;
+/** The campaign's session checklist: core defaults, the module's items (by mode) and the GM's own. */
+export function campaignChecklist(ctx: Ctx): ChecklistItem[] {
+  return sessionChecklist(ctx.store.meta(), moduleChecklistItems(ctx.module.module.templates, ctx.module.manifest.id));
+}
 
-function tick(ctx: Ctx, sessionId: Id, ...items: string[]): void {
-  if (items.length) autoTickChecklist(ctx.store, sessionId, items);
+/**
+ * An app event happened: tick every checklist item (core or module) that
+ * declares it as `autoWhen`. Auto-ticks only ever mark items done, and never
+ * one the GM unticked (see `autoTickChecklist` in core). Returns the ids ticked.
+ */
+export function checklistEvent(ctx: Ctx, sessionId: Id, event: SessionChecklistEvent): string[] {
+  const ids = checklistItemsFor(campaignChecklist(ctx), event);
+  return ids.length ? autoTickChecklist(ctx.store, sessionId, ids) : [];
 }
 
 /** Tick "Note names and promises" when the session log has text. */
 export async function tickLogNotes(ctx: DocCtx, sessionId: Id): Promise<void> {
   const text = await sessionLogText(ctx, sessionId);
-  if (text.trim() && ctx.store.has("sessions", sessionId)) tick(ctx, sessionId, AUTO_TICK.notes);
+  if (text.trim() && ctx.store.has("sessions", sessionId)) checklistEvent(ctx, sessionId, "log-written");
 }
 
 /** Whether every end-of-session prompt (and follow-up) has an answer; true when there are none. */
@@ -259,7 +251,7 @@ export function planNextSession(ctx: Ctx, input: { title?: string; date?: string
   const nextPlan = input.nextPlan ?? [...(wrapUpOf(prev).looseEnds ?? [])];
   return store.transact(() => {
     const s = store.createSession({ number, date, status: "planned", attendees: store.meta().members.map((m) => m.id), ...(input.title ? { title: input.title } : {}) });
-    if (latest && latest.status !== "planned") tick(ctx, latest.id, AUTO_TICK.schedule);
+    if (latest && latest.status !== "planned") checklistEvent(ctx, latest.id, "next-session-planned");
     return store.update("sessions", s.id, { nextPlan });
   });
 }
@@ -272,7 +264,7 @@ export function setPlannedScenes(ctx: Ctx, sessionId: Id, sceneIds: Id[]): Sessi
   return ctx.store.transact(() => {
     const ids = [...new Set(sceneIds)];
     updateSession(ctx, sessionId, { plannedScenes: ids });
-    if (ids.length > 0) tick(ctx, sessionId, AUTO_TICK.scenes);
+    if (ids.length > 0) checklistEvent(ctx, sessionId, "scenes-planned");
     return ctx.store.get("sessions", sessionId)!;
   });
 }
@@ -738,7 +730,7 @@ export function revealHandout(ctx: Ctx, sessionId: Id, handoutId: Id, sceneId?: 
   store.transact(() => {
     reveal(store, { kind: "handout", id: handoutId }, sessionId);
     tagLastReveal(store, sessionId, sceneId);
-    tick(ctx, sessionId, AUTO_TICK.reveals);
+    checklistEvent(ctx, sessionId, "revealed");
     const h = store.get("handouts", handoutId);
     appendTrackerLog(store, sessionId, { tracker: REVEAL_LOG, text: `Revealed handout: ${h?.title ?? handoutId}`, data: { handout: handoutId, scene: sceneId } });
   });
@@ -750,7 +742,7 @@ export function revealEntityAtTable(ctx: Ctx, sessionId: Id, entityId: Id, scene
   store.transact(() => {
     reveal(store, { kind: "entity", id: entityId }, sessionId);
     tagLastReveal(store, sessionId, sceneId);
-    tick(ctx, sessionId, AUTO_TICK.reveals);
+    checklistEvent(ctx, sessionId, "revealed");
     const e = store.get("entities", entityId);
     appendTrackerLog(store, sessionId, { tracker: REVEAL_LOG, text: `Revealed: ${e?.name ?? entityId}`, entity: entityId, data: { entity: entityId, scene: sceneId } });
   });
@@ -775,7 +767,7 @@ export async function appendLogLine(ctx: DocCtx, sessionId: Id, text: string, at
   run.insert(0, `[${clockTime(at)}] ${text.trim()}`);
   paragraph.insert(0, [run]);
   doc.transact(() => bodyOf(doc).push([paragraph]));
-  tick(ctx, sessionId, AUTO_TICK.notes);
+  checklistEvent(ctx, sessionId, "log-written");
 }
 
 /** Plain text of the session log. */
@@ -849,7 +841,7 @@ export function answerPrompt(ctx: Ctx, sessionId: Id, prompt: Prompt, answer: Pr
         const followUps = [...(wrapUp.followUps ?? []), ...prompts.filter((p) => !known.has(p.id))];
         ctx.store.update("sessions", sessionId, { wrapUp: { ...wrapUp, followUps } as Record<string, unknown> });
       }
-      if (sessionPromptsAnswered(ctx, sessionId)) tick(ctx, sessionId, AUTO_TICK.rewards);
+      if (sessionPromptsAnswered(ctx, sessionId)) checklistEvent(ctx, sessionId, "prompts-answered");
     }
     return { prompts, ...(roll ? { roll } : {}) };
   });
@@ -938,17 +930,12 @@ export function finishSession(ctx: Ctx, sessionId: Id, input: FinishSessionInput
     archiveTrackerState(store, sessionId);
     if (!next) next = planNextSession(ctx, { nextPlan: looseEnds });
     store.update("sessions", sessionId, { wrapUp: { ...wrapUp, nextSession: next.id } as Record<string, unknown> });
-    tick(
-      ctx,
-      sessionId,
-      ...[
-        promptsDone && AUTO_TICK.rewards,
-        input.summary.trim() && AUTO_TICK.summary,
-        looseEnds.length > 0 && AUTO_TICK.looseEnds,
-        timeline.length > 0 && AUTO_TICK.timeline,
-        AUTO_TICK.schedule,
-      ].filter((x): x is string => typeof x === "string"),
-    );
+    const events: SessionChecklistEvent[] = ["next-session-planned"];
+    if (promptsDone) events.push("prompts-answered");
+    if (input.summary.trim()) events.push("summary-saved");
+    if (looseEnds.length > 0) events.push("loose-ends-carried");
+    if (timeline.length > 0) events.push("timeline-confirmed");
+    for (const e of events) checklistEvent(ctx, sessionId, e);
     return { session: store.get("sessions", sessionId)!, timeline, next };
   });
 }
