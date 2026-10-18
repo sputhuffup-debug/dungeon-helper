@@ -30,6 +30,7 @@ export const T = {
   panic: "alien.character.panic",
   mentalTrauma: "alien.character.mental-trauma",
   criticalInjury: "alien.character.critical-injury",
+  campaignTheme: "alien.character.campaign-theme",
 };
 
 export const TR = {

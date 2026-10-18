@@ -27,7 +27,7 @@ export const mentalTraumaItems: MentalTraumaItem[] = [
   mt(11, 13, "Confused", "−1 die on Wits-based skill rolls."),
   mt(14, 16, "Apathetic", "You can never push a roll."),
   mt(21, 23, "Reclusive", "You cannot relieve stress with others around."),
-  mt(24, 26, "Obsessive", "You must push every skill roll, even a success."),
+  mt(24, 26, "Obsessive", "Every skill roll must be pushed, successful or not."),
   mt(31, 32, "Overwhelmed", "Resolve −2."),
   mt(33, 34, "Alcoholic", "Only drinking relieves your stress."),
   mt(35, 36, "Depressed", "You cannot be rallied in combat."),

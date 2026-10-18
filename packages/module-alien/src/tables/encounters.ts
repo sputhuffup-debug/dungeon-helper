@@ -301,7 +301,7 @@ export const colonyOperations = areaTable("operations", "Operations area encount
   [21, 23, "Harassed chief engineer"],
   [24, 26, "Scientists debating"],
   [31, 33, "Colony manager and deputy"],
-  [34, 36, "High alert. Everyone is too busy to talk."],
+  [34, 36, "High alert: nobody has time to chat."],
   [41, 43, "Helpful android"],
   [44, 46, "Three members of the operations staff discuss a serious problem"],
   [51, 53, "Security cordon"],

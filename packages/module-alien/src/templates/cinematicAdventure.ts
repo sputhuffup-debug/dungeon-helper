@@ -4,63 +4,68 @@ import { CINEMATIC } from "../modes";
 const agendaHandouts = (act: number) =>
   Array.from({ length: 6 }, (_, i) => ({
     title: `Agenda for <PC ${i + 1}> (Act ${act})`,
-    body: "_Write the character's secret goal for this act. One or two sentences, in second person._",
+    body: "_This PC's secret agenda for the act. Hand it out at the start of the act; it is not written on the character sheet._",
     visibility: "some_players" as const,
   }));
 
-/** Three-act cinematic scenario scaffold (p. 157). Empty until the GM writes into it. */
+/**
+ * Cinematic adventure scaffold following the book's structure (p. 157-158): player
+ * introduction, the situation, characters with an agenda per act, locations, three acts
+ * of events (a few mandatory, most optional and stand-alone) and an epilogue.
+ * Empty until the GM writes into it.
+ */
 export const cinematicAdventureScaffold: TemplateAdventure = {
   title: "<Scenario title>",
-  premise: "_One paragraph: who the crew are, where they are and what is about to go wrong._",
-  playerIntro: "What's the story, Mother?\n\n_Player-facing briefing read aloud at the start. Keep the threat out of it._",
-  gmSituation: "_GM-only: what is really happening, who knows, what the company wants, where the creature is and the countdown that will end the scenario._",
+  premise: "_The characters: each PC and key NPC with stats, background and one agenda per act. Locations: the mapped core area with key locations marked and described._",
+  playerIntro: "What's the story, Mother?\n\n_Read aloud by the GM at the start: just enough for the players to get going._",
+  gmSituation: "_The situation: a short GM-only overview of what is really going on behind the scenes._",
   acts: [
     {
       number: 1,
       title: "Setup",
-      goal: "Establish the crew, the place and the routine; seed the clues; hand out the first agendas.",
-      pacing: "Slow burn. Let the players explore and talk. No creature on screen yet; signs only. End the act on the first hard reveal.",
+      goal: "Introduce the PCs and NPCs and establish the conflicts. Hand out the first agendas.",
+      pacing: "Start easy and add complications slowly; hint at the danger rather than showing it (dread). Agendas for acts I and II should not call for open moves against other PCs.",
       scenes: [
-        { purpose: "Arrival: the crew reaches the location and meets the people there.", mandatory: true, body: "_Location, NPCs present, what looks normal._" },
-        { purpose: "Something is off: a clue that cannot be explained away.", mandatory: true, body: "_The clue, who finds it, what it points to._" },
-        { purpose: "A side errand that reveals an NPC's secret.", mandatory: false, body: "_Optional. Use if the table is dawdling._" },
+        { purpose: "Arrival: the crew and the place are introduced (mandatory event).", mandatory: true, body: "_Who is present, what the crew is here to do._" },
+        { purpose: "Warning signs: something is wrong (optional event).", mandatory: false, body: "_Stand-alone; use it if the PCs go looking._" },
+        { purpose: "Agenda hook: a scene aimed at one PC's agenda (optional event).", mandatory: false, body: "_Which PC, what it tempts them to do._" },
       ],
       handouts: agendaHandouts(1),
     },
     {
       number: 2,
       title: "Tilt",
-      goal: "Reverse the situation: the threat is revealed, the plan fails or an ally turns. New agendas pull the crew apart.",
-      pacing: "Pressure rising. First blood. Move into stealth mode when the creature hunts. Give the GM permission to call PvP (p. 158).",
+      goal: "Something unexpected raises the stakes and the danger; secrets are revealed. New agendas for every PC.",
+      pacing: "Increase the pressure, then let them breathe before the next blow (terror). Story Points for agendas followed at risk are awarded at the end of the act.",
       scenes: [
-        { purpose: "The reveal: the threat is seen and someone is hurt or taken.", mandatory: true, body: "_Where, who, panic rolls for witnesses._" },
-        { purpose: "The plan: the crew tries to fix, flee or fight and it goes wrong.", mandatory: true, body: "_The obstacle; what the company agent or android does._" },
-        { purpose: "The betrayal: an agenda forces a hard choice.", mandatory: false, body: "_Optional. Tie to a specific handout._" },
+        { purpose: "The tilt: the unexpected turn (mandatory event).", mandatory: true, body: "_What happens, who sees it, which panic rolls it triggers._" },
+        { purpose: "Revelation: a secret comes out (optional event).", mandatory: false, body: "_Whose secret, how it surfaces._" },
+        { purpose: "Running low: resources run short (optional event).", mandatory: false, body: "_Air, ammo, power or time; what the PCs must choose._" },
       ],
       handouts: agendaHandouts(2),
     },
     {
       number: 3,
       title: "Showdown",
-      goal: "A deadline forces the ending: countdown, last shuttle, self-destruct. Agendas resolve, few survive.",
-      pacing: "Fast. Run the countdown tracker in the open. Every scene costs something.",
+      goal: "Bring the story to a climactic resolution that depends on what the PCs do. Last agendas; PvP, if any, belongs here.",
+      pacing: "The threat is revealed (horror). Let things go wrong all at once; a countdown suits this act. Call PvP when a conflict passes the point of no return.",
       scenes: [
-        { purpose: "The countdown starts and everyone knows it.", mandatory: true, body: "_What starts it, how long, what the number is._" },
-        { purpose: "The last stand or the escape.", mandatory: true, body: "_The final zone map, the creature's position, the exit._" },
-        { purpose: "A final temptation for one agenda.", mandatory: false, body: "_Optional. Who gets to leave with what._" },
+        { purpose: "Showdown: the confrontation (mandatory event).", mandatory: true, body: "_Where it happens, the zone map, what is at stake._" },
+        { purpose: "Countdown: a race against disaster (optional event).", mandatory: false, body: "_What starts it and how many minutes it runs._" },
+        { purpose: "Last temptation: a final pull on one agenda (optional event).", mandatory: false, body: "_Who is tempted, and what it costs the others._" },
       ],
       handouts: agendaHandouts(3),
     },
   ],
-  epilogue: "_For each survivor: where they end up and what the company does about it. For the dead: what is found._",
+  epilogue: "_A suggested sign-off message from one of the PCs, if anyone survives; the player reads it aloud or adapts it to what happened._",
 };
 
 export const cinematicAdventureTemplate: Template = {
   id: "alien.template.cinematic-adventure",
   kind: "adventure",
   name: "Cinematic adventure",
-  description: "Three acts (Setup, Tilt, Showdown) with per-act agenda handouts, mandatory and optional scenes, player intro and GM situation.",
+  description: "Player introduction, situation, characters and locations, three acts (Setup, Tilt, Showdown) of mandatory and optional events with per-act agenda handouts, and an epilogue (p. 157-158).",
   mode: [CINEMATIC],
-  page: 157,
+  page: [157, 158],
   scaffold: cinematicAdventureScaffold,
 };

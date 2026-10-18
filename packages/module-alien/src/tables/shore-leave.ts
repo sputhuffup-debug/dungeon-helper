@@ -57,8 +57,8 @@ export const marinesOldFriend: RollTable = table({
     { label: "They are in debt", result: { outcome: "in-debt" } },
     { label: "They are in trouble", result: { outcome: "in-trouble" } },
     { label: "They are in trouble", result: { outcome: "in-trouble" } },
-    { label: "They offer the PCs a way to make some money", result: { outcome: "money-offer" } },
-    { label: "They offer the PCs a way to make some money", result: { outcome: "money-offer" } },
+    { label: "A money-making offer for the PCs", result: { outcome: "money-offer" } },
+    { label: "A money-making offer for the PCs", result: { outcome: "money-offer" } },
   ]),
 });
 

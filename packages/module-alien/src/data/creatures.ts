@@ -618,7 +618,7 @@ const neomorphPresets: AlienPreset[] = [
     species: NEO,
     stage: "II",
     loreOnly: true,
-    abilities: [{ name: "Infection", text: "Exposure is a disease with virulence -2. If the STAMINA roll fails, the host reaches Stage III within one shift.", page: 224 }],
+    abilities: [{ name: "Infection", text: "Exposure acts as a virulence -2 disease; on a failed STAMINA roll the host advances to Stage III inside one shift.", page: 224 }],
     lifecycleTrigger: "A failed STAMINA roll means a Bloodburster within one shift.",
     containment: "They avoid smoke and die in fire.",
   }),

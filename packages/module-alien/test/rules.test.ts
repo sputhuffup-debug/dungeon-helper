@@ -9,8 +9,8 @@ import { referenceLists, talentItems, careerItems, criticalInjuryItems, mentalTr
 const modeIds = new Set(modes.map((m) => m.id));
 
 describe("rule cards", () => {
-  it("has about 120 cards, each with a page and a unique prefixed id", () => {
-    expect(rules.length).toBeGreaterThanOrEqual(120);
+  it("has about 180 cards, each with a page and a unique prefixed id", () => {
+    expect(rules.length).toBeGreaterThanOrEqual(170);
     const ids = new Set<string>();
     for (const r of rules) {
       expect(r.id.startsWith("alien.rule.")).toBe(true);
@@ -31,13 +31,28 @@ describe("rule cards", () => {
     for (const slug of [
       "push", "skill-rolls", "helping", "story-points", "stress", "stress-response", "panic-triggers", "panic-roll", "mental-trauma",
       "range-bands", "time-units", "initiative", "actions", "damage-armor", "critical-injuries", "encumbrance", "supply-rolls",
-      "consumables", "starving", "dehydrated", "exhausted", "freezing", "healing", "stealth-mode", "zones", "calling-pvp",
+      "consumables", "fatigue", "food-water", "sleep-deprivation", "heat-cold", "suffocation", "vacuum", "healing", "stealth-mode", "zones", "calling-pvp",
       "buddies-rivals", "xp", "shore-leave", "xenomorphs-campaign", "three-acts", "agendas", "androids", "ship-combat",
       "space-travel", "ftl-travel", "ship-modules", "creature-attacks", "acid-splash", "lifecycle", "containment",
       "encounter-cadence", "job-frames", "gm-principles", "themes",
     ]) {
       expect(ids.has(`alien.rule.${slug}`), slug).toBe(true);
     }
+  });
+  it("keeps summaries to at most three sentences and cites the book's pages", () => {
+    const byId = new Map(rules.map((r) => [r.id, r]));
+    for (const r of rules) expect(r.summary.split(/(?<=[.!?])\s+(?=[A-Z"])/).length, r.id).toBeLessThanOrEqual(3);
+    const pages: Record<string, unknown> = {
+      "play-modes": 18, push: 43, "stress-response": 44, "story-points": [44, 158], "panic-roll": 72, "panic-results": 73,
+      "mental-trauma": 74, "range-bands": 55, initiative: 59, actions: 60, "critical-injuries": [68, 70], fatigue: 75,
+      "acid-splash": 210, "broken-xenomorph": [208, 209], "three-acts": 157, "calling-pvp": [27, 158], "gm-principles": 152,
+      "ship-actions": [143, 144], "ship-modules": [122, 124], xp: 30, "shore-leave": 257, "life-paths": [282, 289], "minor-corporations": 162,
+    };
+    for (const [slug, page] of Object.entries(pages)) expect(byId.get(`alien.rule.${slug}`)?.page, slug).toEqual(page);
+    // Rules the Evolved Edition does not have.
+    for (const slug of ["starving", "dehydrated", "exhausted", "freezing", "conditions", "derelicts"]) expect(byId.has(`alien.rule.${slug}`), slug).toBe(false);
+    expect(byId.get("alien.rule.mental-trauma")!.summary).toContain("D66");
+    expect(byId.get("alien.rule.range-bands")!.summary).toContain("Adjacent");
   });
   it("links only to rule cards and trackers that exist", () => {
     const ids = new Set(rules.map((r) => r.id));
@@ -82,9 +97,9 @@ describe("trackers and manifest", () => {
     const ruleIds = new Set(rules.map((r) => r.id));
     for (const t of trackers) for (const r of t.rules ?? []) expect(ruleIds.has(r), `${t.id} -> ${r}`).toBe(true);
   });
-  it("manifest is unverified, campaign by default, with both modes", () => {
+  it("manifest is verified, campaign by default, with both modes", () => {
     expect(manifest.id).toBe("alien");
-    expect(manifest.dataStatus).toBe("unverified");
+    expect(manifest.dataStatus).toBe("verified");
     expect(manifest.defaultMode).toBe("campaign");
     expect(manifest.modes.map((m) => m.id)).toEqual(["cinematic", "campaign"]);
   });

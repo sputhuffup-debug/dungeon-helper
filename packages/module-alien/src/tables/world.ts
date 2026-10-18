@@ -374,7 +374,7 @@ const HOOKS = [
   "Solar flares cut communications for 2D6 hours (2D6 days around an MV star).",
   "Spies from a neighboring colony have been caught and arrested.",
   "The operations manager and the deputy are feuding; everyone picks a side.",
-  "The PCs are invited to a formal dinner, meeting or party.",
+  "An invitation arrives: a formal dinner, meeting or party.",
   "The local colonists are not what they appear to be.",
   "A military ship is in orbit; its landing party hunts for someone or something.",
   "A rival colony or corporation is about to commit sabotage.",

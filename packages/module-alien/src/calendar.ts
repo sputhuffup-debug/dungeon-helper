@@ -1,6 +1,6 @@
 import type { CalendarDef } from "@campaign-forge/module-sdk";
 
-/** The setting uses the Gregorian calendar; the core book's default present is 2183. */
+/** The setting uses the Gregorian calendar. The book's star map is dated 2183 (inside cover) and the setting is the 2180s (p. 108). */
 export const calendar: CalendarDef = {
   id: "alien.gregorian",
   name: "Gregorian (2183)",

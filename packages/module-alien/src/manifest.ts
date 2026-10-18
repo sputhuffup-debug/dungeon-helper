@@ -19,10 +19,10 @@ export const manifest: ModuleManifest = {
   requiredCore: "0.1.0",
   modes,
   defaultMode: CAMPAIGN,
-  dataStatus: "unverified",
+  dataStatus: "verified",
   sourceBook: {
     title: "Alien: The Roleplaying Game, Core Rules, Evolved Edition",
     year: 2025,
-    pageNote: "Page references are the printed folios; the PDF index runs four pages ahead.",
+    pageNote: "Page references are the printed folios; in the PDF each page sits four pages later (printed p. 44 is PDF page 48).",
   },
 };
