@@ -1,16 +1,21 @@
-import type { ReferenceItem, ReferenceList } from "@campaign-forge/module-sdk";
+import type { PageRef, PlayModeId, ReferenceItem, ReferenceList } from "@campaign-forge/module-sdk";
 import { CAMPAIGN, CINEMATIC } from "../modes";
 
-export interface TalentItem extends ReferenceItem {
+export interface TalentInput {
+  id: string;
+  name: string;
+  page: PageRef;
+  summary: string;
   /** Career id for career talents; absent for general talents. */
   career?: string;
-  /** How many times the talent can be taken. */
-  stackLimit: number;
-  unverified: true;
+  mode?: PlayModeId[];
+  /** How many times the talent can be taken (default 1). */
+  stackLimit?: number;
 }
 
-type T = Omit<TalentItem, "unverified" | "stackLimit"> & { stackLimit?: number };
-const t = (x: T): TalentItem => ({ stackLimit: 1, ...x, unverified: true });
+export type TalentItem = TalentInput & ReferenceItem & { stackLimit: number; unverified: true };
+
+const t = (x: TalentInput): TalentItem => ({ stackLimit: 1, ...x, unverified: true });
 
 /**
  * Career talents (three per career, p. 48-49) and general talents (p. 50-51).

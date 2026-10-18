@@ -1,6 +1,11 @@
-import type { ReferenceItem, ReferenceList } from "@campaign-forge/module-sdk";
+import type { PageRef, ReferenceItem, ReferenceList } from "@campaign-forge/module-sdk";
 
-export interface CareerItem extends ReferenceItem {
+/** Explicit input shape (ReferenceItem's index signature defeats Omit<>). */
+export interface CareerInput {
+  id: string;
+  name: string;
+  page: PageRef;
+  summary: string;
   keyAttribute: "strength" | "agility" | "wits" | "empathy";
   keySkills: [string, string, string];
   cash: string;
@@ -10,10 +15,11 @@ export interface CareerItem extends ReferenceItem {
   agendas: string[];
   gear: string[];
   signatureItems: string[];
-  unverified: true;
 }
 
-const career = (c: Omit<CareerItem, "unverified">): CareerItem => ({ ...c, unverified: true });
+export type CareerItem = CareerInput & ReferenceItem & { unverified: true };
+
+const career = (c: CareerInput): CareerItem => ({ ...c, unverified: true });
 
 /**
  * Nine careers (p. 31-39). Every pick list is written from general knowledge of the

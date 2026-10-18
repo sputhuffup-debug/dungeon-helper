@@ -1,7 +1,10 @@
 import type { ReferenceItem, ReferenceList } from "@campaign-forge/module-sdk";
 import { CAMPAIGN } from "../modes";
 
-export interface FrameItem extends ReferenceItem {
+export interface FrameInput {
+  id: string;
+  name: string;
+  summary: string;
   /** Short id used in job table ids: alien.jobs.<short>.* */
   short: string;
   jobType: "job" | "mission" | "expedition";
@@ -10,10 +13,11 @@ export interface FrameItem extends ReferenceItem {
   defaultCareers: string[];
   ships: string[];
   salaryBand: string;
-  unverified: true;
 }
 
-const frame = (f: Omit<FrameItem, "unverified" | "mode" | "page">): FrameItem => ({
+export type FrameItem = FrameInput & ReferenceItem & { unverified: true };
+
+const frame = (f: FrameInput): FrameItem => ({
   ...f,
   mode: [CAMPAIGN],
   page: [234, 235],
