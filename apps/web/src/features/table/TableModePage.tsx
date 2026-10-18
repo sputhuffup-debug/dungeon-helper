@@ -127,7 +127,21 @@ function GmTable({ sessionId }: { sessionId: Id }) {
     );
   }
 
-  const done = session.status === "done";
+  if (session.status === "done") {
+    return (
+      <div className="cf-table-mode app-table" data-testid="table-mode">
+        <EmptyState
+          title={`${sessionLabel(session)} is finished`}
+          text="Its trackers are archived. Read what happened on the session page."
+          action={
+            <Link to="/c/$campaignId/sessions/$sessionId" params={{ campaignId, sessionId }} className="cf-btn cf-btn--primary">
+              Session page
+            </Link>
+          }
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="cf-table-mode app-table" data-testid="table-mode">
@@ -137,7 +151,7 @@ function GmTable({ sessionId }: { sessionId: Id }) {
         </Link>
         <div className="app-table__title">
           <strong data-testid="table-session">{sessionLabel(session)}</strong>
-          <Badge tone={session.status === "running" ? "success" : session.status === "done" ? "muted" : "warning"}>{session.status}</Badge>
+          <Badge tone={session.status === "running" ? "success" : "warning"}>{session.status}</Badge>
           {offline && (
             <Badge tone="warning" title="No network. Table mode keeps working; everything is saved on this device.">
               Offline
@@ -160,7 +174,7 @@ function GmTable({ sessionId }: { sessionId: Id }) {
       </header>
       {clock && !wrapping && (
         <div className="app-table__clock" data-testid="table-clock">
-          <BoundTracker sessionId={sessionId} def={clock} entities={[]} readonly={done} {...handlers} />
+          <BoundTracker sessionId={sessionId} def={clock} entities={[]} {...handlers} />
         </div>
       )}
 
