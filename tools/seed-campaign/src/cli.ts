@@ -32,6 +32,7 @@ function parseArgs(argv: string[]): Args {
       if (v === undefined) throw new Error(`${a} needs a value`);
       return v;
     };
+    if (a === "--") continue; // pnpm forwards the separator
     if (a === "--out") args.out = next();
     else if (a === "--json") args.json = next();
     else if (a === "--seed") args.seed = next();

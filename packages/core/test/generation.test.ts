@@ -12,8 +12,8 @@ const graph: GeneratedGraph = {
   rolls: [{ step: "name", dice: "d6", raw: [4], modifier: 0, total: 4, result: "Hope's End" }],
   produced: {
     entities: [
-      { tempId: "colony", type: "example.place", name: "Hope's End", fields: { climate: "cold" }, tags: ["colony"] },
-      { tempId: "mayor", type: "example.person", name: "Mayor Dunn", fields: { role: "mayor" }, within: "colony" },
+      { tempId: "colony", type: "example.place", name: "Hope's End", fields: { climate: "cold", subtype: "colony" }, tags: ["colony"] },
+      { tempId: "mayor", type: "example.person", subtype: "official", name: "Mayor Dunn", fields: { role: "mayor" }, within: "colony" },
       { tempId: "guard", type: "example.person", name: "Guard", fields: {}, within: "colony" },
     ],
     relationships: [
@@ -42,6 +42,7 @@ describe("acceptGeneratedGraph", () => {
     expect(entities.every((e) => e.provenance?.generatorRun === run.id)).toBe(true);
     expect(entities.every((e) => e.visibility.level === "players")).toBe(true);
     expect(entities[0]?.tags).toEqual(["colony", "generated"]);
+    expect(entities.map((e) => e.subtype)).toEqual(["colony", "official", undefined]);
 
     const stored = store.get("generatorRuns", run.id)!;
     expect(stored.produced).toEqual(entities.map((e) => e.id));

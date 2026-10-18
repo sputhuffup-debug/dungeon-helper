@@ -37,6 +37,9 @@ function parseArgs(argv: string[]): Args {
       return v;
     };
     switch (a) {
+      case "--":
+        // pnpm forwards the separator in `pnpm table-lint -- --module x`.
+        break;
       case "--module":
         args.module = next();
         break;

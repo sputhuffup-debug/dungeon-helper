@@ -303,6 +303,8 @@ export interface ProducedEntity {
   /** Temporary id unique within the run; relationships reference it. */
   tempId: string;
   type: string;
+  /** Entity subtype (e.g. "planet"). Falls back to `fields.subtype` when absent. */
+  subtype?: string;
   name: string;
   summary?: string;
   tags?: string[];

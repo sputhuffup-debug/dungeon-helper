@@ -54,6 +54,8 @@ export function acceptGeneratedGraph(store: CampaignStore, graph: GeneratedGraph
         provenance: { generatorRun: run.id },
       };
       if (p.summary !== undefined) input.summary = p.summary;
+      const subtype = p.subtype ?? (typeof p.fields.subtype === "string" ? p.fields.subtype : undefined);
+      if (subtype !== undefined) input.subtype = subtype;
       if (opts.visibility) input.visibility = opts.visibility;
       const entity = store.createEntity(input);
       idMap[p.tempId] = entity.id;
