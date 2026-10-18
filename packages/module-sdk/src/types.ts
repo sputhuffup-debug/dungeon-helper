@@ -481,6 +481,8 @@ export interface ReferenceItem {
 export interface EntityPreset {
   id: string;
   entityType: string;
+  /** Optional subtype id declared by the entity type (e.g. "planet"). */
+  subtype?: string;
   name: string;
   summary?: string;
   page?: PageRef;
