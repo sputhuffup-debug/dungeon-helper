@@ -64,3 +64,50 @@ export function archiveTrackerState(store: CampaignStore, sessionId: Id): Tracke
 function isPlainObject(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null && !Array.isArray(v);
 }
+
+// ---------------------------------------------------------------------------
+// campaign-scoped tracker state and in-world time
+// ---------------------------------------------------------------------------
+
+/** Campaign-scoped tracker state lives in `meta.settings` under this prefix plus the tracker id. */
+export const CAMPAIGN_TRACKER_PREFIX = "tracker:";
+/** In-world minutes elapsed in play, kept in `meta.settings`; advanced by the table clock. */
+export const WORLD_MINUTES_SETTING = "worldMinutes";
+
+/** State of a campaign-scoped tracker (persists across sessions, exported with the campaign). */
+export function getCampaignTrackerState(store: CampaignStore, trackerId: string): unknown {
+  return store.meta().settings?.[`${CAMPAIGN_TRACKER_PREFIX}${trackerId}`];
+}
+
+/**
+ * Merge `patch` into a campaign-scoped tracker's state, with the same rules as
+ * `updateTrackerState`: objects merge shallowly, anything else replaces,
+ * `undefined` resets.
+ */
+export function updateCampaignTrackerState(store: CampaignStore, trackerId: string, patch: unknown): unknown {
+  return store.transact(() => {
+    const key = `${CAMPAIGN_TRACKER_PREFIX}${trackerId}`;
+    const settings = { ...(store.meta().settings ?? {}) };
+    const current = settings[key];
+    if (patch === undefined) delete settings[key];
+    else if (isPlainObject(patch) && isPlainObject(current)) settings[key] = { ...current, ...patch };
+    else settings[key] = patch;
+    store.updateMeta({ settings });
+    return settings[key];
+  });
+}
+
+/** In-world minutes elapsed in play so far. */
+export function getWorldMinutes(store: CampaignStore): number {
+  const v = store.meta().settings?.[WORLD_MINUTES_SETTING];
+  return typeof v === "number" && Number.isFinite(v) ? v : 0;
+}
+
+/** Move in-world time forward by `minutes` (never backward); returns the new total. */
+export function advanceWorldMinutes(store: CampaignStore, minutes: number): number {
+  return store.transact(() => {
+    const next = getWorldMinutes(store) + Math.max(0, Number.isFinite(minutes) ? minutes : 0);
+    store.updateMeta({ settings: { ...(store.meta().settings ?? {}), [WORLD_MINUTES_SETTING]: next } });
+    return next;
+  });
+}

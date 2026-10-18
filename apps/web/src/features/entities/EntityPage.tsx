@@ -17,6 +17,7 @@ import { RelationshipsTab } from "./RelationshipsTab";
 import { SheetTab } from "./SheetTab";
 import { TimelineTab } from "./TimelineTab";
 import { EntityPrepPanels } from "../generate/EntityPrepPanels";
+import { LifecycleStart } from "../table/LifecycleStart";
 
 const TABS = ["sheet", "notes", "relationships", "backlinks", "timeline"] as const;
 
@@ -158,6 +159,7 @@ function EntityHeader({ entity, def }: { entity: Entity; def: EntityTypeDef | un
           />
       </div>
       <div className="app-entity__actions">
+        <LifecycleStart entity={entity} />
         <Button variant="ghost" onClick={() => setConfirmDelete(true)}>
           Delete
         </Button>

@@ -2,6 +2,7 @@ import { ClockTracker } from "./ClockTracker";
 import { CountdownTracker } from "./CountdownTracker";
 import { GenericTracker } from "./GenericTracker";
 import { InitiativeTracker } from "./InitiativeTracker";
+import { LifecycleTracker } from "./LifecycleTracker";
 import { getTracker, registerTracker } from "./registry";
 import { StealthTracker } from "./StealthTracker";
 import { StoryPointsTracker } from "./StoryPointsTracker";
@@ -17,6 +18,7 @@ export function registerDefaultTrackers(): void {
   registerTracker("story-points", StoryPointsTracker);
   registerTracker("supply", SupplyTracker);
   registerTracker("stealth", StealthTracker);
+  registerTracker("lifecycle", LifecycleTracker);
 }
 
 registerDefaultTrackers();

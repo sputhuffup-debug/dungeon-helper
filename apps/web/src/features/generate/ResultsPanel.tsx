@@ -47,6 +47,10 @@ export function describeEffect(e: Effect, name: (id: Id) => string): string {
       return e.text;
     case "prompt":
       return e.prompt.text;
+    case "createFromPreset":
+      return `New ${e.name ?? name(e.preset)} from preset ${e.preset}`;
+    case "applyPreset":
+      return `${name(e.entity)}: becomes preset ${e.preset}`;
   }
 }
 

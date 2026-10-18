@@ -31,7 +31,17 @@ export function usePlayerCharacters(): Entity[] {
 /** Entities in the shape trackers take (fields plus computed values). */
 export function useTrackerEntities(entities: Entity[]): TrackerEntity[] {
   const { module } = useCampaign();
-  return useMemo(() => entities.map((e) => ({ id: e.id, name: e.name, type: e.type, fields: e.fields, computed: computedOf(module, e) })), [entities, module]);
+  return useMemo(
+    () =>
+      entities.map((e) => {
+        const t: TrackerEntity = { id: e.id, name: e.name, type: e.type, fields: e.fields, computed: computedOf(module, e), conditions: (e.conditions ?? []).map((c) => c.id) };
+        const kind = module.entityType(e.type)?.kind;
+        if (kind) t.kind = kind;
+        if (e.provenance?.preset) t.preset = e.provenance.preset;
+        return t;
+      }),
+    [entities, module],
+  );
 }
 
 /** Scenes table mode steps through (planned scenes, else adventure order), live. */

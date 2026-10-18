@@ -396,8 +396,9 @@ export function acceptGenerated(ctx: StoreCtx & { module: Pick<LoadedModule, "ma
 }
 
 /** Apply module effects (for example shore-leave outcomes) to campaign data. */
-export function applyGeneratorEffects(ctx: StoreCtx, effects: Effect[], sessionId?: Id): ApplyEffectsResult {
-  return applyEffects(ctx.store, effects, sessionId ? { sessionId } : {});
+export function applyGeneratorEffects(ctx: StoreCtx & { module?: Pick<LoadedModule, "preset"> }, effects: Effect[], sessionId?: Id): ApplyEffectsResult {
+  const module = ctx.module;
+  return applyEffects(ctx.store, effects, { ...(sessionId ? { sessionId } : {}), ...(module ? { preset: (id: string) => module.preset(id) } : {}) });
 }
 
 export type PrepCtx = Pick<CampaignContextValue, "store" | "module" | "registry" | "whenDocSynced">;

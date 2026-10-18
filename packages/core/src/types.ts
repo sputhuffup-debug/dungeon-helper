@@ -52,6 +52,8 @@ export interface Provenance {
   preset?: string;
   /** Fields the GM edited after generation, as dotted paths. */
   editedFields?: string[];
+  /** Presets the entity has taken over time (oldest first), e.g. a creature maturing through stages. */
+  presetHistory?: Array<{ preset: string; at: string }>;
 }
 
 export interface Entity extends BaseRecord {

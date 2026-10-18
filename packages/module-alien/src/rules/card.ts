@@ -41,4 +41,5 @@ export const TR = {
   supply: "alien.supply",
   initiative: "alien.initiative",
   stealth: "alien.stealth",
+  gestation: "alien.gestation",
 };

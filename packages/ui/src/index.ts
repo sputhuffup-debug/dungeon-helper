@@ -48,6 +48,7 @@ export { StressTracker, panicLog, appendPanic, type PanicLogEntry } from "./trac
 export { StoryPointsTracker, storyPoints } from "./trackers/StoryPointsTracker";
 export { SupplyTracker } from "./trackers/SupplyTracker";
 export { StealthTracker, stealthState, type HiddenNpc, type StealthState } from "./trackers/StealthTracker";
+export { LifecycleTracker } from "./trackers/LifecycleTracker";
 
 // Map
 export { ZoneMapEditor, cycleBorder, nextBorderKind, type ZoneMapEditorProps, type MapTool } from "./map/ZoneMapEditor";

@@ -11,6 +11,12 @@ export interface TrackerEntity {
   type?: string;
   fields: Record<string, unknown>;
   computed?: Record<string, unknown>;
+  /** Core entity kind ("character", "creature"...). */
+  kind?: string;
+  /** Ids of the entity's current conditions. */
+  conditions?: string[];
+  /** Preset the entity was made from, if any. */
+  preset?: string;
 }
 
 export interface TrackerProps {
@@ -26,6 +32,8 @@ export interface TrackerProps {
   /** Ask the app to run a module dice operation for an entity. */
   onRollOperation?: (operationId: string, entityId?: string, extra?: Record<string, unknown>) => void;
   rng?: Rng;
+  /** In-world minutes elapsed in the campaign (for trackers that run on play time). */
+  worldMinutes?: number;
   /** For the stealth tracker: zones of the current scene map. */
   zones?: MapZone[];
   borders?: MapZoneBorder[];

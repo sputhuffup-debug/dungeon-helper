@@ -40,6 +40,14 @@ export const relationshipTypes: RelationshipTypeDef[] = [
     toKinds: ["vehicle"],
   },
   {
+    // A xenomorph to the host it burst from or was ovomorphed out of (life-cycle tracker).
+    id: "emerged_from",
+    forward: "emerged from",
+    reverse: "host of",
+    fromKinds: ["creature"],
+    toKinds: ["character", "creature"],
+  },
+  {
     id: "stationed_at",
     forward: "stationed at",
     reverse: "hosts",

@@ -65,6 +65,22 @@ export const exampleDice: DiceSystem = {
   describe(result) {
     return `${result.successes} success${result.successes === 1 ? "" : "es"} on ${result.dice.length}d6${result.pushes ? " (pushed)" : ""}`;
   },
+  operations: {
+    // One d6 for the curse life cycle: a bane (1) marks the hero for good.
+    omen: {
+      id: "omen",
+      name: "Omen",
+      page: 22,
+      input: { type: "object", properties: { entity: { type: "string" } } },
+      run(input, rng) {
+        const value = rng.int(1, 6);
+        const marked = value === 1;
+        const effects: Effect[] = [{ kind: "log", text: `Omen: ${value}` }];
+        if (marked && typeof input.entity === "string") effects.push({ kind: "addCondition", entity: input.entity, condition: { id: "example.marked", label: "Marked" } });
+        return { total: value, rolls: [{ step: "omen", dice: "1d6", raw: [value], modifier: 0, total: value, result: { marked } }], result: { marked }, label: marked ? "Marked" : "Spared" };
+      },
+    },
+  },
 };
 
 // ---------------------------------------------------------------------------
@@ -384,7 +400,10 @@ export const exampleModule: GameModule = {
   },
   dice: exampleDice,
   entityTypes: [heroType, placeType],
-  relationshipTypes: [{ id: "example.guards", forward: "guards", reverse: "guarded by", fromKinds: ["character"], toKinds: ["location"] }],
+  relationshipTypes: [
+    { id: "example.guards", forward: "guards", reverse: "guarded by", fromKinds: ["character"], toKinds: ["location"] },
+    { id: "example.risen_from", forward: "risen from", reverse: "raised", fromKinds: ["character"], toKinds: ["character"] },
+  ],
   referenceLists: [
     {
       id: "example.origins",
@@ -462,6 +481,51 @@ export const exampleModule: GameModule = {
       binds: ["example.hero.wounds"],
       rules: ["example.rule.wounds"],
       config: { max: { computed: "health" } },
+    },
+    {
+      // A generic life cycle: a curse that runs on in-world time and raises the victim as a veteran revenant.
+      id: "example.tracker.curse",
+      name: "Curses",
+      kind: "lifecycle",
+      scope: "campaign",
+      page: 22,
+      config: {
+        units: [
+          { id: "hour", name: "Hour", minutes: 60 },
+          { id: "day", name: "Day", minutes: 1440 },
+        ],
+        paces: [
+          { id: "slower", label: "Slower", factor: 0.5 },
+          { id: "normal", label: "Normal", factor: 1 },
+          { id: "faster", label: "Faster", factor: 2 },
+        ],
+        defaultPace: "normal",
+        defaultVariant: "curse",
+        spawn: { name: "Revenant of {host}", link: { type: "example.risen_from" } },
+        start: { label: "Curse", entityKinds: ["character"] },
+        labels: { instance: "Curse", subject: "Victim" },
+        variants: [
+          {
+            id: "curse",
+            name: "Grave curse",
+            stages: [
+              {
+                id: "marked",
+                name: "Marked",
+                label: "Stage 1",
+                page: 22,
+                duration: { amount: 1, unit: "day" },
+                next: [{ to: "fading" }],
+                check: { label: "Omen", operation: "omen", every: { amount: 6, unit: "hour" }, stopCondition: "example.marked" },
+                removal: { label: "Lift the curse", blockedByCondition: "example.marked", blockedNote: "Too late to lift it.", effects: [{ kind: "log", text: "{host} is free." }] },
+              },
+              { id: "fading", name: "Fading", label: "Stage 2", duration: { amount: [1, 3], unit: "day" }, next: [{ to: "risen" }] },
+              { id: "risen", name: "Risen", label: "Stage 3", creaturePreset: "example.preset.veteran", next: [{ to: "lord", label: "Lord", condition: "When the GM says." }], waitNote: "Waits for a dark moon." },
+              { id: "lord", name: "Lord", label: "Stage 4", finalNote: "Nothing comes after." },
+            ],
+          },
+        ],
+      },
     },
   ],
   calendar: {

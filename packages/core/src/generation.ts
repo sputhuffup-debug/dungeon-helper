@@ -105,6 +105,8 @@ export function recordEdit(store: CampaignStore, runId: Id, entityId: Id, path: 
 
 export type PresetOverrides = Partial<Pick<Entity, "name" | "summary" | "tags" | "visibility" | "subtype">> & {
   fields?: Record<string, unknown>;
+  /** Create the entity under this (unused) id. */
+  id?: Id;
 };
 
 /** Create an entity from a module preset, recording the preset in provenance. */
@@ -121,5 +123,6 @@ export function presetToEntity(store: CampaignStore, preset: EntityPreset, overr
   const summary = overrides.summary ?? preset.summary;
   if (summary !== undefined) input.summary = summary;
   if (overrides.visibility) input.visibility = overrides.visibility;
+  if (overrides.id !== undefined) input.id = overrides.id;
   return store.createEntity(input);
 }

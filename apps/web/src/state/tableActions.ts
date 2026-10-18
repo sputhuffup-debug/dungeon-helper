@@ -7,8 +7,13 @@
 import {
   CampaignStore,
   RichTextRegistry,
+  advanceWorldMinutes,
   appendTrackerLog,
   applyEffects,
+  getCampaignTrackerState,
+  getWorldMinutes,
+  newId,
+  updateCampaignTrackerState,
   applyImportedDocs,
   archiveTrackerState,
   bodyOf,
@@ -27,8 +32,26 @@ import {
   type TimelineEvent,
   type TrackerState,
 } from "@campaign-forge/core";
-import { computeFields, createRng, type DiceOperation, type DiceOperationResult, type Effect, type LoadedModule, type Prompt, type RollRecord, type RollResult } from "@campaign-forge/module-sdk";
-import { appendPanic, type PromptAnswer } from "@campaign-forge/ui";
+import {
+  activeLifecyclesFor,
+  advanceLifecycles,
+  computeFields,
+  createRng,
+  lifecycleConfig,
+  lifecycleState,
+  startLifecycle,
+  type DiceOperation,
+  type DiceOperationResult,
+  type Effect,
+  type LifecycleConfig,
+  type LifecycleInstance,
+  type LoadedModule,
+  type Prompt,
+  type RollRecord,
+  type RollResult,
+  type TrackerDef,
+} from "@campaign-forge/module-sdk";
+import { appendPanic, clockState, clockUnits, type ClockUnit, type PromptAnswer } from "@campaign-forge/ui";
 import * as Y from "yjs";
 import type { CampaignContextValue } from "./CampaignProvider";
 
@@ -398,7 +421,7 @@ export function rollOperation(ctx: Ctx, sessionId: Id, operationId: string, enti
   return store.transact(() => {
     const seed = nextRollSeed(store, sessionId);
     const result = op.run(input, createRng(seed), ctx.module.tables);
-    const applied = applyEffects(store, result.effects ?? [], { sessionId });
+    const applied = applyEffects(store, result.effects ?? [], effectContext(ctx, sessionId));
     if (entity && typeof result.total === "number") recordPanic(ctx, sessionId, operationId, entity.id, result);
     const data: DiceLogData = { kind: "operation", seed, operation: operationId, input, label: result.label, rolls: result.rolls, ...(result.effects ? { effects: result.effects } : {}) };
     if (typeof result.total === "number") data.total = result.total;
@@ -437,10 +460,178 @@ export function recordPoolRoll(ctx: Ctx, sessionId: Id, input: { label: string; 
   });
 }
 
+/** Effect context for the campaign's module: session log plus preset lookup (for spawn and stage changes). */
+export function effectContext(ctx: Ctx, sessionId?: Id): { sessionId?: Id; preset: LoadedModule["preset"] } {
+  return { ...(sessionId ? { sessionId } : {}), preset: (id) => ctx.module.preset(id) };
+}
+
 /** Apply effects for the session (tracker onEffects, prompt answers). */
 export function applySessionEffects(ctx: Ctx, sessionId: Id, effects: Effect[]): Prompt[] {
   if (effects.length === 0) return [];
-  return applyEffects(ctx.store, effects, { sessionId }).prompts;
+  return applyEffects(ctx.store, effects, effectContext(ctx, sessionId)).prompts;
+}
+
+// ---------------------------------------------------------------------------
+// campaign-scoped trackers, in-world time and life cycles
+// ---------------------------------------------------------------------------
+
+/** Tracker-log channel for in-world time. */
+export const WORLD_LOG = "world";
+
+/** A tracker's live state: on the campaign for `campaign` scope, else on the session. */
+export function trackerStateOf(ctx: Ctx, sessionId: Id | undefined, def: TrackerDef): unknown {
+  if (def.scope === "campaign") return getCampaignTrackerState(ctx.store, def.id);
+  return sessionId ? sessionTrackerState(ctx.store, sessionId)?.state[def.id] : undefined;
+}
+
+/** Write a tracker's state where its scope keeps it. */
+export function setTrackerStateOf(ctx: Ctx, sessionId: Id | undefined, def: TrackerDef, next: unknown): void {
+  if (def.scope === "campaign") updateCampaignTrackerState(ctx.store, def.id, next);
+  else if (sessionId) updateTrackerState(ctx.store, sessionId, def.id, next);
+}
+
+/** In-world minutes the clock moved forward from `prev` to `next`: the biggest changed unit's step (never negative). */
+export function clockAdvanceMinutes(units: ClockUnit[], prev: unknown, next: unknown): number {
+  const a = clockState(prev, units).counters;
+  const b = clockState(next, units).counters;
+  for (let i = units.length - 1; i >= 0; i--) {
+    const u = units[i]!;
+    const delta = (b[u.id] ?? 0) - (a[u.id] ?? 0);
+    if (delta !== 0) return delta > 0 ? delta * (u.minutes ?? 0) : 0;
+  }
+  return 0;
+}
+
+/**
+ * Set the session clock (a `clock` tracker) and move in-world time forward by
+ * what it advanced. Going back or resetting the clock does not rewind the
+ * world. Returns the prompts the advance raised.
+ */
+export function setClockState(ctx: Ctx, sessionId: Id, def: TrackerDef, next: unknown): Prompt[] {
+  return ctx.store.transact(() => {
+    const prev = getTrackerState(ctx.store, sessionId).state[def.id];
+    updateTrackerState(ctx.store, sessionId, def.id, next);
+    const minutes = clockAdvanceMinutes(clockUnits(def.config), prev, next);
+    return minutes > 0 ? advanceWorldTime(ctx, sessionId, minutes).prompts : [];
+  });
+}
+
+/** Campaign-scoped life-cycle trackers of the module. */
+export function lifecycleTrackers(ctx: Ctx): TrackerDef[] {
+  return ctx.module.module.trackers.filter((t) => t.kind === "lifecycle" && t.scope === "campaign");
+}
+
+export interface WorldAdvance {
+  /** World minutes after the advance. */
+  at: number;
+  prompts: Prompt[];
+}
+
+function hasCondition(store: CampaignStore, entityId: string, condition: string): boolean {
+  return !!store.get("entities", entityId)?.conditions?.some((c) => c.id === condition);
+}
+
+/**
+ * Move in-world time forward and run every campaign life cycle over it: due
+ * checks roll their dice operation for the host (seeded per session roll,
+ * logged), finished stages move on, spawned creatures are created from their
+ * presets and later stages swap the presets. Player characters are asked to
+ * witness births.
+ */
+export function advanceWorldTime(ctx: Ctx, sessionId: Id | undefined, minutes: number): WorldAdvance {
+  const store = ctx.store;
+  return store.transact(() => {
+    if (!(minutes > 0)) return { at: getWorldMinutes(store), prompts: [] };
+    const at = advanceWorldMinutes(store, minutes);
+    const prompts: Prompt[] = [];
+    if (sessionId) appendTrackerLog(store, sessionId, { tracker: WORLD_LOG, text: `In-world time +${minutes} min`, data: { minutes, at } });
+    const witnesses = playerCharacters(ctx).map((e) => ({ id: e.id, name: e.name }));
+    for (const def of lifecycleTrackers(ctx)) {
+      const raw = getCampaignTrackerState(store, def.id);
+      const state = lifecycleState(raw);
+      if (state.instances.every((i) => i.ended || i.paused)) continue;
+      const result = advanceLifecycles(lifecycleConfig(def.config), state, minutes, {
+        at,
+        witnesses,
+        newId: () => newId(),
+        hasCondition: (entity, condition) => hasCondition(store, entity, condition),
+        runCheck: (inst, check) => {
+          if (!sessionId || !store.has("entities", inst.host)) return;
+          const roll = rollOperation(ctx, sessionId, check.operation, inst.host);
+          prompts.push(...roll.prompts);
+        },
+      });
+      prompts.push(...applyEffects(store, result.effects, effectContext(ctx, sessionId)).prompts);
+      updateCampaignTrackerState(store, def.id, { ...(isRecord(raw) ? raw : {}), instances: result.state.instances });
+    }
+    return { at, prompts };
+  });
+}
+
+/** Where a life cycle can start from this entity: as its subject, or as the source creature. */
+export interface LifecycleStartOption {
+  def: TrackerDef;
+  config: LifecycleConfig;
+  role: "host" | "source";
+  /** Variant preselected for a source (by its preset). */
+  variant: string;
+}
+
+export function lifecycleStartOptions(ctx: Ctx, entity: Pick<Entity, "type" | "provenance"> & { fields?: Entity["fields"] }): LifecycleStartOption[] {
+  const kind = ctx.module.entityType(entity.type)?.kind;
+  const out: LifecycleStartOption[] = [];
+  for (const def of lifecycleTrackers(ctx)) {
+    const config = lifecycleConfig(def.config);
+    if (!config.start) continue;
+    const preset = entity.provenance?.preset;
+    const bySource = preset ? config.variants.find((v) => v.sourcePresets?.includes(preset)) : undefined;
+    if (bySource && kind && (config.start.sourceKinds ?? []).includes(kind)) out.push({ def, config, role: "source", variant: bySource.id });
+    else if (kind && config.start.entityKinds.includes(kind) && !isExempt(config, entity)) out.push({ def, config, role: "host", variant: config.defaultVariant });
+  }
+  return out;
+}
+
+/** Whether the config's `start.exemptField` rules the entity out as a subject (e.g. an android). */
+export function isExempt(config: LifecycleConfig, entity: { fields?: Entity["fields"] }): boolean {
+  const field = config.start?.exemptField;
+  return !!field && !!getPath(entity.fields ?? {}, field);
+}
+
+/** Running life-cycle instances that involve the entity (as host or spawn), per tracker. */
+export function activeLifecycles(ctx: Ctx, entityId: Id): Array<{ def: TrackerDef; config: LifecycleConfig; instance: LifecycleInstance }> {
+  return lifecycleTrackers(ctx).flatMap((def) => {
+    const config = lifecycleConfig(def.config);
+    return activeLifecyclesFor(lifecycleState(getCampaignTrackerState(ctx.store, def.id)), entityId).map((instance) => ({ def, config, instance }));
+  });
+}
+
+/**
+ * Start a life cycle on `host` at the current in-world
+ * time. The seed comes from the tracker, host, world time and instance count,
+ * so replaying the same steps gives the same rolled durations.
+ */
+export function startLifecycleFor(ctx: Ctx, sessionId: Id | undefined, trackerId: string, input: { host: Id; variant?: string; source?: Id }): { instance: LifecycleInstance; prompts: Prompt[] } {
+  const store = ctx.store;
+  const def = lifecycleTrackers(ctx).find((t) => t.id === trackerId);
+  if (!def) throw new Error(`No campaign life-cycle tracker "${trackerId}"`);
+  const host = store.get("entities", input.host);
+  if (!host) throw new Error(`entities/${input.host} not found`);
+  return store.transact(() => {
+    const config = lifecycleConfig(def.config);
+    const raw = getCampaignTrackerState(store, def.id);
+    const state = lifecycleState(raw);
+    const at = getWorldMinutes(store);
+    const id = newId();
+    const result = startLifecycle(
+      config,
+      state,
+      { id, variant: input.variant ?? config.defaultVariant, host: host.id, hostName: host.name, seed: `${def.id}:${host.id}:${at}:${state.instances.length}`, ...(input.source ? { source: input.source } : {}) },
+      { at, newId: () => newId(), witnesses: playerCharacters(ctx).map((e) => ({ id: e.id, name: e.name })) },
+    );
+    const prompts = applyEffects(store, result.effects, effectContext(ctx, sessionId)).prompts;
+    updateCampaignTrackerState(store, def.id, { ...(isRecord(raw) ? raw : {}), instances: result.state.instances });
+    return { instance: result.state.instances.find((i) => i.id === id)!, prompts };
+  });
 }
 
 // ---------------------------------------------------------------------------

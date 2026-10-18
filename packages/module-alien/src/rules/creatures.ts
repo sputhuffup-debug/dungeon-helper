@@ -26,15 +26,31 @@ export const creatureRules: RuleCard[] = [
   }),
   card("lifecycle", "The XX121 life cycle", "Xenomorph XX121 passes from egg to Facehugger to Chestburster to adult: Stage IV drone, scout or stalker, Stage V soldier, worker or sentry, and Stage VI praetorian, charger or queen. Stages beyond that are rumor.", [209, 221], {
     tags: ["creatures", "lifecycle"],
-    links: { rules: ["alien.rule.facehugger", "alien.rule.chestburster", "alien.rule.xenomorph-stages", "alien.rule.queen", "alien.rule.containment"] },
+    links: { rules: ["alien.rule.facehugger", "alien.rule.chestburster", "alien.rule.xenomorph-stages", "alien.rule.queen", "alien.rule.containment", "alien.rule.variable-gestation", "alien.rule.stage-iv-molting"], trackers: [TR.gestation] },
+  }),
+  card("variable-gestation", "Variable gestation", "Each strain has a usual gestation time, but it can change: a host with a weak immune system or a tendency to cancer may carry it faster or slower, catching it in hypersleep slows it once revived, and stasis stops it until the host wakes. In the end the GM sets the speed the story needs.", 216, {
+    tags: ["creatures", "lifecycle", "gm"],
+    links: { rules: ["alien.rule.lifecycle", "alien.rule.chestburster"], trackers: [TR.gestation] },
+  }),
+  card("burster-variants", "Burster variants", "A Bambi Burster grows inside a four-legged animal, which matures faster than a human, and is born running on spindly legs. A Praetomorph Imp grows up much faster than a Chestburster and may mimic whoever is nearest, and a Queen Burster takes days instead of hours to gestate.", [215, 216], {
+    tags: ["creatures", "lifecycle"],
+    links: { tables: ["alien.creatures.attack.chestburster"], rules: ["alien.rule.chestburster", "alien.rule.variable-gestation"], trackers: [TR.gestation] },
+  }),
+  card("stage-iv-molting", "From Stage IV to Stage V", "A Drone stays at Stage IV until a Queen's pheromones make it molt into a Soldier or Worker, as the hive requires; a Scout becomes a Sentry once a Queen is born and the hive is safe. A Stalker, the adult Praetomorph, never molts again.", [217, 219], {
+    tags: ["creatures", "lifecycle"],
+    links: { rules: ["alien.rule.hive-mind", "alien.rule.xenomorph-stages", "alien.rule.lifecycle"], trackers: [TR.gestation] },
+  }),
+  card("hive-mind", "Hive mind", "Six or more Stage IV XX121 together start acting in concert, and with a Queen among them they molt to Stage V. Larger hives seem to grow cleverer.", 219, {
+    tags: ["creatures", "lifecycle"],
+    links: { rules: ["alien.rule.stage-iv-molting", "alien.rule.queen"], trackers: [TR.gestation] },
   }),
   card("ovomorph", "The egg", "With a potential host (not an android) within Short range, roll a stress die each round, and a facehugger releases the parasite. A host at Adjacent range must pass a Mobility roll, no action, each turn to avoid disturbing it. A lone drone can also turn cocooned hosts into eggs over 24 to 36 hours.", 212, {
     tags: ["creatures", "lifecycle"],
-    links: { rules: ["alien.rule.facehugger", "alien.rule.lifecycle"] },
+    links: { rules: ["alien.rule.facehugger", "alien.rule.lifecycle"], trackers: [TR.gestation] },
   }),
   card("facehugger", "Facehugger", "Its D6 attacks escalate from a menacing scuttle through tail grapples to a face leap and the Final Embrace, eight dice that only an APEsuit's armor resists. A facehugged victim is broken and unconscious; within a shift it falls off, and a shift later a Chestburster emerges. Removing it kills the host unless it is frozen first, and each stretch a stress die may show the host is already implanted.", [212, 214], {
     tags: ["creatures", "lifecycle"],
-    links: { tables: ["alien.creatures.attack.facehugger"], rules: ["alien.rule.lifecycle", "alien.rule.chestburster", "alien.rule.facehugger-swarm"] },
+    links: { tables: ["alien.creatures.attack.facehugger"], rules: ["alien.rule.lifecycle", "alien.rule.chestburster", "alien.rule.facehugger-swarm"], trackers: [TR.gestation] },
   }),
   card("facehugger-swarm", "Facehugger swarms", "Several facehuggers in one zone can act as a swarm whose Speed depends on how many there are, from 2 for one or two up to 6 for 21 or more. Each one must still be killed separately.", 213, {
     tags: ["creatures", "combat"],
@@ -42,7 +58,7 @@ export const creatureRules: RuleCard[] = [
   }),
   card("chestburster", "Chestburster", "The birth kills the host outright. The Stage III creature, including the Bambi Burster and Imp variants, attacks or flees to hide, feed and grow into Stage IV; facehuggers and chestbursters at zero Health are simply destroyed.", [215, 216], {
     tags: ["creatures", "lifecycle"],
-    links: { tables: ["alien.creatures.attack.chestburster"], rules: ["alien.rule.lifecycle", "alien.rule.panic-triggers"] },
+    links: { tables: ["alien.creatures.attack.chestburster"], rules: ["alien.rule.lifecycle", "alien.rule.panic-triggers", "alien.rule.burster-variants"], trackers: [TR.gestation] },
   }),
   card("xenomorph-stages", "Adult xenomorph forms", "Stage IV drones, scouts and stalkers and Stage V soldiers, workers and sentries each have their own Speed, Health, skills, armor, acid splash and attack table. Workers avoid fights, soldiers attack in groups, and sentries guard the queen.", [217, 221], {
     tags: ["creatures", "lifecycle"],

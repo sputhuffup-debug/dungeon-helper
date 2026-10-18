@@ -3,7 +3,8 @@
  * core applies them and records what it did. Prompt effects are returned
  * for the UI to answer (their own effects come back through applyEffects).
  */
-import type { Effect, Prompt } from "@campaign-forge/module-sdk";
+import type { ApplyPresetEffect, CreateFromPresetEffect, Effect, EntityPreset, Prompt } from "@campaign-forge/module-sdk";
+import { presetToEntity, type PresetOverrides } from "./generation";
 import { now } from "./ids";
 import { clone, getPath, setPath } from "./paths";
 import type { CampaignStore } from "./store";
@@ -12,6 +13,8 @@ import type { AppliedEffect, Entity, Id } from "./types";
 
 export interface EffectContext {
   sessionId?: Id;
+  /** Resolves module presets for `createFromPreset` and `applyPreset` (e.g. `loadedModule.preset`). */
+  preset?: (id: string) => EntityPreset | undefined;
 }
 
 export interface ApplyEffectsResult {
@@ -19,6 +22,8 @@ export interface ApplyEffectsResult {
   prompts: Prompt[];
   /** Effects that could not be applied (for example an unknown entity). */
   skipped: Array<{ effect: Effect; reason: string }>;
+  /** Entities created by `createFromPreset`, keyed by the effect's tempId (or its id). */
+  created: Record<string, Id>;
 }
 
 function describe(effect: Effect, entity?: Entity): string {
@@ -36,14 +41,55 @@ function describe(effect: Effect, entity?: Entity): string {
       return effect.text;
     case "prompt":
       return effect.prompt.text;
+    case "createFromPreset":
+      return `${who || effect.name || effect.preset}: created from preset ${effect.preset}`;
+    case "applyPreset":
+      return `${who}: now preset ${effect.preset}`;
   }
+}
+
+function createFromPreset(store: CampaignStore, effect: CreateFromPresetEffect, preset: EntityPreset, resolve: (ref: string) => Id | undefined): Entity {
+  const overrides: PresetOverrides = {};
+  if (effect.name !== undefined) overrides.name = effect.name;
+  if (effect.fields !== undefined) overrides.fields = effect.fields;
+  if (effect.tags !== undefined) overrides.tags = [...new Set([...(preset.tags ?? []), ...effect.tags])];
+  if (effect.id !== undefined) overrides.id = effect.id;
+  const entity = presetToEntity(store, preset, overrides);
+  const at = now();
+  store.update("entities", entity.id, { provenance: { ...(entity.provenance ?? {}), presetHistory: [{ preset: preset.id, at }] } });
+  if (effect.link) {
+    const to = resolve(effect.link.to);
+    if (to !== undefined) store.createRelationship(effect.link.type, entity.id, to, effect.link.note);
+  }
+  return store.get("entities", entity.id)!;
+}
+
+function applyPreset(store: CampaignStore, effect: ApplyPresetEffect, entity: Entity, preset: EntityPreset): void {
+  const fields = clone(preset.fields);
+  for (const path of effect.keep ?? []) {
+    const v = getPath(entity.fields, path);
+    if (v !== undefined) setPath(fields, path, clone(v));
+  }
+  const prov = entity.provenance ?? {};
+  const history = prov.presetHistory ?? (prov.preset ? [{ preset: prov.preset, at: entity.created }] : []);
+  const patch: Partial<Entity> = {
+    fields,
+    tags: [...new Set([...entity.tags, ...(preset.tags ?? [])])],
+    provenance: { ...prov, preset: preset.id, presetHistory: [...history, { preset: preset.id, at: now() }] },
+  };
+  if (preset.summary !== undefined) patch.summary = preset.summary;
+  if (preset.subtype !== undefined) patch.subtype = preset.subtype;
+  store.update("entities", entity.id, patch);
 }
 
 export function applyEffects(store: CampaignStore, effects: Effect[], ctx: EffectContext = {}): ApplyEffectsResult {
   const applied: AppliedEffect[] = [];
   const prompts: Prompt[] = [];
   const skipped: ApplyEffectsResult["skipped"] = [];
+  const created: Record<string, Id> = {};
   const session = ctx.sessionId !== undefined && store.has("sessions", ctx.sessionId) ? ctx.sessionId : undefined;
+  /** An entity reference: a tempId created earlier in this batch, else an entity id. */
+  const resolve = (ref: string): Id | undefined => created[ref] ?? (store.has("entities", ref) ? ref : undefined);
 
   store.transact(() => {
     for (const effect of effects) {
@@ -53,8 +99,35 @@ export function applyEffects(store: CampaignStore, effects: Effect[], ctx: Effec
       }
       const at = now();
       let entity: Entity | undefined;
-      if (effect.kind !== "log") {
-        entity = store.get("entities", effect.entity);
+      if (effect.kind === "createFromPreset" || effect.kind === "applyPreset") {
+        const preset = ctx.preset?.(effect.preset);
+        if (!preset) {
+          skipped.push({ effect, reason: ctx.preset ? `preset ${effect.preset} not found` : "no preset resolver" });
+          continue;
+        }
+        if (effect.kind === "createFromPreset") {
+          if (effect.id !== undefined && store.has("entities", effect.id)) {
+            skipped.push({ effect, reason: `entities/${effect.id} already exists` });
+            continue;
+          }
+          entity = createFromPreset(store, effect, preset, resolve);
+          created[effect.tempId ?? entity.id] = entity.id;
+        } else {
+          const id = resolve(effect.entity);
+          entity = id !== undefined ? store.get("entities", id) : undefined;
+          if (!entity) {
+            skipped.push({ effect, reason: `entities/${effect.entity} not found` });
+            continue;
+          }
+          if (entity.type !== preset.entityType) {
+            skipped.push({ effect, reason: `preset ${preset.id} is for ${preset.entityType}, not ${entity.type}` });
+            continue;
+          }
+          applyPreset(store, effect, entity, preset);
+        }
+      } else if (effect.kind !== "log") {
+        const id = resolve(effect.entity);
+        entity = id !== undefined ? store.get("entities", id) : undefined;
         if (!entity) {
           skipped.push({ effect, reason: `entities/${effect.entity} not found` });
           continue;
@@ -90,6 +163,8 @@ export function applyEffects(store: CampaignStore, effects: Effect[], ctx: Effec
           break;
         }
         case "log":
+        case "createFromPreset":
+        case "applyPreset":
           break;
       }
       const record: AppliedEffect = { at, effect };
@@ -107,5 +182,5 @@ export function applyEffects(store: CampaignStore, effects: Effect[], ctx: Effec
       applied.push(record);
     }
   });
-  return { applied, prompts, skipped };
+  return { applied, prompts, skipped, created };
 }

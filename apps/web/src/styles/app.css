@@ -1994,3 +1994,11 @@ a.cf-btn {
   flex-wrap: wrap;
   gap: var(--cf-space-1);
 }
+
+/* life-cycle start (infections) on character cards and entity pages */
+.app-lifecycle-start {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cf-space-1);
+}
