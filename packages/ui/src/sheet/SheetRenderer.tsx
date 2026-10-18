@@ -197,7 +197,8 @@ interface FieldViewProps extends Omit<SectionProps, "section"> {
 function SheetFieldView({ field, span, def, fields, computed, readonly, referenceLists, errorMap, schemaFor, onChange, onOpenRule }: FieldViewProps) {
   const id = useId();
   const path = valuePathOf(field.path);
-  const schema = path ? schemaFor(field.path) ?? schemaFor(path) : undefined;
+  // Widgets edit the value at `path`, so prefer its schema over the wildcard one.
+  const schema = path ? schemaFor(path) ?? schemaFor(field.path) : undefined;
   const value = path ? getPath(fields, path) : fields;
   const kind = defaultWidgetFor(field, schema, value, computed, path);
   const Widget = getWidget(kind) ?? getWidget(defaultWidgetFor({ ...field, widget: undefined }, schema, value, computed, path)) ?? getWidget("text");

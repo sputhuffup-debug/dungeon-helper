@@ -33,7 +33,13 @@ export function SkillsField(props: WidgetProps) {
   const skills = isRecord(value) ? value : {};
   const attrPath = configString(field, "attributesPath", "attributes") as string;
   const min = configNumber(field, "min", 0);
-  const max = configNumber(field, "max", typeof props.schema?.maximum === "number" ? props.schema.maximum : 5);
+  const maxFor = (skillId: string): number | undefined => {
+    const own = configNumber(field, "max");
+    if (own !== undefined) return own;
+    const propsSchema = isRecord(props.schema?.properties) ? props.schema.properties[skillId] : undefined;
+    const sub = isRecord(propsSchema) ? propsSchema : isRecord(props.schema?.additionalProperties) ? props.schema.additionalProperties : undefined;
+    return typeof sub?.maximum === "number" ? sub.maximum : 5;
+  };
   const set = (id: string, n: number) => onChange({ ...skills, [id]: n });
   return (
     <table className="cf-skills">
@@ -64,7 +70,7 @@ export function SkillsField(props: WidgetProps) {
               <td className="cf-muted">{r.attribute ? humanize(r.attribute) : "—"}</td>
               <td className="cf-skills__num">{attrValue}</td>
               <td className="cf-skills__num">
-                {readonly ? skillValue : <Stepper value={skillValue} min={min} max={max} onChange={(n) => set(r.id, n)} label={r.name} />}
+                {readonly ? skillValue : <Stepper value={skillValue} min={min} max={maxFor(r.id)} onChange={(n) => set(r.id, n)} label={r.name} />}
               </td>
               <td className="cf-skills__num cf-skills__pool" data-testid={`pool-${r.id}`}>
                 {pool}

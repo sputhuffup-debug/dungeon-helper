@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { DiceSystem, DieSpec, RollResult, Rng } from "@campaign-forge/module-sdk";
 import { Badge } from "../primitives/Badge";
 import { Button } from "../primitives/Button";
@@ -29,9 +29,17 @@ export function specById(dice: DiceSystem, id: string): DieSpec | undefined {
 
 /** Pool breakdown, roll and push buttons, die faces, successes and the module's description. */
 export function DiceRollPanel({ dice, input, onRolled, rng, allowPush = true, storyPoints, onSpendStoryPoint, pushInput, initialResult, title, className }: DiceRollPanelProps) {
-  const pool = useMemo(() => dice.buildPool(input), [dice, input]);
+  // Key the pool on the input's content so a parent passing a fresh inline
+  // object on every render does not rebuild the pool or clear the result.
+  const inputKey = JSON.stringify(input ?? {});
+  const pool = useMemo(() => dice.buildPool(input), [dice, inputKey]);
   const [result, setResult] = useState<RollResult | undefined>(initialResult);
-  useEffect(() => setResult(undefined), [pool]);
+  const lastKey = useRef(inputKey);
+  useEffect(() => {
+    if (lastKey.current === inputKey) return;
+    lastKey.current = inputKey;
+    setResult(undefined);
+  }, [inputKey]);
 
   const baseId = dice.dice[0]?.id;
   const roll = () => {
