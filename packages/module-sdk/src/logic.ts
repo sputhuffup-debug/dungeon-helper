@@ -46,7 +46,6 @@ export function setPath<T extends Record<string, unknown>>(obj: T, path: string,
     const seg = segs[i];
     if (seg === undefined) return value;
     const nextSeg = segs[i + 1];
-    const isIndex = /^\d+$/.test(seg);
     if (Array.isArray(cur)) {
       const copy = [...cur];
       const idx = Number(seg);
@@ -57,7 +56,6 @@ export function setPath<T extends Record<string, unknown>>(obj: T, path: string,
     const existing = base[seg];
     const child = existing === undefined && nextSeg !== undefined && /^\d+$/.test(nextSeg) ? [] : existing;
     base[seg] = walk(child, i + 1);
-    void isIndex;
     return base;
   };
   return walk(obj, 0) as T;
