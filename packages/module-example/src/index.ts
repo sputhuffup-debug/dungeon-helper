@@ -77,7 +77,7 @@ export const exampleDice: DiceSystem = {
         const marked = value === 1;
         const effects: Effect[] = [{ kind: "log", text: `Omen: ${value}` }];
         if (marked && typeof input.entity === "string") effects.push({ kind: "addCondition", entity: input.entity, condition: { id: "example.marked", label: "Marked" } });
-        return { total: value, rolls: [{ step: "omen", dice: "1d6", raw: [value], modifier: 0, total: value, result: { marked } }], result: { marked }, label: marked ? "Marked" : "Spared" };
+        return { total: value, rolls: [{ step: "omen", dice: "1d6", raw: [value], modifier: 0, total: value, result: { marked } }], result: { marked }, label: marked ? "Marked" : "Spared", effects };
       },
     },
   },

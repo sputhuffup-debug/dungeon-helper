@@ -186,8 +186,12 @@ export interface LifecycleContext {
   newId?: () => string;
   /** Whether an entity has a condition (for checks and blocked removals). */
   hasCondition?: (entity: string, condition: string) => boolean;
-  /** Run one due check (the app rolls the operation and applies its effects). */
-  runCheck?: (instance: LifecycleInstance, check: LifecycleCheck) => void;
+  /**
+   * Run one due check (the app rolls the operation and applies its effects). Return
+   * `false` when it could not roll (e.g. no session to log to); the check then stays
+   * due and runs on a later advance instead of being lost.
+   */
+  runCheck?: (instance: LifecycleInstance, check: LifecycleCheck) => boolean | void;
 }
 
 export interface LifecycleResult {
@@ -449,8 +453,8 @@ function runDueChecks(config: LifecycleConfig, inst: LifecycleInstance, stage: L
   const due = Math.floor(upTo / every + 1e-9);
   while (inst.checksDone < due) {
     if (check.stopCondition && ctx.hasCondition?.(inst.host, check.stopCondition)) return;
+    if (ctx.runCheck(inst, check) === false) return;
     inst.checksDone += 1;
-    ctx.runCheck(inst, check);
   }
 }
 

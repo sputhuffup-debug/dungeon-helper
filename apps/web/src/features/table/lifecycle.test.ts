@@ -10,6 +10,7 @@ import {
   answerPrompt,
   applySessionEffects,
   clockAdvanceMinutes,
+  clockElapsedMinutes,
   lifecycleStartOptions,
   planNextSession,
   setClockState,
@@ -61,11 +62,24 @@ describe("xenomorph life cycle at the table", () => {
   it("measures clock advances in minutes from the clock units, forward only", async () => {
     const ctx = await open();
     const units = clockUnits(clock(ctx).config);
-    expect(clockAdvanceMinutes(units, undefined, { counters: { round: 0, stretch: 0, shift: 1 } })).toBe(450);
-    expect(clockAdvanceMinutes(units, { counters: { round: 3 } }, { counters: { round: 0, stretch: 1 } })).toBe(7.5);
-    expect(clockAdvanceMinutes(units, { counters: { round: 3 } }, { counters: { round: 4 } })).toBe(0.125);
-    expect(clockAdvanceMinutes(units, { counters: { shift: 2 } }, { counters: { shift: 1 } })).toBe(0);
-    expect(clockAdvanceMinutes(units, { counters: { shift: 2 } }, { counters: { round: 0, stretch: 0, shift: 0 } })).toBe(0);
+    expect(clockElapsedMinutes(units, { counters: { round: 0, stretch: 0, shift: 1 } })).toBe(450);
+    expect(clockAdvanceMinutes(units, 0, { counters: { round: 0, stretch: 0, shift: 1 } })).toBe(450);
+    expect(clockAdvanceMinutes(units, 0.375, { counters: { round: 4 } })).toBe(0.125);
+    // Below the high-water mark nothing counts.
+    expect(clockAdvanceMinutes(units, 900, { counters: { shift: 1 } })).toBe(0);
+  });
+
+  it("does not count time twice when the clock is stepped back and forward again", async () => {
+    const ctx = await open();
+    const session = startPlannedSession(ctx, planNextSession(ctx).id);
+    const def = clock(ctx);
+    const before = getWorldMinutes(ctx.store);
+    setClockState(ctx, session.id, def, { counters: { round: 0, stretch: 0, shift: 1 } });
+    setClockState(ctx, session.id, def, { counters: { round: 0, stretch: 0, shift: 0 } });
+    setClockState(ctx, session.id, def, { counters: { round: 0, stretch: 0, shift: 1 } });
+    expect(getWorldMinutes(ctx.store) - before).toBe(450);
+    setClockState(ctx, session.id, def, { counters: { round: 0, stretch: 0, shift: 2 } });
+    expect(getWorldMinutes(ctx.store) - before).toBe(900);
   });
 
   it("offers a start on characters and on facehugger creatures", async () => {

@@ -102,13 +102,34 @@ describe("lifecycle runner", () => {
     ]);
   });
 
+  it("keeps a check due when it could not roll, and runs it on a later advance", () => {
+    const state = start().state;
+    let canRoll = false;
+    let rolled = 0;
+    const runCheck = () => {
+      if (!canRoll) return false;
+      rolled++;
+      return true;
+    };
+    // 7 hours: the 6-hour check is due but cannot roll yet
+    let r = advanceLifecycles(config, state, 420, { at: 420, runCheck });
+    expect(rolled).toBe(0);
+    expect(only(r.state).checksDone).toBe(0);
+    // next advance can roll: the missed check runs then
+    canRoll = true;
+    r = advanceLifecycles(config, r.state, 60, { at: 480, runCheck });
+    expect(rolled).toBe(1);
+    expect(only(r.state).checksDone).toBe(1);
+  });
+
   it("advances with time, runs due checks until the stop condition, carries the excess over and spawns", () => {
     let state = start().state;
     const doomed = new Set<string>();
     const checks: number[] = [];
+    // The callback sees the checks completed before this one.
     const runCheck = (inst: LifecycleInstance) => {
-      checks.push(inst.checksDone);
-      if (inst.checksDone === 2) doomed.add(inst.host);
+      checks.push(inst.checksDone + 1);
+      if (inst.checksDone + 1 === 2) doomed.add(inst.host);
     };
     const hasCondition = (e: string, c: string) => c === "doomed" && doomed.has(e);
     // 5 hours: no check due yet

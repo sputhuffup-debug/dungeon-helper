@@ -3,8 +3,8 @@ import { getWorldMinutes, type Entity, type Id, type SiteMap } from "@campaign-f
 import { createRng, lifecycleState, type Effect, type Prompt, type TrackerDef } from "@campaign-forge/module-sdk";
 import { useMemo } from "react";
 import { TrackerHost, type TrackerEntity } from "../../components/ui";
-import { useCampaign, useMeta } from "../../state/hooks";
-import { setClockState, setTrackerStateOf, trackerStateOf } from "../../state/tableActions";
+import { useCampaign, useList, useMeta } from "../../state/hooks";
+import { playerCharacters, setClockState, setTrackerStateOf, trackerStateOf } from "../../state/tableActions";
 import { useEntities, useSessionTrackerState, useTrackerEntities } from "./hooks";
 
 export interface TrackerHandlers {
@@ -29,9 +29,11 @@ export interface BoundTrackerProps extends TrackerHandlers {
   map?: SiteMap;
   readonly?: boolean;
   className?: string;
+  /** Witnesses for tracker events; defaults to the tracker's character entities. */
+  witnesses?: Array<{ id: string; name: string }>;
 }
 
-export function BoundTracker({ sessionId, def, entities, map, readonly, className, onEffects, onRollOperation, onLog, onPrompts }: BoundTrackerProps) {
+export function BoundTracker({ sessionId, def, entities, map, readonly, className, witnesses, onEffects, onRollOperation, onLog, onPrompts }: BoundTrackerProps) {
   const ctx = useCampaign();
   useMeta(); // re-render when the campaign record (campaign-scoped state, world time) changes
   const ts = useSessionTrackerState(sessionId);
@@ -57,6 +59,7 @@ export function BoundTracker({ sessionId, def, entities, map, readonly, classNam
       onRollOperation={onRollOperation}
       rng={rng}
       worldMinutes={worldMinutes}
+      {...(witnesses ? { witnesses } : {})}
       {...(map ? { zones: map.zones, borders: map.borders } : {})}
       readonly={readonly}
       className={className}
@@ -79,7 +82,10 @@ function LifecycleBound(props: BoundTrackerProps & { everyone: Entity[] }) {
     return [...props.everyone, ...referenced.filter((e) => !seen.has(e.id))];
   }, [props.everyone, referenced]);
   const entities = useTrackerEntities(merged);
-  return <BoundTracker {...props} entities={entities} />;
+  // Same witnesses as the clock-driven path: the campaign's player characters.
+  const pcs = useList("entities");
+  const witnesses = useMemo(() => playerCharacters(ctx).map((e) => ({ id: e.id, name: e.name })), [ctx, pcs]);
+  return <BoundTracker {...props} entities={entities} witnesses={witnesses} />;
 }
 
 export function TrackersPanel({ sessionId, trackers, pcs, participants, map, handlers }: { sessionId: Id; trackers: TrackerDef[]; pcs: Entity[]; participants: Entity[]; map?: SiteMap; handlers: TrackerHandlers }) {

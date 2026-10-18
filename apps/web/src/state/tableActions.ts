@@ -490,17 +490,23 @@ export function setTrackerStateOf(ctx: Ctx, sessionId: Id | undefined, def: Trac
   else if (sessionId) updateTrackerState(ctx.store, sessionId, def.id, next);
 }
 
-/** In-world minutes the clock moved forward from `prev` to `next`: the biggest changed unit's step (never negative). */
-export function clockAdvanceMinutes(units: ClockUnit[], prev: unknown, next: unknown): number {
-  const a = clockState(prev, units).counters;
-  const b = clockState(next, units).counters;
-  for (let i = units.length - 1; i >= 0; i--) {
-    const u = units[i]!;
-    const delta = (b[u.id] ?? 0) - (a[u.id] ?? 0);
-    if (delta !== 0) return delta > 0 ? delta * (u.minutes ?? 0) : 0;
-  }
-  return 0;
+/** In-world minutes the clock shows as elapsed (the same sum the clock tracker displays). */
+export function clockElapsedMinutes(units: ClockUnit[], state: unknown): number {
+  const counters = clockState(state, units).counters;
+  return units.reduce((sum, u) => sum + (u.minutes ?? 0) * (counters[u.id] ?? 0), 0);
 }
+
+/**
+ * World minutes to add when the clock goes from `counted` (the furthest elapsed time
+ * already turned into world time) to `next`. Only time past that high-water mark counts,
+ * so stepping the clock back and forward again never counts the same time twice.
+ */
+export function clockAdvanceMinutes(units: ClockUnit[], counted: number, next: unknown): number {
+  return Math.max(0, clockElapsedMinutes(units, next) - counted);
+}
+
+/** Session tracker-state key holding a clock's high-water mark of counted elapsed minutes. */
+const countedKey = (clockId: string) => `${clockId}:worldCounted`;
 
 /**
  * Set the session clock (a `clock` tracker) and move in-world time forward by
@@ -509,10 +515,15 @@ export function clockAdvanceMinutes(units: ClockUnit[], prev: unknown, next: unk
  */
 export function setClockState(ctx: Ctx, sessionId: Id, def: TrackerDef, next: unknown): Prompt[] {
   return ctx.store.transact(() => {
-    const prev = getTrackerState(ctx.store, sessionId).state[def.id];
+    const units = clockUnits(def.config);
+    const state = getTrackerState(ctx.store, sessionId).state;
+    const stored = state[countedKey(def.id)];
+    const counted = typeof stored === "number" ? stored : clockElapsedMinutes(units, state[def.id]);
     updateTrackerState(ctx.store, sessionId, def.id, next);
-    const minutes = clockAdvanceMinutes(clockUnits(def.config), prev, next);
-    return minutes > 0 ? advanceWorldTime(ctx, sessionId, minutes).prompts : [];
+    const minutes = clockAdvanceMinutes(units, counted, next);
+    if (minutes <= 0) return [];
+    updateTrackerState(ctx.store, sessionId, countedKey(def.id), counted + minutes);
+    return advanceWorldTime(ctx, sessionId, minutes).prompts;
   });
 }
 
@@ -556,9 +567,10 @@ export function advanceWorldTime(ctx: Ctx, sessionId: Id | undefined, minutes: n
         newId: () => newId(),
         hasCondition: (entity, condition) => hasCondition(store, entity, condition),
         runCheck: (inst, check) => {
-          if (!sessionId || !store.has("entities", inst.host)) return;
+          if (!sessionId || !store.has("entities", inst.host)) return false;
           const roll = rollOperation(ctx, sessionId, check.operation, inst.host);
           prompts.push(...roll.prompts);
+          return true;
         },
       });
       prompts.push(...applyEffects(store, result.effects, effectContext(ctx, sessionId)).prompts);
@@ -597,11 +609,31 @@ export function isExempt(config: LifecycleConfig, entity: { fields?: Entity["fie
   return !!field && !!getPath(entity.fields ?? {}, field);
 }
 
+// Parsed configs and states, keyed by the (cached, immutable) objects they come from, so
+// every card rendered for one store snapshot shares a single parse.
+const parsedConfigs = new WeakMap<object, LifecycleConfig>();
+const parsedStates = new WeakMap<object, ReturnType<typeof lifecycleState>>();
+
+function cachedConfig(def: TrackerDef): LifecycleConfig {
+  const key = def.config;
+  if (!key) return lifecycleConfig(key);
+  let c = parsedConfigs.get(key);
+  if (!c) parsedConfigs.set(key, (c = lifecycleConfig(key)));
+  return c;
+}
+
+function cachedState(raw: unknown): ReturnType<typeof lifecycleState> {
+  if (!raw || typeof raw !== "object") return lifecycleState(raw);
+  let s = parsedStates.get(raw);
+  if (!s) parsedStates.set(raw, (s = lifecycleState(raw)));
+  return s;
+}
+
 /** Running life-cycle instances that involve the entity (as host or spawn), per tracker. */
 export function activeLifecycles(ctx: Ctx, entityId: Id): Array<{ def: TrackerDef; config: LifecycleConfig; instance: LifecycleInstance }> {
   return lifecycleTrackers(ctx).flatMap((def) => {
-    const config = lifecycleConfig(def.config);
-    return activeLifecyclesFor(lifecycleState(getCampaignTrackerState(ctx.store, def.id)), entityId).map((instance) => ({ def, config, instance }));
+    const config = cachedConfig(def);
+    return activeLifecyclesFor(cachedState(getCampaignTrackerState(ctx.store, def.id)), entityId).map((instance) => ({ def, config, instance }));
   });
 }
 

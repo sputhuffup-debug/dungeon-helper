@@ -1,13 +1,13 @@
 /** `/entities/$entityId`: header plus Sheet | Notes | Relationships | Backlinks | Timeline. */
 import type { Entity } from "@campaign-forge/core";
-import type { EntityTypeDef } from "@campaign-forge/module-sdk";
+import type { EntityTypeDef, Prompt } from "@campaign-forge/module-sdk";
 import { Link, useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { EntityIcon } from "../../components/EntityIcon";
 import { TagInput } from "../../components/TagInput";
 import { VisibilitySelect } from "../../components/VisibilitySelect";
-import { Button, EmptyState, IconButton, ProvenanceBadge, Tabs, pushToast } from "../../components/ui";
+import { Button, EmptyState, IconButton, PromptDialog, ProvenanceBadge, Tabs, pushToast, type PromptAnswer } from "../../components/ui";
 import { errorMessage } from "../../lib/format";
 import { deleteEntity, setEntityImage, setEntityVisibility, updateEntity } from "../../state/actions";
 import { useAssetUrl, useCampaign, useEntityType, useList, useMeta, useRecord } from "../../state/hooks";
@@ -18,6 +18,7 @@ import { SheetTab } from "./SheetTab";
 import { TimelineTab } from "./TimelineTab";
 import { EntityPrepPanels } from "../generate/EntityPrepPanels";
 import { LifecycleStart } from "../table/LifecycleStart";
+import { applyGeneratorEffects } from "../../state/prepActions";
 
 const TABS = ["sheet", "notes", "relationships", "backlinks", "timeline"] as const;
 
@@ -79,6 +80,20 @@ function EntityHeader({ entity, def }: { entity: Entity; def: EntityTypeDef | un
   const fileRef = useRef<HTMLInputElement>(null);
   const [name, setName] = useState(entity.name);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  // Prompts raised outside a session (e.g. starting a life cycle here): effects apply directly; rolls belong in table mode.
+  const [prompts, setPrompts] = useState<Prompt[]>([]);
+  const onAnswer = (answer: PromptAnswer) => {
+    setPrompts((p) => p.slice(1));
+    try {
+      if (answer.effects.length) {
+        const out = applyGeneratorEffects(ctx, answer.effects);
+        if (out.prompts.length) setPrompts((p) => [...p, ...out.prompts]);
+      }
+      if (answer.roll) pushToast("Make this roll from table mode during a session.", { tone: "warning" });
+    } catch (e) {
+      pushToast(errorMessage(e), { tone: "danger" });
+    }
+  };
   useEffect(() => setName(entity.name), [entity.name]);
   const run = entity.provenance?.generatorRun ? ctx.store.get("generatorRuns", entity.provenance.generatorRun) : undefined;
   const preset = entity.provenance?.preset ? ctx.module.preset(entity.provenance.preset) : undefined;
@@ -159,11 +174,12 @@ function EntityHeader({ entity, def }: { entity: Entity; def: EntityTypeDef | un
           />
       </div>
       <div className="app-entity__actions">
-        <LifecycleStart entity={entity} />
+        <LifecycleStart entity={entity} onPrompts={(raised) => setPrompts((p) => [...p, ...raised])} />
         <Button variant="ghost" onClick={() => setConfirmDelete(true)}>
           Delete
         </Button>
       </div>
+      <PromptDialog prompt={prompts[0]} onAnswer={onAnswer} onCancel={() => setPrompts((p) => p.slice(1))} resolveEntityName={(id) => ctx.store.get("entities", id)?.name} />
       <ConfirmDialog
         open={confirmDelete}
         title={`Delete ${entity.name}?`}

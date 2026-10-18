@@ -34,6 +34,11 @@ export interface TrackerProps {
   rng?: Rng;
   /** In-world minutes elapsed in the campaign (for trackers that run on play time). */
   worldMinutes?: number;
+  /**
+   * Who can witness events (e.g. for panic prompts). When omitted, trackers fall back to
+   * every character-kind entity they were given.
+   */
+  witnesses?: Array<{ id: string; name: string }>;
   /** For the stealth tracker: zones of the current scene map. */
   zones?: MapZone[];
   borders?: MapZoneBorder[];

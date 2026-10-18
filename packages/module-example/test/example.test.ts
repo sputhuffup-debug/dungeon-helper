@@ -130,3 +130,22 @@ describe("hooks", () => {
     expect(prompts[0]?.onYes).toEqual([{ kind: "incrementField", entity: "c1", path: "wounds", by: -1, min: 0 }]);
   });
 });
+
+describe("omen operation", () => {
+  it("returns its effects, marking the entity on a 1", async () => {
+    const { exampleModule } = await import("../src/index");
+    const { createRng, createTableRegistry } = await import("@campaign-forge/module-sdk");
+    const op = exampleModule.dice.operations!.omen!;
+    const registry = createTableRegistry(exampleModule.tables);
+    let markedSeen = false;
+    for (let i = 0; i < 60 && !markedSeen; i++) {
+      const res = op.run({ entity: "h1" }, createRng(`omen-${i}`), registry);
+      expect(res.effects?.[0]).toMatchObject({ kind: "log" });
+      if (res.total === 1) {
+        expect(res.effects).toContainEqual({ kind: "addCondition", entity: "h1", condition: { id: "example.marked", label: "Marked" } });
+        markedSeen = true;
+      }
+    }
+    expect(markedSeen).toBe(true);
+  });
+});

@@ -91,6 +91,28 @@ describe("lifecycle tracker", () => {
     expect(within(card).getByRole("button", { name: "Advance Ana to Lord now" })).toHaveAttribute("title", "When the GM says.");
   });
 
+  it("prompts only the witnesses the app passes in, not every character it was given", () => {
+    const witnessDef = structuredClone(def) as TrackerDef;
+    const stages = ((witnessDef.config as { variants: Array<{ stages: Array<Record<string, unknown>> }> }).variants[0]!).stages;
+    stages.find((st) => st.id === "risen")!.witnessPrompt = { text: "{witness} sees {host} rise.", operation: "omen" };
+    const onEffects = vi.fn();
+    render(
+      <LifecycleTracker
+        def={witnessDef}
+        state={{ instances: [instance({ stage: "fading", duration: 2880 })] }}
+        onChange={vi.fn()}
+        onEffects={onEffects}
+        entities={[ana, bo]}
+        witnesses={[{ id: "bo", name: "Bo" }]}
+        worldMinutes={500}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Advance Ana to Risen now" }));
+    const prompts = (onEffects.mock.calls.at(-1)![0] as Effect[]).filter((e) => e.kind === "prompt");
+    expect(prompts).toHaveLength(1);
+    expect(JSON.stringify(prompts[0])).toContain("Bo sees Ana rise.");
+  });
+
   it("runs the stage check through the app and blocks removal once the stop condition is on the subject", () => {
     const onRoll = vi.fn();
     const spy = vi.fn();

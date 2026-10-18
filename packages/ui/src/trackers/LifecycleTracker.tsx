@@ -36,7 +36,7 @@ import type { TrackerEntity, TrackerProps } from "./types";
  * stage's check and removal, stop tracking). Time itself moves when the app
  * advances the in-world clock; this component only reads `worldMinutes`.
  */
-export function LifecycleTracker({ def, state, onChange, entities = [], onEffects, onRollOperation, readonly, worldMinutes = 0, className }: TrackerProps) {
+export function LifecycleTracker({ def, state, onChange, entities = [], onEffects, onRollOperation, readonly, worldMinutes = 0, witnesses, className }: TrackerProps) {
   const config = lifecycleConfig(def.config);
   const current = lifecycleState(state);
   const byId = new Map(entities.map((e) => [e.id, e]));
@@ -46,7 +46,7 @@ export function LifecycleTracker({ def, state, onChange, entities = [], onEffect
   const ctx = (): LifecycleContext => ({
     at: worldMinutes,
     hasCondition,
-    witnesses: entities.filter((e) => e.kind === undefined || e.kind === "character").map((e) => ({ id: e.id, name: e.name })),
+    witnesses: witnesses ?? entities.filter((e) => e.kind === undefined || e.kind === "character").map((e) => ({ id: e.id, name: e.name })),
     newId: () => newId("spawn"),
   });
   const commit = (result: LifecycleResult | LifecycleState) => {
