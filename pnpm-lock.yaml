@@ -29,6 +29,9 @@ importers:
       '@campaign-forge/module-alien':
         specifier: workspace:*
         version: link:../../packages/module-alien
+      '@campaign-forge/module-example':
+        specifier: workspace:*
+        version: link:../../packages/module-example
       '@campaign-forge/module-sdk':
         specifier: workspace:*
         version: link:../../packages/module-sdk

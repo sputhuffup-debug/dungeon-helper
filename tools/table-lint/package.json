@@ -10,8 +10,8 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "vitest run",
-    "lint-tables": "node --experimental-strip-types src/cli.ts"
+    "test": "vitest run --passWithNoTests",
+    "lint-tables": "node --experimental-strip-types --no-warnings --import ./register.mjs src/cli.ts"
   },
   "dependencies": {
     "@campaign-forge/module-sdk": "workspace:*",

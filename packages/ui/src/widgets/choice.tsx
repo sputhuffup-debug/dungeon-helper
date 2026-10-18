@@ -10,7 +10,7 @@ export function SelectField({ id, value, onChange, readonly, invalid, field, sch
   const options = resolveOptions(field, schema, referenceLists, mode);
   const str = value === undefined || value === null ? "" : String(value);
   const current = options.find((o) => o.value === str);
-  if (readonly) return <div className="cf-field__readonly">{current?.label ?? str || <span className="cf-muted">—</span>}</div>;
+  if (readonly) return <div className="cf-field__readonly">{(current?.label ?? str) || <span className="cf-muted">—</span>}</div>;
   return (
     <select
       id={id}

@@ -1,7 +1,7 @@
 import type { HTMLAttributes, ReactNode } from "react";
 import { cx } from "../sheet/paths";
 
-export interface ToolbarProps extends HTMLAttributes<HTMLDivElement> {
+export interface ToolbarProps extends Omit<HTMLAttributes<HTMLDivElement>, "title"> {
   title?: ReactNode;
   children?: ReactNode;
 }

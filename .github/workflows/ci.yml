@@ -27,6 +27,7 @@ jobs:
       - name: Build web app
         run: pnpm --filter @campaign-forge/web build
       - name: End-to-end
+        if: hashFiles('apps/web/e2e/**/*.spec.ts') != ''
         run: |
           pnpm exec playwright install --with-deps chromium
           PLAYWRIGHT_CHROMIUM_PATH="$(node -e "console.log(require('@playwright/test').chromium.executablePath())")" \

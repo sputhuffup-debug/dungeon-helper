@@ -20,12 +20,13 @@ export interface RuleCardViewProps {
 
 export function RuleCardView({ card, onOpenRule, onOpenTable, onOpenField, onOpenTracker, resolveName, className }: RuleCardViewProps) {
   const links = card.links ?? {};
-  const groups: Array<{ kind: "rule" | "table" | "field" | "tracker"; ids: string[]; handler?: (id: string) => void }> = [
+  const allGroups: Array<{ kind: "rule" | "table" | "field" | "tracker"; ids: string[]; handler?: (id: string) => void }> = [
     { kind: "rule", ids: links.rules ?? [], handler: onOpenRule },
     { kind: "table", ids: links.tables ?? [], handler: onOpenTable },
     { kind: "field", ids: links.fields ?? [], handler: onOpenField },
     { kind: "tracker", ids: links.trackers ?? [], handler: onOpenTracker },
-  ].filter((g) => g.ids.length > 0);
+  ];
+  const groups = allGroups.filter((g) => g.ids.length > 0);
   return (
     <article className={cx("cf-rule", className)} aria-label={card.title}>
       <header className="cf-rule__header">
