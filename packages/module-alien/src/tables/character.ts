@@ -125,6 +125,32 @@ export const criticalInjury: RollTable = verified(
   }),
 );
 
+/**
+ * Android critical system damage (p. 78). Rolled instead of a critical injury when a
+ * synthetic reaches zero Health, and again for each further hit while at zero; a result
+ * the android already has moves one step down the table. `step` orders the rows.
+ */
+export const androidCriticalDamage: RollTable = verified(
+  defineTable({
+    id: "alien.character.android-critical-damage",
+    name: "Android critical system damage",
+    family: FAMILY,
+    page: 78,
+    dice: "1d6",
+    notes:
+      "Androids at zero Health roll here, not on the critical injury table, and keep acting with the effect until result 6. A repeated result moves one step up the table. A shift of work and a COMTECH roll repairs all lost Health and every result short of a system shutdown.",
+    tags: ["combat", "injury", "android"],
+    rows: d6([
+      { label: "Ruptured Fluid Pump", result: { id: "ruptured-fluid-pump", step: 1, effect: "Out of action for its next turn, with no interrupt actions before then." } },
+      { label: "Destroyed Leg Servos", result: { id: "destroyed-leg-servos", step: 2, effect: "Neither leg works; moving takes a full action." } },
+      { label: "Destroyed Arm Servos", result: { id: "destroyed-arm-servos", step: 3, effect: "One arm is out; only one-handed gear can be used." } },
+      { label: "Head Dislocation", result: { id: "head-dislocation", step: 4, effect: "Neck badly fractured; every quick action becomes a full action." } },
+      { label: "Severe Chassis Breach", result: { id: "severe-chassis-breach", step: 5, effect: "Internal parts spill out; the android cannot move at all." } },
+      { label: "System Shutdown", result: { id: "system-shutdown", step: 6, shutdown: true, effect: "Wrecked beyond repair; talking to it needs a COMTECH roll, a power source and a stretch of work." } },
+    ]),
+  }),
+);
+
 export const campaignTheme: RollTable = verified(
   defineTable({
     id: "alien.character.campaign-theme",
@@ -145,4 +171,4 @@ export const campaignTheme: RollTable = verified(
   }),
 );
 
-export const characterTables: RollTable[] = [stressResponse, panic, mentalTrauma, criticalInjury, campaignTheme];
+export const characterTables: RollTable[] = [stressResponse, panic, mentalTrauma, criticalInjury, androidCriticalDamage, campaignTheme];

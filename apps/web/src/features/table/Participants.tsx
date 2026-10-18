@@ -4,7 +4,7 @@ import { validateEntityFields, type EntityTypeDef, type LoadedModule, type Refer
 import { useMemo, useState } from "react";
 import { EntityIcon } from "../../components/EntityIcon";
 import { RuleDrawer } from "../../components/RulePanel";
-import { Badge, Card, Drawer, SheetRenderer, humanize, labelFromPath } from "../../components/ui";
+import { Badge, Button, Card, Drawer, SheetRenderer, humanize, labelFromPath } from "../../components/ui";
 import { updateEntityFields } from "../../state/actions";
 import { useCampaign, useMeta, useRecord } from "../../state/hooks";
 import { computedOf } from "../../state/tableActions";
@@ -46,9 +46,18 @@ export function quickStats(module: LoadedModule, def: EntityTypeDef | undefined,
   return out;
 }
 
-export function ParticipantCard({ entity, onOpen, role }: { entity: Entity; onOpen: (id: Id) => void; role?: string }) {
+/** Module dice operations offered as one-tap rolls on a character (`characterRoll`). */
+export function characterRolls(module: LoadedModule, def: EntityTypeDef | undefined): Array<{ id: string; name: string }> {
+  if (def?.kind !== "character") return [];
+  return Object.values(module.module.dice.operations ?? {})
+    .filter((op) => op.characterRoll)
+    .map((op) => ({ id: op.id, name: op.name }));
+}
+
+export function ParticipantCard({ entity, onOpen, role, onRoll }: { entity: Entity; onOpen: (id: Id) => void; role?: string; onRoll?: (operationId: string, entityId: Id) => void }) {
   const { module } = useCampaign();
   const def = module.entityType(entity.type);
+  const rolls = onRoll ? characterRolls(module, def) : [];
   const computed = useMemo(() => computedOf(module, entity), [module, entity]);
   const stats = quickStats(module, def, entity, computed);
   return (
@@ -75,25 +84,34 @@ export function ParticipantCard({ entity, onOpen, role }: { entity: Entity; onOp
           ))}
         </span>
       )}
+      {rolls.length > 0 && (
+        <span className="app-participant__rolls">
+          {rolls.map((r) => (
+            <Button key={r.id} size="sm" onClick={() => onRoll?.(r.id, entity.id)} aria-label={`${r.name} for ${entity.name}`}>
+              {r.name}
+            </Button>
+          ))}
+        </span>
+      )}
     </li>
   );
 }
 
-export function Participants({ pcs, others, onOpen }: { pcs: Entity[]; others: Entity[]; onOpen: (id: Id) => void }) {
+export function Participants({ pcs, others, onOpen, onRoll }: { pcs: Entity[]; others: Entity[]; onOpen: (id: Id) => void; onRoll?: (operationId: string, entityId: Id) => void }) {
   return (
     <Card title="Participants" className="app-table__participants">
       {pcs.length === 0 && others.length === 0 && <p className="cf-muted">No player characters or scene participants.</p>}
       {pcs.length > 0 && (
         <ul className="app-participants" aria-label="Player characters">
           {pcs.map((e) => (
-            <ParticipantCard key={e.id} entity={e} onOpen={onOpen} role="PC" />
+            <ParticipantCard key={e.id} entity={e} onOpen={onOpen} role="PC" onRoll={onRoll} />
           ))}
         </ul>
       )}
       {others.length > 0 && (
         <ul className="app-participants" aria-label="Scene participants">
           {others.map((e) => (
-            <ParticipantCard key={e.id} entity={e} onOpen={onOpen} />
+            <ParticipantCard key={e.id} entity={e} onOpen={onOpen} onRoll={onRoll} />
           ))}
         </ul>
       )}

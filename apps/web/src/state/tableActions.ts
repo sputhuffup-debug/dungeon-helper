@@ -353,6 +353,10 @@ export function operationInput(module: LoadedModule, op: DiceOperation, entity: 
       if (entity) input.entity = entity.id;
       continue;
     }
+    if (key === "conditions") {
+      if (entity) input.conditions = (entity.conditions ?? []).map((c) => c.id);
+      continue;
+    }
     const v = lookupValue(fields, computed, key);
     if (v !== undefined) input[key] = v;
   }

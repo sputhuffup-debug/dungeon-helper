@@ -141,7 +141,7 @@ export const combatRules: RuleCard[] = [
   }),
   card("android-damage", "Damaged androids", "An android at zero Health rolls D6 on the critical system damage table instead of a critical injury and keeps operating until System Shutdown. Androids do not heal: a shift and a Comtech roll repair all damage short of shutdown, and a shut-down android can only be revived to talk.", 78, {
     tags: ["combat", "damage", "android"],
-    links: { rules: ["alien.rule.androids", "alien.rule.broken"] },
+    links: { tables: ["alien.character.android-critical-damage"], rules: ["alien.rule.androids", "alien.rule.broken"] },
   }),
   card("fatigue", "Fatigue", "Lack of air, water, food or sleep, or extreme cold or heat, calls for Survival rolls at intervals, and the first failure makes you fatigued. While fatigued you cannot recover Health and each further failure costs 1 damage and +1 stress; broken by fatigue, you make death rolls until the cause is removed. Androids are immune.", 75, {
     tags: ["hazard", "survival"],

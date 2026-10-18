@@ -33,7 +33,7 @@ Book range checked: printed pages 24-51 and 54-77 (plus p. 78 for androids and p
 
 ## Still unverified
 
-Nothing in this slice. The android critical system damage table (p. 78) is not modelled: an android at zero Health still rolls on the human table. That table would be a follow-up.
+Nothing in this slice. The android critical system damage table (p. 78) was added afterwards as `alien.character.android-critical-damage`: the critical injury roll uses it automatically for androids, and a result the android already has moves one step up the table, ending at System Shutdown.
 
 ## Cross-slice issues (not fixed here)
 

@@ -37,6 +37,13 @@ test("run a session at the table: demo campaign, clock, panic roll, reveal, wrap
   // the panic result is in the stress tracker's log
   await expect(stress.getByRole("list", { name: "Tracker log" })).toBeVisible();
 
+  // a one-tap critical injury roll from a character card (androids use the system damage table, p. 78)
+  await page.getByRole("button", { name: /^Critical injury for / }).first().click();
+  await expect(page.getByTestId("roll-result")).toBeVisible();
+  await expect(page.getByTestId("roll-result-label")).not.toBeEmpty();
+  await page.getByRole("dialog").getByRole("button", { name: "Done" }).click();
+  await expect(page.getByTestId("roll-result")).toBeHidden();
+
   // 5. reveal a handout
   const reveal = page.getByTestId("reveal-panel");
   const first = reveal.getByRole("button", { name: /^Reveal / }).first();

@@ -8,7 +8,7 @@ import type {
   TableRegistry,
 } from "@campaign-forge/module-sdk";
 import { BASE_DIE, STRESS_DIE, SUCCESS, FACEHUGGER } from "./pool";
-import { CRITICAL_INJURY_TABLE, MENTAL_TRAUMA_TABLE, PANIC_TABLE, STRESS_RESPONSE_TABLE } from "./tableIds";
+import { ANDROID_CRITICAL_DAMAGE_TABLE, CRITICAL_INJURY_TABLE, MENTAL_TRAUMA_TABLE, PANIC_TABLE, STRESS_RESPONSE_TABLE } from "./tableIds";
 import { rollOnTable } from "./tableLookup";
 
 const num = (v: unknown, fallback = 0): number => (typeof v === "number" && Number.isFinite(v) ? v : fallback);
@@ -236,12 +236,81 @@ export const mentalTrauma: DiceOperation = {
   },
 };
 
+/** Condition id prefix for android critical system damage; the suffix is the row id. */
+export const ANDROID_DAMAGE_CONDITION = "android-critical:";
+
+const conditionIds = (v: unknown): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : []);
+
+/**
+ * Android critical system damage (p. 78): D6 on the android table; a result the android
+ * already has (from its `conditions`) moves one step up, ending at System Shutdown.
+ */
+export const androidCriticalDamage: DiceOperation = {
+  id: "androidCriticalDamage",
+  name: "Android critical damage",
+  page: 78,
+  input: {
+    type: "object",
+    properties: {
+      entity: { type: "string" },
+      conditions: { type: "array", items: { type: "string" }, description: "Ids of the android's current conditions." },
+    },
+  },
+  run(input, rng, tables): DiceOperationResult {
+    const { record } = rollOnTable(tables, ANDROID_CRITICAL_DAMAGE_TABLE, rng, { step: "androidCriticalDamage", fallbackDice: "1d6" });
+    const table = tables.get(ANDROID_CRITICAL_DAMAGE_TABLE);
+    const rowAt = (step: number) => table?.rows.find((r) => step >= r.range[0] && step <= r.range[1]);
+    const idAt = (step: number) => {
+      const res = rowAt(step)?.result;
+      return res && typeof res === "object" && typeof (res as { id?: unknown }).id === "string" ? (res as { id: string }).id : `step-${step}`;
+    };
+    const has = new Set(conditionIds(input.conditions));
+    const rolled = Math.min(6, Math.max(1, record.total));
+    let step = rolled;
+    while (step < 6 && has.has(ANDROID_DAMAGE_CONDITION + idAt(step))) step++;
+    const row = rowAt(step);
+    const res = (row?.result ?? {}) as { id?: string; effect?: string; shutdown?: boolean };
+    const label = row?.label ?? `Critical damage ${step}`;
+    const shifted = step !== rolled;
+    const entity = str(input.entity);
+    const effects: Effect[] = [
+      {
+        kind: "log",
+        text: `Android critical damage (p. 78): ${label}${shifted ? ` (rolled ${rolled}, already had it, moved up to ${step})` : ` (${rolled})`}${res.shutdown ? "; system shutdown, beyond repair" : ""}.`,
+      },
+    ];
+    if (entity) {
+      effects.push({
+        kind: "addCondition",
+        entity,
+        condition: { id: ANDROID_DAMAGE_CONDITION + (res.id ?? `step-${step}`), label, source: ANDROID_CRITICAL_DAMAGE_TABLE, page: 78 },
+      });
+    }
+    return {
+      total: step,
+      rolls: [record],
+      result: { row: res, rolled, step, shifted, shutdown: res.shutdown === true },
+      label,
+      effects,
+    };
+  },
+};
+
 export const criticalInjury: DiceOperation = {
   id: "criticalInjury",
   name: "Critical injury",
   page: 70,
-  input: { type: "object", properties: { entity: { type: "string" } } },
+  characterRoll: true,
+  input: {
+    type: "object",
+    properties: {
+      entity: { type: "string" },
+      android: { type: "boolean", default: false, description: "Androids roll on the critical system damage table instead (p. 78)." },
+      conditions: { type: "array", items: { type: "string" } },
+    },
+  },
   run(input, rng, tables): DiceOperationResult {
+    if (input.android === true) return androidCriticalDamage.run(input, rng, tables);
     const { record, row } = rollOnTable(tables, CRITICAL_INJURY_TABLE, rng, { step: "criticalInjury", fallbackDice: "d66" });
     const label = record.rowLabel ?? `Critical injury ${record.total}`;
     const entity = str(input.entity);
@@ -266,6 +335,7 @@ export const operations: Record<string, DiceOperation> = {
   supplyRoll,
   mentalTrauma,
   criticalInjury,
+  androidCriticalDamage,
 };
 
 export { FACEHUGGER };

@@ -211,3 +211,57 @@ describe("android exemption (p. 25, 77)", () => {
     expect(typeof res.total).toBe("number");
   });
 });
+
+describe("android critical system damage (p. 78)", () => {
+  const registry = createTableRegistry(tables);
+  const ops = diceSystem.operations!;
+  const table = tables.find((t) => t.id === "alien.character.android-critical-damage")!;
+
+  it("is a D6 table with the book's six results, ending in System Shutdown", () => {
+    expect(table.dice).toBe("1d6");
+    expect(table.page).toBe(78);
+    expect(table.rows.map((r) => r.label)).toEqual([
+      "Ruptured Fluid Pump",
+      "Destroyed Leg Servos",
+      "Destroyed Arm Servos",
+      "Head Dislocation",
+      "Severe Chassis Breach",
+      "System Shutdown",
+    ]);
+    expect(table.unverified).toBeUndefined();
+  });
+
+  it("routes an android's critical injury to the android table", () => {
+    const res = ops.criticalInjury!.run({ entity: "a1", android: true }, createRng("x"), registry);
+    expect(res.rolls[0]?.table).toBe("alien.character.android-critical-damage");
+    const cond = res.effects?.find((e: Effect) => e.kind === "addCondition");
+    expect(cond && cond.kind === "addCondition" && cond.condition.id.startsWith("android-critical:")).toBe(true);
+  });
+
+  it("keeps humans on the critical injury table", () => {
+    const res = ops.criticalInjury!.run({ entity: "h1" }, createRng("x"), registry);
+    expect(res.rolls[0]?.table).toBe("alien.character.critical-injury");
+  });
+
+  it("moves a repeated result one step up, stopping at System Shutdown", () => {
+    for (let i = 0; i < 40; i++) {
+      const seed = `s${i}`;
+      const first = ops.androidCriticalDamage!.run({ entity: "a1" }, createRng(seed), registry);
+      const rolled = first.total as number;
+      const ids = table.rows.map((r) => `android-critical:${(r.result as { id: string }).id}`);
+      // Already has the rolled result and the next one: it lands two steps up (or on 6).
+      const again = ops.androidCriticalDamage!.run({ entity: "a1", conditions: [ids[rolled - 1], ids[rolled]].filter(Boolean) }, createRng(seed), registry);
+      expect(again.total).toBe(Math.min(6, rolled + 2));
+      expect((again.result as { shifted: boolean }).shifted).toBe(rolled < 6);
+    }
+    const all = table.rows.map((r) => `android-critical:${(r.result as { id: string }).id}`);
+    const capped = ops.androidCriticalDamage!.run({ entity: "a1", conditions: all }, createRng("cap"), registry);
+    expect(capped.label).toBe("System Shutdown");
+    expect((capped.result as { shutdown: boolean }).shutdown).toBe(true);
+  });
+
+  it("is offered as a one-tap character roll only through the critical injury operation", () => {
+    expect(ops.criticalInjury!.characterRoll).toBe(true);
+    expect(ops.androidCriticalDamage!.characterRoll).toBeUndefined();
+  });
+});

@@ -138,6 +138,12 @@ export interface DiceOperation {
   id: string;
   name: string;
   page?: PageRef;
+  /**
+   * Offer this operation as a one-tap roll on a character (e.g. in table mode). Its input
+   * must be fillable from the character alone: `entity`, field or computed values, and
+   * `conditions` (the ids of the character's current conditions).
+   */
+  characterRoll?: boolean;
   /** JSON Schema of the input object. */
   input: JsonSchema;
   run(input: Record<string, unknown>, rng: Rng, tables: TableRegistry): DiceOperationResult;

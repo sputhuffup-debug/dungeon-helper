@@ -1987,3 +1987,10 @@ a.cf-btn {
 .prep-handout__title {
   flex: 1 1 200px;
 }
+
+/* one-tap character rolls on participant cards */
+.app-participant__rolls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cf-space-1);
+}
