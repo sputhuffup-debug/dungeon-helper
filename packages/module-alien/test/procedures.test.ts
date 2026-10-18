@@ -1,0 +1,410 @@
+import { describe, expect, it } from "vitest";
+import {
+  createTableRegistry,
+  runProcedure,
+  type Effect,
+  type ModuleManifest,
+  type Procedure,
+  type ProcedureContext,
+  type ProcedureRunOptions,
+} from "@campaign-forge/module-sdk";
+import { procedures } from "../src/procedures/index";
+import { tables } from "../src/tables/index";
+
+const registry = createTableRegistry(tables);
+const manifest = { id: "alien", version: "0.0.0-test" } as ModuleManifest;
+const mod = { tables, manifest };
+const SEEDS = Array.from({ length: 50 }, (_, i) => `seed-${i}`);
+
+const byId = (id: string): Procedure => {
+  const p = procedures.find((x) => x.id === id);
+  if (!p) throw new Error(`missing procedure ${id}`);
+  return p;
+};
+
+function run(id: string, options: Omit<ProcedureRunOptions, "seed"> & { seed: string }) {
+  const proc = byId(id);
+  const includeOptional = options.includeOptional ?? proc.steps.filter((s) => s.optional).map((s) => s.id);
+  return runProcedure(proc, mod, { ...options, includeOptional });
+}
+
+/** A context stub for exercising table-choosing functions statically. */
+function fakeCtx(inputs: Record<string, unknown>, results: Record<string, unknown> = {}): ProcedureContext {
+  return {
+    inputs,
+    results,
+    rolls: [],
+    tables: registry,
+    get: <T,>(id: string) => results[id] as T | undefined,
+    data: () => ({ ...inputs, ...results }),
+  };
+}
+
+const EXPECTED_IDS = ["alien.world.create", "alien.system.create", "alien.job.create", "alien.lifepath", "alien.encounter.check", "alien.shore-leave"];
+
+describe("alien procedures: static shape", () => {
+  it("exports exactly the procedures from the field doc", () => {
+    expect(procedures.map((p) => p.id).sort()).toEqual([...EXPECTED_IDS].sort());
+    const ids = new Set<string>();
+    for (const p of procedures) {
+      expect(ids.has(p.id)).toBe(false);
+      ids.add(p.id);
+      expect(p.name).toBeTruthy();
+      expect(p.page).toBeDefined();
+      expect(p.steps.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("has unique step ids, existing string table ids and reads of earlier steps", () => {
+    for (const p of procedures) {
+      const seen: string[] = [];
+      for (const s of p.steps) {
+        expect(seen.includes(s.id), `${p.id} duplicate step ${s.id}`).toBe(false);
+        expect(s.table !== undefined || s.compute !== undefined, `${p.id}/${s.id} has neither table nor compute`).toBe(true);
+        if (typeof s.table === "string") expect(registry.get(s.table), `${p.id}/${s.id} table ${s.table}`).toBeDefined();
+        for (const r of s.reads ?? []) expect(seen.includes(r), `${p.id}/${s.id} reads ${r} which is not earlier`).toBe(true);
+        seen.push(s.id);
+      }
+    }
+  });
+
+  it("chains only into existing procedures", () => {
+    const ids = new Set(procedures.map((p) => p.id));
+    for (const p of procedures) for (const c of p.chains ?? []) expect(ids.has(c.procedure), `${p.id} chains ${c.procedure}`).toBe(true);
+  });
+
+  it("resolves every function-chosen table id to an existing table", () => {
+    const world = byId("alien.world.create");
+    const terrain = world.steps.find((s) => s.id === "terrain")!.table as (ctx: ProcedureContext) => string;
+    for (const planetType of ["terrestrial", "ice", "gas-giant", undefined]) {
+      expect(registry.get(terrain(fakeCtx({ planetType }, { temperature: { temperature: "frozen" } })))).toBeDefined();
+      expect(registry.get(terrain(fakeCtx({ planetType }, { temperature: { temperature: "hot" } })))).toBeDefined();
+    }
+    const allegiance = world.steps.find((s) => s.id === "allegiance")!.table as (ctx: ProcedureContext) => string;
+    for (const bloc of ["arms", "icsc", "upp", undefined]) expect(registry.get(allegiance(fakeCtx({ allegianceBloc: bloc })))).toBeDefined();
+
+    const job = byId("alien.job.create");
+    for (const frame of ["space-truckers", "colonial-marines", "frontier-colonists", "nonsense", undefined]) {
+      for (const s of job.steps) {
+        if (typeof s.table === "function") expect(registry.get(s.table(fakeCtx({ frame }))), `${s.id} for ${frame}`).toBeDefined();
+      }
+    }
+
+    const life = byId("alien.lifepath");
+    const posting = life.steps.find((s) => s.id === "posting")!.table as (ctx: ProcedureContext) => string;
+    const careers = ["colonial-marine", "colonial-marshal", "company-agent", "kid", "medic", "officer", "pilot", "roughneck", "scientist", "unknown"];
+    for (const career of careers) expect(registry.get(posting(fakeCtx({}, { careerEntry: { career } })))).toBeDefined();
+
+    const enc = byId("alien.encounter.check");
+    const encTable = enc.steps[0]!.table as (ctx: ProcedureContext) => string;
+    const wheres = (enc.inputs as { properties: { where: { enum: string[] } } }).properties.where.enum;
+    expect(wheres.length).toBe(10);
+    for (const where of [...wheres, "bogus", undefined]) expect(registry.get(encTable(fakeCtx({ where })))).toBeDefined();
+  });
+});
+
+const INPUT_VARIANTS: Record<string, Array<Record<string, unknown>>> = {
+  "alien.world.create": [
+    {},
+    { region: "core", allegianceBloc: "icsc", inhabited: true, planetType: "ice" },
+    { allegianceBloc: "upp", inhabited: false },
+    { planetType: "gas-giant" },
+  ],
+  "alien.system.create": [{}, { starClass: "M", brightness: "D", region: "far-reach", allegiance: "icsc" }, { brightness: "Ia" }],
+  "alien.job.create": [{}, { frame: "colonial-marines", pcCount: 6 }, { frame: "frontier-colonists", pcCount: 2 }],
+  "alien.lifepath": [{}, { name: "Ripley" }],
+  "alien.encounter.check": [
+    {},
+    { where: "surface-ice", timeElapsed: 2 },
+    { where: "ship-reaction" },
+    { where: "colony-medical", timeElapsed: 9 },
+    { where: "star-system", timeElapsed: 6 },
+  ],
+  "alien.shore-leave": [
+    {},
+    {
+      characters: [
+        { id: "a", name: "Hicks", choice: "socialize", isMarine: true },
+        { id: "b", name: "Hudson", choice: "socialize", isMarine: true },
+        { id: "c", name: "Ripley", choice: "socialize", isMarine: false },
+        { id: "d", name: "Bishop", choice: "heal", isMarine: false },
+        { id: "e", name: "Newt", choice: "recover", isMarine: false },
+        { id: "f", name: "Burke", choice: "pursue-agenda", isMarine: false },
+      ],
+    },
+  ],
+};
+
+describe("alien procedures: seeded runs", () => {
+  for (const p of procedures) {
+    const variants = INPUT_VARIANTS[p.id] ?? [{}];
+    it(`${p.id} terminates on 50 seeds for ${variants.length} input variants and is deterministic`, () => {
+      const outputs = new Set<string>();
+      for (const [vi, inputs] of variants.entries()) {
+        for (const seed of SEEDS) {
+          const a = run(p.id, { seed: `${vi}-${seed}`, inputs });
+          const b = run(p.id, { seed: `${vi}-${seed}`, inputs });
+          const json = JSON.stringify(a);
+          expect(json).toBe(JSON.stringify(b));
+          outputs.add(json);
+          expect(a.procedure).toBe(p.id);
+          expect(Array.isArray(a.produced.entities)).toBe(true);
+          const tempIds = new Set<string>();
+          for (const e of a.produced.entities) {
+            expect(tempIds.has(e.tempId), `${p.id} duplicate tempId ${e.tempId}`).toBe(false);
+            tempIds.add(e.tempId);
+            expect(e.type).toMatch(/^alien\./);
+            expect(e.name).toBeTruthy();
+            if (e.within) expect(tempIds.has(e.within), `${p.id} within ${e.within}`).toBe(true);
+          }
+          for (const r of a.produced.relationships) {
+            expect(tempIds.has(r.from)).toBe(true);
+            expect(tempIds.has(r.to)).toBe(true);
+          }
+          for (const roll of a.rolls) expect(registry.get(roll.table ?? ""), `${p.id} rolled unknown table ${roll.table}`).toBeDefined();
+          for (const c of p.chains ?? []) expect(() => c.inputs?.(fakeCtx(a.inputs, a.results))).not.toThrow();
+        }
+      }
+      // Rolls are actually random across seeds.
+      if (p.id !== "alien.shore-leave") expect(outputs.size).toBeGreaterThan(10);
+    });
+  }
+
+  it("re-seeding one step leaves the others untouched", () => {
+    const base = run("alien.world.create", { seed: "pin", inputs: { inhabited: true } });
+    const reseeded = run("alien.world.create", { seed: "pin", inputs: { inhabited: true }, stepSeeds: { hook: "other" } });
+    expect(reseeded.results.size).toEqual(base.results.size);
+    expect(reseeded.results.atmosphere).toEqual(base.results.atmosphere);
+    expect(reseeded.results.factions).toEqual(base.results.factions);
+  });
+});
+
+describe("alien.world.create", () => {
+  it("produces a planet, a colony within it and stationed factions when inhabited", () => {
+    const g = run("alien.world.create", { seed: "w1", inputs: { inhabited: true, region: "outer-rim" } });
+    const planet = g.produced.entities.find((e) => e.tempId === "planet")!;
+    expect(planet.type).toBe("alien.location");
+    expect(planet.fields.subtype).toBe("planet");
+    expect(planet.fields.inhabited).toBe(true);
+    expect(planet.fields.region).toBe("outer-rim");
+    expect(typeof planet.fields.diameterKm).toBe("number");
+    expect(Array.isArray(planet.fields.orbitalComponents)).toBe(true);
+    const colony = g.produced.entities.find((e) => e.tempId === "colony")!;
+    expect(colony.fields.subtype).toBe("colony");
+    expect(colony.within).toBe("planet");
+    expect(["start-up", "young", "established"]).toContain(colony.fields.colonySize);
+    const missions = colony.fields.missions as string[];
+    const colonySize = g.results.colonySize as { missionCount: number };
+    expect(missions.length).toBe(colonySize.missionCount);
+    const factions = g.produced.entities.filter((e) => e.type === "alien.faction");
+    const count = (g.results.factionCount as { count: number }).count;
+    expect(factions.length).toBe(count);
+    expect(g.produced.relationships.filter((r) => r.type === "stationed_at" && r.to === "colony").length).toBe(count);
+    expect((colony.fields.factions as unknown[]).length).toBe(count);
+    expect(g.skipped.map((s) => s.step)).not.toContain("colonySize");
+  });
+
+  it("skips colony steps when uninhabited and honours the upp bloc", () => {
+    const g = run("alien.world.create", { seed: "w2", inputs: { inhabited: false, allegianceBloc: "upp" } });
+    expect(g.produced.entities.map((e) => e.tempId)).toEqual(["planet"]);
+    const skipped = g.skipped.map((s) => s.step);
+    for (const s of ["colonySize", "missions", "factionCount", "factions", "allegiance", "hook"]) expect(skipped).toContain(s);
+    expect(g.results.orbital).toBeDefined();
+    expect(g.produced.entities[0]!.fields.affiliation).toBe("unknown");
+    const inhabitedUpp = run("alien.world.create", { seed: "w3", inputs: { inhabited: true, allegianceBloc: "upp" } });
+    expect(inhabitedUpp.produced.entities.find((e) => e.tempId === "colony")!.fields.allegiance).toBe("upp");
+  });
+
+  it("decides inhabited from size and atmosphere when not overridden", () => {
+    let decided = 0;
+    for (const seed of SEEDS) {
+      const g = run("alien.world.create", { seed });
+      const size = g.results.size as { gasGiant?: boolean };
+      const atmo = (g.results.atmosphere as { atmosphere: string }).atmosphere;
+      const expected = !size.gasGiant && atmo !== "corrosive" && atmo !== "infiltrating";
+      expect(g.results.inhabited).toBe(expected);
+      if (expected) decided++;
+    }
+    expect(decided).toBeGreaterThan(0);
+  });
+
+  it("uses the ice terrain table for ice worlds and no terrain for gas giants", () => {
+    const ice = run("alien.world.create", { seed: "ice", inputs: { planetType: "ice" } });
+    expect(ice.rolls.find((r) => r.step === "terrain")!.table).toBe("alien.world.terrain-ice");
+    const gas = run("alien.world.create", { seed: "gas", inputs: { planetType: "gas-giant" } });
+    expect(gas.skipped.map((s) => s.step)).toContain("terrain");
+    expect(gas.results.inhabited).toBe(false);
+  });
+});
+
+describe("alien.system.create", () => {
+  it("produces a star system with bodies, stub planets within it and per-body chains", () => {
+    const g = run("alien.system.create", { seed: "s1", inputs: { starClass: "K", brightness: "V", region: "frontier" } });
+    const system = g.produced.entities.find((e) => e.tempId === "system")!;
+    expect(system.fields.subtype).toBe("star-system");
+    expect(system.fields.starClass).toBe("K");
+    const bodies = system.fields.bodies as Array<{ type: string; name: string; moons?: number }>;
+    const objects = g.results.objects as { gasGiants: number; terrestrials: number; icePlanets: number; asteroidBelts: number };
+    expect(bodies.length).toBe(objects.gasGiants + objects.terrestrials + objects.icePlanets + objects.asteroidBelts);
+    for (const b of bodies.filter((x) => x.type === "gas-giant")) {
+      expect(b.moons).toBeGreaterThanOrEqual(5);
+      expect(b.moons).toBeLessThanOrEqual(10);
+    }
+    const planets = g.produced.entities.filter((e) => e.tempId.startsWith("body-"));
+    expect(planets.length).toBe(objects.terrestrials + objects.icePlanets);
+    for (const p of planets) {
+      expect(p.within).toBe("system");
+      expect(["terrestrial", "ice"]).toContain(p.fields.planetType);
+    }
+    const proc = byId("alien.system.create");
+    const chainInputs = proc.chains!.map((c) => c.inputs!(fakeCtx(g.inputs, g.results)));
+    expect(chainInputs[0]!.planetType).toBe(planets[0]?.fields.planetType ?? "terrestrial");
+    expect(chainInputs.every((c) => c.region === "frontier")).toBe(true);
+  });
+});
+
+describe("alien.job.create", () => {
+  it("builds the preamble and produces a job with its employer faction", () => {
+    for (const frame of ["space-truckers", "colonial-marines", "frontier-colonists"]) {
+      const g = run("alien.job.create", { seed: `job-${frame}`, inputs: { frame, pcCount: 3 } });
+      const distance = g.results.distance as number;
+      const difficulty = g.results.difficulty as number;
+      expect(distance).toBeGreaterThanOrEqual(0);
+      expect(distance).toBeLessThanOrEqual(5);
+      expect(difficulty).toBeGreaterThanOrEqual(1);
+      expect(difficulty).toBeLessThanOrEqual(3);
+      expect(g.results.payment).toBe((distance + difficulty) * 3 * 1000);
+      const job = g.produced.entities.find((e) => e.type === "alien.job")!;
+      expect(job.fields.frame).toBe(frame);
+      expect((job.fields.complications as string[]).length).toBe(difficulty);
+      expect(typeof job.fields.employer).toBe("string");
+      expect(job.fields.employer).not.toBe("");
+      expect(typeof job.fields.destination).toBe("string");
+      expect(typeof job.fields.plotTwist).toBe("string");
+      expect(job.fields.status).toBe("offered");
+      if (frame === "space-truckers") expect(typeof job.fields.cargo).toBe("string");
+      else expect(typeof job.fields.mission).toBe("string");
+      const faction = g.produced.entities.find((e) => e.type === "alien.faction")!;
+      expect(faction.name).toBe(job.fields.employer);
+      const rel = g.produced.relationships[0]!;
+      expect(rel.type).toBe(frame === "frontier-colonists" ? "sponsor_of" : "employer_of");
+      expect(rel.from).toBe(faction.tempId);
+      expect(rel.to).toBe(job.tempId);
+      expect(g.rolls.find((r) => r.step === "employer")!.nested?.length).toBe(1);
+      const chain = byId("alien.job.create").chains![0]!;
+      expect(chain.procedure).toBe("alien.system.create");
+      const ci = chain.inputs!(fakeCtx(g.inputs, g.results));
+      expect(typeof ci.starClass).toBe("string");
+      expect(typeof ci.brightness).toBe("string");
+    }
+  });
+
+  it("re-rolls the colonist Wreckage destination through the nested table", () => {
+    let seen = false;
+    for (let i = 0; i < 300 && !seen; i++) {
+      const g = run("alien.job.create", { seed: `wreck-${i}`, inputs: { frame: "frontier-colonists" } });
+      const d = g.results.destination as { wreckage?: boolean; near?: { destination: string } };
+      if (d.wreckage) {
+        seen = true;
+        expect(d.near?.destination).toBeTruthy();
+        expect(d.near?.destination).not.toBe("Wreckage");
+        const job = g.produced.entities.find((e) => e.type === "alien.job")!;
+        expect(job.fields.destination).toMatch(/^Wreckage near: /);
+      }
+    }
+    expect(seen).toBe(true);
+  });
+});
+
+describe("alien.lifepath", () => {
+  it("runs nine steps and produces a PC with attributes from 2 plus deltas and provenance", () => {
+    const proc = byId("alien.lifepath");
+    expect(proc.steps.length).toBe(9);
+    for (const seed of SEEDS.slice(0, 20)) {
+      const g = run("alien.lifepath", { seed, inputs: { name: "Dallas" } });
+      const pc = g.produced.entities[0]!;
+      expect(pc.type).toBe("alien.character");
+      expect(pc.name).toBe("Dallas");
+      expect(pc.fields.isPC).toBe(true);
+      const attrs = pc.fields.attributes as Record<string, number>;
+      const totals = (pc.fields.lifePath as { totals: { attributes: Record<string, number>; skills: Record<string, number>; psych: number } }).totals;
+      for (const a of ["strength", "agility", "wits", "empathy"]) {
+        expect(attrs[a]).toBeGreaterThanOrEqual(2);
+        expect(attrs[a]).toBe(Math.min(pc.fields.android ? 8 : 5, 2 + (totals.attributes[a] ?? 0)));
+      }
+      const skills = pc.fields.skills as Record<string, number>;
+      expect(Object.keys(skills).length).toBe(12);
+      for (const [k, v] of Object.entries(totals.skills)) expect(skills[k]).toBe(Math.min(5, v));
+      const lifePath = pc.fields.lifePath as Record<string, unknown>;
+      for (const step of ["humanOrAndroid", "origin", "earlyLife", "lifeEvent", "careerEntry", "favors", "disasters", "posting", "psych"]) {
+        expect(lifePath[step], step).toBeDefined();
+      }
+      expect(pc.fields.career).toBe((g.results.careerEntry as { career: string }).career);
+      expect(g.rolls.find((r) => r.step === "posting")!.table).toBe(`alien.lifepath.posting.${pc.fields.career}`);
+      // The psych roll carries the accumulated psych modifier.
+      const psychRoll = g.rolls.find((r) => r.step === "psych")!;
+      expect(psychRoll.modifier).toBe(totals.psych - ((g.results.psych as { psych?: number }).psych ?? 0));
+      // after hooks accumulate: the posting step's cumulative equals totals minus the psych step's own delta.
+      const posting = g.results.posting as { cumulative: { psych: number } };
+      expect(posting.cumulative.psych).toBe(totals.psych - ((g.results.psych as { psych?: number }).psych ?? 0));
+    }
+  });
+});
+
+describe("alien.encounter.check", () => {
+  it("produces an encounter entity for every location and shifts the tens digit with time", () => {
+    const wheres = (byId("alien.encounter.check").inputs as { properties: { where: { enum: string[] } } }).properties.where.enum;
+    for (const where of wheres) {
+      const g = run("alien.encounter.check", { seed: `enc-${where}`, inputs: { where, timeElapsed: 1 } });
+      const e = g.produced.entities[0]!;
+      expect(e.type).toBe("alien.encounter");
+      expect(e.fields.where).toBe(where);
+      expect(typeof e.fields.description).toBe("string");
+      expect(e.fields.description).not.toBe("");
+      const roll = g.rolls[0]!;
+      if (where === "star-system" || where.startsWith("surface")) expect(roll.modifier).toBe(10);
+      else expect(roll.modifier).toBe(0);
+    }
+    const ice = run("alien.encounter.check", { seed: "ice", inputs: { where: "surface-ice" } });
+    const terr = run("alien.encounter.check", { seed: "ice", inputs: { where: "surface-terrestrial" } });
+    const r = ice.results.encounter as { ice: string; terrestrial: string };
+    expect(ice.produced.entities[0]!.fields.description).toBe(r.ice);
+    expect(terr.produced.entities[0]!.fields.description).toBe(r.terrestrial);
+  });
+});
+
+describe("alien.shore-leave", () => {
+  const characters = INPUT_VARIANTS["alien.shore-leave"]![1]!.characters as Array<{ id: string; choice: string; isMarine: boolean }>;
+  const EFFECT_KINDS = ["setField", "incrementField", "addCondition", "removeCondition", "log", "prompt"];
+
+  it("rolls one event per socialising character and returns outcomes and Effect-shaped suggestions", () => {
+    const g = run("alien.shore-leave", { seed: "sl", inputs: { characters } });
+    expect(g.produced.entities).toEqual([]);
+    const outcomes = g.results.outcomes as Array<{ id: string; choice: string; summary: string; event?: Record<string, unknown> }>;
+    expect(outcomes.map((o) => o.id)).toEqual(characters.map((c) => c.id));
+    expect((g.results.marineEvents as unknown[]).length).toBe(2);
+    expect((g.results.otherEvents as unknown[]).length).toBe(1);
+    expect(g.rolls.filter((r) => r.step === "marineEvents").every((r) => r.table === "alien.shore-leave.marines")).toBe(true);
+    expect(g.rolls.filter((r) => r.step === "otherEvents").every((r) => r.table === "alien.shore-leave.others")).toBe(true);
+    for (const o of outcomes) {
+      expect(o.summary).toBeTruthy();
+      if (o.choice === "socialize") expect(o.event).toBeDefined();
+    }
+    const effects = g.results.effects as Effect[];
+    expect(effects.length).toBeGreaterThan(0);
+    for (const e of effects) {
+      expect(EFFECT_KINDS).toContain(e.kind);
+      if (e.kind === "setField" || e.kind === "incrementField") expect(characters.some((c) => c.id === e.entity)).toBe(true);
+      if (e.kind === "prompt") expect(e.prompt.kind).toBe("yesno");
+    }
+    expect(effects.some((e) => e.kind === "setField" && e.entity === "d" && e.path === "stress")).toBe(true);
+    expect(effects.some((e) => e.kind === "incrementField" && e.entity === "f" && e.path === "xp")).toBe(true);
+  });
+
+  it("skips both event steps when nobody socialises", () => {
+    const g = run("alien.shore-leave", { seed: "quiet", inputs: { characters: [{ id: "x", name: "X", choice: "heal", isMarine: true }] } });
+    expect(g.skipped.map((s) => s.step).sort()).toEqual(["marineEvents", "otherEvents"]);
+    expect((g.results.outcomes as unknown[]).length).toBe(1);
+    expect(g.rolls.length).toBe(0);
+  });
+});

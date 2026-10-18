@@ -1,0 +1,116 @@
+/* Campaign Forge design tokens. Dark by default; light via prefers-color-scheme
+   or an explicit data-theme attribute on <html>. */
+:root {
+  color-scheme: dark;
+
+  --cf-bg: #0f1418;
+  --cf-surface: #171e24;
+  --cf-elevated: #202a32;
+  --cf-border: #2d3a44;
+  --cf-border-strong: #3f5160;
+
+  --cf-text: #e6edf1;
+  --cf-muted: #93a4b1;
+  --cf-text-inverse: #0b1014;
+
+  --cf-accent: #2fb8b0;
+  --cf-accent-strong: #5fd6cf;
+  --cf-accent-soft: rgba(47, 184, 176, 0.16);
+  --cf-danger: #e5563d;
+  --cf-danger-soft: rgba(229, 86, 61, 0.18);
+  --cf-warning: #e8a83a;
+  --cf-warning-soft: rgba(232, 168, 58, 0.18);
+  --cf-success: #5cc06c;
+  --cf-success-soft: rgba(92, 192, 108, 0.18);
+
+  --cf-focus: #7fe0da;
+
+  --cf-space-1: 4px;
+  --cf-space-2: 8px;
+  --cf-space-3: 12px;
+  --cf-space-4: 16px;
+  --cf-space-5: 24px;
+  --cf-space-6: 32px;
+
+  --cf-radius-sm: 4px;
+  --cf-radius: 8px;
+  --cf-radius-lg: 12px;
+  --cf-radius-pill: 999px;
+
+  --cf-font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --cf-font-mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+  --cf-text-xs: 12px;
+  --cf-text-sm: 14px;
+  --cf-text-md: 16px;
+  --cf-text-lg: 20px;
+  --cf-text-xl: 28px;
+  --cf-text-2xl: 40px;
+
+  --cf-control-height: 36px;
+  --cf-touch: 40px;
+  --cf-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
+    --cf-bg: #f4f6f7;
+    --cf-surface: #ffffff;
+    --cf-elevated: #eef2f4;
+    --cf-border: #d4dce1;
+    --cf-border-strong: #b4c1c9;
+    --cf-text: #15202a;
+    --cf-muted: #5a6b78;
+    --cf-text-inverse: #ffffff;
+    --cf-accent: #178f89;
+    --cf-accent-strong: #0f6f6a;
+    --cf-accent-soft: rgba(23, 143, 137, 0.14);
+    --cf-danger: #c43f27;
+    --cf-danger-soft: rgba(196, 63, 39, 0.14);
+    --cf-warning: #b7791a;
+    --cf-warning-soft: rgba(183, 121, 26, 0.16);
+    --cf-success: #2f8f45;
+    --cf-success-soft: rgba(47, 143, 69, 0.16);
+    --cf-focus: #0f6f6a;
+    --cf-shadow: 0 8px 24px rgba(20, 30, 40, 0.18);
+  }
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --cf-bg: #f4f6f7;
+  --cf-surface: #ffffff;
+  --cf-elevated: #eef2f4;
+  --cf-border: #d4dce1;
+  --cf-border-strong: #b4c1c9;
+  --cf-text: #15202a;
+  --cf-muted: #5a6b78;
+  --cf-text-inverse: #ffffff;
+  --cf-accent: #178f89;
+  --cf-accent-strong: #0f6f6a;
+  --cf-accent-soft: rgba(23, 143, 137, 0.14);
+  --cf-danger: #c43f27;
+  --cf-danger-soft: rgba(196, 63, 39, 0.14);
+  --cf-warning: #b7791a;
+  --cf-warning-soft: rgba(183, 121, 26, 0.16);
+  --cf-success: #2f8f45;
+  --cf-success-soft: rgba(47, 143, 69, 0.16);
+  --cf-focus: #0f6f6a;
+  --cf-shadow: 0 8px 24px rgba(20, 30, 40, 0.18);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+/* Table mode: bigger type and touch targets, readable at arm's length. */
+.cf-table-mode {
+  --cf-text-sm: 16px;
+  --cf-text-md: 18px;
+  --cf-text-lg: 24px;
+  --cf-text-xl: 34px;
+  --cf-text-2xl: 52px;
+  --cf-control-height: 44px;
+  --cf-touch: 48px;
+}

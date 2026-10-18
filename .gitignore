@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.turbo/
+coverage/
+*.log
+.DS_Store
+.env
+.env.*
+playwright-report/
+test-results/
+apps/web/dev-dist/

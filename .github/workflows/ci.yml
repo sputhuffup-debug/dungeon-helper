@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Typecheck
+        run: pnpm typecheck
+      - name: Unit tests and module conformance
+        run: pnpm test
+      - name: Table lint
+        run: pnpm table-lint
+      - name: Build web app
+        run: pnpm --filter @campaign-forge/web build
+      - name: End-to-end
+        if: hashFiles('apps/web/e2e/**/*.spec.ts') != ''
+        run: |
+          pnpm exec playwright install --with-deps chromium
+          PLAYWRIGHT_CHROMIUM_PATH="$(node -e "console.log(require('@playwright/test').chromium.executablePath())")" \
+            pnpm --filter @campaign-forge/web test:e2e

@@ -1,0 +1,227 @@
+import { describe, expect, it } from "vitest";
+import { checkModule, filterByMode, loadModule, ModuleConformanceError } from "../src/module";
+import { CONTRACT_VERSION, type GameModule, type RollTable } from "../src/types";
+
+function minimalModule(): GameModule {
+  return {
+    manifest: {
+      id: "min",
+      version: "1.0.0",
+      name: "Min",
+      ruleset: "Min",
+      licenseNotice: "none",
+      requiredCore: CONTRACT_VERSION,
+      modes: [{ id: "a", name: "A" }, { id: "b", name: "B" }],
+      defaultMode: "a",
+      dataStatus: "verified",
+    },
+    dice: {
+      dice: [{ id: "d6", name: "d6", faces: 6 }],
+      buildPool: () => ({ dice: { d6: 1 } }),
+      roll: (pool, rng) => ({ pool, dice: [{ die: "d6", value: rng.int(1, 6) }], successes: 0, symbols: {}, pushes: 0, canPush: false }),
+      describe: () => "",
+    },
+    entityTypes: [
+      {
+        id: "min.thing",
+        kind: "item",
+        name: "Thing",
+        plural: "Things",
+        schema: { type: "object", properties: { weight: { type: "number", default: 1 }, color: { type: "string", enum: ["red", "blue"] } } },
+        sheet: { sections: [{ id: "s", title: "S", fields: [{ path: "weight" }, { path: "color", widget: "select", options: ["red"] }] }] },
+        computed: { heavy: { ">": [{ var: "fields.weight" }, 5] } },
+      },
+    ],
+    relationshipTypes: [{ id: "min.likes", forward: "likes", reverse: "liked by" }],
+    referenceLists: [{ id: "min.colors", name: "Colors", items: [{ id: "red", name: "Red" }] }],
+    presets: [{ id: "min.preset", entityType: "min.thing", name: "P", fields: { weight: 2 } }],
+    tables: [
+      {
+        id: "min.t1",
+        name: "T1",
+        page: 1,
+        dice: "d6",
+        rows: [
+          { range: [1, 3], result: "low" },
+          { range: [4, 6], result: "high" },
+        ],
+      },
+    ],
+    procedures: [
+      {
+        id: "min.proc",
+        name: "Proc",
+        steps: [{ id: "one", table: "min.t1" }],
+        produce: (ctx) => ({ entities: [{ tempId: "x", type: "min.thing", name: String(ctx.get("one")), fields: {} }], relationships: [] }),
+      },
+    ],
+    templates: [{ id: "min.tpl", kind: "scene", name: "Scene", scaffold: { purpose: "x" } }],
+    rules: [{ id: "min.rule", title: "R", summary: "s", page: 2, links: { tables: ["min.t1"], fields: ["min.thing.weight"] } }],
+    trackers: [{ id: "min.tracker", name: "Tr", kind: "counter", scope: "character", binds: ["min.thing.weight"], rules: ["min.rule"] }],
+    calendar: { id: "min.cal", name: "Cal", defaultYear: 1, months: [{ name: "M", days: 30 }] },
+  };
+}
+
+const errorsOf = (m: GameModule) => checkModule(m, { seeds: 20 }).issues.filter((i) => i.severity === "error");
+
+describe("checkModule", () => {
+  it("passes a minimal valid module", () => {
+    const report = checkModule(minimalModule(), { seeds: 50 });
+    expect(report.issues.filter((i) => i.severity === "error")).toEqual([]);
+    expect(report.ok).toBe(true);
+  });
+
+  it("catches a coverage gap", () => {
+    const m = minimalModule();
+    m.tables[0]!.rows = [
+      { range: [1, 2], result: "a" },
+      { range: [4, 6], result: "b" },
+    ];
+    const errs = errorsOf(m);
+    expect(errs.some((e) => e.where === "table:min.t1" && /no row covers total 3/.test(e.message))).toBe(true);
+  });
+
+  it("catches an overlap", () => {
+    const m = minimalModule();
+    m.tables[0]!.rows = [
+      { range: [1, 4], result: "a" },
+      { range: [4, 6], result: "b" },
+    ];
+    const errs = errorsOf(m);
+    expect(errs.some((e) => e.where === "table:min.t1" && /overlap/.test(e.message))).toBe(true);
+  });
+
+  it("accounts for modifiers when checking coverage", () => {
+    const m = minimalModule();
+    const t: RollTable = {
+      id: "min.t2",
+      name: "T2",
+      dice: "2d6",
+      modifiers: [{ when: { var: "x" }, add: -2 }, { add: 3 }],
+      rows: [
+        { range: [0, 6], result: "a" },
+        { range: [7, 15], result: "b" },
+      ],
+    };
+    m.tables.push(t);
+    expect(errorsOf(m).filter((e) => e.where === "table:min.t2")).toEqual([]);
+    t.rows = [
+      { range: [2, 6], result: "a" },
+      { range: [7, 12], result: "b" },
+    ];
+    const errs = errorsOf(m).filter((e) => e.where === "table:min.t2");
+    expect(errs).toHaveLength(1);
+    expect(errs[0]?.message).toMatch(/0, 1, 13, 14, 15/);
+  });
+
+  it("catches a d66 table that only covers the sums", () => {
+    const m = minimalModule();
+    m.tables.push({ id: "min.d66", name: "D66", dice: "d66", rows: [{ range: [11, 36], result: "a" }, { range: [37, 60], result: "b" }] });
+    const errs = errorsOf(m).filter((e) => e.where === "table:min.d66");
+    expect(errs.some((e) => /no row covers/.test(e.message) && /61/.test(e.message))).toBe(true);
+  });
+
+  it("catches a missing rule page", () => {
+    const m = minimalModule();
+    (m.rules[0] as { page?: unknown }).page = undefined;
+    expect(errorsOf(m).some((e) => e.where === "rule:min.rule" && /page/.test(e.message))).toBe(true);
+  });
+
+  it("catches dangling links", () => {
+    const m = minimalModule();
+    m.rules[0]!.links = { tables: ["min.nope"], rules: ["min.ghost"], trackers: ["min.tr2"], fields: ["min.thing.nope", "other.x"] };
+    const errs = errorsOf(m).filter((e) => e.where === "rule:min.rule");
+    expect(errs.map((e) => e.message)).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('unknown table "min.nope"'),
+        expect.stringContaining('unknown rule "min.ghost"'),
+        expect.stringContaining('unknown tracker "min.tr2"'),
+        expect.stringContaining('unknown field "nope"'),
+        expect.stringContaining('"other.x"'),
+      ]),
+    );
+  });
+
+  it("catches sheet, reference, mode, relationship, nested table and procedure problems", () => {
+    const m = minimalModule();
+    m.entityTypes[0]!.sheet.sections[0]!.fields.push({ path: "ghost" }, { path: "weight", options: { ref: "min.nolist" } }, { path: "color", options: ["green"] }, { path: "weight", mode: ["zzz"] });
+    m.relationshipTypes.push({ id: "within", forward: "w", reverse: "c" });
+    m.tables[0]!.rows[0]!.roll = [{ table: "min.missing", as: "x" }];
+    m.procedures[0]!.steps.push({ id: "two", table: "min.nope", reads: ["nope"] });
+    m.rules[0]!.mode = ["zzz"];
+    m.trackers[0]!.binds = ["nothing.here"];
+    m.trackers[0]!.rules = ["min.norule"];
+    m.presets[0]!.entityType = "min.unknown";
+    m.manifest.requiredCore = "7.0.0";
+    const errs = errorsOf(m);
+    const msgs = errs.map((e) => `${e.where}: ${e.message}`);
+    expect(msgs).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('sheet field path "ghost"'),
+        expect.stringContaining('unknown reference list "min.nolist"'),
+        expect.stringContaining('select option "green"'),
+        expect.stringContaining('undeclared mode "zzz"'),
+        expect.stringContaining('clashes with core relationship type "within"'),
+        expect.stringContaining('nests unknown table "min.missing"'),
+        expect.stringContaining('unknown table "min.nope"'),
+        expect.stringContaining('reads unknown step "nope"'),
+        expect.stringContaining('binds path "nothing.here"'),
+        expect.stringContaining('unknown rule "min.norule"'),
+        expect.stringContaining('unknown entity type "min.unknown"'),
+        expect.stringContaining("requiredCore"),
+      ]),
+    );
+  });
+
+  it("reports the seed when a procedure throws, and preset schema problems as warnings", () => {
+    const m = minimalModule();
+    m.procedures[0]!.produce = (ctx) => {
+      if (ctx.rolls[0]?.total === 6) throw new Error("boom");
+      return { entities: [], relationships: [] };
+    };
+    m.presets[0]!.fields = { weight: "heavy" };
+    const report = checkModule(m, { seeds: 100 });
+    expect(report.ok).toBe(false);
+    expect(report.issues.some((i) => i.severity === "error" && i.where === "procedure:min.proc" && /threw for seed "conformance-\d+": boom/.test(i.message))).toBe(true);
+    expect(report.issues.some((i) => i.severity === "warning" && i.where === "preset:min.preset")).toBe(true);
+  });
+});
+
+describe("loadModule", () => {
+  it("builds lookups", () => {
+    const loaded = loadModule(minimalModule(), { seeds: 10 });
+    expect(loaded.entityType("min.thing")?.name).toBe("Thing");
+    expect(loaded.table("min.t1")?.name).toBe("T1");
+    expect(loaded.tables.all()).toHaveLength(1);
+    expect(loaded.procedure("min.proc")?.name).toBe("Proc");
+    expect(loaded.rule("min.rule")?.title).toBe("R");
+    expect(loaded.rulesForField("min.thing", "weight").map((r) => r.id)).toEqual(["min.rule"]);
+    expect(loaded.rulesForTable("min.t1").map((r) => r.id)).toEqual(["min.rule"]);
+    expect(loaded.rulesForTable("none")).toEqual([]);
+    expect(loaded.referenceList("min.colors")?.items).toHaveLength(1);
+    expect(loaded.referenceItem("min.colors", "red")?.name).toBe("Red");
+    expect(loaded.preset("min.preset")?.name).toBe("P");
+    expect(loaded.presetsFor("min.thing")).toHaveLength(1);
+    expect(loaded.template("min.tpl")?.kind).toBe("scene");
+    expect(loaded.templatesFor("scene")).toHaveLength(1);
+    expect(loaded.templatesFor("adventure")).toHaveLength(0);
+    expect(loaded.tracker("min.tracker")?.kind).toBe("counter");
+    expect(loaded.relationshipTypes.map((r) => r.id)).toContain("within");
+    expect(loaded.relationshipTypes.map((r) => r.id)).toContain("min.likes");
+    expect(loaded.forMode("a").rules).toHaveLength(1);
+    expect(loaded.module.manifest.id).toBe("min");
+  });
+
+  it("throws on conformance errors", () => {
+    const m = minimalModule();
+    m.tables[0]!.rows = [{ range: [1, 5], result: "a" }];
+    expect(() => loadModule(m, { seeds: 5 })).toThrow(ModuleConformanceError);
+  });
+});
+
+describe("filterByMode", () => {
+  it("keeps untagged and matching items", () => {
+    const items = [{ id: 1 }, { id: 2, mode: ["a"] }, { id: 3, mode: ["b"] }, { id: 4, mode: [] }];
+    expect(filterByMode(items, "a").map((i) => i.id)).toEqual([1, 2, 4]);
+  });
+});
