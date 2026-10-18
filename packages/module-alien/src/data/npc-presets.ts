@@ -157,7 +157,7 @@ export const npcPresets: AlienPreset[] = [
     attributes: { strength: 2, agility: 3, wits: 4, empathy: 5 },
     skills: { observation: 3, comtech: 3, manipulation: 2, medicalAid: 2 },
     talent: "personal-safety",
-    gear: [{ name: "PDT", items: ["pr-put-personal-data-transmitter"] }, { name: "Seegson P-DAT", items: ["seegson-p-dat"], weight: 0.5 }],
+    gear: [{ name: "PDT", items: ["personal-data-transmitter"] }, { name: "Seegson P-DAT", items: ["seegson-p-dat"], weight: 0.5 }],
   }),
   npc({
     id: "comtech",
@@ -166,7 +166,7 @@ export const npcPresets: AlienPreset[] = [
     attributes: { strength: 2, agility: 3, wits: 5, empathy: 4 },
     skills: { piloting: 2, comtech: 4, observation: 2 },
     talent: "stoic",
-    gear: [{ name: "Systems diagnostic device", items: ["seegson-system-diagnostic-device", "seegson-c-series-diagnostic"] }, { name: "Electronic tools", items: ["electronic-tools", "electronic-tool-kit"] }],
+    gear: [{ name: "Systems diagnostic device", items: ["seegson-system-diagnostic-device"] }, { name: "Electronic tools", items: ["electronic-tool-kit"] }],
   }),
   npc({
     id: "corporate-exec",
@@ -175,7 +175,7 @@ export const npcPresets: AlienPreset[] = [
     attributes: { strength: 2, agility: 3, wits: 5, empathy: 4 },
     skills: { observation: 3, command: 3, manipulation: 4 },
     talent: "cunning",
-    gear: [{ name: "Penlight" }, { name: "PDT", items: ["pr-put-personal-data-transmitter"] }, { name: "Voice recorder" }],
+    gear: [{ name: "Penlight" }, { name: "PDT", items: ["personal-data-transmitter"] }, { name: "Voice recorder" }],
     cash: 2000,
   }),
   npc({
@@ -185,7 +185,7 @@ export const npcPresets: AlienPreset[] = [
     attributes: { strength: 4, agility: 5, wits: 4, empathy: 1 },
     skills: { closeCombat: 3, mobility: 1, rangedCombat: 4, observation: 2 },
     talent: "stealthy",
-    gear: [{ name: "M42A Scope Rifle", items: ["armat-m42a-scope-rifle"] }, { name: "Combat knife", items: ["knife"] }, { name: "Medkit", items: ["personal-medkit", "medkit"] }],
+    gear: [{ name: "M42A Scope Rifle", items: ["armat-m42a-scope-rifle"] }, { name: "Combat knife", items: ["knife"] }, { name: "Medkit", items: ["personal-medkit"] }],
   }),
   npc({
     id: "cultist",
@@ -219,7 +219,7 @@ export const npcPresets: AlienPreset[] = [
     attributes: { strength: 2, agility: 3, wits: 5, empathy: 4 },
     skills: { stamina: 3, mobility: 2, observation: 3, manipulation: 3, medicalAid: 4 },
     talent: "surgeon",
-    gear: [{ name: "Medkit", items: ["personal-medkit", "medkit"] }, { name: "Surgical kit", items: ["surgical-kit"] }, { name: "Naproleve", qty: 4, items: ["naproleve"] }],
+    gear: [{ name: "Medkit", items: ["personal-medkit"] }, { name: "Surgical kit", items: ["surgical-kit"] }, { name: "Naproleve", qty: 4, items: ["naproleve"] }],
   }),
   npc({
     id: "mercenary",
@@ -228,7 +228,7 @@ export const npcPresets: AlienPreset[] = [
     attributes: { strength: 5, agility: 4, wits: 3, empathy: 2 },
     skills: { closeCombat: 2, stamina: 2, mobility: 2, rangedCombat: 3, survival: 1 },
     talent: "combat-veteran",
-    gear: [{ name: "Medkit", items: ["personal-medkit", "medkit"] }, { name: "M41A Pulse Rifle", items: ["armat-m41a-pulse-rifle"] }, { name: "Grenade", qty: 4, items: ["m40-hedp-grenade"] }],
+    gear: [{ name: "Medkit", items: ["personal-medkit"] }, { name: "M41A Pulse Rifle", items: ["armat-m41a-pulse-rifle"] }, { name: "Grenade", qty: 4, items: ["m40-hedp-grenade"] }],
   }),
   npc({
     id: "mining-wildcatter",
@@ -246,7 +246,7 @@ export const npcPresets: AlienPreset[] = [
     attributes: { strength: 3, agility: 5, wits: 3, empathy: 3 },
     skills: { piloting: 3, rangedCombat: 3, comtech: 2, observation: 1, survival: 1 },
     talent: "full-throttle",
-    gear: [{ name: "Service pistol", items: ["m4a3-service-pistol"] }, { name: "Compression suit", items: ["compression-suit"] }],
+    gear: [{ name: "Service pistol", items: ["m4a3-service-pistol"] }, { name: "Compression suit", items: ["irc-mk50-compression-suit"] }],
   }),
   npc({
     id: "scientist",
@@ -256,9 +256,9 @@ export const npcPresets: AlienPreset[] = [
     skills: { mobility: 1, comtech: 3, observation: 4, survival: 2 },
     talent: "analysis",
     gear: [
-      { name: "Electrostatic Pistol", items: ["weyland-es-4-electrostatic-pistol", "es-4-electrostatic-pistol", "electrostatic-pistol"], weight: 0.5 },
-      { name: "System diagnostic device", items: ["seegson-system-diagnostic-device", "seegson-c-series-diagnostic"] },
-      { name: "Electronic tools", items: ["electronic-tools", "electronic-tool-kit"] },
+      { name: "Electrostatic Pistol", items: ["weyland-es-4-electrostatic-pistol"], weight: 0.5 },
+      { name: "System diagnostic device", items: ["seegson-system-diagnostic-device"] },
+      { name: "Electronic tools", items: ["electronic-tool-kit"] },
     ],
   }),
   npc({
@@ -276,7 +276,7 @@ export const npcPresets: AlienPreset[] = [
     summary: "A station or colony guard with a revolver and a baton.",
     attributes: { strength: 4, agility: 4, wits: 3, empathy: 3 },
     skills: { closeCombat: 2, rangedCombat: 2, observation: 3, medicalAid: 1 },
-    gear: [{ name: ".357 revolver", items: ["357-magnum-revolver"] }, { name: "Stun baton", items: ["stun-baton"] }, { name: "Medkit", items: ["personal-medkit", "medkit"] }],
+    gear: [{ name: ".357 revolver", items: ["357-magnum-revolver"] }, { name: "Stun baton", items: ["stun-baton"] }, { name: "Medkit", items: ["personal-medkit"] }],
   }),
   npc({
     id: "ships-engineer",
@@ -285,7 +285,7 @@ export const npcPresets: AlienPreset[] = [
     attributes: { strength: 4, agility: 2, wits: 5, empathy: 3 },
     skills: { closeCombat: 1, heavyMachinery: 4, stamina: 3, comtech: 1, observation: 1 },
     talent: "spaceship-mechanic",
-    gear: [{ name: "Bolt gun", items: ["watatsumi-dv-303-bolt-gun"] }, { name: "System diagnostic device", items: ["seegson-system-diagnostic-device", "seegson-c-series-diagnostic"] }],
+    gear: [{ name: "Bolt gun", items: ["watatsumi-dv-303-bolt-gun"] }, { name: "System diagnostic device", items: ["seegson-system-diagnostic-device"] }],
   }),
   npc({
     id: "smuggler",
@@ -294,7 +294,7 @@ export const npcPresets: AlienPreset[] = [
     attributes: { strength: 3, agility: 4, wits: 4, empathy: 3 },
     skills: { closeCombat: 3, mobility: 2, piloting: 1, rangedCombat: 2, manipulation: 2 },
     talent: "stealthy",
-    gear: [{ name: "Rexim EVA Pistol", items: ["rexim-rxf-m55-eva-pistol", "rexim-rxf-m5-eva-pistol"] }],
+    gear: [{ name: "Rexim EVA Pistol", items: ["rexim-rxf-m5-eva-pistol"] }],
   }),
   npc({
     id: "squad-leader",
@@ -303,7 +303,7 @@ export const npcPresets: AlienPreset[] = [
     attributes: { strength: 5, agility: 3, wits: 3, empathy: 3 },
     skills: { closeCombat: 2, stamina: 2, rangedCombat: 3, survival: 1, command: 2 },
     talent: "field-commander",
-    gear: [{ name: "Medkit", items: ["personal-medkit", "medkit"] }, { name: "M41A Pulse Rifle", items: ["armat-m41a-pulse-rifle"] }, { name: "Seegson P-DAT", items: ["seegson-p-dat"], weight: 0.5 }],
+    gear: [{ name: "Medkit", items: ["personal-medkit"] }, { name: "M41A Pulse Rifle", items: ["armat-m41a-pulse-rifle"] }, { name: "Seegson P-DAT", items: ["seegson-p-dat"], weight: 0.5 }],
   }),
   npc({
     id: "thug",

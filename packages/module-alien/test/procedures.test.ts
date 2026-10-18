@@ -123,10 +123,11 @@ const INPUT_VARIANTS: Record<string, Array<Record<string, unknown>>> = {
   "alien.lifepath": [{}, { name: "Ripley" }],
   "alien.encounter.check": [
     {},
-    { where: "surface-ice", timeElapsed: 2 },
+    { where: "surface-colonized" },
     { where: "ship-reaction" },
-    { where: "colony-medical", timeElapsed: 9 },
-    { where: "star-system", timeElapsed: 6 },
+    { where: "colony-general", colonySize: "established" },
+    { where: "star-system", region: "frontier" },
+    { where: "colony-operations" },
   ],
   "alien.shore-leave": [
     {},
@@ -461,24 +462,42 @@ describe("alien.lifepath", () => {
 });
 
 describe("alien.encounter.check", () => {
-  it("produces an encounter entity for every location and shifts the tens digit with time", () => {
+  it("produces an encounter entity (or none) for every location and applies the book's tens-digit modifiers", () => {
     const wheres = (byId("alien.encounter.check").inputs as { properties: { where: { enum: string[] } } }).properties.where.enum;
     for (const where of wheres) {
-      const g = run("alien.encounter.check", { seed: `enc-${where}`, inputs: { where, timeElapsed: 1 } });
-      const e = g.produced.entities[0]!;
-      expect(e.type).toBe("alien.encounter");
-      expect(e.fields.where).toBe(where);
-      expect(typeof e.fields.description).toBe("string");
-      expect(e.fields.description).not.toBe("");
-      const roll = g.rolls[0]!;
-      if (where === "star-system" || where.startsWith("surface")) expect(roll.modifier).toBe(10);
-      else expect(roll.modifier).toBe(0);
+      for (let s = 0; s < 8; s++) {
+        const g = run("alien.encounter.check", { seed: `enc-${where}-${s}`, inputs: { where } });
+        const res = g.results.encounter as { none: boolean; description: string };
+        expect(g.rolls[0]!.modifier).toBe(0);
+        if (res.none) {
+          expect(g.produced.entities).toEqual([]);
+          continue;
+        }
+        const e = g.produced.entities[0]!;
+        expect(e.type).toBe("alien.encounter");
+        expect(e.fields.where).toBe(where);
+        expect(e.fields.tableId).toBe(e.fields.table);
+        expect(typeof e.fields.description).toBe("string");
+        expect(e.fields.description).not.toBe("");
+      }
     }
-    const ice = run("alien.encounter.check", { seed: "ice", inputs: { where: "surface-ice" } });
-    const terr = run("alien.encounter.check", { seed: "ice", inputs: { where: "surface-terrestrial" } });
-    const r = ice.results.encounter as { ice: string; terrestrial: string };
-    expect(ice.produced.entities[0]!.fields.description).toBe(r.ice);
-    expect(terr.produced.entities[0]!.fields.description).toBe(r.terrestrial);
+    const modifierFor = (inputs: Record<string, unknown>) => run("alien.encounter.check", { seed: "mod", inputs }).rolls[0]!.modifier;
+    expect(modifierFor({ where: "star-system", region: "core" })).toBe(0);
+    expect(modifierFor({ where: "star-system", region: "outer-rim" })).toBe(-30);
+    expect(modifierFor({ where: "star-system", region: "far-reach" })).toBe(-30);
+    expect(modifierFor({ where: "star-system", region: "uncharted" })).toBe(-50);
+    expect(modifierFor({ where: "colony-general", colonySize: "established" })).toBe(10);
+    expect(modifierFor({ where: "colony-general", colonySize: "young" })).toBe(0);
+    // Uncharted space: a D66 tens digit of 5 or less becomes 0 or less, so no encounter.
+    for (let s = 0; s < 20; s++) {
+      const g = run("alien.encounter.check", { seed: `unch-${s}`, inputs: { where: "star-system", region: "uncharted" } });
+      if (g.rolls[0]!.raw[0]! <= 5 || g.rolls[0]!.total <= 10) expect(g.produced.entities).toEqual([]);
+    }
+    const unin = run("alien.encounter.check", { seed: "surface", inputs: { where: "surface-uninhabited" } });
+    const col = run("alien.encounter.check", { seed: "surface", inputs: { where: "surface-colonized" } });
+    const r = unin.results.encounter as { uninhabited: string; colonized: string; description: string };
+    expect(r.description).toBe(r.uninhabited === "No encounter" ? "No encounter" : r.uninhabited);
+    expect((col.results.encounter as { description: string }).description).toBe(r.colonized === "No encounter" ? "No encounter" : r.colonized);
   });
 });
 

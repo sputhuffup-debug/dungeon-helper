@@ -328,23 +328,48 @@ describe("alien tables: seed-specified shapes", () => {
     expect(covered[covered.length - 1]![1]).toBe(66);
   });
 
-  it("encounter and shore leave tables", () => {
-    expect(dice("alien.encounters.star-system")).toBe("d66");
+  it("encounter and shore leave tables match the book (p. 252-258)", () => {
+    const rowFor = (id: string, total: number) => registry.get(id)!.rows.find((r) => total >= r.range[0] && total <= r.range[1])!;
+    const encounterAndShore = tables.filter((t) => t.family === "encounters" || t.family === "shore-leave");
+    for (const t of encounterAndShore) {
+      expect(t.unverified, t.id).toBeUndefined();
+      for (const r of t.rows) expect(r.unverified, `${t.id} ${r.range.join("-")}`).toBeUndefined();
+    }
+    // Star system: D66 with -3 / -5 on the tens digit; 0 or less is no encounter; vessels nest a ship reaction.
+    const star = registry.get("alien.encounters.star-system")!;
+    expect(star.dice).toBe("d66");
+    expect(star.page).toBe(254);
+    expect(star.modifiers!.map((m) => m.add)).toEqual([-30, -50]);
+    expect(star.rows.length).toBe(37);
+    expect(rowFor("alien.encounters.star-system", 10).label).toBe("No encounter");
+    expect(rowFor("alien.encounters.star-system", 11).label).toBe("Research vessel");
+    expect(rowFor("alien.encounters.star-system", 66).label).toBe("Mobile construction rig");
+    expect(rowFor("alien.encounters.star-system", 41).roll?.[0]?.table).toBe("alien.encounters.ship-reactions");
+    expect(rowFor("alien.encounters.star-system", 46).roll).toBeUndefined();
     expect(dice("alien.encounters.ship-reactions")).toBe("2d6");
-    expect(dice("alien.encounters.surface")).toBe("d66");
+    expect(registry.get("alien.encounters.ship-reactions")!.rows.map((r) => r.range)).toEqual([[2, 2], [3, 4], [5, 8], [9, 10], [11, 11], [12, 12]]);
+    // Surface: 3D6, uninhabited and colonized columns.
+    expect(dice("alien.encounters.surface")).toBe("3d6");
     for (const r of registry.get("alien.encounters.surface")!.rows) {
       const res = r.result as Record<string, unknown>;
-      expect(typeof res.terrestrial).toBe("string");
-      expect(typeof res.ice).toBe("string");
+      expect(typeof res.uninhabited).toBe("string");
+      expect(typeof res.colonized).toBe("string");
     }
-    expect(dice("alien.encounters.colony.general")).toBe("3d6");
-    for (const area of ["admin", "residential", "industrial", "medical", "spaceport"]) expect(dice(`alien.encounters.colony.${area}`)).toBe("2d6");
-    for (const id of ["alien.encounters.star-system", "alien.encounters.surface"]) {
-      expect(JSON.stringify(registry.get(id)!.modifiers)).toContain("timeElapsed");
-    }
+    expect((rowFor("alien.encounters.surface", 17).result as Record<string, unknown>).colonized).toBe("Explorers");
+    // General colony: D66 to 76, +1 tens digit when established.
+    const general = registry.get("alien.encounters.colony.general")!;
+    expect(general.dice).toBe("d66");
+    expect(general.rows.length).toBe(42);
+    expect(general.modifiers!.map((m) => m.add)).toEqual([10]);
+    expect(rowFor("alien.encounters.colony.general", 76).label).toBe("Colonists on strike or protesting");
+    for (const area of ["public", "habitation", "operations", "spaceport", "industrial"]) expect(dice(`alien.encounters.colony.${area}`)).toBe("d66");
+    expect(registry.get("alien.encounters.colony.operations")!.rows.length).toBe(13);
+    // Shore leave: twelve D66 events per table; three Marines rows nest a D6.
     expect(dice("alien.shore-leave.marines")).toBe("d66");
-    expect(registry.get("alien.shore-leave.marines")!.rows.some((r) => r.roll && r.roll.length > 0)).toBe(true);
     expect(dice("alien.shore-leave.others")).toBe("d66");
+    expect(registry.get("alien.shore-leave.marines")!.rows.length).toBe(12);
+    expect(registry.get("alien.shore-leave.others")!.rows.length).toBe(12);
+    expect(registry.get("alien.shore-leave.marines")!.rows.filter((r) => r.roll && r.roll.length > 0).map((r) => r.range)).toEqual([[24, 26], [41, 44], [45, 46]]);
   });
 
   it("creature attack tables carry name, dice, damage, armorPiercing and effect", () => {

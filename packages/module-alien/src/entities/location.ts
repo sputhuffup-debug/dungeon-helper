@@ -50,7 +50,7 @@ export const locationSchema = objectSchema({
   gravity: stringField(),
   atmosphere: stringField("thin, breathable, toxic, dense, corrosive, infiltrating or special (p. 238)."),
   temperature: stringField("frozen, cold, temperate, hot or burning (p. 238)."),
-  geosphere: stringField("desert, arid, temperate, wet or water world (p. 239)."),
+  geosphere: stringField("desert, arid, dry-temperate, wet-temperate, wet or water (p. 239)."),
   terrain: stringField("(p. 239)"),
   inhabited: { type: "boolean", default: false },
   population: { type: ["integer", "string"] },

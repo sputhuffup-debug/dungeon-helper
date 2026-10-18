@@ -21,6 +21,8 @@ export interface FrameInput {
   defaultCareers: string[];
   /** Suggested spaceship, with its page. */
   ships: string[];
+  /** Spaceship preset ids (src/data/ships.ts) for the suggested ship. */
+  shipPresets: string[];
   /** Weekly salary as printed. */
   salaryBand: string;
   page: number;
@@ -53,7 +55,8 @@ export const frameItems: FrameItem[] = [
     jobTables: jobTables("truckers"),
     suggestedEmployers: ["Weyland-Yutani", "Lasalle Bionational", "Seegson"],
     defaultCareers: ["company-agent", "medic", "officer", "pilot", "roughneck"],
-    ships: ["Model CM-88G Bison M-Class Freighter (p. 134)"],
+    ships: ["Model CM-88G Bison M-Class Commercial Starfreighter (p. 134)"],
+    shipPresets: ["alien.spaceship.bison-m-class-hauler"],
     salaryBand: "$400–960 per week (time in stasis pays 10%)",
     page: 234,
   }),
@@ -68,7 +71,8 @@ export const frameItems: FrameItem[] = [
     jobTables: jobTables("marines", false),
     suggestedEmployers: ["USCMC (United Americas)", "Space Operating Forces (Union of Progressive Peoples)", "Royal Marines Commandos (Three World Empire)"],
     defaultCareers: ["colonial-marine", "medic", "officer", "pilot", "roughneck"],
-    ships: ["Conestoga Class Frigate (p. 136)"],
+    ships: ["Conestoga-Class Frigate (p. 136-137)"],
+    shipPresets: ["alien.spaceship.conestoga-class-troop-transport"],
     salaryBand: "$500–760 per week (time in stasis pays 10%)",
     page: 235,
   }),
@@ -83,7 +87,9 @@ export const frameItems: FrameItem[] = [
     jobTables: jobTables("colonists"),
     suggestedEmployers: ["Weyland-Yutani", "ICSC", "Colonial Marshal Bureau"],
     defaultCareers: ["colonial-marshal", "company-agent", "kid", "medic", "pilot", "roughneck", "scientist"],
-    ships: ["Model CM-90S Corvus – M-Class Salvage Vessel (p. 132)"],
+    // The frame text (p. 235) calls it M-Class; its stat block (p. 133) says G-Class.
+    ships: ["Model CM-90S Corvus G-Class Commercial Deep Space Salvage Vessel (p. 132-133)"],
+    shipPresets: ["alien.spaceship.lockmart-cm-90s-corvus"],
     salaryBand: "$500–640 per week (time in stasis pays 10%)",
     page: 235,
   }),
@@ -107,6 +113,7 @@ export const frames: ReferenceList = {
       suggestedEmployers: { type: "array", items: { type: "string" } },
       defaultCareers: { type: "array", items: { type: "string" } },
       ships: { type: "array", items: { type: "string" } },
+      shipPresets: { type: "array", items: { type: "string" } },
       salaryBand: { type: "string" },
       page: { type: ["integer", "array"] },
     },
