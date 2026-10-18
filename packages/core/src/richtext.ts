@@ -348,29 +348,35 @@ type InsertableNode = Y.XmlElement | Y.XmlText;
 
 function inlineNodes(inlines: Inline[]): InsertableNode[] {
   const nodes: InsertableNode[] = [];
-  let text: Y.XmlText | undefined;
+  // Consecutive text runs become one Y.XmlText. The delta is applied in one
+  // go because an unintegrated Y.Text has length 0 until it joins a doc.
+  let delta: Array<{ insert: string; attributes?: Record<string, unknown> }> = [];
+  const flush = () => {
+    if (!delta.length) return;
+    const text = new Y.XmlText();
+    text.applyDelta(delta);
+    nodes.push(text);
+    delta = [];
+  };
   for (const run of inlines) {
     if (run.ref) {
+      flush();
       const el = new Y.XmlElement(REF_NODE);
       el.setAttribute("id", run.ref.id);
       if (run.ref.label !== undefined) el.setAttribute("label", run.ref.label);
       nodes.push(el);
-      text = undefined;
     } else if (run.hardBreak) {
+      flush();
       nodes.push(new Y.XmlElement("hardBreak"));
-      text = undefined;
     } else {
-      if (!text) {
-        text = new Y.XmlText();
-        nodes.push(text);
-      }
       const attrs: Record<string, unknown> = {};
       if (run.bold) attrs["bold"] = {};
       if (run.italic) attrs["italic"] = {};
       if (run.code) attrs["code"] = {};
-      text.insert(text.length, run.text, Object.keys(attrs).length ? attrs : undefined);
+      delta.push(Object.keys(attrs).length ? { insert: run.text, attributes: attrs } : { insert: run.text });
     }
   }
+  flush();
   return nodes;
 }
 

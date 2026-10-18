@@ -1,0 +1,24 @@
+/** All Alien module random tables, flat across families. */
+import type { RollTable } from "@campaign-forge/module-sdk";
+import { characterTables } from "./character";
+import { creatureTables } from "./creatures";
+import { encounterTables } from "./encounters";
+import { jobTables } from "./jobs";
+import { lifepathTables } from "./lifepath";
+import { shoreLeaveTables } from "./shore-leave";
+import { systemTables } from "./system";
+import { worldTables } from "./world";
+
+export const tablesByFamily: Record<string, RollTable[]> = {
+  character: characterTables,
+  lifepath: lifepathTables,
+  world: worldTables,
+  system: systemTables,
+  jobs: jobTables,
+  encounters: encounterTables,
+  "shore-leave": shoreLeaveTables,
+  creatures: creatureTables,
+};
+
+export const tables: RollTable[] = Object.values(tablesByFamily).flat();
+

@@ -20,10 +20,11 @@ const frame = (f: Omit<FrameItem, "unverified" | "mode" | "page">): FrameItem =>
   unverified: true,
 });
 
-const jobTables = (short: string, employerKey: "employer" | "sponsor", missionKey: "cargo" | "mission") => ({
-  employer: `alien.jobs.${short}.${employerKey}`,
+/** Ids follow tables/jobs.ts: every frame uses employer/bonus/mission/destination/complications. */
+const jobTables = (short: string) => ({
+  employer: `alien.jobs.${short}.employer`,
   bonus: `alien.jobs.${short}.bonus`,
-  mission: `alien.jobs.${short}.${missionKey}`,
+  mission: `alien.jobs.${short}.mission`,
   destination: `alien.jobs.${short}.destination`,
   complications: `alien.jobs.${short}.complications`,
   plotTwist: "alien.jobs.plot-twist",
@@ -37,7 +38,7 @@ export const frameItems: FrameItem[] = [
     short: "truckers",
     jobType: "job",
     summary: "A working crew hauling cargo on a battered freighter, one job away from bankruptcy.",
-    jobTables: jobTables("truckers", "employer", "cargo"),
+    jobTables: jobTables("truckers"),
     defaultCareers: ["roughneck", "pilot", "officer", "medic", "company-agent", "scientist"],
     ships: ["Lockmart CM-90S Corvus", "Weyland-Yutani M-Class starfreighter"],
     salaryBand: "Low: wages plus bonus shares; the ship's loan eats most of it.",
@@ -48,7 +49,7 @@ export const frameItems: FrameItem[] = [
     short: "marines",
     jobType: "mission",
     summary: "A squad of the USCMC sent on missions nobody else wants, by officers who do not say why.",
-    jobTables: jobTables("marines", "employer", "mission"),
+    jobTables: jobTables("marines"),
     defaultCareers: ["colonial-marine", "officer", "medic", "pilot"],
     ships: ["Conestoga-class troop transport", "UD-4L Cheyenne dropship"],
     salaryBand: "Military pay by rank; hazard bonuses at the Corps' discretion.",
@@ -59,7 +60,7 @@ export const frameItems: FrameItem[] = [
     short: "colonists",
     jobType: "expedition",
     summary: "Settlers and specialists on a new world, sponsored by someone with their own agenda.",
-    jobTables: jobTables("colonists", "sponsor", "mission"),
+    jobTables: jobTables("colonists"),
     defaultCareers: ["scientist", "colonial-marshal", "roughneck", "medic", "kid", "company-agent"],
     ships: ["Colony shuttle", "Surveyor-class scout"],
     salaryBand: "Colonial stipend plus expedition sponsorship; paid in supplies as often as cash.",

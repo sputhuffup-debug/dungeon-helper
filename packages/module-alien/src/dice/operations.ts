@@ -32,7 +32,17 @@ function stressLookup(
   const stress = Math.max(0, num(input.stress));
   const resolve = Math.max(0, num(input.resolve));
   const extra = num(input.extraModifier);
-  return { stress, resolve, ...rollOnTable(tables, tableId, rng, { step, dice: "d6", modifier: stress - resolve + extra }) };
+  return {
+    stress,
+    resolve,
+    ...rollOnTable(tables, tableId, rng, {
+      step,
+      context: { stress, resolve },
+      extraModifier: extra,
+      fallbackDice: "1d6",
+      fallbackModifier: stress - resolve,
+    }),
+  };
 }
 
 export const stressResponse: DiceOperation = {
@@ -183,7 +193,7 @@ export const mentalTrauma: DiceOperation = {
   page: 74,
   input: { type: "object", properties: { entity: { type: "string" } } },
   run(input, rng, tables): DiceOperationResult {
-    const { record, row } = rollOnTable(tables, MENTAL_TRAUMA_TABLE, rng, { step: "mentalTrauma", dice: "d6" });
+    const { record, row } = rollOnTable(tables, MENTAL_TRAUMA_TABLE, rng, { step: "mentalTrauma", fallbackDice: "1d6" });
     const label = record.rowLabel ?? `Mental trauma ${record.total}`;
     const entity = str(input.entity);
     const effects: Effect[] = [{ kind: "log", text: `Mental trauma (p. 74): ${label}.` }];
@@ -204,7 +214,7 @@ export const criticalInjury: DiceOperation = {
   page: [69, 70],
   input: { type: "object", properties: { entity: { type: "string" } } },
   run(input, rng, tables): DiceOperationResult {
-    const { record, row } = rollOnTable(tables, CRITICAL_INJURY_TABLE, rng, { step: "criticalInjury", dice: "d66" });
+    const { record, row } = rollOnTable(tables, CRITICAL_INJURY_TABLE, rng, { step: "criticalInjury", fallbackDice: "d66" });
     const label = record.rowLabel ?? `Critical injury ${record.total}`;
     const entity = str(input.entity);
     const effects: Effect[] = [{ kind: "log", text: `Critical injury (p. 69-70): ${label} (${record.total}).` }];

@@ -163,6 +163,7 @@ export class CampaignStore {
       const m = this.#metaMap();
       this.#applyPatch(m, patch as Record<string, unknown>);
       m.set("updated", now());
+      this.#cache.delete(m);
     });
     return this.meta();
   }
@@ -217,6 +218,7 @@ export class CampaignStore {
       delete p["created"];
       this.#applyPatch(rec, p);
       rec.set("updated", now());
+      this.#cache.delete(rec);
     });
     return this.#snapshot(rec) as RecordOf<M>;
   }
@@ -507,6 +509,7 @@ export class CampaignStore {
       for (const [k, v] of Object.entries(maps.meta)) {
         if (v !== undefined) meta.set(k, clone(v));
       }
+      this.#cache.delete(meta);
       for (const name of MAP_NAMES) {
         const top = this.#top(name);
         for (const key of [...top.keys()]) top.delete(key);
@@ -547,6 +550,9 @@ export class CampaignStore {
       if (v === undefined) rec.delete(k);
       else rec.set(k, clone(v));
     }
+    // Observers only run when the transaction ends; reads inside a
+    // transaction must see local writes, so drop the snapshot now.
+    this.#cache.delete(rec);
   }
 
   #cascade(map: MapName, id: Id): void {
@@ -617,7 +623,7 @@ export class CampaignStore {
           this.#pending.set(name, ids);
         }
         for (const ev of events) {
-          if (ev.target !== type) this.#cache.delete(ev.target);
+          this.#cache.delete(ev.target);
           if (name === "meta") {
             for (const key of ev.changes.keys.keys()) ids.add(key);
             continue;
