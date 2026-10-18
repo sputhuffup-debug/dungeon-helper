@@ -252,15 +252,15 @@ export function buildDemoCampaign(opts: BuildDemoOptions = {}): DemoCampaign {
 
   // -- NPCs: six presets from a pool that fits a trucking crew's port of call --
   const NPC_POOL = [
-    "alien.npc.dock-worker",
-    "alien.npc.union-organizer",
-    "alien.npc.weyland-yutani-rep",
+    "alien.npc.colony-manager",
+    "alien.npc.company-bureaucrat",
+    "alien.npc.icc-inspector",
     "alien.npc.smuggler",
-    "alien.npc.ship-captain",
-    "alien.npc.company-agent",
+    "alien.npc.ships-engineer",
+    "alien.npc.salvage-expert",
     "alien.npc.security-guard",
     "alien.npc.corporate-exec",
-    "alien.npc.seegson-tech",
+    "alien.npc.comtech",
     "alien.npc.android-covert",
   ].filter((id) => mod.preset(id));
   const nrng = rng.fork("npcs");

@@ -188,22 +188,47 @@ describe("alien tables: seed-specified shapes", () => {
   });
 
   it("lifepath tables", () => {
-    expect(dice("alien.lifepath.human-or-android")).toBe("1d6");
+    // Book: p. 282-289. Human 2-10 / android 11-12 on 2D6.
+    expect(dice("alien.lifepath.human-or-android")).toBe("2d6");
+    expect(registry.get("alien.lifepath.human-or-android")!.rows.map((r) => r.range)).toEqual([[2, 10], [11, 12]]);
+    // Origin: 2D6 super-nation with nested D6 sub-affiliation and home.
     expect(dice("alien.lifepath.origin")).toBe("2d6");
-    const levels = new Set(registry.get("alien.lifepath.origin")!.rows.map((r) => (r.result as Record<string, unknown>).level));
-    expect(levels.size).toBe(3);
-    expect(dice("alien.lifepath.early-life")).toBe("d66");
-    expect(dice("alien.lifepath.life-event")).toBe("d66");
-    expect(dice("alien.lifepath.career-entry")).toBe("2d6");
+    const origin = registry.get("alien.lifepath.origin")!;
+    expect(origin.rows.map((r) => r.range)).toEqual([[2, 4], [5, 6], [7, 8], [9, 10], [11, 12]]);
+    for (const r of origin.rows) {
+      expect(r.roll?.map((n) => n.as)).toEqual(["subAffiliation", "home"]);
+      for (const n of r.roll ?? []) expect(dice(n.table), n.table).toBe("1d6");
+    }
+    expect(dice("alien.lifepath.general-skill")).toBe("d66");
+    expect(registry.get("alien.lifepath.general-skill")!.rows).toHaveLength(12);
+    // Early life: three D66 columns of 12 rows; 2 attribute points and 2 skill points.
+    for (const id of ["alien.lifepath.early-life", "alien.lifepath.early-life.company", "alien.lifepath.early-life.experience"]) {
+      expect(dice(id), id).toBe("d66");
+      expect(registry.get(id)!.rows, id).toHaveLength(12);
+    }
+    const sum = (o: unknown) => Object.values((o ?? {}) as Record<string, number>).reduce((a, b) => a + b, 0);
+    for (const r of registry.get("alien.lifepath.early-life")!.rows) expect(sum((r.result as Record<string, unknown>).attributes)).toBe(2);
+    const experience = registry.get("alien.lifepath.early-life.experience")!.rows.map((r) => r.result as Record<string, unknown>);
+    for (const r of experience) expect(sum(r.skills)).toBe(2);
+    expect(experience.map((r) => r.psych ?? 0)).toEqual([2, 1, 1, 0, 0, 0, 0, 0, 0, -1, -1, -2]);
+    // Life event: D66 in pairs, two specified attribute points each.
+    const events = registry.get("alien.lifepath.life-event")!;
+    expect(events.dice).toBe("d66");
+    expect(events.rows).toHaveLength(18);
+    for (const r of events.rows) expect(sum((r.result as Record<string, unknown>).attributes)).toBe(2);
+    expect(events.rows.map((r) => (r.result as Record<string, unknown>).psych ?? 0)).toEqual([2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, -1, -2, -2]);
+    expect(registry.get("alien.lifepath.career-entry")).toBeUndefined();
     expect(dice("alien.lifepath.psych-evaluation")).toBe("2d6");
+    expect(registry.get("alien.lifepath.psych-evaluation")!.rows).toHaveLength(10);
+    expect(dice("alien.lifepath.favors")).toBe("1d6");
+    expect(dice("alien.lifepath.disasters")).toBe("1d6");
     const careers = ["colonial-marine", "colonial-marshal", "company-agent", "kid", "medic", "officer", "pilot", "roughneck", "scientist"];
     for (const c of careers) {
       expect(dice(`alien.lifepath.posting.${c}`), c).toBe("1d6");
+      // Postings 5-6 give a bonus career gear roll.
+      expect(registry.get(`alien.lifepath.posting.${c}`)!.rows.map((r) => (r.result as Record<string, unknown>).bonusGearRolls ?? 0)).toEqual([0, 0, 0, 0, 1, 1]);
+      expect(dice(`alien.lifepath.career-skill.${c}`), c).toBe("d3");
     }
-    const careerIds = new Set(registry.get("alien.lifepath.career-entry")!.rows.map((r) => (r.result as Record<string, unknown>).career));
-    expect([...careerIds].sort()).toEqual(careers.sort());
-    const bonus = registry.get("alien.lifepath.life-event")!.rows.map((r) => (r.result as Record<string, unknown>).bonusRoll).filter(Boolean);
-    for (const b of bonus) expect(registry.get(String(b)), `bonusRoll ${b}`).toBeDefined();
   });
 
   it("world, system and job tables are verified against the book (except the sponsor gap rows)", () => {
@@ -339,10 +364,14 @@ describe("alien tables: seed-specified shapes", () => {
     const star = registry.get("alien.encounters.star-system")!;
     expect(star.dice).toBe("d66");
     expect(star.page).toBe(254);
-    expect(star.modifiers!.map((m) => m.add)).toEqual([-30, -50]);
-    expect(star.rows.length).toBe(37);
-    expect(rowFor("alien.encounters.star-system", 10).label).toBe("No encounter");
+    expect(star.rows.length).toBe(36);
     expect(rowFor("alien.encounters.star-system", 11).label).toBe("Research vessel");
+    // The -3 and -5 readings: a rolled 41 reads entry 11; 11-36 (or 11-56) is no encounter.
+    expect(rowFor("alien.encounters.star-system-remote", 36).label).toBe("No encounter");
+    expect(rowFor("alien.encounters.star-system-remote", 41).label).toBe("Research vessel");
+    expect((rowFor("alien.encounters.star-system-remote", 41).result as Record<string, unknown>).entry).toBe(11);
+    expect(rowFor("alien.encounters.star-system-uncharted", 56).label).toBe("No encounter");
+    expect(rowFor("alien.encounters.star-system-uncharted", 66).label).toBe("Private executive transport");
     expect(rowFor("alien.encounters.star-system", 66).label).toBe("Mobile construction rig");
     expect(rowFor("alien.encounters.star-system", 41).roll?.[0]?.table).toBe("alien.encounters.ship-reactions");
     expect(rowFor("alien.encounters.star-system", 46).roll).toBeUndefined();
@@ -356,12 +385,14 @@ describe("alien tables: seed-specified shapes", () => {
       expect(typeof res.colonized).toBe("string");
     }
     expect((rowFor("alien.encounters.surface", 17).result as Record<string, unknown>).colonized).toBe("Explorers");
-    // General colony: D66 to 76, +1 tens digit when established.
+    // General colony: entries 11-76; an established colony reads one tens row higher.
     const general = registry.get("alien.encounters.colony.general")!;
     expect(general.dice).toBe("d66");
-    expect(general.rows.length).toBe(42);
-    expect(general.modifiers!.map((m) => m.add)).toEqual([10]);
-    expect(rowFor("alien.encounters.colony.general", 76).label).toBe("Colonists on strike or protesting");
+    expect(general.rows.length).toBe(36);
+    expect(rowFor("alien.encounters.colony.general", 11).label).toBe("Rowdy miners");
+    expect(rowFor("alien.encounters.colony.general-established", 11).label).toBe("Family off-duty together");
+    expect(rowFor("alien.encounters.colony.general-established", 66).label).toBe("Colonists on strike or protesting");
+    expect((rowFor("alien.encounters.colony.general-established", 66).result as Record<string, unknown>).entry).toBe(76);
     for (const area of ["public", "habitation", "operations", "spaceport", "industrial"]) expect(dice(`alien.encounters.colony.${area}`)).toBe("d66");
     expect(registry.get("alien.encounters.colony.operations")!.rows.length).toBe(13);
     // Shore leave: twelve D66 events per table; three Marines rows nest a D6.

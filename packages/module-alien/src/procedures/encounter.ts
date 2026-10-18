@@ -1,13 +1,15 @@
 /**
  * Encounter check (p. 252-257): picks the encounter table for where the
- * party is. The star system table reads `region` (Outer Rim, Frontier or Far
- * Reach: -3 to the tens digit; "uncharted": -5); the general colony table
- * reads `colonySize` (established: +1 to the tens digit). Star system rows
+ * party is. For star systems `region` picks the printed reading or the
+ * tens-digit -3 (Outer Rim, Frontier, Far Reach) or -5 (uncharted) table;
+ * for general colony encounters `colonySize` "established" picks the +1
+ * reading. Star system rows
  * for vessels nest a Ship Reactions roll. Produces one encounter entity,
  * or none when the roll is "no encounter".
  */
 import type { Procedure, ProcedureContext } from "@campaign-forge/module-sdk";
 import { REGION_IDS } from "../entities/common";
+import { REMOTE_REGIONS } from "../tables/encounters";
 import { input, isObj, obj, str } from "./helpers";
 
 export const WHERE_TABLES: Record<string, string> = {
@@ -28,6 +30,18 @@ const SURFACE_NONE = "No encounter";
 function where(ctx: ProcedureContext): string {
   const w = str(input(ctx, "where"), "star-system");
   return WHERE_TABLES[w] ? w : "star-system";
+}
+
+/** The table actually rolled: the star system and general colony tables have tens-digit readings (p. 252-255). */
+export function encounterTable(ctx: ProcedureContext): string {
+  const w = where(ctx);
+  if (w === "star-system") {
+    const region = str(input(ctx, "region"));
+    if (region === "uncharted") return "alien.encounters.star-system-uncharted";
+    if (REMOTE_REGIONS.includes(region)) return "alien.encounters.star-system-remote";
+  }
+  if (w === "colony-general" && str(input(ctx, "colonySize")) === "established") return "alien.encounters.colony.general-established";
+  return WHERE_TABLES[w] ?? "alien.encounters.star-system";
 }
 
 /** True when the rolled row means nothing happens. */
@@ -83,7 +97,7 @@ export const encounterCheck: Procedure = {
     {
       id: "encounter",
       title: "Encounter",
-      table: (ctx) => WHERE_TABLES[where(ctx)] ?? "alien.encounters.star-system",
+      table: encounterTable,
       after: (ctx, result) => {
         const w = where(ctx);
         const r = isObj(result) ? result : { label: String(result) };
@@ -108,10 +122,10 @@ export const encounterCheck: Procedure = {
           tags: ["encounter", w],
           fields: {
             setting: settingOf(w),
-            tableId: WHERE_TABLES[w],
+            tableId: encounterTable(ctx),
             summary: description,
             where: w,
-            table: WHERE_TABLES[w],
+            table: encounterTable(ctx),
             ...(w === "star-system" ? { region: str(input(ctx, "region"), "core") } : {}),
             ...(w === "colony-general" ? { colonySize: str(input(ctx, "colonySize"), "young") } : {}),
             label: str(e.label),

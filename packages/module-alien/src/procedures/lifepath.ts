@@ -21,9 +21,10 @@
  * career skill; a failed application with no requested career tries the other careers the
  * PC qualifies for, then pulls a fast one; a sacking ends the career after the current
  * term. Every step result carries the deltas it applied, so the running totals are folded
- * from the results and every sub-roll is in the roll log.
+ * from the results and every table sub-roll is in the roll log (plain dice rolls such as skill tests,
+ * paychecks and gear picks are kept in the step result's `rolls` list).
  */
-import { rollTable, type Procedure, type ProcedureContext, type Rng, type RollRecord } from "@campaign-forge/module-sdk";
+import { rollTable, type Procedure, type ProcedureContext, type Rng } from "@campaign-forge/module-sdk";
 import { careerItems } from "../reference/careers";
 import { careerTalents } from "../reference/talents";
 import {
@@ -182,12 +183,17 @@ class Step {
   readonly rolls: Obj[] = [];
   private n = 0;
 
-  constructor(
-    readonly ctx: ProcedureContext,
-    readonly stepId: string,
-    readonly rng: Rng,
-    public state: LifePathState,
-  ) {}
+  readonly ctx: ProcedureContext;
+  readonly stepId: string;
+  readonly rng: Rng;
+  state: LifePathState;
+
+  constructor(ctx: ProcedureContext, stepId: string, rng: Rng, state: LifePathState) {
+    this.ctx = ctx;
+    this.stepId = stepId;
+    this.rng = rng;
+    this.state = state;
+  }
 
   private sub(): Rng {
     return this.rng.fork(`sub${this.n++}`);
@@ -277,18 +283,7 @@ class Step {
     const r = this.sub();
     const raw = Array.from({ length: pool }, () => r.int(1, 6));
     const successes = raw.filter((x) => x === 6).length;
-    const record: RollRecord = {
-      step: `${this.stepId}/${label}`,
-      dice: `${pool}d6`,
-      raw,
-      modifier: 0,
-      total: successes,
-      rowLabel: `${successes} success${successes === 1 ? "" : "es"}`,
-      result: { skill, successes },
-      page: 286,
-    };
-    this.ctx.rolls.push(record);
-    this.rolls.push({ roll: label, skill, dice: pool, successes });
+    this.rolls.push({ roll: label, skill, dice: `${pool}d6`, raw, successes });
     return successes;
   }
 
@@ -297,8 +292,7 @@ class Step {
     const r = this.sub();
     const die = r.int(1, 6);
     const amount = die * career.paycheck;
-    this.ctx.rolls.push({ step: `${this.stepId}/${label}`, dice: "1d6", raw: [die], modifier: 0, total: amount, rowLabel: `$${amount}`, result: { cash: amount }, page: 286 });
-    this.rolls.push({ roll: label, cash: amount });
+    this.rolls.push({ roll: label, dice: `1d6×${career.paycheck}`, raw: [die], cash: amount });
     this.addCash(amount);
   }
 
@@ -343,9 +337,9 @@ class Step {
     for (let i = 0; i < REROLL_LIMIT * 3; i++) {
       const die = r.int(1, list.length);
       const item = list[die - 1]!;
-      this.ctx.rolls.push({ step: `${this.stepId}/${label}`, dice: `1d${list.length}`, raw: [die], modifier: 0, total: die, rowLabel: item, result: { gear: item }, page: [31, 39] });
-      if (!this.state.gear.includes(item)) {
-        this.rolls.push({ roll: label, gear: item });
+      const held = this.state.gear.includes(item);
+      this.rolls.push({ roll: label, dice: `1d${list.length}`, raw: [die], gear: item, ...(held ? { reroll: true } : {}) });
+      if (!held) {
         this.addGear(item);
         return;
       }
@@ -567,13 +561,20 @@ function termStep(n: number) {
       step.addPsych(1);
     }
     // 3. Talent: a random career talent not held yet.
-    const talents = careerTalentIds(career.id).filter((t) => !step.state.talents.includes(t));
-    if (talents.length > 0) {
+    // Career talents are listed "choose or roll D3" (p. 31-39); re-roll talents already held.
+    const talents = careerTalentIds(career.id);
+    if (talents.some((t) => !step.state.talents.includes(t))) {
       const r = rng.fork("talent");
-      const die = r.int(1, talents.length);
-      const talent = talents[die - 1]!;
-      ctx.rolls.push({ step: `${stepId}/talent`, dice: `1d${talents.length}`, raw: [die], modifier: 0, total: die, rowLabel: talent, result: { talent }, page: [48, 50] });
-      step.addTalent(talent);
+      for (let i = 0; i < REROLL_LIMIT * 3; i++) {
+        const die = r.int(1, talents.length);
+        const talent = talents[die - 1]!;
+        const held = step.state.talents.includes(talent);
+        step.rolls.push({ roll: "talent", dice: `1d${talents.length}`, raw: [die], talent, ...(held ? { reroll: true } : {}) });
+        if (!held) {
+          step.addTalent(talent);
+          break;
+        }
+      }
     }
     // 4. Gear and paycheck.
     step.gearRoll(career, "gear");
@@ -673,7 +674,7 @@ export const lifepath: Procedure = {
           const r = rng.fork("cash");
           const raw = [r.int(1, 6), r.int(1, 6)];
           const cash = (raw[0]! + raw[1]!) * num(cashRoll.multiplier, 50);
-          ctx.rolls.push({ step: "lifeEvent/cash", dice: "2d6", raw, modifier: 0, total: cash, rowLabel: `$${cash}`, result: { cash }, page: 285 });
+          base.cashRaw = raw;
           base.cash = cash;
         }
         return withCumulative("lifeEvent")(ctx, base);

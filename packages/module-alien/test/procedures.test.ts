@@ -95,9 +95,11 @@ describe("alien procedures: static shape", () => {
     }
 
     const life = byId("alien.lifepath");
-    const posting = life.steps.find((s) => s.id === "posting")!.table as (ctx: ProcedureContext) => string;
-    const careers = ["colonial-marine", "colonial-marshal", "company-agent", "kid", "medic", "officer", "pilot", "roughneck", "scientist", "unknown"];
-    for (const career of careers) expect(registry.get(posting(fakeCtx({}, { careerEntry: { career } })))).toBeDefined();
+    expect(life.steps.every((s) => typeof s.table !== "function")).toBe(true);
+    for (const career of ["colonial-marine", "colonial-marshal", "company-agent", "kid", "medic", "officer", "pilot", "roughneck", "scientist"]) {
+      expect(registry.get(`alien.lifepath.posting.${career}`)).toBeDefined();
+      expect(registry.get(`alien.lifepath.career-skill.${career}`)).toBeDefined();
+    }
 
     const enc = byId("alien.encounter.check");
     const encTable = enc.steps[0]!.table as (ctx: ProcedureContext) => string;
@@ -120,7 +122,7 @@ const INPUT_VARIANTS: Record<string, Array<Record<string, unknown>>> = {
     { frame: "colonial-marines", pcCount: 6, marineCorps: "royal-marines-commandos", bonusRolls: 2 },
     { frame: "frontier-colonists", pcCount: 2, paymentRaises: 1, bonusRolls: 3 },
   ],
-  "alien.lifepath": [{}, { name: "Ripley" }],
+  "alien.lifepath": [{}, { name: "Ripley" }, { career: "colonial-marine", terms: 3 }, { career: "kid", terms: 3 }],
   "alien.encounter.check": [
     {},
     { where: "surface-colonized" },
@@ -427,36 +429,60 @@ describe("alien.job.create", () => {
 });
 
 describe("alien.lifepath", () => {
-  it("runs nine steps and produces a PC with attributes from 2 plus deltas and provenance", () => {
+  const STEPS = [
+    "humanOrAndroid", "origin", "originSkills", "earlyLife", "earlyLifeCompany", "earlyLifeExperience",
+    "lifeEvent", "lifeEventSkills", "career", "term1", "term2", "term3", "psych",
+  ];
+  it("follows the book's step order (p. 282) and produces a PC within the limits", () => {
     const proc = byId("alien.lifepath");
-    expect(proc.steps.length).toBe(9);
-    for (const seed of SEEDS.slice(0, 20)) {
-      const g = run("alien.lifepath", { seed, inputs: { name: "Dallas" } });
-      const pc = g.produced.entities[0]!;
-      expect(pc.type).toBe("alien.character");
-      expect(pc.name).toBe("Dallas");
-      expect(pc.fields.isPC).toBe(true);
-      const attrs = pc.fields.attributes as Record<string, number>;
-      const totals = (pc.fields.lifePath as { totals: { attributes: Record<string, number>; skills: Record<string, number>; psych: number } }).totals;
-      for (const a of ["strength", "agility", "wits", "empathy"]) {
-        expect(attrs[a]).toBeGreaterThanOrEqual(2);
-        expect(attrs[a]).toBe(Math.min(pc.fields.android ? 8 : 5, 2 + (totals.attributes[a] ?? 0)));
+    expect(proc.steps.map((s) => s.id)).toEqual(STEPS);
+    for (const seed of SEEDS.slice(0, 30)) {
+      for (const inputs of [{ name: "Dallas" }, { name: "Dallas", terms: 3 }]) {
+        const g = run("alien.lifepath", { seed, inputs });
+        const pc = g.produced.entities[0]!;
+        expect(pc.type).toBe("alien.character");
+        expect(pc.name).toBe("Dallas");
+        expect(pc.fields.isPC).toBe(true);
+        const android = pc.fields.android === true;
+        const attrs = pc.fields.attributes as Record<string, number>;
+        type Totals = { attributes: Record<string, number>; skills: Record<string, number>; psych: number; cash: number; terms: number };
+        const lifePath = pc.fields.lifePath as Record<string, unknown> & { totals: Totals };
+        const totals = lifePath.totals;
+        for (const a of ["strength", "agility", "wits", "empathy"]) {
+          expect(attrs[a]).toBeGreaterThanOrEqual(android ? 1 : 2);
+          expect(attrs[a]).toBeLessThanOrEqual(android ? 8 : 5);
+          expect(attrs[a]).toBe(Math.max(android ? 1 : 2, Math.min(android ? 8 : 5, totals.attributes[a]!)));
+        }
+        const skills = pc.fields.skills as Record<string, number>;
+        expect(Object.keys(skills).length).toBe(12);
+        for (const v of Object.values(skills)) expect(v).toBeLessThanOrEqual(5);
+        // 3 origin skills + 2 early life + 2 life event (+1 on 15-16) + 2 career + 1 per term, before favors.
+        const points = Object.values(totals.skills).reduce((a, b) => a + b, 0);
+        expect(points).toBeGreaterThanOrEqual(9 + totals.terms - 1);
+        expect(totals.terms).toBeGreaterThanOrEqual(1);
+        expect(totals.terms).toBeLessThanOrEqual(pc.fields.career === "kid" ? 1 : inputs.terms ?? 1);
+        expect((pc.fields.talents as unknown[]).length).toBe(totals.terms);
+        expect(pc.fields.cash).toBe(totals.cash);
+        expect(pc.fields.cash as number).toBeGreaterThan(0);
+        for (const step of ["humanOrAndroid", "origin", "earlyLife", "lifeEvent", "career", "term1", "psych"]) expect(lifePath[step], step).toBeDefined();
+        expect(pc.fields.career).toBe((g.results.career as { career: string }).career);
+        expect(g.rolls.find((r) => r.step === "term1/posting")!.table).toBe(`alien.lifepath.posting.${pc.fields.career}`);
+        // The psych roll carries every psych modifier gathered before it.
+        const psychRoll = g.rolls.find((r) => r.step === "psych")!;
+        expect(psychRoll.modifier).toBe(totals.psych);
+        expect(psychRoll.table).toBe("alien.lifepath.psych-evaluation");
       }
-      const skills = pc.fields.skills as Record<string, number>;
-      expect(Object.keys(skills).length).toBe(12);
-      for (const [k, v] of Object.entries(totals.skills)) expect(skills[k]).toBe(Math.min(5, v));
-      const lifePath = pc.fields.lifePath as Record<string, unknown>;
-      for (const step of ["humanOrAndroid", "origin", "earlyLife", "lifeEvent", "careerEntry", "favors", "disasters", "posting", "psych"]) {
-        expect(lifePath[step], step).toBeDefined();
-      }
-      expect(pc.fields.career).toBe((g.results.careerEntry as { career: string }).career);
-      expect(g.rolls.find((r) => r.step === "posting")!.table).toBe(`alien.lifepath.posting.${pc.fields.career}`);
-      // The psych roll carries the accumulated psych modifier.
-      const psychRoll = g.rolls.find((r) => r.step === "psych")!;
-      expect(psychRoll.modifier).toBe(totals.psych - ((g.results.psych as { psych?: number }).psych ?? 0));
-      // after hooks accumulate: the posting step's cumulative equals totals minus the psych step's own delta.
-      const posting = g.results.posting as { cumulative: { psych: number } };
-      expect(posting.cumulative.psych).toBe(totals.psych - ((g.results.psych as { psych?: number }).psych ?? 0));
+    }
+  });
+  it("honours a requested career and the Kid's single term", () => {
+    for (const seed of SEEDS.slice(0, 10)) {
+      const kid = run("alien.lifepath", { seed, inputs: { career: "kid", terms: 3 } });
+      expect(kid.produced.entities[0]!.fields.career).toBe("kid");
+      expect(kid.skipped.map((s) => s.step)).toEqual(expect.arrayContaining(["term2", "term3"]));
+      const marine = run("alien.lifepath", { seed, inputs: { career: "colonial-marine" } });
+      const fields = marine.produced.entities[0]!.fields;
+      const notes = (fields.lifePath as { notes: string[] }).notes;
+      if (fields.career !== "colonial-marine") expect(notes.some((n) => n.includes("Could not qualify"))).toBe(true);
     }
   });
 });
@@ -481,17 +507,17 @@ describe("alien.encounter.check", () => {
         expect(e.fields.description).not.toBe("");
       }
     }
-    const modifierFor = (inputs: Record<string, unknown>) => run("alien.encounter.check", { seed: "mod", inputs }).rolls[0]!.modifier;
-    expect(modifierFor({ where: "star-system", region: "core" })).toBe(0);
-    expect(modifierFor({ where: "star-system", region: "outer-rim" })).toBe(-30);
-    expect(modifierFor({ where: "star-system", region: "far-reach" })).toBe(-30);
-    expect(modifierFor({ where: "star-system", region: "uncharted" })).toBe(-50);
-    expect(modifierFor({ where: "colony-general", colonySize: "established" })).toBe(10);
-    expect(modifierFor({ where: "colony-general", colonySize: "young" })).toBe(0);
+    const tableFor = (inputs: Record<string, unknown>) => run("alien.encounter.check", { seed: "mod", inputs }).rolls[0]!.table;
+    expect(tableFor({ where: "star-system", region: "core" })).toBe("alien.encounters.star-system");
+    expect(tableFor({ where: "star-system", region: "outer-rim" })).toBe("alien.encounters.star-system-remote");
+    expect(tableFor({ where: "star-system", region: "far-reach" })).toBe("alien.encounters.star-system-remote");
+    expect(tableFor({ where: "star-system", region: "uncharted" })).toBe("alien.encounters.star-system-uncharted");
+    expect(tableFor({ where: "colony-general", colonySize: "established" })).toBe("alien.encounters.colony.general-established");
+    expect(tableFor({ where: "colony-general", colonySize: "young" })).toBe("alien.encounters.colony.general");
     // Uncharted space: a D66 tens digit of 5 or less becomes 0 or less, so no encounter.
     for (let s = 0; s < 20; s++) {
       const g = run("alien.encounter.check", { seed: `unch-${s}`, inputs: { where: "star-system", region: "uncharted" } });
-      if (g.rolls[0]!.raw[0]! <= 5 || g.rolls[0]!.total <= 10) expect(g.produced.entities).toEqual([]);
+      expect(g.produced.entities.length).toBe(g.rolls[0]!.total <= 56 ? 0 : 1);
     }
     const unin = run("alien.encounter.check", { seed: "surface", inputs: { where: "surface-uninhabited" } });
     const col = run("alien.encounter.check", { seed: "surface", inputs: { where: "surface-colonized" } });
@@ -526,7 +552,15 @@ describe("alien.shore-leave", () => {
       if (e.kind === "prompt") expect(e.prompt.kind).toBe("yesno");
     }
     expect(effects.some((e) => e.kind === "setField" && e.entity === "d" && e.path === "stress")).toBe(true);
-    expect(effects.some((e) => e.kind === "incrementField" && e.entity === "f" && e.path === "xp")).toBe(true);
+    // Pursue Agenda: 1 XP only if the agenda was successfully pursued, so the XP sits behind a prompt (p. 257).
+    expect(effects.some((e) => e.kind === "incrementField" && e.entity === "f" && e.path === "xp")).toBe(false);
+    const agenda = effects.find((e) => e.kind === "prompt" && e.prompt.id === "shore-leave:agenda:f");
+    expect(agenda && agenda.kind === "prompt" && agenda.prompt.onYes?.some((x) => x.kind === "incrementField" && x.path === "xp" && x.by === 1)).toBe(true);
+    // Recover: an Empathy roll the GM confirms; living expenses at the normal standard ($300, p. 116).
+    expect(effects.some((e) => e.kind === "prompt" && e.prompt.id === "shore-leave:recover:e")).toBe(true);
+    expect(effects.filter((e) => e.kind === "incrementField" && e.path === "cash").every((e) => e.kind === "incrementField" && e.by === -300)).toBe(true);
+    const marineEvents = g.results.marineEvents as Array<Record<string, unknown>>;
+    for (const ev of marineEvents) expect(typeof ev.event).toBe("string");
   });
 
   it("skips both event steps when nobody socialises", () => {

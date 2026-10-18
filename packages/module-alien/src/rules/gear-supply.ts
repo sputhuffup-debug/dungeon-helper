@@ -1,65 +1,58 @@
 import type { RuleCard } from "@campaign-forge/module-sdk";
 import { F, TR, card } from "./card";
 
+/** Encumbrance and consumables (p. 27-29) and gear (chapter 5, p. 82-105). */
 export const gearSupplyRules: RuleCard[] = [
-  card("encumbrance", "Encumbrance", "You can carry items with a total weight of twice your Strength. Heavy items count double, tiny ones nothing. Over the limit you must roll Stamina to move, with failure costing stress.", 28, {
+  card("encumbrance", "Encumbrance", "You can carry regular items (weight 1) up to twice your Strength; heavy items count as several, light ones as ½ or ¼, and tiny ones nothing. You may carry up to double the limit, but then gain +1 stress each time you move in a stretch of stealth or a round of combat.", 28, {
     tags: ["gear"],
     links: { fields: [F.gear, F.attributes], rules: ["alien.rule.consumables"] },
   }),
-  card("consumables", "Consumables", "Air, food, water, ammo and power are tracked as supply ratings rather than counted item by item. When the GM calls for it, make a supply roll.", [28, 29], {
+  card("consumables", "Consumables", "Air for suits, ammo for weapons and power for electrical gear are tracked as supply ratings on the character sheet rather than counted. They drop through supply rolls, and time itself can be treated as a consumable during a countdown.", 28, {
     tags: ["gear", "supply"],
-    links: { fields: [F.gear], rules: ["alien.rule.supply-rolls", "alien.rule.air-supply", "alien.rule.ammo-supply", "alien.rule.power-supply", "alien.rule.food-water"], trackers: [TR.supply] },
+    links: { fields: [F.gear], rules: ["alien.rule.supply-rolls", "alien.rule.air-supply", "alien.rule.ammo-supply", "alien.rule.power-supply", "alien.rule.countdowns"], trackers: [TR.supply] },
   }),
-  card("supply-rolls", "Supply rolls", "Roll stress dice equal to the supply rating; every facehugger (1) reduces the rating by one. At zero the item is gone. The dice are only counters here: they cause no stress response.", [28, 29], {
+  card("supply-rolls", "Supply rolls", "Roll stress dice equal to the current rating, at most six; each facehugger lowers the rating by one, so high ratings fall faster than low ones. For NPCs the GM usually just lowers the rating one step instead of rolling.", [28, 29], {
     tags: ["gear", "supply", "dice"],
     links: { fields: [F.gear], rules: ["alien.rule.consumables"], trackers: [TR.supply] },
   }),
-  card("air-supply", "Air", "Suits and tanks carry an air supply rating. Roll it once per Shift of normal use, or once per Round of hard exertion or combat; at zero you start suffocating.", 28, {
+  card("air-supply", "Air", "Make an air supply roll after every stretch and after strenuous activity such as combat or a Mobility roll. At zero you begin to suffocate.", 28, {
     tags: ["gear", "supply"],
-    links: { rules: ["alien.rule.supply-rolls", "alien.rule.conditions"], trackers: [TR.supply, TR.countdown] },
+    links: { rules: ["alien.rule.supply-rolls", "alien.rule.suffocation"], trackers: [TR.supply] },
   }),
-  card("ammo-supply", "Ammo", "Roll the weapon's ammo supply after a fight, or after every full-auto burst. A rating of zero means an empty magazine until you reload from another supply.", 29, {
+  card("ammo-supply", "Ammo and reloading", "Make an ammo supply roll after each attack, unless you spend an extra success to conserve ammo; at zero you must reload, a quick action, and reloads are tracked on the sheet. Single-shot weapons are reloaded after every shot instead.", [66, 67], {
     tags: ["gear", "supply", "combat"],
     links: { rules: ["alien.rule.supply-rolls", "alien.rule.full-auto"], trackers: [TR.supply] },
   }),
-  card("power-supply", "Power", "Powered tools, lights and suits have a power rating rolled once per Shift of use. At zero the device is dead until recharged.", 29, {
+  card("power-supply", "Power", "Electrical gear makes a power supply roll after each use, or as its description says, and stops working at zero. A power cell restores one item's full supply.", [29, 97], {
     tags: ["gear", "supply"],
-    links: { rules: ["alien.rule.supply-rolls"], trackers: [TR.supply] },
+    links: { rules: ["alien.rule.supply-rolls", "alien.rule.motion-tracker"], trackers: [TR.supply] },
   }),
-  card("food-water", "Food and water", "Roll food and water supply once per day. Running out leads to the Starving and Dehydrated conditions.", 29, {
-    tags: ["gear", "supply"],
-    links: { rules: ["alien.rule.supply-rolls", "alien.rule.starving", "alien.rule.dehydrated"], trackers: [TR.supply] },
-  }),
-  card("conditions", "Conditions", "Four survival conditions: Starving, Dehydrated, Exhausted and Freezing. Each is gained by failing a Stamina roll when deprived, blocks Health recovery and eventually kills.", 71, {
+  card("food-water", "Hunger and thirst", "As a rule of thumb you must eat and drink every day; after a full 24 hours without food and water, roll Survival every shift. A prefab meal or a water bottle covers one day's need.", [75, 99], {
     tags: ["gear", "survival"],
-    links: { rules: ["alien.rule.starving", "alien.rule.dehydrated", "alien.rule.exhausted", "alien.rule.freezing"] },
+    links: { rules: ["alien.rule.fatigue"] },
   }),
-  card("starving", "Starving", "After a day without food, roll Stamina each day; failure makes you Starving: no Health recovery and a stress cost. After a week without food you die.", 71, {
-    tags: ["survival", "condition"],
-    links: { rules: ["alien.rule.conditions", "alien.rule.food-water"] },
+  card("weapons", "Weapon features", "Weapons list a modifier, damage (E for explosive, or Stun), minimum and maximum range, ammo or power rating, weight and cost. Armor piercing lowers armor one step; full auto allows bursts; unreliable weapons jam on a Mess Up, cleared with a full action and Heavy Machinery.", 82, {
+    tags: ["combat", "gear"],
+    links: { rules: ["alien.rule.damage-armor", "alien.rule.ammo-supply", "alien.rule.range-bands", "alien.rule.full-auto"] },
   }),
-  card("dehydrated", "Dehydrated", "After a day without water, roll Stamina each Shift; failure makes you Dehydrated and death follows within days.", 71, {
-    tags: ["survival", "condition"],
-    links: { rules: ["alien.rule.conditions", "alien.rule.food-water"] },
+  card("armor", "Suits and armor", "Suits list an armor level, an air supply and special traits such as vacuum protection or a Mobility penalty. Armor level is subtracted from incoming damage, and acid eats it away point by point.", [90, 91], {
+    tags: ["combat", "gear", "damage"],
+    links: { rules: ["alien.rule.damage-armor", "alien.rule.air-supply", "alien.rule.acid-splash"] },
   }),
-  card("exhausted", "Exhausted", "After a day without sleep, roll Stamina each Shift; failure makes you Exhausted: penalties to everything and no Health recovery until you rest.", 71, {
-    tags: ["survival", "condition"],
-    links: { rules: ["alien.rule.conditions"] },
-  }),
-  card("freezing", "Freezing", "In cold without protection, roll Stamina each Shift (each Round in vacuum or extreme cold). Failure makes you Freezing; continued failure deals damage.", 71, {
-    tags: ["survival", "condition"],
-    links: { rules: ["alien.rule.conditions"] },
-  }),
-  card("medical-equipment", "Medical equipment", "Medkits give a bonus to Medical Aid and have a supply rating; surgical kits and medbays allow surgery on fatal injuries; cryo tubes stabilise a dying patient.", [94, 95], {
+  card("medical-equipment", "Medical supplies", "A personal medkit gives +2 to Medical Aid for one first aid, and a surgical kit +2 for first aid and surgery. An AutoDoc gives first aid at Medical Aid 8 but no surgery, and a Pauling MedPod does both at 12; neither roll can be pushed.", 97, {
     tags: ["gear", "medical"],
     links: { rules: ["alien.rule.healing", "alien.rule.critical-injuries"] },
   }),
-  card("pharmaceuticals", "Pharmaceuticals", "Drugs trade a quick benefit (stress relief, pain suppression, alertness) for a cost: a crash later, dependency or a penalty when they wear off.", [96, 97], {
+  card("pharmaceuticals", "Drugs, food and drink", "Naproleve drops stress to zero, Neversleep pills replace a day's sleep at +1 stress, and Hydr8tion cures hypersleep fatigue. Coffee, alcohol and recreational drugs nudge stress up or down, and extra doses within a shift give −1 die to all rolls.", [98, 99], {
     tags: ["gear", "medical"],
-    links: { rules: ["alien.rule.stress-recovery"] },
+    links: { rules: ["alien.rule.stress-recovery", "alien.rule.sleep-deprivation", "alien.rule.hypersleep"] },
   }),
-  card("tools-and-comms", "Tools and comms", "Cutting torches, motion trackers, hand radios and data tablets each give a bonus or an ability; the motion tracker spots movement at medium range, which is its own kind of terror.", [92, 93], {
+  card("tools-and-comms", "Tools and vision gear", "Tools add dice in the right situation: a cutting torch or bolt gun +2 to Heavy Machinery, a maintenance jack +1, electronic tools +1 to Comtech. Flashlights remove darkness, binoculars help Observation at Long range, and motion trackers detect movement in stealth mode.", [96, 97], {
     tags: ["gear"],
-    links: { rules: ["alien.rule.stealth-mode"] },
+    links: { rules: ["alien.rule.motion-tracker", "alien.rule.darkness"] },
+  }),
+  card("living-expenses", "Living expenses", "Typical weekly living costs: $25 minimum, $100 basic, $300 normal and $2,000 luxurious. PCs pay their way during shore leave.", 116, {
+    tags: ["gear", "campaign"],
+    links: { fields: [F.cash], rules: ["alien.rule.shore-leave", "alien.rule.cash"] },
   }),
 ];

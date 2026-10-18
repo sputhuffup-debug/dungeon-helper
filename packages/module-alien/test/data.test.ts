@@ -332,8 +332,9 @@ describe("location presets", () => {
       const f = fields<Record<string, unknown>>(p);
       switch (presetSubtype(p)) {
         case "star-system":
-          expect(["O", "B", "A", "F", "G", "K", "M"], p.id).toContain(f.starClass);
-          expect(["Ia", "Ib", "II", "III", "IV", "V", "D"], p.id).toContain(f.brightness);
+          // The book gives no spectral classes for charted systems (p. 180-201, 260-277); when present they must be valid.
+          if (f.starClass !== undefined) expect(["O", "B", "A", "F", "G", "K", "M"], p.id).toContain(f.starClass);
+          if (f.brightness !== undefined) expect(["Ia", "Ib", "II", "III", "IV", "V", "D"], p.id).toContain(f.brightness);
           expect(Array.isArray(f.bodies), p.id).toBe(true);
           break;
         case "planet":
@@ -341,7 +342,9 @@ describe("location presets", () => {
           expect(typeof f.inhabited, p.id).toBe("boolean");
           break;
         case "colony":
-          expect(["start-up", "young", "established"], p.id).toContain(f.colonySize);
+          // Colony size is derived from a numeric population (p. 240 ranges); colonies without one have none.
+          if (typeof f.population === "number") expect(["start-up", "young", "established"], p.id).toContain(f.colonySize);
+          else expect(f.colonySize, p.id).toBeUndefined();
           expect(Array.isArray(f.missions), p.id).toBe(true);
           break;
         case "site":
@@ -354,6 +357,30 @@ describe("location presets", () => {
   it("include the five regions", () => {
     const regionIds = locationPresets.filter((p) => presetSubtype(p) === "region").map((p) => fields<{ regionId?: string }>(p).regionId).filter(Boolean);
     expect(regionIds).toEqual(expect.arrayContaining(["core", "outer-veil", "outer-rim", "frontier", "far-reach"]));
+  });
+
+  it("are checked against the book and carry its stat blocks", () => {
+    const byId = (id: string) => locationPresets.find((p) => p.id === `alien.location.${id}`)!;
+    for (const p of locationPresets) {
+      expect(p.unverified, p.id).toBeUndefined();
+      expect(p.page, p.id).toBeDefined();
+    }
+    const parentOf = (id: string) => byId(id).tags!.find((t) => t.startsWith(WITHIN_TAG))!.slice(WITHIN_TAG.length + "alien.location.".length);
+    // Anchorpoint Station (p. 113) sits in GJ2066, drawn on the Tartarus Sector map (p. 262), in the Outer Rim (p. 191, 260).
+    expect(parentOf("anchorpoint-station")).toBe("gj2066");
+    expect(parentOf("gj2066")).toBe("tartarus-sector");
+    expect(parentOf("tartarus-sector")).toBe("outer-rim");
+    expect(byId("anchorpoint-station").tags).toContain("home-base");
+    expect(locationPresets.some((p) => presetSubtype(p) === "site" && p.tags!.includes(`${WITHIN_TAG}alien.location.anchorpoint-station`))).toBe(true);
+    // Sample stat lines copied from the book.
+    expect(fields<Record<string, unknown>>(byId("lv-426-acheron")).temperature).toBe("10 °C");
+    expect(fields<Record<string, unknown>>(byId("torin-prime")).population).toBe("700,000 civilians, 50,000 security forces");
+    expect(fields<Record<string, unknown>>(byId("the-solomons")).population).toBe(3000000);
+    expect(fields<Record<string, unknown>>(byId("skyfire-down")).resources).toBe("Minerals, heavy metals, helium 3, convict labor");
+    expect(parentOf("rodina")).toBe("beta-virginis");
+    // The twelve Tartarus systems of chapter 11 (p. 260-261) plus the three minor ones (p. 266).
+    const tartarus = locationPresets.filter((p) => presetSubtype(p) === "star-system" && p.tags!.includes(`${WITHIN_TAG}alien.location.tartarus-sector`)).map((p) => p.id.slice("alien.location.".length));
+    expect(tartarus).toEqual(expect.arrayContaining(["ross-619", "khadaji", "gj229a", "nn3325", "gamma-leporis", "gl408", "gl300", "hip53020", "hip51317", "gl257ab", "gj2034", "beta-virginis", "gl285", "gl382", "gj11038"]));
   });
 });
 

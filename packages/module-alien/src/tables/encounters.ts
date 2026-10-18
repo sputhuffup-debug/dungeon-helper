@@ -1,22 +1,26 @@
 /**
  * Encounter tables (Campaign Play, p. 252-257). Checked against the book:
- * dice, ranges, modifiers and labels follow the printed tables; longer
+ * dice, ranges, modifiers and labels follow the printed tables (`entry`
+ * holds the book's entry number when a modifier shifts it); longer
  * entries are paraphrased.
  *
  * - Star system encounters (p. 254, rules p. 252): D66; the tens digit drops
  *   by 3 in the Outer Rim or the Frontier and by 5 in uncharted space, and a
- *   tens digit of 0 or less means no encounter. The tens-digit shift is
- *   modelled as -30 / -50 on the D66 total. Vessel rows nest a Ship Reactions
- *   roll, since that table tells whether a passing ship makes contact.
+ *   tens digit of 0 or less means no encounter. Each modified reading is its
+ *   own pure-D66 table built from the same printed rows (`-remote`,
+ *   `-uncharted`), so every row bound stays a digit pair; the encounter
+ *   procedure picks the table from the region. Vessel rows nest a Ship
+ *   Reactions roll, since that table tells whether a passing ship makes contact.
  * - Ship reactions (p. 254): 2D6.
  * - Surface encounters (p. 255): 3D6 with two columns, uninhabited world and
  *   colonized world; "-" in a column means nothing happens there.
- * - General colony encounters (p. 255, rule p. 252): D66 running to 76; +1 to
- *   the tens digit (+10 here) when the colony is established.
+ * - General colony encounters (p. 255, rule p. 252): D66 with entries running
+ *   to 76; an established colony adds 1 to the tens digit, modelled as the
+ *   `general-established` reading of the same 42 entries.
  * - Area encounters (p. 256-257): public, habitation, operations, spaceport
  *   and industrial areas, D66 each.
  */
-import type { RollTable, TableModifier, TableRow } from "@campaign-forge/module-sdk";
+import type { RollTable, TableRow } from "@campaign-forge/module-sdk";
 import { D66_VALUES, ranges, row, type RangeSpec } from "./_helpers";
 
 const FAMILY = "encounters";
@@ -32,19 +36,6 @@ function table(spec: Omit<RollTable, "family">): RollTable {
 
 /** Regions whose systems take the "Outer Rim or Frontier" modifier. The Far Reach sits on the Frontier (p. 181, 198). */
 export const REMOTE_REGIONS = ["outer-rim", "frontier", "far-reach"];
-
-const starSystemModifiers: TableModifier[] = [
-  {
-    when: { in: [{ var: "region" }, REMOTE_REGIONS] },
-    add: -30,
-    label: "Outer Rim or Frontier: -3 to the tens digit",
-  },
-  {
-    when: { "==": [{ var: "region" }, "uncharted"] },
-    add: -50,
-    label: "Uncharted space: -5 to the tens digit",
-  },
-];
 
 /** [label, is a vessel that can react to the PCs' ship]. */
 const STAR_SYSTEM: Array<[string, boolean]> = [
@@ -88,21 +79,54 @@ const STAR_SYSTEM: Array<[string, boolean]> = [
 
 const SHIP_REACTION_NEST = [{ table: "alien.encounters.ship-reactions", as: "reaction" }];
 
+const STAR_SYSTEM_CADENCE =
+  "Roll before entering hyperspace and again after leaving it. While lingering in a system: once per day near a habitable planet, once per week further out, once per month in an unexplored system (p. 252). Vessel rows also roll Ship Reactions.";
+
+/**
+ * The star system table read with the tens digit lowered by `shift`: the
+ * rolled D66 value v shows the book's entry at v - 10 * shift, and any tens
+ * digit of 0 or less is no encounter (p. 254). shift 0 is the printed table.
+ */
+function starSystemRows(shift: number): TableRow[] {
+  const rows: TableRow[] = [];
+  const noneUpTo = D66_VALUES[shift * 6 - 1];
+  if (noneUpTo !== undefined) rows.push(row([11, noneUpTo], "No encounter", { encounter: null, none: true }));
+  for (let i = shift * 6; i < 36; i++) {
+    const v = D66_VALUES[i]!;
+    const entry = D66_VALUES[i - shift * 6]!;
+    const [label, vessel] = STAR_SYSTEM[i - shift * 6]!;
+    rows.push(row([v, v], label, { encounter: label, vessel, entry }, vessel ? { roll: SHIP_REACTION_NEST } : {}));
+  }
+  return rows;
+}
+
 export const starSystem: RollTable = table({
   id: "alien.encounters.star-system",
   name: "Star system encounters",
   page: 254,
   dice: "d66",
-  modifiers: starSystemModifiers,
-  notes:
-    "Roll before entering hyperspace and again after leaving it. While lingering in a system: once per day near a habitable planet, once per week further out, once per month in an unexplored system (p. 252). A tens digit of 0 or less is no encounter. Vessel rows also roll Ship Reactions.",
-  rows: [
-    row([-99, 10], "No encounter", { encounter: null, none: true }),
-    ...STAR_SYSTEM.map(([label, vessel], i): TableRow => {
-      const v = D66_VALUES[i]!;
-      return row([v, v], label, { encounter: label, vessel }, vessel ? { roll: SHIP_REACTION_NEST } : {});
-    }),
-  ],
+  notes: `Core Systems and Outer Veil, no modifier. ${STAR_SYSTEM_CADENCE}`,
+  rows: starSystemRows(0),
+});
+
+export const starSystemRemote: RollTable = table({
+  id: "alien.encounters.star-system-remote",
+  name: "Star system encounters (Outer Rim or Frontier, -3)",
+  page: 254,
+  dice: "d66",
+  tags: ["tens-digit-modifier"],
+  notes: `The printed table with the tens digit lowered by 3 for the Outer Rim or Frontier: 11-36 is no encounter, 41 reads entry 11, and so on. ${STAR_SYSTEM_CADENCE}`,
+  rows: starSystemRows(3),
+});
+
+export const starSystemUncharted: RollTable = table({
+  id: "alien.encounters.star-system-uncharted",
+  name: "Star system encounters (uncharted space, -5)",
+  page: 254,
+  dice: "d66",
+  tags: ["tens-digit-modifier"],
+  notes: `The printed table with the tens digit lowered by 5 for uncharted space: 11-56 is no encounter, 61-66 read entries 11-16. ${STAR_SYSTEM_CADENCE}`,
+  rows: starSystemRows(5),
 });
 
 // ---------------------------------------------------------------------------
@@ -179,26 +203,36 @@ const COLONY_GENERAL: string[] = [
   "Starship crew off-duty", "Thugs", "Security patrol", "Colonial official with entourage", "Accident in progress", "Colonists on strike or protesting",
 ];
 
-/** D66 values extended with a seventh tens row (71-76) for established colonies. */
+/** The book's entry numbers 11-76: D66 values plus a seventh tens row reached only in established colonies. */
 const D66_TO_76: number[] = [...D66_VALUES, 71, 72, 73, 74, 75, 76];
+
+const COLONY_CADENCE = "Daily encounters inside a settlement, usually a meeting or conversation (p. 252).";
+
+/** General colony rows read with the tens digit raised by `shift` (p. 252): rolled v shows entry v + 10 * shift. */
+function colonyGeneralRows(shift: number): TableRow[] {
+  return D66_VALUES.map((v, i) => {
+    const label = COLONY_GENERAL[i + shift * 6]!;
+    return row([v, v], label, { encounter: label, entry: D66_TO_76[i + shift * 6]! });
+  });
+}
 
 export const colonyGeneral: RollTable = table({
   id: "alien.encounters.colony.general",
   name: "General colony encounters",
   page: 255,
   dice: "d66",
-  modifiers: [
-    {
-      when: { or: [{ "==": [{ var: "colonySize" }, "established"] }, { "==": [{ var: "colonySize.colonySize" }, "established"] }] },
-      add: 10,
-      label: "Established colony: +1 to the tens digit",
-    },
-  ],
-  notes: "Daily encounters inside a settlement, usually a meeting or conversation (p. 252). Add 1 to the tens digit in an established colony (p. 240).",
-  rows: COLONY_GENERAL.map((label, i) => {
-    const v = D66_TO_76[i]!;
-    return row([v, v], label, { encounter: label });
-  }),
+  notes: `${COLONY_CADENCE} Start-up and young colonies read entries 11-66 as rolled.`,
+  rows: colonyGeneralRows(0),
+});
+
+export const colonyGeneralEstablished: RollTable = table({
+  id: "alien.encounters.colony.general-established",
+  name: "General colony encounters (established colony, +1)",
+  page: 255,
+  dice: "d66",
+  tags: ["tens-digit-modifier"],
+  notes: `${COLONY_CADENCE} An established colony (p. 240) adds 1 to the tens digit: a rolled 11 reads entry 21, up to 66 reading entry 76.`,
+  rows: colonyGeneralRows(1),
 });
 
 // ---------------------------------------------------------------------------
@@ -311,9 +345,12 @@ export const COLONY_AREAS = ["public", "habitation", "operations", "spaceport", 
 
 export const encounterTables: RollTable[] = [
   starSystem,
+  starSystemRemote,
+  starSystemUncharted,
   shipReactions,
   surface,
   colonyGeneral,
+  colonyGeneralEstablished,
   colonyPublic,
   colonyHabitation,
   colonyOperations,
