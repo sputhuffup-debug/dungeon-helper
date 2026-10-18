@@ -8,6 +8,7 @@ import { Badge, Button, Card, Dialog, EmptyState, IconButton, pushToast, useThem
 import { errorMessage, relativeTime } from "../../lib/format";
 import { listModules, loadModuleById, moduleEntry } from "../../modules/registry";
 import { createCampaign, deleteCampaign, importCampaignBundle } from "../../state/actions";
+import { loadDemoCampaign } from "../../state/tableActions";
 
 export function CampaignListPage() {
   const [campaigns, setCampaigns] = useState<CampaignIndexEntry[] | undefined>();
@@ -56,6 +57,22 @@ export function CampaignListPage() {
         </Button>
         <Button onClick={() => fileRef.current?.click()} disabled={busy}>
           Import bundle…
+        </Button>
+        <Button
+          onClick={async () => {
+            setBusy(true);
+            try {
+              const id = await loadDemoCampaign("skyfire-down");
+              await navigate({ to: "/c/$campaignId/home", params: { campaignId: id } });
+            } catch (e) {
+              pushToast(`Could not load the demo: ${errorMessage(e)}`, { tone: "danger" });
+              setBusy(false);
+            }
+          }}
+          disabled={busy}
+          data-testid="load-demo"
+        >
+          Load demo campaign
         </Button>
         <input ref={fileRef} type="file" accept=".zip,application/zip" hidden aria-label="Import bundle file" onChange={(e) => void onImport(e.target.files?.[0])} />
       </div>

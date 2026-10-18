@@ -80,7 +80,7 @@ test("placeholder routes render", async ({ page }) => {
   await page.getByRole("dialog").getByRole("button", { name: "Create campaign" }).click();
   await expect(page).toHaveURL(/\/home$/);
   await page.getByRole("link", { name: "Adventures" }).first().click();
-  await expect(page.getByTestId("placeholder")).toContainText("Coming in the next build step");
+  await expect(page.getByRole("heading", { name: "Adventures", exact: true })).toBeVisible();
   await page.getByRole("link", { name: "Rules" }).click();
   await expect(page.getByRole("heading", { name: "Rules" })).toBeVisible();
 });

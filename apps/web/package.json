@@ -16,6 +16,7 @@
     "@campaign-forge/module-alien": "workspace:*",
     "@campaign-forge/module-example": "workspace:*",
     "@campaign-forge/module-sdk": "workspace:*",
+    "@campaign-forge/seed-campaign": "workspace:*",
     "@campaign-forge/ui": "workspace:*",
     "@tanstack/react-router": "^1.170.45",
     "@tiptap/core": "^3.32.0",

@@ -16,6 +16,7 @@ import { NotesTab } from "./NotesTab";
 import { RelationshipsTab } from "./RelationshipsTab";
 import { SheetTab } from "./SheetTab";
 import { TimelineTab } from "./TimelineTab";
+import { EntityPrepPanels } from "../generate/EntityPrepPanels";
 
 const TABS = ["sheet", "notes", "relationships", "backlinks", "timeline"] as const;
 
@@ -58,6 +59,7 @@ export function EntityPage() {
           { id: "timeline", label: "Timeline", content: <TimelineTab entity={entity} /> },
         ]}
       />
+      <EntityPrepPanels entity={entity} def={def} />
     </div>
   );
 }

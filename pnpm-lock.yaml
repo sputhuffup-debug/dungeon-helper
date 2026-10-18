@@ -35,6 +35,9 @@ importers:
       '@campaign-forge/module-sdk':
         specifier: workspace:*
         version: link:../../packages/module-sdk
+      '@campaign-forge/seed-campaign':
+        specifier: workspace:*
+        version: link:../../tools/seed-campaign
       '@campaign-forge/ui':
         specifier: workspace:*
         version: link:../../packages/ui
