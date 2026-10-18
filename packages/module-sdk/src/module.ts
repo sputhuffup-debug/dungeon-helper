@@ -144,9 +144,14 @@ function checkTable(table: RollTable, registry: TableRegistry, declaredModes: Se
     if (covering === 0) gaps.push(t);
   }
   if (gaps.length > 0) c.error(where, `no row covers total${gaps.length > 1 ? "s" : ""} ${gaps.join(", ")} (dice ${table.dice})`);
-  for (const [i, row] of table.rows.entries()) {
-    const reachable = [...totals].some((t) => t >= row.range[0] && t <= row.range[1]);
-    if (!reachable) c.warn(where, `row ${i} [${row.range.join("-")}] is unreachable with dice ${table.dice}`);
+  // Rows beyond the numeric outcome set may still be reachable through a
+  // JSONLogic modifier (e.g. "+ stress - resolve"), which cannot be enumerated.
+  const hasDynamicModifier = (table.modifiers ?? []).some((m) => typeof m.add !== "number");
+  if (!hasDynamicModifier) {
+    for (const [i, row] of table.rows.entries()) {
+      const reachable = [...totals].some((t) => t >= row.range[0] && t <= row.range[1]);
+      if (!reachable) c.warn(where, `row ${i} [${row.range.join("-")}] is unreachable with dice ${table.dice}`);
+    }
   }
   for (const [i, m] of (table.modifiers ?? []).entries()) {
     if (m.add === undefined || m.add === null) c.error(where, `modifier ${i} has no "add"`);

@@ -168,7 +168,7 @@ export const npcPresets: AlienPreset[] = [
     career: "kid",
     attributes: { strength: 2, agility: 4, wits: 3, empathy: 3 },
     skills: { mobility: 3, observation: 2, survival: 1 },
-    talent: "sneaky",
+    talent: "hide",
     gear: [
       { name: "Flashlight", weight: 0.5 },
       { name: "Stuffed toy", weight: 0 },
@@ -282,7 +282,7 @@ export const npcPresets: AlienPreset[] = [
     summary: "Independent hauler who never declares the whole cargo.",
     attributes: { strength: 3, agility: 4, wits: 4, empathy: 3 },
     skills: { rangedCombat: 2, piloting: 2, observation: 1, comtech: 1, manipulation: 2 },
-    talent: "bluff",
+    talent: "talk-the-talk",
     gear: [
       { name: "Rexim RXF-M5 EVA pistol", weight: 1 },
       { name: "Forged manifest", weight: 0 },
@@ -311,7 +311,7 @@ export const npcPresets: AlienPreset[] = [
     summary: "Ex-military gun for hire; loyal to the contract.",
     attributes: { strength: 4, agility: 4, wits: 3, empathy: 2 },
     skills: { closeCombat: 2, rangedCombat: 3, stamina: 2, mobility: 1, survival: 1 },
-    talent: "rapid-fire",
+    talent: "quick-fire",
     gear: [
       { name: "AK-4047 pulse rifle", weight: 1, supply: 5 },
       { name: "Light armor vest", weight: 1 },
@@ -338,7 +338,7 @@ export const npcPresets: AlienPreset[] = [
     summary: "True believer in something out among the stars.",
     attributes: { strength: 3, agility: 3, wits: 3, empathy: 4 },
     skills: { closeCombat: 1, observation: 1, manipulation: 3, survival: 1 },
-    talent: "fanatic",
+    talent: "unbreakable",
     gear: [
       { name: "Ritual blade", weight: 0.5 },
       { name: "Devotional icon", weight: 0 },
@@ -353,7 +353,7 @@ export const npcPresets: AlienPreset[] = [
     summary: "Company liaison with sealed orders and Special Order clearance.",
     attributes: { strength: 2, agility: 3, wits: 4, empathy: 4 },
     skills: { observation: 2, comtech: 2, manipulation: 3, command: 2 },
-    talent: "bluff",
+    talent: "talk-the-talk",
     gear: [
       { name: "Company data pad", weight: 0.5 },
       { name: "Sealed orders", weight: 0 },
@@ -384,7 +384,7 @@ export const npcPresets: AlienPreset[] = [
     summary: "Engineer keeping second-rate hardware running on a first-rate schedule.",
     attributes: { strength: 3, agility: 3, wits: 4, empathy: 2 },
     skills: { heavyMachinery: 2, comtech: 3, observation: 2, piloting: 1 },
-    talent: "quick-fix",
+    talent: "tinkerer",
     gear: [
       { name: "Electronic tool kit", weight: 1 },
       { name: "Maintenance jack", weight: 1 },
