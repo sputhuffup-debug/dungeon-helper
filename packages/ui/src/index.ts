@@ -65,6 +65,8 @@ export {
   areaColor,
   zoneLabel,
   nodeToString,
+  resolvePalette,
+  GRID_SQUARE_COLOR,
   el as svgNode,
   bbox as polyBox,
   center as polyCenter,
@@ -78,9 +80,30 @@ export {
   type SiteMapDrawOptions,
   type SiteMapDrawing,
   type SiteMapLiveInput,
+  type SiteMapCallout,
   type FlagIcon,
 } from "./map/siteMapDraw";
-export { renderSiteMapSvg, renderSiteMapPng, pngSize, printTiles, printTilesHtml, PAPER, type RenderSvgOptions, type PrintTileOptions, type PrintTiles, type PrintTile, type PaperSize } from "./map/siteMapExport";
+export {
+  renderSiteMapSvg,
+  renderSiteMapPng,
+  composeSiteMap,
+  pngSize,
+  printTiles,
+  printTilesHtml,
+  PAPER,
+  type RenderSvgOptions,
+  type ExportTitleBlock,
+  type PrintTileOptions,
+  type PrintTiles,
+  type PrintTile,
+  type PaperSize,
+} from "./map/siteMapExport";
+export { planRollPrint, rollPrintPages, renderRollPdf, zoneKeyEntries, formatInches, ROLL_WIDTHS, PRINT_MAP_MARGIN, PRINT_PALETTE, type RollWidth, type RollPrintOptions, type RollPrintPlan, type RollPrintPage } from "./map/rollPrint";
+export { svgPagesToPdf, parsePathData, parseTransform, parseColor, PDF_MAX_UNITS, type PdfPage, type PdfInfo } from "./map/sitePdf";
+export { rotateLayout, type QuarterTurn } from "./map/rotateLayout";
+export { titleBlock, scaleBar, scaleText, isMiniatureScale, defaultGridSquares, PRINT_SCALES, DEFAULT_MM_PER_METRE, VIEW_NAMES, type PrintScale, type TitleBlockInput, type TitleBlockFrame, type TitleBlock } from "./map/titleBlock";
+export { LabelPlacer, boxesOverlap, boxInside, boxInPolygon, insetBox, boxAround, scanPositions, overlappingPairs, placementProblems, type LabelBox, type PlacedLabel, type PlaceRequest, type ScanFrom } from "./map/labelPlacement";
+export { textWidth, ellipsize, wrapText, winAnsiBytes, MAP_FONT } from "./map/textMetrics";
 
 // Primitives
 export { Button, IconButton, type ButtonProps, type IconButtonProps, type ButtonVariant, type ButtonSize } from "./primitives/Button";

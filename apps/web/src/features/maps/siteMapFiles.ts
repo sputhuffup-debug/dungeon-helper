@@ -1,7 +1,7 @@
 /**
  * Site map helpers shared by the map page and table mode: the generator
  * definition a map was made with, the screen palette, and the downloads
- * (SVG, PNG, print tiles, zone key, distance table).
+ * (SVG, PNG, print tiles, roll PDF, zone key, distance table).
  */
 import {
   distanceTableCsv,
@@ -13,7 +13,18 @@ import {
   type SiteMap,
 } from "@campaign-forge/core";
 import type { MapGeneratorDef, SiteLayout } from "@campaign-forge/module-sdk";
-import { printTiles, printTilesHtml, renderSiteMapPng, renderSiteMapSvg, type PaperSize, type SiteMapViewKind } from "@campaign-forge/ui";
+import {
+  planRollPrint,
+  printTiles,
+  printTilesHtml,
+  renderRollPdf,
+  renderSiteMapPng,
+  renderSiteMapSvg,
+  type PaperSize,
+  type RollPrintOptions,
+  type RollPrintPlan,
+  type SiteMapViewKind,
+} from "@campaign-forge/ui";
 import { useMemo } from "react";
 import { useTheme } from "../../components/ui";
 import { downloadFile, slug } from "../../lib/download";
@@ -47,13 +58,23 @@ export interface MapFileOptions {
   view: SiteMapViewKind;
   deck: string | undefined;
   def: MapGeneratorDef | undefined;
+  /** Add a title block with a scale bar below the map (SVG and PNG). */
+  titleBlock?: boolean | undefined;
 }
 
 /** Download the deck as SVG (exports are always on the light, print-friendly palette). */
 export function downloadMapSvg(map: SiteMap, o: MapFileOptions): void {
   if (!map.layout) return;
   const layout = layoutForView(map.layout, o.view, o.def);
-  const svg = renderSiteMapSvg(layout, { view: o.view, deck: o.deck, legend: o.def?.legend, grid: o.view !== "tracking", title: `${map.name} (${o.view})`, scale: o.view === "tracking" ? 28 : 20 });
+  const svg = renderSiteMapSvg(layout, {
+    view: o.view,
+    deck: o.deck,
+    legend: o.def?.legend,
+    grid: o.view !== "tracking",
+    title: `${map.name} (${o.view})`,
+    scale: o.view === "tracking" ? 28 : 20,
+    titleBlock: o.titleBlock ? { title: map.name } : undefined,
+  });
   downloadFile(svg, `${fileBase(map, o.view, o.deck)}.svg`, "image/svg+xml");
 }
 
@@ -61,7 +82,7 @@ export function downloadMapSvg(map: SiteMap, o: MapFileOptions): void {
 export async function downloadMapPng(map: SiteMap, o: MapFileOptions): Promise<void> {
   if (!map.layout) return;
   const layout = layoutForView(map.layout, o.view, o.def);
-  const blob = await renderSiteMapPng(layout, { view: o.view, deck: o.deck, legend: o.def?.legend, grid: o.view !== "tracking", dpi: 150 });
+  const blob = await renderSiteMapPng(layout, { view: o.view, deck: o.deck, legend: o.def?.legend, grid: o.view !== "tracking", dpi: 150, titleBlock: o.titleBlock ? { title: map.name } : undefined });
   downloadFile(blob, `${fileBase(map, o.view, o.deck)}-150dpi.png`, "image/png");
 }
 
@@ -89,6 +110,32 @@ export function printMapTiles(map: SiteMap, o: MapFileOptions & { paper: PaperSi
   }
   if (!opened) downloadFile(html, name, "text/html");
   return { pages: tiles.tiles.length, opened };
+}
+
+export interface RollFileOptions extends MapFileOptions {
+  rollWidthIn: number;
+  mmPerMetre: number;
+  gridSquares: boolean;
+  titleBlock: boolean;
+}
+
+function rollOptions(map: SiteMap, o: RollFileOptions): RollPrintOptions {
+  return { view: o.view, deck: o.deck, legend: o.def?.legend, rollWidthIn: o.rollWidthIn, mmPerMetre: o.mmPerMetre, gridSquares: o.gridSquares, titleBlock: o.titleBlock, title: map.name, act: 1 };
+}
+
+/** The roll print plan (pages and paper) for the current settings. */
+export function rollPlan(map: SiteMap, o: RollFileOptions): RollPrintPlan | undefined {
+  if (!map.layout) return undefined;
+  return planRollPrint(layoutForView(map.layout, o.view, o.def), rollOptions(map, o));
+}
+
+/** Download the deck as a vector PDF for a wide-format roll; one page per strip. */
+export function downloadRollPdf(map: SiteMap, o: RollFileOptions): RollPrintPlan | undefined {
+  if (!map.layout) return undefined;
+  const { bytes, plan } = renderRollPdf(layoutForView(map.layout, o.view, o.def), rollOptions(map, o));
+  const scale = o.mmPerMetre === 25.4 ? "1in-per-m" : o.mmPerMetre === 10 ? "1cm-per-m" : "1-56";
+  downloadFile(bytes, `${fileBase(map, o.view, o.deck)}-roll-${o.rollWidthIn}in-${scale}.pdf`, "application/pdf");
+  return plan;
 }
 
 export function downloadZoneKey(map: SiteMap, format: "md" | "csv", module: Parameters<typeof zoneKeyCsv>[1]): void {

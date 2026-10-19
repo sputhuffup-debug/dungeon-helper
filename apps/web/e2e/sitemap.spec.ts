@@ -86,6 +86,33 @@ test("a generated site map: views, zone key download, live reveal in table mode,
   await page.getByTestId("download-svg").click();
   expect((await svgDownload).suggestedFilename()).toBe("keep-deck-plan-gm-map.svg");
 
+  // roll print: a 30 x 20 m keep at 1 in = 1 m fits a 36" roll as it is, and a 24" roll turned
+  const roll = page.getByTestId("roll-print");
+  await expect(roll.getByTestId("roll-scale")).toHaveValue("25.4");
+  await expect(roll.getByTestId("roll-grid")).not.toBeChecked();
+  await expect(roll.getByTestId("roll-summary")).toHaveText(/^GM map · 36" roll · 1 page · [\d.]+" of paper$/);
+  const pdfDownload = page.waitForEvent("download");
+  await roll.getByTestId("download-roll-pdf").click();
+  const pdfFile = await pdfDownload;
+  expect(pdfFile.suggestedFilename()).toBe("keep-deck-plan-gm-map-roll-36in-1in-per-m.pdf");
+  const pdf = readFileSync((await pdfFile.path())!);
+  expect(pdf.subarray(0, 5).toString("latin1")).toBe("%PDF-");
+  expect(pdf.toString("latin1").match(/\/Type \/Page /g)).toHaveLength(1);
+  expect(pdf.toString("latin1")).toContain("/MediaBox [0 0 2592 ");
+  await roll.getByTestId("roll-width").selectOption("24");
+  await expect(roll.getByTestId("roll-summary")).toHaveText(/24" roll · 1 page · [\d.]+" of paper · turned 90°$/);
+  // GM prints default to no grid squares; the player view at a miniature scale turns them on
+  await page.getByRole("tab", { name: "Player map" }).click();
+  await expect(page.getByTestId("roll-grid")).toBeChecked();
+  await expect(page.getByTestId("roll-summary")).toContainText("Player map · 24\" roll");
+  const playerPdf = page.waitForEvent("download");
+  await page.getByTestId("download-roll-pdf").click();
+  const playerFile = readFileSync((await (await playerPdf).path())!).toString("latin1");
+  expect(playerFile.startsWith("%PDF-1.4")).toBe(true);
+  expect(playerFile.match(/\/Type \/Page /g)).toHaveLength(1);
+  expect(playerFile).not.toContain("Ghoul");
+  await page.getByRole("tab", { name: "GM map" }).click();
+
   // 5. table mode: start the session; the live map starts with the start zone revealed
   await page.getByRole("navigation", { name: "Campaign" }).getByRole("link", { name: "Home", exact: true }).click();
   await page.getByRole("button", { name: "Start this session" }).click();

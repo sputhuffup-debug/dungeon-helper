@@ -1,7 +1,8 @@
 /**
  * The map page for a generated site map (a SiteMap with a `layout`): GM,
  * player and tracking views with the legend, downloads (SVG, PNG at 150 dpi,
- * print tiles), the generator's checks, the zone key and the distance table.
+ * A4/Letter print tiles, a vector PDF for 24" and 36" wide-format rolls),
+ * the generator's checks, the zone key and the distance table.
  * Image maps keep the rectangle editor (MapPage).
  */
 import { distanceTable, zoneKeyRows, zoneNumbers, type SiteMap } from "@campaign-forge/core";
@@ -9,7 +10,23 @@ import type { MapCheck } from "@campaign-forge/module-sdk";
 import { Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { VisibilitySelect } from "../../components/VisibilitySelect";
-import { Badge, Button, Card, MapLegend, PageRef, SiteMapView, Tabs, pushToast, type PaperSize, type SiteMapViewKind } from "../../components/ui";
+import {
+  Badge,
+  Button,
+  Card,
+  DEFAULT_MM_PER_METRE,
+  MapLegend,
+  PRINT_SCALES,
+  PageRef,
+  ROLL_WIDTHS,
+  SiteMapView,
+  Tabs,
+  defaultGridSquares,
+  drawSiteMap,
+  pushToast,
+  type PaperSize,
+  type SiteMapViewKind,
+} from "../../components/ui";
 import { errorMessage } from "../../lib/format";
 import { RegenerateMapLink } from "../mapgen/RegenerateMapLink";
 import { updateSiteMap } from "../../state/prepActions";
@@ -18,10 +35,12 @@ import {
   downloadDistanceTable,
   downloadMapPng,
   downloadMapSvg,
+  downloadRollPdf,
   downloadZoneKey,
   layoutForView,
   maxActOf,
   printMapTiles,
+  rollPlan,
   useMapGenerator,
   useMapPalette,
 } from "./siteMapFiles";
@@ -44,12 +63,23 @@ export function SiteMapPage({ record, onDelete, scenesCard }: { record: SiteMap;
   const [deck, setDeck] = useState<string | undefined>(layout.decks[0]?.id);
   const [selected, setSelected] = useState<string | undefined>();
   const [paper, setPaper] = useState<PaperSize>("a4");
+  const [exportTitle, setExportTitle] = useState(false);
+  const [roll, setRoll] = useState<number>(36);
+  const [mmPerMetre, setMmPerMetre] = useState(DEFAULT_MM_PER_METRE);
+  // grid squares follow the view and scale until the GM ticks or unticks them
+  const [gridChoice, setGridChoice] = useState<boolean | undefined>();
+  const [rollTitle, setRollTitle] = useState(true);
   const shown = useMemo(() => layoutForView(layout, view, def), [layout, view, def]);
   const legend = def?.legend ?? [];
   const numbers = useMemo(() => zoneNumbers(layout), [layout]);
   const playable = numbers.size;
   const failing = layout.checks.filter((c) => !c.ok);
-  const fileOpts = { view, deck, def };
+  const fileOpts = { view, deck, def, titleBlock: exportTitle };
+  const gridSquares = gridChoice ?? defaultGridSquares(view, mmPerMetre);
+  const rollOpts = useMemo(() => ({ view, deck, def, rollWidthIn: roll, mmPerMetre, gridSquares, titleBlock: rollTitle }), [view, deck, def, roll, mmPerMetre, gridSquares, rollTitle]);
+  const plan = useMemo(() => rollPlan(record, rollOpts), [record, rollOpts]);
+  // marker texts that did not fit in their zones: the map shows a letter, this line the text
+  const callouts = useMemo(() => drawSiteMap(shown, { view, deck, legend }).callouts, [shown, view, deck, legend]);
 
   const run = async (fn: () => unknown, what: string) => {
     try {
@@ -80,6 +110,17 @@ export function SiteMapPage({ record, onDelete, scenesCard }: { record: SiteMap;
               onSelectZone={view === "player" ? undefined : (z) => setSelected((s) => (s === z ? undefined : z))}
               className="prep-sitemap__map"
             />
+            {callouts.length > 0 && (
+              <p className="cf-muted prep-sitemap__notes" data-testid="map-notes">
+                <span>Map notes</span>
+                {callouts.map((c) => (
+                  <span key={c.ref} data-callout-note={c.ref}>
+                    <strong>{c.ref}</strong> {c.label}
+                    {c.number !== undefined ? `, zone ${c.number}` : ""}
+                  </span>
+                ))}
+              </p>
+            )}
             <div className="app-row prep-sitemap__downloads" role="group" aria-label="Map downloads">
               <Button size="sm" onClick={() => downloadMapSvg(record, fileOpts)} data-testid="download-svg">
                 SVG
@@ -87,6 +128,10 @@ export function SiteMapPage({ record, onDelete, scenesCard }: { record: SiteMap;
               <Button size="sm" onClick={() => void run(() => downloadMapPng(record, fileOpts), "PNG export")} data-testid="download-png">
                 PNG (150 dpi)
               </Button>
+              <label className="app-row">
+                <input type="checkbox" className="cf-checkbox" checked={exportTitle} onChange={(e) => setExportTitle(e.target.checked)} data-testid="export-title-block" />
+                Title block
+              </label>
               <span className="cf-muted">Print tiles at 1 m = 1 cm</span>
               <select className="cf-select" aria-label="Paper size" value={paper} onChange={(e) => setPaper(e.target.value as PaperSize)}>
                 <option value="a4">A4</option>
@@ -103,6 +148,57 @@ export function SiteMapPage({ record, onDelete, scenesCard }: { record: SiteMap;
                 Print tiles
               </Button>
             </div>
+            <fieldset className="prep-sitemap__roll" data-testid="roll-print">
+              <legend>Print on a roll</legend>
+              <div className="app-row prep-sitemap__downloads">
+                <select className="cf-select" aria-label="Roll width" value={roll} onChange={(e) => setRoll(Number(e.target.value))} data-testid="roll-width">
+                  {ROLL_WIDTHS.map((w) => (
+                    <option key={w} value={w}>
+                      {w}" roll
+                    </option>
+                  ))}
+                </select>
+                <select
+                  className="cf-select"
+                  aria-label="Print scale"
+                  value={String(mmPerMetre)}
+                  onChange={(e) => {
+                    setMmPerMetre(Number(e.target.value));
+                    setGridChoice(undefined);
+                  }}
+                  data-testid="roll-scale"
+                >
+                  {PRINT_SCALES.map((s) => (
+                    <option key={s.id} value={String(s.mmPerMetre)}>
+                      {s.label}
+                    </option>
+                  ))}
+                </select>
+                <label className="app-row">
+                  <input type="checkbox" className="cf-checkbox" checked={gridSquares} onChange={(e) => setGridChoice(e.target.checked)} data-testid="roll-grid" />1 m grid squares
+                </label>
+                <label className="app-row">
+                  <input type="checkbox" className="cf-checkbox" checked={rollTitle} onChange={(e) => setRollTitle(e.target.checked)} data-testid="roll-title-block" />
+                  Title block
+                </label>
+                <span className="cf-muted" data-testid="roll-summary" title={plan ? `Map ${plan.mapWidthIn}" × ${plan.mapHeightIn}"${plan.rotated ? ", turned 90°" : ""}${plan.strips > 1 ? `, ${plan.strips} strips of ${plan.stripWidthIn}" with ${plan.overlapIn}" overlap` : ""}` : undefined}>
+                  {plan ? `${VIEWS.find((v) => v.id === view)?.label} · ${plan.summary}${plan.rotated ? " · turned 90°" : ""}` : ""}
+                </span>
+                <Button
+                  size="sm"
+                  variant="primary"
+                  onClick={() =>
+                    void run(() => {
+                      const p = downloadRollPdf(record, rollOpts);
+                      if (p) pushToast(`PDF ready: ${p.summary}`, { tone: "success" });
+                    }, "PDF export")
+                  }
+                  data-testid="download-roll-pdf"
+                >
+                  Download PDF
+                </Button>
+              </div>
+            </fieldset>
           </div>
           <aside className="prep-sitemap__side">
             {selectedRow && view !== "player" && (
@@ -170,6 +266,7 @@ export function SiteMapPage({ record, onDelete, scenesCard }: { record: SiteMap;
         onChange={(v) => {
           setView(v as SiteMapViewKind);
           setSelected(undefined);
+          setGridChoice(undefined);
         }}
         className="prep-sitemap__tabs"
         tabs={VIEWS.map((v) => ({ id: v.id, label: v.label, content: body }))}
