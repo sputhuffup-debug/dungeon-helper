@@ -11,7 +11,7 @@ Campaign Forge is a companion to the rulebook, not a replacement. The module enc
 - **World entities.** Characters, creatures, locations, factions, items, vehicles, ships, clues, jobs and encounters, each rendered from the module's JSON Schema sheet layout, linked by typed relationships.
 - **Generators.** Seeded, re-rollable procedures over the module's tables: world creation, star systems, jobs, life paths, encounter checks and shore leave, with full roll provenance.
 - **Guided adventure builder.** A step-by-step cinematic scenario builder (basics, situation, cast, locations and puzzles, three acts, review) with a field guide and page references on every step.
-- **Table tools.** Scene cards, rounds/stretches/shifts clock, stress and panic roller, critical injuries (including the android table), initiative cards, supply rolls, countdowns, a xenomorph life-cycle tracker and a session checklist that modules extend.
+- **Table tools.** Scene cards, rounds/stretches/shifts clock, stress and panic roller, critical injuries (including the android table), initiative cards, supply rolls, countdowns, a xenomorph life-cycle tracker and a session checklist that modules extend. A Hints tab says what each attribute and skill is for in the story and rolls it for the best-placed PC.
 - **Site maps.** A seeded deck-plan generator that reads the adventure's locations, puzzles and crew, checks the map against the zone rules, and produces a GM map, a player map (fogged in play, whole in print), a tracking map, a zone key and a distance table. At the table the GM reveals zones, locks and seals doors, marks fires and pings the tracker; the player screen shows only what the crew has seen.
 - **Maps from images.** Imported images with rectangular zone overlays and open/blocked/door borders.
 - **Rules reference.** Paraphrased rule cards with page references, filtered by play mode (Cinematic or Campaign).
@@ -35,6 +35,10 @@ The demo campaign (*Skyfire Down*, campaign play) and a cinematic one-shot built
 **Table mode**: the scene card, the clock, stress and panic for each PC, countdowns and the session checklist.
 
 ![Table mode](docs/screenshots/table-mode.png)
+
+**Table hints**: for each attribute and skill, the story moments that call for it, what success, failure and a push should do to the scene, lines to say aloud, and the PCs ranked by dice pool; tap one to roll on the spot.
+
+![Table hints](docs/screenshots/table-hints.png)
 
 **Guided adventure builder**: the cinematic scenario steps with the field guide and what still needs fixing.
 
