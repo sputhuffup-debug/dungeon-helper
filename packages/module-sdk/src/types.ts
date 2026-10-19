@@ -870,6 +870,15 @@ export interface MapDeck {
   name: string;
   width: number;
   height: number;
+  /**
+   * "floor" (default) is a deck plan; "duct" is a separate crawlspace level
+   * generated as its own sheet, linked to floor zones by access borders.
+   */
+  layer?: "floor" | "duct";
+  /** Vertical order (0 = lowest); levels let ducts climb or drop between sheets. */
+  level?: number;
+  /** For a duct sheet: the floor deck it mostly serves (for grouping in the deck switcher). */
+  serves?: string;
 }
 
 export interface MapZoneData {
@@ -901,7 +910,8 @@ export interface MapZoneData {
   gmNote?: string;
 }
 
-export type MapBorderKind = "open" | "wall" | "door" | "hatch" | "blast" | "access" | "stairs";
+/** `shaft` is a vertical link inside a duct network (climb or drop between duct sheets). */
+export type MapBorderKind = "open" | "wall" | "door" | "hatch" | "blast" | "access" | "stairs" | "shaft";
 
 export interface MapBorderData {
   id: string;
@@ -1022,6 +1032,23 @@ export interface MapGeneratorDef {
   passable?(border: MapBorderData, act: number): boolean;
   rangeBands?: RangeBandDef[];
   legend?: MapLegendEntry[];
+  /**
+   * Tables the GM rolls at the table for a zone, e.g. a duct event table
+   * rolled when a token enters a duct zone. GM-only: never shown to players.
+   */
+  zoneTables?: MapZoneTable[];
+}
+
+/** A module table offered at the table for zones that match. */
+export interface MapZoneTable {
+  /** Table id in the module's table registry. */
+  table: string;
+  label: string;
+  /** Which zones it applies to: by layer, by kind, or by a zone flag. */
+  when: { layer?: "floor" | "duct"; kind?: MapZoneKind; flag?: string };
+  /** One line on when to roll it. */
+  hint?: string;
+  page?: PageRef;
 }
 
 // ---------------------------------------------------------------------------
