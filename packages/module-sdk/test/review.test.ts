@@ -275,6 +275,13 @@ describe("checkModule: narrative fields and builders", () => {
     m.narrativeFields![2]!.schema = { type: "nonsense" };
     m.adventureBuilders![0]!.templateId = "nb.missing";
     const messages = builderErrors(m).map((e) => `${e.where} ${e.message}`);
+    // Scaffold seed fields are checked against the narrative schemas (warnings).
+    const seeded = moduleWithBuilder();
+    const scaffold = seeded.templates[0]!.scaffold as { fields?: unknown; acts: Array<{ fields?: unknown }> };
+    scaffold.fields = { hook: 3 };
+    scaffold.acts[1]!.fields = { twist: "ok" };
+    const warnings = checkModule(seeded, { skipProcedureRuns: true }).issues.filter((i) => i.severity === "warning").map((i) => i.message);
+    expect(warnings).toEqual(["template adventure fields.hook: must be string"]);
     expect(messages).toEqual(
       expect.arrayContaining([
         expect.stringMatching(/^narrativeFields:adventure.*sheet field path "ghost" does not exist/),

@@ -17,6 +17,13 @@ export interface SheetContextValue {
   resolveAssetUrl?: (idOrUrl: string) => string | undefined;
   /** Zone map widget's "open map" button. */
   onOpenMap?: (mapId: string | undefined, field: SheetField) => void;
+  /**
+   * Members of a named group of entities the host supplies (e.g. an adventure
+   * builder's cast roles). Widgets configured with `config.castRoles` (ref) or
+   * `config.keyedByCast` (object) read it; without it they fall back to their
+   * plain behaviour.
+   */
+  castMembers?: (role: string) => Array<{ id: string; name: string }>;
 }
 
 export const SheetContext = createContext<SheetContextValue>({ tableMode: false });

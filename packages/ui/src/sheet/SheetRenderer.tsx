@@ -109,6 +109,7 @@ export function SheetRenderer(props: SheetRendererProps) {
     resolveEntityName,
     resolveAssetUrl,
     onOpenMap,
+    castMembers,
   } = props;
 
   const computed = useMemo(() => computedProp ?? computeFields(def, fields), [computedProp, def, fields]);
@@ -129,8 +130,8 @@ export function SheetRenderer(props: SheetRendererProps) {
   }, [def, mode, sub, onlySections, onlyPaths]);
 
   const ctx = useMemo<SheetContextValue>(
-    () => ({ mode, tableMode, onRoll, onOpenRule, onPickEntity, resolveEntityName, resolveAssetUrl, onOpenMap }),
-    [mode, tableMode, onRoll, onOpenRule, onPickEntity, resolveEntityName, resolveAssetUrl, onOpenMap],
+    () => ({ mode, tableMode, onRoll, onOpenRule, onPickEntity, resolveEntityName, resolveAssetUrl, onOpenMap, castMembers }),
+    [mode, tableMode, onRoll, onOpenRule, onPickEntity, resolveEntityName, resolveAssetUrl, onOpenMap, castMembers],
   );
 
   const schemaFor = (path: string): JsonSchema | undefined => {

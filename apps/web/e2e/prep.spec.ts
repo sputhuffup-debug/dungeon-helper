@@ -71,13 +71,13 @@ test("build a cinematic adventure from the template, give a scene a map and draw
   await expect(page.getByRole("heading", { name: "Adventures", exact: true })).toBeVisible();
   await page.getByTestId("new-adventure").click();
   const dialog = page.getByRole("dialog");
-  await expect(dialog.getByRole("radio", { name: "Cinematic adventure" })).toBeChecked();
-  await dialog.getByLabel("Adventure title").fill("Chariot of the Gods");
+  await expect(dialog.getByRole("radio", { name: "Cinematic adventure", exact: true })).toBeChecked();
+  await dialog.getByLabel("Adventure title").fill("Cold Harbor");
   await dialog.getByTestId("create-adventure").click();
 
   const builder = page.getByTestId("adventure-builder");
   await expect(builder).toBeVisible();
-  await expect(page.getByTestId("adventure-title")).toHaveValue("Chariot of the Gods");
+  await expect(page.getByTestId("adventure-title")).toHaveValue("Cold Harbor");
   const outline = page.getByTestId("outline");
   await expect(outline.getByTestId("outline-act")).toHaveCount(3);
   await expect(outline.getByTestId("outline-scene")).toHaveCount(9);

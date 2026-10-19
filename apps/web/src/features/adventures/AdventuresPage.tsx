@@ -4,7 +4,7 @@ import type { Template } from "@campaign-forge/module-sdk";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Badge, Button, Dialog, EmptyState, PageRef, pushToast } from "../../components/ui";
-import { errorMessage, relativeTime } from "../../lib/format";
+import { adventureTitle, errorMessage, relativeTime } from "../../lib/format";
 import { instantiateBuilder } from "../../state/builderActions";
 import { instantiateAdventureTemplate, isTemplateAdventure } from "../../state/prepActions";
 import { useCampaign, useList, useMeta } from "../../state/hooks";
@@ -94,7 +94,7 @@ function AdventureCard({ adventure, counts }: { adventure: Adventure; counts: { 
     <li>
       <Link to="/c/$campaignId/adventures/$adventureId" params={{ campaignId: ctx.campaignId, adventureId: adventure.id }} search={{}} className="prep-adv-card" data-testid="adventure-card">
         <span className="prep-adv-card__head">
-          <strong>{adventure.title}</strong>
+          <strong>{adventureTitle(adventure)}</strong>
           <Badge tone={statusTone(adventure.status)}>{adventure.status}</Badge>
         </span>
         {adventure.premise && <span className="cf-muted prep-adv-card__premise">{adventure.premise.replace(/[_*]/g, "")}</span>}

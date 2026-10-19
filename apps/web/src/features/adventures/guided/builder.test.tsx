@@ -36,8 +36,10 @@ describe("guided builder (example module)", () => {
     const acts = adventure.acts.map((id) => ctx.store.get("acts", id)!);
     expect(acts.map((a) => [a.number, a.fields])).toEqual([
       [1, { mood: "calm" }],
-      [2, { mood: "calm" }],
+      [2, { mood: "tense" }],
     ]);
+    // Scaffold fields seed the records; schema defaults fill the rest.
+    expect(ctx.store.get("scenes", acts[1]!.scenes[0]!)?.fields).toEqual({ trigger: "The heroes reach the lair" });
 
     let result = await review(ctx, adventure, builder);
     expect(result.byStep).toEqual({ basics: "bad", cast: "bad", acts: "warn", review: "none" });
@@ -72,6 +74,21 @@ describe("guided builder (example module)", () => {
     result = await review(ctx, adventure, builder);
     expect(result.summary).toEqual({ bad: 0, warn: 0, ok: 3 });
     expect(result.byStep).toEqual({ basics: "ok", cast: "ok", acts: "ok", review: "none" });
+  });
+
+  it("keeps an empty title and the scaffold's per-act fields for the Alien cinematic builder", async () => {
+    const id = await createCampaign({ name: "Alien guided", moduleId: "alien", mode: "cinematic" });
+    const ctx = await openCampaign(id);
+    opened.push(ctx.close);
+    const builder = ctx.module.buildersFor("cinematic")[0];
+    if (!builder) return; // the Alien module may not ship a builder yet
+    const adventure = await instantiateBuilder(ctx, builder);
+    expect(adventure.title).toBe("");
+    expect(adventure.builderId).toBe(builder.id);
+    const scaffold = ctx.module.template(builder.templateId!)!.scaffold as { acts: Array<{ fields?: Record<string, unknown> }> };
+    adventure.acts.forEach((actId, i) => expect(ctx.store.get("acts", actId)?.fields).toMatchObject(scaffold.acts[i]?.fields ?? {}));
+    const result = await review(ctx, adventure, builder);
+    expect(result.summary.bad).toBeGreaterThan(0);
   });
 
   it("adds scenes with defaults and toggles the mandatory flag", async () => {

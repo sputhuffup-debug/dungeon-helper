@@ -581,7 +581,7 @@ export const exampleModule: GameModule = {
         premise: "Someone needs something fetched from somewhere dangerous.",
         acts: [
           { number: 1, goal: "Accept the job and travel", scenes: [{ purpose: "The hook", mandatory: true }] },
-          { number: 2, goal: "Face the danger and return", scenes: [{ purpose: "The climax", mandatory: true }, { purpose: "The reward" }] },
+          { number: 2, goal: "Face the danger and return", fields: { mood: "tense" }, scenes: [{ purpose: "The climax", mandatory: true, fields: { trigger: "The heroes reach the lair" } }, { purpose: "The reward" }] },
         ],
       },
     },

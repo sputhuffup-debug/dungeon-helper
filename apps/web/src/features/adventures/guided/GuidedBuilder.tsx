@@ -9,6 +9,7 @@ import type { AdventureBuilderDef, BuilderPanel, ReviewResult, ReviewStepStatus 
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 import { Badge, Button, PageRef } from "../../../components/ui";
+import { adventureTitle } from "../../../lib/format";
 import { useCampaign } from "../../../state/hooks";
 import { statusTone } from "../AdventuresPage";
 import { ActPanel, AdventurePanel, AgendasPanel, CastPanel, ReviewPanel, reviewSummaryLine } from "./panels";
@@ -85,9 +86,17 @@ export function GuidedBuilder({ adventure, builder, stepId }: { adventure: Adven
   const formRef = useRef<HTMLElement>(null);
 
   const go = (id: string) => void navigate({ search: { step: id }, replace: true });
-  // A new step starts at the top of the form.
+  const railRef = useRef<HTMLElement>(null);
+  // A new step starts at the top of the form, with its rail button in view (the rail scrolls sideways on phones).
   useEffect(() => {
     formRef.current?.scrollIntoView?.({ block: "nearest" });
+    const rail = railRef.current;
+    const active = rail?.querySelector<HTMLElement>(".guided__step.is-active");
+    if (rail && active && rail.scrollWidth > rail.clientWidth) {
+      const r = rail.getBoundingClientRect();
+      const a = active.getBoundingClientRect();
+      rail.scrollLeft += a.left - r.left - (r.width - a.width) / 2;
+    }
   }, [index]);
 
   if (!step) return null;
@@ -105,7 +114,7 @@ export function GuidedBuilder({ adventure, builder, stepId }: { adventure: Adven
             <Badge tone={statusTone(adventure.status)}>{adventure.status}</Badge> · {builder.name} <PageRef page={builder.page} />
           </p>
           <h1 className="app-title" data-testid="guided-heading">
-            {adventure.title}
+            {adventureTitle(adventure)}
           </h1>
         </div>
         <div className="app-row guided__header-end">
@@ -119,7 +128,7 @@ export function GuidedBuilder({ adventure, builder, stepId }: { adventure: Adven
       </header>
 
       <div className="guided__body">
-        <nav className="guided__rail" aria-label="Builder steps">
+        <nav className="guided__rail" aria-label="Builder steps" ref={railRef}>
           <ol>
             {builder.steps.map((s, i) => {
               const status = stepStatus(review, s.id);

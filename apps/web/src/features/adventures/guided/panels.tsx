@@ -66,7 +66,7 @@ export function AdventurePanel({ adventure, fields }: { adventure: Adventure; fi
         return (
           <label className="app-label">
             <span>Title</span>
-            <CommitInput value={adventure.title} label="Adventure title" onCommit={(v) => set({ title: v.trim() || adventure.title })} testId="guided-title" />
+            <CommitInput value={adventure.title} label="Adventure title" placeholder="Name the adventure" onCommit={(v) => set({ title: v.trim() })} testId="guided-title" />
           </label>
         );
       case "premise":
@@ -109,7 +109,7 @@ export function AdventurePanel({ adventure, fields }: { adventure: Adventure; fi
   return (
     <Card title="Adventure" className="guided-panel" data-panel="adventure">
       <div className="app-stack">
-        <FieldList kind="adventure" id={adventure.id} fields={fields} values={adventure.fields} renderCore={renderCore} />
+        <FieldList kind="adventure" id={adventure.id} adventureId={adventure.id} fields={fields} values={adventure.fields} renderCore={renderCore} />
       </div>
     </Card>
   );
@@ -324,7 +324,7 @@ export function ActPanel({ adventure, panel }: { adventure: Adventure; panel: Ac
   return (
     <Card title={`Act ${act.number}${act.title ? `: ${act.title}` : ""}`} className="guided-panel" data-panel="act" data-act={act.number}>
       <div className="app-stack">
-        <FieldList kind="act" id={act.id} fields={panel.fields} values={act.fields} renderCore={renderCore} />
+        <FieldList kind="act" id={act.id} adventureId={adventure.id} fields={panel.fields} values={act.fields} renderCore={renderCore} />
         {panel.scenes && (
           <section className="guided-events" aria-label={`Act ${act.number} scenes`}>
             <header className="app-row">
@@ -430,7 +430,7 @@ function SceneCard({ scene, act, index, count, sceneFields }: { scene: Scene; ac
       </div>
       {fields.length > 0 && (
         <div className="app-stack guided-event__body">
-          <FieldList kind="scene" id={scene.id} fields={fields} values={scene.fields} renderCore={renderCore} />
+          <FieldList kind="scene" id={scene.id} adventureId={act.adventure} fields={fields} values={scene.fields} renderCore={renderCore} />
         </div>
       )}
       <ConfirmDialog

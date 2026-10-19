@@ -510,6 +510,8 @@ export interface TemplateScene {
   /** Markdown body. */
   body?: string;
   mandatory?: boolean;
+  /** Seeds the scene's module-defined fields (narrative kind "scene"). */
+  fields?: Record<string, unknown>;
 }
 
 export interface TemplateAct {
@@ -520,6 +522,8 @@ export interface TemplateAct {
   scenes?: TemplateScene[];
   /** Per-character handouts scaffold: one entry per PC slot. */
   handouts?: Array<{ title: string; body?: string; visibility?: VisibilityLevel }>;
+  /** Seeds the act's module-defined fields (narrative kind "act"), e.g. a per-act length. */
+  fields?: Record<string, unknown>;
 }
 
 export interface TemplateAdventure {
@@ -531,6 +535,8 @@ export interface TemplateAdventure {
   gmSituation?: string;
   acts: TemplateAct[];
   epilogue?: string;
+  /** Seeds the adventure's module-defined fields (narrative kind "adventure"). */
+  fields?: Record<string, unknown>;
 }
 
 /** Phases of the session checklist: before, at and after the table. */

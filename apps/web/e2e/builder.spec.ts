@@ -43,7 +43,7 @@ test("build a guided adventure: red dots, fill a required field, the dot turns g
   await expect(page.getByTestId("step-issues")).toContainText("Write the hook");
 
   // Fill the required field: the dot turns green.
-  await page.getByLabel("Hook", { exact: true }).fill("The temple bell was stolen at midnight.");
+  await page.getByRole("textbox", { name: "Hook", exact: true }).fill("The temple bell was stolen at midnight.");
   await expect(page.getByTestId("step-basics")).toHaveAttribute("data-status", "ok");
   await expect(page.getByTestId("guided-summary")).toHaveText("1 item to fix · 2 warnings");
 
@@ -90,5 +90,51 @@ test("build a guided adventure: red dots, fill a required field, the dot turns g
   // Reload: everything persisted.
   await page.reload();
   await expect(page.getByTestId("step-basics")).toHaveAttribute("data-status", "ok");
+  expect(errors).toEqual([]);
+});
+
+test("Alien cinematic builder: empty title flagged, sign-offs per PC, events aimed at cast members", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.setViewportSize({ width: 1280, height: 900 });
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "New campaign" }).click();
+  const create = page.getByRole("dialog");
+  await create.getByLabel("Name", { exact: true }).fill("Hope's Last Day");
+  await create.getByRole("radio", { name: /^Cinematic/ }).check();
+  await create.getByRole("button", { name: "Create campaign" }).click();
+  await nav(page, "Adventures").click();
+  await page.getByTestId("new-adventure").click();
+  const dialog = page.getByRole("dialog");
+  await dialog.getByRole("radio", { name: /^Guided: / }).first().check();
+  await dialog.getByTestId("create-adventure").click();
+
+  await expect(page.getByTestId("guided-builder")).toBeVisible();
+  await expect(page.getByTestId("guided-heading")).toHaveText("Untitled adventure");
+  await expect(page.getByTestId("step-basics")).toHaveAttribute("data-status", "bad");
+  await expect(page.getByTestId("step-issues")).toContainText("Give the adventure a title");
+  await page.getByTestId("guided-title").fill("Cold Harbor");
+  await page.getByTestId("guided-title").press("Enter");
+  await expect(page.getByTestId("guided-heading")).toHaveText("Cold Harbor");
+  await expect(page.getByTestId("step-basics")).toHaveAttribute("data-status", "ok");
+  await expect(page.getByText("Give the adventure a title")).toHaveCount(0);
+
+  // A PC, then the epilogue sign-off keyed to them and the event target select.
+  await page.getByTestId("step-pcs").click();
+  await page.getByLabel("New Player characters name").fill("Rye");
+  await page.getByTestId("cast-add-pcs").click();
+  await expect(page.getByTestId("cast-member")).toHaveCount(1);
+
+  await page.getByTestId("step-finale").click();
+  await page.getByRole("textbox", { name: /: Rye$/ }).fill("Rye makes it home.");
+  await page.getByTestId("step-act1").click();
+  const aimedAt = page.getByRole("combobox", { name: "Aimed at" }).first();
+  await expect(aimedAt).toHaveValue("everyone");
+  await expect(aimedAt.locator("option")).toHaveText(["Everyone", "Rye"]);
+  await aimedAt.selectOption({ label: "Rye" });
+
+  await page.getByTestId("step-finale").click();
+  await expect(page.getByRole("textbox", { name: /: Rye$/ })).toHaveValue("Rye makes it home.");
   expect(errors).toEqual([]);
 });

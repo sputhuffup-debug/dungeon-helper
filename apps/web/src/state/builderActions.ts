@@ -18,13 +18,15 @@ function withDefaults(defaults: Record<string, unknown>, fields: Record<string, 
 
 /**
  * Create an adventure with a module builder: the builder's template is
- * instantiated as usual, then the adventure records the builder, gets one
- * empty list per cast role, and every adventure, act and scene gets its
- * narrative field defaults.
+ * instantiated as usual (scaffold `fields` included), then the adventure
+ * records the builder, gets one empty list per cast role, and every
+ * adventure, act and scene gets the schema defaults for fields the scaffold
+ * left unset. The title stays empty when neither the GM nor the template
+ * gives one, so the builder's review can ask for it.
  */
 export async function instantiateBuilder(ctx: Ctx, builder: AdventureBuilderDef, opts: InstantiateOptions = {}): Promise<Adventure> {
   const template = builder.templateId ? ctx.module.template(builder.templateId) : undefined;
-  const created = await instantiateAdventureTemplate(ctx, template, opts);
+  const created = await instantiateAdventureTemplate(ctx, template, { allowEmptyTitle: true, ...opts });
   const mode = ctx.store.meta().mode;
   return ctx.store.transact(() => {
     const cast: Record<string, Id[]> = {};

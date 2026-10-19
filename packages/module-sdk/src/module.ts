@@ -466,7 +466,26 @@ function checkBuilder(b: AdventureBuilderDef, module: GameModule, declaredModes:
     const t = module.templates.find((x) => x.id === b.templateId);
     if (!t) c.error(where, `unknown template "${b.templateId}"`);
     else if (t.kind !== "adventure" || !Array.isArray((t.scaffold as Partial<TemplateAdventure>).acts)) c.error(where, `template "${b.templateId}" is not an adventure template`);
-    else actNumbers = new Set((t.scaffold as TemplateAdventure).acts.map((a) => a.number));
+    else {
+      const scaffold = t.scaffold as TemplateAdventure;
+      actNumbers = new Set(scaffold.acts.map((a) => a.number));
+      // Scaffold `fields` seed the narrative fields: they must fit the schema the builder's modes use.
+      const defFor = (kind: NarrativeKind) => narrative.find((d) => d.kind === kind && (!d.mode || !b.mode || d.mode.some((m) => b.mode!.includes(m))));
+      const checkSeed = (kind: NarrativeKind, fields: Record<string, unknown> | undefined, label: string) => {
+        if (fields === undefined) return;
+        const def = defFor(kind);
+        if (!def) {
+          c.warn(where, `template ${label} sets fields but the module has no ${kind} narrative fields`);
+          return;
+        }
+        for (const err of validateAgainstSchema(def.schema, fields).errors) c.warn(where, `template ${label} fields.${err.path}: ${err.message}`);
+      };
+      checkSeed("adventure", scaffold.fields, "adventure");
+      for (const act of scaffold.acts) {
+        checkSeed("act", act.fields, `act ${act.number}`);
+        for (const [i, sc] of (act.scenes ?? []).entries()) checkSeed("scene", sc.fields, `act ${act.number} scene ${i + 1}`);
+      }
+    }
   }
 
   // Cast roles.

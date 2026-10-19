@@ -13,7 +13,7 @@ import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { TagInput } from "../../components/TagInput";
 import { Badge, Button, EmptyState, IconButton, PageRef, pushToast } from "../../components/ui";
 import { downloadFile, slug } from "../../lib/download";
-import { errorMessage } from "../../lib/format";
+import { adventureTitle, errorMessage } from "../../lib/format";
 import { addAct, addScene, deleteAct, deleteAdventure, deleteScene, moveAct, moveScene, updateAdventure } from "../../state/prepActions";
 import { useCampaign, useList, useRecord } from "../../state/hooks";
 import { ActEditor } from "./ActEditor";
@@ -77,7 +77,7 @@ function Builder({ adventure, node }: { adventure: Adventure; node: string | und
     setExporting(true);
     try {
       const md = await bookletMarkdown(ctx, adventure.id);
-      downloadFile(md, `${slug(adventure.title)}.md`, "text/markdown");
+      downloadFile(md, `${slug(adventureTitle(adventure))}.md`, "text/markdown");
     } catch (e) {
       pushToast(`Export failed: ${errorMessage(e)}`, { tone: "danger" });
     } finally {
@@ -128,7 +128,7 @@ function Builder({ adventure, node }: { adventure: Adventure; node: string | und
             )}
           </p>
           {guided && <ViewToggle adventureId={adventure.id} current="outline" />}
-          <CommitInput value={adventure.title} label="Adventure title" className="app-entity__name" onCommit={(v) => updateAdventure(ctx, adventure.id, { title: v.trim() || adventure.title })} testId="adventure-title" />
+          <CommitInput value={adventure.title} label="Adventure title" placeholder="Untitled adventure" className="app-entity__name" onCommit={(v) => updateAdventure(ctx, adventure.id, { title: v.trim() || adventure.title })} testId="adventure-title" />
           <CommitTextarea value={adventure.premise ?? ""} label="Premise" placeholder="The premise in one paragraph" rows={2} onCommit={(v) => updateAdventure(ctx, adventure.id, { premise: v.trim() || undefined })} />
           <div className="prep-builder__lists">
             <div className="app-label">
@@ -165,7 +165,7 @@ function Builder({ adventure, node }: { adventure: Adventure; node: string | und
           <Link to="/c/$campaignId/adventures/$adventureId" params={{ campaignId: ctx.campaignId, adventureId: adventure.id }} search={{ view: "agendas-print" }} className="cf-btn" data-testid="agenda-cards-link">
             Agenda cards
           </Link>
-          <Button variant="ghost" onClick={() => setConfirm({ kind: "adventure", id: adventure.id, title: adventure.title })}>
+          <Button variant="ghost" onClick={() => setConfirm({ kind: "adventure", id: adventure.id, title: adventureTitle(adventure) })}>
             Delete adventure
           </Button>
         </div>
