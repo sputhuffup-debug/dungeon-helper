@@ -20,9 +20,11 @@ import type {
   Rng,
   RuleCard,
 } from "@campaign-forge/module-sdk";
+import { examplePlayGuide } from "./guide";
 import { exampleSiteGenerator } from "./sitemap";
 
 export { exampleSiteGenerator } from "./sitemap";
+export { examplePlayGuide } from "./guide";
 
 // ---------------------------------------------------------------------------
 // Dice: a d6 pool, 5+ is a success, one push re-rolls every non-success.
@@ -687,6 +689,7 @@ export const exampleModule: GameModule = {
   narrativeFields,
   adventureBuilders: [questBuilder],
   mapGenerators: [exampleSiteGenerator],
+  playGuides: [examplePlayGuide],
   hooks: {
     onSessionEnd(ctx): Prompt[] {
       const onYes: Effect[] = ctx.characters.map((c) => ({ kind: "incrementField", entity: c.id, path: "wounds", by: -1, min: 0 }));

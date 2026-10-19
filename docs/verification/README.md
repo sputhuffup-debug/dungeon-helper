@@ -13,6 +13,7 @@ Numbers, dice expressions, ranges, names and stat lines were copied exactly. Eff
 | Encounters, shore leave, charted space | [encounters-places.md](encounters-places.md) |
 | Life paths, rule cards, templates, trackers | [lifepath-rules.md](lifepath-rules.md) |
 | Site map generator, location detail and salvage tables | [maps.md](maps.md) |
+| GM play guide (rolls in the story) | [play-guide.md](play-guide.md) |
 
 ## Still flagged `unverified`
 

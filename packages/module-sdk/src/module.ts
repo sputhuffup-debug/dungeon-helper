@@ -23,6 +23,7 @@ import {
   type EntityTypeDef,
   type GameModule,
   type PageRef,
+  type PlayGuideDef,
   type PlayModeId,
   type Procedure,
   type ReferenceItem,
@@ -558,6 +559,36 @@ function checkBuilder(b: AdventureBuilderDef, module: GameModule, declaredModes:
   }
 }
 
+/** Play guides: unique ids, entries pointing at declared groups, valid pages and modes. */
+function checkPlayGuide(g: PlayGuideDef, declaredModes: Set<PlayModeId>, c: Collector): void {
+  const where = `playGuide:${g.id}`;
+  if (!g.title) c.warn(where, "play guide has no title");
+  checkModes(g.mode, declaredModes, where, c);
+  for (const [i, tip] of (g.tips ?? []).entries()) {
+    if (!tip.text) c.error(where, `tip ${i} has no text`);
+    if (tip.page !== undefined && !validPage(tip.page)) c.error(where, `tip ${i} has an invalid page reference`);
+  }
+  const groups = Array.isArray(g.groups) ? g.groups : [];
+  if (!Array.isArray(g.groups)) c.error(where, "groups must be a list");
+  checkUnique(groups, (x) => x.id, (x) => `${where}:group:${x.id}`, "play guide group", c);
+  for (const grp of groups) if (grp.page !== undefined && !validPage(grp.page)) c.error(`${where}:group:${grp.id}`, "invalid page reference");
+  const groupIds = new Set(groups.map((x) => x.id));
+  const entries = Array.isArray(g.entries) ? g.entries : [];
+  if (!Array.isArray(g.entries)) c.error(where, "entries must be a list");
+  checkUnique(entries, (e) => e.id, (e) => `${where}:entry:${e.id}`, "play guide entry", c);
+  for (const e of entries) {
+    const ew = `${where}:entry:${e.id}`;
+    if (!e.label) c.warn(ew, "entry has no label");
+    if (e.kind !== "attribute" && e.kind !== "skill") c.error(ew, `kind must be "attribute" or "skill", not "${String(e.kind)}"`);
+    if (e.group !== undefined && !groupIds.has(e.group)) c.error(ew, `references unknown group "${e.group}"`);
+    if (!Array.isArray(e.callFor)) c.error(ew, "callFor must be a list");
+    else if (e.callFor.length === 0) c.warn(ew, "entry has no callFor cues");
+    if (e.roll !== undefined && (typeof e.roll !== "string" || e.roll.trim() === "")) c.error(ew, "roll must be a non-empty string");
+    if (e.page !== undefined && !validPage(e.page)) c.error(ew, "invalid page reference");
+    checkModes(e.mode, declaredModes, ew, c);
+  }
+}
+
 function majorOf(version: string): number | undefined {
   const m = /(\d+)\.(\d+)\.(\d+)/.exec(version) ?? /(\d+)/.exec(version);
   return m && m[1] !== undefined ? Number(m[1]) : undefined;
@@ -627,6 +658,13 @@ export function checkModule(module: GameModule, options: CheckModuleOptions = {}
   else {
     checkUnique(module.adventureBuilders ?? [], (b) => b.id, (b) => `builder:${b.id}`, "adventure builder", c);
     for (const b of module.adventureBuilders ?? []) checkBuilder(b, module, declaredModes, c);
+  }
+
+  // Play guides.
+  if (module.playGuides !== undefined && !Array.isArray(module.playGuides)) c.error("playGuides", "playGuides must be a list");
+  else {
+    checkUnique(module.playGuides ?? [], (g) => g.id, (g) => `playGuide:${g.id}`, "play guide", c);
+    for (const g of module.playGuides ?? []) checkPlayGuide(g, declaredModes, c);
   }
 
   // Procedures.

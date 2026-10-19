@@ -1025,6 +1025,63 @@ export interface MapGeneratorDef {
 }
 
 // ---------------------------------------------------------------------------
+// Play guides (GM hints at the table: when to call for a roll, what it moves)
+// ---------------------------------------------------------------------------
+
+/** A heading the guide's entries sit under (e.g. an attribute and its skills). */
+export interface PlayGuideGroup {
+  id: string;
+  label: string;
+  /** One line on what the group covers in play. */
+  summary?: string;
+  page?: PageRef;
+}
+
+/**
+ * One rollable stat or skill, written for the GM mid-scene: the story moments
+ * that call for it, and how success, failure and a push should move the story.
+ * Advice is the module's own; rules it relies on cite their page.
+ */
+export interface PlayGuideEntry {
+  id: string;
+  label: string;
+  /** Group id from `PlayGuideDef.groups`. */
+  group?: string;
+  kind: "attribute" | "skill";
+  /**
+   * What the table's skill roller rolls for this entry: a skill id from the
+   * character's skills widget, or `attr:<attribute id>` for an attribute alone.
+   * Absent when the entry is not rolled directly.
+   */
+  roll?: string;
+  /** One-line summary of what it covers. */
+  summary?: string;
+  /** Story moments to call for it, phrased as cues ("the crew needs to…"). */
+  callFor: string[];
+  /** What a success should move forward. */
+  success?: string;
+  /** How a failure keeps the story moving (a cost or complication, not a dead end). */
+  failure?: string;
+  /** What pushing risks or offers for this roll. */
+  push?: string;
+  /** Short example prompts the GM can say aloud. */
+  examples?: string[];
+  page?: PageRef;
+  mode?: PlayModeId[];
+}
+
+export interface PlayGuideDef {
+  id: string;
+  title: string;
+  intro?: string;
+  /** General tips for weaving rolls into the story (when to roll, failing forward, pushing). */
+  tips?: Array<{ text: string; page?: PageRef }>;
+  groups: PlayGuideGroup[];
+  entries: PlayGuideEntry[];
+  mode?: PlayModeId[];
+}
+
+// ---------------------------------------------------------------------------
 // The module
 // ---------------------------------------------------------------------------
 
@@ -1050,6 +1107,8 @@ export interface GameModule {
   adventureBuilders?: AdventureBuilderDef[];
   /** Site map generators. */
   mapGenerators?: MapGeneratorDef[];
+  /** GM hints at the table for each rollable stat and skill. */
+  playGuides?: PlayGuideDef[];
   /** Upgrade stored entity fields from an older module version. */
   migrations?: Array<{ from: string; to: string; migrate: (entity: { type: string; fields: Record<string, unknown> }) => Record<string, unknown> }>;
 }

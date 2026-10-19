@@ -95,6 +95,7 @@ export { ProvenanceBadge, RollRecordList, type ProvenanceBadgeProps, type Proven
 export { PageRef, formatPageRef, type PageRefProps } from "./primitives/PageRef";
 export { Markdown, renderInline } from "./primitives/Markdown";
 export { RuleCardView, RuleCardList, filterRuleCards, type RuleCardViewProps, type RuleCardListProps } from "./primitives/RuleCard";
+export { PlayGuideView, PlayGuideEntryView, PlayGuideTips, playGuidesForMode, filterPlayGuideEntries, type PlayGuideViewProps, type PlayGuideEntryViewProps, type PlayGuideTipsProps } from "./primitives/PlayGuide";
 export { PromptDialog, type PromptDialogProps, type PromptAnswer } from "./primitives/PromptDialog";
 export { useToasts, pushToast, dismissToast, clearToasts, ToastViewport, type Toast, type ToastTone } from "./primitives/Toast";
 
