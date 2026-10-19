@@ -439,7 +439,7 @@ export const MAP_LEGEND: MapLegendEntry[] = [
   // Borders and access
   L({ border: "open" }, "Open border", "Blocks neither movement nor line of sight.", 55),
   L({ border: "wall" }, "Wall or inner bulkhead", "Blocks movement and sight; armor 2 (4+ when armored).", [55, 68]),
-  L({ flag: "outerHull" }, "Outer bulkhead", "Armor 3. A missed shot that could breach it rolls a stress die; a breach vents the zone. Hull-facing edges are in the zone's outerEdges.", [68, 75], { gmOnly: true, icon: "vacuum" }),
+  L({ flag: "outerHull" }, "Outer bulkhead", "Armor 3. A missed shot that could breach it rolls a stress die; a breach vents the zone. Marks zones with a wall on the hull.", [68, 75], { gmOnly: true, icon: "vacuum" }),
   L({ flag: "armored" }, "Armored bulkhead", "Armor 4 or more.", 68),
   L({ border: "door" }, "Door", "Unlocked: free to pass. Cover against the next zone. Armor 2, 10 damage to break.", [61, 66]),
   L({ flag: "locked" }, "Locked door", "Lock as a quick action; break it (close combat, +2 dice) or open an electronic lock with Comtech.", 61, { gmOnly: true }),
