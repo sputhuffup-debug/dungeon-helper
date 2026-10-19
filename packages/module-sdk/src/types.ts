@@ -857,6 +857,165 @@ export interface AdventureBuilderDef {
 }
 
 // ---------------------------------------------------------------------------
+// Site map generators (zone-graph maps rendered as deck plans)
+// ---------------------------------------------------------------------------
+
+/** A point on a deck grid, in grid units (the generator decides the unit, e.g. metres). */
+export type MapPoint = [number, number];
+
+export type MapZoneKind = "room" | "corridor" | "crawlspace" | "shaft" | "exterior" | "out-of-bounds";
+
+export interface MapDeck {
+  id: string;
+  name: string;
+  width: number;
+  height: number;
+}
+
+export interface MapZoneData {
+  id: string;
+  deck: string;
+  /** Short label; key rooms always have one. */
+  name?: string;
+  kind: MapZoneKind;
+  /** "floor" zones are walked; "duct" zones sit above or below a floor zone. */
+  layer?: "floor" | "duct";
+  /** Outline polygon on the deck grid. Duct zones may share space with floor zones. */
+  poly: MapPoint[];
+  /** Functional area tag for colouring (module vocabulary, e.g. "medical"). */
+  area?: string;
+  /** Key location: numbered and named on the map and listed in the zone key. */
+  key?: boolean;
+  /** Acts whose beats are meant to happen here (for GM act shading). */
+  acts?: number[];
+  /** Can hide and take cover here. */
+  cluttered: boolean;
+  /** Module-defined rule flags (e.g. dark, gravity, atmosphere, flammable, outerHull). */
+  flags?: Record<string, unknown>;
+  /** Rolled dressing, shown in the zone key. */
+  details?: string[];
+  salvage?: string[];
+  /** What the players can be told. */
+  playerNote?: string;
+  /** GM-only note. */
+  gmNote?: string;
+}
+
+export type MapBorderKind = "open" | "wall" | "door" | "hatch" | "blast" | "access" | "stairs";
+
+export interface MapBorderData {
+  id: string;
+  a: string;
+  b: string;
+  kind: MapBorderKind;
+  /** The drawn segment; omitted for vertical links (stairs, duct access). */
+  segment?: [MapPoint, MapPoint];
+  armor?: number;
+  hp?: number;
+  lock?: "none" | "mechanical" | "electronic";
+  /** Acts in which the border starts locked or closed. */
+  lockedInActs?: number[];
+  /** Sealed access points are impassable to everyone. */
+  sealed?: boolean;
+  /** Hidden from players until found (secret access points, unknown locks). */
+  hidden?: boolean;
+  /** Module-defined flags (e.g. outerHull). */
+  flags?: Record<string, unknown>;
+}
+
+export type MapMarkerKind = "start" | "spawn" | "waypoint" | "clue" | "npc" | "win" | "label" | "hazard";
+
+export interface MapMarker {
+  id: string;
+  kind: MapMarkerKind;
+  zone: string;
+  label: string;
+  act?: number;
+  /** GM-only markers never appear on player outputs. */
+  gmOnly: boolean;
+  data?: Record<string, unknown>;
+}
+
+export interface MapCheck {
+  id: string;
+  /** "block" checks make the generator retry; "warn" checks are listed for review. */
+  level: "block" | "warn";
+  ok: boolean;
+  message: string;
+  page?: PageRef;
+}
+
+/** The structured result of a generator run, stored on a core SiteMap as its layout. */
+export interface SiteLayout {
+  decks: MapDeck[];
+  zones: MapZoneData[];
+  borders: MapBorderData[];
+  markers: MapMarker[];
+  /** Zone the crew starts in. */
+  start?: string;
+  /** Grid unit size in metres (1 = one square per metre). */
+  gridM?: number;
+  checks: MapCheck[];
+}
+
+/** How zone distance reads as a range band (e.g. 0 = Short, 1 = Medium, 2-4 = Long). */
+export interface RangeBandDef {
+  id: string;
+  label: string;
+  /** Inclusive maximum zone distance; the last band may omit it. */
+  maxDistance?: number;
+}
+
+export interface MapLegendEntry {
+  /** What the entry styles: a border kind, a zone flag, an area tag or a marker kind. */
+  target: { border: MapBorderKind } | { flag: string } | { area: string } | { marker: MapMarkerKind } | { kind: MapZoneKind };
+  label: string;
+  /** The rule it carries, in the module's own words. */
+  rule?: string;
+  page?: PageRef;
+  /** Hidden on player outputs. */
+  gmOnly?: boolean;
+  /** Rendering hint (a colour token or CSS colour). */
+  color?: string;
+}
+
+export interface MapGeneratorContext {
+  seed: string;
+  /** Per-stage seed overrides: re-running a stage alone gives it a new seed. */
+  stageSeeds?: Record<string, string>;
+  /** A seeded RNG for a named sub-stream (stage or step). */
+  rng: (stream: string) => Rng;
+  tables: TableRegistry;
+}
+
+export interface MapGeneratorResult {
+  layout: SiteLayout;
+  /** How many attempts the block checks needed. */
+  attempts: number;
+  /** Set when no attempt passed every block check. */
+  failedCheck?: string;
+}
+
+export interface MapGeneratorDef {
+  id: string;
+  name: string;
+  description?: string;
+  page?: PageRef;
+  mode?: PlayModeId[];
+  /** JSON Schema of the generator's inputs (the brief). */
+  inputs: JsonSchema;
+  /** Stages that can be re-run alone with a new seed, in pipeline order. */
+  stages: Array<{ id: string; title: string }>;
+  generate(inputs: Record<string, unknown>, ctx: MapGeneratorContext): MapGeneratorResult;
+  /** Build generator inputs from an adventure review context (cast, acts, fields). */
+  inputsFromAdventure?(ctx: Record<string, unknown>): Record<string, unknown>;
+  /** Border kinds and flags that block movement for distance, given the act. */
+  passable?(border: MapBorderData, act: number): boolean;
+  rangeBands?: RangeBandDef[];
+  legend?: MapLegendEntry[];
+}
+
+// ---------------------------------------------------------------------------
 // The module
 // ---------------------------------------------------------------------------
 
@@ -880,6 +1039,8 @@ export interface GameModule {
   narrativeFields?: NarrativeFieldsDef[];
   /** Guided adventure builders with their review checklists. */
   adventureBuilders?: AdventureBuilderDef[];
+  /** Site map generators. */
+  mapGenerators?: MapGeneratorDef[];
   /** Upgrade stored entity fields from an older module version. */
   migrations?: Array<{ from: string; to: string; migrate: (entity: { type: string; fields: Record<string, unknown> }) => Record<string, unknown> }>;
 }
