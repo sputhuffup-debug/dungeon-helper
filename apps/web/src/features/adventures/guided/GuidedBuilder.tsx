@@ -7,10 +7,11 @@
 import type { Adventure } from "@campaign-forge/core";
 import type { AdventureBuilderDef, BuilderPanel, ReviewResult, ReviewStepStatus } from "@campaign-forge/module-sdk";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Badge, Button, PageRef } from "../../../components/ui";
 import { adventureTitle } from "../../../lib/format";
-import { useCampaign } from "../../../state/hooks";
+import { useCampaign, useMeta } from "../../../state/hooks";
+import { SiteMapCard, siteMapSteps } from "../../mapgen/SiteMapCard";
 import { statusTone } from "../AdventuresPage";
 import { ActPanel, AdventurePanel, AgendasPanel, CastPanel, ReviewPanel, reviewSummaryLine } from "./panels";
 import { useAdventureReview } from "./useAdventureReview";
@@ -84,6 +85,8 @@ export function GuidedBuilder({ adventure, builder, stepId }: { adventure: Adven
   const index = found < 0 ? 0 : found;
   const step = builder.steps[index];
   const formRef = useRef<HTMLElement>(null);
+  const mode = useMeta().mode;
+  const mapSteps = useMemo(() => siteMapSteps(builder, ctx.module, mode), [builder, ctx.module, mode]);
 
   const go = (id: string) => void navigate({ search: { step: id }, replace: true });
   const railRef = useRef<HTMLElement>(null);
@@ -161,6 +164,7 @@ export function GuidedBuilder({ adventure, builder, stepId }: { adventure: Adven
             {step.panels.map((panel, i) => (
               <Panel key={`${step.id}-${i}`} adventure={adventure} builder={builder} panel={panel} review={review} onJump={go} />
             ))}
+            {mapSteps.includes(step.id) && <SiteMapCard adventure={adventure} />}
           </div>
           <footer className="guided__nav">
             {prev ? (

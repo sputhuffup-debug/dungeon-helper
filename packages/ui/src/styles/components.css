@@ -1848,3 +1848,59 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* Site map (generated deck plans)                                     */
+/* ------------------------------------------------------------------ */
+
+.cf-sitemap .cf-map__viewport {
+  cursor: grab;
+}
+.cf-sitemap__hit {
+  cursor: pointer;
+  outline: none;
+}
+.cf-sitemap__hit:hover {
+  fill-opacity: 0.06;
+}
+.cf-sitemap__hit:focus-visible {
+  stroke: var(--cf-focus);
+  stroke-width: 0.25;
+  fill-opacity: 0.08;
+}
+.cf-sitemap__decks {
+  display: inline-flex;
+  gap: var(--cf-space-1);
+  flex-wrap: wrap;
+}
+.cf-maplegend {
+  display: grid;
+  gap: var(--cf-space-3);
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+.cf-maplegend__title {
+  margin: 0 0 var(--cf-space-1);
+  font-size: var(--cf-text-sm);
+  color: var(--cf-muted);
+  font-weight: 600;
+}
+.cf-maplegend__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--cf-space-1);
+}
+.cf-maplegend__item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--cf-space-2);
+  font-size: var(--cf-text-sm);
+}
+.cf-maplegend__swatch {
+  flex: 0 0 auto;
+  border-radius: var(--cf-radius-sm);
+}
+.cf-maplegend__text {
+  min-width: 0;
+}

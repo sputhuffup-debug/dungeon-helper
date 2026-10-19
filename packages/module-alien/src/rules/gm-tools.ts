@@ -1,6 +1,7 @@
 import type { RuleCard } from "@campaign-forge/module-sdk";
 import { CAMPAIGN } from "../modes";
 import { TR, card } from "./card";
+import { ANOMALOUS_DETAIL_TABLE_ID, LOCATION_DETAIL_TABLE_ID, SALVAGE_TABLE_ID } from "../tables/maps";
 
 const C = { mode: [CAMPAIGN] };
 
@@ -87,6 +88,18 @@ export const gmToolsRules: RuleCard[] = [
   }),
   card("solo-mode", "Last Survivor (solo play)", "An optional solo mode with no Game Mother, for brief and brutal one-off scenarios. You create a PC as usual (android or an extra general talent improves the odds), start from a mission starter, and use response matrices, danger, survivor and objective timers and encounter checks to fill in what a GM would decide.", [291, 307], {
     tags: ["gm", "solo"],
-    links: { rules: ["alien.rule.character-creation"] },
+    links: { rules: ["alien.rule.character-creation", "alien.rule.encounter-timer", "alien.rule.location-details"] },
+  }),
+  card("location-details", "Location details", "For inspiration about a place, roll D66 on the location matrices: an environment word for a human ship, station or colony, an anomalous detail for alien derelicts, ruins and places the creatures have changed, and a common or rare find when scrounging for salvage. Further matrices suggest what a section is for and how sections connect.", [296, 298], {
+    tags: ["gm", "solo", "map"],
+    links: { tables: [LOCATION_DETAIL_TABLE_ID, ANOMALOUS_DETAIL_TABLE_ID, SALVAGE_TABLE_ID], rules: ["alien.rule.solo-mode", "alien.rule.zones"] },
+  }),
+  card("encounter-timer", "Encounter timer", "In solo play, enemy presence climbs from All Clear (1 stress die) through Uncertain, Suspected, Confirmed and Closing to Near (6 dice), checked when moving between zones or lingering. Start at All Clear with no warning of enemies, Confirmed when they are known, and Closing or Near when they are already converging. Rushing or making noise adds a die and creeping takes one away.", 303, {
+    tags: ["gm", "solo", "map"],
+    links: { rules: ["alien.rule.solo-mode", "alien.rule.enemy-threat", "alien.rule.zones"] },
+  }),
+  card("enemy-threat", "Enemy threat", "The encounter check also grades the enemy by how many symbols it rolls: one is a lesser foe (a lone guard, a cultist, a Facehugger), two a greater enemy or group (marines, an android, Drones), three or more an overwhelming one (a large force, a corporate assassin, a Queen). The site map generator costs its threats by the same three tiers.", 305, {
+    tags: ["gm", "solo", "creatures"],
+    links: { rules: ["alien.rule.encounter-timer", "alien.rule.xenomorph-stages"] },
   }),
 ];

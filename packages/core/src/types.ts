@@ -7,7 +7,7 @@
  *
  * Nothing in this file names a rule from any game.
  */
-import type { Effect, PageRef, RollRecord, VisibilityLevel } from "@campaign-forge/module-sdk";
+import type { Effect, PageRef, RollRecord, SiteLayout, VisibilityLevel } from "@campaign-forge/module-sdk";
 
 export type Id = string; // ULID
 
@@ -233,6 +233,31 @@ export interface SiteMap extends BaseRecord {
   accessPoints: Array<{ id: Id; name: string; zones: Id[]; hidden?: boolean }>;
   location?: Id;
   visibility: Visibility;
+  /** Structured deck-plan layout, set when the map was generated (zones above stay for image maps). */
+  layout?: SiteLayout;
+  /** How the layout was generated, so it can be re-run or re-rolled stage by stage. */
+  generator?: { id: string; seed: string; inputs: Record<string, unknown>; stageSeeds?: Record<string, string>; attempts?: number };
+  /** The adventure the map belongs to, if any. */
+  adventure?: Id;
+  /** Live table state: current act, fog, border overrides, sealed points, burning zones, tokens and pings. */
+  live?: SiteMapLiveState;
+}
+
+export interface SiteMapLiveState {
+  act: number;
+  /** Zones the players have seen (player-view fog). */
+  revealed: Id[];
+  /**
+   * Border id -> overriding state for this act. `known` means the players have
+   * found it: a hidden border (secret access point) or a lock shows on player outputs.
+   */
+  borders: Record<Id, { locked?: boolean; open?: boolean; sealed?: boolean; destroyed?: boolean; known?: boolean }>;
+  /** Module-defined zone flags set during play (e.g. burning, vacuum). */
+  zoneFlags: Record<Id, Record<string, unknown>>;
+  /** Tokens placed on zones (creatures, NPCs, PCs). */
+  tokens: Array<{ id: Id; label: string; zone: Id; gmOnly: boolean; entity?: Id }>;
+  /** Motion tracker pings, cleared each stretch. */
+  pings: Array<{ zone: Id; at: string }>;
 }
 
 // ---------------------------------------------------------------------------

@@ -131,3 +131,19 @@ Reference lists for the selects: `alien.campaign-themes`, `alien.fear-stages`.
 Template `alien.template.cinematic-builder` (three empty acts: 75/100/65 min, dread/terror/horror, one blank event each; the scaffold carries the adventure and act `fields`).
 Cast roles: `pcs` (alien.character, `isPC: true`), `npcs` (alien.character), `locations` (alien.location, subtype `site`).
 Steps: `basics`, `situation`, `pcs`, `npcs`, `locations`, `act1`, `act2`, `act3`, `finale`, `review`. Review rule ids are `<step>.<check>`, e.g. `pcs.creation`, `act2.relief`.
+
+## Site map generator `alien.map.site` (`src/maps/`)
+Registered in `alienModule.mapGenerators`. Stages (re-seedable through `stageSeeds`, in order): `graph`, `layout`, `borders`, `dressing`, `encounters`; validation runs after them and retries from `graph` (up to 50 attempts).
+
+Inputs (`MAP_INPUT_SCHEMA`; `normalizeMapInputs` fills defaults): `site_type` (`colony_block`, `station_deck`, `starship`, `derelict`, `mine`, `research_lab`, `alien_ruin`), `size` (`small` 12-20, `medium` 20-32, `large` 32-45 playable floor zones), `decks` 1-3, `crew` 1-5, `runtime_h` 1-5, `threats: [{ creature: <creature preset id>, act: 1-3, count }]`, `duct_density` (`none`, `sparse`, `normal`, `dense`), `darkness` 0-100, `hazards` (`fire`, `vacuum`, `zero_g`, `radiation`, `flooding`), `win_paths` (`escape_craft`, `airlock`, `self_destruct`, `signal`, `seal_section`), `key_rooms: [{ name, act, description }]`, `puzzles: [{ id, answer, act, room }]`, `npcs: [{ name, role: crew | survivor | android }]`.
+
+Zone ids `Z01`...; a duct zone takes its floor zone's id plus `d` (`Z07d`), with `layer: "duct"`, `kind: "crawlspace"`, never cluttered, joined to its floor zone by an `access` border (hidden until found, except at the start). Zone `area`: `ops`, `medical`, `habitation`, `engineering`, `cargo`, `science`, `security`, `transit`, `alien`.
+
+Zone `flags`: `sizeM`, `outerEdges` (hull- or exterior-facing segments), `outerHull` (space sites), `autoSeal`, `outerArmor`, `dark`, `flammable`, `atmosphere` (`"none"` for vacuum), `gravity` (`false` for zero-G), `radiation` (`weak` | `strong`), `flooded`, `dropM`, `deadEnd`, `type` (room catalog id), `over` (duct zones: the floor zone below).
+Border `flags`: `armored`, `outOfBounds` (permanently sealed blast doors), `sealable` (seal-section blast door), `via` (`stairs`, `ladder`, `lift`, `shaft`), `duct`, `dropM`.
+Markers: `start` (player-visible); `spawn` (`data`: creature, name, count, tier, cost, speed, state, wakesOn, distanceFromStart, focus, contactStretches), `waypoint` (`spawn`, `order`), `clue` (`puzzle`, `answer`, `target`, `anchor`, `route`), `npc` (`name`, `role`; one per act), `win` (`type`, `requires`, `border`), `hazard`: all GM-only.
+`layout.meta` (GM-only): `acts["1"|"2"|"3"] = { budget, cost, presence, presenceLabel, presenceDice, focus }`, `keyRooms`, `sequence`, `wins`, `budgetNote`.
+
+Helpers: `playerLayout(layout, act)`, `alienPassable(border, act)`, `zoneAdjacency`, `distancesFrom`, `zoneDistances`, `rangeBandFor(distance)`, `createMapContext(seed, { stageSeeds, tables })`, `inputsFromAdventure(reviewContext)`.
+
+Tables (family `maps`): `alien.maps.location-detail` (p. 297), `alien.maps.anomalous-detail` (p. 298), `alien.maps.salvage` (p. 297; result `{ common, rare }`).

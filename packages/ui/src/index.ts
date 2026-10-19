@@ -54,6 +54,33 @@ export { LifecycleTracker } from "./trackers/LifecycleTracker";
 export { ZoneMapEditor, cycleBorder, nextBorderKind, type ZoneMapEditorProps, type MapTool } from "./map/ZoneMapEditor";
 export { ZoneMapView, type ZoneMapViewProps, type MapToken } from "./map/ZoneMapView";
 export { MapStage, BorderLines, ZoneShape, useMapView, mapSize, zoneCenter, borderBetween, type MapView } from "./map/shared";
+export { SiteMapView, MapLegend, nodeToReact, screenScale, type SiteMapViewProps, type MapLegendProps } from "./map/SiteMapView";
+export {
+  drawSiteMap,
+  drawBorder,
+  legendSwatch,
+  iconNode,
+  markerGlyph,
+  flagIcon,
+  areaColor,
+  zoneLabel,
+  nodeToString,
+  el as svgNode,
+  bbox as polyBox,
+  center as polyCenter,
+  LIGHT_PALETTE,
+  DARK_PALETTE,
+  AREA_PALETTE,
+  type SvgNode,
+  type SvgAttrs,
+  type SiteMapPalette,
+  type SiteMapViewKind,
+  type SiteMapDrawOptions,
+  type SiteMapDrawing,
+  type SiteMapLiveInput,
+  type FlagIcon,
+} from "./map/siteMapDraw";
+export { renderSiteMapSvg, renderSiteMapPng, pngSize, printTiles, printTilesHtml, PAPER, type RenderSvgOptions, type PrintTileOptions, type PrintTiles, type PrintTile, type PaperSize } from "./map/siteMapExport";
 
 // Primitives
 export { Button, IconButton, type ButtonProps, type IconButtonProps, type ButtonVariant, type ButtonSize } from "./primitives/Button";

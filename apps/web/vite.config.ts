@@ -34,5 +34,7 @@ export default defineConfig({
     environment: "jsdom",
     globals: false,
     include: ["src/**/*.test.{ts,tsx}"],
+    // module-backed tests (templates, generators) run slowly when turbo runs every suite at once
+    testTimeout: 20_000,
   },
 });
