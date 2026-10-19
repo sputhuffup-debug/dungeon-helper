@@ -13,6 +13,7 @@ Campaign Forge is a companion to the rulebook, not a replacement. The module enc
 - **Guided adventure builder.** A step-by-step cinematic scenario builder (basics, situation, cast, locations and puzzles, three acts, review) with a field guide and page references on every step.
 - **Table tools.** Scene cards, rounds/stretches/shifts clock, stress and panic roller, critical injuries (including the android table), initiative cards, supply rolls, countdowns, a xenomorph life-cycle tracker and a session checklist that modules extend. A Hints tab says what each attribute and skill is for in the story and rolls it for the best-placed PC.
 - **Site maps.** A seeded deck-plan generator that reads the adventure's locations, puzzles and crew, checks the map against the zone rules, and produces a GM map, a player map (fogged in play, whole in print), a tracking map, a zone key and a distance table. At the table the GM reveals zones, locks and seals doors, marks fires and pings the tracker; the player screen shows only what the crew has seen.
+- **Wide-format printing.** Site maps print on 24" or 36" rolls as vector PDFs at 1 inch per metre (28mm miniatures), 28mm true scale or an overview scale, with a title block, scale bar and optional 1 m grid squares.
 - **Maps from images.** Imported images with rectangular zone overlays and open/blocked/door borders.
 - **Rules reference.** Paraphrased rule cards with page references, filtered by play mode (Cinematic or Campaign).
 
@@ -55,6 +56,10 @@ The demo campaign (*Skyfire Down*, campaign play) and a cinematic one-shot built
 **Player map**: the same deck with every GM detail removed; it prints whole at 1 m = 1 cm, and at the table the player screen adds fog.
 
 ![Player map](docs/screenshots/site-map-player.png)
+
+**Roll print**: a 36" wide-format vector PDF at 1 inch per metre for 28mm miniatures, turned to fit the roll with all text upright, with a title block, 5 m scale bar and zone key in the margin. Decks too wide for the roll split into overlapping strips with cut lines.
+
+![Roll print](docs/screenshots/roll-print.png)
 
 **Rules reference**: short paraphrases with printed page references.
 
