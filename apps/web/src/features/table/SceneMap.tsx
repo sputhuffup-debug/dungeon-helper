@@ -1,10 +1,15 @@
-/** The scene's zone map with participant tokens; positions live in the session's tracker state. */
+/**
+ * The scene's map. A generated map (with a layout) runs live play on the deck
+ * plan (LiveSiteMap); an image map shows participant tokens whose positions
+ * live in the session's tracker state.
+ */
 import type { Entity, Id, Scene, SiteMap } from "@campaign-forge/core";
 import { useMemo, useState } from "react";
 import { Card, ZoneMapView, type MapToken } from "../../components/ui";
 import { useAssetUrl, useCampaign, useList } from "../../state/hooks";
 import { POSITIONS_STATE, setPosition } from "../../state/tableActions";
 import { useSessionTrackerState } from "./hooks";
+import { LiveSiteMap } from "./LiveSiteMap";
 
 /** The scene's map: `scene.map`, else a map of the scene's location. */
 export function useSceneMap(scene: Scene | undefined): SiteMap | undefined {
@@ -15,7 +20,12 @@ export function useSceneMap(scene: Scene | undefined): SiteMap | undefined {
   }, [maps, scene]);
 }
 
-export function SceneMap({ sessionId, map, participants }: { sessionId: Id; map: SiteMap; participants: Entity[] }) {
+export function SceneMap({ sessionId, map, participants, scene }: { sessionId: Id; map: SiteMap; participants: Entity[]; scene?: Scene | undefined }) {
+  if (map.layout) return <LiveSiteMap sessionId={sessionId} map={map} scene={scene} participants={participants} />;
+  return <ImageSceneMap sessionId={sessionId} map={map} participants={participants} />;
+}
+
+function ImageSceneMap({ sessionId, map, participants }: { sessionId: Id; map: SiteMap; participants: Entity[] }) {
   const ctx = useCampaign();
   const url = useAssetUrl(map.asset);
   const ts = useSessionTrackerState(sessionId);

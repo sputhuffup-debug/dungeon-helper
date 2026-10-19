@@ -7,7 +7,8 @@ import type { EntityTypeDef, GameModule, VisibilityLevel } from "@campaign-forge
 import { now } from "./ids";
 import { clone, deletePath, getPath } from "./paths";
 import type { CampaignStore } from "./store";
-import type { CampaignMaps, Entity, Id, Visibility } from "./types";
+import { playerLayout, playerLive } from "./sitemap";
+import type { CampaignMaps, Entity, Id, SiteMap, Visibility } from "./types";
 
 export interface Viewer {
   role: "gm" | "player";
@@ -17,8 +18,8 @@ export interface Viewer {
 
 export const GM_VIEWER: Viewer = { role: "gm" };
 
-/** Modules are consulted for entity type definitions only. */
-export type ModuleTypes = Pick<GameModule, "entityTypes">;
+/** Modules are consulted for entity type definitions (and map legends, when given). */
+export type ModuleTypes = Pick<GameModule, "entityTypes"> & Partial<Pick<GameModule, "mapGenerators">>;
 
 export function canSee(vis: Visibility | undefined, viewer: Viewer): boolean {
   if (viewer.role === "gm") return true;
@@ -110,6 +111,7 @@ export function projectCampaignForViewer(maps: CampaignMaps, module: ModuleTypes
   for (const t of Object.values(timeline)) t.entities = t.entities.filter((id) => id in entities);
   const handouts = pick(maps.handouts);
   const siteMaps = pick(maps.maps);
+  for (const m of Object.values(siteMaps)) projectSiteMapInPlace(m, module);
   const assets = pick(maps.assets);
   const members = maps.meta.members.filter((m) => m.role === "gm" || m.id === viewer.memberId);
   return {
@@ -127,6 +129,36 @@ export function projectCampaignForViewer(maps: CampaignMaps, module: ModuleTypes
     generatorRuns: {},
     trackerState: {},
     assets,
+  };
+}
+
+/**
+ * Strip GM data from a site map a player may see: hidden access points, the
+ * generator brief, and a generated layout replaced by its player projection
+ * (fog from the live state) with live state limited to what players see.
+ */
+function projectSiteMapInPlace(m: SiteMap, module: ModuleTypes | undefined): void {
+  m.accessPoints = m.accessPoints.filter((a) => !a.hidden);
+  const generatorId = m.generator?.id;
+  delete m.generator;
+  if (!m.layout) {
+    delete m.live;
+    return;
+  }
+  const legend = module?.mapGenerators?.find((g) => g.id === generatorId)?.legend;
+  const act = m.live?.act ?? 1;
+  const projected = playerLayout(m.layout, { act, revealed: m.live?.revealed, legend, live: m.live });
+  m.layout = projected;
+  if (!m.live) return;
+  const live = playerLive(m.live, projected, legend);
+  const zoneIds = new Set(projected.zones.map((z) => z.id));
+  m.live = {
+    act,
+    revealed: m.live.revealed.filter((z) => zoneIds.has(z)),
+    borders: {},
+    zoneFlags: live.zoneFlags,
+    tokens: live.tokens.map((t) => ({ ...t, gmOnly: false })),
+    pings: [],
   };
 }
 

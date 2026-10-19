@@ -195,7 +195,7 @@ function GmTable({ sessionId }: { sessionId: Id }) {
             <SceneCard sessionId={sessionId} scenes={scenes} scene={scene} onOpenEntity={setDrawer} />
             <Participants pcs={pcs} others={others} onOpen={setDrawer} onRoll={(op, id) => handlers.onRollOperation(op, id)} lifecycle={{ sessionId, onPrompts: handlers.onPrompts }} />
             <RevealPanel sessionId={sessionId} scene={scene} />
-            {map && <SceneMap sessionId={sessionId} map={map} participants={[...pcs, ...others]} />}
+            {map && <SceneMap sessionId={sessionId} map={map} scene={scene} participants={[...pcs, ...others]} />}
           </div>
           <div className="app-table__col">
             <Tabs

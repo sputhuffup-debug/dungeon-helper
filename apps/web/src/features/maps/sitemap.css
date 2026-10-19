@@ -1,0 +1,129 @@
+/* Generated site maps: the map page, the table's live map and the player screen map. */
+
+.prep-sitemap__note {
+  margin: 0 0 var(--cf-space-3);
+}
+.prep-sitemap__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+  gap: var(--cf-space-4);
+  align-items: start;
+}
+.prep-sitemap__main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cf-space-2);
+  min-width: 0;
+}
+.prep-sitemap__side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cf-space-3);
+  min-width: 0;
+}
+.prep-sitemap__side .cf-maplegend {
+  grid-template-columns: minmax(0, 1fr);
+}
+.prep-sitemap .cf-sitemap {
+  min-height: 560px;
+}
+.prep-sitemap__downloads {
+  flex-wrap: wrap;
+}
+.prep-sitemap__dl {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: var(--cf-space-1) var(--cf-space-3);
+  margin: 0;
+}
+.prep-sitemap__dl dt {
+  color: var(--cf-muted);
+}
+.prep-sitemap__dl dd {
+  margin: 0;
+}
+.prep-sitemap__tablewrap {
+  overflow-x: auto;
+}
+.prep-sitemap__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--cf-text-sm);
+}
+.prep-sitemap__table th,
+.prep-sitemap__table td {
+  text-align: left;
+  vertical-align: top;
+  padding: var(--cf-space-1) var(--cf-space-2);
+  border-bottom: 1px solid var(--cf-border);
+}
+.prep-sitemap__table thead th {
+  color: var(--cf-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.prep-sitemap__matrix td {
+  white-space: nowrap;
+  text-align: center;
+}
+.prep-sitemap__matrix tbody th {
+  white-space: nowrap;
+}
+.prep-sitemap > .cf-card,
+.prep-sitemap > .cf-tabs {
+  margin-top: var(--cf-space-4);
+}
+
+.app-livemap .cf-sitemap {
+  min-height: 460px;
+}
+.app-livemap__tools,
+.app-livemap__range {
+  flex-wrap: wrap;
+  margin-bottom: var(--cf-space-2);
+}
+.app-livemap__range {
+  margin-top: var(--cf-space-2);
+}
+.app-livemap__reading {
+  font-weight: 700;
+}
+.app-livemap__zone {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cf-space-2);
+  padding: var(--cf-space-3);
+  border: 1px solid var(--cf-border);
+  border-radius: var(--cf-radius);
+  margin: var(--cf-space-2) 0;
+}
+.app-livemap__zone > header,
+.app-livemap__zone [role="group"],
+.app-livemap__exits .app-list__row {
+  flex-wrap: wrap;
+}
+.app-livemap__flag {
+  gap: var(--cf-space-1);
+}
+.app-livemap__legend {
+  margin: var(--cf-space-2) 0;
+}
+.app-livemap__legend .cf-maplegend {
+  margin-top: var(--cf-space-2);
+}
+
+.app-player__map {
+  margin-top: var(--cf-space-4);
+}
+.app-player__map .cf-sitemap {
+  min-height: 520px;
+}
+.app-player__legend {
+  margin-top: var(--cf-space-2);
+}
+
+@media (max-width: 1100px) {
+  .prep-sitemap__layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

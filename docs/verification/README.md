@@ -12,6 +12,7 @@ Numbers, dice expressions, ranges, names and stat lines were copied exactly. Eff
 | Campaign frames, world, star system and job generators | [generators.md](generators.md) |
 | Encounters, shore leave, charted space | [encounters-places.md](encounters-places.md) |
 | Life paths, rule cards, templates, trackers | [lifepath-rules.md](lifepath-rules.md) |
+| Site map generator, location detail and salvage tables | [maps.md](maps.md) |
 
 ## Still flagged `unverified`
 

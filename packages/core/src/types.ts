@@ -247,8 +247,11 @@ export interface SiteMapLiveState {
   act: number;
   /** Zones the players have seen (player-view fog). */
   revealed: Id[];
-  /** Border id -> overriding state for this act. */
-  borders: Record<Id, { locked?: boolean; open?: boolean; sealed?: boolean; destroyed?: boolean }>;
+  /**
+   * Border id -> overriding state for this act. `known` means the players have
+   * found it: a hidden border (secret access point) or a lock shows on player outputs.
+   */
+  borders: Record<Id, { locked?: boolean; open?: boolean; sealed?: boolean; destroyed?: boolean; known?: boolean }>;
   /** Module-defined zone flags set during play (e.g. burning, vacuum). */
   zoneFlags: Record<Id, Record<string, unknown>>;
   /** Tokens placed on zones (creatures, NPCs, PCs). */

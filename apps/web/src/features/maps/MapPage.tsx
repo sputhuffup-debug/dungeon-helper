@@ -1,9 +1,11 @@
 /**
- * `/maps/$mapId`: a site map (image plus rectangular zones) bound to its
- * record. Edits are kept locally while the GM drags and written to the
- * store debounced, so a drag is one write rather than hundreds.
+ * `/maps/$mapId`: a site map bound to its record. A generated map (with a
+ * `layout`) shows its deck plan views and exports (SiteMapPage); an image
+ * map keeps the rectangle editor, whose edits are kept locally while the GM
+ * drags and written to the store debounced, so a drag is one write rather
+ * than hundreds.
  */
-import type { Entity, Id, SiteMap } from "@campaign-forge/core";
+import type { Entity, Id, Scene, SiteMap } from "@campaign-forge/core";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
@@ -14,6 +16,7 @@ import { errorMessage } from "../../lib/format";
 import { uploadAsset } from "../../state/actions";
 import { deleteSiteMap, updateSiteMap } from "../../state/prepActions";
 import { useAssetUrl, useCampaign, useList, useMeta, useRecord } from "../../state/hooks";
+import { SiteMapPage } from "./SiteMapPage";
 
 const WRITE_DELAY = 300;
 
@@ -47,7 +50,84 @@ export function MapPage() {
       </div>
     );
   }
+  if (record.layout) return <GeneratedMapPage key={record.id} record={record} />;
   return <MapEditorPage key={record.id} record={record} />;
+}
+
+function GeneratedMapPage({ record }: { record: SiteMap }) {
+  const [confirm, setConfirm] = useState(false);
+  const scenes = useMapScenes(record.id);
+  return (
+    <>
+      <SiteMapPage record={record} onDelete={() => setConfirm(true)} scenesCard={<MapScenesCard scenes={scenes} />} />
+      <DeleteMapDialog record={record} scenes={scenes} open={confirm} onClose={() => setConfirm(false)} />
+    </>
+  );
+}
+
+function useMapScenes(mapId: Id): Scene[] {
+  const sceneFilter = useMemo(() => (s: { map?: Id }) => s.map === mapId, [mapId]);
+  return useList("scenes", sceneFilter);
+}
+
+function MapScenesCard({ scenes, onNavigate }: { scenes: Scene[]; onNavigate?: () => void }) {
+  const ctx = useCampaign();
+  const campaignId = ctx.campaignId;
+  return (
+    <Card title="Used in scenes">
+      {scenes.length === 0 ? (
+        <p className="cf-muted">Attach this map to a scene from the adventure builder.</p>
+      ) : (
+        <ul className="app-list">
+          {scenes.map((s) => {
+            const act = s.act ? ctx.store.get("acts", s.act) : undefined;
+            return (
+              <li key={s.id} className="app-list__row">
+                {act ? (
+                  <Link
+                    to="/c/$campaignId/adventures/$adventureId"
+                    params={{ campaignId, adventureId: act.adventure }}
+                    search={{ node: `scene:${s.id}` }}
+                    className="app-link-strong"
+                    onClick={onNavigate}
+                  >
+                    {s.title}
+                  </Link>
+                ) : (
+                  <strong>{s.title}</strong>
+                )}
+                {act && <span className="cf-muted">Act {act.number}</span>}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </Card>
+  );
+}
+
+function DeleteMapDialog({ record, scenes, open, onClose }: { record: SiteMap; scenes: Scene[]; open: boolean; onClose: () => void }) {
+  const ctx = useCampaign();
+  const navigate = useNavigate();
+  const campaignId = ctx.campaignId;
+  return (
+    <ConfirmDialog
+      open={open}
+      title={`Delete ${record.name}?`}
+      danger
+      confirmLabel="Delete"
+      onCancel={onClose}
+      onConfirm={() => {
+        onClose();
+        const back = scenes[0]?.act ? ctx.store.get("acts", scenes[0].act) : undefined;
+        deleteSiteMap(ctx, record.id);
+        if (back) void navigate({ to: "/c/$campaignId/adventures/$adventureId", params: { campaignId, adventureId: back.adventure }, search: {} });
+        else void navigate({ to: "/c/$campaignId/home", params: { campaignId } });
+      }}
+    >
+      <p>The zones go with it; scenes that use it lose their map.</p>
+    </ConfirmDialog>
+  );
 }
 
 /** Local draft of the zone data with a debounced write-back. */
@@ -88,7 +168,6 @@ function useDebouncedMap(record: SiteMap) {
 function MapEditorPage({ record }: { record: SiteMap }) {
   const ctx = useCampaign();
   const meta = useMeta();
-  const navigate = useNavigate();
   const campaignId = ctx.campaignId;
   const { draft, onChange, flush } = useDebouncedMap(record);
   const imageUrl = useAssetUrl(record.asset);
@@ -98,8 +177,7 @@ function MapEditorPage({ record }: { record: SiteMap }) {
   const [confirm, setConfirm] = useState(false);
   const [busy, setBusy] = useState(false);
   const locationTypes = useMemo(() => ctx.module.module.entityTypes.filter((t) => t.kind === "location").map((t) => t.id), [ctx.module]);
-  const sceneFilter = useMemo(() => (s: { map?: Id }) => s.map === record.id, [record.id]);
-  const scenes = useList("scenes", sceneFilter);
+  const scenes = useMapScenes(record.id);
 
   const onImage = async (file: File | undefined) => {
     if (!file) return;
@@ -196,35 +274,7 @@ function MapEditorPage({ record }: { record: SiteMap }) {
             </ul>
           )}
         </Card>
-        <Card title="Used in scenes">
-          {scenes.length === 0 ? (
-            <p className="cf-muted">Attach this map to a scene from the adventure builder.</p>
-          ) : (
-            <ul className="app-list">
-              {scenes.map((s) => {
-                const act = s.act ? ctx.store.get("acts", s.act) : undefined;
-                return (
-                  <li key={s.id} className="app-list__row">
-                    {act ? (
-                      <Link
-                        to="/c/$campaignId/adventures/$adventureId"
-                        params={{ campaignId, adventureId: act.adventure }}
-                        search={{ node: `scene:${s.id}` }}
-                        className="app-link-strong"
-                        onClick={flush}
-                      >
-                        {s.title}
-                      </Link>
-                    ) : (
-                      <strong>{s.title}</strong>
-                    )}
-                    {act && <span className="cf-muted">Act {act.number}</span>}
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </Card>
+        <MapScenesCard scenes={scenes} onNavigate={flush} />
       </div>
 
       <EntityPicker
@@ -237,22 +287,7 @@ function MapEditorPage({ record }: { record: SiteMap }) {
           updateSiteMap(ctx, record.id, { location: e.id });
         }}
       />
-      <ConfirmDialog
-        open={confirm}
-        title={`Delete ${record.name}?`}
-        danger
-        confirmLabel="Delete"
-        onCancel={() => setConfirm(false)}
-        onConfirm={() => {
-          setConfirm(false);
-          const back = scenes[0]?.act ? ctx.store.get("acts", scenes[0].act) : undefined;
-          deleteSiteMap(ctx, record.id);
-          if (back) void navigate({ to: "/c/$campaignId/adventures/$adventureId", params: { campaignId, adventureId: back.adventure }, search: {} });
-          else void navigate({ to: "/c/$campaignId/home", params: { campaignId } });
-        }}
-      >
-        <p>The zones go with it; scenes that use it lose their map.</p>
-      </ConfirmDialog>
+      <DeleteMapDialog record={record} scenes={scenes} open={confirm} onClose={() => setConfirm(false)} />
     </div>
   );
 }

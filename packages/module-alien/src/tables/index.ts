@@ -5,6 +5,7 @@ import { creatureTables } from "./creatures";
 import { encounterTables } from "./encounters";
 import { jobTables } from "./jobs";
 import { lifepathTables } from "./lifepath";
+import { mapTables } from "./maps";
 import { shoreLeaveTables } from "./shore-leave";
 import { systemTables } from "./system";
 import { worldTables } from "./world";
@@ -18,6 +19,7 @@ export const tablesByFamily: Record<string, RollTable[]> = {
   encounters: encounterTables,
   "shore-leave": shoreLeaveTables,
   creatures: creatureTables,
+  maps: mapTables,
 };
 
 export const tables: RollTable[] = Object.values(tablesByFamily).flat();

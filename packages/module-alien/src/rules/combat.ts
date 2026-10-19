@@ -23,13 +23,17 @@ export const combatRules: RuleCard[] = [
     tags: ["combat", "stealth"],
     links: { rules: ["alien.rule.stealth-mode", "alien.rule.ambush", "alien.rule.darkness"], trackers: [TR.stealth] },
   }),
-  card("crawlspaces", "Crawlspaces", "Air shafts are entered at marked access points and count as open zones, and inside them other characters block both movement and line of sight. Sealing an access point with a cutting torch stops even a Xenomorph, though acid blood can burn a new opening.", 56, {
+  card("crawlspaces", "Crawlspaces", "Air shafts are entered at marked access points and count as open zones, and inside them other characters block both movement and line of sight. Sealing an access point with a cutting torch (Heavy Machinery, one try per stretch) stops even a Xenomorph, though under gravity its acid blood eats through a duct floor in a stretch and opens a new access point over a room.", 56, {
     tags: ["combat", "stealth", "map"],
-    links: { rules: ["alien.rule.zones", "alien.rule.stealth-mode"] },
+    links: { rules: ["alien.rule.zones", "alien.rule.stealth-mode", "alien.rule.hidden-map"] },
   }),
   card("stealth-simplified", "Simplified stealth mode", "Without room for a hidden map, only the PCs follow the stealth movement rules, and NPCs and motion tracker pings appear wherever and whenever the GM decides.", 56, {
     tags: ["combat", "stealth", "gm"],
     links: { rules: ["alien.rule.stealth-mode"], trackers: [TR.stealth] },
+  }),
+  card("hidden-map", "The GM's hidden map", "The GM keeps a second copy of the map behind the screen and moves hidden NPC tokens on it each stretch; published adventures come with one. Without a screen, a sheet of paper will do.", 56, {
+    tags: ["combat", "stealth", "map", "gm"],
+    links: { rules: ["alien.rule.stealth-mode", "alien.rule.zones", "alien.rule.crawlspaces"], trackers: [TR.stealth] },
   }),
   card("darkness", "Darkness", "In very dim zones humans and androids roll Observation with −2 dice; Xenomorphs are unaffected. A flashlight removes the penalty for that zone.", 57, {
     tags: ["combat", "stealth"],

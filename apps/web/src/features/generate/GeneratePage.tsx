@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import { Badge, EmptyState, PageRef } from "../../components/ui";
 import { relativeTime } from "../../lib/format";
 import { useCampaign, useList, useMeta } from "../../state/hooks";
+import { SiteMapGenerators } from "../mapgen/SiteMapGenerators";
 
 export function GeneratePage() {
   const ctx = useCampaign();
@@ -46,6 +47,7 @@ export function GeneratePage() {
           ))}
         </ul>
       )}
+      <SiteMapGenerators />
       <section className="app-section" aria-label="Recent runs">
         <h2 className="app-subtitle">Recent runs</h2>
         {recent.length === 0 ? (

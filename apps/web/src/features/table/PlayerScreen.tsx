@@ -1,7 +1,8 @@
 /**
  * The shared screen for the players (`?view=players`, opened in its own
- * window): the clock, the current scene's read-aloud text and every handout
- * the players may see. Read-only; it follows the GM's tab through the
+ * window): the clock, the current scene's read-aloud text, the scene's
+ * generated map with fog (player projection only) and every handout the
+ * players may see. Read-only; it follows the GM's tab through the
  * cross-tab sync of the same local store.
  */
 import { canSee, type Handout, type Id } from "@campaign-forge/core";
@@ -10,6 +11,8 @@ import { EmptyState } from "../../components/ui";
 import { RichTextView } from "../../editor";
 import { useAssetUrl, useList, useMeta, useRecord } from "../../state/hooks";
 import { useTableState } from "./hooks";
+import { PlayerSiteMap } from "./PlayerSiteMap";
+import { useSceneMap } from "./SceneMap";
 import { BoundTracker, useModeTrackers } from "./TrackersPanel";
 
 const noop = () => undefined;
@@ -29,6 +32,7 @@ export function PlayerScreen({ sessionId }: { sessionId: Id }) {
   const meta = useMeta();
   const table = useTableState(sessionId);
   const scene = useRecord("scenes", table.sceneId);
+  const map = useSceneMap(scene);
   const clock = useModeTrackers().find((t) => t.kind === "clock");
   const all = useList("handouts");
   const handouts = useMemo(
@@ -52,6 +56,7 @@ export function PlayerScreen({ sessionId }: { sessionId: Id }) {
             <>
               <h2 className="app-player__scene-title">{scene.title}</h2>
               {scene.readAloudDoc ? <RichTextView docId={scene.readAloudDoc} className="app-table__readaloud-text" /> : null}
+              {map?.layout && <PlayerSiteMap map={map} />}
             </>
           ) : (
             <EmptyState title="Waiting for the GM" />

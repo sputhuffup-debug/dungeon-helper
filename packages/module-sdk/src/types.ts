@@ -956,6 +956,8 @@ export interface SiteLayout {
   /** Grid unit size in metres (1 = one square per metre). */
   gridM?: number;
   checks: MapCheck[];
+  /** Module-defined GM data (e.g. act budgets, encounter timer presence). GM-only: never shown to players. */
+  meta?: Record<string, unknown>;
 }
 
 /** How zone distance reads as a range band (e.g. 0 = Short, 1 = Medium, 2-4 = Long). */
@@ -968,7 +970,7 @@ export interface RangeBandDef {
 
 export interface MapLegendEntry {
   /** What the entry styles: a border kind, a zone flag, an area tag or a marker kind. */
-  target: { border: MapBorderKind } | { flag: string } | { area: string } | { marker: MapMarkerKind } | { kind: MapZoneKind };
+  target: { border: MapBorderKind } | { flag: string; value?: unknown } | { area: string } | { marker: MapMarkerKind } | { kind: MapZoneKind };
   label: string;
   /** The rule it carries, in the module's own words. */
   rule?: string;
@@ -977,6 +979,13 @@ export interface MapLegendEntry {
   gmOnly?: boolean;
   /** Rendering hint (a colour token or CSS colour). */
   color?: string;
+  /**
+   * Generic icon for a flag entry: "fire", "vacuum", "float" (no gravity),
+   * "dark" (dark overlay), "radiation", "water" or "hazard". Unknown names draw
+   * the generic hazard glyph. A `{ flag, value }` target matches when the zone
+   * flag equals `value`; a bare `{ flag }` matches any truthy value.
+   */
+  icon?: string;
 }
 
 export interface MapGeneratorContext {
