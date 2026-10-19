@@ -30,6 +30,28 @@
 .prep-sitemap__downloads {
   flex-wrap: wrap;
 }
+.prep-sitemap__roll {
+  margin: 0;
+  padding: var(--cf-space-2) var(--cf-space-3);
+  border: 1px solid var(--cf-border);
+  border-radius: var(--cf-radius);
+  min-width: 0;
+}
+.prep-sitemap__roll legend {
+  padding: 0 var(--cf-space-1);
+  font-size: var(--cf-text-sm);
+  font-weight: 600;
+}
+.prep-sitemap__notes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cf-space-1) var(--cf-space-3);
+  margin: 0;
+  font-size: var(--cf-text-sm);
+}
+.prep-sitemap__notes > span:first-child {
+  font-weight: 600;
+}
 .prep-sitemap__dl {
   display: grid;
   grid-template-columns: max-content minmax(0, 1fr);

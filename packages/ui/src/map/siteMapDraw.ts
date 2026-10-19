@@ -16,6 +16,8 @@ import {
   type LiveBorderOverride,
 } from "@campaign-forge/core";
 import type { MapBorderData, MapLegendEntry, MapMarker, MapPoint, MapZoneData, SiteLayout } from "@campaign-forge/module-sdk";
+import { LabelPlacer, boxAround, boxInPolygon, boxInside, insetBox, scanPositions, type LabelBox, type PlacedLabel } from "./labelPlacement";
+import { MAP_FONT, ellipsize, textWidth, wrapText } from "./textMetrics";
 
 // ---------------------------------------------------------------------------
 // node tree
@@ -305,7 +307,7 @@ export function iconNode(icon: FlagIcon, x: number, y: number, p: SiteMapPalette
     default:
       return el("g", {}, [
         el("path", { d: `M ${fmt(x)} ${fmt(y - k * 0.85)} L ${fmt(x + k * 0.9)} ${fmt(y + k * 0.75)} L ${fmt(x - k * 0.9)} ${fmt(y + k * 0.75)} Z`, fill: color ?? p.hazard, stroke: p.halo, "stroke-width": 0.05 * s, "stroke-linejoin": "round" }),
-        el("text", { x, y: y + k * 0.6, "text-anchor": "middle", "font-size": k * 1.1, "font-weight": 700, "font-family": "sans-serif", fill: p.halo }, ["!"]),
+        el("text", { x, y: y + k * 0.6, "text-anchor": "middle", "font-size": k * 1.1, "font-weight": 700, "font-family": MAP_FONT, fill: p.halo }, ["!"]),
       ]);
   }
 }
@@ -401,6 +403,22 @@ export interface SiteMapDrawOptions {
   interactive?: boolean | undefined;
   /** Margin around the deck, in grid units (default 1). */
   margin?: number | undefined;
+  /**
+   * 1 m grid squares inside playable zones (not out of bounds, not ducts),
+   * light grey, beneath walls and labels: for moving miniatures within a zone.
+   */
+  gridSquares?: boolean | undefined;
+}
+
+/** A marker whose text did not fit in its zone: the map shows its glyph with a letter, the key lists the text. */
+export interface SiteMapCallout {
+  /** The letter drawn beside the glyph ("a", "b", ...). */
+  ref: string;
+  marker: string;
+  zone: string;
+  /** Zone number (GM and tracking views). */
+  number?: number | undefined;
+  label: string;
 }
 
 export interface SiteMapDrawing {
@@ -410,11 +428,16 @@ export interface SiteMapDrawing {
   width: number;
   height: number;
   deck: string | undefined;
+  /** Marker texts moved off the map, in drawing order. */
+  callouts: SiteMapCallout[];
+  /** Every label and glyph box the placer handled, in deck units (for tests and the zone key). */
+  labels: PlacedLabel[];
 }
 
 const WALL = 0.22;
 
-function paletteOf(p: SiteMapDrawOptions["palette"]): SiteMapPalette {
+/** The palette for a palette option ("light" by default). */
+export function resolvePalette(p: SiteMapDrawOptions["palette"]): SiteMapPalette {
   if (!p || p === "light") return LIGHT_PALETTE;
   if (p === "dark") return DARK_PALETTE;
   return p;
@@ -439,7 +462,7 @@ export function zoneLabel(z: MapZoneData, opts: { number?: number | undefined; f
 
 /** Draw one deck of a layout. */
 export function drawSiteMap(layout: SiteLayout, opts: SiteMapDrawOptions): SiteMapDrawing {
-  const p = paletteOf(opts.palette);
+  const p = resolvePalette(opts.palette);
   const id = (s: string) => `${opts.idPrefix ?? "sm"}-${s}`;
   const deck = layout.decks.find((d) => d.id === opts.deck) ?? layout.decks[0];
   const margin = opts.margin ?? 1;
@@ -504,11 +527,18 @@ export function drawSiteMap(layout: SiteLayout, opts: SiteMapDrawOptions): SiteM
   }
   layers.push(el("g", { "data-layer": "floors" }, fills));
 
+  // 1b. 1 m grid squares inside playable zones, beneath walls and labels
+  if (opts.gridSquares) layers.push(gridSquaresLayer(floors, layout.gridM && layout.gridM > 0 ? 1 / layout.gridM : 1, id));
+
   // 2. walls: every floor zone outline at wall weight (borders redraw shared edges)
   const outlines: SvgNode[] = floors
     .filter((z) => z.kind !== "out-of-bounds")
     .map((z) => el("polygon", { points: points(z.poly), fill: "none", stroke: p.wall, "stroke-width": tracking ? 0.12 : WALL, "stroke-linejoin": "miter" }));
   layers.push(el("g", { "data-layer": "outlines" }, outlines));
+
+  // Label placement: everything already drawn blocks later labels.
+  const placer = new LabelPlacer(0.06);
+  const deckBox: LabelBox = { x0: 0, y0: 0, x1: deck?.width ?? 0, y1: deck?.height ?? 0 };
 
   // 3. borders
   const borders: SvgNode[] = [];
@@ -528,6 +558,11 @@ export function drawSiteMap(layout: SiteLayout, opts: SiteMapDrawOptions): SiteM
         continue;
       }
       borders.push(el("g", attrs, drawBorder(eff, b.segment, p, { locked, sealed, hidden: !!b.hidden && gm })));
+      // marks that reach into the zones: lock dots, hatch wheels, seals, glyphs on the wall
+      const g = seg(b.segment);
+      if (locked && (eff.kind === "door" || eff.kind === "hatch" || eff.kind === "blast")) placer.block(boxAround(g.mx + g.nx * 0.42, g.my + g.ny * 0.42, 0.22), "lock", undefined, b.id);
+      if (eff.kind === "hatch" || eff.kind === "access" || eff.kind === "stairs") placer.block(boxAround(g.mx, g.my, 0.44), "glyph", undefined, b.id);
+      if (sealed) placer.block(boxAround(g.mx, g.my, 0.32), "glyph", undefined, b.id);
       continue;
     }
     if (tracking && eff.kind !== "access") continue;
@@ -539,6 +574,7 @@ export function drawSiteMap(layout: SiteLayout, opts: SiteMapDrawOptions): SiteM
     if (eff.kind !== "access" && eff.kind !== "stairs") continue;
     if (eff.kind === "access") {
       const pos = overlapCenter(bbox(za.poly), bbox(zb.poly)) ?? (aOn && bOn ? mid(center(za.poly), center(zb.poly)) : center((aOn ? za : zb).poly));
+      placer.block(boxAround(pos[0], pos[1], 0.42), "glyph", undefined, b.id);
       glyphs.push(el("g", { ...attrs, "data-glyph": "access" }, [accessGlyph(pos[0], pos[1], p, sealed, !!b.hidden && gm), el("title", {}, [`Access point${sealed ? " (sealed)" : ""}`])]));
     } else {
       for (const [z, other] of [
@@ -550,11 +586,18 @@ export function drawSiteMap(layout: SiteLayout, opts: SiteMapDrawOptions): SiteM
         const x = bx.x1 - 0.9;
         const y = bx.y1 - 0.9;
         const otherDeck = layout.decks.find((d) => d.id === other.deck);
+        const toName = otherDeck && other.deck !== z.deck ? otherDeck.name : undefined;
+        // the deck name under the glyph stays inside the zone
+        const room = Math.max(0, Math.min(x - bx.x0, bx.x1 - x) * 2 - 0.3);
+        const nameSize = toName ? Math.max(0.3, Math.min(0.4, (room / Math.max(1, textWidth(toName, 1))) * 0.98)) : 0.4;
+        const shown = toName ? ellipsize(toName, nameSize, room) : "";
+        placer.block(boxAround(x, y, 0.42), "glyph", z.id, b.id);
+        if (shown) placer.block({ x0: x - textWidth(shown, nameSize) / 2, y0: y + 0.85 - nameSize * 0.8, x1: x + textWidth(shown, nameSize) / 2, y1: y + 0.85 + nameSize * 0.25 }, "glyph", z.id, b.id);
         glyphs.push(
           el("g", { ...attrs, "data-glyph": "stairs" }, [
             stairsGlyph(x, y, p),
-            otherDeck && other.deck !== z.deck ? el("text", { x, y: y + 0.85, "text-anchor": "middle", "font-size": 0.4, "font-family": "sans-serif", fill: p.muted }, [otherDeck.name]) : null,
-            el("title", {}, [otherDeck && other.deck !== z.deck ? `Stairs to ${otherDeck.name}` : "Stairs"]),
+            shown ? el("text", { x, y: y + 0.85, "text-anchor": "middle", "font-size": nameSize, "font-family": MAP_FONT, fill: p.muted }, [shown]) : null,
+            el("title", {}, [toName ? `Stairs to ${toName}` : "Stairs"]),
           ]),
         );
       }
@@ -572,62 +615,232 @@ export function drawSiteMap(layout: SiteLayout, opts: SiteMapDrawOptions): SiteM
   );
   layers.push(el("g", { "data-layer": "links" }, glyphs));
 
-  // 5. zone contents: clutter glyphs, flag icons, act numerals, names, numbers, markers
-  const contents: SvgNode[] = [];
-  for (const z of zones) {
-    if (fogged.has(z.id) && view === "player") continue;
+  // 5. zone contents: numbers, names, flag icons, duct numbers, markers, act numerals, clutter.
+  // Fixed marks first, then each kind of label in turn, each placed clear of everything before it.
+  const shownZones = zones.filter((z) => !(fogged.has(z.id) && view === "player"));
+  const content = new Map<string, SvgNode[]>();
+  const add = (zone: string, n: SvgNode) => content.set(zone, [...(content.get(zone) ?? []), n]);
+  const callouts: SiteMapCallout[] = [];
+  const labelText = (m: MapMarker) => (m.kind === "label" || !m.act || /\bact\b/i.test(m.label) ? m.label : `${m.label} (act ${m.act})`);
+  const markersOf = (z: MapZoneData) => (tracking ? [] : layout.markers.filter((m) => m.zone === z.id && (gm || !m.gmOnly)));
+  const playable = (z: MapZoneData) => z.layer !== "duct" && z.kind !== "out-of-bounds";
+  /** Where labels may go in a zone: inside its outline, clear of the walls. */
+  const inZone = (z: MapZoneData, inset = 0.24) => (b: LabelBox) => boxInPolygon(b, z.poly, inset) && boxInside(b, deckBox);
+
+  // 5a. zone numbers (fixed positions)
+  for (const z of shownZones) {
+    const n = numbers.get(z.id);
+    if (n === undefined) continue;
     const bx = bbox(z.poly);
     const [cx, cy] = center(z.poly);
     const w = bx.x1 - bx.x0;
     const h = bx.y1 - bx.y0;
-    const g: SvgNode[] = [];
-    if (!tracking && z.layer !== "duct" && z.kind !== "out-of-bounds") {
-      if (z.cluttered && w >= 2 && h >= 2) g.push(clutterGlyph(bx.x1 - 0.55, bx.y1 - 0.55, p));
-      flagHits(z).forEach((e, i) => {
-        g.push(el("g", { "data-flag-icon": isFlagTarget(e.target) ? e.target.flag : "" }, [iconNode(flagIcon(e), bx.x1 - 0.7 - i * 1.0, bx.y0 + 0.7, p, 0.9, e.color && !e.color.startsWith("var(") ? e.color : undefined), el("title", {}, [e.label])]));
-      });
-      if (gm && z.acts?.length) g.push(el("text", { x: bx.x1 - 0.35, y: bx.y1 - 1.25, "text-anchor": "end", "font-size": 0.5, "font-family": "sans-serif", "font-weight": 700, fill: p.act }, [z.acts.map((a) => ROMAN[a] ?? String(a)).join(" ")]));
+    const duct = z.layer === "duct";
+    if (tracking) {
+      // room numbers large and centred; duct numbers are placed later, clear of them
+      if (duct) continue;
+      // as large as the room allows; smaller when a glyph leaves no clear spot
+      const r0 = Math.min(1.1, Math.max(0.6, Math.min(w, h) / 3));
+      let r = r0;
+      let box: PlacedLabel | undefined;
+      for (const rr of [r0, r0 * 0.8, 0.5]) {
+        r = rr;
+        box = placer.place({ w: 2 * r, h: 2 * r, candidates: [[cx - r, cy - r], ...scanPositions(insetBox(bx, 0.15), 2 * r, 2 * r, "center")], inside: inZone(z, 0.12), kind: "number", zone: z.id, force: rr === 0.5 });
+        if (box) break;
+      }
+      box ??= placer.block(boxAround(cx, cy, r), "number", z.id);
+      const x = box.x0 + r;
+      const y = box.y0 + r;
+      add(z.id, el("g", { "data-number": z.id }, [el("circle", { cx: x, cy: y, r, fill: "#ffffff", stroke: p.wall, "stroke-width": 0.1 }), el("text", { x, y: y + r * 0.4, "text-anchor": "middle", "font-size": r * 1.15, "font-family": MAP_FONT, "font-weight": 700, fill: p.text }, [String(n)])]));
+    } else if (gm && !duct) {
+      // top left in rooms, centred in corridors; moved along when a wall glyph is in the way
+      const small = w < 2.4 || h < 2.4;
+      const r = 0.5;
+      const cands: Array<[number, number]> = small ? [[cx - r, cy - r], ...scanPositions(insetBox(bx, 0.2), 2 * r, 2 * r, "center")] : scanPositions(insetBox(bx, 0.25), 2 * r, 2 * r, "top-left");
+      const box = placer.place({ w: 2 * r, h: 2 * r, candidates: cands, inside: inZone(z, 0.2), kind: "number", zone: z.id, force: true }) ?? placer.block(boxAround(cx, cy, r), "number", z.id);
+      add(z.id, numberNode(z.id, String(n), box.x0 + r, box.y0 + r, r, p.wall, p.text, p));
     }
-    const n = numbers.get(z.id);
-    if (!tracking && z.key && z.name && z.layer !== "duct") {
-      const size = Math.max(0.45, Math.min(0.85, (w / Math.max(4, z.name.length)) * 1.6));
-      g.push(el("text", { x: cx, y: cy + size * 0.35, "text-anchor": "middle", "font-size": size, "font-family": "sans-serif", "font-weight": 700, fill: p.text, stroke: p.halo, "stroke-width": size * 0.18, "paint-order": "stroke", "data-name": z.id }, [z.name]));
-    }
-    if (n !== undefined) {
-      if (tracking) {
-        const duct = z.layer === "duct";
-        const r = duct ? 0.6 : Math.min(1.1, Math.max(0.6, Math.min(w, h) / 3));
-        // a duct's number goes in its corner so the room number below stays readable
-        const x = duct ? bx.x1 - r - 0.1 : cx;
-        const y = duct && h >= 2.4 ? bx.y0 + r + 0.1 : cy;
-        g.push(el("g", { "data-number": z.id }, [el("circle", { cx: x, cy: y, r, fill: "#ffffff", stroke: z.layer === "duct" ? p.duct : p.wall, "stroke-width": 0.1 }), el("text", { x, y: y + r * 0.4, "text-anchor": "middle", "font-size": r * 1.15, "font-family": "sans-serif", "font-weight": 700, fill: z.layer === "duct" ? p.duct : p.text }, [String(n)])]));
-      } else if (gm) {
-        // duct numbers sit on the duct's top-right corner, clear of the room's number and name below it
-        const duct = z.layer === "duct";
-        const small = w < 2.4 || h < 2.4;
-        const x = duct ? bx.x1 - 0.2 : small ? cx : bx.x0 + 0.75;
-        const y = duct ? bx.y0 + 0.2 : small ? cy : bx.y0 + 0.75;
-        g.push(el("g", { "data-number": z.id }, [el("circle", { cx: x, cy: y, r: duct ? 0.42 : 0.5, fill: p.halo, stroke: z.layer === "duct" ? p.duct : p.wall, "stroke-width": 0.07 }), el("text", { x, y: y + 0.21, "text-anchor": "middle", "font-size": 0.58, "font-family": "sans-serif", "font-weight": 700, fill: z.layer === "duct" ? p.duct : p.text }, [String(n)])]));
+  }
+
+  // 5b. key room names: centred, shrunk or wrapped to fit, clear of the number
+  if (!tracking) {
+    for (const z of shownZones) {
+      if (!z.key || !z.name || z.layer === "duct") continue;
+      const bx = bbox(z.poly);
+      const w = bx.x1 - bx.x0;
+      const region = insetBox(bx, 0.2);
+      const start = Math.max(0.45, Math.min(0.85, (w / Math.max(4, z.name.length)) * 1.6));
+      let done = false;
+      let fallback: { lines: string[]; size: number } | undefined;
+      for (let size = start; size >= 0.34 - 1e-9 && !done; size -= 0.05) {
+        for (const lines of nameVariants(z.name, size, region.x1 - region.x0)) {
+          const tw = Math.max(...lines.map((l) => textWidth(l, size, true)));
+          const th = size * (0.95 + (lines.length - 1) * 1.1);
+          if (tw > region.x1 - region.x0 || th > region.y1 - region.y0) continue;
+          fallback ??= { lines, size };
+          const box = placer.place({ w: tw + 0.1, h: th + 0.1, candidates: scanPositions(region, tw + 0.1, th + 0.1, "center"), inside: inZone(z, 0.2), kind: "name", zone: z.id });
+          if (!box) continue;
+          add(z.id, nameNode(z.id, lines, size, (box.x0 + box.x1) / 2, box.y0 + 0.05 + size * 0.75, p));
+          done = true;
+          break;
+        }
+      }
+      if (!done) {
+        // nowhere clear: the smallest single line, ellipsized, at the centre
+        const size = fallback?.size ?? 0.34;
+        const lines = fallback?.lines ?? [ellipsize(z.name, size, Math.max(0, w - 0.4), true)];
+        const tw = Math.max(...lines.map((l) => textWidth(l, size, true)));
+        const th = size * (0.95 + (lines.length - 1) * 1.1);
+        const [cx, cy] = center(z.poly);
+        const b = placer.block({ x0: cx - tw / 2 - 0.05, y0: cy - th / 2 - 0.05, x1: cx + tw / 2 + 0.05, y1: cy + th / 2 + 0.05 }, "name", z.id);
+        b.forced = true;
+        if (lines[0]) add(z.id, nameNode(z.id, lines, size, cx, b.y0 + 0.05 + size * 0.75, p));
       }
     }
-    if (!tracking) {
-      const ms = layout.markers.filter((m) => m.zone === z.id && (gm || !m.gmOnly));
-      ms.forEach((m, i) => {
-        const x = bx.x0 + 0.75;
-        const y = bx.y1 - 0.75 - i * 0.95;
-        const label = m.kind === "label" || !m.act || /\bact\b/i.test(m.label) ? m.label : `${m.label} (act ${m.act})`;
-        g.push(
-          el("g", { "data-marker": m.id, "data-marker-kind": m.kind }, [
-            m.kind === "label" ? null : markerGlyph(m.kind, x, y, p),
-            gm || m.kind === "label"
-              ? el("text", { x: m.kind === "label" ? x - 0.3 : x + 0.55, y: y + 0.17, "font-size": 0.45, "font-family": "sans-serif", fill: p.text, stroke: p.halo, "stroke-width": 0.08, "paint-order": "stroke" }, [label])
-              : null,
-            el("title", {}, [label]),
-          ]),
-        );
-      });
+  }
+
+  // 5c. hazard and condition icons: top right first
+  if (!tracking) {
+    for (const z of shownZones) {
+      if (!playable(z)) continue;
+      const bx = bbox(z.poly);
+      for (const e of flagHits(z)) {
+        const s = 0.9;
+        const box = placer.place({ w: s, h: s, candidates: scanPositions(insetBox(bx, 0.2), s, s, "top-right"), inside: inZone(z, 0.2), kind: "flag", zone: z.id, ref: isFlagTarget(e.target) ? e.target.flag : "", force: true });
+        if (!box) continue;
+        add(z.id, el("g", { "data-flag-icon": isFlagTarget(e.target) ? e.target.flag : "" }, [iconNode(flagIcon(e), (box.x0 + box.x1) / 2, (box.y0 + box.y1) / 2, p, s, e.color && !e.color.startsWith("var(") ? e.color : undefined), el("title", {}, [e.label])]));
+      }
     }
-    if (g.length) contents.push(el("g", { "data-zone-content": z.id }, g));
+  }
+
+  // 5d. markers: glyph and text from the bottom left; text that fits nowhere becomes a lettered callout
+  for (const z of shownZones) {
+    const bx = bbox(z.poly);
+    const region = insetBox(bx, 0.24);
+    for (const m of markersOf(z)) {
+      const label = labelText(m);
+      const withText = gm || m.kind === "label";
+      const glyph = m.kind !== "label";
+      const G = 0.42;
+      let drawn: SvgNode[] | undefined;
+      if (withText) {
+        for (const size of [0.45, 0.4, 0.35]) {
+          const tw = textWidth(label, size);
+          const w = glyph ? 2 * G + 0.13 + tw + 0.05 : tw + 0.1;
+          const h = glyph ? 2 * G : size * 1.25;
+          const box = placer.place({ w, h, candidates: scanPositions(region, w, h, "bottom-left"), inside: inZone(z), kind: "marker", zone: z.id, ref: m.id });
+          if (!box) continue;
+          const cx = box.x0 + G;
+          const cy = box.y0 + h / 2;
+          drawn = [
+            glyph ? markerGlyph(m.kind, cx, cy, p) : null,
+            el("text", { x: glyph ? cx + G + 0.13 : box.x0 + 0.05, y: cy + size * 0.36, "font-size": size, "font-family": MAP_FONT, fill: p.text, stroke: p.halo, "stroke-width": 0.08, "paint-order": "stroke" }, [label]),
+          ].filter((x): x is SvgNode => !!x);
+          break;
+        }
+      }
+      if (!drawn) {
+        const ref = withText ? calloutRef(callouts.length) : "";
+        const tagSize = 0.52;
+        const tw = ref ? textWidth(ref, tagSize, true) + 0.08 : 0;
+        const th = tagSize * 0.95;
+        const kind = ref ? "callout" : "marker";
+        // glyph and letter side by side; else the glyph alone (close to the walls, then anywhere in
+        // the zone, then over other marks) with the letter on whichever side is clear
+        let tag: LabelBox | undefined;
+        let glyphScale = 1;
+        let box: PlacedLabel | undefined = placer.place({ w: 2 * G + tw, h: 2 * G, candidates: scanPositions(region, 2 * G + tw, 2 * G, "bottom-left"), inside: inZone(z), kind, zone: z.id, ref: m.id });
+        if (box) tag = { x0: box.x0 + 2 * G, y0: box.y0 + G - th / 2, x1: box.x1, y1: box.y0 + G + th / 2 };
+        else {
+          // full size, then three-quarter size, then over other marks
+          for (const gs of [1, 0.75]) {
+            const g2 = 2 * G * gs;
+            box =
+              placer.place({ w: g2, h: g2, candidates: scanPositions(insetBox(bx, 0.12), g2, g2, "bottom-left"), inside: inZone(z, 0.12), kind: "marker", zone: z.id, ref: m.id }) ??
+              placer.place({ w: g2, h: g2, candidates: scanPositions(bx, g2, g2, "bottom-left"), inside: inZone(z, 0), kind: "marker", zone: z.id, ref: m.id });
+            if (box) {
+              glyphScale = gs;
+              break;
+            }
+          }
+          box ??=
+            placer.place({ w: 2 * G, h: 2 * G, candidates: scanPositions(bx, 2 * G, 2 * G, "bottom-left"), inside: inZone(z, 0), kind: "marker", zone: z.id, ref: m.id, force: true }) ??
+            Object.assign(placer.block(boxAround(center(z.poly)[0], center(z.poly)[1], G), "marker", z.id, m.id), { forced: true });
+          if (ref) {
+            const gx = (box.x0 + box.x1) / 2;
+            const gy = (box.y0 + box.y1) / 2;
+            // clear of the glyph's own box by the placer's padding
+            const o = placer.pad + 0.01;
+            const sides: Array<[number, number]> = [
+              [box.x1 + o, gy - th / 2],
+              [box.x0 - tw - o, gy - th / 2],
+              [box.x1 + o, box.y0 - th - o + 0.2],
+              [box.x1 + o, box.y1 + o - 0.2],
+              [gx - tw / 2, box.y0 - th - o],
+              [gx - tw / 2, box.y1 + o],
+              [box.x0 - tw - o, box.y0 - th - o + 0.2],
+              [box.x0 - tw - o, box.y1 + o - 0.2],
+            ];
+            tag = placer.place({ w: tw, h: th, candidates: sides, inside: (b) => boxInside(b, deckBox), kind: "callout", zone: z.id, ref: m.id, force: true });
+          }
+        }
+        const cx = box.x0 + G * glyphScale;
+        const cy = box.y0 + G * glyphScale;
+        if (ref) callouts.push({ ref, marker: m.id, zone: z.id, number: numbers.get(z.id), label });
+        drawn = [
+          markerGlyph(m.kind, cx, cy, p, glyphScale),
+          ref && tag
+            ? el("text", { x: tag.x0 + 0.04, y: (tag.y0 + tag.y1) / 2 + tagSize * 0.36, "font-size": tagSize, "font-family": MAP_FONT, "font-weight": 700, fill: p.text, stroke: p.halo, "stroke-width": 0.1, "paint-order": "stroke", "data-callout": ref }, [ref])
+            : null,
+        ].filter((x): x is SvgNode => !!x);
+      }
+      add(z.id, el("g", { "data-marker": m.id, "data-marker-kind": m.kind }, [...drawn, el("title", {}, [label])]));
+    }
+  }
+
+  // 5e. duct numbers: on a corner of the duct, clear of the room's marks
+  if (gm || tracking) {
+    for (const z of shownZones) {
+      const n = numbers.get(z.id);
+      if (n === undefined || z.layer !== "duct") continue;
+      // on the duct, then just beside it, then a size smaller
+      const sizes = tracking ? [0.6, 0.48, 0.4, 0.34] : [0.42, 0.36, 0.3];
+      let r = sizes[0]!;
+      let box: PlacedLabel | undefined;
+      for (const [i, rr] of sizes.entries()) {
+        r = rr;
+        const cands = ductNumberCenters(bbox(z.poly), r).map(([x, y]) => [x - r, y - r] as [number, number]);
+        box = placer.place({ w: 2 * r, h: 2 * r, candidates: cands, inside: (b) => boxInside(b, insetBox(deckBox, 0.05)), kind: "duct-number", zone: z.id, force: i === sizes.length - 1 });
+        if (box) break;
+      }
+      if (box) add(z.id, numberNode(z.id, String(n), box.x0 + r, box.y0 + r, r, p.duct, p.duct, p));
+    }
+  }
+
+  // 5f. act numerals (GM) and clutter glyphs: bottom right
+  if (!tracking) {
+    for (const z of shownZones) {
+      if (!playable(z)) continue;
+      const bx = bbox(z.poly);
+      const w = bx.x1 - bx.x0;
+      const h = bx.y1 - bx.y0;
+      if (gm && z.acts?.length) {
+        const text = z.acts.map((a) => ROMAN[a] ?? String(a)).join(" ");
+        const tw = textWidth(text, 0.5, true) + 0.1;
+        const box = placer.place({ w: tw, h: 0.5, candidates: scanPositions(insetBox(bx, 0.24), tw, 0.5, "bottom-right"), inside: inZone(z), kind: "acts", zone: z.id, force: true });
+        if (box) add(z.id, el("text", { x: box.x1 - 0.05, y: box.y1 - 0.05, "text-anchor": "end", "font-size": 0.5, "font-family": MAP_FONT, "font-weight": 700, fill: p.act, "data-acts": z.id }, [text]));
+      }
+      if (z.cluttered && w >= 2 && h >= 2) {
+        const box = placer.place({ w: 0.66, h: 0.6, candidates: scanPositions(insetBox(bx, 0.2), 0.66, 0.6, "bottom-right"), inside: inZone(z, 0.2), kind: "clutter", zone: z.id });
+        if (box) add(z.id, clutterGlyph(box.x0 + 0.36, box.y0 + 0.32, p));
+      }
+    }
+  }
+
+  const contents: SvgNode[] = [];
+  for (const z of zones) {
+    const g = content.get(z.id);
+    if (g?.length) contents.push(el("g", { "data-zone-content": z.id }, g));
   }
   layers.push(el("g", { "data-layer": "contents" }, contents));
 
@@ -690,7 +903,7 @@ export function drawSiteMap(layout: SiteLayout, opts: SiteMapDrawOptions): SiteM
       liveNodes.push(
         el("g", { "data-token": t.id }, [
           el("circle", { cx: x, cy: y, r: 0.55, fill: t.gmOnly ? p.gmToken : p.token, stroke: p.halo, "stroke-width": 0.08, "stroke-dasharray": t.gmOnly ? "0.2 0.1" : undefined }),
-          el("text", { x, y: y + 0.2, "text-anchor": "middle", "font-size": 0.52, "font-family": "sans-serif", "font-weight": 700, fill: "#ffffff" }, [initials || "?"]),
+          el("text", { x, y: y + 0.2, "text-anchor": "middle", "font-size": 0.52, "font-family": MAP_FONT, "font-weight": 700, fill: "#ffffff" }, [initials || "?"]),
           el("title", {}, [t.label]),
         ]),
       );
@@ -712,6 +925,12 @@ export function drawSiteMap(layout: SiteLayout, opts: SiteMapDrawOptions): SiteM
     for (const z of [...floors, ...ducts]) {
       const isFog = fogged.has(z.id);
       const flags = view === "player" && isFog ? [] : flagHits(z).map((e) => e.label);
+      const label = zoneLabel(z, { number: numbers.get(z.id), fogged: isFog, flags });
+      // the tooltip also carries the zone's marker texts (corridors show only glyphs and letters)
+      const notes = isFog && view === "player" ? [] : markersOf(z).filter((m) => gm || m.kind === "label").map((m) => {
+        const c = callouts.find((x) => x.marker === m.id);
+        return `${c ? `${c.ref}: ` : ""}${labelText(m)}`;
+      });
       hits.push(
         el("polygon", {
           points: points(z.poly),
@@ -721,18 +940,125 @@ export function drawSiteMap(layout: SiteLayout, opts: SiteMapDrawOptions): SiteM
           "data-hit": "zone",
           role: "button",
           tabindex: 0,
-          "aria-label": zoneLabel(z, { number: numbers.get(z.id), fogged: isFog, flags }),
+          "aria-label": label,
           "aria-pressed": selected.has(z.id) ? "true" : "false",
           class: "cf-sitemap__hit",
-        }),
+        }, [el("title", {}, [[label, ...notes].join("\n")])]),
       );
     }
     layers.push(el("g", { "data-layer": "hits" }, hits));
   }
 
   const node = el("g", { transform: `translate(${margin} ${margin})`, "data-deck": deck?.id, "data-view": view }, [defs, ...layers]);
-  return { node, width, height, deck: deck?.id };
+  return { node, width, height, deck: deck?.id, callouts, labels: placer.boxes };
 }
+
+/** "a" ... "z", then "aa", "ab", ... */
+function calloutRef(i: number): string {
+  let s = "";
+  let n = i;
+  do {
+    s = String.fromCharCode(97 + (n % 26)) + s;
+    n = Math.floor(n / 26) - 1;
+  } while (n >= 0);
+  return s;
+}
+
+function numberNode(zone: string, text: string, x: number, y: number, r: number, ring: string, ink: string, p: SiteMapPalette): SvgNode {
+  const size = r * 1.16 * (text.length > 2 ? 0.8 : 1);
+  return el("g", { "data-number": zone }, [
+    el("circle", { cx: x, cy: y, r, fill: p.halo, stroke: ring, "stroke-width": r * 0.15 }),
+    el("text", { x, y: y + size * 0.36, "text-anchor": "middle", "font-size": size, "font-family": MAP_FONT, "font-weight": 700, fill: ink }, [text]),
+  ]);
+}
+
+function nameNode(zone: string, lines: string[], size: number, cx: number, firstBaseline: number, p: SiteMapPalette): SvgNode {
+  return el(
+    "g",
+    { "data-name": zone },
+    lines.map((l, i) =>
+      el("text", { x: cx, y: firstBaseline + i * size * 1.1, "text-anchor": "middle", "font-size": size, "font-family": MAP_FONT, "font-weight": 700, fill: p.text, stroke: p.halo, "stroke-width": size * 0.18, "paint-order": "stroke" }, [l]),
+    ),
+  );
+}
+
+/** A name on one line, then on two lines (when it has a space). */
+function nameVariants(name: string, size: number, max: number): string[][] {
+  const out: string[][] = [[name]];
+  if (/\s/.test(name.trim())) {
+    const two = wrapText(name, size, max, 2, true);
+    if (two.length === 2 && !two[1]!.endsWith("\u2026")) out.push(two);
+  }
+  return out;
+}
+
+/** Candidate centres for a duct's number: its corners (top right first), along its edges, then just outside it. */
+function ductNumberCenters(b: Box, r: number): Array<[number, number]> {
+  const i = 0.2;
+  const out: Array<[number, number]> = [
+    [b.x1 - i, b.y0 + i],
+    [b.x0 + i, b.y0 + i],
+    [b.x1 - i, b.y1 - i],
+    [b.x0 + i, b.y1 - i],
+  ];
+  const w = b.x1 - b.x0;
+  const h = b.y1 - b.y0;
+  for (let t = 0.5; t < Math.max(w, h); t += 0.5) {
+    if (w >= h) {
+      out.push([b.x1 - i - t, b.y0 + i], [b.x1 - i - t, b.y1 - i], [b.x1 - i - t, (b.y0 + b.y1) / 2]);
+    } else {
+      out.push([b.x1 - i, b.y0 + i + t], [b.x0 + i, b.y0 + i + t], [(b.x0 + b.x1) / 2, b.y0 + i + t]);
+    }
+  }
+  const on = out.filter(([x, y]) => x >= b.x0 - 0.01 && x <= b.x1 + 0.01 && y >= b.y0 - 0.01 && y <= b.y1 + 0.01);
+  // beside the duct: touching its outline from outside, corners first
+  const o = r + 0.05;
+  const beside: Array<[number, number]> = [
+    [b.x1 + o, b.y0 + r],
+    [b.x0 - o, b.y0 + r],
+    [b.x1 + o, b.y1 - r],
+    [b.x0 - o, b.y1 - r],
+    [b.x1 - r, b.y0 - o],
+    [b.x0 + r, b.y0 - o],
+    [b.x1 - r, b.y1 + o],
+    [b.x0 + r, b.y1 + o],
+  ];
+  // then anywhere along its outline, outside
+  for (let t = 0; t <= w + 1e-6; t += 0.25) beside.push([b.x1 - t, b.y0 - o], [b.x1 - t, b.y1 + o]);
+  for (let t = 0; t <= h + 1e-6; t += 0.25) beside.push([b.x1 + o, b.y0 + t], [b.x0 - o, b.y0 + t]);
+  return [...on, ...beside];
+}
+
+/** True when a polygon is an axis-aligned rectangle (its bounding box). */
+function isRect(poly: MapPoint[]): boolean {
+  return poly.length === 4 && new Set(poly.map((q) => q[0])).size === 2 && new Set(poly.map((q) => q[1])).size === 2;
+}
+
+/** Light grey squares of `step` units inside each playable floor zone, clipped to the zone. */
+function gridSquaresLayer(floors: MapZoneData[], step: number, id: (s: string) => string): SvgNode {
+  const groups: SvgNode[] = [];
+  const clips: SvgNode[] = [];
+  for (const z of floors) {
+    if (z.kind === "out-of-bounds") continue;
+    const b = bbox(z.poly);
+    const parts: string[] = [];
+    for (let x = Math.ceil(b.x0 / step + 1e-6) * step; x < b.x1 - 1e-6; x += step) parts.push(`M ${fmt(x)} ${fmt(b.y0)} V ${fmt(b.y1)}`);
+    for (let y = Math.ceil(b.y0 / step + 1e-6) * step; y < b.y1 - 1e-6; y += step) parts.push(`M ${fmt(b.x0)} ${fmt(y)} H ${fmt(b.x1)}`);
+    if (!parts.length) continue;
+    const path = el("path", { d: parts.join(" "), fill: "none", stroke: GRID_SQUARE_COLOR, "stroke-width": 0.025 });
+    if (isRect(z.poly)) {
+      groups.push(path);
+    } else {
+      const cid = id(`sq-${z.id}`);
+      clips.push(el("clipPath", { id: cid }, [el("polygon", { points: points(z.poly) })]));
+      groups.push(el("g", { "clip-path": `url(#${cid})` }, [path]));
+    }
+  }
+  return el("g", { "data-layer": "grid-squares" }, [clips.length ? el("defs", {}, clips) : null, ...groups]);
+}
+
+/** Colour of the 1 m grid squares. */
+export const GRID_SQUARE_COLOR = "#c3c9cd";
 
 function mid(a: [number, number], b: [number, number]): [number, number] {
   return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
@@ -838,7 +1164,7 @@ export function drawBorder(b: Pick<MapBorderData, "kind" | "armor" | "flags">, s
 
 /** A small drawing for a legend entry, in a 2 x 2 unit box. */
 export function legendSwatch(entry: MapLegendEntry, palette: SiteMapDrawOptions["palette"], legend?: MapLegendEntry[]): SvgNode {
-  const p = paletteOf(palette);
+  const p = resolvePalette(palette);
   const t = entry.target;
   const box = el("rect", { x: 0, y: 0, width: 2, height: 2, fill: p.floor, stroke: p.grid, "stroke-width": 0.05 });
   if ("border" in t) {

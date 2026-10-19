@@ -1,10 +1,22 @@
 /**
  * Site map exports: a standalone SVG string, a PNG at a print resolution,
  * and print tiles that split a deck over A4 or Letter pages at
- * 1 m = 1 cm with overlap marks. All of them use `drawSiteMap`.
+ * 1 m = 1 cm with overlap marks. All of them use `drawSiteMap`; the SVG and
+ * PNG can carry a title block with a scale bar. Roll prints (PDF) are in
+ * rollPrint.ts.
  */
 import type { SiteLayout } from "@campaign-forge/module-sdk";
-import { drawSiteMap, el, nodeToString, type SiteMapDrawOptions, type SvgNode } from "./siteMapDraw";
+import { drawSiteMap, el, nodeToString, resolvePalette, type SiteMapDrawOptions, type SvgNode } from "./siteMapDraw";
+import { MAP_FONT } from "./textMetrics";
+import { scaleText, titleBlock } from "./titleBlock";
+import { zoneKeyEntries } from "./rollPrint";
+
+export interface ExportTitleBlock {
+  /** Map name (default: the SVG title, else "Site map"). */
+  title?: string | undefined;
+  /** Scale line; the SVG export at 1 m = 1 cm and the PNG fill it in. */
+  scale?: string | undefined;
+}
 
 export interface RenderSvgOptions extends Omit<SiteMapDrawOptions, "interactive"> {
   /** Pixels per grid unit for the width/height attributes (default 20). Ignored with `physical`. */
@@ -12,6 +24,8 @@ export interface RenderSvgOptions extends Omit<SiteMapDrawOptions, "interactive"
   /** Size the SVG in centimetres at 1 m = 1 cm instead of pixels. */
   physical?: boolean;
   title?: string;
+  /** Add a title block with a 5 m scale bar below the map (never over it). */
+  titleBlock?: boolean | ExportTitleBlock | undefined;
 }
 
 const XMLNS = "http://www.w3.org/2000/svg";
@@ -20,17 +34,43 @@ function gridM(layout: SiteLayout): number {
   return layout.gridM && layout.gridM > 0 ? layout.gridM : 1;
 }
 
+/** One typographic point in grid units for exports: an 18 pt title is one grid unit tall. */
+const EXPORT_PT = 1 / 18;
+
+/** The drawing plus, optionally, a title block band below it, in grid units. */
+export function composeSiteMap(layout: SiteLayout, options: Omit<RenderSvgOptions, "scale" | "physical">, scaleLine?: string): { node: SvgNode; width: number; height: number } {
+  const d = drawSiteMap(layout, { ...options, interactive: false });
+  if (!options.titleBlock) return { node: d.node, width: d.width, height: d.height };
+  const tb = typeof options.titleBlock === "object" ? options.titleBlock : {};
+  const deck = layout.decks.find((x) => x.id === d.deck);
+  const margin = options.margin ?? 1;
+  const block = titleBlock(
+    {
+      title: tb.title ?? options.title ?? "Site map",
+      deck: deck?.name,
+      view: options.view,
+      scale: tb.scale ?? scaleLine,
+      zoneKey: options.view === "gm" ? zoneKeyEntries(layout, d.deck) : undefined,
+      callouts: d.callouts.length ? d.callouts : undefined,
+    },
+    { x: margin, y: d.height, width: Math.max(1, d.width - 2 * margin), pt: EXPORT_PT, perMetre: 1 / gridM(layout) },
+  );
+  const height = d.height + block.height + margin;
+  const bg = el("rect", { x: 0, y: d.height - margin, width: d.width, height: block.height + 2 * margin, fill: options.view === "tracking" ? "#ffffff" : resolvePalette(options.palette).background });
+  return { node: el("g", {}, [d.node, bg, block.node]), width: d.width, height };
+}
+
 /** A standalone SVG document for one deck. */
 export function renderSiteMapSvg(layout: SiteLayout, options: RenderSvgOptions): string {
-  const d = drawSiteMap(layout, { ...options, interactive: false });
   const cm = gridM(layout);
+  const d = composeSiteMap(layout, options, options.physical ? scaleText(10) : undefined);
   const w = options.physical ? `${d.width * cm}cm` : String(Math.round(d.width * (options.scale ?? 20)));
   const h = options.physical ? `${d.height * cm}cm` : String(Math.round(d.height * (options.scale ?? 20)));
   const root = el("svg", { xmlns: XMLNS, width: w, height: h, viewBox: `0 0 ${d.width} ${d.height}`, "data-view": options.view }, [options.title ? el("title", {}, [options.title]) : null, d.node]);
   return `<?xml version="1.0" encoding="UTF-8"?>\n${nodeToString(root)}\n`;
 }
 
-/** Pixel size of a deck at `dpi` with 1 m = 1 cm. */
+/** Pixel size of a deck at `dpi` with 1 m = 1 cm (the map alone, without a title block). */
 export function pngSize(layout: SiteLayout, options: { deck?: string | undefined; margin?: number | undefined }, dpi = 150): { width: number; height: number } {
   const deck = layout.decks.find((d) => d.id === options.deck) ?? layout.decks[0];
   const margin = options.margin ?? 1;
@@ -41,8 +81,10 @@ export function pngSize(layout: SiteLayout, options: { deck?: string | undefined
 /** Render a deck to PNG at `dpi` (default 150) with 1 m = 1 cm. Browser only (uses an image and a canvas). */
 export async function renderSiteMapPng(layout: SiteLayout, options: Omit<RenderSvgOptions, "scale" | "physical"> & { dpi?: number }): Promise<Blob> {
   const dpi = options.dpi ?? 150;
-  const { width, height } = pngSize(layout, options, dpi);
-  const d = drawSiteMap(layout, { ...options, interactive: false });
+  const pxPerUnit = (gridM(layout) * dpi) / 2.54;
+  const d = composeSiteMap(layout, options, `${scaleText(10)} at ${dpi} dpi`);
+  const width = Math.round(d.width * pxPerUnit);
+  const height = Math.round(d.height * pxPerUnit);
   const svg = nodeToString(el("svg", { xmlns: XMLNS, width, height, viewBox: `0 0 ${d.width} ${d.height}` }, [d.node]));
   const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
   try {
@@ -165,7 +207,7 @@ export function printTiles(layout: SiteLayout, options: PrintTileOptions): Print
         `<rect width="${best.pw}" height="${best.ph}" fill="#ffffff"/>` +
         `<g clip-path="url(#${clipId})"><g transform="translate(${m - ox} ${m - oy}) scale(${cm})">${content}</g></g>` +
         marks.map(nodeToString).join("") +
-        nodeToString(el("text", { x: m, y: m - 0.35, "font-size": 0.32, "font-family": "sans-serif", fill: "#333" }, [label]));
+        nodeToString(el("text", { x: m, y: m - 0.35, "font-size": 0.32, "font-family": MAP_FONT, fill: "#333" }, [label]));
       tiles.push({ row, col, svg: `${head}${body}</svg>` });
     }
   }
