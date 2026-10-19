@@ -7,6 +7,7 @@ import {
   acceptGeneratedGraph,
   applyEffects,
   fromMarkdown,
+  handoutsOfAct,
   newId,
   recordEdit,
   type AcceptResult,
@@ -301,17 +302,7 @@ export function deleteHandout(ctx: StoreCtx, id: Id): boolean {
 
 /** Handouts that belong to an act: those attached to it plus its ordered list, de-duplicated. */
 export function actHandouts(store: CampaignStore, act: Act): Handout[] {
-  const seen = new Set<Id>();
-  const out: Handout[] = [];
-  const push = (h: Handout | undefined) => {
-    if (h && !seen.has(h.id)) {
-      seen.add(h.id);
-      out.push(h);
-    }
-  };
-  for (const id of act.handouts) push(store.get("handouts", id));
-  for (const h of store.list("handouts")) if (h.attachedTo?.kind === "act" && h.attachedTo.id === act.id) push(h);
-  return out;
+  return handoutsOfAct(store, act);
 }
 
 // ---------------------------------------------------------------------------

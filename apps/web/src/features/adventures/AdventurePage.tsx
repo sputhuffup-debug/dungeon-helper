@@ -2,7 +2,9 @@
  * `/adventures/$adventureId`: the adventure builder. Header (title, premise,
  * status, hooks, tags, exports), an outline of acts and their ordered scenes,
  * and a pane that edits the selected node (overview, act or scene).
- * `?view=booklet|agendas` shows the print views instead.
+ * `?view=booklet|agendas` shows the print views instead. An adventure made
+ * with a module builder opens in the guided view (`?step=`); `?view=outline`
+ * shows this outline for it.
  */
 import type { Act, Adventure, AdventureStatus, Id } from "@campaign-forge/core";
 import { Link, useNavigate, useParams, useSearch } from "@tanstack/react-router";
@@ -18,6 +20,7 @@ import { ActEditor } from "./ActEditor";
 import { ADVENTURE_STATUSES, statusTone } from "./AdventuresPage";
 import { bookletMarkdown } from "./booklet";
 import { CommitInput, CommitTextarea } from "./fields";
+import { GuidedBuilder, ViewToggle } from "./guided/GuidedBuilder";
 import { OverviewEditor } from "./OverviewEditor";
 import { AgendaCardsView, BookletView } from "./PrintViews";
 import { SceneEditor } from "./SceneEditor";
@@ -44,6 +47,8 @@ export function AdventurePage() {
   }
   if (search.view === "booklet" || search.view === "booklet-print") return <BookletView adventure={adventure} autoPrint={search.view === "booklet-print"} />;
   if (search.view === "agendas" || search.view === "agendas-print") return <AgendaCardsView adventure={adventure} autoPrint={search.view === "agendas-print"} />;
+  const builder = adventure.builderId ? ctx.module.builder(adventure.builderId) : undefined;
+  if (builder && search.view !== "outline") return <GuidedBuilder adventure={adventure} builder={builder} stepId={search.step} />;
   return <Builder adventure={adventure} node={search.node} />;
 }
 
@@ -57,8 +62,9 @@ function Builder({ adventure, node }: { adventure: Adventure; node: string | und
   const [confirm, setConfirm] = useState<Pending>(undefined);
   const [exporting, setExporting] = useState(false);
   const template = adventure.templateId ? ctx.module.template(adventure.templateId) : undefined;
+  const guided = adventure.builderId ? ctx.module.builder(adventure.builderId) : undefined;
 
-  const select = (n: string) => void navigate({ search: { node: n }, replace: true });
+  const select = (n: string) => void navigate({ search: (prev) => ({ ...(prev.view === "outline" ? { view: "outline" } : {}), node: n }), replace: true });
   const actById = (id: Id) => acts.find((a) => a.id === id);
   const sceneById = (id: Id) => scenes.find((s) => s.id === id);
 
@@ -121,6 +127,7 @@ function Builder({ adventure, node }: { adventure: Adventure; node: string | und
               </>
             )}
           </p>
+          {guided && <ViewToggle adventureId={adventure.id} current="outline" />}
           <CommitInput value={adventure.title} label="Adventure title" className="app-entity__name" onCommit={(v) => updateAdventure(ctx, adventure.id, { title: v.trim() || adventure.title })} testId="adventure-title" />
           <CommitTextarea value={adventure.premise ?? ""} label="Premise" placeholder="The premise in one paragraph" rows={2} onCommit={(v) => updateAdventure(ctx, adventure.id, { premise: v.trim() || undefined })} />
           <div className="prep-builder__lists">

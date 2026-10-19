@@ -8,3 +8,4 @@ export * from "./procedures";
 export * from "./entities";
 export * from "./module";
 export * from "./lifecycle";
+export * from "./review";

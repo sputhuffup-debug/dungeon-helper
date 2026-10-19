@@ -1,10 +1,11 @@
-/** `/adventures`: adventure cards with a status filter and a "New adventure" dialog over the module's templates. */
+/** `/adventures`: adventure cards with a status filter and a "New adventure" dialog over the module's guided builders and templates. */
 import type { Adventure, AdventureStatus } from "@campaign-forge/core";
 import type { Template } from "@campaign-forge/module-sdk";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Badge, Button, Dialog, EmptyState, PageRef, pushToast } from "../../components/ui";
 import { errorMessage, relativeTime } from "../../lib/format";
+import { instantiateBuilder } from "../../state/builderActions";
 import { instantiateAdventureTemplate, isTemplateAdventure } from "../../state/prepActions";
 import { useCampaign, useList, useMeta } from "../../state/hooks";
 
@@ -88,6 +89,7 @@ export function AdventuresPage() {
 function AdventureCard({ adventure, counts }: { adventure: Adventure; counts: { acts: number; scenes: number } }) {
   const ctx = useCampaign();
   const template = adventure.templateId ? ctx.module.template(adventure.templateId) : undefined;
+  const builder = adventure.builderId ? ctx.module.builder(adventure.builderId) : undefined;
   return (
     <li>
       <Link to="/c/$campaignId/adventures/$adventureId" params={{ campaignId: ctx.campaignId, adventureId: adventure.id }} search={{}} className="prep-adv-card" data-testid="adventure-card">
@@ -100,7 +102,7 @@ function AdventureCard({ adventure, counts }: { adventure: Adventure; counts: { 
           <span>
             {counts.acts} act{counts.acts === 1 ? "" : "s"} · {counts.scenes} scene{counts.scenes === 1 ? "" : "s"}
           </span>
-          {template && <span>· {template.name}</span>}
+          {builder ? <span>· Guided: {builder.name}</span> : template && <span>· {template.name}</span>}
           <span className="app-list__end">{relativeTime(adventure.updated)}</span>
         </span>
       </Link>
@@ -120,14 +122,16 @@ function NewAdventureDialog({ open, onClose }: { open: boolean; onClose: () => v
     const list = allModes ? ctx.module.templatesFor("adventure") : ctx.module.templatesFor("adventure", meta.mode);
     return list.filter((t) => isTemplateAdventure(t.scaffold));
   }, [ctx.module, meta.mode, allModes]);
+  const builders = useMemo(() => ctx.module.buildersFor(allModes ? undefined : meta.mode), [ctx.module, meta.mode, allModes]);
   const chosen: string = templateId === undefined ? (templates[0]?.id ?? "blank") : templateId;
   const modeName = (id: string) => ctx.module.manifest.modes.find((m) => m.id === id)?.name ?? id;
 
   const create = async () => {
     setBusy(true);
     try {
-      const template: Template | undefined = chosen === "blank" ? undefined : ctx.module.template(chosen);
-      const adventure = await instantiateAdventureTemplate(ctx, template, { title });
+      const builder = chosen.startsWith("builder:") ? ctx.module.builder(chosen.slice("builder:".length)) : undefined;
+      const template: Template | undefined = chosen === "blank" || builder ? undefined : ctx.module.template(chosen);
+      const adventure = builder ? await instantiateBuilder(ctx, builder, { title }) : await instantiateAdventureTemplate(ctx, template, { title });
       onClose();
       setTitle("");
       setTemplateId(undefined);
@@ -166,6 +170,27 @@ function NewAdventureDialog({ open, onClose }: { open: boolean; onClose: () => v
           <span>Title</span>
           <input className="cf-input" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Uses the template's title when empty" aria-label="Adventure title" />
         </label>
+        {builders.length > 0 && (
+          <fieldset className="app-fieldset" aria-label="Guided builder">
+            <legend className="app-label">Guided builder</legend>
+            {builders.map((b) => {
+              const steps = b.steps.length;
+              return (
+                <label key={b.id} className="app-radio">
+                  <input type="radio" name="adventure-template" value={`builder:${b.id}`} checked={chosen === `builder:${b.id}`} onChange={() => setTemplateId(`builder:${b.id}`)} aria-label={`Guided: ${b.name}`} data-testid={`builder-option-${b.id}`} />
+                  <span>
+                    <strong>{b.name}</strong> <Badge tone="accent">guided</Badge> <PageRef page={b.page} />
+                    {b.mode && b.mode.length > 0 && <span className="cf-muted"> · {b.mode.map(modeName).join(", ")}</span>}
+                    <br />
+                    <span className="cf-muted">
+                      {b.description ?? ""} ({steps} step{steps === 1 ? "" : "s"} with a review checklist)
+                    </span>
+                  </span>
+                </label>
+              );
+            })}
+          </fieldset>
+        )}
         <fieldset className="app-fieldset" aria-label="Template">
           <legend className="app-label">Template</legend>
           {templates.map((t) => {

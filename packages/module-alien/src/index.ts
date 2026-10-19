@@ -21,6 +21,8 @@ import { styleNotes } from "./styleNotes";
 import { tables } from "./tables";
 import { procedures } from "./procedures";
 import { presets, dataReferenceLists } from "./data";
+import { narrativeFields, campaignThemes, fearStages } from "./narrative";
+import { adventureBuilders } from "./builders";
 
 export { manifest, ALIEN_MODULE_ID, ALIEN_MODULE_VERSION } from "./manifest";
 export { modes, CAMPAIGN, CINEMATIC } from "./modes";
@@ -38,8 +40,10 @@ export { styleNotes, gmPrinciples, themes } from "./styleNotes";
 export { tables } from "./tables";
 export { procedures } from "./procedures";
 export { presets, dataReferenceLists } from "./data";
+export * from "./narrative";
+export * from "./builders";
 
-export const referenceLists = [...coreReferenceLists, ...dataReferenceLists];
+export const referenceLists = [...coreReferenceLists, ...dataReferenceLists, campaignThemes, fearStages];
 
 export const alienModule: GameModule = {
   manifest,
@@ -56,6 +60,8 @@ export const alienModule: GameModule = {
   calendar,
   styleNotes,
   hooks,
+  narrativeFields,
+  adventureBuilders,
   migrations: [],
 };
 

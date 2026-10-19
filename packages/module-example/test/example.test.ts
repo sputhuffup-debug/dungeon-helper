@@ -150,3 +150,17 @@ describe("omen operation", () => {
     expect(markedSeen).toBe(true);
   });
 });
+
+describe("guided quest builder", () => {
+  it("is declared with narrative fields and passes conformance without warnings", () => {
+    const report = checkModule(exampleModule, { skipProcedureRuns: true });
+    expect(report.issues.filter((i) => i.where.startsWith("builder:") || i.where.startsWith("narrativeFields:"))).toEqual([]);
+    const loaded = loadModule(exampleModule, { skipProcedureRuns: true });
+    const builder = loaded.builder("example.builder.quest");
+    expect(builder?.cast.map((r) => r.id)).toEqual(["heroes", "places"]);
+    expect(builder?.review.filter((r) => r.check)).toHaveLength(1);
+    expect(builder?.review.filter((r) => r.each)).toHaveLength(1);
+    expect(loaded.buildersFor("hardcore")).toHaveLength(1);
+    for (const kind of ["adventure", "act", "scene"] as const) expect(loaded.narrativeFieldsFor(kind, "standard")?.kind).toBe(kind);
+  });
+});

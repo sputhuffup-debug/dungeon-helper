@@ -22,6 +22,18 @@ describe("SheetRenderer", () => {
     expect(container.querySelector('[data-path="notes"] textarea')).toHaveValue("Owes the miller.");
   });
 
+  it("renders only the given paths, in order, as one plain grid", () => {
+    const onChange = vi.fn();
+    const fields = heroFields();
+    const { container } = render(<SheetRenderer def={hero} mode="standard" fields={fields} onChange={onChange} referenceLists={referenceLists} paths={["wounds", "health", "attributes.might", "favoredSkill"]} />);
+    expect(sectionIds(container)).toEqual(["_paths"]);
+    expect(container.querySelector("summary")).toBeNull();
+    expect([...container.querySelectorAll<HTMLElement>("[data-path]")].map((el) => el.dataset.path)).toEqual(["wounds", "health", "attributes.might", "favoredSkill"]);
+    expect(screen.getByTestId("computed-health")).toHaveTextContent("6");
+    fireEvent.change(screen.getByRole("spinbutton", { name: "Might" }), { target: { value: "4" } });
+    expect(onChange).toHaveBeenCalledWith({ ...fields, attributes: { might: 4, wits: 2 } });
+  });
+
   it("shows the hardcore section in hardcore mode", () => {
     const { container } = render(<SheetRenderer def={hero} mode="hardcore" fields={heroFields()} onChange={() => {}} referenceLists={referenceLists} />);
     expect(sectionIds(container)).toEqual(["core", "gear", "hardcore", "notes"]);

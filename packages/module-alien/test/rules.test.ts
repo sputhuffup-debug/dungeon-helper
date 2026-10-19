@@ -67,8 +67,8 @@ describe("rule cards", () => {
 });
 
 describe("templates", () => {
-  it("declares seven templates, each with a declared mode and a page", () => {
-    expect(templates).toHaveLength(7);
+  it("declares eight templates, each with a declared mode and a page", () => {
+    expect(templates).toHaveLength(8);
     for (const t of templates) {
       expect(t.mode, t.id).toBeDefined();
       expect(t.mode!.length).toBeGreaterThan(0);
@@ -76,7 +76,7 @@ describe("templates", () => {
       expect(t.page).toBeDefined();
       expect(typeof t.scaffold).toBe("object");
     }
-    expect(templates.map((t) => t.kind).sort()).toEqual(["adventure", "adventure", "campaign", "checklist", "checklist", "scene", "session"]);
+    expect(templates.map((t) => t.kind).sort()).toEqual(["adventure", "adventure", "adventure", "campaign", "checklist", "checklist", "scene", "session"]);
   });
   it("cinematic adventure has three acts with agenda handouts", () => {
     const t = templates.find((x) => x.id === "alien.template.cinematic-adventure")!;

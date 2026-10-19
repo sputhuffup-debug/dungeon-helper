@@ -57,8 +57,18 @@ buddy: string; rival: string   // free text; relationships are the real link
 criticalInjuries: [{ id, label, page? }]
 mentalTraumas: [{ id, label, page? }]
 lifePath: object           // provenance of life-path rolls, optional
+background: string         // PC background (pregenerated PCs, p. 157)
+// NPC dossier (appearance, trait and goal above are the book's basics; goal = "wants")
+role: string; voice: string; fears: string; secret: string; tells: string
+sampleLines: string; arc: string          // arc = how they change across the acts (cinematic)
+// secret synthetic (android posing as human, p. 25, 77); `android` stays the synthetic flag,
+// `attributes` hold the TRUE scores
+secretAndroid: boolean
+coverAttributes: { strength, agility, wits, empathy }: number 1..5   // shown and rolled in front of players
+fairClues: string[]
+secretOrders: string
 ```
-Computed: `health = ceil((strength+agility)/2) + hardenedCount`, `resolve = ceil((wits+empathy)/2) + seenItAllCount`, `encumbranceLimit = strength*2`, `encumbrance = sum(gear.weight*qty)`.
+Computed: `health = ceil((strength+agility)/2) + hardenedCount`, `resolve = ceil((wits+empathy)/2) + seenItAllCount`, `encumbranceLimit = strength*2`, `encumbrance = sum(gear.weight*qty)`, `coverHealth = max(ceil((cover str+agi)/2), ceil((str+agi)/2))` (Health shown for a secret synthetic), `coverResolve = ceil((cover wits+emp)/2)`.
 
 ## `alien.creature.fields`
 ```
@@ -75,7 +85,8 @@ loreOnly?: boolean
 star-system: `starClass` (O B A F G K M), `brightness` (Ia Ib II III IV V D), `region`, `allegiance`, `bodies: [{ type: "gas-giant"|"terrestrial"|"ice"|"asteroid-belt", name?, features?: string[] }]`
 planet: `planetType` ("terrestrial"|"ice"|"gas-giant"|"asteroid-belt"), `diameterKm: number`, `gravity: string`, `atmosphere`, `temperature`, `geosphere`, `terrain`, `inhabited: boolean`, `population?: number|string`, `orbitalComponents: string[]`, `affiliation?`, `classification?`, `climate?`, `keyResources?: string[]`, `colonies?: string[]`
 colony: `colonySize` ("start-up"|"young"|"established"), `population`, `missions: string[]`, `factions: [{ type: string, name?: string }]`, `allegiance`, `campaignHook?`, `affiliation?`, `classification?`, `resources?`
-site: `description`, `mapId?` (core SiteMap id)
+site: `description` (what the PCs find), `mapId?` (core SiteMap id)
+any subtype (shown on the site sheet): `secret`, `puzzle`, `puzzleClue`, `puzzleSolution`, `puzzleFallback`, `threat` (all GM-only by default)
 
 ## `alien.faction.fields`
 `factionType` ("corporation"|"government"|"military"|"colonial"|"other"), `allegiance`, `history`, `products`, `military`, `leaders`, `locations`, `relations`, `currentActivities`, `reputation: number`, `minor: boolean`
@@ -106,3 +117,17 @@ Host conditions it sets: `xx121:facehugged`, `xx121:implanted` (set by the `inse
 
 ## Table id convention
 `alien.<family>.<name>` e.g. `alien.world.atmosphere`, `alien.character.panic`, `alien.jobs.truckers.employer`, `alien.encounters.colony.general`, `alien.lifepath.origin`.
+
+## Narrative fields (`src/narrative.ts`, cinematic mode)
+Stored in the core record's `fields`.
+
+- Adventure: `tagline`, `year` (default 2184), `theme` (campaign-theme ids: `killing-greed`, `corporate-intrigue`, `tidings-of-war`, `new-opportunities`, `secret-research`, `echoes-from-the-past`; default `killing-greed`), `targetHours` (default 4), `contentNote`, `truthTie`, `threats`, `zoneOrder`, `countdown` (Act 3 timer), `openingNarration`, `signOffs: { <PC entity id>: string }`. The public mission is the core `playerIntro`, the GM-only truth the core `gmSituation`.
+- Act: `minutes` (15-240), `fearStage` (`dread` | `terror` | `horror`), `pressure`, `relief`, `actEnd` (acts 1-2). The one-line summary is the core act `goal`.
+- Scene (an event): `aimedAt` (`"everyone"` or a PC/NPC entity id), `trigger`. Title, body ("what happens") and the mandatory flag are core.
+
+Reference lists for the selects: `alien.campaign-themes`, `alien.fear-stages`.
+
+## Adventure builder `alien.builder.cinematic` (`src/builders/cinematic.ts`)
+Template `alien.template.cinematic-builder` (three empty acts: 75/100/65 min, dread/terror/horror, one blank event each; the scaffold carries the adventure and act `fields`).
+Cast roles: `pcs` (alien.character, `isPC: true`), `npcs` (alien.character), `locations` (alien.location, subtype `site`).
+Steps: `basics`, `situation`, `pcs`, `npcs`, `locations`, `act1`, `act2`, `act3`, `finale`, `review`. Review rule ids are `<step>.<check>`, e.g. `pcs.creation`, `act2.relief`.

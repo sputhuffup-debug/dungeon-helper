@@ -8,7 +8,13 @@ import { computeFields, defaultFieldsFor, fieldSchemaAt, schemaDefaults, validat
 import { runProcedure } from "./procedures";
 import { createTableRegistry } from "./tables";
 import { lifecycleConfig, lifecycleConfigIssues } from "./lifecycle";
+import { logicIssues } from "./logic";
+import { CORE_NARRATIVE_FIELDS, REVIEW_COLLECTIONS, REVIEW_CONTEXT_KEYS, narrativeEntityType } from "./review";
 import {
+  type AdventureBuilderDef,
+  type NarrativeFieldsDef,
+  type NarrativeKind,
+  type TemplateAdventure,
   CONTRACT_VERSION,
   CORE_RELATIONSHIP_TYPES,
   SESSION_CHECKLIST_EVENTS,
@@ -182,8 +188,7 @@ function fieldPathExists(def: EntityTypeDef, path: string): boolean {
   return false;
 }
 
-function checkEntityType(def: EntityTypeDef, module: GameModule, declaredModes: Set<PlayModeId>, c: Collector): void {
-  const where = `entityType:${def.id}`;
+function checkEntityType(def: EntityTypeDef, module: GameModule, declaredModes: Set<PlayModeId>, c: Collector, where = `entityType:${def.id}`): void {
   checkModes(def.mode, declaredModes, where, c);
   if (!def.schema || typeof def.schema !== "object") {
     c.error(where, "schema is missing");
@@ -404,6 +409,136 @@ function checkSessionChecklist(t: Template, moduleId: string, declaredModes: Set
   }
 }
 
+
+// ---------------------------------------------------------------------------
+// narrative fields and adventure builders
+// ---------------------------------------------------------------------------
+
+const NARRATIVE_KINDS: NarrativeKind[] = ["adventure", "act", "scene"];
+
+function checkNarrativeFields(defs: NarrativeFieldsDef[], module: GameModule, declaredModes: Set<PlayModeId>, c: Collector): void {
+  for (const [i, def] of defs.entries()) {
+    const where = `narrativeFields:${String(def.kind)}${defs.filter((d) => d.kind === def.kind).length > 1 ? `#${i}` : ""}`;
+    if (!NARRATIVE_KINDS.includes(def.kind)) {
+      c.error(where, `unknown narrative kind "${String(def.kind)}" (adventure, act or scene)`);
+      continue;
+    }
+    if (!def.schema || typeof def.schema !== "object") {
+      c.error(where, "schema is missing");
+      continue;
+    }
+    if (!def.sheet || !Array.isArray(def.sheet.sections)) {
+      c.error(where, "sheet is missing");
+      continue;
+    }
+    checkModes(def.mode, declaredModes, where, c);
+    checkEntityType(narrativeEntityType(def), module, declaredModes, c, where);
+  }
+  // Two defs for the same kind that both apply to one mode: only the first is used.
+  for (const kind of NARRATIVE_KINDS) {
+    const ofKind = defs.filter((d) => d.kind === kind);
+    for (const mode of declaredModes) {
+      const hits = ofKind.filter((d) => !d.mode || d.mode.length === 0 || d.mode.includes(mode));
+      if (hits.length > 1) c.warn(`narrativeFields:${kind}`, `${hits.length} narrative field defs apply to mode "${mode}"; only the first is used`);
+    }
+  }
+}
+
+function narrativePathExists(defs: NarrativeFieldsDef[], kind: NarrativeKind, path: string): boolean {
+  if (path.startsWith("core.")) return CORE_NARRATIVE_FIELDS[kind].includes(path.slice(5));
+  return defs.some((d) => d.kind === kind && fieldPathExists(narrativeEntityType(d), path));
+}
+
+function checkLogic(rule: unknown, where: string, label: string, c: Collector): void {
+  for (const issue of logicIssues(rule)) c.error(where, `${label}: ${issue}`);
+}
+
+function checkBuilder(b: AdventureBuilderDef, module: GameModule, declaredModes: Set<PlayModeId>, c: Collector): void {
+  const where = `builder:${b.id}`;
+  const narrative = module.narrativeFields ?? [];
+  if (!b.name) c.warn(where, "builder has no name");
+  checkModes(b.mode, declaredModes, where, c);
+  if (b.page !== undefined && !validPage(b.page)) c.error(where, "invalid page reference");
+
+  // Template: it scaffolds the acts the act panels point at.
+  let actNumbers: Set<number> | undefined;
+  if (b.templateId !== undefined) {
+    const t = module.templates.find((x) => x.id === b.templateId);
+    if (!t) c.error(where, `unknown template "${b.templateId}"`);
+    else if (t.kind !== "adventure" || !Array.isArray((t.scaffold as Partial<TemplateAdventure>).acts)) c.error(where, `template "${b.templateId}" is not an adventure template`);
+    else actNumbers = new Set((t.scaffold as TemplateAdventure).acts.map((a) => a.number));
+  }
+
+  // Cast roles.
+  const cast = Array.isArray(b.cast) ? b.cast : [];
+  checkUnique(cast, (r) => r.id, (r) => `${where}:cast:${r.id}`, "cast role", c);
+  const roles = new Set(cast.map((r) => r.id));
+  for (const role of cast) {
+    const rw = `${where}:cast:${role.id}`;
+    if (REVIEW_CONTEXT_KEYS.includes(role.id)) c.error(rw, `cast role id "${role.id}" clashes with a review context key (${REVIEW_CONTEXT_KEYS.join(", ")})`);
+    const def = module.entityTypes.find((t) => t.id === role.entityType);
+    if (!def) {
+      c.error(rw, `unknown entity type "${role.entityType}"`);
+      continue;
+    }
+    if (role.subtype !== undefined && !(def.subtypes ?? []).some((s) => s.id === role.subtype)) c.error(rw, `entity type "${def.id}" has no subtype "${role.subtype}"`);
+    for (const path of role.fields ?? []) if (!fieldPathExists(def, path)) c.error(rw, `field "${path}" does not exist on "${def.id}"`);
+    for (const path of Object.keys(role.defaults ?? {})) if (!fieldPathExists(def, path)) c.error(rw, `default "${path}" is not a field of "${def.id}"`);
+    if (role.min !== undefined && role.max !== undefined && role.min > role.max) c.error(rw, `min ${role.min} is greater than max ${role.max}`);
+  }
+
+  // Steps and panels.
+  const steps = Array.isArray(b.steps) ? b.steps : [];
+  if (steps.length === 0) c.error(where, "builder has no steps");
+  checkUnique(steps, (s) => s.id, (s) => `${where}:step:${s.id}`, "step", c);
+  const stepIds = new Set(steps.map((s) => s.id));
+  for (const step of steps) {
+    const sw = `${where}:step:${step.id}`;
+    if (step.page !== undefined && !validPage(step.page)) c.error(sw, "invalid page reference");
+    for (const [i, panel] of (step.panels ?? []).entries()) {
+      const pw = `${sw}:panel:${i}`;
+      switch (panel.kind) {
+        case "adventure":
+          for (const f of panel.fields) if (!narrativePathExists(narrative, "adventure", f)) c.error(pw, `adventure field "${f}" is neither a core field nor in the adventure narrative fields`);
+          break;
+        case "cast":
+        case "agendas":
+          if (!roles.has(panel.role)) c.error(pw, `${panel.kind} panel references unknown cast role "${panel.role}"`);
+          break;
+        case "act":
+          if (!Number.isInteger(panel.act) || panel.act < 1) c.error(pw, `act number ${String(panel.act)} is invalid`);
+          else if (actNumbers && !actNumbers.has(panel.act)) c.error(pw, `act ${panel.act} is not one of the template's acts (${[...actNumbers].join(", ")})`);
+          else if (!actNumbers) c.warn(pw, "act panel in a builder without a template: the act may not exist");
+          for (const f of panel.fields) if (!narrativePathExists(narrative, "act", f)) c.error(pw, `act field "${f}" is neither a core field nor in the act narrative fields`);
+          if (panel.sceneFields && !panel.scenes) c.warn(pw, "sceneFields are only shown when scenes is true");
+          for (const f of panel.sceneFields ?? []) if (!narrativePathExists(narrative, "scene", f)) c.error(pw, `scene field "${f}" is neither a core field nor in the scene narrative fields`);
+          break;
+        case "review":
+          break;
+        default:
+          c.error(pw, `unknown panel kind "${String((panel as { kind: unknown }).kind)}"`);
+      }
+    }
+  }
+
+  // Review rules.
+  const rules = Array.isArray(b.review) ? b.review : [];
+  checkUnique(rules, (r) => r.id, (r) => `${where}:review:${r.id}`, "review rule", c);
+  const collections = new Set([...REVIEW_COLLECTIONS, ...roles]);
+  for (const rule of rules) {
+    const rw = `${where}:review:${rule.id}`;
+    if (!stepIds.has(rule.step)) c.error(rw, `references unknown step "${rule.step}"`);
+    if (rule.level !== "bad" && rule.level !== "warn") c.error(rw, `level must be "bad" or "warn", not "${String(rule.level)}"`);
+    if (rule.each !== undefined && !collections.has(rule.each)) c.error(rw, `each names unknown collection "${rule.each}" (known: ${[...collections].join(", ")})`);
+    if (rule.when === undefined && rule.check === undefined) c.error(rw, "rule has neither when nor check");
+    if (rule.check !== undefined && typeof rule.check !== "function") c.error(rw, "check must be a function");
+    if (rule.when !== undefined) checkLogic(rule.when, rw, "when", c);
+    if (rule.value !== undefined) checkLogic(rule.value, rw, "value", c);
+    if (!rule.message) c.error(rw, "rule has no message");
+    if (rule.page !== undefined && !validPage(rule.page)) c.error(rw, "invalid page reference");
+  }
+}
+
 function majorOf(version: string): number | undefined {
   const m = /(\d+)\.(\d+)\.(\d+)/.exec(version) ?? /(\d+)/.exec(version);
   return m && m[1] !== undefined ? Number(m[1]) : undefined;
@@ -466,6 +601,15 @@ export function checkModule(module: GameModule, options: CheckModuleOptions = {}
   checkUnique(module.templates, (t) => t.id, (t) => `template:${t.id}`, "template", c);
   for (const t of module.templates) checkTemplate(t, manifest?.id ?? "", declaredModes, c);
 
+  // Narrative fields and adventure builders.
+  if (module.narrativeFields !== undefined && !Array.isArray(module.narrativeFields)) c.error("narrativeFields", "narrativeFields must be a list");
+  else checkNarrativeFields(module.narrativeFields ?? [], module, declaredModes, c);
+  if (module.adventureBuilders !== undefined && !Array.isArray(module.adventureBuilders)) c.error("adventureBuilders", "adventureBuilders must be a list");
+  else {
+    checkUnique(module.adventureBuilders ?? [], (b) => b.id, (b) => `builder:${b.id}`, "adventure builder", c);
+    for (const b of module.adventureBuilders ?? []) checkBuilder(b, module, declaredModes, c);
+  }
+
   // Procedures.
   checkUnique(module.procedures, (p) => p.id, (p) => `procedure:${p.id}`, "procedure", c);
   for (const p of module.procedures) checkProcedureStatic(p, module, declaredModes, c);
@@ -525,6 +669,11 @@ export interface LoadedModule {
   templatesFor(kind: TemplateKind, mode?: PlayModeId): Template[];
   tracker(id: string): TrackerDef | undefined;
   forMode(mode: PlayModeId): ModuleModeView;
+  /** The module's fields for a narrative kind in a mode (the first def that applies), if any. */
+  narrativeFieldsFor(kind: NarrativeKind, mode?: PlayModeId): NarrativeFieldsDef | undefined;
+  builder(id: string): AdventureBuilderDef | undefined;
+  /** Adventure builders, filtered by mode when one is given. */
+  buildersFor(mode?: PlayModeId): AdventureBuilderDef[];
 }
 
 export class ModuleConformanceError extends Error {
@@ -558,6 +707,7 @@ export function loadModule(module: GameModule, options: CheckModuleOptions = {})
   const presets = indexBy(module.presets, (p) => p.id);
   const templates = indexBy(module.templates, (t) => t.id);
   const trackers = indexBy(module.trackers, (t) => t.id);
+  const builders = indexBy(module.adventureBuilders ?? [], (b) => b.id);
   const rulesByField = new Map<string, RuleCard[]>();
   const rulesByTable = new Map<string, RuleCard[]>();
   for (const r of module.rules) {
@@ -597,5 +747,11 @@ export function loadModule(module: GameModule, options: CheckModuleOptions = {})
       procedures: filterByMode(module.procedures, mode),
       entityTypes: filterByMode(module.entityTypes, mode),
     }),
+    narrativeFieldsFor: (kind, mode) => {
+      const ofKind = (module.narrativeFields ?? []).filter((d) => d.kind === kind);
+      return (mode === undefined ? ofKind : filterByMode(ofKind, mode))[0];
+    },
+    builder: (id) => builders.get(id),
+    buildersFor: (mode) => (mode === undefined ? [...(module.adventureBuilders ?? [])] : filterByMode(module.adventureBuilders ?? [], mode)),
   };
 }
