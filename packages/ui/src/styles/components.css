@@ -1904,3 +1904,168 @@
 .cf-maplegend__text {
   min-width: 0;
 }
+
+/* ------------------------------------------------------------------ */
+/* Play guide: GM hints per stat and skill                             */
+/* ------------------------------------------------------------------ */
+.cf-guide {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cf-space-2);
+}
+.cf-guide__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cf-space-1);
+}
+.cf-guide__title {
+  margin: 0;
+  font-size: var(--cf-text-lg);
+}
+.cf-guide__intro {
+  margin: 0;
+  color: var(--cf-muted);
+  font-size: var(--cf-text-sm);
+}
+.cf-guide__toggle,
+.cf-guide__row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--cf-space-2);
+  width: 100%;
+  min-height: var(--cf-touch);
+  padding: var(--cf-space-2) var(--cf-space-2);
+  border: 0;
+  border-radius: var(--cf-radius-sm);
+  background: transparent;
+  color: var(--cf-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.cf-guide__toggle:hover,
+.cf-guide__row:hover {
+  background: var(--cf-elevated);
+}
+.cf-guide__toggle:focus-visible,
+.cf-guide__row:focus-visible {
+  outline: 2px solid var(--cf-focus);
+  outline-offset: 1px;
+}
+.cf-guide__chevron {
+  flex: none;
+  width: 1em;
+  color: var(--cf-muted);
+}
+.cf-guide__toggle-label,
+.cf-guide__label {
+  flex: none;
+  font-weight: 600;
+}
+/* The one-line summary shrinks and ellipsizes so the row stays one line. */
+.cf-guide__line {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--cf-muted);
+  font-size: var(--cf-text-sm);
+}
+.cf-guide__row-end {
+  flex: none;
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--cf-space-2);
+  margin-left: auto;
+  white-space: nowrap;
+  font-size: var(--cf-text-sm);
+}
+.cf-guide__tips,
+.cf-guide__group {
+  border: 1px solid var(--cf-border);
+  border-radius: var(--cf-radius);
+  background: var(--cf-surface);
+}
+.cf-guide__group-head {
+  flex-wrap: wrap;
+}
+.cf-guide__group-head .cf-guide__line {
+  flex-basis: 100%;
+  padding-left: calc(1em + var(--cf-space-2));
+  white-space: normal;
+}
+.cf-guide__tiplist {
+  margin: 0;
+  padding: 0 var(--cf-space-3) var(--cf-space-3) calc(var(--cf-space-5) + var(--cf-space-2));
+  display: flex;
+  flex-direction: column;
+  gap: var(--cf-space-1);
+  font-size: var(--cf-text-sm);
+}
+.cf-guide__entries {
+  list-style: none;
+  margin: 0;
+  padding: 0 var(--cf-space-1) var(--cf-space-1);
+  display: flex;
+  flex-direction: column;
+}
+.cf-guide__entry + .cf-guide__entry {
+  border-top: 1px solid var(--cf-border);
+}
+.cf-guide__entry--open {
+  background: var(--cf-elevated);
+  border-radius: var(--cf-radius-sm);
+}
+.cf-guide__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cf-space-2);
+  padding: 0 var(--cf-space-3) var(--cf-space-3) calc(1em + var(--cf-space-4));
+  font-size: var(--cf-text-sm);
+}
+.cf-guide__summary {
+  margin: 0;
+}
+.cf-guide__heading {
+  display: block;
+  color: var(--cf-muted);
+  font-size: var(--cf-text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.cf-guide__cues,
+.cf-guide__examples {
+  margin: var(--cf-space-1) 0 0;
+  padding-left: var(--cf-space-4);
+}
+.cf-guide__examples {
+  font-style: italic;
+  list-style: none;
+  padding-left: 0;
+}
+.cf-guide__outcomes {
+  margin: 0;
+  display: grid;
+  gap: var(--cf-space-1);
+}
+.cf-guide__outcome {
+  display: grid;
+  grid-template-columns: 5.5em 1fr;
+  gap: var(--cf-space-2);
+}
+.cf-guide__outcome dt {
+  font-weight: 600;
+}
+.cf-guide__outcome dd {
+  margin: 0;
+}
+.cf-guide__outcome--success dt {
+  color: var(--cf-success);
+}
+.cf-guide__outcome--failure dt {
+  color: var(--cf-danger);
+}
+.cf-guide__outcome--push dt {
+  color: var(--cf-warning);
+}

@@ -2,7 +2,7 @@
  * `/c/$campaignId/table/$sessionId`: table mode. A full-height surface in
  * large type (`cf-table-mode`) for running a session: clock and timer in the
  * header, the current scene, participants, reveals and the map on the left,
- * trackers, dice and the running log on the right. `?view=players` renders
+ * trackers, dice, the module's play-guide hints and the running log on the right. `?view=players` renders
  * the read-only player screen instead. Everything is local.
  */
 import { appendTrackerLog, type Id } from "@campaign-forge/core";
@@ -27,6 +27,7 @@ import {
 import { SessionChecklist, useLogNotesAutoTick } from "../sessions/SessionChecklist";
 import { WrapUpWizard } from "../sessions/WrapUp";
 import { DicePanel } from "./DicePanel";
+import { PlayGuidePanel, usePlayGuides } from "./PlayGuidePanel";
 import { formatDuration, useCrossTabSync, useEntities, usePlayerCharacters, useSessionScenes, useSessionTrackerState, useTableState, useTick } from "./hooks";
 import { EntityDrawer, Participants } from "./Participants";
 import { PlayerScreen } from "./PlayerScreen";
@@ -75,6 +76,7 @@ function GmTable({ sessionId }: { sessionId: Id }) {
   const [roll, setRoll] = useState<OperationRoll | undefined>();
   const [wrapping, setWrapping] = useState(false);
   const [tab, setTab] = useState("trackers");
+  const hasGuide = usePlayGuides().length > 0;
   const resolveName = useCallback((id: string) => ctx.store.get("entities", id)?.name ?? id, [ctx.store]);
 
   const handlers = useMemo<TrackerHandlers>(
@@ -199,11 +201,12 @@ function GmTable({ sessionId }: { sessionId: Id }) {
           </div>
           <div className="app-table__col">
             <Tabs
-              value={tab}
+              value={tab === "hints" && !hasGuide ? "trackers" : tab}
               onChange={setTab}
               tabs={[
                 { id: "trackers", label: "Trackers", content: <TrackersPanel sessionId={sessionId} trackers={panelTrackers} pcs={pcs} participants={others} map={map} handlers={handlers} /> },
                 { id: "dice", label: "Dice", content: <DicePanel sessionId={sessionId} pcs={pcs} /> },
+                ...(hasGuide ? [{ id: "hints", label: "Hints", content: <PlayGuidePanel sessionId={sessionId} pcs={pcs} /> }] : []),
                 { id: "checklist", label: "Checklist", content: <SessionChecklist session={session} focus="play" title="Checklist" className="app-table__checklist" /> },
                 {
                   id: "log",

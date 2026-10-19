@@ -5,10 +5,10 @@
  * logs its seed, so the log can reproduce it.
  */
 import { getPath, type Entity, type Id, type TrackerState } from "@campaign-forge/core";
-import { createRng, type DicePool, type EntityTypeDef, type LoadedModule, type RollResult } from "@campaign-forge/module-sdk";
+import { createRng, type DicePool, type EntityTypeDef, type LoadedModule, type PlayModeId, type RollResult } from "@campaign-forge/module-sdk";
 import { useMemo, useRef, useState } from "react";
 import { Badge, Button, Card, DiceRollPanel, DieFace, RollLog, Stepper, humanize, resolveBindPath, specById, type RollLogEntry } from "../../components/ui";
-import { useCampaign } from "../../state/hooks";
+import { useCampaign, useMeta } from "../../state/hooks";
 import { DICE_LOG, applySessionEffects, diceCounter, recordPoolRoll, type DiceLogData } from "../../state/tableActions";
 import { useSessionTrackerState } from "./hooks";
 
@@ -26,16 +26,32 @@ function skillsField(def: EntityTypeDef | undefined) {
   return undefined;
 }
 
-export function skillOptions(module: LoadedModule, def: EntityTypeDef | undefined): SkillOption[] {
+/** Where the skills widget stores skill ratings (`skills.*` means the object at `skills`). */
+function skillsPathOf(def: EntityTypeDef | undefined): string {
+  return (skillsField(def)?.path ?? "skills").replace(/\.\*$/, "");
+}
+
+/**
+ * The skills a character type rolls: the skills widget's `config.skills`
+ * bindings, else the items of its reference list (`options.ref` or
+ * `config.ref`, as the sheet's skills widget reads them). With a mode, items
+ * limited to other modes are left out.
+ */
+export function skillOptions(module: LoadedModule, def: EntityTypeDef | undefined, mode?: PlayModeId): SkillOption[] {
   const field = skillsField(def);
   const cfg = field?.config ?? {};
-  const raw = Array.isArray(cfg.skills) ? cfg.skills : [];
-  const refList = typeof field?.options === "object" && field.options && "ref" in field.options ? module.referenceList(field.options.ref) : undefined;
-  return raw.filter(isRecordLike).map((s) => {
-    const id = String(s.id);
-    const ref = refList?.items.find((i) => i.id === id);
-    return { id, label: ref?.name ?? humanize(id), ...(typeof s.attribute === "string" ? { attribute: s.attribute } : {}) };
-  });
+  const refId = typeof field?.options === "object" && field.options && "ref" in field.options ? field.options.ref : typeof cfg.ref === "string" ? cfg.ref : undefined;
+  const refList = refId ? module.referenceList(refId) : undefined;
+  const raw: unknown[] = Array.isArray(cfg.skills) ? cfg.skills : (refList?.items ?? []);
+  const inMode = (s: Record<string, unknown>) => !mode || !Array.isArray(s.mode) || s.mode.length === 0 || s.mode.includes(mode);
+  return raw
+    .filter(isRecordLike)
+    .filter(inMode)
+    .map((s) => {
+      const id = String(s.id);
+      const ref = refList?.items.find((i) => i.id === id);
+      return { id, label: ref?.name ?? humanize(id), ...(typeof s.attribute === "string" ? { attribute: s.attribute } : {}) };
+    });
 }
 
 /** Where the entity's stress lives: the skills widget's `stressPath`, else the stress tracker's bind. */
@@ -75,7 +91,7 @@ export function skillInput(module: LoadedModule, entity: Entity, choice: string)
     label: skill?.label ?? humanize(choice),
     input: {
       attribute: attributeId ? num(getPath(entity.fields, `${attrPath}.${attributeId}`)) : 0,
-      skill: num(getPath(entity.fields, `${skillsField(def)?.path ?? "skills"}.${choice}`)),
+      skill: num(getPath(entity.fields, `${skillsPathOf(def)}.${choice}`)),
       skillId: choice,
       ...(attributeId ? { attributeId } : {}),
       stress,
@@ -84,19 +100,33 @@ export function skillInput(module: LoadedModule, entity: Entity, choice: string)
   };
 }
 
+/**
+ * Roll a pool for an entity right away, as SessionRollPanel's Roll button
+ * does: seeded `sessionId:counter` and logged to the session. Pass the result
+ * to SessionRollPanel's `initialResult` so it can be pushed.
+ */
+export function rollSessionPool(ctx: ReturnType<typeof useCampaign>, sessionId: Id, entity: Entity, label: string, input: Record<string, unknown>): RollResult {
+  const dice = ctx.module.module.dice;
+  const seed = `${sessionId}:${diceCounter(ctx.store, sessionId)}`;
+  const result = dice.roll(dice.buildPool(input), createRng(seed));
+  recordPoolRoll(ctx, sessionId, { label: `${entity.name}: ${label}`, seed, result, entityId: entity.id });
+  return result;
+}
+
 /** A DiceRollPanel bound to the session: seeded, logged, and a push adds one stress to the roller. */
-export function SessionRollPanel({ sessionId, entity, label, input }: { sessionId: Id; entity?: Entity; label: string; input: Record<string, unknown> }) {
+export function SessionRollPanel({ sessionId, entity, label, input, initialResult }: { sessionId: Id; entity?: Entity; label: string; input: Record<string, unknown>; initialResult?: RollResult }) {
   const ctx = useCampaign();
   const ts = useSessionTrackerState(sessionId);
   const counter = ts ? ts.log.filter((l) => l.tracker === DICE_LOG).length : 0;
   const seed = `${sessionId}:${counter}`;
   const rng = useMemo(() => createRng(seed), [seed]);
-  const lastPushes = useRef(0);
+  const lastPushes = useRef(initialResult?.pushes ?? 0);
   return (
     <DiceRollPanel
       dice={ctx.module.module.dice}
       input={input}
       rng={rng}
+      initialResult={initialResult}
       pushInput={entity ? { entity: entity.id } : undefined}
       title={entity ? `${entity.name}: ${label}` : label}
       onRolled={(r: RollResult) => {
@@ -114,12 +144,13 @@ export function SessionRollPanel({ sessionId, entity, label, input }: { sessionI
 
 export function SkillRoll({ sessionId, pcs }: { sessionId: Id; pcs: Entity[] }) {
   const ctx = useCampaign();
+  const { mode } = useMeta();
   const [pcId, setPcId] = useState("");
   const [choice, setChoice] = useState("");
   const [picked, setPicked] = useState<{ key: string; label: string; input: Record<string, unknown> } | undefined>();
   const pc = pcs.find((p) => p.id === pcId);
   const def = pc ? ctx.module.entityType(pc.type) : undefined;
-  const skills = skillOptions(ctx.module, def);
+  const skills = skillOptions(ctx.module, def, mode);
   const attrs = pc ? attributeIds(ctx.module, pc) : [];
 
   const pick = (nextPc: string, nextChoice: string) => {

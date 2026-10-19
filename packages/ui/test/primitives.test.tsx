@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import type { RuleCard } from "@campaign-forge/module-sdk";
-import { Markdown, PageRef, PromptDialog, RuleCardList, RuleCardView, clearToasts, formatPageRef, pushToast, ToastViewport, useTheme } from "../src/index";
+import { Markdown, PageRef, PlayGuideView, PromptDialog, RuleCardList, RuleCardView, clearToasts, formatPageRef, playGuidesForMode, pushToast, ToastViewport, useTheme } from "../src/index";
 import { exampleModule } from "./fixtures";
 
 describe("PageRef", () => {
@@ -85,5 +85,23 @@ describe("useTheme", () => {
     fireEvent.click(screen.getByRole("button"));
     expect(document.documentElement.getAttribute("data-theme")).toBe("light");
     expect(localStorage.getItem("cf-theme")).toBe("light");
+  });
+});
+
+describe("PlayGuideView", () => {
+  const guide = playGuidesForMode(exampleModule.playGuides, "standard")[0]!;
+
+  it("lists entries one line each and expands one to its cues, outcomes and the app's extra", () => {
+    render(<PlayGuideView guide={guide} entryMeta={(e) => <span>meta-{e.id}</span>} entryExtra={(e) => <span>extra-{e.id}</span>} />);
+    expect(screen.getByText("meta-fight")).toBeInTheDocument();
+    expect(screen.queryByText("extra-fight")).toBeNull();
+    const row = screen.getByRole("button", { name: /^Fight / });
+    expect(row).toHaveAttribute("aria-expanded", "false");
+    fireEvent.click(row);
+    expect(row).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("list", { name: "Fight: call for it when" })).toBeInTheDocument();
+    expect(screen.getByText("The foe lands a blow or takes what they came for.")).toBeInTheDocument();
+    expect(screen.getByText("extra-fight")).toBeInTheDocument();
+    expect(screen.queryByText(/Endure/)).toBeNull();
   });
 });
