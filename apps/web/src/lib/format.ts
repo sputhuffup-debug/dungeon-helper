@@ -39,3 +39,8 @@ export function errorMessage(err: unknown): string {
   if (err instanceof Error) return err.message;
   return String(err);
 }
+
+/** An adventure's display title; a guided draft may not have one yet. */
+export function adventureTitle(adventure: { title: string }): string {
+  return adventure.title.trim() || "Untitled adventure";
+}

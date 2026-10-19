@@ -22,6 +22,18 @@ describe("SheetRenderer", () => {
     expect(container.querySelector('[data-path="notes"] textarea')).toHaveValue("Owes the miller.");
   });
 
+  it("renders only the given paths, in order, as one plain grid", () => {
+    const onChange = vi.fn();
+    const fields = heroFields();
+    const { container } = render(<SheetRenderer def={hero} mode="standard" fields={fields} onChange={onChange} referenceLists={referenceLists} paths={["wounds", "health", "attributes.might", "favoredSkill"]} />);
+    expect(sectionIds(container)).toEqual(["_paths"]);
+    expect(container.querySelector("summary")).toBeNull();
+    expect([...container.querySelectorAll<HTMLElement>("[data-path]")].map((el) => el.dataset.path)).toEqual(["wounds", "health", "attributes.might", "favoredSkill"]);
+    expect(screen.getByTestId("computed-health")).toHaveTextContent("6");
+    fireEvent.change(screen.getByRole("spinbutton", { name: "Might" }), { target: { value: "4" } });
+    expect(onChange).toHaveBeenCalledWith({ ...fields, attributes: { might: 4, wits: 2 } });
+  });
+
   it("shows the hardcore section in hardcore mode", () => {
     const { container } = render(<SheetRenderer def={hero} mode="hardcore" fields={heroFields()} onChange={() => {}} referenceLists={referenceLists} />);
     expect(sectionIds(container)).toEqual(["core", "gear", "hardcore", "notes"]);
@@ -174,5 +186,54 @@ describe("widget registry", () => {
     registerWidget("sparkle", ({ value }) => <span data-testid="sparkle">✦{String(value)}</span>);
     render(<SheetRenderer def={def} mode="standard" fields={heroFields()} onChange={() => {}} />);
     expect(screen.getByTestId("sparkle")).toHaveTextContent("✦1");
+  });
+});
+
+describe("cast-aware widgets", () => {
+  const def = {
+    id: "narrative.adventure",
+    kind: "item" as const,
+    name: "Adventure",
+    plural: "Adventures",
+    schema: { type: "object", properties: { signOffs: { type: "object", additionalProperties: { type: "string" } }, aimedAt: { type: "string" } } },
+    sheet: {
+      sections: [
+        {
+          id: "s",
+          title: "S",
+          fields: [
+            { path: "signOffs", label: "Sign-offs", widget: "object" as const, config: { keyedByCast: "pcs", valueWidget: "textarea" } },
+            { path: "aimedAt", label: "Aimed at", widget: "ref" as const, config: { castRoles: ["pcs", "npcs"], everyoneValue: "everyone", everyoneLabel: "Everyone" } },
+          ],
+        },
+      ],
+    },
+  };
+  const members: Record<string, Array<{ id: string; name: string }>> = { pcs: [{ id: "p1", name: "Ada" }, { id: "p2", name: "Bo" }], npcs: [{ id: "n1", name: "Ash" }, { id: "p1", name: "Ada" }] };
+  const castMembers = (role: string) => members[role] ?? [];
+
+  it("object keyed by cast: one text area per member, keyed by entity id", () => {
+    const onChange = vi.fn();
+    render(<SheetRenderer def={def} mode="m" fields={{ signOffs: { p1: "Rest now", gone: "kept" } }} onChange={onChange} castMembers={castMembers} />);
+    expect((screen.getByRole("textbox", { name: "Sign-offs: Ada" }) as HTMLTextAreaElement).value).toBe("Rest now");
+    fireEvent.change(screen.getByRole("textbox", { name: "Sign-offs: Bo" }), { target: { value: "Go home" } });
+    expect(onChange).toHaveBeenCalledWith({ signOffs: { p1: "Rest now", gone: "kept", p2: "Go home" } });
+  });
+
+  it("ref with cast roles: a select of everyone plus the members", () => {
+    const onChange = vi.fn();
+    render(<SheetRenderer def={def} mode="m" fields={{ aimedAt: "everyone" }} onChange={onChange} castMembers={castMembers} />);
+    const select = screen.getByRole("combobox", { name: "Aimed at" }) as HTMLSelectElement;
+    expect([...select.options].map((o) => o.text)).toEqual(["Everyone", "Ada", "Bo", "Ash"]);
+    expect(select.value).toBe("everyone");
+    fireEvent.change(select, { target: { value: "n1" } });
+    expect(onChange).toHaveBeenCalledWith({ aimedAt: "n1" });
+  });
+
+  it("falls back without a cast provider", () => {
+    render(<SheetRenderer def={def} mode="m" fields={{ aimedAt: "everyone", signOffs: { p1: "x" } }} onChange={() => {}} resolveEntityName={(id) => (id === "p1" ? "Ada" : undefined)} />);
+    expect(screen.queryByRole("combobox", { name: "Aimed at" })).toBeNull();
+    expect(screen.getByText("Everyone")).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "Sign-offs: Ada" })).toBeInTheDocument();
   });
 });

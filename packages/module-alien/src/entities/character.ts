@@ -10,7 +10,9 @@ import {
   intField,
   number,
   objectSchema,
+  list,
   select,
+  stringArray,
   stringField,
   text,
   textarea,
@@ -110,6 +112,25 @@ export const characterSchema = objectSchema(
     appearance: stringField(),
     buddy: stringField("Free text; the real link is the buddy_of relationship (p. 27)."),
     rival: stringField("Free text; the real link is the rival_of relationship (p. 27)."),
+    background: stringField("Who the character is and where they come from; for pregenerated PCs, written to fit the plot (p. 157)."),
+    // NPC dossier (appearance, trait and goal above are the book's four basics, p. 156).
+    role: stringField("Public role or job aboard, e.g. Pilot."),
+    voice: stringField("How they talk: pace, accent, favourite words."),
+    fears: stringField("What frightens them."),
+    secret: stringField("What they hide from the crew."),
+    tells: stringField("Concrete habits or reactions that hint at the secret."),
+    sampleLines: stringField("A few lines of dialogue in their voice."),
+    arc: stringField("Cinematic: how they change across the three acts."),
+    // Secret synthetic: an android posing as human (p. 25, 77). `attributes` hold its true scores.
+    secretAndroid: { type: "boolean", default: false, description: "An android posing as human (p. 25, 77). Tick Android as well; `attributes` then hold the true scores." },
+    coverAttributes: {
+      type: "object",
+      additionalProperties: false,
+      properties: attributeProps(HUMAN_ATTRIBUTE_MAX),
+      description: "The human-looking scores a secret android shows and rolls in front of the players (p. 25).",
+    },
+    fairClues: stringArray("Clues the GM drops that let observant players work out the secret."),
+    secretOrders: stringField("What the synthetic has really been told to do."),
     fatigued: { type: "boolean", default: false, description: "Fatigued: no Health recovery, keep rolling Survival (p. 75). Androids are immune." },
     rads: intField(0, undefined, 0, "Accumulated radiation points (p. 77)."),
     criticalInjuries: conditionList("Critical injuries currently suffered (p. 70)."),
@@ -156,6 +177,10 @@ const half = (a: string, b: string): JsonLogicRule => ({
   ceil: [{ "/": [{ "+": [{ var: `fields.attributes.${a}` }, { var: `fields.attributes.${b}` }] }, 2] }],
 });
 
+const coverHalf = (a: string, b: string): JsonLogicRule => ({
+  ceil: [{ "/": [{ "+": [{ var: [`fields.coverAttributes.${a}`, 0] }, { var: [`fields.coverAttributes.${b}`, 0] }] }, 2] }],
+});
+
 /**
  * Derived at render time, never stored (p. 26, 28, 51, 74):
  * maximum Health = ceil((Strength + Agility) / 2) + Hardened (max 3);
@@ -177,6 +202,12 @@ export const characterComputed: Record<string, JsonLogicRule> = {
   encumbrance: {
     sum: [{ map: [{ var: "fields.gear" }, { "*": [{ var: "weight" }, { var: "qty" }] }] }],
   },
+  /**
+   * Secret androids: the Health shown to players is the larger of the cover and the true
+   * Health, so taking damage never gives the android away; Resolve comes from the cover scores.
+   */
+  coverHealth: { max: [coverHalf("strength", "agility"), half("strength", "agility")] },
+  coverResolve: coverHalf("wits", "empathy"),
 };
 
 const sections: SheetSection[] = [
@@ -298,13 +329,46 @@ const sections: SheetSection[] = [
     ],
   },
   {
-    id: "npc",
-    title: "NPC notes",
+    id: "background",
+    title: "Background",
     columns: 1,
+    fields: [textarea("background", "Background", { rule: "alien.rule.pregenerated-characters" })],
+  },
+  {
+    id: "npc",
+    title: "NPC dossier",
+    columns: 2,
     fields: [
-      textarea("appearance", "Appearance"),
-      textarea("trait", "Trait"),
-      textarea("goal", "Goal (GM)", { rule: "alien.rule.npcs" }),
+      text("role", "Public role", { span: 6 }),
+      text("trait", "Trait", { span: 6, rule: "alien.rule.npcs" }),
+      textarea("appearance", "Appearance", { span: 6 }),
+      textarea("voice", "Voice", { span: 6 }),
+      textarea("goal", "Goal / wants (GM)", { span: 6, rule: "alien.rule.npcs" }),
+      textarea("fears", "Fears", { span: 6 }),
+      textarea("secret", "Secret (GM)", { span: 6 }),
+      textarea("tells", "Tells", { span: 6 }),
+      textarea("sampleLines", "Sample lines"),
+      textarea("arc", "Arc by act", { mode: [CINEMATIC], rule: "alien.rule.three-acts" }),
+    ],
+  },
+  {
+    id: "secretAndroid",
+    title: "Secret synthetic",
+    columns: 4,
+    collapsed: true,
+    fields: [
+      checkbox("secretAndroid", "Poses as human", { rule: "alien.rule.androids" }),
+      ...ATTRIBUTE_IDS.map((a) => ({
+        path: `coverAttributes.${a}`,
+        label: `Cover ${a.charAt(0).toUpperCase()}${a.slice(1)}`,
+        widget: "attribute" as const,
+        span: 3,
+        rule: "alien.rule.androids",
+      })),
+      { path: "coverHealth", label: "Health shown", widget: "computed", span: 3, readonly: true, rule: "alien.rule.android-damage" },
+      { path: "coverResolve", label: "Resolve shown", widget: "computed", span: 3, readonly: true },
+      list("fairClues", "Fair clues"),
+      textarea("secretOrders", "Secret orders"),
     ],
   },
   {
@@ -336,6 +400,16 @@ export const characterType: EntityTypeDef = {
     personalAgenda: "gm",
     agendas: "gm",
     lifePath: "gm",
+    voice: "gm",
+    fears: "gm",
+    secret: "gm",
+    tells: "gm",
+    sampleLines: "gm",
+    arc: "gm",
+    secretAndroid: "gm",
+    fairClues: "gm",
+    secretOrders: "gm",
+    coverAttributes: "players",
   },
-  playerEditable: ["stress", "gear", "cash", "talents", "skills", "personalAgenda", "agendas", "storyPoints", "xp", "signatureItem", "buddy", "rival"],
+  playerEditable: ["stress", "gear", "cash", "talents", "skills", "personalAgenda", "agendas", "storyPoints", "xp", "signatureItem", "buddy", "rival", "background"],
 };

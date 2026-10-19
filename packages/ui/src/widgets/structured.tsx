@@ -1,5 +1,6 @@
 import type { JsonSchema } from "@campaign-forge/module-sdk";
 import { schemaDefaults } from "@campaign-forge/module-sdk";
+import { useSheetContext } from "../context";
 import { Button, IconButton } from "../primitives/Button";
 import { humanize, isRecord } from "../sheet/paths";
 import { SchemaValueEditor } from "./SchemaValueEditor";
@@ -79,8 +80,47 @@ export function ListField(props: WidgetProps) {
 }
 
 /** Nested object group: one primitive control per declared property. */
+/**
+ * An object keyed by entity id, one text value per member of a cast role
+ * (`config.keyedByCast`), labelled with the member's name. `config.valueWidget:
+ * "textarea"` makes each value a text area. Without the host's `castMembers`
+ * the stored keys are shown with their resolved names. Values of members no
+ * longer in the role are kept.
+ */
+function KeyedByCastField({ value, onChange, readonly, field, id }: WidgetProps) {
+  const { castMembers, resolveEntityName } = useSheetContext();
+  const role = String(field.config?.keyedByCast);
+  const obj = isRecord(value) ? value : {};
+  const members = castMembers ? castMembers(role) : Object.keys(obj).map((k) => ({ id: k, name: resolveEntityName?.(k) ?? k }));
+  const area = field.config?.valueWidget === "textarea";
+  const fieldLabel = field.label ?? humanize(field.path);
+  if (members.length === 0) return <span className="cf-muted">{castMembers ? `No ${humanize(role).toLowerCase()} yet.` : "Empty"}</span>;
+  return (
+    <div className="cf-object" id={id}>
+      {members.map((m) => {
+        const v = typeof obj[m.id] === "string" ? (obj[m.id] as string) : "";
+        const set = (next: string) => onChange({ ...obj, [m.id]: next });
+        const label = `${fieldLabel}: ${m.name}`;
+        return (
+          <div key={m.id} className="cf-field" data-key={m.id}>
+            <span className="cf-field__label">{m.name}</span>
+            {readonly ? (
+              <div className="cf-field__readonly" style={{ whiteSpace: "pre-wrap" }}>{v || <span className="cf-muted">—</span>}</div>
+            ) : area ? (
+              <textarea className="cf-textarea" rows={3} aria-label={label} value={v} onChange={(e) => set(e.target.value)} />
+            ) : (
+              <input className="cf-input" type="text" aria-label={label} value={v} onChange={(e) => set(e.target.value)} />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export function ObjectField(props: WidgetProps) {
-  const { value, onChange, readonly, schema, id, errors } = props;
+  const { value, onChange, readonly, schema, id, errors, field } = props;
+  if (typeof field.config?.keyedByCast === "string") return <KeyedByCastField {...props} />;
   const obj = isRecord(value) ? value : {};
   const entries = propertyEntries(schema, obj);
   if (entries.length === 0) return <span className="cf-muted">Empty</span>;

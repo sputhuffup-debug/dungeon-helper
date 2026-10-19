@@ -4,11 +4,13 @@
  * every contract feature once and must pass `checkModule` with zero errors.
  */
 import type {
+  AdventureBuilderDef,
   DicePool,
   DiceSystem,
   Effect,
   EntityTypeDef,
   GameModule,
+  NarrativeFieldsDef,
   Procedure,
   ProcedureContext,
   Prompt,
@@ -377,6 +379,127 @@ const rules: RuleCard[] = [
 ];
 
 // ---------------------------------------------------------------------------
+// Narrative fields and the guided quest builder
+// ---------------------------------------------------------------------------
+
+const narrativeFields: NarrativeFieldsDef[] = [
+  {
+    kind: "adventure",
+    schema: {
+      type: "object",
+      properties: {
+        hook: { type: "string" },
+        theme: { type: "string", enum: ["greed", "honor", "revenge"], default: "greed" },
+        hours: { type: "integer", minimum: 1, maximum: 8, default: 3 },
+      },
+      additionalProperties: false,
+    },
+    sheet: {
+      sections: [
+        {
+          id: "basics",
+          title: "Basics",
+          columns: 2,
+          fields: [
+            { path: "hook", label: "Hook", widget: "textarea", span: 12 },
+            { path: "theme", label: "Theme", widget: "select", options: ["greed", "honor", "revenge"] },
+            { path: "hours", label: "Target length (hours)", widget: "number" },
+            { path: "minutes", label: "Minutes", widget: "computed" },
+          ],
+        },
+      ],
+    },
+    computed: { minutes: { "*": [{ var: "fields.hours" }, 60] } },
+  },
+  {
+    kind: "act",
+    schema: { type: "object", properties: { twist: { type: "string" }, mood: { type: "string", enum: ["calm", "tense", "dire"], default: "calm" } }, additionalProperties: false },
+    sheet: { sections: [{ id: "act", title: "Act", fields: [{ path: "twist", label: "Twist", widget: "textarea" }, { path: "mood", label: "Mood", widget: "select" }] }] },
+  },
+  {
+    kind: "scene",
+    schema: { type: "object", properties: { trigger: { type: "string" } }, additionalProperties: false },
+    sheet: { sections: [{ id: "scene", title: "Scene", fields: [{ path: "trigger", label: "Trigger" }] }] },
+  },
+];
+
+const questBuilder: AdventureBuilderDef = {
+  id: "example.builder.quest",
+  name: "Guided quest",
+  description: "A short quest built step by step, with a review.",
+  page: 60,
+  templateId: "example.template.quest",
+  cast: [
+    { id: "heroes", label: "Heroes", entityType: "example.hero", defaults: { origin: "hill" }, fields: ["attributes.might", "attributes.wits", "origin", "health"], min: 1 },
+    { id: "places", label: "Places", entityType: "example.place", fields: ["terrain", "danger"] },
+  ],
+  steps: [
+    {
+      id: "basics",
+      title: "Basics",
+      page: 60,
+      guide: ["One hook the heroes cannot ignore.", "Pick a theme and keep every scene on it."],
+      panels: [{ kind: "adventure", fields: ["core.title", "core.premise", "hook", "theme", "hours", "minutes", "core.playerIntro"] }],
+    },
+    {
+      id: "cast",
+      title: "Cast",
+      guide: ["Every hero wants something.", "Places need one danger each."],
+      panels: [{ kind: "cast", role: "heroes" }, { kind: "agendas", role: "heroes" }, { kind: "cast", role: "places" }],
+    },
+    {
+      id: "acts",
+      title: "Acts",
+      guide: ["Act 1 sets the hook, act 2 pays it off.", "Give each act a twist."],
+      panels: [
+        { kind: "act", act: 1, fields: ["core.title", "core.goal", "twist", "mood"], scenes: true, sceneFields: ["trigger"] },
+        { kind: "act", act: 2, fields: ["core.title", "core.goal", "twist", "mood"], scenes: true, sceneFields: ["trigger"] },
+      ],
+    },
+    { id: "review", title: "Review", guide: ["Fix red items first.", "Warnings are advice; nothing is blocked."], panels: [{ kind: "review" }] },
+  ],
+  review: [
+    {
+      id: "example.review.hook",
+      step: "basics",
+      level: "bad",
+      when: { "!": { len: { trim: { var: "adventure.fields.hook" } } } },
+      message: "Write the hook",
+      okMessage: "Hook written",
+      page: 60,
+    },
+    {
+      id: "example.review.heroes",
+      step: "cast",
+      level: "bad",
+      when: { "<": [{ len: { var: "heroes" } }, 1] },
+      value: { len: { var: "heroes" } },
+      message: "Add at least one hero",
+      okMessage: "{value} hero(es) in the cast",
+    },
+    {
+      id: "example.review.agenda",
+      step: "cast",
+      level: "warn",
+      each: "heroes",
+      when: { "<": [{ words: { var: "item.agendaByAct.1" } }, 3] },
+      message: "{name}: give the act 1 agenda a concrete goal",
+    },
+    {
+      id: "example.review.twists",
+      step: "acts",
+      level: "warn",
+      check: (_item, ctx) => {
+        const acts = Array.isArray(ctx.acts) ? (ctx.acts as Array<{ number: number; fields: Record<string, unknown> }>) : [];
+        return acts.filter((a) => !String(a.fields.twist ?? "").trim()).map((a) => `Act ${a.number}: add a twist`);
+      },
+      message: "Every act needs a twist",
+      okMessage: "Every act has a twist",
+    },
+  ],
+};
+
+// ---------------------------------------------------------------------------
 // Module
 // ---------------------------------------------------------------------------
 
@@ -458,7 +581,7 @@ export const exampleModule: GameModule = {
         premise: "Someone needs something fetched from somewhere dangerous.",
         acts: [
           { number: 1, goal: "Accept the job and travel", scenes: [{ purpose: "The hook", mandatory: true }] },
-          { number: 2, goal: "Face the danger and return", scenes: [{ purpose: "The climax", mandatory: true }, { purpose: "The reward" }] },
+          { number: 2, goal: "Face the danger and return", fields: { mood: "tense" }, scenes: [{ purpose: "The climax", mandatory: true, fields: { trigger: "The heroes reach the lair" } }, { purpose: "The reward" }] },
         ],
       },
     },
@@ -558,6 +681,8 @@ export const exampleModule: GameModule = {
     format: "{year}-{month:02}-{day:02}",
   },
   styleNotes: ["Short, plain sentences."],
+  narrativeFields,
+  adventureBuilders: [questBuilder],
   hooks: {
     onSessionEnd(ctx): Prompt[] {
       const onYes: Effect[] = ctx.characters.map((c) => ({ kind: "incrementField", entity: c.id, path: "wounds", by: -1, min: 0 }));

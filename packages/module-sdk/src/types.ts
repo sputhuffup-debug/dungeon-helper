@@ -510,6 +510,8 @@ export interface TemplateScene {
   /** Markdown body. */
   body?: string;
   mandatory?: boolean;
+  /** Seeds the scene's module-defined fields (narrative kind "scene"). */
+  fields?: Record<string, unknown>;
 }
 
 export interface TemplateAct {
@@ -520,6 +522,8 @@ export interface TemplateAct {
   scenes?: TemplateScene[];
   /** Per-character handouts scaffold: one entry per PC slot. */
   handouts?: Array<{ title: string; body?: string; visibility?: VisibilityLevel }>;
+  /** Seeds the act's module-defined fields (narrative kind "act"), e.g. a per-act length. */
+  fields?: Record<string, unknown>;
 }
 
 export interface TemplateAdventure {
@@ -531,6 +535,8 @@ export interface TemplateAdventure {
   gmSituation?: string;
   acts: TemplateAct[];
   epilogue?: string;
+  /** Seeds the adventure's module-defined fields (narrative kind "adventure"). */
+  fields?: Record<string, unknown>;
 }
 
 /** Phases of the session checklist: before, at and after the table. */
@@ -758,6 +764,99 @@ export interface ModuleHooks {
 }
 
 // ---------------------------------------------------------------------------
+// Adventure builders (guided authoring with a review checklist)
+// ---------------------------------------------------------------------------
+
+/** Narrative records a module can add fields to. */
+export type NarrativeKind = "adventure" | "act" | "scene";
+
+/**
+ * Module-defined fields on a narrative record, stored in the record's `fields`
+ * and rendered by the schema-driven sheet renderer, exactly like entity fields.
+ */
+export interface NarrativeFieldsDef {
+  kind: NarrativeKind;
+  schema: JsonSchema;
+  sheet: SheetLayout;
+  computed?: Record<string, JsonLogicRule>;
+  mode?: PlayModeId[];
+}
+
+/**
+ * A named group of entities an adventure uses (e.g. "pcs", "npcs", "locations").
+ * The adventure stores the chosen entity ids in `adventure.cast[role]`.
+ */
+export interface CastRoleDef {
+  id: string;
+  label: string;
+  /** Entity type the role holds; new members are created with this type. */
+  entityType: string;
+  subtype?: string;
+  /** Fields set on entities created for this role (e.g. `{ isPC: true }`). */
+  defaults?: Record<string, unknown>;
+  /** Entity field paths shown when editing a member in the builder. */
+  fields?: string[];
+  min?: number;
+  max?: number;
+}
+
+/** One part of a builder step's form. Core fields use the `core.` prefix (e.g. `core.title`). */
+export type BuilderPanel =
+  | { kind: "adventure"; fields: string[] }
+  | { kind: "cast"; role: string }
+  | { kind: "act"; act: number; fields: string[]; scenes?: boolean; sceneFields?: string[] }
+  | { kind: "agendas"; role: string }
+  | { kind: "review" };
+
+export interface BuilderStep {
+  id: string;
+  title: string;
+  page?: PageRef;
+  /** Short field-guide tips for this step, in the module's own words. */
+  guide?: string[];
+  panels: BuilderPanel[];
+}
+
+export type ReviewLevel = "bad" | "warn";
+
+/**
+ * One review check. It runs once, or once per item of `each` (a collection in the
+ * review context: "pcs", "npcs", "locations" or any cast role, "acts", "scenes").
+ * `when` is a JSONLogic predicate over `{ adventure, acts, scenes, cast, item, index }`;
+ * true means the issue is present. `check` is the code alternative for checks that
+ * JSONLogic cannot express; it returns the issue messages (empty when fine).
+ * Messages may use `{name}`, `{n}` (1-based index), `{act}` and `{value}` placeholders.
+ */
+export interface ReviewRule {
+  id: string;
+  /** Builder step the issue belongs to (drives the step's status dot). */
+  step: string;
+  level: ReviewLevel;
+  each?: string;
+  when?: JsonLogicRule;
+  check?: (item: Record<string, unknown>, ctx: Record<string, unknown>) => string[];
+  /** JSONLogic value for `{value}` in the messages. */
+  value?: JsonLogicRule;
+  message: string;
+  /** Shown as a passed check when the rule finds nothing (omit to stay silent). */
+  okMessage?: string;
+  page?: PageRef;
+}
+
+export interface AdventureBuilderDef {
+  id: string;
+  name: string;
+  description?: string;
+  mode?: PlayModeId[];
+  page?: PageRef;
+  /** Template used to scaffold a new adventure built with this builder. */
+  templateId?: string;
+  cast: CastRoleDef[];
+  steps: BuilderStep[];
+  review: ReviewRule[];
+}
+
+// ---------------------------------------------------------------------------
 // The module
 // ---------------------------------------------------------------------------
 
@@ -777,6 +876,10 @@ export interface GameModule {
   /** Style notes for future AI prompts; unused in v1. */
   styleNotes?: string[];
   hooks?: ModuleHooks;
+  /** Module-defined fields on adventures, acts and scenes. */
+  narrativeFields?: NarrativeFieldsDef[];
+  /** Guided adventure builders with their review checklists. */
+  adventureBuilders?: AdventureBuilderDef[];
   /** Upgrade stored entity fields from an older module version. */
   migrations?: Array<{ from: string; to: string; migrate: (entity: { type: string; fields: Record<string, unknown> }) => Record<string, unknown> }>;
 }

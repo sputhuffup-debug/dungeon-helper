@@ -73,6 +73,13 @@ export const locationSchema = objectSchema({
   resources: stringField(),
   // site
   mapId: stringField("Core SiteMap id for the zone overlay (p. 54-56)."),
+  // secrets, puzzles and threats (cinematic adventure locations, p. 157)
+  secret: stringField("What a careful search reveals."),
+  puzzle: stringField("An obstacle the PCs must work out; optional."),
+  puzzleClue: stringField("The clue that points to the solution."),
+  puzzleSolution: stringField("How the puzzle is solved."),
+  puzzleFallback: stringField("The loud or slow way through when the clue is missed."),
+  threat: stringField("A threat or event tied to this place."),
 });
 
 const generalSheet: SheetLayout = {
@@ -183,6 +190,19 @@ const siteSheet: SheetLayout = {
         { path: "mapId", label: "Zone map", widget: "zonemap", span: 12, rule: "alien.rule.zones", config: { zoneKinds: ["cluttered", "open"], borderKinds: ["open", "blocked", "door"] } },
       ],
     },
+    {
+      id: "secrets",
+      title: "Secret, puzzle & threat",
+      columns: 2,
+      fields: [
+        textarea("secret", "Its secret"),
+        textarea("puzzle", "Puzzle"),
+        textarea("puzzleClue", "Clue", { span: 6 }),
+        textarea("puzzleSolution", "Solution", { span: 6 }),
+        textarea("puzzleFallback", "Fallback (the loud or slow way)"),
+        textarea("threat", "Threat or event"),
+      ],
+    },
   ],
   summary: ["mapId"],
 };
@@ -195,7 +215,17 @@ export const locationType: EntityTypeDef = {
   icon: "map-pin",
   schema: locationSchema,
   sheet: generalSheet,
-  defaultVisibility: { campaignHook: "gm", factions: "gm", mapId: "gm" },
+  defaultVisibility: {
+    campaignHook: "gm",
+    factions: "gm",
+    mapId: "gm",
+    secret: "gm",
+    puzzle: "gm",
+    puzzleClue: "gm",
+    puzzleSolution: "gm",
+    puzzleFallback: "gm",
+    threat: "gm",
+  },
   subtypes: [
     { id: "region", name: "Region", sheet: generalSheet },
     { id: "sector", name: "Sector", sheet: generalSheet },

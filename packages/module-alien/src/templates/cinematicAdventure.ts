@@ -1,5 +1,6 @@
-import type { Template, TemplateAdventure } from "@campaign-forge/module-sdk";
+import type { Template, TemplateAct, TemplateAdventure } from "@campaign-forge/module-sdk";
 import { CINEMATIC } from "../modes";
+import { ACT_DEFAULTS, DEFAULT_TARGET_HOURS, DEFAULT_YEAR } from "../narrative";
 
 const agendaHandouts = (act: number) =>
   Array.from({ length: 6 }, (_, i) => ({
@@ -68,4 +69,36 @@ export const cinematicAdventureTemplate: Template = {
   mode: [CINEMATIC],
   page: [157, 158],
   scaffold: cinematicAdventureScaffold,
+};
+
+/** A template act that also seeds the module's act fields (see narrative.ts). */
+export type BuilderTemplateAct = TemplateAct & { fields: Record<string, unknown> };
+
+/**
+ * The bare frame the guided cinematic builder starts from: three empty acts
+ * (Setup, Tilt, Showdown) with the default act lengths (75, 100 and 65 minutes)
+ * and fear stages (dread, terror, horror), one blank event each, and no
+ * placeholder text, so the builder's review sees an empty draft. `fields` on
+ * the adventure and on each act seed the module's narrative fields.
+ */
+export const cinematicBuilderScaffold: Omit<TemplateAdventure, "acts"> & { fields: Record<string, unknown>; acts: BuilderTemplateAct[] } = {
+  title: "",
+  fields: { year: DEFAULT_YEAR, theme: "killing-greed", targetHours: DEFAULT_TARGET_HOURS, signOffs: {} },
+  acts: ACT_DEFAULTS.map((d, i) => ({
+    number: i + 1,
+    title: "",
+    goal: "",
+    fields: { minutes: d.minutes, fearStage: d.fearStage },
+    scenes: [{ purpose: "", mandatory: false }],
+  })),
+};
+
+export const cinematicBuilderTemplate: Template = {
+  id: "alien.template.cinematic-builder",
+  kind: "adventure",
+  name: "Cinematic adventure (guided builder)",
+  description: "Empty three-act frame for the guided cinematic builder: 75, 100 and 65 minute acts set to dread, terror and horror, one blank event each (p. 155, 157).",
+  mode: [CINEMATIC],
+  page: [155, 158],
+  scaffold: cinematicBuilderScaffold,
 };

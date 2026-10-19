@@ -5,7 +5,7 @@ import { useRef, useState } from "react";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { Badge, Button, Card } from "../../components/ui";
 import { downloadFile, slug } from "../../lib/download";
-import { errorMessage } from "../../lib/format";
+import { adventureTitle, errorMessage } from "../../lib/format";
 import { deleteCampaign, exportCampaignBundle, exportCampaignJSON, importBundleIntoCampaign, updateMeta } from "../../state/actions";
 import { useCampaign, useList, useMeta } from "../../state/hooks";
 import { pushToast } from "../../components/ui";
@@ -117,7 +117,7 @@ export function SettingsPage() {
               <option value="">{adventures.length ? "Choose an adventure" : "No adventures yet"}</option>
               {adventures.map((a) => (
                 <option key={a.id} value={a.id}>
-                  {a.title}
+                  {adventureTitle(a)}
                 </option>
               ))}
             </select>

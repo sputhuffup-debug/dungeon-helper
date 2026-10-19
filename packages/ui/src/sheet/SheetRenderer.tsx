@@ -39,6 +39,12 @@ export interface SheetRendererProps extends Omit<SheetContextValue, "tableMode" 
   className?: string;
   /** Only render these section ids (e.g. a quick-stats card). */
   sections?: string[];
+  /**
+   * Only render these field paths, in this order, as one untitled grid (e.g.
+   * the fields a builder step asks for). A path missing from the sheet is
+   * rendered with the widget its schema (or computed value) suggests.
+   */
+  paths?: string[];
 }
 
 export function normalizeErrors(errors: SheetErrors | undefined): Record<string, string> {
@@ -96,12 +102,14 @@ export function SheetRenderer(props: SheetRendererProps) {
     tableMode = false,
     className,
     sections: onlySections,
+    paths: onlyPaths,
     onRoll,
     onOpenRule,
     onPickEntity,
     resolveEntityName,
     resolveAssetUrl,
     onOpenMap,
+    castMembers,
   } = props;
 
   const computed = useMemo(() => computedProp ?? computeFields(def, fields), [computedProp, def, fields]);
@@ -112,12 +120,18 @@ export function SheetRenderer(props: SheetRendererProps) {
     const base = sheetFieldsForMode(def, mode);
     const extra = sub?.sheet ? sheetFieldsForMode({ ...def, sheet: sub.sheet }, mode) : [];
     const all = [...base, ...extra];
+    if (onlyPaths) {
+      const byPath = new Map<string, SheetField>();
+      for (const section of all) for (const f of section.fields) if (!byPath.has(f.path)) byPath.set(f.path, f);
+      const fields = onlyPaths.map((p) => byPath.get(p) ?? { path: p });
+      return [{ id: "_paths", title: "", fields } satisfies SheetSection];
+    }
     return onlySections ? all.filter((s) => onlySections.includes(s.id)) : all;
-  }, [def, mode, sub, onlySections]);
+  }, [def, mode, sub, onlySections, onlyPaths]);
 
   const ctx = useMemo<SheetContextValue>(
-    () => ({ mode, tableMode, onRoll, onOpenRule, onPickEntity, resolveEntityName, resolveAssetUrl, onOpenMap }),
-    [mode, tableMode, onRoll, onOpenRule, onPickEntity, resolveEntityName, resolveAssetUrl, onOpenMap],
+    () => ({ mode, tableMode, onRoll, onOpenRule, onPickEntity, resolveEntityName, resolveAssetUrl, onOpenMap, castMembers }),
+    [mode, tableMode, onRoll, onOpenRule, onPickEntity, resolveEntityName, resolveAssetUrl, onOpenMap, castMembers],
   );
 
   const schemaFor = (path: string): JsonSchema | undefined => {
@@ -164,27 +178,38 @@ interface SectionProps {
 
 function SheetSectionView({ section, def, fields, computed, readonly, referenceLists, errorMap, schemaFor, onChange, onOpenRule }: SectionProps) {
   const defaultSpan = section.columns && section.columns > 0 ? Math.max(1, Math.floor(12 / section.columns)) : 12;
+  const grid = (
+    <div className="cf-sheet__grid">
+      {section.fields.map((field) => (
+        <SheetFieldView
+          key={field.path}
+          field={field}
+          span={Math.min(12, Math.max(1, field.span ?? defaultSpan))}
+          def={def}
+          fields={fields}
+          computed={computed}
+          readonly={readonly}
+          referenceLists={referenceLists}
+          errorMap={errorMap}
+          schemaFor={schemaFor}
+          onChange={onChange}
+          onOpenRule={onOpenRule}
+        />
+      ))}
+    </div>
+  );
+  // An untitled section (the `paths` view) is a plain grid, not a collapsible block.
+  if (!section.title) {
+    return (
+      <div className="cf-sheet__section cf-sheet__section--plain" data-section={section.id}>
+        {grid}
+      </div>
+    );
+  }
   return (
     <details className="cf-sheet__section" open={!section.collapsed} data-section={section.id}>
       <summary className="cf-sheet__section-title">{section.title}</summary>
-      <div className="cf-sheet__grid">
-        {section.fields.map((field) => (
-          <SheetFieldView
-            key={field.path}
-            field={field}
-            span={Math.min(12, Math.max(1, field.span ?? defaultSpan))}
-            def={def}
-            fields={fields}
-            computed={computed}
-            readonly={readonly}
-            referenceLists={referenceLists}
-            errorMap={errorMap}
-            schemaFor={schemaFor}
-            onChange={onChange}
-            onOpenRule={onOpenRule}
-          />
-        ))}
-      </div>
+      {grid}
     </details>
   );
 }

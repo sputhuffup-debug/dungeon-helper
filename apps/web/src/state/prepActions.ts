@@ -6,7 +6,9 @@
 import {
   acceptGeneratedGraph,
   applyEffects,
+  clone,
   fromMarkdown,
+  handoutsOfAct,
   newId,
   recordEdit,
   type AcceptResult,
@@ -78,6 +80,8 @@ export function isTemplateAdventure(scaffold: Template["scaffold"]): scaffold is
 export interface InstantiateOptions {
   /** Overrides the template's title. */
   title?: string;
+  /** Keep an empty title (no template title, nothing typed) instead of "New adventure"; guided builders review it. */
+  allowEmptyTitle?: boolean;
   status?: Adventure["status"];
 }
 
@@ -92,13 +96,14 @@ export async function instantiateAdventureTemplate(ctx: DocCtx, template: Templa
   const writes: Array<[Id, string]> = [];
   const adventure = ctx.store.transact(() => {
     const input: Parameters<CampaignStore["createAdventure"]>[0] = {
-      title: opts.title?.trim() || scaffold?.title || "New adventure",
+      title: opts.title?.trim() || scaffold?.title || (opts.allowEmptyTitle ? "" : "New adventure"),
       status: opts.status ?? "planned",
       withDocs: true,
     };
     if (scaffold?.premise) input.premise = plainTemplateText(scaffold.premise);
     if (template) input.templateId = template.id;
     const adv = ctx.store.createAdventure(input);
+    if (scaffold?.fields) ctx.store.update("adventures", adv.id, { fields: clone(scaffold.fields) });
     if (scaffold?.playerIntro && adv.playerIntroDoc) writes.push([adv.playerIntroDoc, scaffold.playerIntro]);
     if (scaffold?.gmSituation && adv.gmSituationDoc) writes.push([adv.gmSituationDoc, scaffold.gmSituation]);
     if (scaffold?.epilogue && adv.epilogueDoc) writes.push([adv.epilogueDoc, scaffold.epilogue]);
@@ -107,6 +112,7 @@ export async function instantiateAdventureTemplate(ctx: DocCtx, template: Templa
       const actInput: Parameters<CampaignStore["createAct"]>[1] = { number: ta.number, goal: ta.goal, withPacingDoc: true };
       if (ta.title) actInput.title = ta.title;
       const act = ctx.store.createAct(adv.id, actInput);
+      if (ta.fields) ctx.store.update("acts", act.id, { fields: clone(ta.fields) });
       if (ta.pacing && act.pacingDoc) writes.push([act.pacingDoc, ta.pacing]);
       for (const ts of ta.scenes ?? []) {
         const scene = createSceneFromTemplate(ctx.store, act.id, ts);
@@ -136,13 +142,14 @@ export async function instantiateAdventureTemplate(ctx: DocCtx, template: Templa
 
 function createSceneFromTemplate(store: CampaignStore, actId: Id, ts: TemplateScene): Scene {
   const mandatory = ts.mandatory === true;
-  return store.createScene(actId, {
+  const scene = store.createScene(actId, {
     title: sceneTitleFromPurpose(ts.purpose),
-    purpose: ts.purpose,
     tags: [mandatory ? "mandatory" : "optional"],
     events: [{ id: newId(), text: ts.purpose, mandatory }],
     withReadAloudDoc: true,
+    ...(ts.purpose ? { purpose: ts.purpose } : {}),
   });
+  return ts.fields ? store.update("scenes", scene.id, { fields: clone(ts.fields) }) : scene;
 }
 
 // ---------------------------------------------------------------------------
@@ -301,17 +308,7 @@ export function deleteHandout(ctx: StoreCtx, id: Id): boolean {
 
 /** Handouts that belong to an act: those attached to it plus its ordered list, de-duplicated. */
 export function actHandouts(store: CampaignStore, act: Act): Handout[] {
-  const seen = new Set<Id>();
-  const out: Handout[] = [];
-  const push = (h: Handout | undefined) => {
-    if (h && !seen.has(h.id)) {
-      seen.add(h.id);
-      out.push(h);
-    }
-  };
-  for (const id of act.handouts) push(store.get("handouts", id));
-  for (const h of store.list("handouts")) if (h.attachedTo?.kind === "act" && h.attachedTo.id === act.id) push(h);
-  return out;
+  return handoutsOfAct(store, act);
 }
 
 // ---------------------------------------------------------------------------

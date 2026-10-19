@@ -6,7 +6,7 @@ import { useMemo } from "react";
 import { EntityIcon } from "../../components/EntityIcon";
 import { useRecordLinks } from "../../components/EntityLinkContext";
 import { Badge, Button, Card, EmptyState } from "../../components/ui";
-import { formatDate, humanize, relativeTime } from "../../lib/format";
+import { adventureTitle, formatDate, humanize, relativeTime } from "../../lib/format";
 import { createNote, startSession } from "../../state/actions";
 import { useCampaign, useList, useMapVersion, useMeta } from "../../state/hooks";
 import { summaryLine } from "../entities/summary";
@@ -125,7 +125,7 @@ export function HomePage() {
                 return (
                   <li key={a.id} className="app-list__row">
                     <Link to="/c/$campaignId/adventures/$adventureId" params={{ campaignId, adventureId: a.id }} className="app-link-strong">
-                      {a.title}
+                      {adventureTitle(a)}
                     </Link>
                     <span className="cf-muted">
                       {actCount} act{actCount === 1 ? "" : "s"} · {sceneCount} scene{sceneCount === 1 ? "" : "s"}
@@ -146,7 +146,7 @@ export function HomePage() {
               {hooks.map((h) => (
                 <li key={h.key} className="app-list__row">
                   <span>{h.text}</span>
-                  <span className="cf-muted">{h.adventure.title}</span>
+                  <span className="cf-muted">{adventureTitle(h.adventure)}</span>
                 </li>
               ))}
             </ul>

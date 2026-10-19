@@ -108,6 +108,12 @@ export interface Adventure extends BaseRecord {
   acts: Id[]; // ordered
   templateId?: string;
   tags: string[];
+  /** Module-defined fields (see the module's `narrativeFields` for kind "adventure"). */
+  fields?: Record<string, unknown>;
+  /** Entities the adventure uses, by the builder's cast role id (e.g. pcs, npcs, locations). */
+  cast?: Record<string, Id[]>;
+  /** The adventure builder this adventure was made with, if any. */
+  builderId?: string;
 }
 
 export interface Act extends BaseRecord {
@@ -118,6 +124,8 @@ export interface Act extends BaseRecord {
   pacingDoc?: Id;
   handouts: Id[];
   scenes: Id[]; // ordered
+  /** Module-defined fields (kind "act"). */
+  fields?: Record<string, unknown>;
 }
 
 export interface Scene extends BaseRecord {
@@ -137,6 +145,8 @@ export interface Scene extends BaseRecord {
   /** Event list for the act's "mandatory / optional" flags. */
   events: Array<{ id: Id; text: string; mandatory: boolean; done?: boolean }>;
   tags: string[];
+  /** Module-defined fields (kind "scene"). */
+  fields?: Record<string, unknown>;
 }
 
 export interface Session extends BaseRecord {
