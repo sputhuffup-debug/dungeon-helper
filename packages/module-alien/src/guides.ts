@@ -128,7 +128,7 @@ const skills: PlayGuideEntry[] = [
     summary: "Fighting at Adjacent range with fists, blades or the butt of a rifle, and defending against it.",
     callFor: [
       "Something gets within arm's reach and a PC fights instead of running.",
-      "A PC wants to disarm, shove someone through a door, get past a blocker or pin a foe: declare the special attack before rolling (p. 62).",
+      "A PC wants to disarm, pass a blocker, shove or grapple: pick it from the special attacks in the combat panel and declare it before rolling (p. 62).",
       "A locked door must come down: a close combat attack at +2 dice against armor 2 and 10 points of damage (p. 61).",
       "The enemy is restrained or unaware: +2 dice, and they cannot defend (p. 64).",
       "An attack is coming: the target may defend as a quick action, declared before the attacker rolls (p. 62).",

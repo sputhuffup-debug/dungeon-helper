@@ -1122,6 +1122,121 @@ export interface PlayGuideDef {
 }
 
 // ---------------------------------------------------------------------------
+// Combat at the table (damage taken, creature turns, special attacks)
+// ---------------------------------------------------------------------------
+
+/** Where an entity type keeps its harm, and what happens when it is broken. */
+export interface CombatHealthDef {
+  entityType: string;
+  /** Stored number field holding damage taken (state the table writes; never a computed value). */
+  damagePath: string;
+  /** Maximum health: a field path or a computed key of the entity type. */
+  maxPath: string;
+  /** Armor rating field, if the type has one. */
+  armorPath?: string;
+  /**
+   * Armor fields that replace `armorPath` for a hit source (e.g. `{ fire: "armorVsFire" }`).
+   * When the entity has no value at that path, `armorPath` applies.
+   */
+  armorBySource?: Record<string, string>;
+  /**
+   * Table rolled when health reaches zero (e.g. critical injuries, a broken-creature table); the first match wins.
+   * `when` is JSONLogic over `{ fields, computed, type, subtype }`. With `operation`, the table runs that
+   * dice operation for the entity instead of rolling `table` directly (so the operation's effects apply).
+   */
+  broken?: Array<{ when?: JsonLogicRule; table: string; label?: string; operation?: string }>;
+  page?: PageRef;
+}
+
+/** What one hit does after armor, as the module resolves it. */
+export interface HitInput {
+  damage: number;
+  armor: number;
+  armorPiercing?: boolean;
+  /** Extra successes beyond the first, when the module adds them to damage. */
+  extraSuccesses?: number;
+  /** e.g. "fire" when armor differs by source. */
+  source?: string;
+  /** The attack was aimed at a weak spot (modules that have the rule lower armor for it). */
+  weakSpot?: boolean;
+}
+export interface HitResult {
+  /** Damage that gets through. */
+  damage: number;
+  /** One line on how it was worked out, with page refs. */
+  explain: string;
+  /** Dice rolled for armor, if the module's rule rolls any. */
+  rolls?: RollRecord[];
+}
+
+/** A creature's reaction to being damaged (e.g. acid splash). */
+export interface DamageReactionDef {
+  label: string;
+  /** Field with the reaction's rating. */
+  ratingPath: string;
+  /** Base dice = rating, plus the damage just taken when true. */
+  addDamageTaken: boolean;
+  /** Field or computed key capping the damage taken that is added (e.g. maximum Health). */
+  damageTakenCapPath?: string;
+  /** Damage per success. */
+  damage: number;
+  /** Who it reaches, in the module's own words (e.g. "everything Adjacent"). */
+  reach: string;
+  /** Skip the reaction for these hit sources (e.g. "fire"). */
+  exceptSources?: string[];
+  text?: string;
+  page?: PageRef;
+}
+
+/** How a creature acts at the table. */
+export interface CreatureTurnDef {
+  entityType: string;
+  /** Field giving actions or initiative draws per round. */
+  speedPath?: string;
+  /**
+   * Field holding the id of the creature's attack table. Rows' `result`
+   * objects follow the attack convention `{ name, dice, damage, armorPiercing?, effect }`.
+   */
+  attackTablePath: string;
+  /** Rules for using the table (e.g. re-roll an attack that cannot apply), with pages. */
+  notes?: Array<{ text: string; page?: PageRef }>;
+  onDamaged?: DamageReactionDef;
+  page?: PageRef;
+}
+
+/** A special attack anyone can declare (e.g. disarm, grapple), rolled with a skill. */
+export interface SpecialAttackDef {
+  id: string;
+  name: string;
+  /** Roll id as the table skill roller takes it: a skill id or `attr:<id>`. */
+  roll: string;
+  action?: "full" | "quick";
+  /** Opposing roll, if the target resists with one. */
+  opposed?: string;
+  /** What happens on success, paraphrased. */
+  effect: string;
+  /** Preconditions (e.g. "Adjacent", "a weapon in hand"). */
+  requires?: string;
+  page?: PageRef;
+  mode?: PlayModeId[];
+}
+
+export interface CombatDef {
+  health: CombatHealthDef[];
+  /** The module's armor rule. */
+  resolveHit?(hit: HitInput, rng: Rng): HitResult;
+  creatureTurns?: CreatureTurnDef[];
+  specialAttacks?: SpecialAttackDef[];
+  /**
+   * How an opposed roll is settled: most successes wins; on a tie, `winner`.
+   * Absent: the table shows both results and leaves a tie to the GM.
+   */
+  opposedTies?: { winner: "attacker" | "defender"; text?: string; page?: PageRef };
+  /** Rules shown with the combat panel. */
+  rules?: string[];
+}
+
+// ---------------------------------------------------------------------------
 // The module
 // ---------------------------------------------------------------------------
 
@@ -1149,6 +1264,8 @@ export interface GameModule {
   mapGenerators?: MapGeneratorDef[];
   /** GM hints at the table for each rollable stat and skill. */
   playGuides?: PlayGuideDef[];
+  /** Damage taken, creature turns and special attacks at the table. */
+  combat?: CombatDef;
   /** Upgrade stored entity fields from an older module version. */
   migrations?: Array<{ from: string; to: string; migrate: (entity: { type: string; fields: Record<string, unknown> }) => Record<string, unknown> }>;
 }

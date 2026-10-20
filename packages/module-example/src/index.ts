@@ -124,6 +124,8 @@ const heroType: EntityTypeDef = {
       origin: { type: "string", enum: ["hill", "coast", "city"] },
       favoredSkill: { type: "string", enum: ["fight", "lore", "sneak"] },
       wounds: { type: "integer", minimum: 0, default: 0 },
+      armor: { type: "integer", minimum: 0, maximum: 3 },
+      construct: { type: "boolean" },
       doom: { type: "integer", minimum: 0, default: 0 },
       gear: {
         type: "array",
@@ -159,6 +161,8 @@ const heroType: EntityTypeDef = {
           { path: "skills.*", label: "Skills", widget: "skills", config: { ref: "example.skills" } },
           { path: "health", label: "Health", widget: "computed", readonly: true },
           { path: "wounds", label: "Wounds", widget: "number", rule: "example.rule.wounds" },
+          { path: "armor", label: "Armor", widget: "number" },
+          { path: "construct", label: "Construct", widget: "checkbox" },
         ],
       },
       { id: "gear", title: "Gear", fields: [{ path: "gear[].name", label: "Gear", widget: "gear" }, { path: "carry", label: "Carry", widget: "computed" }] },
@@ -203,6 +207,48 @@ const placeType: EntityTypeDef = {
     summary: ["terrain", "danger"],
   },
   subtypes: [{ id: "ruin", name: "Ruin" }],
+};
+
+/** A creature that takes turns at the table: Speed, Health, damage, armor, a venom reaction and a signature attack table. */
+const beastType: EntityTypeDef = {
+  id: "example.beast",
+  kind: "creature",
+  name: "Beast",
+  plural: "Beasts",
+  icon: "bug",
+  schema: {
+    type: "object",
+    properties: {
+      speed: { type: "integer", minimum: 1, maximum: 3, default: 1 },
+      health: { type: "integer", minimum: 1, default: 4 },
+      damage: { type: "integer", minimum: 0, default: 0 },
+      armor: { type: "integer", minimum: 0, default: 0 },
+      armorVsFire: { type: "integer", minimum: 0 },
+      venom: { type: "integer", minimum: 0 },
+      attackTable: { type: "string", default: "example.table.beast-attacks" },
+    },
+    additionalProperties: false,
+  },
+  sheet: {
+    sections: [
+      {
+        id: "stats",
+        title: "Stats",
+        columns: 3,
+        fields: [
+          { path: "speed", label: "Speed", widget: "number" },
+          { path: "health", label: "Health", widget: "number" },
+          { path: "damage", label: "Damage taken", widget: "number" },
+          { path: "armor", label: "Armor", widget: "number" },
+          { path: "armorVsFire", label: "Armor vs fire", widget: "number" },
+          { path: "venom", label: "Venom", widget: "number" },
+          { path: "attackTable", label: "Attack table", widget: "text" },
+        ],
+      },
+    ],
+    summary: ["speed", "armor"],
+  },
+  defaultVisibility: { attackTable: "gm", venom: "gm" },
 };
 
 // ---------------------------------------------------------------------------
@@ -278,6 +324,61 @@ const encounterTable: RollTable = {
     { range: [1, 3], label: "Nothing", result: { kind: "nothing" } },
     { range: [4, 5], label: "Traveller", result: { kind: "traveller" }, roll: [{ table: "example.table.rumor", as: "rumor" }] },
     { range: [6, 6], label: "Bandits", result: { kind: "bandits" }, roll: [{ table: "example.table.terrain", as: "lairs", times: "d2" }] },
+  ],
+};
+
+/** The beast's signature attacks: rows follow the attack convention `{ name, dice, damage, armorPiercing?, effect }`. */
+const beastAttackTable: RollTable = {
+  id: "example.table.beast-attacks",
+  name: "Beast attacks",
+  page: 33,
+  dice: "1d6",
+  tags: ["attack"],
+  rows: [
+    { range: [1, 1], label: "Circle", result: { name: "Circle", dice: 0, damage: 0, effect: "It circles and growls; its next attack gets one extra die." } },
+    { range: [2, 3], label: "Claw", result: { name: "Claw", dice: 3, damage: 1, armorPiercing: false, effect: "Raking claws." } },
+    { range: [4, 5], label: "Lunge", result: { name: "Lunge", dice: 4, damage: 2, armorPiercing: false, effect: "The target is knocked prone." } },
+    { range: [6, 6], label: "Venom bite", result: { name: "Venom bite", dice: 5, damage: 2, armorPiercing: true, effect: "Bites through armor; the target is poisoned." } },
+  ],
+};
+
+/** Rolled when a hero is broken (Health at zero). */
+const graveWoundTable: RollTable = {
+  id: "example.table.grave-wound",
+  name: "Grave wounds",
+  page: 20,
+  dice: "1d6",
+  rows: [
+    { range: [1, 2], label: "Winded", result: { text: "Out of breath; back on your feet next round." } },
+    { range: [3, 4], label: "Broken arm", result: { text: "One arm is useless until healed." } },
+    { range: [5, 5], label: "Bleeding", result: { text: "Lose one more Health each round until bandaged." } },
+    { range: [6, 6], label: "Mortal wound", result: { text: "Dies within the hour without a healer." } },
+  ],
+};
+
+/** Rolled instead of a grave wound when a construct hero is broken. */
+const breakdownTable: RollTable = {
+  id: "example.table.breakdown",
+  name: "Construct breakdown",
+  page: 21,
+  dice: "1d6",
+  rows: [
+    { range: [1, 3], label: "Seized joint", result: { text: "Moves at half pace until oiled." } },
+    { range: [4, 5], label: "Cracked core", result: { text: "Every roll loses one die until mended." } },
+    { range: [6, 6], label: "Shutdown", result: { text: "Inert until a smith restarts it." } },
+  ],
+};
+
+/** Rolled when a beast is broken. */
+const beastBrokenTable: RollTable = {
+  id: "example.table.beast-broken",
+  name: "Broken beast",
+  page: 34,
+  dice: "1d6",
+  rows: [
+    { range: [1, 3], label: "Flees", result: { text: "It bolts for its lair." } },
+    { range: [4, 5], label: "Cornered", result: { text: "It fights on with one last attack." } },
+    { range: [6, 6], label: "Dead", result: { text: "It falls and does not rise." } },
   ],
 };
 
@@ -541,7 +642,7 @@ export const exampleModule: GameModule = {
     sourceBook: { title: "Example Quest Core Book", year: 2026 },
   },
   dice: exampleDice,
-  entityTypes: [heroType, placeType],
+  entityTypes: [heroType, placeType, beastType],
   relationshipTypes: [
     { id: "example.guards", forward: "guards", reverse: "guarded by", fromKinds: ["character"], toKinds: ["location"] },
     { id: "example.risen_from", forward: "risen from", reverse: "raised", fromKinds: ["character"], toKinds: ["character"] },
@@ -587,7 +688,7 @@ export const exampleModule: GameModule = {
       fields: { terrain: "hills", danger: "uneasy", population: 3, features: ["crumbling", "watchfire"] },
     },
   ],
-  tables: [terrainTable, dangerTable, rumorTable, encounterTable, crawlTable],
+  tables: [terrainTable, dangerTable, rumorTable, encounterTable, crawlTable, beastAttackTable, graveWoundTable, breakdownTable, beastBrokenTable],
   procedures: [expedition],
   templates: [
     {
@@ -630,6 +731,15 @@ export const exampleModule: GameModule = {
   ],
   rules,
   trackers: [
+    {
+      // Cards 1-10 each round; a beast draws one card per point of Speed and keeps the best.
+      id: "example.tracker.initiative",
+      name: "Initiative",
+      kind: "initiative",
+      scope: "encounter",
+      page: 18,
+      config: { cards: 10, drawsField: "speed" },
+    },
     {
       id: "example.tracker.wounds",
       name: "Wounds",
@@ -704,6 +814,51 @@ export const exampleModule: GameModule = {
   adventureBuilders: [questBuilder],
   mapGenerators: [exampleSiteGenerator],
   playGuides: [examplePlayGuide],
+  combat: {
+    health: [
+      {
+        entityType: "example.hero",
+        damagePath: "wounds",
+        maxPath: "health",
+        armorPath: "armor",
+        page: 20,
+        broken: [
+          { when: { "!!": [{ var: "fields.construct" }] }, table: "example.table.breakdown", label: "Breakdown" },
+          { table: "example.table.grave-wound", label: "Grave wound" },
+        ],
+      },
+      { entityType: "example.beast", damagePath: "damage", maxPath: "health", armorPath: "armor", armorBySource: { fire: "armorVsFire" }, page: 34, broken: [{ table: "example.table.beast-broken", label: "Broken" }] },
+    ],
+    // Armor stops its rating in damage; armor piercing ignores it; each extra success adds one damage (p. 20).
+    resolveHit(hit) {
+      const armor = hit.armorPiercing ? 0 : hit.armor;
+      const extra = Math.max(0, hit.extraSuccesses ?? 0);
+      const total = hit.damage + extra;
+      const damage = Math.max(0, total - armor);
+      const parts = [`${hit.damage} damage`, ...(extra ? [`+${extra} extra`] : []), hit.armorPiercing ? `armor piercing (armor ${hit.armor} ignored)` : `− armor ${armor}`];
+      return { damage, explain: `${parts.join(" ")} = ${damage} (p. 20)` };
+    },
+    creatureTurns: [
+      {
+        entityType: "example.beast",
+        speedPath: "speed",
+        attackTablePath: "attackTable",
+        page: 33,
+        notes: [
+          { text: "One attack per point of Speed each round.", page: 33 },
+          { text: "Re-roll an attack that cannot reach any target, or pick one if the scene calls for it.", page: 33 },
+        ],
+        onDamaged: { label: "Venom spray", ratingPath: "venom", addDamageTaken: true, damage: 1, reach: "everything in the same zone", exceptSources: ["fire"], text: "Wounded beasts spray venom.", page: 34 },
+      },
+    ],
+    specialAttacks: [
+      { id: "example.special.shove", name: "Shove", roll: "fight", action: "quick", opposed: "attr:might", requires: "Adjacent", effect: "Push the target into the next zone or knock it prone.", page: 19 },
+      { id: "example.special.disarm", name: "Disarm", roll: "fight", action: "full", opposed: "fight", requires: "Adjacent; the target holds a weapon", effect: "The target's weapon lands in the zone.", page: 19 },
+      { id: "example.special.feint", name: "Feint", roll: "sneak", action: "quick", requires: "Adjacent", effect: "Your next attack this round gets two extra dice.", page: 19 },
+    ],
+    opposedTies: { winner: "defender", text: "A tie goes to the defender.", page: 19 },
+    rules: ["example.rule.wounds", "example.rule.push"],
+  },
   hooks: {
     onSessionEnd(ctx): Prompt[] {
       const onYes: Effect[] = ctx.characters.map((c) => ({ kind: "incrementField", entity: c.id, path: "wounds", by: -1, min: 0 }));

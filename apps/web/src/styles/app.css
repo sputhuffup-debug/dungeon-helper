@@ -2537,3 +2537,95 @@ a.cf-btn {
   background: var(--cf-surface);
   color: var(--cf-text);
 }
+
+/* combat at the table: health on participant cards, take a hit, creature turns, reactions, special attacks */
+.app-participant__health {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cf-space-1);
+}
+.app-combat__broken {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cf-space-2);
+}
+.app-combat__broken-result {
+  flex-basis: 100%;
+  padding: var(--cf-space-1) var(--cf-space-2);
+  border-left: 3px solid var(--cf-danger);
+  background: var(--cf-danger-soft);
+  border-radius: var(--cf-radius-sm);
+}
+.app-combat__turn {
+  border-color: var(--cf-accent);
+}
+.app-combat__attack,
+.app-combat__special,
+.app-combat__reaction {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cf-space-2);
+  padding: var(--cf-space-2) var(--cf-space-3);
+  border: 1px solid var(--cf-border-strong);
+  border-radius: var(--cf-radius);
+  background: var(--cf-surface);
+}
+.app-combat__reaction {
+  border-color: var(--cf-warning);
+}
+.app-combat__attack-name {
+  font-size: var(--cf-text-lg);
+}
+.app-combat__stats {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--cf-space-1) var(--cf-space-3);
+  margin: 0;
+}
+.app-combat__stats dt {
+  color: var(--cf-muted);
+}
+.app-combat__stats dd {
+  margin: 0;
+  font-weight: 600;
+}
+.app-combat__fields {
+  align-items: flex-end;
+}
+.app-combat__armor {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cf-space-2);
+  margin: 0;
+}
+.app-combat__hitline {
+  margin: 0;
+}
+.app-combat__outcome {
+  padding: var(--cf-space-2) var(--cf-space-3);
+  border-left: 3px solid var(--cf-accent);
+  background: var(--cf-accent-soft);
+  border-radius: var(--cf-radius-sm);
+}
+.app-combat__target {
+  flex-wrap: wrap;
+}
+.app-combat__opposed-result {
+  margin: 0;
+  padding: var(--cf-space-2) var(--cf-space-3);
+  border-radius: var(--cf-radius-sm);
+  background: var(--cf-accent-soft);
+}
+.app-combat__dialog {
+  width: min(720px, calc(100vw - 32px));
+}
+.app-guide__specials {
+  align-self: flex-start;
+}
+.app-combat__notes summary {
+  cursor: pointer;
+  color: var(--cf-muted);
+}

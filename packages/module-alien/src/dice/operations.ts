@@ -296,6 +296,11 @@ export const androidCriticalDamage: DiceOperation = {
   },
 };
 
+/** Condition id prefix for critical injuries; the suffix is the D66 result. */
+export const CRITICAL_INJURY_CONDITION = "critical-injury:";
+/** Results from 14 up are re-rolled when the character already has them (p. 68). */
+export const CRITICAL_REROLL_FROM = 14;
+
 export const criticalInjury: DiceOperation = {
   id: "criticalInjury",
   name: "Critical injury",
@@ -311,7 +316,12 @@ export const criticalInjury: DiceOperation = {
   },
   run(input, rng, tables): DiceOperationResult {
     if (input.android === true) return androidCriticalDamage.run(input, rng, tables);
-    const { record, row } = rollOnTable(tables, CRITICAL_INJURY_TABLE, rng, { step: "criticalInjury", fallbackDice: "d66" });
+    // Re-roll an injury the character already has, for results 14 and up (p. 68).
+    const has = new Set(conditionIds(input.conditions));
+    let { record, row } = rollOnTable(tables, CRITICAL_INJURY_TABLE, rng, { step: "criticalInjury", fallbackDice: "d66" });
+    for (let tries = 0; tries < 200 && record.total >= CRITICAL_REROLL_FROM && has.has(`${CRITICAL_INJURY_CONDITION}${record.total}`); tries++) {
+      ({ record, row } = rollOnTable(tables, CRITICAL_INJURY_TABLE, rng, { step: "criticalInjury", fallbackDice: "d66" }));
+    }
     const label = record.rowLabel ?? `Critical injury ${record.total}`;
     const entity = str(input.entity);
     const res = (row?.result ?? {}) as { fatal?: boolean; timeLimit?: string | null; instantDeath?: boolean };
@@ -321,7 +331,7 @@ export const criticalInjury: DiceOperation = {
       effects.push({
         kind: "addCondition",
         entity,
-        condition: { id: `critical-injury:${record.total}`, label, source: CRITICAL_INJURY_TABLE, page: 70 },
+        condition: { id: `${CRITICAL_INJURY_CONDITION}${record.total}`, label, source: CRITICAL_INJURY_TABLE, page: 70 },
       });
     }
     return { total: record.total, rolls: [record], result: { row: row?.result ?? null, total: record.total }, label, effects };

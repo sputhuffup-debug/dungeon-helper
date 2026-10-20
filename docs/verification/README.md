@@ -14,6 +14,7 @@ Numbers, dice expressions, ranges, names and stat lines were copied exactly. Eff
 | Life paths, rule cards, templates, trackers | [lifepath-rules.md](lifepath-rules.md) |
 | Site map generator, location detail and salvage tables | [maps.md](maps.md) |
 | GM play guide (rolls in the story) | [play-guide.md](play-guide.md) |
+| Combat at the table: damage, armor, broken, creature turns, special attacks | [combat.md](combat.md) |
 
 ## Still flagged `unverified`
 

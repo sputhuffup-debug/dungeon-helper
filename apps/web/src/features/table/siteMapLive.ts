@@ -92,3 +92,58 @@ export function unrevealed(layout: SiteLayout, live: SiteMapLiveState): Id[] {
   const seen = new Set(live.revealed);
   return layout.zones.filter((z) => z.kind !== "out-of-bounds" && !seen.has(z.id)).map((z) => z.id);
 }
+
+export interface TargetRange {
+  entityId: Id;
+  zone?: string;
+  /** Zones between the two tokens (0 = the same zone), when both are on the map and a route exists. */
+  distance?: number;
+  band?: RangeBandDef;
+}
+
+/**
+ * Where each target stands from `from` on the scene map: the zone distance and
+ * range band between their tokens on a generated map (live state), or just
+ * "same zone" on an image map (token positions). Undefined when `from` has no
+ * token. Targets without a token come back without a distance.
+ */
+export function rangesFrom(map: SiteMap | undefined, def: MapGeneratorDef | undefined, positions: Record<string, string> | undefined, from: Id, targets: Id[]): Map<Id, TargetRange> | undefined {
+  if (!map) return undefined;
+  const out = new Map<Id, TargetRange>();
+  if (map.layout) {
+    const live = liveOf(map);
+    const zoneOf = (id: Id) => live.tokens.find((t) => t.entity === id)?.zone;
+    const fromZone = zoneOf(from);
+    if (!fromZone) return undefined;
+    const dist = zoneDistances(map.layout, { act: live.act, live, passable: def?.passable, from: [fromZone] })[fromZone] ?? {};
+    for (const id of targets) {
+      const zone = zoneOf(id);
+      const distance = zone !== undefined ? dist[zone] : undefined;
+      const band = rangeBandFor(distance, def?.rangeBands);
+      out.set(id, { entityId: id, ...(zone ? { zone } : {}), ...(distance !== undefined ? { distance } : {}), ...(band ? { band } : {}) });
+    }
+    return out;
+  }
+  const fromZone = positions?.[from];
+  if (!fromZone) return undefined;
+  for (const id of targets) {
+    const zone = positions?.[id];
+    out.set(id, { entityId: id, ...(zone ? { zone } : {}), ...(zone === fromZone ? { distance: 0 } : {}) });
+  }
+  return out;
+}
+
+/** Targets nearest first (no distance last), ties in the given order. */
+export function nearestFirst<T extends { id: Id }>(items: T[], ranges: Map<Id, TargetRange> | undefined): T[] {
+  if (!ranges) return items;
+  const d = (id: Id) => ranges.get(id)?.distance ?? Number.POSITIVE_INFINITY;
+  return items.map((item, i) => ({ item, i })).sort((a, b) => d(a.item.id) - d(b.item.id) || a.i - b.i).map((x) => x.item);
+}
+
+/** "2 zones · Medium", "same zone · Engaged", or "not on the map". */
+export function rangeText(r: TargetRange | undefined): string {
+  if (!r || r.zone === undefined) return "not on the map";
+  if (r.distance === undefined) return "no route";
+  const zones = r.distance === 0 ? "same zone" : `${r.distance} zone${r.distance === 1 ? "" : "s"}`;
+  return r.band ? `${zones} · ${r.band.label}` : zones;
+}

@@ -366,7 +366,7 @@ export function logTable(ctx: Ctx, sessionId: Id, text: string, data?: unknown):
 // ---------------------------------------------------------------------------
 
 export interface DiceLogData {
-  kind: "operation" | "pool" | "free" | "table";
+  kind: "operation" | "pool" | "free" | "table" | "damage";
   seed: string;
   operation?: string;
   input?: Record<string, unknown>;
@@ -501,9 +501,9 @@ function recordPanic(ctx: Ctx, sessionId: Id, operationId: string, entityId: Id,
   }
 }
 
-/** Log a pool roll (skill roll, push, free roll) made with `seed`. */
-export function recordPoolRoll(ctx: Ctx, sessionId: Id, input: { label: string; seed: string; result: RollResult; entityId?: Id; kind?: "pool" | "free" }): void {
-  const data: DiceLogData = { kind: input.kind ?? "pool", seed: input.seed, label: input.label, result: input.result };
+/** Log a pool roll (skill roll, push, free roll) made with `seed`; `gmOnly` keeps it off every player output. */
+export function recordPoolRoll(ctx: Ctx, sessionId: Id, input: { label: string; seed: string; result: RollResult; entityId?: Id; kind?: "pool" | "free"; gmOnly?: boolean }): void {
+  const data: DiceLogData = { kind: input.kind ?? "pool", seed: input.seed, label: input.label, result: input.result, ...(input.gmOnly ? { gmOnly: true } : {}) };
   appendTrackerLog(ctx.store, sessionId, {
     tracker: DICE_LOG,
     text: `${input.label}: ${ctx.module.module.dice.describe(input.result)}`,

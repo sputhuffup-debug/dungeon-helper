@@ -114,7 +114,7 @@ const XX121 = "xx121";
 
 /** Special abilities common to every variety of Xenomorph XX121 (p. 210). */
 const XX121_COMMON: Ability[] = [
-  { name: "Acid Splash", text: "Non-fire damage sprays acid on everything Adjacent: base dice = Acid Splash rating + damage taken, damage 1. Repeats each round at half the dice.", page: 210 },
+  { name: "Acid Splash", text: "Non-fire damage sprays acid on everyone Adjacent and the floor: base dice = Acid Splash rating + damage taken (at most its maximum Health), damage 1, eating 1 armor per damage. Repeats each round at half the dice until it does no damage.", page: 210 },
   { name: "Immunity To Cold & Vacuum", text: "Unharmed by cold or vacuum, and does not seem to need to breathe.", page: 210 },
   { name: "Radiation", text: "Radiation counts as two levels weaker: extreme acts as weak, weak and strong do nothing.", page: 210 },
   { name: "Darkness", text: "Darkness does not hinder it in stealth mode.", page: 210 },

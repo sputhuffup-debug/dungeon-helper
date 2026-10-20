@@ -83,9 +83,9 @@ export const combatRules: RuleCard[] = [
     tags: ["combat", "attack"],
     links: { rules: ["alien.rule.block-dodge", "alien.rule.damage-armor", "alien.rule.special-attacks"] },
   }),
-  card("special-attacks", "Special attacks", "Declared before rolling and made without weapon bonuses: Disarm, Pass a blocker, Shove to Short range (even through a door) or Grapple. A success achieves the effect instead of damage, and these can be defended against.", 62, {
+  card("special-attacks", "Special attacks", "A close combat attack (full action, Close Combat) declared before rolling, with no weapon bonus dice, that does no damage on a hit but achieves one of four results. Disarm takes an item from the target, Pass gets you past someone blocking you, Shove pushes the target to Short range (even through a door or hatch), and Grapple pins them. The target can defend against it as usual.", 62, {
     tags: ["combat", "attack"],
-    links: { rules: ["alien.rule.attack-close", "alien.rule.grappling"] },
+    links: { rules: ["alien.rule.attack-close", "alien.rule.grappling", "alien.rule.block-dodge", "alien.rule.movement"] },
   }),
   card("grappling", "Grappling", "A grappled character can only try to break free, a full action and an opposed Close Combat roll (Xenomorphs use Mobility). The grappler can only make grapple attacks, unarmed attacks that cannot be defended against.", 62, {
     tags: ["combat", "attack"],
@@ -111,17 +111,17 @@ export const combatRules: RuleCard[] = [
     tags: ["combat", "attack", "gear"],
     links: { rules: ["alien.rule.attack-ranged", "alien.rule.ammo-supply", "alien.rule.stress"] },
   }),
-  card("damage-armor", "Damage and armor", "A hit deals base damage plus 1 per extra success, and armor level is subtracted from damage from an external attack. Armor-piercing attacks count armor one step lower, and weak-spot hits lower it one step more. You can wear only one suit of armor.", 67, {
+  card("damage-armor", "Damage and armor", "A hit deals base damage plus 1 per extra success, and the armor level is subtracted from damage from an external attack; no dice are rolled for armor. Armor-piercing attacks count armor one step lower (never below zero), and a weak-spot hit, aimed at −2 dice, lowers it one step more. Only one suit can be worn, it works as normal against fire, and it does nothing against a fall.", [67, 76], {
     tags: ["combat", "damage"],
-    links: { rules: ["alien.rule.armor", "alien.rule.weapons", "alien.rule.broken", "alien.rule.barriers"] },
+    links: { fields: [F.damage, F.creatureDamage, F.creatureArmor, F.creatureArmorVsFire], rules: ["alien.rule.armor", "alien.rule.weapons", "alien.rule.broken", "alien.rule.barriers", "alien.rule.creature-armor"] },
   }),
   card("barriers", "Barriers", "Bulkheads and furniture have armor levels that reduce shots through them. If a barrier's armor is higher than the weapon's base damage it cannot be breached at all, and by outer bulkheads or reactors a stray miss that could breach rolls a stress die, with a facehugger meaning a breach.", 68, {
     tags: ["combat", "damage", "map"],
     links: { rules: ["alien.rule.cover", "alien.rule.explosive-decompression"] },
   }),
-  card("broken", "Broken", "At zero Health you are broken: roll a critical injury at once, and you can only make one move action per round. Further damage brings more critical injuries, but you gain no stress and make no panic rolls. You get up through first aid (Medical Aid, full action), a rally (Command, quick action) or on your own after a stretch, regaining Health per success or 1 Health.", 68, {
+  card("broken", "Broken", "At zero Health you are broken: roll a critical injury at once, and you can only make one move action per round. Further damage brings more critical injuries, but you gain no stress and make no panic rolls; NPCs break the same way, though the GM may let a minor one simply die. You get up through first aid (Medical Aid, full action), a rally (Command, quick action) or on your own after a stretch, regaining Health per success or 1 Health.", [68, 69], {
     tags: ["combat", "damage"],
-    links: { fields: [F.criticalInjuries], rules: ["alien.rule.critical-injuries", "alien.rule.healing", "alien.rule.death"] },
+    links: { tables: [T.criticalInjury, "alien.character.android-critical-damage"], fields: [F.damage, F.criticalInjuries], rules: ["alien.rule.critical-injuries", "alien.rule.android-damage", "alien.rule.healing", "alien.rule.death"] },
   }),
   card("critical-injuries", "Critical injuries", "When broken, roll D66 on the critical injury table and re-roll an injury you already have. Each entry lists whether it is lethal, its time limit, its effect and its healing time; 64 to 66 kill outright.", [68, 70], {
     tags: ["combat", "damage"],
@@ -143,9 +143,9 @@ export const combatRules: RuleCard[] = [
     tags: ["combat", "attack", "hazard"],
     links: { rules: ["alien.rule.damage-types", "alien.rule.cover"] },
   }),
-  card("android-damage", "Damaged androids", "An android at zero Health rolls D6 on the critical system damage table instead of a critical injury and keeps operating until System Shutdown. Androids do not heal: a shift and a Comtech roll repair all damage short of shutdown, and a shut-down android can only be revived to talk.", 78, {
+  card("android-damage", "Damaged androids", "An android at zero Health rolls D6 on the critical system damage table instead of a critical injury and keeps operating until System Shutdown; each further hit means another roll, and a result it already has moves one step up the table. Androids do not heal: a shift and a Comtech roll repair all damage short of shutdown, and a shut-down android can only be revived to talk.", 78, {
     tags: ["combat", "damage", "android"],
-    links: { tables: ["alien.character.android-critical-damage"], rules: ["alien.rule.androids", "alien.rule.broken"] },
+    links: { tables: ["alien.character.android-critical-damage"], fields: [F.damage, F.android], rules: ["alien.rule.androids", "alien.rule.broken"] },
   }),
   card("fatigue", "Fatigue", "Lack of air, water, food or sleep, or extreme cold or heat, calls for Survival rolls at intervals, and the first failure makes you fatigued. While fatigued you cannot recover Health and each further failure costs 1 damage and +1 stress; broken by fatigue, you make death rolls until the cause is removed. Androids are immune.", 75, {
     tags: ["hazard", "survival"],
