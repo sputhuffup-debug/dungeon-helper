@@ -3,6 +3,7 @@ import { getTrackerState, listCampaigns, plainText, updateTrackerState, type Ent
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
 import { createCampaign, createEntity } from "../../state/actions";
 import { openCampaign, type CampaignContextValue } from "../../state/CampaignProvider";
+import { awardRowsFor, postSessionAwards, sessionAwardsOf } from "../../state/progressionActions";
 import {
   DICE_LOG,
   answerPrompt,
@@ -128,19 +129,22 @@ describe("table actions", () => {
     expect(drafts.map((d) => d.key)).toEqual([`scene:${scene.id}`, `handout:${handout.id}`]);
   });
 
-  it("builds wrap-up prompts from the Alien hook; a yes answer increments XP once and is remembered", async () => {
+  it("builds the wrap-up award checklist from the Alien progression; posting adds XP once and ticks the XP checklist item", async () => {
     const ctx = await open(alienCampaign);
     const session = runningSession(ctx);
     const pcs = playerCharacters(ctx);
     const hicks = pcs.find((p) => p.name === "Ripley") ?? pc(ctx, "Ripley");
-    const prompts = sessionEndPrompts(ctx, session.id);
-    const xp = prompts.filter((p) => p.id.startsWith("alien.xp.") && p.entity === hicks.id);
-    expect(xp).toHaveLength(9);
+    // XP no longer comes from end-of-session prompts
+    expect(sessionEndPrompts(ctx, session.id).some((p) => p.id.startsWith("alien.xp."))).toBe(false);
+    const rows = awardRowsFor(ctx, hicks, session.id);
+    expect(rows).toHaveLength(9);
+    expect(rows.filter((r) => r.ticked).map((r) => r.question.id)).toEqual(["alien.award.participated"]);
     const before = Number(ctx.store.get("entities", hicks.id)?.fields.xp ?? 0);
-    const q = xp[0]!;
-    answerPrompt(ctx, session.id, q, { promptId: q.id, kind: q.kind, value: true, effects: q.onYes ?? [] });
-    expect(ctx.store.get("entities", hicks.id)?.fields.xp).toBe(before + 1);
-    expect((ctx.store.get("sessions", session.id)?.wrapUp as { answers: Record<string, { label: string }> }).answers[q.id]?.label).toBe("Yes");
+    postSessionAwards(ctx, session.id, { [hicks.id]: ["alien.award.participated", "alien.award.danger"] });
+    postSessionAwards(ctx, session.id, { [hicks.id]: ["alien.award.participated"] });
+    expect(ctx.store.get("entities", hicks.id)?.fields.xp).toBe(before + 2);
+    expect(sessionAwardsOf(ctx, session.id, hicks.id)).toHaveLength(1);
+    expect(ctx.store.get("sessions", session.id)?.checklist?.["alien.wrap.xp"]).toBe(true);
   });
 
   it("asks for the trauma check after a panic result of 9+, and the failure option chains into a mental trauma roll", async () => {

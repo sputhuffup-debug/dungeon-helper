@@ -10,3 +10,4 @@ export * from "./module";
 export * from "./lifecycle";
 export * from "./review";
 export * from "./calendar";
+export * from "./progression";

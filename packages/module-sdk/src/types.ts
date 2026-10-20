@@ -563,7 +563,9 @@ export type SessionChecklistEvent =
   /** Timeline entries are confirmed at wrap-up. */
   | "timeline-confirmed"
   /** The next session is planned. */
-  | "next-session-planned";
+  | "next-session-planned"
+  /** End-of-session advancement awards (the module's `progression` award checklist) are posted at wrap-up. */
+  | "awards-given";
 
 export const SESSION_CHECKLIST_EVENTS: readonly SessionChecklistEvent[] = [
   "scenes-planned",
@@ -574,6 +576,7 @@ export const SESSION_CHECKLIST_EVENTS: readonly SessionChecklistEvent[] = [
   "loose-ends-carried",
   "timeline-confirmed",
   "next-session-planned",
+  "awards-given",
 ];
 
 /** Id prefixes the core session checklist keeps for itself (defaults and the GM's own items). */
@@ -703,7 +706,24 @@ export type Effect =
   | { kind: "prompt"; prompt: Prompt }
   | CreateFromPresetEffect
   | ApplyPresetEffect
-  | LedgerEffect;
+  | LedgerEffect
+  | AwardEffect;
+
+/**
+ * Award progression points to a character and log it in the core's
+ * advancement log (see `ProgressionDef`). `question` names one of the
+ * module's award questions (its points and pool); otherwise `amount` goes
+ * into `pool` (default "experience"). `key` makes it idempotent.
+ */
+export interface AwardEffect {
+  kind: "award";
+  entity: string;
+  question?: string;
+  amount?: number;
+  pool?: ProgressionPoolId;
+  reason?: string;
+  key?: string;
+}
 
 /**
  * Create a new entity from one of the module's presets. `id` asks for a
@@ -1469,6 +1489,188 @@ export interface EntitySnapshot {
 }
 
 // ---------------------------------------------------------------------------
+// Character progression: experience, story points, advancement
+// ---------------------------------------------------------------------------
+
+/** The two pools a progression can move: experience (spent on the sheet) and story points (spent at the table). */
+export type ProgressionPoolId = "experience" | "story";
+
+/**
+ * A running pool kept on the character sheet at `path` (experience points,
+ * story or hero points). It is stored state the players earn and spend, like
+ * stress or damage, not a value derived from other fields; the core's
+ * advancement log records every award and spend that moves it.
+ */
+export interface ProgressionPoolDef {
+  /** Field path on the advancing entity, e.g. "xp". */
+  path: string;
+  /** Short label, e.g. "XP". */
+  label: string;
+  /** Long name, e.g. "Experience points". */
+  name?: string;
+  /** Lowest value (default 0). */
+  min?: number;
+  /** Most the character can hold, if the rules cap it. */
+  max?: number;
+  page?: PageRef;
+  rule?: string;
+  mode?: PlayModeId[];
+}
+
+export interface ExperienceDef extends ProgressionPoolDef {
+  /**
+   * When experience may be spent. "between-sessions": the app warns while a
+   * session is running (the GM can still go ahead). Default "any".
+   */
+  spendWhen?: "between-sessions" | "any";
+  /** The timing rule in the module's own words. */
+  spendWhenText?: string;
+}
+
+/** One thing a story point buys at the table. */
+export interface StoryPointUseDef {
+  id: string;
+  /** Short label, e.g. "Success on one base die". */
+  label: string;
+  /** The rule, paraphrased. */
+  text: string;
+  page?: PageRef;
+  /** Points it costs (default 1). */
+  cost?: number;
+  /**
+   * A dice operation that applies the use to a roll: input `{ result }` (the
+   * RollResult) and, optionally, `entity`; its `result` is the improved
+   * RollResult. With one, the roll panel offers the use on a roll result.
+   * The app logs the spend itself, so call it without `entity` when the
+   * operation would also move the pool.
+   */
+  operation?: string;
+  /** When on a roll it may be used: before a push, after one, or either (default "any"). */
+  push?: "before" | "after" | "any";
+}
+
+export interface StoryPointDef extends ProgressionPoolDef {
+  /** How they are earned, in the module's own words. */
+  earn: Array<{ text: string; page?: PageRef }>;
+  /** What they are spent on. */
+  uses: StoryPointUseDef[];
+  /** At the end of an adventure, keep at most `max` for the next one. */
+  carryOver?: { max: number; text: string; page?: PageRef };
+}
+
+/** What an award question's `when` and `suggest` see, per character. */
+export interface AwardContext {
+  mode: PlayModeId;
+  character: { id: string; name: string; type: string; fields: Record<string, unknown> };
+  computed: Record<string, unknown>;
+  /** Relationship type id -> how many relationships of that type the character has (either direction). */
+  relationships: Record<string, number>;
+  /** The session's tracker state (e.g. a panic log), empty outside a session. */
+  trackerState: Record<string, unknown>;
+}
+
+/** One line of the end-of-session (or end-of-act) award checklist. */
+export interface AwardQuestionDef {
+  id: string;
+  /** The question, paraphrased. */
+  text: string;
+  /** Points for a yes (default 1). */
+  amount?: number;
+  /** Pool it pays into (default "experience"). */
+  pool?: ProgressionPoolId;
+  /** When it is asked: at the end of a session (default), of each act, or for downtime between jobs. */
+  timing?: "session" | "act" | "downtime";
+  page?: PageRef;
+  mode?: PlayModeId[];
+  /** JSONLogic over the `AwardContext`; false means the question does not apply to this character. */
+  when?: JsonLogicRule;
+  /** Why it does not apply, shown when `when` is false. */
+  whenText?: string;
+  /** Ticked from the start (e.g. "were you there?"). */
+  defaultYes?: boolean;
+  /** Ticked as a suggestion when this returns true (e.g. the session logged a panic roll for the character). */
+  suggest?(ctx: AwardContext): boolean;
+  /** One line of guidance for the GM. */
+  hint?: string;
+}
+
+/**
+ * What a spend option changes on the sheet.
+ * - `level`: raise one numeric key of the object at `path` by one step (e.g. a
+ *   skill), up to `max`. Keys come from reference list `ref` or from `keys`.
+ * - `pick`: add an item of reference list `ref` to the array at `path`, as
+ *   `{ id, [countKey]: n }` entries (`countKey` default "count"); taking an
+ *   item again raises its count up to the number in the item's `stackKey`
+ *   property (default "maxStack"; an item without one is taken once).
+ */
+export type SpendTarget =
+  | { kind: "level"; path: string; ref?: string; keys?: string[]; max: number; step?: number }
+  | {
+      kind: "pick";
+      path: string;
+      ref: string;
+      countKey?: string;
+      stackKey?: string;
+      /** Item property shown as a tag (e.g. the career a talent belongs to), resolved to a reference item's name when one has that id. */
+      groupKey?: string;
+      /** Tag for items without `groupKey` (e.g. "General"). */
+      groupEmpty?: string;
+    };
+
+/**
+ * A precondition of a spend, JSONLogic over the spend context
+ * `{ key, item, from, to, count, fields, computed }` (`item` is the reference
+ * item, `count` the copies already held for picks). True means it holds.
+ * "block" stops the spend; "confirm" is something the app cannot see (e.g.
+ * "you had a teacher"), so the GM confirms it before applying.
+ */
+export interface SpendCheck {
+  ok: JsonLogicRule;
+  message: string;
+  level: "block" | "confirm";
+  page?: PageRef;
+}
+
+/** One way to spend a pool on the sheet, with its cost, caps and preconditions. */
+export interface SpendOptionDef {
+  id: string;
+  label: string;
+  /** One line on the rule, paraphrased. */
+  text?: string;
+  /** Pool it is paid from (default "experience"). */
+  pool?: ProgressionPoolId;
+  target: SpendTarget;
+  /** Cost: a number, or JSONLogic over the spend context (e.g. `{ "*": [{ "var": "to" }, 5] }`). */
+  cost: JsonLogicRule;
+  /** Which keys or items may be chosen at all (JSONLogic over the spend context); others are listed as unavailable. */
+  available?: JsonLogicRule;
+  /** Why an item is unavailable, shown when `available` is false. */
+  availableText?: string;
+  checks?: SpendCheck[];
+  page?: PageRef;
+  rule?: string;
+  mode?: PlayModeId[];
+}
+
+/**
+ * How characters advance: the pools they keep, the award checklist the GM
+ * runs at the end of a session or act, and what the pools buy. The core logs
+ * every award and spend per character (see core `advancement.ts`).
+ */
+export interface ProgressionDef {
+  /** Entity types that advance; `when` (JSONLogic over `{ fields, type }`) narrows a type (e.g. PCs only). */
+  entities: Array<{ type: string; when?: JsonLogicRule }>;
+  experience?: ExperienceDef;
+  storyPoints?: StoryPointDef;
+  awards: AwardQuestionDef[];
+  spends: SpendOptionDef[];
+  /** Other advancement in the module's own words (e.g. changing buddy and rival after a session). */
+  notes?: Array<{ text: string; page?: PageRef; mode?: PlayModeId[] }>;
+  rules?: string[];
+  mode?: PlayModeId[];
+}
+
+// ---------------------------------------------------------------------------
 // The module
 // ---------------------------------------------------------------------------
 
@@ -1504,6 +1706,8 @@ export interface GameModule {
   crewShip?: CrewShipDef;
   /** Travel time and checks between places. */
   travel?: TravelDef;
+  /** Experience, story points and spending them: award checklist, spend options, pools. */
+  progression?: ProgressionDef;
   /** Upgrade stored entity fields from an older module version. */
   migrations?: Array<{ from: string; to: string; migrate: (entity: { type: string; fields: Record<string, unknown> }) => Record<string, unknown> }>;
 }

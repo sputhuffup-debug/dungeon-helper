@@ -5,10 +5,12 @@
  * logs its seed, so the log can reproduce it.
  */
 import { getPath, type Entity, type Id, type TrackerState } from "@campaign-forge/core";
-import { createRng, type DicePool, type EntityTypeDef, type LoadedModule, type PlayModeId, type RollResult } from "@campaign-forge/module-sdk";
+import { createRng, poolValue, type DicePool, type EntityTypeDef, type LoadedModule, type PlayModeId, type RollResult } from "@campaign-forge/module-sdk";
 import { useMemo, useRef, useState } from "react";
-import { Badge, Button, Card, DiceRollPanel, DieFace, RollLog, Stepper, humanize, resolveBindPath, specById, type RollLogEntry } from "../../components/ui";
-import { useCampaign, useMeta } from "../../state/hooks";
+import { Badge, Button, Card, DiceRollPanel, DieFace, RollLog, Stepper, humanize, pushToast, resolveBindPath, specById, type RollLogEntry } from "../../components/ui";
+import { errorMessage } from "../../lib/format";
+import { useCampaign, useMeta, useRecord } from "../../state/hooks";
+import { entityAdvances, poolOf, spendStoryPoint, storyUses } from "../../state/progressionActions";
 import { DICE_LOG, applySessionEffects, diceCounter, recordPoolRoll, type DiceLogData } from "../../state/tableActions";
 import { useSessionTrackerState } from "./hooks";
 import { SpecialAttackCard, useSpecialAttacks } from "./SpecialAttacks";
@@ -122,8 +124,36 @@ export function SessionRollPanel({ sessionId, entity, label, input, initialResul
   const seed = `${sessionId}:${counter}`;
   const rng = useMemo(() => createRng(seed), [seed]);
   const lastPushes = useRef(initialResult?.pushes ?? 0);
+  const story = useStoryPointUse(entity);
+  const spendStory = (result: RollResult | undefined): RollResult | void => {
+    if (!result || !entity || !story) return;
+    const { use, pool } = story;
+    if ((use.push === "before" && result.pushes > 0) || (use.push === "after" && result.pushes === 0)) {
+      pushToast(`${use.label}: only ${use.push} a push.`, { tone: "warning" });
+      return;
+    }
+    const op = use.operation ? ctx.module.module.dice.operations?.[use.operation] : undefined;
+    if (!op) return;
+    try {
+      // run without the entity: the spend is logged here, through the advancement log
+      const out = op.run({ result }, createRng(seed), ctx.module.tables);
+      const next = out.result as RollResult | null;
+      if (!next || next === result || !Array.isArray(next.dice)) {
+        pushToast(out.label, { tone: "warning" });
+        return;
+      }
+      ctx.store.transact(() => {
+        spendStoryPoint(ctx, { character: entity.id, use: use.id, reason: `${use.label}: ${label}`, sessionId });
+        recordPoolRoll(ctx, sessionId, { label: `${entity.name}: ${label} (${pool.label})`, seed, result: next, entityId: entity.id });
+      });
+      return next;
+    } catch (e) {
+      pushToast(errorMessage(e), { tone: "danger" });
+    }
+  };
   return (
     <DiceRollPanel
+      {...(story ? { storyPoints: story.points, storyPointName: story.pool.label, storyPointLabel: `Spend: ${story.use.label.toLowerCase()}`, storyPointNeedsResult: true, onSpendStoryPoint: spendStory } : {})}
       dice={ctx.module.module.dice}
       input={input}
       rng={rng}
@@ -142,6 +172,17 @@ export function SessionRollPanel({ sessionId, entity, label, input, initialResul
       }}
     />
   );
+}
+
+/** The module's story point use that acts on a roll, when this entity can spend story points in this mode. */
+function useStoryPointUse(entity: Entity | undefined) {
+  const ctx = useCampaign();
+  const { mode } = useMeta();
+  const fresh = useRecord("entities", entity?.id);
+  const pool = poolOf(ctx.module, mode, "story");
+  const use = pool ? storyUses(ctx).find((u) => !!u.operation) : undefined;
+  if (!fresh || !pool || !use || !entityAdvances(ctx.module, mode, fresh)) return undefined;
+  return { pool, use, points: poolValue(pool, fresh.fields) };
 }
 
 export function SkillRoll({ sessionId, pcs }: { sessionId: Id; pcs: Entity[] }) {

@@ -4,6 +4,7 @@
  * for the UI to answer (their own effects come back through applyEffects).
  */
 import type { ApplyPresetEffect, CreateFromPresetEffect, CurrencyDef, Effect, EntityPreset, LedgerLinks, Prompt } from "@campaign-forge/module-sdk";
+import { postAward, type AdvancementModule } from "./advancement";
 import { postLedgerEffect } from "./ledger";
 import { presetToEntity, type PresetOverrides } from "./generation";
 import { now } from "./ids";
@@ -22,6 +23,8 @@ export interface EffectContext {
   ledgerSource?: { kind: "procedure" | "travel" | "payout" | "effect"; id?: Id };
   /** Rounds ledger amounts to the module currency. */
   currency?: Pick<CurrencyDef, "decimals">;
+  /** The module's progression (and lookups) for `award` effects; without it they are skipped. */
+  advancement?: AdvancementModule;
 }
 
 export interface ApplyEffectsResult {
@@ -54,6 +57,8 @@ function describe(effect: Effect, entity?: Entity): string {
       return `${who}: now preset ${effect.preset}`;
     case "ledger":
       return `Ledger: ${effect.amount >= 0 ? "+" : ""}${effect.amount} (${effect.category}) ${effect.note}`.trim();
+    case "award":
+      return `${who}: award ${effect.question ?? `${effect.amount ?? 1} ${effect.pool ?? "experience"}`}${effect.reason ? ` (${effect.reason})` : ""}`;
   }
 }
 
@@ -142,6 +147,30 @@ export function applyEffects(store: CampaignStore, effects: Effect[], ctx: Effec
           }
           applyPreset(store, effect, entity, preset);
         }
+      } else if (effect.kind === "award") {
+        const id = resolve(effect.entity);
+        entity = id !== undefined ? store.get("entities", id) : undefined;
+        if (!entity) {
+          skipped.push({ effect, reason: `entities/${effect.entity} not found` });
+          continue;
+        }
+        if (!ctx.advancement?.progression) {
+          skipped.push({ effect, reason: "no progression rules to award with" });
+          continue;
+        }
+        if (effect.key && store.list("advancement").some((e) => e.key?.startsWith(`${effect.key}:`))) {
+          skipped.push({ effect, reason: `already awarded (${effect.key})` });
+          continue;
+        }
+        postAward(store, ctx.advancement, {
+          character: entity.id,
+          ...(effect.question ? { questions: [effect.question] } : { amount: effect.amount ?? 1, pool: effect.pool ?? "experience" }),
+          ...(effect.reason ? { reason: effect.reason } : {}),
+          ...(effect.key ? { key: effect.key } : {}),
+          ...(session !== undefined ? { session } : {}),
+          source: { kind: "effect" },
+        });
+        entity = store.get("entities", entity.id);
       } else if (effect.kind !== "log") {
         const id = resolve(effect.entity);
         entity = id !== undefined ? store.get("entities", id) : undefined;
@@ -181,6 +210,7 @@ export function applyEffects(store: CampaignStore, effects: Effect[], ctx: Effec
         }
         case "log":
         case "ledger":
+        case "award":
         case "createFromPreset":
         case "applyPreset":
           break;

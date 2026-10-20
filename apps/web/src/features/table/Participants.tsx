@@ -12,6 +12,8 @@ import { changedPaths } from "../entities/SheetTab";
 import { ParticipantHealth, type CombatHandlers } from "./Combat";
 import { SessionRollPanel, skillInput } from "./DicePanel";
 import { LifecycleStart } from "./LifecycleStart";
+import { StoryPointCard } from "../progression/StoryPointControl";
+import { entityAdvances, poolOf, type SessionAct } from "../../state/progressionActions";
 
 function fieldOf(def: EntityTypeDef, path: string): SheetField | undefined {
   for (const s of def.sheet.sections) {
@@ -68,6 +70,7 @@ export function ParticipantCard({
   onRoll,
   lifecycle,
   combat,
+  act,
 }: {
   entity: Entity;
   onOpen: (id: Id) => void;
@@ -75,8 +78,12 @@ export function ParticipantCard({
   onRoll?: (operationId: string, entityId: Id) => void;
   lifecycle?: ParticipantLifecycle;
   combat?: CombatHandlers;
+  /** The act being played, for end-of-act awards on the PC card. */
+  act?: SessionAct;
 }) {
   const { module } = useCampaign();
+  const { mode } = useMeta();
+  const storyPoints = role === "PC" && !!lifecycle && !!poolOf(module, mode, "story") && entityAdvances(module, mode, entity);
   const takesTurns = !!combat && !!creatureTurnFor(module, entity);
   const specials = !!combat?.hasSpecialAttacks && role === "PC";
   const def = module.entityType(entity.type);
@@ -108,6 +115,7 @@ export function ParticipantCard({
         </span>
       )}
       {combat && <ParticipantHealth entity={entity} combat={combat} />}
+      {storyPoints && lifecycle && <StoryPointCard entity={entity} sessionId={lifecycle.sessionId} {...(act ? { act } : {})} />}
       {lifecycle && <LifecycleStart entity={entity} sessionId={lifecycle.sessionId} onPrompts={lifecycle.onPrompts} />}
       {(rolls.length > 0 || takesTurns || specials) && (
         <span className="app-participant__rolls">
@@ -139,6 +147,7 @@ export function Participants({
   onRoll,
   lifecycle,
   combat,
+  act,
 }: {
   pcs: Entity[];
   others: Entity[];
@@ -146,6 +155,7 @@ export function Participants({
   onRoll?: (operationId: string, entityId: Id) => void;
   lifecycle?: ParticipantLifecycle;
   combat?: CombatHandlers;
+  act?: SessionAct;
 }) {
   return (
     <Card title="Participants" className="app-table__participants">
@@ -153,7 +163,7 @@ export function Participants({
       {pcs.length > 0 && (
         <ul className="app-participants" aria-label="Player characters">
           {pcs.map((e) => (
-            <ParticipantCard key={e.id} entity={e} onOpen={onOpen} role="PC" onRoll={onRoll} lifecycle={lifecycle} combat={combat} />
+            <ParticipantCard key={e.id} entity={e} onOpen={onOpen} role="PC" onRoll={onRoll} lifecycle={lifecycle} combat={combat} {...(act ? { act } : {})} />
           ))}
         </ul>
       )}

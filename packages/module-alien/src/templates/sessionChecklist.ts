@@ -54,7 +54,7 @@ export const sessionChecklistScaffold: TemplateChecklist = {
       page: 30,
       text: "Go through the XP questions",
       guidance: "One XP per question a player can answer yes to. The group talks it through; the GM has the final say. XP is spent between sessions.",
-      autoWhen: "prompts-answered",
+      autoWhen: "awards-given",
     },
     {
       id: "alien.wrap.trauma",

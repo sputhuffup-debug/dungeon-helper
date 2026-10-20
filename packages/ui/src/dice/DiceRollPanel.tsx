@@ -14,7 +14,18 @@ export interface DiceRollPanelProps {
   rng: Rng;
   allowPush?: boolean;
   storyPoints?: number;
-  onSpendStoryPoint?: () => void;
+  /**
+   * Spend a story point. It gets the roll shown (if any); returning a result
+   * shows that instead (e.g. one die turned into a success). Nothing is
+   * logged here: the handler logs the spend and the changed roll.
+   */
+  onSpendStoryPoint?: (result: RollResult | undefined) => RollResult | void;
+  /** Name of the pool on the badge (default "Story points"). */
+  storyPointName?: string;
+  /** Spend button label (default "Spend"). */
+  storyPointLabel?: string;
+  /** The spend acts on a roll, so the button waits for one. */
+  storyPointNeedsResult?: boolean;
   /** Extra input passed to `push` (e.g. the entity id). */
   pushInput?: Record<string, unknown>;
   /** Start from an existing result (e.g. re-opening a log entry). */
@@ -28,7 +39,7 @@ export function specById(dice: DiceSystem, id: string): DieSpec | undefined {
 }
 
 /** Pool breakdown, roll and push buttons, die faces, successes and the module's description. */
-export function DiceRollPanel({ dice, input, onRolled, rng, allowPush = true, storyPoints, onSpendStoryPoint, pushInput, initialResult, title, className }: DiceRollPanelProps) {
+export function DiceRollPanel({ dice, input, onRolled, rng, allowPush = true, storyPoints, onSpendStoryPoint, storyPointName, storyPointLabel, storyPointNeedsResult, pushInput, initialResult, title, className }: DiceRollPanelProps) {
   // Key the pool on the input's content so a parent passing a fresh inline
   // object on every render does not rebuild the pool or clear the result.
   const inputKey = JSON.stringify(input ?? {});
@@ -73,10 +84,20 @@ export function DiceRollPanel({ dice, input, onRolled, rng, allowPush = true, st
         )}
         {storyPoints !== undefined && (
           <span className="cf-dice__story">
-            <Badge tone="accent">Story points: {storyPoints}</Badge>{" "}
+            <Badge tone="accent">
+              {storyPointName ?? "Story points"}: {storyPoints}
+            </Badge>{" "}
             {onSpendStoryPoint && (
-              <Button size="sm" onClick={onSpendStoryPoint} disabled={storyPoints <= 0}>
-                Spend
+              <Button
+                size="sm"
+                onClick={() => {
+                  const next = onSpendStoryPoint(result);
+                  if (next) setResult(next);
+                }}
+                disabled={storyPoints <= 0 || (!!storyPointNeedsResult && !result)}
+                data-testid="spend-story-point"
+              >
+                {storyPointLabel ?? "Spend"}
               </Button>
             )}
           </span>

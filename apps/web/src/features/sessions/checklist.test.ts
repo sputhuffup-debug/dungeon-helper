@@ -181,7 +181,7 @@ describe("module checklist items", () => {
     const campaign = await open(alienCampaign);
     expect(moduleIds(campaign)).toEqual(["alien.prep.job", "alien.prep.infections", "alien.play.supply", "alien.wrap.xp", "alien.wrap.trauma"]);
     const xp = campaignChecklist(campaign).find((i) => i.id === "alien.wrap.xp");
-    expect(xp).toMatchObject({ phase: "wrap", page: 30, moduleId: "alien", autoWhen: "prompts-answered" });
+    expect(xp).toMatchObject({ phase: "wrap", page: 30, moduleId: "alien", autoWhen: "awards-given" });
     // every phase lists the core items first
     for (const phase of ["prep", "play", "wrap"] as const) {
       const sources = campaignChecklist(campaign).filter((i) => i.phase === phase).map((i) => i.source);

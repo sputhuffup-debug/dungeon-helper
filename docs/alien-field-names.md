@@ -51,8 +51,8 @@ agendas: [{ act: number, text: string }]        // cinematic
 gear: [{ name: string, weight: number, qty: number, supply?: number, itemId?: string }]
 signatureItem: string
 cash: number
-storyPoints: number 0..3   // cinematic
-xp: number                 // campaign
+storyPoints: number 0..3   // cinematic; a stored pool, every change logged in the advancement log
+xp: number                 // campaign; a stored pool, every award and spend logged in the advancement log
 trait: string; goal: string; appearance: string
 buddy: string; rival: string   // free text; relationships are the real link
 criticalInjuries: [{ id, label, page? }]

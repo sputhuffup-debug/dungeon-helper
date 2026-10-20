@@ -16,6 +16,7 @@ Numbers, dice expressions, ranges, names and stat lines were copied exactly. Eff
 | GM play guide (rolls in the story) | [play-guide.md](play-guide.md) |
 | Combat at the table: damage, armor, broken, creature turns, special attacks | [combat.md](combat.md) |
 | The crew's ship, money, FTL travel, repairs and between jobs | [ship-money.md](ship-money.md) |
+| Experience, Story Points and spending XP | [progression.md](progression.md) |
 
 ## Still flagged `unverified`
 

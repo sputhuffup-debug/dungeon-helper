@@ -1,4 +1,4 @@
-/** `/entities/$entityId`: header plus Sheet | Notes | Relationships | Backlinks | Timeline. */
+/** `/entities/$entityId`: header plus Sheet | Progression (characters who advance) | Notes | Relationships | Backlinks | Timeline. */
 import type { Entity } from "@campaign-forge/core";
 import type { EntityTypeDef, Prompt } from "@campaign-forge/module-sdk";
 import { Link, useNavigate, useParams, useSearch } from "@tanstack/react-router";
@@ -20,8 +20,13 @@ import { EntityPrepPanels } from "../generate/EntityPrepPanels";
 import { LifecycleStart } from "../table/LifecycleStart";
 import { PayoutButton } from "../ship/PayoutButton";
 import { applyGeneratorEffects } from "../../state/prepActions";
+import { entityAdvances } from "../../state/progressionActions";
+import { lazyView } from "../../components/lazyView";
 
-const TABS = ["sheet", "notes", "relationships", "backlinks", "timeline"] as const;
+// The Progression tab (pools, history, Spend XP) loads when it is opened.
+const ProgressionTab = lazyView(() => import("../progression/ProgressionTab").then((m) => m.ProgressionTab), { what: "progression" });
+
+const TABS = ["sheet", "progression", "notes", "relationships", "backlinks", "timeline"] as const;
 
 export function EntityPage() {
   const { entityId } = useParams({ from: "/c/$campaignId/entities/$entityId" });
@@ -30,6 +35,7 @@ export function EntityPage() {
   const ctx = useCampaign();
   const entity = useRecord("entities", entityId);
   const def = useEntityType(entity?.type);
+  const meta = useMeta();
 
   if (!entity) {
     return (
@@ -47,7 +53,8 @@ export function EntityPage() {
     );
   }
 
-  const tab = (TABS as readonly string[]).includes(search.tab ?? "") ? (search.tab as string) : "sheet";
+  const advancing = entityAdvances(ctx.module, meta.mode, entity);
+  const tab = (TABS as readonly string[]).includes(search.tab ?? "") && (search.tab !== "progression" || advancing) ? (search.tab as string) : "sheet";
   return (
     <div className="app-page app-entity" data-testid="entity-page">
       <EntityHeader entity={entity} def={def} />
@@ -56,6 +63,7 @@ export function EntityPage() {
         onChange={(id) => void navigate({ search: { tab: id }, replace: true })}
         tabs={[
           { id: "sheet", label: "Sheet", content: <SheetTab entity={entity} def={def} /> },
+          ...(advancing ? [{ id: "progression", label: "Progression", content: <ProgressionTab entity={entity} /> }] : []),
           { id: "notes", label: <NotesLabel entityId={entity.id} />, content: <NotesTab entity={entity} /> },
           { id: "relationships", label: "Relationships", content: <RelationshipsTab entity={entity} def={def} /> },
           { id: "backlinks", label: "Backlinks", content: <BacklinksTab entity={entity} /> },

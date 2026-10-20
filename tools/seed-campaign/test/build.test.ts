@@ -194,6 +194,33 @@ describe("buildDemoCampaign", () => {
   });
 });
 
+describe("the crew's advancement", () => {
+  const { maps } = buildDemoCampaign();
+  const pcs = Object.values(maps.entities).filter((e) => e.fields["isPC"] === true);
+  const log = Object.values(maps.advancement);
+
+  it("gives every PC XP from two earlier runs from the module's questions, and the first PC one talent bought with it", () => {
+    const awards = log.filter((e) => e.kind === "award");
+    expect(awards).toHaveLength(8);
+    expect(awards.every((e) => e.pool === "experience" && (e.questions ?? []).every((q) => q.startsWith("alien.award.")) && e.amount === e.questions!.length)).toBe(true);
+    const spends = log.filter((e) => e.kind === "spend");
+    expect(spends).toHaveLength(1);
+    const [spend] = spends;
+    expect(spend!.spend).toMatchObject({ option: "alien.spend.talent", from: 0, to: 1, cost: 5 });
+    for (const pc of pcs) {
+      const net = log.filter((e) => e.character === pc.id).reduce((n, e) => n + e.amount, 0);
+      expect(pc.fields["xp"]).toBe(net);
+    }
+    const buyer = maps.entities[spend!.character]!;
+    expect((buyer.fields["talents"] as Array<{ id: string }>).some((t) => t.id === spend!.spend!.target)).toBe(true);
+  });
+
+  it("is the same on every build", () => {
+    const again = Object.values(buildDemoCampaign().maps.advancement).map((e) => [e.kind, e.amount, e.reason, e.inWorldDate]).sort();
+    expect(again).toEqual(log.map((e) => [e.kind, e.amount, e.reason, e.inWorldDate]).sort());
+  });
+});
+
 describe("demoCampaignJSON", () => {
   it("returns plain JSON maps and Markdown docs for the web app", () => {
     const { maps, docs } = demoCampaignJSON("skyfire-down");

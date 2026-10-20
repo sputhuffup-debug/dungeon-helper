@@ -16,7 +16,7 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { generatorFor, type SiteMap } from "@campaign-forge/core";
 import { alienModule, createMapContext, generateSiteMap, MAP_LEGEND, SITE_TYPE_LABELS, SITE_TYPES, siteMapGenerator } from "@campaign-forge/module-alien";
-import { buildCinematicDemo } from "@campaign-forge/seed-campaign";
+import { buildCinematicDemo, buildDemoCampaign } from "@campaign-forge/seed-campaign";
 import { LIGHT_PALETTE, drawSiteMap, nodeToString, planRollPrint, rollPrintPages } from "@campaign-forge/ui";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
@@ -217,6 +217,56 @@ test("ship", async ({ page }) => {
   await page.getByTestId("travel-planner").getByRole("checkbox", { name: /Stays awake/ }).first().check();
   await expect(page.getByTestId("travel-checks")).toContainText("NDD roll");
   await shot(page, "ship");
+});
+
+/** The Skyfire Down PC who already spent XP (their history has awards and a spend), built Node-side like the app's demo. */
+function skyfireSpender(): string {
+  const demo = buildDemoCampaign();
+  const spend = Object.values(demo.maps.advancement).find((e) => e.kind === "spend");
+  const name = spend ? demo.maps.entities[spend.character]?.name : undefined;
+  demo.registry.closeAll();
+  demo.store.destroy();
+  if (!name) throw new Error("the Skyfire Down demo has no XP spend");
+  return name;
+}
+
+test("progression", async ({ page }) => {
+  // wide enough for the history to stay readable beside the Spend XP panel
+  await page.setViewportSize({ width: 1680, height: 1000 });
+  const base = await loadDemo(page, "skyfire");
+  await page.goto(`${base}/atlas`);
+  await page.getByRole("tab", { name: /^PCs/ }).click();
+  await page.getByRole("tabpanel").getByRole("link", { name: skyfireSpender(), exact: true }).click();
+  await page.getByRole("tab", { name: "Progression" }).click();
+  await expect(page.getByTestId("advancement-history")).toContainText("Learn a talent");
+  await page.getByTestId("spend-xp").click();
+  const dialog = page.getByTestId("spend-dialog");
+  await dialog.locator(".prog-target:not(.is-blocked)").first().click();
+  await expect(page.getByTestId("spend-quote")).toBeVisible();
+  const confirm = page.getByRole("checkbox", { name: "Confirm the condition" });
+  if (await confirm.count()) await confirm.check();
+  await dialog.locator(".prog-targets").evaluate((el) => el.scrollTo(0, 0));
+  await shot(page, "progression");
+});
+
+test("wrap-up-awards", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1250 });
+  await loadDemo(page, "skyfire");
+  await startSession1(page);
+  await page.getByTestId("end-session").click();
+  const wrap = page.getByTestId("wrapup");
+  await wrap.getByRole("textbox", { name: "Session summary" }).fill("The crew took the Weyland-Yutani job and left the station.");
+  await wrap.getByRole("button", { name: /^Next: End-of-session questions/ }).click();
+  await wrap.getByRole("button", { name: /^Next: Rewards/ }).click();
+  const grid = wrap.getByTestId("award-checklist");
+  const tick = async (q: string, cols: number[]) => {
+    for (const i of cols) await grid.locator(`[data-question="alien.award.${q}"] input`).nth(i).check();
+  };
+  await tick("danger", [0, 1, 2, 3]);
+  await tick("discovery", [1]);
+  await tick("money", [0, 1, 2, 3]);
+  await tick("extraordinary", [2]);
+  await shot(page, "wrap-up-awards");
 });
 
 test("rules", async ({ page }) => {
