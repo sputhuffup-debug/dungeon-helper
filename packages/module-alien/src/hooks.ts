@@ -3,24 +3,19 @@ import { PANIC_TRAUMA_THRESHOLD } from "./dice/operations";
 import { CAMPAIGN, CINEMATIC } from "./modes";
 import { PANIC_ATTACKS_TRAUMA } from "./reference/mentalTraumas";
 import { STRESS_TRACKER } from "./trackers";
+import { XP_AWARDS } from "./progression";
 
 /** A panic result of 9+ in a session calls for a trauma check afterwards (p. 74). */
 export const TRAUMA_THRESHOLD = PANIC_TRAUMA_THRESHOLD;
 /** With the Panic Attacks trauma, any panic result of 1+ calls for the check (p. 74). */
 export const PANIC_ATTACKS_THRESHOLD = 1;
 
-/** The nine XP questions of campaign play (p. 30), paraphrased. Each yes = 1 XP. */
-export const XP_QUESTIONS: Array<{ id: string; text: string }> = [
-  { id: "participated", text: "Were you at the session?" },
-  { id: "agenda", text: "Did you risk or give up something to advance your personal agenda?" },
-  { id: "buddy", text: "Did you put your life on the line for your buddy?" },
-  { id: "rival", text: "Did you confront or stand up to your rival?" },
-  { id: "panic", text: "Did you make a panic roll?" },
-  { id: "danger", text: "Did you get through a dangerous event, by violence or otherwise?" },
-  { id: "discovery", text: "Did you make a major discovery or uncover a revelation?" },
-  { id: "extraordinary", text: "Did you pull off something extraordinary?" },
-  { id: "money", text: "Did you earn any money?" },
-];
+/**
+ * The nine XP questions of campaign play (p. 30), paraphrased; each yes is one
+ * XP. They live in the module's `progression` award checklist (the wrap-up's
+ * Rewards step), not in the end-of-session prompts. Ids without the prefix.
+ */
+export const XP_QUESTIONS: Array<{ id: string; text: string }> = XP_AWARDS.map((q) => ({ id: q.id.replace(/^alien\.award\./, ""), text: q.text }));
 
 interface PanicLogEntry {
   entity?: string;
@@ -34,17 +29,6 @@ function panicLogFor(ctx: SessionEndContext): PanicLogEntry[] {
   if (!state || typeof state !== "object") return [];
   const log = (state as { panicLog?: unknown }).panicLog;
   return Array.isArray(log) ? (log.filter((e) => e && typeof e === "object") as PanicLogEntry[]) : [];
-}
-
-export function xpPrompts(character: { id: string; name: string }): Prompt[] {
-  return XP_QUESTIONS.map((q) => ({
-    id: `alien.xp.${q.id}:${character.id}`,
-    kind: "yesno",
-    text: `${character.name}: ${q.text}`,
-    page: 30,
-    entity: character.id,
-    onYes: [{ kind: "incrementField", entity: character.id, path: "xp", by: 1, min: 0 }],
-  }));
 }
 
 /** True when the character carries the Panic Attacks trauma (by id, or as a mental-trauma condition id). */
@@ -115,27 +99,13 @@ export function traumaPrompts(ctx: SessionEndContext): Prompt[] {
 }
 
 /**
- * Cinematic play (p. 27, 158): at the end of each act the GM judges whether each PC
- * advanced their act agenda despite risk or sacrifice; if so, +1 Story Point (max 3).
+ * End-of-session prompts: the mental trauma checks (p. 74). XP (campaign,
+ * p. 30) and Story Points (cinematic, per act, p. 158) are awarded from the
+ * progression award checklist instead, so they land in the advancement log.
  */
-export function storyPointPrompts(character: { id: string; name: string }): Prompt[] {
-  return [
-    {
-      id: `alien.cinematic.story-point:${character.id}`,
-      kind: "yesno",
-      text: `${character.name}: at the end of the act, did they advance their agenda despite risk or sacrifice? (+1 Story Point, max 3)`,
-      page: 158,
-      entity: character.id,
-      onYes: [{ kind: "incrementField", entity: character.id, path: "storyPoints", by: 1, min: 0, max: 3 }],
-    },
-  ];
-}
-
 export function onSessionEnd(ctx: SessionEndContext): Prompt[] {
-  const pcs = ctx.characters.filter((c) => c.fields.isPC !== false);
-  if (ctx.mode === CINEMATIC) return [...pcs.flatMap((c) => storyPointPrompts(c)), ...traumaPrompts(ctx)];
-  if (ctx.mode !== CAMPAIGN) return [];
-  return [...pcs.flatMap((c) => xpPrompts(c)), ...traumaPrompts(ctx)];
+  if (ctx.mode !== CINEMATIC && ctx.mode !== CAMPAIGN) return [];
+  return traumaPrompts(ctx);
 }
 
 export function onEntityChange(_ctx: { mode: string }, entity: { id: string; type: string; fields: Record<string, unknown> }): Effect[] {

@@ -194,6 +194,6 @@ describe("session checklist", () => {
   });
 
   it("ticks the XP and trauma items when the end-of-session prompts are answered", () => {
-    expect(items.filter((i) => i.autoWhen).map((i) => `${i.id}:${i.autoWhen}`)).toEqual(["alien.wrap.xp:prompts-answered", "alien.wrap.trauma:prompts-answered"]);
+    expect(items.filter((i) => i.autoWhen).map((i) => `${i.id}:${i.autoWhen}`)).toEqual(["alien.wrap.xp:awards-given", "alien.wrap.trauma:prompts-answered"]);
   });
 });

@@ -7,7 +7,7 @@
  *
  * Nothing in this file names a rule from any game.
  */
-import type { Effect, LedgerLinks, PageRef, RollRecord, SiteLayout, VisibilityLevel } from "@campaign-forge/module-sdk";
+import type { Effect, LedgerLinks, PageRef, ProgressionPoolId, RollRecord, SiteLayout, VisibilityLevel } from "@campaign-forge/module-sdk";
 
 export type Id = string; // ULID
 
@@ -363,6 +363,46 @@ export interface TravelLeg extends BaseRecord {
 }
 
 // ---------------------------------------------------------------------------
+// advancement
+// ---------------------------------------------------------------------------
+
+/**
+ * One line of a character's advancement log: an award into a pool, a spend
+ * out of it, or a GM adjustment. The pool itself (XP, story points) is a
+ * stored running value on the sheet, as the rules keep it; the log is its
+ * history, and lifetime totals (earned, spent) are summed from it on read.
+ */
+export interface AdvancementEntry extends BaseRecord {
+  /** The advancing entity. */
+  character: Id;
+  pool: ProgressionPoolId;
+  kind: "award" | "spend" | "adjust";
+  /** Signed change applied to the pool: positive for awards, negative for spends. */
+  amount: number;
+  /** Points an award could not add because the pool was at its maximum. */
+  capped?: number;
+  /** One line: the questions answered yes, what was bought, why a story point went. */
+  reason: string;
+  /** Award question ids answered yes (awards from the checklist). */
+  questions?: string[];
+  /** What a spend bought: the module's spend option, the skill or item, the level or copies before and after, the cost. */
+  spend?: { option: string; target: string; label: string; from: number; to: number; cost: number };
+  /** Story point use id, for spends at the table. */
+  use?: string;
+  session?: Id;
+  adventure?: Id;
+  /** Act number, for end-of-act awards. */
+  act?: number;
+  /** Idempotency key: at most one entry per key (e.g. one act award per character). */
+  key?: string;
+  inWorldDate?: string;
+  /** Real-world date (ISO yyyy-mm-dd). */
+  realDate: string;
+  source?: { kind: "wrap-up" | "table" | "sheet" | "manual" | "effect" | "import"; id?: Id };
+  visibility: Visibility;
+}
+
+// ---------------------------------------------------------------------------
 // the document
 // ---------------------------------------------------------------------------
 
@@ -383,6 +423,7 @@ export interface CampaignMaps {
   assets: Record<Id, Asset>;
   ledger: Record<Id, LedgerEntry>;
   travel: Record<Id, TravelLeg>;
+  advancement: Record<Id, AdvancementEntry>;
 }
 
 export type MapName = Exclude<keyof CampaignMaps, "meta">;
@@ -404,6 +445,7 @@ export const MAP_NAMES: MapName[] = [
   "assets",
   "ledger",
   "travel",
+  "advancement",
 ];
 
 /** Export bundle manifest (README.md lists this too). */

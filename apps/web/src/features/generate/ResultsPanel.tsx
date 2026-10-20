@@ -54,6 +54,8 @@ export function describeEffect(e: Effect, name: (id: Id) => string, presetName: 
       return `${name(e.entity)}: becomes ${presetName(e.preset)}`;
     case "ledger":
       return `Ledger ${money(e.amount)}: ${e.note}${e.account ? ` (${name(e.account)})` : ""}`;
+    case "award":
+      return `${name(e.entity)}: ${e.reason ?? (e.question ? "award" : `+${e.amount ?? 1} ${e.pool === "story" ? "story points" : "XP"}`)}`;
   }
 }
 

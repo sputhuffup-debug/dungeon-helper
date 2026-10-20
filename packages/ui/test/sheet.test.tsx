@@ -12,7 +12,7 @@ function sectionIds(container: HTMLElement): string[] {
 describe("SheetRenderer", () => {
   it("renders every standard-mode section of example.hero and hides the hardcore one", () => {
     const { container } = render(<SheetRenderer def={hero} mode="standard" fields={heroFields()} onChange={() => {}} referenceLists={referenceLists} />);
-    expect(sectionIds(container)).toEqual(["core", "gear", "notes"]);
+    expect(sectionIds(container)).toEqual(["core", "gear", "advancement", "notes"]);
     expect(screen.getByText("Core")).toBeInTheDocument();
     expect(screen.queryByText("Hardcore")).not.toBeInTheDocument();
     expect(container.querySelector('[data-path="doom"]')).toBeNull();
@@ -36,7 +36,7 @@ describe("SheetRenderer", () => {
 
   it("shows the hardcore section in hardcore mode", () => {
     const { container } = render(<SheetRenderer def={hero} mode="hardcore" fields={heroFields()} onChange={() => {}} referenceLists={referenceLists} />);
-    expect(sectionIds(container)).toEqual(["core", "gear", "hardcore", "notes"]);
+    expect(sectionIds(container)).toEqual(["core", "gear", "hardcore", "advancement", "notes"]);
   });
 
   it("typing in a number field calls onChange with the full fields object updated at the nested path", () => {

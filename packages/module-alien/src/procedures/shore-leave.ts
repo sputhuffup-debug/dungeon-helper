@@ -15,6 +15,7 @@
  */
 import type { Effect, Procedure, ProcedureContext } from "@campaign-forge/module-sdk";
 import { input, isObj, list, str } from "./helpers";
+import { SHORE_LEAVE_AGENDA_AWARD } from "../progression";
 
 export const SHORE_LEAVE_CHOICES = ["heal", "recover", "pursue-agenda", "socialize"] as const;
 export type ShoreLeaveChoice = (typeof SHORE_LEAVE_CHOICES)[number];
@@ -184,7 +185,8 @@ export const shoreLeave: Procedure = {
                   page: 257,
                   entity: oc.id,
                   onYes: [
-                    { kind: "incrementField", entity: oc.id, path: "xp", by: 1, min: 0 },
+                    // logged in the advancement log through the progression's downtime award (p. 257)
+                    { kind: "award", entity: oc.id, question: SHORE_LEAVE_AGENDA_AWARD, reason: "Pursued their personal agenda during shore leave" },
                     { kind: "log", text: `${oc.name} pursued their personal agenda during shore leave and gains 1 XP.` },
                   ],
                 },

@@ -563,7 +563,8 @@ export function rollZoneTable(ctx: Ctx, sessionId: Id, input: { zoneTable: MapZo
 /** Effect context for the campaign's module: session log plus preset lookup (for spawn and stage changes). */
 export function effectContext(ctx: Ctx, sessionId?: Id): EffectContext {
   const currency = ctx.module.module.ledger?.currency;
-  return { ...(sessionId ? { sessionId } : {}), preset: (id) => ctx.module.preset(id), ...(currency ? { currency } : {}) };
+  const mod = ctx.module.module;
+  return { ...(sessionId ? { sessionId } : {}), preset: (id) => ctx.module.preset(id), ...(currency ? { currency } : {}), ...(mod.progression ? { advancement: mod } : {}) };
 }
 
 /** Apply effects for the session (tracker onEffects, prompt answers). */

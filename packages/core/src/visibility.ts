@@ -131,6 +131,7 @@ export function projectCampaignForViewer(maps: CampaignMaps, module: ModuleTypes
     assets,
     ledger: pick(maps.ledger ?? {}),
     travel: pick(maps.travel ?? {}),
+    advancement: pick(maps.advancement ?? {}, (r) => r.character in entities),
   };
 }
 

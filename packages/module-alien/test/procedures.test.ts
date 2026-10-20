@@ -555,7 +555,8 @@ describe("alien.shore-leave", () => {
     // Pursue Agenda: 1 XP only if the agenda was successfully pursued, so the XP sits behind a prompt (p. 257).
     expect(effects.some((e) => e.kind === "incrementField" && e.entity === "f" && e.path === "xp")).toBe(false);
     const agenda = effects.find((e) => e.kind === "prompt" && e.prompt.id === "shore-leave:agenda:f");
-    expect(agenda && agenda.kind === "prompt" && agenda.prompt.onYes?.some((x) => x.kind === "incrementField" && x.path === "xp" && x.by === 1)).toBe(true);
+    // the XP goes through the progression's downtime award, so it lands in the advancement log
+    expect(agenda && agenda.kind === "prompt" && agenda.prompt.onYes?.some((x) => x.kind === "award" && x.entity === "f" && x.question === "alien.award.shore-leave-agenda")).toBe(true);
     // Recover: an Empathy roll the GM confirms; living expenses at the normal standard ($300, p. 116).
     expect(effects.some((e) => e.kind === "prompt" && e.prompt.id === "shore-leave:recover:e")).toBe(true);
     expect(effects.filter((e) => e.kind === "incrementField" && e.path === "cash").every((e) => e.kind === "incrementField" && e.by === -300)).toBe(true);

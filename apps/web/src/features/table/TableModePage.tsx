@@ -25,6 +25,7 @@ import {
   timerElapsedMs,
   type OperationRoll,
 } from "../../state/tableActions";
+import { routeStoryPointEffects, type SessionAct } from "../../state/progressionActions";
 import { SessionChecklist, useLogNotesAutoTick } from "../sessions/SessionChecklist";
 import { CreatureTurnCard, TakeHitDialog, useInitiativeCurrent, type CombatHandlers } from "./Combat";
 import { DicePanel } from "./DicePanel";
@@ -64,6 +65,8 @@ function GmTable({ sessionId }: { sessionId: Id }) {
   const sceneParticipants = useEntities(scene?.participants ?? []);
   const others = useMemo(() => sceneParticipants.filter((e) => !pcs.some((p) => p.id === e.id)), [sceneParticipants, pcs]);
   const map = useSceneMap(scene);
+  const sceneAct = scene?.act ? ctx.store.get("acts", scene.act) : undefined;
+  const currentAct = useMemo<SessionAct | undefined>(() => (sceneAct ? { adventure: sceneAct.adventure, number: sceneAct.number, ...(sceneAct.title ? { title: sceneAct.title } : {}) } : undefined), [sceneAct]);
   const trackers = useModeTrackers();
   const clock = trackers.find((t) => t.kind === "clock");
   const panelTrackers = trackers.filter((t) => t !== clock);
@@ -122,7 +125,8 @@ function GmTable({ sessionId }: { sessionId: Id }) {
     () => ({
       onEffects: (effects: Effect[]) => {
         try {
-          const raised = applySessionEffects(ctx, sessionId, effects);
+          // story point changes from the tracker go through the advancement log
+          const raised = applySessionEffects(ctx, sessionId, routeStoryPointEffects(ctx, effects, sessionId));
           if (raised.length) setPrompts((p) => [...p, ...raised]);
         } catch (e) {
           pushToast(errorMessage(e), { tone: "danger" });
@@ -247,7 +251,7 @@ function GmTable({ sessionId }: { sessionId: Id }) {
                 onOperationRoll={setRoll}
               />
             )}
-            <Participants pcs={pcs} others={others} onOpen={setDrawer} onRoll={(op, id) => handlers.onRollOperation(op, id)} lifecycle={{ sessionId, onPrompts: handlers.onPrompts }} combat={combat} />
+            <Participants pcs={pcs} others={others} onOpen={setDrawer} onRoll={(op, id) => handlers.onRollOperation(op, id)} lifecycle={{ sessionId, onPrompts: handlers.onPrompts }} combat={combat} act={currentAct} />
             <RevealPanel sessionId={sessionId} scene={scene} />
             {map && <SceneMap sessionId={sessionId} map={map} scene={scene} participants={[...pcs, ...others]} />}
           </div>

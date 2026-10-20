@@ -77,6 +77,8 @@ test("session checklist: plan, tick and read guidance, run at the table, wrap up
   const remaining = wrap.getByRole("button", { name: "Remaining: No" });
   while ((await remaining.count()) > 0) await remaining.first().click();
   await wrap.getByRole("button", { name: /^Next: Rewards/ }).click();
+  // posting the XP award checklist ticks "Go through the XP questions"
+  await wrap.getByTestId("award-xp").click();
   await wrap.getByRole("button", { name: /^Next: Timeline/ }).click();
   await wrap.getByRole("button", { name: /^Next: Loose ends/ }).click();
   await wrap.getByRole("textbox", { name: "Loose ends" }).fill("Who wants the crate?");

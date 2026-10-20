@@ -66,8 +66,8 @@ describe("hero entity", () => {
   });
 
   it("filters sheet sections by mode", () => {
-    expect(sheetFieldsForMode(hero, "standard").map((s) => s.id)).toEqual(["core", "gear", "notes"]);
-    expect(sheetFieldsForMode(hero, "hardcore").map((s) => s.id)).toEqual(["core", "gear", "hardcore", "notes"]);
+    expect(sheetFieldsForMode(hero, "standard").map((s) => s.id)).toEqual(["core", "gear", "advancement", "notes"]);
+    expect(sheetFieldsForMode(hero, "hardcore").map((s) => s.id)).toEqual(["core", "gear", "hardcore", "advancement", "notes"]);
   });
 
   it("validates presets", () => {

@@ -26,6 +26,8 @@ import {
   type PlayGuideDef,
   type PlayModeId,
   type Procedure,
+  type ProgressionPoolDef,
+  type ProgressionPoolId,
   type ReferenceItem,
   type ReferenceList,
   type RelationshipTypeDef,
@@ -676,6 +678,106 @@ function checkEconomy(module: GameModule, declaredModes: Set<PlayModeId>, c: Col
   }
 }
 
+function checkProgression(module: GameModule, declaredModes: Set<PlayModeId>, c: Collector): void {
+  const def = module.progression;
+  if (!def) return;
+  const w = "progression";
+  const rules = new Set(module.rules.map((r) => r.id));
+  const lists = new Map(module.referenceLists.map((l) => [l.id, l]));
+  const checkRule = (id: string | undefined, where: string) => {
+    if (id !== undefined && !rules.has(id)) c.error(where, `references unknown rule "${id}"`);
+  };
+  const page = (p: PageRef | undefined, where: string) => {
+    if (p !== undefined && !validPage(p)) c.error(where, "invalid page reference");
+  };
+  checkModes(def.mode, declaredModes, w, c);
+  for (const r of def.rules ?? []) checkRule(r, w);
+  if (!Array.isArray(def.entities) || def.entities.length === 0) c.error(w, "progression lists no entity types");
+  const types = (def.entities ?? []).map((e) => module.entityTypes.find((t) => t.id === e.type));
+  for (const [i, e] of (def.entities ?? []).entries()) {
+    if (!types[i]) c.error(w, `unknown entity type "${e.type}"`);
+    if (e.when !== undefined) checkLogic(e.when, w, `entity "${e.type}" when`, c);
+  }
+  const known = (path: string) => types.some((t) => !!t && fieldSchemaAt(t, path) !== undefined);
+  const pools: Array<[ProgressionPoolId, ProgressionPoolDef | undefined]> = [
+    ["experience", def.experience],
+    ["story", def.storyPoints],
+  ];
+  for (const [id, pool] of pools) {
+    if (!pool) continue;
+    const pw = `progression:pool:${id}`;
+    if (!pool.path) c.error(pw, "pool has no field path");
+    else if (!known(pool.path)) c.error(pw, `pool path "${pool.path}" is not a field of the advancing entity types`);
+    if (!pool.label) c.error(pw, "pool has no label");
+    if (pool.max !== undefined && pool.max < (pool.min ?? 0)) c.error(pw, "max is below min");
+    page(pool.page, pw);
+    checkRule(pool.rule, pw);
+    checkModes(pool.mode, declaredModes, pw, c);
+  }
+  const sp = def.storyPoints;
+  if (sp) {
+    const pw = "progression:pool:story";
+    if (!Array.isArray(sp.uses) || sp.uses.length === 0) c.warn(pw, "story points list no uses");
+    checkUnique(sp.uses ?? [], (u) => u.id, (u) => `${pw}:use:${u.id}`, "story point use", c);
+    for (const u of sp.uses ?? []) {
+      const uw = `${pw}:use:${u.id}`;
+      page(u.page, uw);
+      if (u.operation !== undefined && !module.dice?.operations?.[u.operation]) c.error(uw, `unknown dice operation "${u.operation}"`);
+      if (u.cost !== undefined && (!Number.isInteger(u.cost) || u.cost < 1)) c.error(uw, "cost must be a positive integer");
+    }
+    for (const e of sp.earn ?? []) page(e.page, pw);
+    if (sp.carryOver) {
+      page(sp.carryOver.page, pw);
+      if (!Number.isInteger(sp.carryOver.max) || sp.carryOver.max < 0) c.error(pw, "carryOver.max must be a non-negative integer");
+    }
+  }
+  const hasPool = (id: ProgressionPoolId) => (id === "experience" ? !!def.experience : !!def.storyPoints);
+  checkUnique(def.awards ?? [], (a) => a.id, (a) => `progression:award:${a.id}`, "award question", c);
+  for (const a of def.awards ?? []) {
+    const aw = `progression:award:${a.id}`;
+    if (!a.text) c.error(aw, "award question has no text");
+    if (!hasPool(a.pool ?? "experience")) c.error(aw, `pays into pool "${a.pool ?? "experience"}", which the progression does not define`);
+    if (a.amount !== undefined && (!Number.isInteger(a.amount) || a.amount < 1)) c.error(aw, "amount must be a positive integer");
+    if (a.timing !== undefined && !["session", "act", "downtime"].includes(a.timing)) c.error(aw, `invalid timing "${String(a.timing)}"`);
+    if (a.when !== undefined) checkLogic(a.when, aw, "when", c);
+    if (a.page === undefined) c.warn(aw, "award question has no page reference");
+    page(a.page, aw);
+    checkModes(a.mode, declaredModes, aw, c);
+  }
+  checkUnique(def.spends ?? [], (s) => s.id, (s) => `progression:spend:${s.id}`, "spend option", c);
+  for (const s of def.spends ?? []) {
+    const sw = `progression:spend:${s.id}`;
+    if (!s.label) c.error(sw, "spend option has no label");
+    if (!hasPool(s.pool ?? "experience")) c.error(sw, `is paid from pool "${s.pool ?? "experience"}", which the progression does not define`);
+    const t = s.target;
+    if (!t || (t.kind !== "level" && t.kind !== "pick")) c.error(sw, "target must be a level or a pick");
+    else {
+      if (!known(t.path)) c.error(sw, `target path "${t.path}" is not a field of the advancing entity types`);
+      if (t.ref !== undefined && !lists.has(t.ref)) c.error(sw, `unknown reference list "${t.ref}"`);
+      if (t.kind === "level") {
+        if (!Number.isFinite(t.max)) c.error(sw, "level target needs a max");
+        if (!t.ref && !t.keys) c.warn(sw, "level target has neither ref nor keys; keys come from the sheet");
+        for (const k of t.keys ?? []) if (!known(`${t.path}.${k}`)) c.error(sw, `key "${k}" is not a field under "${t.path}"`);
+      }
+    }
+    checkLogic(s.cost, sw, "cost", c);
+    if (s.available !== undefined) checkLogic(s.available, sw, "available", c);
+    for (const ch of s.checks ?? []) {
+      checkLogic(ch.ok, sw, "check", c);
+      if (ch.level !== "block" && ch.level !== "confirm") c.error(sw, `invalid check level "${String(ch.level)}"`);
+      page(ch.page, sw);
+    }
+    if (s.page === undefined) c.warn(sw, "spend option has no page reference");
+    page(s.page, sw);
+    checkRule(s.rule, sw);
+    checkModes(s.mode, declaredModes, sw, c);
+  }
+  for (const n of def.notes ?? []) {
+    page(n.page, w);
+    checkModes(n.mode, declaredModes, w, c);
+  }
+}
+
 /** Run every conformance check. `ok` is true when no error-severity issue was found. */
 export function checkModule(module: GameModule, options: CheckModuleOptions = {}): ConformanceReport {
   const c = new Collector();
@@ -759,6 +861,9 @@ export function checkModule(module: GameModule, options: CheckModuleOptions = {}
 
   // Money, the crew's vehicle and travel.
   checkEconomy(module, declaredModes, c);
+
+  // Character progression.
+  checkProgression(module, declaredModes, c);
 
   // Calendar.
   const cal = module.calendar;

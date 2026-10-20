@@ -128,6 +128,12 @@ const heroType: EntityTypeDef = {
       armor: { type: "integer", minimum: 0, maximum: 3 },
       construct: { type: "boolean" },
       doom: { type: "integer", minimum: 0, default: 0 },
+      xp: { type: "integer", minimum: 0, description: "Experience points (a running pool, p. 30)." },
+      luck: { type: "integer", minimum: 0, maximum: 2, description: "Luck tokens, at most two (p. 31)." },
+      feats: {
+        type: "array",
+        items: { type: "object", properties: { id: { type: "string" }, count: { type: "integer", minimum: 1 } }, required: ["id"] },
+      },
       gear: {
         type: "array",
         default: [],
@@ -168,6 +174,16 @@ const heroType: EntityTypeDef = {
       },
       { id: "gear", title: "Gear", fields: [{ path: "gear[].name", label: "Gear", widget: "gear" }, { path: "carry", label: "Carry", widget: "computed" }] },
       { id: "hardcore", title: "Hardcore", mode: ["hardcore"], fields: [{ path: "doom", label: "Doom", widget: "number", rule: "example.rule.doom" }] },
+      {
+        id: "advancement",
+        title: "Advancement",
+        columns: 2,
+        fields: [
+          { path: "xp", label: "XP", widget: "number" },
+          { path: "luck", label: "Luck", widget: "number", config: { max: 2 } },
+          { path: "feats", label: "Feats", widget: "talents", options: { ref: "example.feats" }, config: { ref: "example.feats" } },
+        ],
+      },
       { id: "notes", title: "Notes", collapsed: true, fields: [{ path: "notes", widget: "textarea", mode: ["standard", "hardcore"] }] },
     ],
     summary: ["attributes.might", "wounds"],
@@ -744,6 +760,16 @@ export const exampleModule: GameModule = {
         { id: "endure", name: "Endure", attribute: "might", mode: ["hardcore"] },
       ],
     },
+    {
+      id: "example.feats",
+      name: "Feats",
+      page: 17,
+      items: [
+        { id: "tough", name: "Tough", summary: "One more wound before you break; take it twice at most.", maxStack: 2, page: 17 },
+        { id: "keen", name: "Keen", summary: "Spot traps a step sooner.", page: 17 },
+        { id: "sly", name: "Sly", summary: "Sneak past one guard a night.", origin: "city", page: 17 },
+      ],
+    },
   ],
   presets: [
     {
@@ -958,6 +984,42 @@ export const exampleModule: GameModule = {
     lists: [{ label: "Goods", path: "goods", title: "item", detail: ["note"], empty: "Nothing aboard." }],
   },
   travel: exampleTravel,
+  progression: {
+    entities: [{ type: "example.hero", when: { "!": [{ var: "fields.construct" }] } }],
+    experience: { path: "xp", label: "XP", name: "Experience", page: 30, spendWhen: "between-sessions", spendWhenText: "Spend XP between sessions." },
+    storyPoints: {
+      path: "luck",
+      label: "Luck",
+      max: 2,
+      page: 31,
+      earn: [{ text: "One token for a daring act, at the end of each act.", page: 31 }],
+      uses: [{ id: "example.luck.reroll", label: "Re-roll", text: "Re-roll the whole pool once.", page: 31 }],
+      carryOver: { max: 1, text: "Keep one token for the next tale.", page: 31 },
+    },
+    awards: [
+      { id: "example.award.came", text: "Did you come to the game?", defaultYes: true, page: 30 },
+      { id: "example.award.quest", text: "Did you finish a quest?", amount: 2, page: 30 },
+      { id: "example.award.wounded", text: "Did you take a wound?", page: 30, when: { ">": [{ var: "fields.wounds" }, 0] }, whenText: "No wounds", suggest: (c) => Number(c.character.fields.wounds ?? 0) > 1 },
+      { id: "example.award.daring", text: "Did you do something daring this act?", pool: "story", timing: "act", page: 31 },
+    ],
+    spends: [
+      { id: "example.spend.skill", label: "Train a skill", text: "The new level × 3 XP.", target: { kind: "level", path: "skills", ref: "example.skills", keys: ["fight", "lore", "sneak"], max: 3 }, cost: { "*": [{ var: "to" }, 3] }, page: 30 },
+      {
+        id: "example.spend.feat",
+        label: "Learn a feat",
+        target: { kind: "pick", path: "feats", ref: "example.feats" },
+        cost: 4,
+        available: { or: [{ "!": [{ var: "item.origin" }] }, { "==": [{ var: "item.origin" }, { var: "fields.origin" }] }] },
+        availableText: "A feat of another origin",
+        checks: [
+          { level: "block", ok: { ">=": [{ var: "fields.attributes.wits" }, 2] }, message: "Needs Wits 2 or more", page: 30 },
+          { level: "confirm", ok: { ">": [{ var: "count" }, 0] }, message: "A first feat needs a mentor", page: 30 },
+        ],
+        page: 30,
+      },
+    ],
+    notes: [{ text: "Change your favored skill after a quest.", page: 30 }],
+  },
   hooks: {
     onSessionEnd(ctx): Prompt[] {
       const onYes: Effect[] = ctx.characters.map((c) => ({ kind: "incrementField", entity: c.id, path: "wounds", by: -1, min: 0 }));

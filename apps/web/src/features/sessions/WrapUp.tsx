@@ -1,6 +1,7 @@
 /**
  * Session wrap-up, step by step: summary, the module's end-of-session
- * prompts, rewards, timeline entries and loose ends. Finishing marks the
+ * prompts, rewards (the module's award checklist, then free entries),
+ * timeline entries and loose ends. Finishing marks the
  * session done, archives its tracker state and plans the next one.
  */
 import type { Entity, Id } from "@campaign-forge/core";
@@ -26,6 +27,7 @@ import { SessionRollPanel, attributeIds, skillInput } from "../table/DicePanel";
 import { WrapChecklistPanel } from "./SessionChecklist";
 import { usePlayerCharacters } from "../table/hooks";
 import { BetweenJobsLink } from "../ship/BetweenJobsLink";
+import { AwardsStep } from "../progression/AwardsStep";
 
 const STEPS = [
   { id: "summary", label: "Summary" },
@@ -139,6 +141,7 @@ export function WrapUpWizard({ sessionId, onCancel, onDone }: WrapUpWizardProps)
 
           {step === "prompts" && <PromptsStep sessionId={sessionId} prompts={prompts} answers={answers} pcs={pcs} />}
 
+          {step === "rewards" && <AwardsStep sessionId={sessionId} />}
           {step === "rewards" && <RewardsStep pcs={pcs} rewards={rewards} setRewards={setRewards} />}
           {step === "rewards" && <BetweenJobsLink />}
 

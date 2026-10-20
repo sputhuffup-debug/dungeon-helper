@@ -36,12 +36,9 @@ describe("hooks", () => {
     { id: "pc2", name: "Ash", fields: { isPC: true, android: true } },
   ];
 
-  it("asks nine XP questions per PC in campaign mode, each worth one XP", () => {
+  it("leaves XP to the progression award checklist: no XP prompts at session end in campaign mode", () => {
     const prompts = onSessionEnd({ mode: "campaign", characters: pcs, trackerState: {} });
-    expect(prompts.filter((p) => p.kind === "yesno")).toHaveLength(18);
-    const first = prompts[0]!;
-    expect(first.page).toBe(30);
-    expect(first.onYes).toEqual([{ kind: "incrementField", entity: "pc1", path: "xp", by: 1, min: 0 }]);
+    expect(prompts).toEqual([]);
   });
 
   it("adds a trauma-check roll prompt for a character with a panic result of 9+", () => {
@@ -57,10 +54,8 @@ describe("hooks", () => {
     expect(rolls[0]!.roll?.operation).toBe("mentalTrauma");
   });
 
-  it("asks one story-point award per PC in cinematic mode (p. 158), capped at 3", () => {
-    const prompts = onSessionEnd({ mode: "cinematic", characters: pcs, trackerState: {} });
-    expect(prompts.map((p) => p.id)).toEqual(["alien.cinematic.story-point:pc1", "alien.cinematic.story-point:pc2"]);
-    expect(prompts[0]!.onYes).toEqual([{ kind: "incrementField", entity: "pc1", path: "storyPoints", by: 1, min: 0, max: 3 }]);
+  it("leaves Story Points to the progression's end-of-act award in cinematic mode (p. 158)", () => {
+    expect(onSessionEnd({ mode: "cinematic", characters: pcs, trackerState: {} })).toEqual([]);
   });
 
   it("lowers the trauma threshold to 1 for a character with Panic Attacks (p. 74)", () => {

@@ -16,6 +16,10 @@
  * system to the home base; and the crew funds ledger holds a few entries
  * (the last run's pay, docking, food and water, an advance on the new job).
  *
+ * The crew has a little history: each PC earned XP on two earlier runs (the
+ * module's end-of-session questions, logged in the advancement log) and the
+ * first PC has already spent some of it on a talent.
+ *
  * Browser-safe: no `node:` imports here or in index.ts (the web app offers
  * "Load demo campaign" through `demoCampaignJSON`). File I/O lives in cli.ts.
  */
@@ -37,7 +41,9 @@ import {
   CampaignStore,
   RichTextRegistry,
   acceptGeneratedGraph,
+  applySpend,
   departTravel,
+  postAward,
   postLedgerEntry,
   docIdsOf,
   fromMarkdown,
@@ -489,6 +495,9 @@ export function buildDemoCampaign(opts: BuildDemoOptions = {}): DemoCampaign {
   // -- the ship in play: its state, the trip that brought it in, the crew's funds --
   setupShip(store, { ship, job, system, homeBase, pcs, cargo, year: cal.defaultYear, seed });
 
+  // -- the crew's advancement: XP from two earlier runs, one talent bought ---
+  setupAdvancement(store, { pcs, system, year: cal.defaultYear });
+
   const maps = store.toJSON();
   const resolve = nameResolver(store);
   const docs: Record<Id, string> = {};
@@ -565,6 +574,48 @@ function setupShip(store: CampaignStore, s: ShipSetup): void {
   post(5, 28, -450, "docking", `Berth at ${s.homeBase.name}, first week`);
   post(5, 29, -720, "provisions", "Food and water: 60 person-days");
   post(6, 1, 1000, "other", `Advance against ${s.job.name}`, { job: s.job.id });
+}
+
+// ---------------------------------------------------------------------------
+// the crew's advancement
+// ---------------------------------------------------------------------------
+
+/** XP questions each PC answered yes on the crew's two runs before this campaign (module award ids without the `alien.award.` prefix). */
+const EARLIER_RUN_AWARDS: readonly string[][] = [
+  ["participated", "danger", "money", "discovery", "buddy"],
+  ["participated", "danger", "money", "extraordinary"],
+  ["participated", "agenda", "money", "discovery"],
+  ["participated", "panic", "danger", "money"],
+];
+const LAST_RUN_AWARDS: readonly string[][] = [
+  ["participated", "agenda", "danger", "discovery", "extraordinary", "money"],
+  ["participated", "buddy", "danger", "money", "discovery"],
+  ["participated", "rival", "panic", "danger", "money"],
+  ["participated", "rival", "danger", "extraordinary", "money"],
+];
+/** General talents the first PC may have bought, in order of preference. */
+const BOUGHT_TALENTS = ["spaceship-mechanic", "zero-g-training", "eva-specialist"];
+
+/**
+ * XP from the crew's two runs before this campaign, posted as the wrap-up
+ * posts it (no session record: those runs were played before this campaign's
+ * log starts), and one spend between runs: the first PC learns a general
+ * talent. Dates and amounts are fixed.
+ */
+function setupAdvancement(store: CampaignStore, s: { pcs: Entity[]; system: Entity; year: number }): void {
+  const realDate = LEDGER_REAL_DATE;
+  const award = (runs: readonly string[][], reason: string, inWorldDate: string) =>
+    s.pcs.forEach((pc, i) => {
+      const questions = (runs[i] ?? runs[0]!).map((id) => `alien.award.${id}`);
+      postAward(store, alienModule, { character: pc.id, questions, reason, inWorldDate, realDate, source: { kind: "import" } });
+    });
+  award(EARLIER_RUN_AWARDS, "An earlier run, before the dry month", `${s.year}-04-12`);
+  award(LAST_RUN_AWARDS, `The last run to ${s.system.name}`, `${s.year}-05-28`);
+  const first = s.pcs[0];
+  if (!first) return;
+  const held = new Set(((store.get("entities", first.id)?.fields["talents"] as Array<{ id?: string }> | undefined) ?? []).map((t) => t.id));
+  const talent = BOUGHT_TALENTS.find((id) => !held.has(id));
+  if (talent) applySpend(store, alienModule, { character: first.id, option: "alien.spend.talent", target: talent, mode: "campaign", inWorldDate: `${s.year}-05-31`, realDate, source: { kind: "import" } });
 }
 
 /** `date` minus `days` on the Gregorian-style module calendar (the leg's departure). */
