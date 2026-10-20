@@ -26,5 +26,14 @@ A Game Master's workspace for tabletop RPG campaigns. Every game system is a plu
 5. No `eval`. Expressions are JSONLogic.
 6. Packages export from `src/index.ts` (no build step; consumers import TS directly via workspace links).
 
+## Publishing a feature
+Every user-facing feature ships with a README screenshot in the same PR:
+1. Add a named shot for it to `apps/web/screenshots/readme.spec.ts`, built from a demo campaign (add what the shot needs to the demos in `tools/seed-campaign` so it stays reproducible).
+2. Run `pnpm screenshots` (or one shot with `-g "<name>"`) and look at the image before committing.
+3. Add the image to the README's Screenshots section with a one-line caption, and update the "What it does" list.
+4. `pnpm test` fails if the README points at a missing image or an image is unused.
+Shots never show the rulebook's text or its purchase watermark; demos use original content.
+
 ## Commands
 - `pnpm install`, `pnpm typecheck`, `pnpm test`, `pnpm dev` (web app), `pnpm table-lint`.
+- `pnpm screenshots` rebuilds the web app and regenerates every README screenshot in `docs/screenshots/`.
