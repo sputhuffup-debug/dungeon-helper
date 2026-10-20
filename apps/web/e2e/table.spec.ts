@@ -121,3 +121,53 @@ test("table mode keeps working offline and the player screen shows revealed hand
   await expect(players.getByTestId("clock-stretch")).toHaveText("1");
   await context.setOffline(false);
 });
+
+test("after the first visit, a campaign and table mode open offline from the precache", async ({ page, context }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  // every JS chunk the page fetches, and whether the service worker answered it
+  const chunks = new Map<string, boolean>();
+  page.on("response", (r) => {
+    const path = new URL(r.url()).pathname;
+    if (path.startsWith("/assets/") && path.endsWith(".js")) chunks.set(path.slice("/assets/".length), r.fromServiceWorker());
+  });
+  const fetched = (prefix: string) => [...chunks.keys()].filter((f) => f.startsWith(prefix));
+
+  // 1. first visit: the campaign list only; the service worker installs and precaches every chunk
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Campaign Forge" })).toBeVisible();
+  await page.evaluate(() => navigator.serviceWorker.ready.then(() => undefined));
+  await page.waitForFunction(() => navigator.serviceWorker.controller !== null);
+  expect(fetched("alien")).toEqual([]);
+  expect(fetched("module-sdk")).toEqual([]);
+
+  // 2. offline: loading the demo pulls the seed data, the SDK and the Alien module's lazy chunks from the precache
+  await context.setOffline(true);
+  await page.getByTestId("load-demo").click();
+  await expect(page).toHaveURL(/\/c\/[0-9A-Z]{26}\/home$/, { timeout: 30_000 });
+  await expect(page.getByTestId("campaign-name")).toHaveText("Skyfire Down");
+  await expect(page.getByTestId("offline-badge")).toBeVisible();
+  for (const prefix of ["alien-data", "alien-tables", "alien-maps", "alien-rules", "module-sdk"]) {
+    const files = fetched(prefix);
+    expect(files, `${prefix} chunk fetched offline`).toHaveLength(1);
+    expect(chunks.get(files[0]!), `${prefix} came from the service worker`).toBe(true);
+  }
+
+  // 3. a cold reload while offline: the navigation fallback serves the shell and the campaign reopens
+  await page.reload();
+  await expect(page.getByTestId("campaign-name")).toHaveText("Skyfire Down", { timeout: 30_000 });
+
+  // 4. table mode (its page chunk and the editor chunk) still opens offline
+  await page.getByRole("button", { name: "Start this session" }).click();
+  await expect(page.getByTestId("table-mode")).toBeVisible();
+  await expect(page.getByTestId("scene-title")).not.toBeEmpty();
+  // the real editor (not the loading placeholder) has mounted
+  await expect(page.locator(".cf-editor[data-doc-id]").first()).toBeAttached();
+  for (const prefix of ["TableModePage", "RichTextEditor"]) {
+    const files = fetched(prefix);
+    expect(files, `${prefix} chunk fetched offline`).toHaveLength(1);
+    expect(chunks.get(files[0]!), `${prefix} came from the service worker`).toBe(true);
+  }
+  await context.setOffline(false);
+  expect(errors).toEqual([]);
+});

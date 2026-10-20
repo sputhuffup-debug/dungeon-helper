@@ -1,14 +1,17 @@
 /** `/`: campaigns on this device, create, import, delete. */
 import { listCampaigns, type CampaignIndexEntry } from "@campaign-forge/core";
-import type { LoadedModule } from "@campaign-forge/module-sdk";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { Badge, Button, Card, Dialog, EmptyState, IconButton, pushToast, useTheme } from "../../components/ui";
 import { errorMessage, relativeTime } from "../../lib/format";
 import { listModules, loadModuleById, moduleEntry } from "../../modules/registry";
-import { createCampaign, deleteCampaign, importCampaignBundle } from "../../state/actions";
-import { loadDemoCampaign, type DemoKind } from "../../state/tableActions";
+import type { DemoKind } from "../../state/tableActions";
+
+// The campaign list is the first page: the store actions (Yjs documents,
+// bundle import, demo data, game modules) load only when a button needs them.
+const actions = () => import("../../state/actions");
+const demoActions = () => import("../../state/tableActions");
 
 export function CampaignListPage() {
   const [campaigns, setCampaigns] = useState<CampaignIndexEntry[] | undefined>();
@@ -31,6 +34,7 @@ export function CampaignListPage() {
     if (!file) return;
     setBusy(true);
     try {
+      const { importCampaignBundle } = await actions();
       const id = await importCampaignBundle(new Uint8Array(await file.arrayBuffer()));
       pushToast("Campaign imported", { tone: "success" });
       await navigate({ to: "/c/$campaignId/home", params: { campaignId: id } });
@@ -45,6 +49,7 @@ export function CampaignListPage() {
   const onLoadDemo = async (kind: DemoKind) => {
     setBusy(true);
     try {
+      const { loadDemoCampaign } = await demoActions();
       const id = await loadDemoCampaign(undefined, kind);
       await navigate({ to: "/c/$campaignId/home", params: { campaignId: id } });
     } catch (e) {
@@ -120,6 +125,7 @@ export function CampaignListPage() {
           if (!toDelete) return;
           setBusy(true);
           try {
+            const { deleteCampaign } = await actions();
             await deleteCampaign(toDelete.id);
             pushToast("Campaign deleted");
           } catch (e) {
@@ -141,33 +147,34 @@ function CreateCampaignDialog({ open, onClose, onCreated }: { open: boolean; onC
   const modules = listModules();
   const [name, setName] = useState("");
   const [moduleId, setModuleId] = useState(modules[0]?.id ?? "alien");
-  const [mode, setMode] = useState("");
+  const [mode, setMode] = useState(modules[0]?.defaultMode ?? "");
   const [gmName, setGmName] = useState("");
-  const [loaded, setLoaded] = useState<LoadedModule | undefined>();
   const [loadError, setLoadError] = useState<string | undefined>();
   const [busy, setBusy] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  const entry = moduleEntry(moduleId);
 
+  // The dialog shows the static manifest; the module itself starts loading in
+  // the background so "Create campaign" is quick, and a failed load shows here.
   useEffect(() => {
     if (!open) return;
     let alive = true;
-    setLoaded(undefined);
     setLoadError(undefined);
-    loadModuleById(moduleId)
-      .then((m) => {
-        if (!alive) return;
-        setLoaded(m);
-        setMode(m.manifest.defaultMode);
-      })
-      .catch((e: unknown) => alive && setLoadError(errorMessage(e)));
+    loadModuleById(moduleId).catch((e: unknown) => alive && setLoadError(errorMessage(e)));
     return () => {
       alive = false;
     };
-  }, [moduleId, open]);
+  }, [moduleId, open, attempt]);
+
+  const chooseModule = (id: string) => {
+    setModuleId(id);
+    setMode(moduleEntry(id)?.defaultMode ?? "");
+  };
 
   const submit = async () => {
-    if (!loaded) return;
     setBusy(true);
     try {
+      const { createCampaign } = await actions();
       const id = await createCampaign({ name, moduleId, mode, gmName });
       setName("");
       onCreated(id);
@@ -178,7 +185,7 @@ function CreateCampaignDialog({ open, onClose, onCreated }: { open: boolean; onC
     }
   };
 
-  const modeDef = loaded?.manifest.modes.find((m) => m.id === mode);
+  const modeDef = entry?.modes.find((m) => m.id === mode);
   return (
     <Dialog
       open={open}
@@ -189,8 +196,8 @@ function CreateCampaignDialog({ open, onClose, onCreated }: { open: boolean; onC
           <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="primary" type="submit" form="create-campaign" disabled={!loaded || busy || !name.trim()}>
-            Create campaign
+          <Button variant="primary" type="submit" form="create-campaign" disabled={!entry || busy || !name.trim()}>
+            {busy ? "Creating…" : "Create campaign"}
           </Button>
         </>
       }
@@ -209,19 +216,25 @@ function CreateCampaignDialog({ open, onClose, onCreated }: { open: boolean; onC
         </label>
         <label className="app-label">
           Game module
-          <select className="cf-select" value={moduleId} onChange={(e) => setModuleId(e.target.value)}>
+          <select className="cf-select" value={moduleId} onChange={(e) => chooseModule(e.target.value)}>
             {modules.map((m) => (
               <option key={m.id} value={m.id}>
-                {m.name}
+                {m.dev ? `${m.name} (fixture)` : m.name}
               </option>
             ))}
           </select>
         </label>
-        {loadError && <p className="cf-field__error">{loadError}</p>}
+        {loadError && (
+          <p className="cf-field__error" role="alert">
+            Could not load the game module: {loadError}{" "}
+            <Button variant="ghost" size="sm" onClick={() => setAttempt((a) => a + 1)}>
+              Retry
+            </Button>
+          </p>
+        )}
         <fieldset className="app-fieldset">
           <legend className="app-label">Play mode</legend>
-          {!loaded && !loadError && <span className="cf-muted">Loading module…</span>}
-          {loaded?.manifest.modes.map((m) => (
+          {entry?.modes.map((m) => (
             <label key={m.id} className="app-radio">
               <input type="radio" name="mode" value={m.id} checked={mode === m.id} onChange={() => setMode(m.id)} />
               <span>
@@ -231,8 +244,8 @@ function CreateCampaignDialog({ open, onClose, onCreated }: { open: boolean; onC
             </label>
           ))}
         </fieldset>
-        {modeDef && loaded?.manifest.dataStatus !== "verified" && (
-          <p className="app-note app-note--warning">Module data is {loaded?.manifest.dataStatus}: unverified against the rulebook.</p>
+        {modeDef && entry?.dataStatus !== "verified" && (
+          <p className="app-note app-note--warning">Module data is {entry?.dataStatus}: unverified against the rulebook.</p>
         )}
         <label className="app-label">
           GM name

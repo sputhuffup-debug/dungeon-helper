@@ -10,6 +10,7 @@ import type { Act, Adventure, AdventureStatus, Id } from "@campaign-forge/core";
 import { Link, useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import { useState } from "react";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
+import { lazyView } from "../../components/lazyView";
 import { TagInput } from "../../components/TagInput";
 import { Badge, Button, EmptyState, IconButton, PageRef, pushToast } from "../../components/ui";
 import { downloadFile, slug } from "../../lib/download";
@@ -22,8 +23,11 @@ import { bookletMarkdown } from "./booklet";
 import { CommitInput, CommitTextarea } from "./fields";
 import { GuidedBuilder, ViewToggle } from "./guided/GuidedBuilder";
 import { OverviewEditor } from "./OverviewEditor";
-import { AgendaCardsView, BookletView } from "./PrintViews";
 import { SceneEditor } from "./SceneEditor";
+
+// The print views (booklet, agenda cards) bring their own fonts and print CSS: loaded when first opened.
+const BookletView = lazyView(() => import("./PrintViews").then((m) => m.BookletView), { what: "the booklet" });
+const AgendaCardsView = lazyView(() => import("./PrintViews").then((m) => m.AgendaCardsView), { what: "the agenda cards" });
 
 export function AdventurePage() {
   const { adventureId } = useParams({ from: "/c/$campaignId/adventures/$adventureId" });

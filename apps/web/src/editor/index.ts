@@ -1,4 +1,7 @@
-export { RichTextEditor, RichTextView, type RichTextEditorProps } from "./RichTextEditor";
-export { EntityRef, type EntityRefAttrs, type EntityRefOptions, type EntityRefInfo } from "./EntityRef";
-export { EntityMention, MentionController, type MentionItem, type MentionDeps, type MentionState } from "./mention";
-export { editorExtensions } from "./extensions";
+/**
+ * Rich-text editor. The components load the Tiptap chunk on first render
+ * (see LazyEditor.tsx); the extensions, mention controller and entity-ref
+ * node are imported from their own files by the code that needs them.
+ */
+export { RichTextEditor, RichTextView } from "./LazyEditor";
+export type { RichTextEditorProps } from "./RichTextEditor";

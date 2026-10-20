@@ -1,26 +1,21 @@
 /**
  * IndexedDB persistence: the campaign document and each rich-text document
- * through y-indexeddb, binary assets in a plain IDB store, and a small
- * index of campaigns on this device.
+ * through y-indexeddb and binary assets in a plain IDB store. The small
+ * index of campaigns on this device is in `campaignIndex.ts`.
  */
 import { IndexeddbPersistence, clearDocument } from "y-indexeddb";
 import type * as Y from "yjs";
 import type { RichTextRegistry } from "./richtext";
 import type { CampaignStore } from "./store";
-import type { Asset, CampaignMeta, Id } from "./types";
+import type { Asset, Id } from "./types";
+import { unregisterCampaign } from "./campaignIndex";
+import { deleteDb, done, openDb, request, requireIndexedDB } from "./idb";
+
+export { requireIndexedDB };
 
 export const CAMPAIGN_DB_PREFIX = "cf-campaign-";
 export const DOC_DB_PREFIX = "cf-doc-";
 export const ASSETS_DB_PREFIX = "cf-assets-";
-export const INDEX_DB = "cf-index";
-
-export function requireIndexedDB(): IDBFactory {
-  const idb = (globalThis as { indexedDB?: IDBFactory }).indexedDB;
-  if (!idb) {
-    throw new Error("IndexedDB is not available in this environment; persistence needs a browser or fake-indexeddb.");
-  }
-  return idb;
-}
 
 export function campaignDbName(id: Id): string {
   return `${CAMPAIGN_DB_PREFIX}${id}`;
@@ -104,40 +99,6 @@ export function openPersistence(store: CampaignStore, opts: PersistenceOptions =
 }
 
 // ---------------------------------------------------------------------------
-// plain IDB helpers
-// ---------------------------------------------------------------------------
-
-function request<T>(req: IDBRequest<T>): Promise<T> {
-  return new Promise((resolve, reject) => {
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error ?? new Error("IndexedDB request failed"));
-  });
-}
-
-function done(tx: IDBTransaction): Promise<void> {
-  return new Promise((resolve, reject) => {
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error ?? new Error("IndexedDB transaction failed"));
-    tx.onabort = () => reject(tx.error ?? new Error("IndexedDB transaction aborted"));
-  });
-}
-
-function openDb(name: string, store: string, options?: IDBObjectStoreParameters): Promise<IDBDatabase> {
-  const idb = requireIndexedDB();
-  const req = idb.open(name, 1);
-  req.onupgradeneeded = () => {
-    const db = req.result;
-    if (!db.objectStoreNames.contains(store)) db.createObjectStore(store, options);
-  };
-  return request(req);
-}
-
-function deleteDb(name: string): Promise<void> {
-  const idb = requireIndexedDB();
-  return request(idb.deleteDatabase(name)).then(() => undefined);
-}
-
-// ---------------------------------------------------------------------------
 // assets
 // ---------------------------------------------------------------------------
 
@@ -191,57 +152,6 @@ export class AssetStore {
     const db = await this.#db;
     db.close();
     this.#db = undefined;
-  }
-}
-
-// ---------------------------------------------------------------------------
-// campaign index
-// ---------------------------------------------------------------------------
-
-const CAMPAIGNS = "campaigns";
-
-export interface CampaignIndexEntry {
-  id: Id;
-  name: string;
-  moduleId: string;
-  updated: string;
-}
-
-function openIndex(): Promise<IDBDatabase> {
-  return openDb(INDEX_DB, CAMPAIGNS, { keyPath: "id" });
-}
-
-export async function listCampaigns(): Promise<CampaignIndexEntry[]> {
-  const db = await openIndex();
-  try {
-    const tx = db.transaction(CAMPAIGNS, "readonly");
-    const rows = await request(tx.objectStore(CAMPAIGNS).getAll());
-    return (rows as CampaignIndexEntry[]).sort((a, b) => (a.updated < b.updated ? 1 : a.updated > b.updated ? -1 : 0));
-  } finally {
-    db.close();
-  }
-}
-
-export async function registerCampaign(meta: Pick<CampaignMeta, "id" | "name" | "moduleId" | "updated">): Promise<void> {
-  const db = await openIndex();
-  try {
-    const tx = db.transaction(CAMPAIGNS, "readwrite");
-    const entry: CampaignIndexEntry = { id: meta.id, name: meta.name, moduleId: meta.moduleId, updated: meta.updated };
-    tx.objectStore(CAMPAIGNS).put(entry);
-    await done(tx);
-  } finally {
-    db.close();
-  }
-}
-
-export async function unregisterCampaign(id: Id): Promise<void> {
-  const db = await openIndex();
-  try {
-    const tx = db.transaction(CAMPAIGNS, "readwrite");
-    tx.objectStore(CAMPAIGNS).delete(id);
-    await done(tx);
-  } finally {
-    db.close();
   }
 }
 

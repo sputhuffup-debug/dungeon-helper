@@ -31,21 +31,17 @@ import { errorMessage } from "../../lib/format";
 import { RegenerateMapLink } from "../mapgen/RegenerateMapLink";
 import { updateSiteMap } from "../../state/prepActions";
 import { useCampaign, useMeta, useRecord } from "../../state/hooks";
-import {
-  downloadDistanceTable,
-  downloadMapPng,
-  downloadMapSvg,
-  downloadRollPdf,
-  downloadZoneKey,
-  deckIn,
-  layoutForView,
-  maxActOf,
-  printMapTiles,
-  rollPlan,
-  useMapGenerator,
-  useMapPalette,
-} from "./siteMapFiles";
+import { deckIn, layoutForView, maxActOf, rollPlan, useMapGenerator, useMapPalette } from "./siteMapFiles";
 import "./sitemap.css";
+
+type Downloads = typeof import("./siteMapDownloads");
+
+/** Run a download with the exporters, which load on first use; a failure (a chunk that cannot load included) shows a toast. */
+function download(what: string, fn: (d: Downloads) => unknown): void {
+  import("./siteMapDownloads")
+    .then(fn)
+    .catch((e: unknown) => pushToast(`${what} failed: ${errorMessage(e)}`, { tone: "danger" }));
+}
 
 const VIEWS: Array<{ id: SiteMapViewKind; label: string; note: string }> = [
   { id: "gm", label: "GM map", note: "Everything: zone numbers, spawns, clues, NPCs, hazards, locks and act shading." },
@@ -85,14 +81,6 @@ export function SiteMapPage({ record, onDelete, scenesCard }: { record: SiteMap;
   // marker texts that did not fit in their zones: the map shows a letter, this line the text
   const callouts = useMemo(() => drawSiteMap(shown, { view, deck, legend, passable: def?.passable }).callouts, [shown, view, deck, legend, def]);
 
-  const run = async (fn: () => unknown, what: string) => {
-    try {
-      await fn();
-    } catch (e) {
-      pushToast(`${what} failed: ${errorMessage(e)}`, { tone: "danger" });
-    }
-  };
-
   const selectedRow = useMemo(() => (selected ? zoneKeyRows(record, ctx.module.module).find((r) => r.id === selected) : undefined), [record, selected, ctx.module]);
 
   const body = (
@@ -128,10 +116,10 @@ export function SiteMapPage({ record, onDelete, scenesCard }: { record: SiteMap;
               </p>
             )}
             <div className="app-row prep-sitemap__downloads" role="group" aria-label="Map downloads">
-              <Button size="sm" onClick={() => downloadMapSvg(record, fileOpts)} data-testid="download-svg">
+              <Button size="sm" onClick={() => download("SVG export", (d) => d.downloadMapSvg(record, fileOpts))} data-testid="download-svg">
                 SVG
               </Button>
-              <Button size="sm" onClick={() => void run(() => downloadMapPng(record, fileOpts), "PNG export")} data-testid="download-png">
+              <Button size="sm" onClick={() => download("PNG export", (d) => d.downloadMapPng(record, fileOpts))} data-testid="download-png">
                 PNG (150 dpi)
               </Button>
               <label className="app-row">
@@ -145,10 +133,12 @@ export function SiteMapPage({ record, onDelete, scenesCard }: { record: SiteMap;
               </select>
               <Button
                 size="sm"
-                onClick={() => {
-                  const r = printMapTiles(record, { ...fileOpts, paper });
-                  pushToast(r.opened ? `${r.pages} page${r.pages === 1 ? "" : "s"} ready to print` : `Saved ${r.pages} page${r.pages === 1 ? "" : "s"} as a printable file`, { tone: "success" });
-                }}
+                onClick={() =>
+                  download("Print tiles", (d) => {
+                    const r = d.printMapTiles(record, { ...fileOpts, paper });
+                    pushToast(r.opened ? `${r.pages} page${r.pages === 1 ? "" : "s"} ready to print` : `Saved ${r.pages} page${r.pages === 1 ? "" : "s"} as a printable file`, { tone: "success" });
+                  })
+                }
                 data-testid="print-tiles"
               >
                 Print tiles
@@ -194,10 +184,10 @@ export function SiteMapPage({ record, onDelete, scenesCard }: { record: SiteMap;
                   size="sm"
                   variant="primary"
                   onClick={() =>
-                    void run(() => {
-                      const p = downloadRollPdf(record, rollOpts);
+                    download("PDF export", (d) => {
+                      const p = d.downloadRollPdf(record, rollOpts);
                       if (p) pushToast(`PDF ready: ${p.summary}`, { tone: "success" });
-                    }, "PDF export")
+                    })
                   }
                   data-testid="download-roll-pdf"
                 >
@@ -383,10 +373,10 @@ function ZoneKeyCard({ record, onSelect }: { record: SiteMap; onSelect: (id: str
       data-testid="zone-key"
       actions={
         <>
-          <Button size="sm" onClick={() => downloadZoneKey(record, "md", ctx.module.module)} data-testid="zone-key-md">
+          <Button size="sm" onClick={() => download("Zone key", (d) => d.downloadZoneKey(record, "md", ctx.module.module))} data-testid="zone-key-md">
             Markdown
           </Button>
-          <Button size="sm" onClick={() => downloadZoneKey(record, "csv", ctx.module.module)} data-testid="zone-key-csv">
+          <Button size="sm" onClick={() => download("Zone key", (d) => d.downloadZoneKey(record, "csv", ctx.module.module))} data-testid="zone-key-csv">
             CSV
           </Button>
         </>
@@ -466,10 +456,10 @@ function DistanceCard({ record, maxAct }: { record: SiteMap; maxAct: number }) {
               </option>
             ))}
           </select>
-          <Button size="sm" onClick={() => downloadDistanceTable(record, "csv", { keyOnly, act, module: ctx.module.module })} data-testid="distance-csv">
+          <Button size="sm" onClick={() => download("Distance table", (d) => d.downloadDistanceTable(record, "csv", { keyOnly, act, module: ctx.module.module }))} data-testid="distance-csv">
             CSV
           </Button>
-          <Button size="sm" onClick={() => downloadDistanceTable(record, "json", { keyOnly, act, module: ctx.module.module })} data-testid="distance-json">
+          <Button size="sm" onClick={() => download("Distance table", (d) => d.downloadDistanceTable(record, "json", { keyOnly, act, module: ctx.module.module }))} data-testid="distance-json">
             JSON
           </Button>
         </>

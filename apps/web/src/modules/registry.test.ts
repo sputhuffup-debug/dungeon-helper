@@ -19,6 +19,14 @@ describe("module registry", () => {
     expect(loaded.entityType("example.hero")?.kind).toBe("character");
   });
 
+  it("keeps each static manifest in step with the module's own manifest", async () => {
+    for (const entry of listModules({ dev: true })) {
+      const { manifest } = await loadModuleById(entry.id);
+      const { id, name, version, modes, defaultMode, dataStatus } = manifest;
+      expect({ id: entry.id, name: entry.name, version: entry.version, modes: entry.modes, defaultMode: entry.defaultMode, dataStatus: entry.dataStatus }).toEqual({ id, name, version, modes, defaultMode, dataStatus });
+    }
+  }, 30_000);
+
   it("rejects an unknown module id", async () => {
     await expect(loadModuleById("nope")).rejects.toThrow(/Unknown module/);
   });

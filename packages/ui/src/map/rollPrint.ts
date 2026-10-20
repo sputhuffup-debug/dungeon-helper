@@ -11,10 +11,13 @@
  *
  * Callers pass the layout for the view: the player projection
  * (core's `playerLayout(..., { print: true })`) for player prints.
+ *
+ * This file plans and draws the pages; `rollPdf.ts` writes them to PDF, so a
+ * page that only shows the plan does not load the PDF writer.
  */
 import { exitLabel, exitToOf, isDuctSheet, zoneNumbers } from "@campaign-forge/core";
 import type { SiteLayout } from "@campaign-forge/module-sdk";
-import { svgPagesToPdf, type PdfPage } from "./sitePdf";
+import type { PdfPage } from "./sitePdf";
 import { LIGHT_PALETTE, drawSiteMap, el, type SiteMapDrawOptions, type SiteMapPalette, type SiteMapViewKind, type SvgNode } from "./siteMapDraw";
 import { MAP_FONT, textWidth } from "./textMetrics";
 import { rotateLayout } from "./rotateLayout";
@@ -103,7 +106,7 @@ function gridM(layout: SiteLayout): number {
   return layout.gridM && layout.gridM > 0 ? layout.gridM : 1;
 }
 
-function deckOf(layout: SiteLayout, deck: string | undefined) {
+export function deckOf(layout: SiteLayout, deck: string | undefined) {
   return layout.decks.find((d) => d.id === deck) ?? layout.decks[0];
 }
 
@@ -317,13 +320,4 @@ export function rollPrintPages(layout: SiteLayout, o: RollPrintOptions, plan: Ro
     out.push({ width: W, height: H, node: el("g", { "data-page": page.strip }, nodes) });
   }
   return out;
-}
-
-/** Plan and render a roll print to PDF bytes. */
-export function renderRollPdf(layout: SiteLayout, o: RollPrintOptions): { bytes: Uint8Array; plan: RollPrintPlan } {
-  const plan = planRollPrint(layout, o);
-  const pages = rollPrintPages(layout, o, plan);
-  const deck = deckOf(layout, o.deck)?.name;
-  const bytes = svgPagesToPdf(pages, { title: [o.title ?? "Site map", deck, VIEW_NAMES[o.view]].filter(Boolean).join(" · "), subject: plan.summary, creator: "Campaign Forge" });
-  return { bytes, plan };
 }

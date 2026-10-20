@@ -2,6 +2,10 @@ import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 
+const VENDOR = /node_modules[\\/](react|react-dom|scheduler|use-sync-external-store|@tanstack[\\/](react-router|router-core|history|store|react-store))[\\/]/;
+const SDK = /packages[\\/]module-sdk[\\/]src[\\/]|node_modules[\\/](ajv|ajv-formats|fast-uri|fast-deep-equal|json-schema-traverse|json-logic-js)[\\/]/;
+const ALIEN_AREAS = ["data", "tables", "maps", "rules"];
+
 export default defineConfig({
   plugins: [
     react(),
@@ -28,7 +32,30 @@ export default defineConfig({
     }),
   ],
   server: { port: 5173 },
-  build: { target: "es2022", sourcemap: true },
+  build: {
+    target: "es2022",
+    sourcemap: true,
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [
+            // React and the router: what every page needs, in one cacheable chunk next to the entry.
+            {
+              name: "vendor",
+              test: (id: string) => VENDOR.test(id) || id === "\0rolldown/runtime.js" || id === "\0vite/preload-helper.js",
+            },
+            // The game-module SDK (with ajv for the conformance check) loads with a campaign; on its
+            // own chunk so the module chunks below cannot pull it in as a dependency.
+            { name: "module-sdk", test: SDK },
+            // The Alien module is one lazy import, loaded when an Alien campaign opens. Split by area so no
+            // chunk passes the 500 kB warning; leaves first, so each area keeps only its own files.
+            ...ALIEN_AREAS.map((area) => ({ name: `alien-${area}`, test: new RegExp(`packages[\\\\/]module-alien[\\\\/]src[\\\\/]${area}[\\\\/]`) })),
+            { name: "alien", test: /packages[\\/]module-alien[\\/]src[\\/]/ },
+          ],
+        },
+      },
+    },
+  },
   worker: { format: "es" },
   test: {
     environment: "jsdom",
