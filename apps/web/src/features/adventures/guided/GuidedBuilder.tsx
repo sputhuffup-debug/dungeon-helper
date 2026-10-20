@@ -126,6 +126,12 @@ export function GuidedBuilder({ adventure, builder, stepId }: { adventure: Adven
               {reviewSummaryLine(review)}
             </Badge>
           )}
+          <Link to="/c/$campaignId/adventures/$adventureId" params={{ campaignId: ctx.campaignId, adventureId: adventure.id }} search={{ view: "booklet" }} className="cf-btn cf-btn--sm" data-testid="guided-booklet">
+            Booklet
+          </Link>
+          <Link to="/c/$campaignId/adventures/$adventureId" params={{ campaignId: ctx.campaignId, adventureId: adventure.id }} search={{ view: "agendas" }} className="cf-btn cf-btn--sm" data-testid="guided-agenda-cards">
+            Agenda cards
+          </Link>
           <ViewToggle adventureId={adventure.id} current="guided" />
         </div>
       </header>
