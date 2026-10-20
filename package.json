@@ -11,7 +11,8 @@
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
     "lint": "turbo run lint",
-    "table-lint": "pnpm --filter @campaign-forge/table-lint run lint-tables"
+    "table-lint": "pnpm --filter @campaign-forge/table-lint run lint-tables",
+    "screenshots": "pnpm --filter @campaign-forge/web build && pnpm --filter @campaign-forge/web screenshots"
   },
   "devDependencies": {
     "@types/node": "^22.15.0",
