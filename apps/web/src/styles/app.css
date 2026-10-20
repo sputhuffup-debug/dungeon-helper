@@ -1375,76 +1375,7 @@ a.cf-btn {
   flex: 1 1 400px;
 }
 
-/* print views */
-.prep-print {
-  padding: var(--cf-space-5);
-  display: flex;
-  flex-direction: column;
-  gap: var(--cf-space-4);
-}
-.prep-booklet {
-  max-width: 72ch;
-  line-height: 1.6;
-}
-.prep-booklet__md h1 {
-  font-size: var(--cf-text-xl);
-  margin: 0 0 var(--cf-space-3);
-}
-.prep-booklet__md h2 {
-  font-size: var(--cf-text-lg);
-  margin: var(--cf-space-5) 0 var(--cf-space-2);
-  border-bottom: 1px solid var(--cf-border);
-}
-.prep-booklet__md h3 {
-  font-size: var(--cf-text-md);
-  margin: var(--cf-space-4) 0 var(--cf-space-2);
-}
-.prep-booklet__md h4 {
-  margin: var(--cf-space-3) 0 var(--cf-space-1);
-}
-.prep-booklet__readaloud {
-  margin: var(--cf-space-3) 0;
-  padding: var(--cf-space-2) var(--cf-space-4);
-  border-left: 4px solid var(--cf-accent);
-  background: var(--cf-accent-soft);
-  font-style: italic;
-}
-.prep-booklet__task {
-  list-style: none;
-  margin-left: -1.2em;
-}
-.prep-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: var(--cf-space-4);
-}
-.prep-agenda-card {
-  display: flex;
-  flex-direction: column;
-  gap: var(--cf-space-2);
-  padding: var(--cf-space-4);
-  border: 2px solid var(--cf-border-strong);
-  border-radius: var(--cf-radius-lg);
-  background: var(--cf-surface);
-  break-inside: avoid;
-  page-break-inside: avoid;
-}
-.prep-agenda-card h2 {
-  font-size: var(--cf-text-lg);
-}
-.prep-agenda-card__act,
-.prep-agenda-card__title,
-.prep-agenda-card footer {
-  font-size: var(--cf-text-xs);
-  color: var(--cf-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-.prep-agenda-card footer {
-  margin-top: auto;
-  padding-top: var(--cf-space-2);
-  border-top: 1px dashed var(--cf-border);
-}
+/* print views: see print.css (loaded with the booklet and agenda card views) */
 
 @media (max-width: 1000px) {
   .prep-builder__body,
@@ -1466,7 +1397,6 @@ a.cf-btn {
 @media print {
   .app-header,
   .app-nav,
-  .prep-print__toolbar,
   .cf-toasts {
     display: none !important;
   }
@@ -1475,28 +1405,9 @@ a.cf-btn {
     min-height: 0;
   }
   body,
-  .app-main,
-  .prep-print {
+  .app-main {
     background: #fff !important;
     color: #000 !important;
-  }
-  .prep-print {
-    padding: 0;
-  }
-  .prep-booklet {
-    max-width: none;
-  }
-  .prep-booklet__readaloud {
-    background: none;
-    border-left-color: #000;
-  }
-  .prep-agenda-card {
-    background: #fff;
-    border-color: #000;
-    color: #000;
-  }
-  .prep-cards {
-    grid-template-columns: repeat(2, 1fr);
   }
 }
 

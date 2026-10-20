@@ -108,7 +108,7 @@ export const creatureType: EntityTypeDef = {
             config: {
               columns: [
                 { path: "roll", label: "D6" },
-                { path: "rollTo", label: "to" },
+                { path: "rollTo", label: "to", openEnd: 99 },
                 { path: "name", label: "Attack" },
                 { path: "dice", label: "Dice" },
                 { path: "damage", label: "Damage" },
