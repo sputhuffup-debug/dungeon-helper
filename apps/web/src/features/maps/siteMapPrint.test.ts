@@ -99,9 +99,13 @@ describe("roll prints of Alien site maps", () => {
     const b = renderRollPdf(l, { view: "gm", legend, rollWidthIn: 24, mmPerMetre: 25.4, title: "Station" });
     expect(Buffer.from(a.bytes).equals(Buffer.from(b.bytes))).toBe(true);
     const gmText = new TextDecoder("latin1").decode(a.bytes);
-    expect(gmText).toContain("Drone patrol");
+    // a GM-only marker on the printed deck (the first floor deck)
+    const deckA = l.decks.find((x) => x.layer !== "duct")!.id;
+    const gmOnly = l.markers.find((m) => m.gmOnly && m.kind !== "hazard" && l.zones.find((z) => z.id === m.zone)?.deck === deckA)!.label;
+    expect(gmText).toContain(gmOnly);
     const player = renderRollPdf(playerLayout(l, { act: 1, print: true, legend }), { view: "player", legend, rollWidthIn: 24, mmPerMetre: 25.4, title: "Station" });
     const pText = new TextDecoder("latin1").decode(player.bytes);
+    expect(pText).not.toContain(gmOnly);
     expect(pText).not.toContain("Drone");
     expect(pText).toContain("(Deck A \\267 Player map) Tj");
   });
@@ -109,7 +113,7 @@ describe("roll prints of Alien site maps", () => {
   it("reports pages and paper for the summary line", () => {
     const l = layout(...CASES[0]!);
     const p = planRollPrint(l, { view: "player", rollWidthIn: 36, mmPerMetre: 25.4 });
-    expect(p.summary).toMatch(/^36" roll · 1 page · [\d.]+" of paper$/);
+    expect(p.summary).toMatch(/^36" roll · (1 page|\d+ pages) · [\d.]+" of paper$/);
     const overview = planRollPrint(l, { view: "player", rollWidthIn: 24, mmPerMetre: 10 });
     expect(overview.strips).toBe(1);
     expect(overview.paperLengthIn).toBeLessThan(p.paperLengthIn);

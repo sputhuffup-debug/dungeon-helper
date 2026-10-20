@@ -216,19 +216,22 @@ function buildBorders(rng: Rng, d: Draft): void {
   type Cand = { border: MapBorderData; acts: number[]; lock: "mechanical" | "electronic" };
   const cands: Cand[] = [];
   for (const b of doors) {
-    if (hasTag(nodeOfZone(d, b.a), "secure") || hasTag(nodeOfZone(d, b.b), "secure")) cands.push({ border: b, acts: pickOne(rng, [[1], [1, 2], [1, 2, 3]])!, lock: "electronic" });
+    const securePassage = passages.get(pairKey(b.a, b.b))?.secure === true;
+    if (securePassage || hasTag(nodeOfZone(d, b.a), "secure") || hasTag(nodeOfZone(d, b.b), "secure")) cands.push({ border: b, acts: pickOne(rng, [[1], [1, 2], [1, 2, 3]])!, lock: "electronic" });
   }
   for (const b of shuffle(rng, doors).slice(0, 2)) cands.push({ border: b, acts: [2], lock: "electronic" });
   for (const b of shuffle(rng, doors).slice(0, 2)) cands.push({ border: b, acts: [3], lock: "electronic" });
   for (const b of shuffle(rng, doors).slice(0, 1)) cands.push({ border: b, acts: [1, 2, 3], lock: "mechanical" });
-  let baseline = routeFailures(d).length;
+  // A lock stays only if no pair of consecutive key rooms loses a route (a single route stays a single route).
+  const routeScore = () => routeCounts(d).reduce((n, r) => n + Math.min(2, r), 0);
+  let baseline = routeScore();
   for (const c of shuffle(rng, cands)) {
     if ((c.border.lockedInActs ?? []).length > 0) continue;
     c.border.lock = c.lock;
     c.border.lockedInActs = c.acts;
-    const fails = routeFailures(d).length;
-    if (reachProblems(d).length === 0 && fails <= baseline) {
-      baseline = fails;
+    const score = routeScore();
+    if (reachProblems(d).length === 0 && score >= baseline) {
+      baseline = score;
       continue;
     }
     c.border.lock = "none";
@@ -332,6 +335,22 @@ function reachProblems(d: Pick<Draft, "zones" | "borders" | "start" | "keys" | "
         for (const w of winZones) if (!from.has(w)) out.push(`Act 3: win path ${w} cannot be reached from ${k.zone}`);
       }
     }
+  }
+  return out;
+}
+
+/** Separate routes (up to two) between each pair of consecutive key rooms, in the later room's act. */
+function routeCounts(d: Pick<Draft, "zones" | "borders" | "sequence" | "keys">): number[] {
+  const actOf = new Map(d.keys.map((k) => [k.zone, k.act]));
+  const cache = new Map<number, Adjacency>();
+  const out: number[] = [];
+  for (let i = 1; i < d.sequence.length; i++) {
+    const from = d.sequence[i - 1]!;
+    const to = d.sequence[i]!;
+    if (from === to) continue;
+    const act = actOf.get(to) ?? 1;
+    if (!cache.has(act)) cache.set(act, zoneAdjacency(d, act));
+    out.push(disjointPaths(cache.get(act)!, from, to, 2).length);
   }
   return out;
 }
@@ -470,7 +489,7 @@ function dress(rng: Rng, d: Draft, ctx: MapGeneratorContext): void {
       flags.outerHull = true;
       if (profile.autoSeal) flags.autoSeal = true;
     }
-    if (outer) flags.outerArmor = profile.outerArmor;
+    if (outer && z.kind !== "exterior") flags.outerArmor = profile.outerArmor;
     z.flags = flags;
   }
 
@@ -752,10 +771,14 @@ function placeClues(
   nextId: () => string,
   byId: Map<string, MapZoneData>,
 ): void {
+  // Without a key room in the act, a room of the act's region with two ways in (a duct access point or two passable borders).
+  const actRooms = d.zones.filter((z) => z.kind === "room" && z.layer !== "duct" && z.id !== d.start && (z.acts ?? [])[0] === p.act);
+  const ways = (z: MapZoneData) => (adjFor(p.act).get(z.id) ?? []).length;
+  const anyRooms = d.zones.filter((z) => z.kind === "room" && z.layer !== "duct" && z.id !== d.start).sort((a, b) => Math.abs(((a.acts ?? [])[0] ?? 1) - p.act) - Math.abs(((b.acts ?? [])[0] ?? 1) - p.act));
   const target =
     (p.room ? keyByName.get(p.room.toLowerCase())?.zone : undefined) ??
     d.keys.find((k) => k.act === p.act)?.zone ??
-    d.zones.find((z) => z.kind === "room" && (z.acts ?? [])[0] === p.act)?.id ??
+    (actRooms.find((z) => z.flags?.ductTo !== undefined && ways(z) >= 2) ?? actRooms.find((z) => ways(z) >= 2) ?? anyRooms.find((z) => ways(z) >= 2) ?? actRooms[0])?.id ??
     d.keys[0]?.zone ??
     d.start;
   const at = d.sequence.indexOf(target);

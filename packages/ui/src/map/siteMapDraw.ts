@@ -81,6 +81,9 @@ export interface SiteMapPalette {
   darkOverlay: string;
   darkOpacity: number;
   outOfBounds: string;
+  /** Exterior zones (yards, streets): open ground and its dashed edge. */
+  ground: string;
+  groundLine: string;
   fog: string;
   fogLine: string;
   tintOpacity: number;
@@ -125,6 +128,8 @@ export const LIGHT_PALETTE: SiteMapPalette = {
   darkOverlay: "#0b1620",
   darkOpacity: 0.26,
   outOfBounds: "#8d969c",
+  ground: "#e6dfcb",
+  groundLine: "#9c927a",
   fog: "#6b737a",
   fogLine: "#8a9298",
   tintOpacity: 0.38,
@@ -167,6 +172,8 @@ export const DARK_PALETTE: SiteMapPalette = {
   darkOverlay: "#000000",
   darkOpacity: 0.4,
   outOfBounds: "#55626b",
+  ground: "#262b22",
+  groundLine: "#6f7562",
   fog: "#2a333a",
   fogLine: "#3a464f",
   tintOpacity: 0.28,
@@ -611,6 +618,10 @@ export function drawSiteMap(layout: SiteLayout, opts: SiteMapDrawOptions): SiteM
       el("rect", { width: 0.8, height: 0.8, fill: p.background }),
       el("path", { d: "M 0 0 L 0 0.8 M 0 0 L 0.8 0", stroke: p.outOfBounds, "stroke-width": 0.08 }),
     ]),
+    el("pattern", { id: id("ground"), width: 1.2, height: 1.2, patternUnits: "userSpaceOnUse", patternTransform: "rotate(20)" }, [
+      el("circle", { cx: 0.3, cy: 0.3, r: 0.07, fill: p.groundLine, "fill-opacity": 0.55 }),
+      el("circle", { cx: 0.9, cy: 0.85, r: 0.05, fill: p.groundLine, "fill-opacity": 0.45 }),
+    ]),
     el("pattern", { id: id("fog"), width: 0.6, height: 0.6, patternUnits: "userSpaceOnUse", patternTransform: "rotate(-30)" }, [
       el("rect", { width: 0.6, height: 0.6, fill: p.fog }),
       el("path", { d: "M 0 0.3 L 0.6 0.3", stroke: p.fogLine, "stroke-width": 0.08 }),
@@ -635,8 +646,12 @@ export function drawSiteMap(layout: SiteLayout, opts: SiteMapDrawOptions): SiteM
       fills.push(el("polygon", { points: pts, fill: `url(#${id("oob")})`, stroke: p.outOfBounds, "stroke-width": 0.08, "data-oob": z.id }));
       continue;
     }
-    fills.push(el("polygon", { points: pts, fill: tracking ? "#ffffff" : p.floor }));
-    if (!tracking && z.area) fills.push(el("polygon", { points: pts, fill: areaColor(z.area, legend), "fill-opacity": p.tintOpacity, "data-area": z.area }));
+    if (z.kind === "exterior") {
+      // open ground outside: a pale fill with a stipple, no area tint
+      fills.push(el("polygon", { points: pts, fill: tracking ? "#ffffff" : p.ground, "data-exterior": z.id }));
+      if (!tracking) fills.push(el("polygon", { points: pts, fill: `url(#${id("ground")})` }));
+    } else fills.push(el("polygon", { points: pts, fill: tracking ? "#ffffff" : p.floor }));
+    if (!tracking && z.area && z.kind !== "exterior") fills.push(el("polygon", { points: pts, fill: areaColor(z.area, legend), "fill-opacity": p.tintOpacity, "data-area": z.area }));
     if (!tracking && isDark(z)) fills.push(el("polygon", { points: pts, fill: p.darkOverlay, "fill-opacity": p.darkOpacity, "data-dark": z.id }));
     if (gm && z.acts?.includes(act)) fills.push(el("polygon", { points: pts, fill: `url(#${id("act")})`, "data-act-shade": z.id }));
   }
@@ -646,9 +661,14 @@ export function drawSiteMap(layout: SiteLayout, opts: SiteMapDrawOptions): SiteM
   if (opts.gridSquares) layers.push(gridSquaresLayer(floors, layout.gridM && layout.gridM > 0 ? 1 / layout.gridM : 1, id));
 
   // 2. walls: every floor zone outline at wall weight (borders redraw shared edges)
+  // (outside ground has no wall of its own: a thin dashed edge; the buildings' walls are its borders)
   const outlines: SvgNode[] = floors
     .filter((z) => z.kind !== "out-of-bounds")
-    .map((z) => el("polygon", { points: points(z.poly), fill: "none", stroke: p.wall, "stroke-width": tracking ? 0.12 : WALL, "stroke-linejoin": "miter" }));
+    .map((z) =>
+      z.kind === "exterior"
+        ? el("polygon", { points: points(z.poly), fill: "none", stroke: tracking ? p.open : p.groundLine, "stroke-width": 0.08, "stroke-dasharray": "0.5 0.35" })
+        : el("polygon", { points: points(z.poly), fill: "none", stroke: p.wall, "stroke-width": tracking ? 0.12 : WALL, "stroke-linejoin": "miter" }),
+    );
   layers.push(el("g", { "data-layer": "outlines" }, outlines));
 
   // Label placement: everything already drawn blocks later labels.
@@ -1633,6 +1653,12 @@ export function legendSwatch(entry: MapLegendEntry, palette: SiteMapDrawOptions[
       return el("g", {}, [
         box,
         ...[0.25, 0.75, 1.25, 1.75].map((v) => line(0, v * 2 - 0.5, v * 2 - 0.5, 0, { stroke: p.outOfBounds, "stroke-width": 0.1 })),
+      ]);
+    if (t.kind === "exterior")
+      return el("g", {}, [
+        el("rect", { x: 0, y: 0, width: 2, height: 2, fill: p.ground, stroke: p.grid, "stroke-width": 0.05 }),
+        el("rect", { x: 0.3, y: 0.3, width: 1.4, height: 1.4, fill: "none", stroke: p.groundLine, "stroke-width": 0.1, "stroke-dasharray": "0.3 0.2" }),
+        ...[[0.7, 0.7], [1.3, 1.1], [0.8, 1.4]].map(([cx, cy]) => el("circle", { cx, cy, r: 0.08, fill: p.groundLine })),
       ]);
     if (t.kind === "crawlspace" || t.kind === "shaft") return el("g", {}, [box, el("rect", { x: 0.3, y: 0.6, width: 1.4, height: 0.8, fill: p.duct, "fill-opacity": 0.08, stroke: p.duct, "stroke-width": 0.1, "stroke-dasharray": "0.3 0.2" })]);
     return el("g", {}, [box, el("rect", { x: 0.3, y: 0.3, width: 1.4, height: 1.4, fill: "none", stroke: p.wall, "stroke-width": WALL })]);

@@ -16,6 +16,7 @@ import {
   MAP_LEGEND,
   RANGE_BANDS,
   SIZE_ZONES,
+  SITE_TYPES,
   NON_COMBAT_WIN_PATHS,
   MIN_SPAWN_DISTANCE,
   mapTables,
@@ -169,9 +170,9 @@ describe("site map generator: determinism and stages", () => {
 });
 
 describe("site map generator: block checks over many seeds", () => {
-  const SITES = ["station_deck", "derelict", "mine", "alien_ruin"];
+  const SITES = [...SITE_TYPES];
   for (const size of ["small", "medium", "large"] as const) {
-    it(`holds every block check for 100 seeds on ${size} maps of ${SITES.length} site types`, { timeout: 120_000 }, () => {
+    it(`holds every block check for 100 seeds on ${size} maps of all ${SITES.length} site types`, { timeout: 300_000 }, () => {
       for (const site of SITES) {
         for (let i = 0; i < 100; i++) {
           const inputs = { ...BRIEF, size, site_type: site, decks: i % 7 === 0 ? 2 : 1, win_paths: i % 2 ? ["escape_craft", "seal_section"] : ["airlock"] };
