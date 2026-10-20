@@ -9,6 +9,7 @@ import { creatureRules } from "./creatures";
 import { campaignPlayRules } from "./campaign-play";
 import { cinematicPlayRules } from "./cinematic-play";
 import { gmToolsRules } from "./gm-tools";
+import { moneyRules } from "./money";
 
 export { RULE_PREFIX, card } from "./card";
 export {
@@ -22,6 +23,7 @@ export {
   campaignPlayRules,
   cinematicPlayRules,
   gmToolsRules,
+  moneyRules,
 };
 
 /** All rule cards, grouped by chapter. Every card cites a page and paraphrases, never quotes. */
@@ -36,6 +38,7 @@ export const rules: RuleCard[] = [
   ...campaignPlayRules,
   ...cinematicPlayRules,
   ...gmToolsRules,
+  ...moneyRules,
 ];
 
 export const ruleIds = new Set(rules.map((r) => r.id));

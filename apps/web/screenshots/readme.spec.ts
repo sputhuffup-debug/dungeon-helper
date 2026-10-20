@@ -205,6 +205,20 @@ test("table-hints", async ({ page }) => {
   await shot(page, "table-hints");
 });
 
+test("ship", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1300 });
+  const base = await loadDemo(page, "skyfire");
+  await page.goto(`${base}/ship`);
+  await expect(page.getByTestId("ship-page")).toBeVisible();
+  await expect(page.getByTestId("funds-balance")).toHaveText("$18,330");
+  // plan the run back to the job's system, with one PC awake for the trip
+  await page.getByTestId("travel-destination").selectOption({ label: "Y87-544" });
+  await expect(page.getByTestId("travel-days")).toHaveText("12 days");
+  await page.getByTestId("travel-planner").getByRole("checkbox", { name: /Stays awake/ }).first().check();
+  await expect(page.getByTestId("travel-checks")).toContainText("NDD roll");
+  await shot(page, "ship");
+});
+
 test("rules", async ({ page }) => {
   const base = await loadDemo(page, "skyfire");
   await page.goto(`${base}/rules`);

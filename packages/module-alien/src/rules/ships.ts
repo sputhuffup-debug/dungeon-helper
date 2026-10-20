@@ -25,15 +25,19 @@ export const shipRules: RuleCard[] = [
   }),
   card("ship-damage", "Ship damage", "Armor reduces each hit just as for people. A hit below half the Hull rating (rounded up) causes minor component damage, half or more causes major component damage, and a single hit of the full Hull destroys the ship. Once total damage reaches Hull, the ship is disabled and decompresses but can be repaired.", [144, 146], {
     tags: ["space", "ships", "combat", "damage"],
-    links: { rules: ["alien.rule.ship-critical-damage", "alien.rule.ship-repairs"] },
+    links: { fields: ["alien.spaceship.hullDamage"], rules: ["alien.rule.ship-critical-damage", "alien.rule.ship-repairs"] },
   }),
   card("ship-critical-damage", "Component damage", "Minor damage rolls D66 on one table (from a broken coffee maker to decompression or a reactor leak); major damage rolls 2D6 on another (from AI failure to reactor detonation). Each entry names the repair rolls it needs, and any component damage gives the crew +1 stress.", [145, 146], {
     tags: ["space", "ships", "combat", "damage"],
-    links: { rules: ["alien.rule.ship-damage", "alien.rule.ship-repairs"] },
+    links: { tables: ["alien.ship.minor-damage", "alien.ship.major-damage"], fields: ["alien.spaceship.componentDamage"], rules: ["alien.rule.ship-damage", "alien.rule.ship-repairs"] },
   }),
   card("ship-repairs", "Ship repairs", "Hull repair is one Heavy Machinery roll per shift, each success restoring a point. Component repairs need the listed rolls plus a mechanical or electronic spare part per roll; in combat, emergency repairs take a stretch, need no parts and hold for one shift.", [146, 147], {
     tags: ["space", "ships"],
-    links: { rules: ["alien.rule.ship-damage", "alien.rule.ship-critical-damage"] },
+    links: { fields: ["alien.spaceship.hullDamage", "alien.spaceship.componentDamage"], rules: ["alien.rule.ship-damage", "alien.rule.ship-critical-damage", "alien.rule.spare-parts"] },
+  }),
+  card("spare-parts", "Spare parts", "Parts come mechanical or electronic: each Heavy Machinery repair roll needs a mechanical part and each Comtech roll an electronic one, used up on a success. A mechanical part costs about $100,000 in port and an electronic one about twice that. A shift and the matching skill roll salvages one part from a derelict, up to its full Hull score in all, half of each kind.", 147, {
+    tags: ["space", "ships", "gear"],
+    links: { fields: ["alien.spaceship.spareParts"], rules: ["alien.rule.ship-repairs"] },
   }),
   card("ship-modules", "Internal modules", "Modules are optional, replaceable rooms sized I to V, such as AI, air scrubbers, cargo bay, cryo deck, docking umbilical, escape vehicles, galley, hangar, medlab, science lab or vehicle bay. A smaller module fits a bigger slot but not the reverse.", [122, 124], {
     tags: ["space", "ships"],
@@ -45,6 +49,10 @@ export const shipRules: RuleCard[] = [
   }),
   card("ship-ownership", "Owning a ship", "Ships are hugely expensive, so most belong to corporations or the military and their crews are employees or hired hands. A company may lease a ship to a proven crew for about 2% of its price a year, with an option to buy.", 121, {
     tags: ["space", "ships", "campaign"],
-    links: { rules: ["alien.rule.job-frames", "alien.rule.campaign-structure"] },
+    links: { fields: ["alien.spaceship.ownership"], rules: ["alien.rule.job-frames", "alien.rule.campaign-structure", "alien.rule.starting-ship"] },
+  }),
+  card("starting-ship", "Starting spaceship", "Give the PCs a ship from the start so they can roam the star map. Employees are assigned one and must look after it; freelancers may lease or own theirs and spend what they earn on repairs and upgrades, which can become a game of its own.", 234, {
+    tags: ["space", "ships", "campaign"],
+    links: { rules: ["alien.rule.ship-ownership", "alien.rule.job-frames"] },
   }),
 ];

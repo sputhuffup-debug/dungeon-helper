@@ -10,10 +10,17 @@
  * and a planned first session whose checklist the app fills in. The Life Path
  * may roll android PCs, whose critical injuries use the android table.
  *
+ * The crew's ship is set up for campaign play: it is the campaign's crew ship
+ * with hull damage, a broken component, spare parts, provisions and cargo on
+ * its sheet; one finished travel leg brought it from the job's destination
+ * system to the home base; and the crew funds ledger holds a few entries
+ * (the last run's pay, docking, food and water, an advance on the new job).
+ *
  * Browser-safe: no `node:` imports here or in index.ts (the web app offers
  * "Load demo campaign" through `demoCampaignJSON`). File I/O lives in cli.ts.
  */
 import {
+  addDaysToDate,
   createRng,
   createTableRegistry,
   getPath,
@@ -30,6 +37,8 @@ import {
   CampaignStore,
   RichTextRegistry,
   acceptGeneratedGraph,
+  departTravel,
+  postLedgerEntry,
   docIdsOf,
   fromMarkdown,
   nameResolver,
@@ -477,11 +486,90 @@ export function buildDemoCampaign(opts: BuildDemoOptions = {}): DemoCampaign {
 
   store.updateMeta({ settings: { ...store.meta().settings, homeBase: homeBase.id, homeBasePresetId: homeBasePreset.id, ship: ship.id, employer: wy.id } });
 
+  // -- the ship in play: its state, the trip that brought it in, the crew's funds --
+  setupShip(store, { ship, job, system, homeBase, pcs, cargo, year: cal.defaultYear, seed });
+
   const maps = store.toJSON();
   const resolve = nameResolver(store);
   const docs: Record<Id, string> = {};
   for (const id of docIdsOf(maps)) docs[id] = toMarkdown(registry.open(id), resolve);
   return { store, registry, maps, docs };
+}
+
+// ---------------------------------------------------------------------------
+// the ship in play
+// ---------------------------------------------------------------------------
+
+/** Real-world date of the demo's bookkeeping (the week before session 1). */
+const LEDGER_REAL_DATE = "2026-11-01";
+
+interface ShipSetup {
+  ship: Entity;
+  job: Entity;
+  system: Entity;
+  homeBase: Entity;
+  pcs: Entity[];
+  cargo: string;
+  year: number;
+  seed: string;
+}
+
+/**
+ * The crew's ship as the app's Ship page shows it: some hull damage and a
+ * broken coffee maker from the dry month, one spare part, food and water for
+ * a couple of weeks, the job's cargo waiting to load, one finished leg from
+ * the job's destination system to the home base (the crew slept through it)
+ * and a short ledger. Amounts and dates are fixed; the leg's arrival rolls
+ * come from a seed, so the build stays deterministic.
+ */
+function setupShip(store: CampaignStore, s: ShipSetup): void {
+  const minor = alienModule.tables.find((t) => t.id === "alien.ship.minor-damage");
+  const coffee = minor?.rows.find((r) => r.label === "Coffee Maker Malfunction")?.result as Record<string, unknown> | undefined;
+  const fields: Record<string, unknown> = {
+    ...s.ship.fields,
+    hullDamage: 2,
+    componentDamage: coffee
+      ? [{ name: str(coffee["name"]), severity: "minor", effect: str(coffee["effect"]), heavyMachinery: 1, comtech: 0, system: str(coffee["system"]) }]
+      : [],
+    spareParts: { mechanical: 1, electronic: 0 },
+    provisions: 60,
+    cargo: [{ item: `${s.cargo} (to load)`, amount: "One hold", note: `For ${s.job.name}` }],
+    ownership: "company",
+  };
+  store.update("entities", s.ship.id, { fields });
+
+  // The last run: Y87-544 to the home base, one parsec at the ship's FTL rating, everyone in hypersleep.
+  const date = (m: number, d: number) => `${s.year}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+  const ftl = Number(fields["ftl"] ?? 0) || 1;
+  const arrive = date(5, 28);
+  store.updateMeta({ currentDate: addDaysBack(arrive, ftl) });
+  departTravel(store, alienModule, {
+    ship: s.ship.id,
+    from: s.system.id,
+    to: s.homeBase.id,
+    distance: 1,
+    options: { crew: s.pcs.map((pc) => ({ id: pc.id, name: pc.name, awake: false, android: pc.fields["android"] === true })) },
+    seed: `${s.seed}/travel/1`,
+    applyEffects: false,
+    moveVehicle: false,
+    timeline: false,
+    visibility: PLAYERS,
+    note: "The dry month: an empty run back from the survey drop.",
+  });
+  store.updateMeta({ currentDate: date(6, 1) });
+
+  const post = (m: number, d: number, amount: number, category: string, note: string, links: Record<string, string> = {}) =>
+    postLedgerEntry(store, { amount, category, note, inWorldDate: date(m, d), realDate: LEDGER_REAL_DATE, links: { ship: s.ship.id, ...links }, visibility: PLAYERS, source: { kind: "manual" } });
+  post(5, 28, 6500, "other", "Crew kitty carried over");
+  post(5, 28, 12000, "job-payment", `Pay for the last run to ${s.system.name}`);
+  post(5, 28, -450, "docking", `Berth at ${s.homeBase.name}, first week`);
+  post(5, 29, -720, "provisions", "Food and water: 60 person-days");
+  post(6, 1, 1000, "other", `Advance against ${s.job.name}`, { job: s.job.id });
+}
+
+/** `date` minus `days` on the Gregorian-style module calendar (the leg's departure). */
+function addDaysBack(date: string, days: number): string {
+  return addDaysToDate(alienModule.calendar, date, -days);
 }
 
 /** Plain JSON for the web app's "Load demo campaign" (load `maps` into a store, `docs` into the registry). */

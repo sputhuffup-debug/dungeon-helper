@@ -26,6 +26,8 @@ import { adventureBuilders } from "./builders";
 import { mapGenerators } from "./maps";
 import { playGuide } from "./guides";
 import { combat } from "./combat";
+import { crewShip, ledger } from "./economy";
+import { travel } from "./travel";
 
 export { manifest, ALIEN_MODULE_ID, ALIEN_MODULE_VERSION } from "./manifest";
 export { modes, CAMPAIGN, CINEMATIC } from "./modes";
@@ -48,6 +50,10 @@ export * from "./builders";
 export * from "./maps";
 export { playGuide, PLAY_GUIDE_ID } from "./guides";
 export * from "./combat";
+export * from "./economy";
+export { travel, FATIGUED_CONDITION } from "./travel";
+export { shipTables, travelTables, MINOR_DAMAGE_TABLE, MAJOR_DAMAGE_TABLE, NDD_TABLE } from "./tables/ships";
+export { BETWEEN_JOBS_ID } from "./procedures/between-jobs";
 export { mapTables, ductEventsTable, LOCATION_DETAIL_TABLE_ID, ANOMALOUS_DETAIL_TABLE_ID, SALVAGE_TABLE_ID, DUCT_EVENTS_TABLE_ID } from "./tables/maps";
 
 export const referenceLists = [...coreReferenceLists, ...dataReferenceLists, campaignThemes, fearStages];
@@ -72,6 +78,9 @@ export const alienModule: GameModule = {
   mapGenerators,
   playGuides: [playGuide],
   combat,
+  ledger,
+  crewShip,
+  travel,
   migrations: [],
 };
 

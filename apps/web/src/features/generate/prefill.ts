@@ -3,8 +3,8 @@
  * already knows (the frame from campaign settings, the number of player
  * characters, a characters array built from the PCs).
  */
-import type { CampaignStore, Entity } from "@campaign-forge/core";
-import type { JsonSchema, LoadedModule, Procedure } from "@campaign-forge/module-sdk";
+import { clone, type CampaignStore, type Entity } from "@campaign-forge/core";
+import { ENTITY_INPUT_HINT, type EntityInputHint, type EntitySnapshot, type JsonSchema, type LoadedModule, type Procedure } from "@campaign-forge/module-sdk";
 
 export type Schema = JsonSchema & {
   type?: string | string[];
@@ -79,6 +79,39 @@ export function characterItem(itemSchema: Schema | undefined, pc: Entity): Recor
   return item;
 }
 
+/** The entity-picker hint on an input schema (`"x-entity"`), if any. */
+export function entityHint(s: Schema | undefined): EntityInputHint | undefined {
+  const h = (s as Record<string, unknown> | undefined)?.[ENTITY_INPUT_HINT];
+  if (!h || typeof h !== "object" || !Array.isArray((h as EntityInputHint).types)) return undefined;
+  return h as EntityInputHint;
+}
+
+/** The value an entity input carries: a snapshot, so a run stays reproducible. */
+export function entitySnapshot(e: Entity): EntitySnapshot {
+  return { id: e.id, name: e.name, type: e.type, fields: clone(e.fields) };
+}
+
+/** Snapshot of `id` when it is an entity of one of the hint's types. */
+export function snapshotFor(store: CampaignStore, hint: EntityInputHint, id: unknown): EntitySnapshot | undefined {
+  if (typeof id !== "string") return undefined;
+  const e = store.get("entities", id);
+  return e && hint.types.includes(e.type) ? entitySnapshot(e) : undefined;
+}
+
+/** "job:ID,ship:ID" (the procedure page's `pick` search) as input overrides. */
+export function pickedInputs(procedure: Procedure | undefined, store: CampaignStore, pick: string | undefined): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  if (!pick) return out;
+  const props = inputProperties(procedure);
+  for (const part of pick.split(",")) {
+    const [key, id] = part.split(":");
+    const hint = key ? entityHint(props[key]) : undefined;
+    const snap = hint ? snapshotFor(store, hint, id) : undefined;
+    if (key && snap) out[key] = snap;
+  }
+  return out;
+}
+
 /** Schema defaults plus what the campaign knows. */
 export function initialInputs(procedure: Procedure | undefined, store: CampaignStore, module: Pick<LoadedModule, "entityType">): Record<string, unknown> {
   const inputs = schemaDefaultInputs(procedure);
@@ -86,6 +119,13 @@ export function initialInputs(procedure: Procedure | undefined, store: CampaignS
   const settings = store.meta().settings ?? {};
   const pcs = playerCharacters(store, module);
   for (const [key, s] of Object.entries(props)) {
+    const hint = entityHint(s);
+    if (hint) {
+      const snap = hint.setting ? snapshotFor(store, hint, settings[hint.setting]) : undefined;
+      if (snap) inputs[key] = snap;
+      else delete inputs[key];
+      continue;
+    }
     // campaign settings with the same name (e.g. frame)
     const setting = settings[key];
     if (setting !== undefined && (!Array.isArray(s.enum) || s.enum.includes(setting))) inputs[key] = setting;

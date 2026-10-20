@@ -15,6 +15,7 @@ Numbers, dice expressions, ranges, names and stat lines were copied exactly. Eff
 | Site map generator, location detail and salvage tables | [maps.md](maps.md) |
 | GM play guide (rolls in the story) | [play-guide.md](play-guide.md) |
 | Combat at the table: damage, armor, broken, creature turns, special attacks | [combat.md](combat.md) |
+| The crew's ship, money, FTL travel, repairs and between jobs | [ship-money.md](ship-money.md) |
 
 ## Still flagged `unverified`
 

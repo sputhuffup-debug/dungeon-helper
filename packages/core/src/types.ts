@@ -7,7 +7,7 @@
  *
  * Nothing in this file names a rule from any game.
  */
-import type { Effect, PageRef, RollRecord, SiteLayout, VisibilityLevel } from "@campaign-forge/module-sdk";
+import type { Effect, LedgerLinks, PageRef, RollRecord, SiteLayout, VisibilityLevel } from "@campaign-forge/module-sdk";
 
 export type Id = string; // ULID
 
@@ -300,6 +300,69 @@ export interface Asset extends BaseRecord {
 }
 
 // ---------------------------------------------------------------------------
+// money and travel
+// ---------------------------------------------------------------------------
+
+/**
+ * One line of the campaign ledger. Balances are never stored: they are summed
+ * from entries (see ledger.ts). `account` is absent for the shared account
+ * (party or ship funds) and an entity id for a personal one.
+ */
+export interface LedgerEntry extends BaseRecord {
+  /** Signed amount in the module currency: positive money in, negative money out. */
+  amount: number;
+  /** Module ledger category id (unknown ids show as they are). */
+  category: string;
+  note?: string;
+  /** In-world date, in the module calendar's format. */
+  inWorldDate?: string;
+  /** Real-world date (ISO yyyy-mm-dd) the entry belongs to; `created` keeps the exact time. */
+  realDate: string;
+  account?: Id;
+  links?: LedgerLinks;
+  /** Idempotency key: at most one entry per key (e.g. one payment per job). */
+  key?: string;
+  /** What posted it: the GM, a procedure run, travel, a payout button, an effect. */
+  source?: { kind: "manual" | "procedure" | "travel" | "payout" | "effect" | "import"; id?: Id; step?: string };
+  visibility: Visibility;
+}
+
+export type TravelStatus = "planned" | "arrived" | "cancelled";
+
+/**
+ * One leg of travel from A to B, usually on the group's vehicle. Departing
+ * moves the campaign's in-world date to `arriveDate`. Names are kept beside
+ * the ids so the log still reads after a place is deleted.
+ */
+export interface TravelLeg extends BaseRecord {
+  ship?: Id;
+  from?: Id;
+  fromName?: string;
+  to: Id;
+  toName: string;
+  /** Distance in the module's travel unit. */
+  distance: number;
+  days: number;
+  departDate?: string;
+  arriveDate?: string;
+  status: TravelStatus;
+  /** One line from the module's plan, e.g. "4 parsecs at FTL 12". */
+  summary?: string;
+  /** Planner options as given (who stayed awake, ...). */
+  options?: Record<string, unknown>;
+  /** Seed of the arrival rolls: same seed and module version, same arrival. */
+  seed?: string;
+  rolls?: RollRecord[];
+  log?: string[];
+  /** Arrival effects the module suggested, and whether they were applied. */
+  effects?: Effect[];
+  effectsApplied?: boolean;
+  session?: Id;
+  note?: string;
+  visibility: Visibility;
+}
+
+// ---------------------------------------------------------------------------
 // the document
 // ---------------------------------------------------------------------------
 
@@ -318,6 +381,8 @@ export interface CampaignMaps {
   generatorRuns: Record<Id, GeneratorRun>;
   trackerState: Record<Id, TrackerState>;
   assets: Record<Id, Asset>;
+  ledger: Record<Id, LedgerEntry>;
+  travel: Record<Id, TravelLeg>;
 }
 
 export type MapName = Exclude<keyof CampaignMaps, "meta">;
@@ -337,6 +402,8 @@ export const MAP_NAMES: MapName[] = [
   "generatorRuns",
   "trackerState",
   "assets",
+  "ledger",
+  "travel",
 ];
 
 /** Export bundle manifest (README.md lists this too). */
