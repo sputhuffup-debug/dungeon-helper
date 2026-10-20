@@ -53,9 +53,10 @@ describe("label placement on generated maps", () => {
       for (const seed of seeds) {
         const layout = runMapGenerator(exampleModule, exampleSiteGenerator, { darkness: 60, lockedAct: 2 }, { seed }).layout;
         for (const act of [1, 2]) {
-          const d = drawSiteMap(layout, { view, legend, act, live: { zoneFlags: { R2: { burning: true }, R5: { flooded: true } } } });
-          const deck = layout.decks[0]!;
-          expect(placementProblems(d.labels, layout.zones, { x0: 0, y0: 0, x1: deck.width, y1: deck.height }), `${seed} act ${act}`).toEqual([]);
+          for (const deck of layout.decks) {
+            const d = drawSiteMap(layout, { view, deck: deck.id, legend, act, passable: exampleSiteGenerator.passable, live: { zoneFlags: { R2: { burning: true }, R5: { flooded: true } } } });
+            expect(placementProblems(d.labels, layout.zones, { x0: 0, y0: 0, x1: deck.width, y1: deck.height }), `${seed} ${deck.id} act ${act}`).toEqual([]);
+          }
         }
       }
     });

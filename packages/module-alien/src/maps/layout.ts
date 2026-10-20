@@ -2,11 +2,13 @@
  * Stage 2 of the site map generator: the grid layout. Sizes every row
  * (bands of rooms and corridor lines) and column of each deck on a 1 m grid,
  * turns plan nodes into rectangles, numbers the zones in reading order
- * (Z01...; duct zones take their floor zone's id plus "d"), and measures
- * shared edges and the edges that face the hull.
+ * (Z01...), and measures shared edges and the edges that face the hull. Then
+ * it grows the duct sheets (ducts.ts) and gives every sheet and deck its level.
  */
 import type { MapDeck, MapPoint, MapZoneData, Rng } from "@campaign-forge/module-sdk";
 import { ROOM_TYPES, type SiteProfile } from "./data";
+import { layoutDucts, type DuctLayout } from "./ducts";
+import type { MapInputs } from "./inputs";
 import type { Plan, PlanNode } from "./plan";
 
 export interface Rect {
@@ -34,6 +36,8 @@ export interface LayoutResult {
   zones: MapZoneData[];
   /** Floor zones that share an edge, with the shared segment. */
   adjacency: GeoAdj[];
+  /** Duct sheets, their zones, links and exits. */
+  ducts: DuctLayout;
 }
 
 export const rectPoly = (r: Rect): MapPoint[] => [
@@ -85,19 +89,6 @@ function partition(rng: Rng, total: number, ranges: Array<[number, number]>, flo
 }
 
 const pad = (n: number) => String(n).padStart(2, "0");
-
-/** A duct outline inside its floor zone: inset by 1 m, or a 1 m strip along narrow sides. */
-export function ductRect(r: Rect): Rect {
-  const axis = (a0: number, a1: number): [number, number] => {
-    const dim = a1 - a0;
-    if (dim >= 4) return [a0 + 1, a1 - 1];
-    const off = Math.floor((dim - 1) / 2);
-    return [a0 + off, a0 + off + 1];
-  };
-  const [x0, x1] = axis(r.x0, r.x1);
-  const [y0, y1] = axis(r.y0, r.y1);
-  return { x0, y0, x1, y1 };
-}
 
 function sharedSegment(a: Rect, b: Rect): [MapPoint, MapPoint] | undefined {
   if (a.x1 === b.x0 || b.x1 === a.x0) {
@@ -152,7 +143,7 @@ function outerEdges(r: Rect, segs: Array<[MapPoint, MapPoint]>): Array<[MapPoint
 const DECK_LETTERS = "ABCDEFGH";
 
 /** Stage 2: sizes and places every zone. */
-export function layoutSite(rng: Rng, plan: Plan, profile: SiteProfile): LayoutResult {
+export function layoutSite(rng: Rng, plan: Plan, profile: SiteProfile, inputs: MapInputs): LayoutResult {
   const rects = new Map<string, Rect>();
   const decks: MapDeck[] = [];
   const nodes = plan.nodes;
@@ -276,7 +267,7 @@ export function layoutSite(rng: Rng, plan: Plan, profile: SiteProfile): LayoutRe
     const width = xEnd + sideMax("R") + 1;
     const height = y + 1;
     const letter = DECK_LETTERS[d] ?? String(d + 1);
-    decks.push({ id: letter, name: profile.hull === "space" ? `Deck ${letter}` : `Level ${d + 1}`, width, height });
+    decks.push({ id: letter, name: profile.hull === "space" ? `Deck ${letter}` : `Level ${d + 1}`, width, height, layer: "floor" });
   }
 
   // Number floor zones in reading order, deck by deck.
@@ -369,21 +360,20 @@ export function layoutSite(rng: Rng, plan: Plan, profile: SiteProfile): LayoutRe
     if (edges.length > 0) z.flags = { ...z.flags, outerEdges: edges };
   }
 
-  // Duct zones above or below their floor zones.
-  for (const k of floorKeys) {
-    if (!plan.ducts.has(k)) continue;
-    const floor = zones.find((z) => z.id === zoneOf.get(k))!;
-    const dr = ductRect(rects.get(k)!);
-    zones.push({
-      id: `${floor.id}d`,
-      deck: floor.deck,
-      kind: "crawlspace",
-      layer: "duct",
-      poly: rectPoly(dr),
-      cluttered: false,
-      acts: floor.acts ?? [],
-      flags: { over: floor.id, sizeM: Math.max(dr.x1 - dr.x0, dr.y1 - dr.y0) },
-    });
+  // Duct sheets: their own mazes on their own grids (a separate stream, so the floor plan does not depend on them).
+  const floorDecks = decks.slice();
+  const ducts = layoutDucts(rng.fork("ducts"), { plan, profile, inputs, decks: floorDecks, zoneOf, floorZones: new Map(zones.map((z) => [z.id, z])) });
+  zones.push(...ducts.zones);
+  // Levels, lowest first: a crawlspace under a deck, the deck, the ducts over it, the next deck...
+  const ordered: MapDeck[] = [];
+  for (const deck of floorDecks) {
+    const under = ducts.sheets.find((s) => s.serves === deck.id && s.role === "lower");
+    const over = ducts.sheets.find((s) => s.serves === deck.id && s.role === "upper");
+    if (under) ordered.push(under.deck);
+    ordered.push(deck);
+    if (over) ordered.push(over.deck);
   }
-  return { decks, rects, zoneOf, nodeOf, zones, adjacency };
+  ordered.forEach((deck, i) => (deck.level = i));
+  decks.push(...ducts.sheets.map((s) => s.deck));
+  return { decks, rects, zoneOf, nodeOf, zones, adjacency, ducts };
 }

@@ -9,7 +9,7 @@ import type { SiteLayout } from "@campaign-forge/module-sdk";
 import { drawSiteMap, el, nodeToString, resolvePalette, type SiteMapDrawOptions, type SvgNode } from "./siteMapDraw";
 import { MAP_FONT } from "./textMetrics";
 import { scaleText, titleBlock } from "./titleBlock";
-import { zoneKeyEntries } from "./rollPrint";
+import { sheetTitle, zoneKeyEntries } from "./rollPrint";
 
 export interface ExportTitleBlock {
   /** Map name (default: the SVG title, else "Site map"). */
@@ -42,12 +42,11 @@ export function composeSiteMap(layout: SiteLayout, options: Omit<RenderSvgOption
   const d = drawSiteMap(layout, { ...options, interactive: false });
   if (!options.titleBlock) return { node: d.node, width: d.width, height: d.height };
   const tb = typeof options.titleBlock === "object" ? options.titleBlock : {};
-  const deck = layout.decks.find((x) => x.id === d.deck);
   const margin = options.margin ?? 1;
   const block = titleBlock(
     {
       title: tb.title ?? options.title ?? "Site map",
-      deck: deck?.name,
+      deck: sheetTitle(layout, d.deck),
       view: options.view,
       scale: tb.scale ?? scaleLine,
       zoneKey: options.view === "gm" ? zoneKeyEntries(layout, d.deck) : undefined,

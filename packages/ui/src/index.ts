@@ -62,6 +62,8 @@ export {
   iconNode,
   markerGlyph,
   flagIcon,
+  badgeGlyph,
+  FLAG_ICONS,
   areaColor,
   zoneLabel,
   nodeToString,
@@ -82,6 +84,7 @@ export {
   type SiteMapLiveInput,
   type SiteMapCallout,
   type FlagIcon,
+  type BadgeGlyph,
 } from "./map/siteMapDraw";
 export {
   renderSiteMapSvg,
@@ -98,7 +101,7 @@ export {
   type PrintTile,
   type PaperSize,
 } from "./map/siteMapExport";
-export { planRollPrint, rollPrintPages, renderRollPdf, zoneKeyEntries, formatInches, ROLL_WIDTHS, PRINT_MAP_MARGIN, PRINT_PALETTE, type RollWidth, type RollPrintOptions, type RollPrintPlan, type RollPrintPage } from "./map/rollPrint";
+export { planRollPrint, rollPrintPages, renderRollPdf, zoneKeyEntries, sheetTitle, formatInches, ROLL_WIDTHS, PRINT_MAP_MARGIN, PRINT_PALETTE, type RollWidth, type RollPrintOptions, type RollPrintPlan, type RollPrintPage } from "./map/rollPrint";
 export { svgPagesToPdf, parsePathData, parseTransform, parseColor, PDF_MAX_UNITS, type PdfPage, type PdfInfo } from "./map/sitePdf";
 export { rotateLayout, type QuarterTurn } from "./map/rotateLayout";
 export { titleBlock, scaleBar, scaleText, isMiniatureScale, defaultGridSquares, PRINT_SCALES, DEFAULT_MM_PER_METRE, VIEW_NAMES, type PrintScale, type TitleBlockInput, type TitleBlockFrame, type TitleBlock } from "./map/titleBlock";

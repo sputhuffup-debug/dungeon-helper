@@ -1,8 +1,9 @@
 /**
- * seed-campaign CLI: build the "Skyfire Down" demo campaign and write it out.
+ * seed-campaign CLI: build a demo campaign and write it out. `--demo campaign`
+ * (default) is "Skyfire Down"; `--demo cinematic` is the "Cold Harbor" one-shot.
  *
  *   node --experimental-strip-types --no-warnings --import ./register.mjs src/cli.ts \
- *     --out demo.cfbundle.zip [--seed s] [--name "Skyfire Down"] [--json demo.json]
+ *     --out demo.cfbundle.zip [--demo campaign|cinematic] [--seed s] [--name "Skyfire Down"] [--json demo.json]
  *
  * `--out` writes a Campaign Forge bundle (exportBundle); `--json` writes
  * `{ maps, docs }` (the same shape as demoCampaignJSON). At least one is needed.
@@ -12,19 +13,21 @@ import { dirname, resolve } from "node:path";
 import { exportBundle } from "@campaign-forge/core";
 import { alienModule } from "@campaign-forge/module-alien";
 import { buildDemoCampaign, DEMO_SEED } from "./build";
+import { buildCinematicDemo, CINEMATIC_DEMO_SEED } from "./cinematic";
 
 interface Args {
   out?: string;
   json?: string;
-  seed: string;
+  seed?: string;
+  demo: "campaign" | "cinematic";
   name?: string;
   help: boolean;
 }
 
-const USAGE = "usage: seed-campaign --out demo.cfbundle.zip [--json demo.json] [--seed s] [--name \"Skyfire Down\"]";
+const USAGE = "usage: seed-campaign --out demo.cfbundle.zip [--json demo.json] [--demo campaign|cinematic] [--seed s] [--name \"Skyfire Down\"]";
 
 function parseArgs(argv: string[]): Args {
-  const args: Args = { seed: DEMO_SEED, help: false };
+  const args: Args = { demo: "campaign", help: false };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i] as string;
     const next = (): string => {
@@ -36,6 +39,11 @@ function parseArgs(argv: string[]): Args {
     if (a === "--out") args.out = next();
     else if (a === "--json") args.json = next();
     else if (a === "--seed") args.seed = next();
+    else if (a === "--demo") {
+      const d = next();
+      if (d !== "campaign" && d !== "cinematic") throw new Error(`--demo must be campaign or cinematic, not "${d}"`);
+      args.demo = d;
+    }
     else if (a === "--name") args.name = next();
     else if (a === "-h" || a === "--help") args.help = true;
     else throw new Error(`unknown argument "${a}"`);
@@ -69,7 +77,10 @@ async function main(): Promise<number> {
     return 2;
   }
 
-  const demo = buildDemoCampaign({ seed: args.seed, ...(args.name ? { name: args.name } : {}) });
+  const seed = args.seed ?? (args.demo === "cinematic" ? CINEMATIC_DEMO_SEED : DEMO_SEED);
+  const opts = { seed, ...(args.name ? { name: args.name } : {}) };
+  const cinematic = args.demo === "cinematic" ? buildCinematicDemo(opts) : undefined;
+  const demo = cinematic ?? buildDemoCampaign(opts);
   const { store, registry, maps, docs } = demo;
   const meta = store.meta();
   const entities = Object.values(maps.entities);
@@ -78,7 +89,7 @@ async function main(): Promise<number> {
     const key = e.subtype ? `${e.type}/${e.subtype}` : e.type;
     byType.set(key, (byType.get(key) ?? 0) + 1);
   }
-  console.log(`Built "${meta.name}" (${meta.moduleId} ${meta.moduleVersion}, ${meta.mode} mode, seed "${args.seed}")`);
+  console.log(`Built "${meta.name}" (${meta.moduleId} ${meta.moduleVersion}, ${meta.mode} mode, seed "${seed}")`);
   console.log(`  entities ${entities.length}, relationships ${Object.keys(maps.relationships).length}, generator runs ${Object.keys(maps.generatorRuns).length}`);
   for (const [t, n] of [...byType.entries()].sort(([a], [b]) => a.localeCompare(b))) console.log(`    ${t.padEnd(30)} ${n}`);
   console.log(`  adventures ${Object.keys(maps.adventures).length}, acts ${Object.keys(maps.acts).length}, scenes ${Object.keys(maps.scenes).length}, handouts ${Object.keys(maps.handouts).length}`);
@@ -87,6 +98,14 @@ async function main(): Promise<number> {
   console.log(`  crew: ${pcs.join(", ")}`);
   const job = entities.find((e) => e.type === "alien.job");
   if (job) console.log(`  job: ${job.name} [${job.summary ?? ""}]`);
+  if (cinematic) {
+    const r = cinematic.review.summary;
+    console.log(`  builder review: ${r.bad} to fix, ${r.warn} warnings, ${r.ok} passed`);
+    for (const m of Object.values(maps.maps)) {
+      const checks = m.layout?.checks ?? [];
+      console.log(`  map "${m.name}" (seed ${m.generator?.seed}): ${checks.filter((c) => c.ok).length}/${checks.length} checks pass; ${m.layout?.decks.filter((d) => d.layer === "duct").length ?? 0} duct sheets`);
+    }
+  }
 
   if (args.out) {
     const bytes = await exportBundle(store, registry, undefined, { id: alienModule.manifest.id, version: alienModule.manifest.version });

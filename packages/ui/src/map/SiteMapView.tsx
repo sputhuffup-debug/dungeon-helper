@@ -5,7 +5,8 @@
  * clicking one selects it.
  */
 import { createElement, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type ReactNode } from "react";
-import type { SiteLayout } from "@campaign-forge/module-sdk";
+import { deckGroups } from "@campaign-forge/core";
+import type { MapGeneratorDef, SiteLayout } from "@campaign-forge/module-sdk";
 import { Button } from "../primitives/Button";
 import { Toolbar, ToolbarGroup, ToolbarSpacer } from "../primitives/Toolbar";
 import { cx } from "../sheet/paths";
@@ -24,6 +25,8 @@ function reactAttrName(k: string): string {
 
 interface Handlers {
   onZoneClick?: ((zoneId: string, e: ReactMouseEvent | ReactKeyboardEvent) => void) | undefined;
+  /** A link (duct access square, exit or shaft badge): the deck and zone at its other end. */
+  onLinkClick?: ((deck: string, zoneId: string, e: ReactMouseEvent | ReactKeyboardEvent) => void) | undefined;
 }
 
 /** Convert a drawing node to React elements; zone hit areas get click and key handlers. */
@@ -32,7 +35,20 @@ export function nodeToReact(n: SvgNode | string, key: string | number, h: Handle
   const props: Record<string, unknown> = { key };
   for (const [k, v] of Object.entries(n.a ?? {})) if (v !== undefined) props[reactAttrName(k)] = v;
   const zone = n.a?.["data-hit"] === "zone" ? String(n.a["data-zone"]) : undefined;
-  if (zone && h.onZoneClick) {
+  const link = n.a?.["data-hit"] === "link" ? { deck: String(n.a["data-link-deck"]), zone: String(n.a["data-link-zone"]) } : undefined;
+  if (link && h.onLinkClick) {
+    const follow = h.onLinkClick;
+    props.onClick = (e: ReactMouseEvent) => follow(link.deck, link.zone, e);
+    props.onKeyDown = (e: ReactKeyboardEvent) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        follow(link.deck, link.zone, e);
+      }
+    };
+  } else if (link) {
+    delete props.tabIndex;
+    props.role = "img";
+  } else if (zone && h.onZoneClick) {
     const click = h.onZoneClick;
     props.onClick = (e: ReactMouseEvent) => click(zone, e);
     props.onKeyDown = (e: ReactKeyboardEvent) => {
@@ -64,6 +80,14 @@ export interface SiteMapViewProps {
   onDeckChange?: ((deck: string) => void) | undefined;
   /** Click or Enter on a zone. The event tells modifier keys apart (shift-click). */
   onSelectZone?: ((zoneId: string, e: ReactMouseEvent | ReactKeyboardEvent) => void) | undefined;
+  /**
+   * GM view: a duct access square, exit badge or shaft badge was followed. The
+   * view has already switched to the deck at the other end; this gets that
+   * zone (to select it). Defaults to `onSelectZone`.
+   */
+  onFollowLink?: ((zoneId: string, deck: string) => void) | undefined;
+  /** The module's passability rule (one-way shafts draw as a single down arrow). */
+  passable?: MapGeneratorDef["passable"] | undefined;
   grid?: boolean | undefined;
   /** Show the grid toggle in the toolbar (default true). */
   gridToggle?: boolean | undefined;
@@ -93,6 +117,8 @@ export function SiteMapView({
   deck: deckProp,
   onDeckChange,
   onSelectZone,
+  onFollowLink,
+  passable,
   grid: gridProp,
   gridToggle = true,
   palette,
@@ -107,15 +133,15 @@ export function SiteMapView({
   const [gridOn, setGridOn] = useState(gridProp ?? view !== "tracking");
   const grid = gridProp ?? gridOn;
   const drawing = useMemo(
-    () => drawSiteMap(layout, { view, deck, legend, live, act, fogged, selected, path, grid, palette, idPrefix: `sm${prefix}`, interactive: true }),
-    [layout, view, deck, legend, live, act, fogged, selected, path, grid, palette, prefix],
+    () => drawSiteMap(layout, { view, deck, legend, live, act, fogged, selected, path, grid, palette, passable, idPrefix: `sm${prefix}`, interactive: true }),
+    [layout, view, deck, legend, live, act, fogged, selected, path, grid, palette, passable, prefix],
   );
   const scale = screenScale(view);
   const width = drawing.width * scale;
   const height = drawing.height * scale;
   const viewportRef = useViewportRef();
   const { view: stage, setView, zoomAt, fit, onWheel } = useMapView(viewportRef, width, height);
-  const panRef = useRef<null | { sx: number; sy: number; ox: number; oy: number; zone?: string | undefined }>(null);
+  const panRef = useRef<null | { sx: number; sy: number; ox: number; oy: number; zone?: string | undefined; link?: { deck: string; zone: string } | undefined }>(null);
   // Pointer capture on the stage can retarget `click` to the viewport, so a
   // press and release without movement on a zone selects it; `click` (and
   // Enter) remain for keyboards and assistive tech, deduplicated.
@@ -138,7 +164,29 @@ export function SiteMapView({
     setInnerDeck(id);
     onDeckChange?.(id);
   };
+  const followLink = (toDeck: string, zone: string, e: ReactMouseEvent | ReactKeyboardEvent) => {
+    const last = lastPointerPick.current;
+    if (last && last.zone === `link:${zone}` && Date.now() - last.t < 600) return;
+    if (layout.decks.some((d) => d.id === toDeck)) pickDeck(toDeck);
+    if (onFollowLink) onFollowLink(zone, toDeck);
+    else onSelectZone?.(zone, e);
+  };
   const deckName = layout.decks.find((d) => d.id === deck)?.name ?? "";
+  const groups = useMemo(() => deckGroups(layout), [layout]);
+  const deckButton = (d: SiteLayout["decks"][number], duct: boolean) => (
+    <Button
+      key={d.id}
+      size="sm"
+      variant={d.id === deck ? "primary" : "ghost"}
+      aria-pressed={d.id === deck}
+      onClick={() => pickDeck(d.id)}
+      className={duct ? "cf-sitemap__ductbtn" : undefined}
+      data-deck-button={d.id}
+      data-layer={duct ? "duct" : "floor"}
+    >
+      {d.name}
+    </Button>
+  );
 
   return (
     <div className={cx("cf-map", "cf-map--view", "cf-sitemap", `cf-sitemap--${view}`, className)} data-testid="sitemap" data-view={view} data-deck={deck}>
@@ -147,10 +195,15 @@ export function SiteMapView({
           {layout.decks.length > 1 && (
             <ToolbarGroup>
               <span role="group" aria-label="Decks" className="cf-sitemap__decks">
-                {layout.decks.map((d) => (
-                  <Button key={d.id} size="sm" variant={d.id === deck ? "primary" : "ghost"} aria-pressed={d.id === deck} onClick={() => pickDeck(d.id)}>
-                    {d.name}
-                  </Button>
+                {groups.map((g, i) => (
+                  <span key={g.deck?.id ?? `ducts-${i}`} className="cf-sitemap__deckgroup" data-deck-group={g.deck?.id ?? ""}>
+                    {g.deck && deckButton(g.deck, false)}
+                    {g.ducts.length > 0 && (
+                      <span role="group" aria-label={g.deck ? `Duct sheets of ${g.deck.name}` : "Duct sheets"} className="cf-sitemap__ducts">
+                        {g.ducts.map((d) => deckButton(d, true))}
+                      </span>
+                    )}
+                  </span>
                 ))}
               </span>
             </ToolbarGroup>
@@ -186,7 +239,9 @@ export function SiteMapView({
         onWheel={onWheel}
         onPointerDown={(e) => {
           const hit = (e.target as Element).closest?.('[data-hit="zone"]');
-          panRef.current = { sx: e.clientX, sy: e.clientY, ox: stage.x, oy: stage.y, zone: hit?.getAttribute("data-zone") ?? undefined };
+          const linkHit = (e.target as Element).closest?.('[data-hit="link"]');
+          const link = linkHit ? { deck: linkHit.getAttribute("data-link-deck") ?? "", zone: linkHit.getAttribute("data-link-zone") ?? "" } : undefined;
+          panRef.current = { sx: e.clientX, sy: e.clientY, ox: stage.x, oy: stage.y, zone: hit?.getAttribute("data-zone") ?? undefined, link };
         }}
         onPointerMove={(e) => {
           const p = panRef.current;
@@ -196,6 +251,11 @@ export function SiteMapView({
         onPointerUp={(e) => {
           const p = panRef.current;
           panRef.current = null;
+          if (p?.link && view === "gm" && e.type === "pointerup" && Math.hypot(e.clientX - p.sx, e.clientY - p.sy) <= 5) {
+            followLink(p.link.deck, p.link.zone, e);
+            lastPointerPick.current = { zone: `link:${p.link.zone}`, t: Date.now() };
+            return;
+          }
           if (!p?.zone || !onSelectZone || e.type !== "pointerup") return;
           if (Math.hypot(e.clientX - p.sx, e.clientY - p.sy) > 5) return;
           lastPointerPick.current = { zone: p.zone, t: Date.now() };
@@ -203,7 +263,7 @@ export function SiteMapView({
         }}
         ariaLabel={`${title ? `${title}, ` : ""}${deckName} (${view === "gm" ? "GM map" : view === "player" ? "player map" : "tracking map"})`}
       >
-        <g transform={`scale(${scale})`}>{nodeToReact(drawing.node, "root", { onZoneClick })}</g>
+        <g transform={`scale(${scale})`}>{nodeToReact(drawing.node, "root", { onZoneClick, onLinkClick: view === "gm" ? followLink : undefined })}</g>
       </MapStage>
     </div>
   );

@@ -870,6 +870,15 @@ export interface MapDeck {
   name: string;
   width: number;
   height: number;
+  /**
+   * "floor" (default) is a deck plan; "duct" is a separate crawlspace level
+   * generated as its own sheet, linked to floor zones by access borders.
+   */
+  layer?: "floor" | "duct";
+  /** Vertical order (0 = lowest); levels let ducts climb or drop between sheets. */
+  level?: number;
+  /** For a duct sheet: the floor deck it mostly serves (for grouping in the deck switcher). */
+  serves?: string;
 }
 
 export interface MapZoneData {
@@ -901,7 +910,8 @@ export interface MapZoneData {
   gmNote?: string;
 }
 
-export type MapBorderKind = "open" | "wall" | "door" | "hatch" | "blast" | "access" | "stairs";
+/** `shaft` is a vertical link inside a duct network (climb or drop between duct sheets). */
+export type MapBorderKind = "open" | "wall" | "door" | "hatch" | "blast" | "access" | "stairs" | "shaft";
 
 export interface MapBorderData {
   id: string;
@@ -1018,10 +1028,40 @@ export interface MapGeneratorDef {
   generate(inputs: Record<string, unknown>, ctx: MapGeneratorContext): MapGeneratorResult;
   /** Build generator inputs from an adventure review context (cast, acts, fields). */
   inputsFromAdventure?(ctx: Record<string, unknown>): Record<string, unknown>;
-  /** Border kinds and flags that block movement for distance, given the act. */
-  passable?(border: MapBorderData, act: number): boolean;
+  /**
+   * Border kinds and flags that block movement for distance, given the act.
+   * `move`, when given, is the direction of travel across the border (core
+   * passes it for every step of a path search), so a one-way drop can be
+   * passable downward only. Without `move` the question is "passable at all".
+   */
+  passable?(border: MapBorderData, act: number, move?: MapMove): boolean;
   rangeBands?: RangeBandDef[];
   legend?: MapLegendEntry[];
+  /**
+   * Tables the GM rolls at the table for a zone, e.g. a duct event table
+   * rolled when a token enters a duct zone. GM-only: never shown to players.
+   */
+  zoneTables?: MapZoneTable[];
+}
+
+/** One step across a border: which zone the mover leaves and enters, and the vertical direction from the decks' `level`s. */
+export interface MapMove {
+  from: string;
+  to: string;
+  /** "down" when `to` is on a lower level than `from`, "up" when higher, "level" otherwise (or when a level is missing). */
+  vertical: "up" | "down" | "level";
+}
+
+/** A module table offered at the table for zones that match. */
+export interface MapZoneTable {
+  /** Table id in the module's table registry. */
+  table: string;
+  label: string;
+  /** Which zones it applies to: by layer, by kind, or by a zone flag. */
+  when: { layer?: "floor" | "duct"; kind?: MapZoneKind; flag?: string };
+  /** One line on when to roll it. */
+  hint?: string;
+  page?: PageRef;
 }
 
 // ---------------------------------------------------------------------------

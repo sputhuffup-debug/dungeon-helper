@@ -1,7 +1,8 @@
 /**
- * The Alien site map generator (`alien.map.site`): zone graph, grid layout,
- * borders and ducts, dressing, encounters and clues, then the validation
- * checklist. Each stage draws from its own seeded stream, so re-seeding one
+ * The Alien site map generator (`alien.map.site`): zone graph, grid layout
+ * (with each deck's duct sheets), borders and ducts (links, shafts, collapsed
+ * sections, access points), dressing (duct hazards included), encounters and
+ * clues, then the validation checklist. Each stage draws from its own seeded stream, so re-seeding one
  * stage changes it and the stages after it, never the ones before. A map that
  * fails a block check is rebuilt from the zone graph with a new sub-seed, up
  * to 50 times.
@@ -18,6 +19,8 @@ import {
   CREATURE_TIERS,
   DOOR_ARMOR,
   DOOR_HP,
+  DUCT_HAZARD_ODDS,
+  DUCT_SHAFT_M,
   ENEMY_PRESENCE,
   MAP_GENERATOR_ID,
   MAX_ZONE_M,
@@ -39,6 +42,7 @@ import {
 import { bfs, components, disjointPaths, shortestPath, type Adjacency } from "./graph";
 import { alienPassable, playerLayout, zoneAdjacency } from "./helpers";
 import { normalizeMapInputs, type MapInputs, type PuzzleInput } from "./inputs";
+import { DUCT_SHEET_MAX, type DuctSheet } from "./ducts";
 import { layoutSite, polyBounds, type LayoutResult } from "./layout";
 import { planSite, type Plan, type PlanNode } from "./plan";
 
@@ -202,17 +206,9 @@ function buildBorders(rng: Rng, d: Draft): void {
   for (const p of plan.passages.filter((x) => x.kind === "stairs")) {
     borders.push({ id: nextId(), a: layout.zoneOf.get(p.a)!, b: layout.zoneOf.get(p.b)!, kind: "stairs", flags: { via: p.via ?? "stairs", ...(p.via === "ladder" ? { dropM: 4 } : {}) } });
   }
-  // Ducts: duct-to-duct links, then access points (found during play, except the one at the start).
-  for (const [x, y] of plan.ductEdges) {
-    const a = `${layout.zoneOf.get(x)!}d`;
-    const b = `${layout.zoneOf.get(y)!}d`;
-    const shaft = plan.nodes.get(x)!.deck !== plan.nodes.get(y)!.deck;
-    borders.push({ id: nextId(), a, b, kind: "open", flags: shaft ? { duct: true, via: "shaft", dropM: 4 } : { duct: true } });
-  }
-  for (const k of [...plan.access].sort()) {
-    const z = layout.zoneOf.get(k)!;
-    borders.push({ id: nextId(), a: z, b: `${z}d`, kind: "access", sealed: false, hidden: k !== plan.start });
-  }
+  // Ducts: links on each sheet, collapsed sections, shafts between sheets, then access points
+  // (found during play, except the one at the start). A separate stream keeps the floor borders apart.
+  buildDuctBorders(rng.fork("ducts"), d, borders, nextId);
   d.borders = borders;
 
   // Locks per act, kept only while every reachability and route requirement still holds.
@@ -238,6 +234,87 @@ function buildBorders(rng: Rng, d: Draft): void {
     c.border.lock = "none";
     delete c.border.lockedInActs;
   }
+}
+
+/** The sheet links minus one link still join every zone on the sheet. */
+function sheetConnectedWithout(sheet: DuctSheet, links: Array<{ a: string; b: string }>, skip: ReadonlySet<number>): boolean {
+  const zones = new Set(sheet.zones);
+  const adj = new Map<string, string[]>(sheet.zones.map((z) => [z, []]));
+  links.forEach((l, i) => {
+    if (skip.has(i) || !zones.has(l.a)) return;
+    adj.get(l.a)!.push(l.b);
+    adj.get(l.b)!.push(l.a);
+  });
+  return bfs(adj, sheet.zones[0]!).size === sheet.zones.length;
+}
+
+function buildDuctBorders(rng: Rng, d: Draft, borders: MapBorderData[], nextId: () => string): void {
+  const { ducts } = d.layout;
+  if (ducts.sheets.length === 0) return;
+  const byId = zoneById(d);
+  const odds = DUCT_HAZARD_ODDS[d.inputs.site_type];
+  const exits = new Set(ducts.sheets.flatMap((s) => s.exits.map((e) => e.duct)));
+  const setFlag = (zone: string, key: string, value: unknown) => {
+    const z = byId.get(zone)!;
+    z.flags = { ...z.flags, [key]: value };
+  };
+
+  // Collapsed sections: on some sheets, one link whose loss leaves the sheet in one piece.
+  const collapsed = new Set<number>();
+  for (const sheet of ducts.sheets) {
+    if (rng.next() >= odds.collapse) continue;
+    const zones = new Set(sheet.zones);
+    const cands = ducts.links
+      .map((l, i) => ({ l, i }))
+      .filter(({ l, i }) => zones.has(l.a) && !exits.has(l.a) && !exits.has(l.b) && sheetConnectedWithout(sheet, ducts.links, new Set([...collapsed, i])));
+    const c = pickOne(rng, cands);
+    if (c) collapsed.add(c.i);
+  }
+  ducts.links.forEach((l, i) => {
+    if (collapsed.has(i)) {
+      borders.push({ id: nextId(), a: l.a, b: l.b, kind: "wall", segment: l.seg, armor: BARRIER_ARMOR.innerBulkhead, hp: DOOR_HP, hidden: true, flags: { duct: true, collapsed: true } });
+      setFlag(l.a, "collapsed", true);
+    } else borders.push({ id: nextId(), a: l.a, b: l.b, kind: "open", segment: l.seg, flags: { duct: true } });
+  });
+
+  // Shafts: a climbable one between each sheet and the sheet below it, sometimes a one-way drop as well.
+  const sheetOf = (deck: string, role: "upper" | "lower") => ducts.sheets.find((s) => s.serves === deck && s.role === role);
+  const pairs: Array<[DuctSheet, DuctSheet]> = [];
+  const floorDecks = d.layout.decks.filter((x) => x.layer !== "duct");
+  floorDecks.forEach((deck, i) => {
+    const up = sheetOf(deck.id, "upper");
+    const low = sheetOf(deck.id, "lower");
+    if (up && low) pairs.push([up, low]);
+    const next = floorDecks[i + 1];
+    const above = next ? sheetOf(next.id, "upper") : undefined;
+    if (up && above) pairs.push([above, up]);
+  });
+  const ends = new Set<string>();
+  const endpoint = (sheet: DuctSheet): string => {
+    const zones = sheet.zones.filter((z) => !exits.has(z) && !ends.has(z));
+    const nodes = zones.filter((z) => byId.get(z)!.flags?.ductType !== "run");
+    const z = pickOne(rng, nodes.length > 0 ? nodes : zones.length > 0 ? zones : sheet.zones)!;
+    ends.add(z);
+    return z;
+  };
+  const shaftTo = (zone: string, entry: Record<string, unknown>) => {
+    const list = (byId.get(zone)!.flags?.shaftTo as Array<Record<string, unknown>> | undefined) ?? [];
+    setFlag(zone, "shaftTo", [...list, entry]);
+  };
+  for (const [top, bottom] of pairs) {
+    const drop = rng.next() < odds.drop;
+    const links: Array<{ oneWay: boolean }> = [{ oneWay: false }, ...(drop ? [{ oneWay: true }] : [])];
+    for (const { oneWay } of links) {
+      const a = endpoint(top);
+      const b = endpoint(bottom);
+      borders.push({ id: nextId(), a, b, kind: "shaft", hidden: true, flags: { duct: true, direction: oneWay ? "down" : "both", dropM: DUCT_SHAFT_M, ...(oneWay ? { oneWay: true } : {}) } });
+      shaftTo(a, { zone: b, deck: bottom.deck.id, way: "down", dropM: DUCT_SHAFT_M, ...(oneWay ? { oneWay: true } : {}) });
+      shaftTo(b, { zone: a, deck: top.deck.id, way: "up", dropM: DUCT_SHAFT_M, ...(oneWay ? { oneWay: true } : {}) });
+      if (oneWay) setFlag(a, "oneWayDrop", true);
+    }
+  }
+
+  for (const sheet of ducts.sheets) for (const e of sheet.exits) borders.push({ id: nextId(), a: e.floor, b: e.duct, kind: "access", sealed: false, hidden: e.floor !== d.start });
 }
 
 /** Reachability requirements: key rooms and win paths from the start, per act. */
@@ -418,7 +495,9 @@ function dress(rng: Rng, d: Draft, ctx: MapGeneratorContext): void {
       }
     }
   }
+  // Every duct is dark unless something lights it (p. 57), and carries its generated hazards.
   for (const z of d.zones) if (z.layer === "duct") z.flags = { ...z.flags, dark: true };
+  dressDucts(rng.fork("ducts"), d);
 
   // Hiding places on the main routes: at least 40% cluttered.
   const route = mainRouteZones(d);
@@ -436,6 +515,32 @@ function dress(rng: Rng, d: Draft, ctx: MapGeneratorContext): void {
     const n = nodeOfZone(d, k.zone);
     const desc = n?.keyRoom?.description;
     if (desc) byId.get(k.zone)!.gmNote = desc;
+  }
+}
+
+/** Duct hazards per sheet (module decision; see DUCT_HAZARD_ODDS): vent fans, hot pipes and flooded stretches. */
+function dressDucts(rng: Rng, d: Draft): void {
+  const allowed = new Set(d.inputs.hazards);
+  const odds = DUCT_HAZARD_ODDS[d.inputs.site_type];
+  const byId = zoneById(d);
+  const danger = (z: MapZoneData) => ["fan", "steam", "flooded", "collapsed", "oneWayDrop"].some((f) => z.flags?.[f] === true);
+  for (const sheet of d.layout.ducts.sheets) {
+    const zones = sheet.zones.map((id) => byId.get(id)!);
+    const used = new Set<string>();
+    const free = zones.filter((z) => z.flags?.exitTo === undefined && z.flags?.shaftTo === undefined && !danger(z));
+    const take = (shapes: string[]): MapZoneData | undefined => {
+      const z = pickOne(rng, free.filter((x) => !used.has(x.id) && shapes.includes(String(x.flags?.ductType))));
+      if (z) used.add(z.id);
+      return z;
+    };
+    const set = (z: MapZoneData | undefined, flag: string) => {
+      if (z) z.flags = { ...z.flags, [flag]: true };
+    };
+    if (rng.next() < odds.fan) set(take(["run"]), "fan");
+    if (rng.next() < odds.steam) set(take(["run", "bend"]), "steam");
+    if (allowed.has("flooding") && rng.next() < odds.flooded + (sheet.role === "lower" ? 0.3 : 0)) set(take(["run", "dead-end"]), "flooded");
+    // Every sheet holds at least one danger.
+    if (!zones.some(danger)) set(take(["run", "bend", "dead-end", "junction"]), odds.fan > 0 ? "fan" : "steam");
   }
 }
 
@@ -500,16 +605,15 @@ function placeEncounters(rng: Rng, d: Draft): void {
 
   markers.push({ id: nextId(), kind: "start", zone: d.start, label: "Start", gmOnly: false });
 
-  // Spawns: duct junctions or dark, cluttered rooms, at least five zones from the start.
-  const ductDegree = new Map<string, number>();
-  for (const b of d.borders) if (b.kind === "open" && b.flags?.duct) for (const z of [b.a, b.b]) ductDegree.set(z, (ductDegree.get(z) ?? 0) + 1);
+  // Spawns: duct junctions and vent chambers, or dark, cluttered rooms, at least five zones from the start.
+  const lair = (z: MapZoneData) => z.layer === "duct" && z.flags?.exitTo === undefined && (z.flags?.ductType === "junction" || z.flags?.ductType === "chamber");
   const spawnPool = d.zones.filter(
     (z) =>
       z.kind !== "out-of-bounds" &&
       z.id !== d.start &&
       !keyZones.has(z.id) &&
       !winZones.has(z.id) &&
-      (z.layer === "duct" || (z.kind === "room" && z.cluttered && z.flags?.dark === true)),
+      (lair(z) || (z.kind === "room" && z.cluttered && z.flags?.dark === true)),
   );
   const usedSpawn = new Set<string>();
   const threats = threatSpecs(inputs);
@@ -527,8 +631,7 @@ function placeEncounters(rng: Rng, d: Draft): void {
     const scored = pool
       .map((z) => {
         const df = fromFocus.get(z.id) ?? 99;
-        const junction = z.layer === "duct" && (ductDegree.get(z.id) ?? 0) >= 3;
-        const score = (t.speed > 0 ? Math.abs(df - want) : -df * 0.1) - (junction ? 0.5 : 0) + (usedSpawn.has(z.id) ? 3 : 0) + rng.next() * 0.3;
+        const score = (t.speed > 0 ? Math.abs(df - want) : -df * 0.1) - (lair(z) ? 0.5 : 0) + (usedSpawn.has(z.id) ? 3 : 0) + rng.next() * 0.3;
         return { z, score };
       })
       .sort((a, b) => a.score - b.score);
@@ -610,9 +713,13 @@ function placeEncounters(rng: Rng, d: Draft): void {
 
   // Hazards worth a marker.
   for (const z of d.zones) {
-    if (z.kind === "out-of-bounds" || z.layer === "duct") continue;
+    if (z.kind === "out-of-bounds") continue;
     const f = z.flags ?? {};
     const notes: string[] = [];
+    if (f.fan === true) notes.push("Vent fan");
+    if (f.steam === true) notes.push("Hot pipes");
+    if (f.collapsed === true) notes.push("Collapsed section");
+    if (f.oneWayDrop === true) notes.push(`One-way drop ${DUCT_SHAFT_M} m`);
     if (f.atmosphere === "none") notes.push("No atmosphere");
     if (f.gravity === false) notes.push("Zero-G");
     if (typeof f.radiation === "string") notes.push(`Radiation (${f.radiation})`);
@@ -702,6 +809,9 @@ function placeClues(
 // Stage 6: validation
 // ---------------------------------------------------------------------------
 
+/** Zone flags that never reach the player map unless found (duct hazards and exit labels need the zone revealed). */
+const GM_ZONE_FLAGS = ["dark", "flammable", "atmosphere", "gravity", "radiation", "flooded", "deadEnd", "type", "exitTo", "fan", "steam", "collapsed", "oneWayDrop", "shaftTo", "ductType"];
+
 function check(id: string, level: "block" | "warn", ok: boolean, message: string, page?: MapCheck["page"]): MapCheck {
   return { id, level, ok, message, ...(page !== undefined ? { page } : {}) };
 }
@@ -724,7 +834,7 @@ export function validateLayout(layout: SiteLayout, inputs: MapInputs, extra: { k
 
   // Layout sanity: every passage drawn, no overlapping zones.
   let overlaps = 0;
-  const fb = floor.map((z) => ({ z, r: polyBounds(z.poly) }));
+  const fb = layout.zones.map((z) => ({ z, r: polyBounds(z.poly) }));
   for (let i = 0; i < fb.length; i++)
     for (let j = i + 1; j < fb.length; j++) {
       const a = fb[i]!;
@@ -760,10 +870,10 @@ export function validateLayout(layout: SiteLayout, inputs: MapInputs, extra: { k
     ),
   );
 
-  // Duct networks need two or more access points.
+  // Duct networks (sheets joined by shafts) need two or more access points.
   const ductZones = layout.zones.filter((z) => z.layer === "duct").map((z) => z.id);
   const ductAdj = new Map<string, string[]>(ductZones.map((z) => [z, []]));
-  for (const b of layout.borders) if (b.kind === "open" && ductAdj.has(b.a) && ductAdj.has(b.b)) {
+  for (const b of layout.borders) if ((b.kind === "open" || b.kind === "shaft" || (b.kind === "wall" && b.flags?.collapsed === true)) && ductAdj.has(b.a) && ductAdj.has(b.b)) {
     ductAdj.get(b.a)!.push(b.b);
     ductAdj.get(b.b)!.push(b.a);
   }
@@ -772,6 +882,39 @@ export function validateLayout(layout: SiteLayout, inputs: MapInputs, extra: { k
   const badNets = nets.filter((n) => accessOf(n) < 2);
   checks.push(check("duct-access", "block", badNets.length === 0, badNets.length === 0 ? `${nets.length} duct network${nets.length === 1 ? "" : "s"}, each with two or more access points` : `Duct network at ${badNets.map((n) => n[0]).join(", ")} has fewer than two access points`, 56));
 
+  // Every duct sheet reaches two or more rooms through unsealed access points (p. 56).
+  const ductDecks = layout.decks.filter((x) => x.layer === "duct");
+  const lonelySheets = ductDecks.filter((deck) => {
+    const rooms = new Set(
+      layout.borders
+        .filter((b) => b.kind === "access" && !b.sealed && byId.get(b.b)?.deck === deck.id && byId.get(b.a)?.kind === "room")
+        .map((b) => b.a),
+    );
+    return rooms.size < 2;
+  });
+  checks.push(check("duct-rooms", "block", lonelySheets.length === 0, ductDecks.length === 0 ? "No duct sheets" : lonelySheets.length === 0 ? `${ductDecks.length} duct sheet${ductDecks.length === 1 ? "" : "s"}, each reaching two or more rooms` : `Fewer than two rooms reached from ${lonelySheets.map((x) => x.id).join(", ")}`, 56));
+
+  // Every exit is labelled with where it comes out, and its floor zone points back.
+  const unlabelled: string[] = [];
+  for (const b of layout.borders.filter((x) => x.kind === "access")) {
+    const duct = byId.get(b.b);
+    const to = duct?.flags?.exitTo as { zone?: string; name?: string } | undefined;
+    const back = byId.get(b.a)?.flags?.ductTo as { zone?: string } | undefined;
+    if (!to || to.zone !== b.a || !to.name || back?.zone !== b.b) unlabelled.push(b.b);
+  }
+  for (const z of layout.zones) if (z.flags?.exitTo !== undefined && !layout.borders.some((b) => b.kind === "access" && b.b === z.id)) unlabelled.push(z.id);
+  checks.push(check("duct-exits", "block", unlabelled.length === 0, unlabelled.length === 0 ? "Every duct exit names the room or spot it leads to" : `Exits without a label: ${unlabelled.join(", ")}`, 56));
+
+  // Duct zones: 25 m or less, runs 1 m wide, 8-20 zones per sheet (module decision).
+  const ductBad: string[] = [];
+  for (const z of layout.zones.filter((x) => x.layer === "duct")) {
+    const r = polyBounds(z.poly);
+    if (sizeOf(z) > MAX_ZONE_M || (z.flags?.ductType === "run" && Math.min(r.x1 - r.x0, r.y1 - r.y0) !== 1)) ductBad.push(z.id);
+  }
+  const ductCounts = ductDecks.map((deck) => layout.zones.filter((z) => z.deck === deck.id).length);
+  const crowded = ductCounts.some((n) => n > DUCT_SHEET_MAX);
+  checks.push(check("duct-size", "block", ductBad.length === 0 && !crowded, ductBad.length === 0 && !crowded ? `Duct zones are ${MAX_ZONE_M} m or less and runs are 1 m wide` : `Duct zones too big or too wide: ${ductBad.join(", ") || "none"}${crowded ? `; a sheet has over ${DUCT_SHEET_MAX} zones` : ""}`, 54));
+
   // Zone sizes (p. 54).
   const tooBig = playable.filter((z) => z.kind !== "corridor" && sizeOf(z) > MAX_ZONE_M);
   checks.push(check("room-size", "block", tooBig.length === 0, tooBig.length === 0 ? `No room over ${MAX_ZONE_M} m across` : `Over ${MAX_ZONE_M} m: ${tooBig.map((z) => z.id).join(", ")}`, 54));
@@ -779,8 +922,8 @@ export function validateLayout(layout: SiteLayout, inputs: MapInputs, extra: { k
   checks.push(check("corridor-split", "block", longCorr.length === 0, longCorr.length === 0 ? `Corridors are split into zones of ${MAX_ZONE_M} m or less` : `Corridor runs over ${MAX_ZONE_M} m: ${longCorr.map((z) => z.id).join(", ")}`, [54, 55]));
 
   // Crawlspaces are open (p. 56).
-  const clutteredDucts = layout.zones.filter((z) => (z.layer === "duct" || z.kind === "crawlspace") && z.cluttered);
-  checks.push(check("crawlspace-open", "block", clutteredDucts.length === 0, clutteredDucts.length === 0 ? "Every crawlspace zone is open" : `Cluttered crawlspaces: ${clutteredDucts.map((z) => z.id).join(", ")}`, 56));
+  const clutteredDucts = layout.zones.filter((z) => (z.layer === "duct" || z.kind === "crawlspace") && (z.cluttered || z.flags?.singleFile !== true));
+  checks.push(check("crawlspace-open", "block", clutteredDucts.length === 0, clutteredDucts.length === 0 ? "Every crawlspace zone is open and single file" : `Cluttered or not single file: ${clutteredDucts.map((z) => z.id).join(", ")}`, [55, 56]));
 
   // Spawns at least five zones from the start (p. 55, 58).
   const spawns = layout.markers.filter((m) => m.kind === "spawn");
@@ -865,7 +1008,12 @@ export function validateLayout(layout: SiteLayout, inputs: MapInputs, extra: { k
     const p = playerLayout(layout, a);
     if (p.markers.some((m) => m.gmOnly)) leaks.push(`Act ${a}: GM-only markers`);
     if (p.zones.some((z) => z.gmNote !== undefined || z.details !== undefined || z.salvage !== undefined)) leaks.push(`Act ${a}: GM notes or dressing`);
-    if (p.zones.some((z) => z.flags && ["dark", "flammable", "atmosphere", "gravity", "radiation", "flooded", "deadEnd", "type"].some((f) => f in z.flags!))) leaks.push(`Act ${a}: GM-only zone flags`);
+    if (p.zones.some((z) => z.flags && GM_ZONE_FLAGS.some((f) => f in z.flags!))) leaks.push(`Act ${a}: GM-only zone flags`);
+    const ductsShown = p.zones.filter((z) => z.layer === "duct").map((z) => z.id);
+    const knownExits = new Set(p.borders.filter((b) => b.kind === "access").map((b) => b.b));
+    if (ductsShown.some((z) => !knownExits.has(z))) leaks.push(`Act ${a}: duct zones the crew has not found`);
+    const knownFloor = new Set(p.borders.filter((b) => b.kind === "access").map((b) => b.a));
+    if (p.zones.some((z) => z.flags?.ductTo !== undefined && !knownFloor.has(z.id))) leaks.push(`Act ${a}: duct access the crew has not found`);
     if (p.borders.some((b) => b.hidden || b.lock !== undefined || b.lockedInActs !== undefined)) leaks.push(`Act ${a}: hidden borders or lock states`);
     if (p.meta !== undefined || p.checks.length > 0) leaks.push(`Act ${a}: GM data`);
   }
@@ -914,7 +1062,7 @@ function toLayout(d: Draft): SiteLayout {
 export function runOnce(inputs: MapInputs, ctx: MapGeneratorContext, attempt: number): { layout: SiteLayout; checks: MapCheck[] } {
   const profile = SITE_PROFILES[inputs.site_type];
   const plan = planSite(stageRng(ctx, "graph", attempt), inputs, profile);
-  const layout = layoutSite(stageRng(ctx, "layout", attempt), plan, profile);
+  const layout = layoutSite(stageRng(ctx, "layout", attempt), plan, profile, inputs);
   const start = layout.zoneOf.get(plan.start)!;
   const keys: KeyZone[] = plan.sequence
     .slice(1)
@@ -941,6 +1089,7 @@ export function runOnce(inputs: MapInputs, ctx: MapGeneratorContext, attempt: nu
   d.meta.keyRooms = d.keys.map((k) => ({ zone: k.zone, act: k.act, name: k.name }));
   d.meta.sequence = d.sequence;
   d.meta.wins = d.wins;
+  d.meta.ducts = layout.ducts.sheets.map((s) => ({ deck: s.deck.id, serves: s.serves, role: s.role, level: s.deck.level, zones: s.zones.length, exits: s.exits.map((e) => ({ zone: e.duct, to: e.floor, name: e.name })) }));
   const out = toLayout(d);
   const checks = validateLayout(out, inputs, { keys: d.keys, sequence: d.sequence, wins: d.wins, lostPassages: d.lostPassages });
   out.checks = checks;

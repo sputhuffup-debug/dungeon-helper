@@ -2,8 +2,9 @@
  * Stage 1 of the site map generator: the zone graph. Decides decks, corridor
  * lines, the rooms in each band and column, the ends of each line (ladders,
  * caps, sealed stubs), the passages between them, the start, act regions,
- * key rooms, win-path endpoints and the duct network. No geometry yet: the
- * layout stage turns this plan into rectangles on a 1 m grid.
+ * key rooms, win-path endpoints and which rooms get a duct access point. No
+ * geometry yet: the layout stage turns this plan into rectangles on a 1 m grid
+ * and grows each deck's duct sheets (see ducts.ts).
  *
  * Deck shape: rows from top to bottom alternate bands of rooms and corridor
  * lines (band 0, line 1, band 1, ..., line K, band K). Columns split every
@@ -15,7 +16,7 @@
 import type { Rng } from "@campaign-forge/module-sdk";
 import { DUCT_SHARE, ROOM_TYPES, SIZE_ZONES, type RoomType, type SiteProfile, type WinPathId } from "./data";
 import type { KeyRoomInput, MapInputs } from "./inputs";
-import { bfs, buildAdjacency, shortestPath, type Adjacency } from "./graph";
+import { bfs, buildAdjacency, type Adjacency } from "./graph";
 
 export type Side = "L" | "R";
 export type NodeRole = "corridor" | "connector" | "cross" | "room" | "cap" | "oob";
@@ -96,11 +97,7 @@ export interface Plan {
   /** Start, then key rooms in act order. */
   sequence: string[];
   wins: WinPlan[];
-  /** Floor nodes with a duct zone above or below, per deck. */
-  ducts: Set<string>;
-  /** Duct-to-duct links, as pairs of floor node keys (same deck) or vertical shafts (two decks). */
-  ductEdges: Array<[string, string]>;
-  /** Floor nodes with a duct access point. */
+  /** Floor nodes with a duct access point (the layout stage may add a few on its duct sheets). */
   access: Set<string>;
   maxDist: number;
 }
@@ -500,10 +497,8 @@ export function planSite(rng: Rng, inputs: MapInputs, profile: SiteProfile): Pla
     }
   }
 
-  // Ducts: a share of the rooms (always the start and the key rooms) get access points;
-  // each deck's network follows the passages between them.
-  const ducts = new Set<string>();
-  const ductEdges: Array<[string, string]> = [];
+  // Ducts: a share of the rooms (always the start and the key rooms) get access points,
+  // two or more per deck. The duct sheets themselves are grown by the layout stage.
   const access = new Set<string>();
   const share = DUCT_SHARE[inputs.duct_density];
   if (share > 0) {
@@ -517,49 +512,19 @@ export function planSite(rng: Rng, inputs: MapInputs, profile: SiteProfile): Pla
       if (access.size >= want) break;
       access.add(n.key);
     }
-    const edgeSet = new Set<string>();
-    const pushEdge = (x: string, y: string) => {
-      const k = x < y ? `${x}|${y}` : `${y}|${x}`;
-      if (edgeSet.has(k)) return;
-      edgeSet.add(k);
-      ductEdges.push([x, y]);
-    };
-    const stairs = b.passages.filter((p) => p.kind === "stairs");
     for (const deck of decks) {
-      const deckRooms = rooms.filter((n) => n.deck === deck.index);
-      const points = [...access].filter((k) => nodes.get(k)!.deck === deck.index);
-      for (const n of deckRooms) {
-        if (points.length >= 2) break;
-        if (!points.includes(n.key)) {
-          points.push(n.key);
+      let here = [...access].filter((k) => nodes.get(k)!.deck === deck.index).length;
+      for (const n of rooms.filter((x) => x.deck === deck.index)) {
+        if (here >= 2) break;
+        if (!access.has(n.key)) {
           access.add(n.key);
-        }
-      }
-      // Shaft ends join the network so decks can link through the ducts.
-      const shaftEnds = stairs.filter((p) => p.via !== "lift").flatMap((p) => [p.a, p.b]).filter((k) => nodes.get(k)!.deck === deck.index);
-      const targetsHere = [...points, ...shaftEnds];
-      if (targetsHere.length === 0) continue;
-      const deckAdj = new Map<string, string[]>();
-      for (const [k, list] of adj) {
-        if (nodes.get(k)!.deck !== deck.index) continue;
-        deckAdj.set(k, shuffle(rng, list.filter((m) => nodes.get(m)!.deck === deck.index)));
-      }
-      const root = targetsHere[0]!;
-      ducts.add(root);
-      for (const t of targetsHere.slice(1)) {
-        const path = shortestPath(deckAdj, root, t);
-        if (!path) continue;
-        for (let i = 0; i < path.length; i++) {
-          ducts.add(path[i]!);
-          if (i > 0) pushEdge(path[i - 1]!, path[i]!);
+          here++;
         }
       }
     }
-    for (const p of stairs.filter((x) => x.via !== "lift")) if (ducts.has(p.a) && ducts.has(p.b)) ductEdges.push([p.a, p.b]);
-    for (const k of access) ducts.add(k);
   }
 
-  return { decks, nodes, passages: b.passages, start: start.key, sequence, wins, ducts, ductEdges, access, maxDist };
+  return { decks, nodes, passages: b.passages, start: start.key, sequence, wins, access, maxDist };
 }
 
 /** A middle-band room gets doors to both corridor lines it touches (a second route without ducts). */

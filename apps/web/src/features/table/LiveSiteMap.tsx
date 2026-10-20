@@ -4,10 +4,16 @@
  * border; mark zone flags from the legend (e.g. burning); place and move
  * tokens; drop tracker pings (cleared when the clock passes a stretch); and
  * read the range between two zones. Distances follow every change.
+ * Duct sheets are decks of their own: following an access square, exit or
+ * shaft badge opens the sheet at the other end, and a token or selected zone
+ * in a duct offers the module's duct event tables, rolled and logged for the
+ * GM only.
  */
 import {
   addPing,
   clearPings,
+  ductEventsFor,
+  zoneLayer,
   liveOf,
   moveToken,
   placeToken,
@@ -26,7 +32,9 @@ import {
 } from "@campaign-forge/core";
 import type { MapGeneratorDef, MapLegendEntry, MapZoneData } from "@campaign-forge/module-sdk";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Badge, Button, Card, MapLegend, SiteMapView } from "../../components/ui";
+import { Badge, Button, Card, MapLegend, PageRef, SiteMapView, pushToast } from "../../components/ui";
+import { errorMessage } from "../../lib/format";
+import { rollZoneTable } from "../../state/tableActions";
 import { useCampaign } from "../../state/hooks";
 import { maxActOf, useMapGenerator, useMapPalette } from "../maps/siteMapFiles";
 import "../maps/sitemap.css";
@@ -151,12 +159,15 @@ export function LiveSiteMap({ sessionId, map, scene, participants }: { sessionId
         selected={marks}
         path={tool === "measure" ? reading?.path : undefined}
         onSelectZone={(z) => onZone(z)}
+        onFollowLink={(z) => setSelected(z)}
+        passable={def?.passable}
         palette={palette}
         title={map.name}
         className="app-livemap__map"
       />
 
       <RangePanel layout={layout} label={label} range={range} setRange={setRange} reading={reading} />
+      <DuctEvents sessionId={sessionId} map={map} zones={[...(selected ? [selected] : []), ...live.tokens.map((t) => t.zone)]} label={label} />
 
       {zone && (
         <ZonePanel
@@ -185,6 +196,80 @@ export function LiveSiteMap({ sessionId, map, scene, participants }: { sessionId
         </Button>
       </div>
     </Card>
+  );
+}
+
+/**
+ * The module's zone tables for the selected zone and every zone with a token
+ * in it (a duct event when a crawler is in a duct): roll with the session's
+ * seeded rng, logged GM-only, the result shown here. Never on the player screen.
+ */
+function DuctEvents({ sessionId, map, zones, label }: { sessionId: Id; map: SiteMap; zones: string[]; label: (id: string) => string }) {
+  const ctx = useCampaign();
+  const [last, setLast] = useState<{ zone: string; label: string; text: string; seed: string } | undefined>();
+  const zoneKey = [...new Set(zones)].join("|");
+  const rows = useMemo(
+    () =>
+      zoneKey
+        .split("|")
+        .filter(Boolean)
+        .map((zone) => ({ zone, tables: ductEventsFor(map, ctx.module.module, zone) }))
+        .filter((r) => r.tables.length > 0),
+    [zoneKey, map, ctx.module],
+  );
+  if (rows.length === 0) return null;
+  const layout = map.layout!;
+  const anyDuct = rows.some((r) => {
+    const z = layout.zones.find((x) => x.id === r.zone);
+    return z && zoneLayer(layout, z) === "duct";
+  });
+  const title = anyDuct ? "Duct event" : "Zone event";
+  return (
+    <section className="app-livemap__ductevents" aria-label={title} data-testid="duct-events">
+      <header className="app-row">
+        <strong className="app-grow">{title}</strong>
+        <Badge title="Rolled and logged for the GM; never shown on the player screen.">GM only</Badge>
+      </header>
+      <ul className="app-list">
+        {rows.flatMap((r) =>
+          r.tables.map((t, i) => (
+            <li key={`${r.zone}:${t.table}:${i}`} className="app-list__row" data-duct-event={r.zone}>
+              <span className="app-grow">
+                {label(r.zone)}
+                {t.hint && <span className="cf-muted"> · {t.hint}</span>}
+                {t.page !== undefined && (
+                  <>
+                    {" "}
+                    <PageRef page={t.page} />
+                  </>
+                )}
+              </span>
+              <Button
+                size="sm"
+                variant="primary"
+                aria-label={`${t.label}: roll for ${label(r.zone)}`}
+                data-testid="duct-event-roll"
+                onClick={() => {
+                  try {
+                    const out = rollZoneTable(ctx, sessionId, { zoneTable: t, map: map.id, zone: r.zone, zoneLabel: label(r.zone) });
+                    setLast({ zone: r.zone, label: t.label, text: out.text, seed: out.seed });
+                  } catch (e) {
+                    pushToast(`Roll failed: ${errorMessage(e)}`, { tone: "danger" });
+                  }
+                }}
+              >
+                {t.label}
+              </Button>
+            </li>
+          )),
+        )}
+      </ul>
+      {last && (
+        <output className="app-livemap__ductresult" data-testid="duct-event-result" aria-live="polite">
+          <strong>{last.label}</strong> ({label(last.zone)}): {last.text} <span className="cf-muted">· seed {last.seed}</span>
+        </output>
+      )}
+    </section>
   );
 }
 

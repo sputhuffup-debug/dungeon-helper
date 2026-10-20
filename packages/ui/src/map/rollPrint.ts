@@ -12,7 +12,7 @@
  * Callers pass the layout for the view: the player projection
  * (core's `playerLayout(..., { print: true })`) for player prints.
  */
-import { zoneNumbers } from "@campaign-forge/core";
+import { exitLabel, exitToOf, isDuctSheet, zoneNumbers } from "@campaign-forge/core";
 import type { SiteLayout } from "@campaign-forge/module-sdk";
 import { svgPagesToPdf, type PdfPage } from "./sitePdf";
 import { LIGHT_PALETTE, drawSiteMap, el, type SiteMapDrawOptions, type SiteMapPalette, type SiteMapViewKind, type SvgNode } from "./siteMapDraw";
@@ -27,8 +27,21 @@ export type RollWidth = (typeof ROLL_WIDTHS)[number];
 /** Margin around the deck in a print, in grid units: room for the outer hull's wall stroke. */
 export const PRINT_MAP_MARGIN = 0.3;
 
-/** The palette for prints: the light palette on white paper. */
-export const PRINT_PALETTE: SiteMapPalette = { ...LIGHT_PALETTE, background: "#ffffff" };
+/**
+ * The palette for prints: the light palette on white paper. Duct sheets keep
+ * their blue-grey grid and tubes, a paler sheet than on screen so a roll is
+ * not a slab of ink.
+ */
+export const PRINT_PALETTE: SiteMapPalette = {
+  ...LIGHT_PALETTE,
+  background: "#ffffff",
+  ductSheet: "#dfe6ec",
+  ductGrid: "#c4d0da",
+  tube: "#9fb3c2",
+  tubeEdge: "#2b3a45",
+  tubeLine: "#eef3f6",
+  ductInk: "#f4f7f9",
+};
 
 export interface RollPrintOptions extends Omit<SiteMapDrawOptions, "interactive" | "margin" | "palette" | "grid"> {
   rollWidthIn: RollWidth | number;
@@ -105,6 +118,7 @@ function drawOptions(o: RollPrintOptions): SiteMapDrawOptions {
     fogged: o.fogged,
     selected: o.selected,
     path: o.path,
+    passable: o.passable,
     idPrefix: o.idPrefix ?? "roll",
     margin: PRINT_MAP_MARGIN,
     palette: PRINT_PALETTE,
@@ -112,11 +126,24 @@ function drawOptions(o: RollPrintOptions): SiteMapDrawOptions {
   };
 }
 
-/** Zone-number key entries for one deck (named floor zones), for GM title blocks. */
+/**
+ * Zone-number key entries for one deck, for GM title blocks: the named floor
+ * zones; on a duct sheet, its zones by id with their names and the rooms
+ * their exits open into.
+ */
 export function zoneKeyEntries(layout: SiteLayout, deck: string | undefined): NonNullable<TitleBlockInput["zoneKey"]> {
   const d = deckOf(layout, deck);
   const numbers = zoneNumbers(layout);
   const out: NonNullable<TitleBlockInput["zoneKey"]> = [];
+  if (isDuctSheet(d)) {
+    for (const z of layout.zones) {
+      const n = numbers.get(z.id);
+      const exit = exitToOf(z);
+      if (n === undefined || z.deck !== d!.id || (!z.name && !exit)) continue;
+      out.push({ number: n, name: [z.id, z.name, exit ? exitLabel(exit) : undefined].filter(Boolean).join(" · "), key: !!z.key });
+    }
+    return out.sort((a, b) => a.number - b.number);
+  }
   for (const z of layout.zones) {
     const n = numbers.get(z.id);
     if (n === undefined || z.layer === "duct" || !z.name || (d && z.deck !== d.id)) continue;
@@ -125,11 +152,20 @@ export function zoneKeyEntries(layout: SiteLayout, deck: string | undefined): No
   return out.sort((a, b) => a.number - b.number);
 }
 
+/** The deck line of a title block; a duct sheet says so, and which deck it serves. */
+export function sheetTitle(layout: SiteLayout, deck: string | undefined): string | undefined {
+  const d = deckOf(layout, deck);
+  if (!d) return undefined;
+  if (!isDuctSheet(d)) return d.name;
+  const serves = d.serves ? layout.decks.find((x) => x.id === d.serves)?.name : undefined;
+  return `${d.name} (duct sheet${serves ? ` for ${serves}` : ""})`;
+}
+
 function titleInput(layout: SiteLayout, o: RollPrintOptions, callouts: ReturnType<typeof drawSiteMap>["callouts"], strip?: { index: number; count: number }, rotated = false): TitleBlockInput {
   const mm = o.mmPerMetre ?? DEFAULT_MM_PER_METRE;
   return {
     title: o.title ?? "Site map",
-    deck: deckOf(layout, o.deck)?.name,
+    deck: sheetTitle(layout, o.deck),
     view: o.view,
     scale: scaleText(mm),
     strip,

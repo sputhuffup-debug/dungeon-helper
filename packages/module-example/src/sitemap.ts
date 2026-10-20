@@ -1,10 +1,13 @@
 /**
- * A tiny deterministic site map generator for the fixture module: one deck,
- * six rooms on a two-zone corridor, a sealed-off wing, one duct with two
- * access points, a door locked in one act, a spawn and a clue. Core, ui and
- * web tests use it so they never need a real game's generator.
+ * A tiny deterministic site map generator for the fixture module: one floor
+ * deck with six rooms on a two-zone corridor, a sealed-off wing, a door
+ * locked in one act, a spawn and a clue; and two duct sheets. The crawlways
+ * (five zones: two vent chambers labelled with the rooms they open into, two
+ * runs, a junction, a fan hazard) drop through a one-way shaft to a tiny
+ * undercroft crawl that comes out in the start room. Core, ui and web tests
+ * use it so they never need a real game's generator.
  */
-import type { MapBorderData, MapCheck, MapGeneratorDef, MapMarker, MapPoint, MapZoneData, Rng, SiteLayout } from "@campaign-forge/module-sdk";
+import type { MapBorderData, MapCheck, MapGeneratorDef, MapMarker, MapMove, MapPoint, MapZoneData, Rng, SiteLayout } from "@campaign-forge/module-sdk";
 
 const ROOM_NAMES = ["Hall", "Larder", "Chapel", "Armory", "Library", "Barracks", "Cellar", "Forge", "Study", "Vault"];
 
@@ -28,9 +31,11 @@ function shuffle<T>(rng: Rng, items: readonly T[]): T[] {
   return out;
 }
 
-function exampleMovable(b: MapBorderData, act: number): boolean {
+/** Walls and sealed borders block; a one-way shaft is a drop: down only. */
+function exampleMovable(b: MapBorderData, act: number, move?: MapMove): boolean {
   if (b.kind === "wall") return false;
   if (b.sealed) return false;
+  if (b.kind === "shaft" && b.flags?.oneWay === true && move && move.vertical !== "down") return false;
   return !(b.lockedInActs ?? []).includes(act);
 }
 
@@ -54,7 +59,7 @@ function reach(layout: SiteLayout, from: string, act: number): Set<string> {
 export const exampleSiteGenerator: MapGeneratorDef = {
   id: "example.mapgen.keep",
   name: "Small keep",
-  description: "A one-floor keep: six rooms on a corridor, a crawlway and a walled-off wing.",
+  description: "A one-floor keep: six rooms on a corridor, a walled-off wing, and crawlways on their own sheets with a drop to an undercroft.",
   page: 70,
   inputs: {
     type: "object",
@@ -102,11 +107,28 @@ export const exampleSiteGenerator: MapGeneratorDef = {
     zones.push(
       { id: "C1", deck: "main", name: "West passage", kind: "corridor", layer: "floor", poly: rect([2, 8, 15, 12]), area: "hall", cluttered: false, flags: { dark: false } },
       { id: "C2", deck: "main", name: "East passage", kind: "corridor", layer: "floor", poly: rect([15, 8, 28, 12]), area: "hall", cluttered: false, flags: { dark: true } },
-      { id: "D1", deck: "main", name: "Crawlway", kind: "crawlspace", layer: "duct", poly: rect([11, 3, 13, 17]), cluttered: false },
       { id: "X1", deck: "main", name: "Fallen wing", kind: "out-of-bounds", layer: "floor", poly: rect([22, 2, 28, 8]), cluttered: false },
+    );
+    // the crawlways sheet: vent chamber, run, junction, run (a fan), vent chamber
+    const room = (id: string) => ({ zone: id, name: zones.find((z) => z.id === id)!.name! });
+    zones.push(
+      { id: "D01", deck: "crawl", name: "West vent", kind: "crawlspace", layer: "duct", poly: rect([1, 1, 4, 4]), cluttered: false, flags: { exitTo: room("R2") } },
+      { id: "D02", deck: "crawl", kind: "crawlspace", layer: "duct", poly: rect([4, 2, 9, 3]), cluttered: dress.int(0, 1) === 1 },
+      { id: "D03", deck: "crawl", name: "Junction", kind: "crawlspace", layer: "duct", poly: rect([9, 1, 11, 4]), cluttered: false },
+      { id: "D04", deck: "crawl", kind: "crawlspace", layer: "duct", poly: rect([11, 2, 14, 3]), cluttered: false, flags: { fan: true } },
+      { id: "D05", deck: "crawl", name: "East vent", kind: "crawlspace", layer: "duct", poly: rect([14, 1, 17, 4]), cluttered: false, flags: { exitTo: room("R5") } },
+      // the undercroft: where the drop lands, and a run out to the start room
+      { id: "U01", deck: "under", name: "Landing", kind: "shaft", layer: "duct", poly: rect([1, 1, 4, 4]), cluttered: true, details: ["Bones"] },
+      { id: "U02", deck: "under", kind: "crawlspace", layer: "duct", poly: rect([4, 2, 9, 3]), cluttered: false, flags: { exitTo: room("R4") } },
     );
     // key rooms: start (R4), the clue room and the way out (R6)
     const byId = new Map(zones.map((z) => [z.id, z]));
+    for (const [floor, duct] of [
+      ["R2", "D01"],
+      ["R5", "D05"],
+      ["R4", "U02"],
+    ] as const)
+      byId.get(floor)!.flags = { ...byId.get(floor)!.flags, ductTo: { zone: duct } };
     const clueRoom = enc.int(0, 1) ? "R3" : "R1";
     for (const id of ["R4", clueRoom, "R6"]) byId.get(id)!.key = true;
     byId.get("R4")!.acts = [1];
@@ -132,22 +154,41 @@ export const exampleSiteGenerator: MapGeneratorDef = {
       { id: "B12", a: "R4", b: "R5", kind: "wall", segment: [[10, 12], [10, 18]], armor: 2 },
       { id: "B13", a: "R5", b: "R6", kind: "door", segment: [[20, 12], [20, 18]], armor: 1 },
       { id: "B14", a: "R3", b: "X1", kind: "wall", segment: [[22, 2], [22, 8]], armor: 3, flags: { outerHull: true } },
-      { id: "B15", a: "R2", b: "D1", kind: "access" },
-      { id: "B16", a: "R5", b: "D1", kind: "access", hidden: true },
+      { id: "B15", a: "R2", b: "D01", kind: "access" },
+      { id: "B16", a: "R5", b: "D05", kind: "access", hidden: true },
+      { id: "B17", a: "D01", b: "D02", kind: "open" },
+      { id: "B18", a: "D02", b: "D03", kind: "open" },
+      { id: "B19", a: "D03", b: "D04", kind: "open" },
+      { id: "B20", a: "D04", b: "D05", kind: "hatch" },
+      { id: "B21", a: "D03", b: "U01", kind: "shaft", flags: { dropM: 3, oneWay: true } },
+      { id: "B22", a: "U01", b: "U02", kind: "open" },
+      { id: "B23", a: "U02", b: "R4", kind: "access" },
     ];
 
     const markers: MapMarker[] = [
       { id: "M1", kind: "start", zone: "R4", label: "Start", gmOnly: false },
-      { id: "M2", kind: "spawn", zone: "D1", label: "Ghoul (act 2)", act: 2, gmOnly: true, data: { creature: "ghoul" } },
+      { id: "M2", kind: "spawn", zone: "D03", label: "Ghoul (act 2)", act: 2, gmOnly: true, data: { creature: "ghoul" } },
       { id: "M3", kind: "clue", zone: clueRoom, label: "Bell rope", act: 2, gmOnly: true },
       { id: "M4", kind: "win", zone: "R6", label: "Gate", gmOnly: true },
       { id: "M5", kind: "npc", zone: "R5", label: "Old warden", act: 1, gmOnly: true },
     ];
 
-    const layout: SiteLayout = { decks: [{ id: "main", name: "Ground floor", width: 30, height: 20 }], zones, borders, markers, start: "R4", gridM: 1, checks: [] };
+    const layout: SiteLayout = {
+      decks: [
+        { id: "main", name: "Ground floor", width: 30, height: 20, layer: "floor", level: 1 },
+        { id: "crawl", name: "Crawlways", width: 18, height: 8, layer: "duct", level: 1, serves: "main" },
+        { id: "under", name: "Undercroft crawl", width: 12, height: 6, layer: "duct", level: 0, serves: "main" },
+      ],
+      zones,
+      borders,
+      markers,
+      start: "R4",
+      gridM: 1,
+      checks: [],
+    };
     const act1 = reach(layout, "R4", 1);
     const act3 = reach(layout, "R4", 3);
-    const access = borders.filter((b) => b.kind === "access" && (b.a === "D1" || b.b === "D1")).length;
+    const access = borders.filter((b) => b.kind === "access" && [b.a, b.b].some((z) => byId.get(z)?.deck === "crawl")).length;
     const checks: MapCheck[] = [
       { id: "reach-key", level: "block", ok: zones.filter((z) => z.key).every((z) => act1.has(z.id) || z.id === "R6"), message: "Every key room but the gate is reachable in act 1", page: 70 },
       { id: "reach-win", level: "block", ok: act3.has("R6"), message: "The gate is reachable in act 3", page: 70 },
@@ -171,10 +212,12 @@ export const exampleSiteGenerator: MapGeneratorDef = {
     { target: { border: "hatch" }, label: "Trapdoor" },
     { target: { border: "blast" }, label: "Portcullis", rule: "Raised only from the gatehouse." },
     { target: { border: "access" }, label: "Crawl hole", rule: "Entering costs one move." },
+    { target: { border: "shaft" }, label: "Drop shaft", rule: "One way: down only.", page: 71 },
     { target: { flag: "dark" }, label: "Dark", rule: "Spotting is harder.", icon: "dark" },
     { target: { flag: "burning" }, label: "Burning", rule: "Fire spreads through open borders.", icon: "fire", color: "#e5563d" },
     { target: { flag: "flooded" }, label: "Flooded", icon: "water" },
     { target: { flag: "cursed" }, label: "Cursed", rule: "Haunted at night.", gmOnly: true, icon: "hazard" },
+    { target: { flag: "fan" }, label: "Fan", rule: "Crawling past it costs a turn.", gmOnly: true, icon: "fan", page: 71 },
     { target: { area: "quarters" }, label: "Quarters", color: "#7fa3c7" },
     { target: { area: "store" }, label: "Stores", color: "#c7a46f" },
     { target: { area: "shrine" }, label: "Shrine", color: "#a68bc7" },
@@ -187,4 +230,5 @@ export const exampleSiteGenerator: MapGeneratorDef = {
     { target: { marker: "npc" }, label: "NPC", gmOnly: true },
     { target: { marker: "win" }, label: "Way out", gmOnly: true },
   ],
+  zoneTables: [{ table: "example.table.crawl", label: "Crawl event", when: { layer: "duct" }, hint: "Roll when a token enters a crawlway zone.", page: 72 }],
 };

@@ -30,8 +30,26 @@ export const SIZE_ZONES: Record<MapSizeId, [number, number]> = { small: [12, 20]
 
 export const DUCT_DENSITIES = ["none", "sparse", "normal", "dense"] as const;
 export type DuctDensity = (typeof DUCT_DENSITIES)[number];
-/** Share of rooms that get a duct access point (module decision). */
+/** Share of rooms that get a duct access point (module decision). Each duct sheet keeps two or more room exits. */
 export const DUCT_SHARE: Record<DuctDensity, number> = { none: 0, sparse: 0.2, normal: 0.35, dense: 0.6 };
+
+/**
+ * Chance per duct sheet of each generated hazard (module decision): a vent fan,
+ * hot pipes, a flooded stretch (only when the brief allows flooding; +0.3 on a
+ * crawlspace under a deck), a collapsed section and a one-way drop (on sheets
+ * with a shaft).
+ */
+export const DUCT_HAZARD_ODDS: Record<SiteTypeId, { fan: number; steam: number; flooded: number; collapse: number; drop: number }> = {
+  station_deck: { fan: 0.6, steam: 0.5, flooded: 0.15, collapse: 0.25, drop: 0.5 },
+  starship: { fan: 0.6, steam: 0.6, flooded: 0.1, collapse: 0.2, drop: 0.5 },
+  derelict: { fan: 0.4, steam: 0.4, flooded: 0.2, collapse: 0.6, drop: 0.6 },
+  colony_block: { fan: 0.6, steam: 0.4, flooded: 0.25, collapse: 0.3, drop: 0.4 },
+  research_lab: { fan: 0.6, steam: 0.5, flooded: 0.2, collapse: 0.25, drop: 0.4 },
+  mine: { fan: 0.8, steam: 0.3, flooded: 0.5, collapse: 0.6, drop: 0.6 },
+  alien_ruin: { fan: 0, steam: 0.3, flooded: 0.4, collapse: 0.6, drop: 0.7 },
+};
+/** Height of a duct shaft between levels in metres (a deck's height, as for ladders; module decision). */
+export const DUCT_SHAFT_M = 4;
 
 export const HAZARDS = ["fire", "vacuum", "zero_g", "radiation", "flooding"] as const;
 export type HazardId = (typeof HAZARDS)[number];
@@ -445,10 +463,32 @@ export const MAP_LEGEND: MapLegendEntry[] = [
   L({ flag: "locked" }, "Locked door", "Lock as a quick action; break it (close combat, +2 dice) or open an electronic lock with Comtech.", 61, { gmOnly: true }),
   L({ border: "hatch" }, "Hatch", "Works like a door; often in floors or ceilings.", 61),
   L({ border: "blast" }, "Blast door", "Armored (4+); normally worked by the station's systems, not by force.", 68),
-  L({ kind: "crawlspace" }, "Duct or crawlspace", "Open zone, single file: nobody passes anyone, and others block line of sight.", [55, 56]),
-  L({ border: "access" }, "Access point", "Entering costs one zone of movement. A cutting torch can seal it (Heavy Machinery, full action).", 56),
-  L({ flag: "sealed" }, "Sealed access point", "Impassable, even to a Xenomorph; acid can burn a new opening through a duct floor.", 56),
+  L(
+    { kind: "crawlspace" },
+    "Duct or crawlspace",
+    "Open zone: no hiding and no cover. Each duct network is its own sheet, a maze not drawn to the deck's scale, so an exit's place on the sheet says nothing about where its room lies; read the exit label.",
+    [55, 56],
+  ),
+  L({ flag: "singleFile" }, "Single file", "Nobody passes anyone else in here, friends included, and the person ahead blocks line of sight.", [55, 61]),
+  L({ border: "access" }, "Access point", "Entering costs one zone of movement. A cutting torch can seal it (Heavy Machinery, full action, one try per stretch).", 56),
+  L({ flag: "exitTo" }, "Duct exit", "Where this access point comes out: the room named, or a spot in a corridor. Unknown to the crew until found.", 56, { gmOnly: true, icon: "exit" }),
+  L({ flag: "ductTo" }, "Duct access", "An access point here leads into the duct zone named, on its own sheet.", 56, { gmOnly: true }),
+  L({ flag: "sealed" }, "Sealed access point", "Impassable, even to a Xenomorph. Acid still burns through a duct floor in one stretch where there is gravity; over a room, that makes a new access point (the GM picks the room).", 56),
   L({ border: "stairs" }, "Stairs, ladder or lift", "Links decks; counts as a border between two zones.", 55),
+  L(
+    { border: "shaft" },
+    "Duct shaft",
+    "A vertical link between duct levels, one zone of movement. A hurried climb is a Mobility roll (full action, p. 60); a fall in gravity deals half the height in metres, rounded down (p. 75).",
+    [60, 75],
+    { gmOnly: true },
+  ),
+  L(
+    { flag: "oneWayDrop" },
+    "One-way drop",
+    "Module decision: too sheer to climb back, so it is passable downward only. Going down is a fall (p. 75) unless taken as a controlled jump: roll Mobility, each success takes 1 off the damage; body armor does not help.",
+    75,
+    { gmOnly: true, icon: "drop" },
+  ),
   // Zone fills
   L({ area: "ops" }, AREA_LABELS.ops, "Floor tint by function.", undefined, { color: AREA_COLORS.ops }),
   L({ area: "medical" }, AREA_LABELS.medical, "Floor tint by function.", undefined, { color: AREA_COLORS.medical }),
@@ -461,12 +501,33 @@ export const MAP_LEGEND: MapLegendEntry[] = [
   L({ area: "alien" }, AREA_LABELS.alien, "Floor tint by function.", undefined, { color: AREA_COLORS.alien }),
   L({ flag: "cluttered" }, "Cluttered", "Somewhere to hide or take cover.", [54, 66]),
   L({ flag: "open" }, "Open", "No hiding and no cover, except by a door or hatch.", [54, 66]),
-  L({ flag: "dark" }, "Dark", "Humans and androids roll Observation at -2 dice; a flashlight cancels it; Xenomorphs ignore it.", 57, { gmOnly: true, icon: "dark" }),
+  L({ flag: "dark" }, "Dark", "Humans and androids roll Observation at -2 dice; a flashlight cancels it; Xenomorphs ignore it. Ducts are dark unless something lights them.", 57, { gmOnly: true, icon: "dark" }),
   L({ flag: "flammable" }, "Flammable", "A fire here can spread through an open border on a D6 roll of 5-6 each round.", 76, { gmOnly: true, icon: "fire" }),
   L({ flag: "atmosphere", value: "none" }, "No atmosphere", "Vacuum: +1 stress each round and a Survival roll before acting.", 75, { gmOnly: true, icon: "vacuum" }),
   L({ flag: "gravity", value: false }, "Zero gravity", "-2 dice to Close Combat, Heavy Machinery, Mobility and Ranged Combat; each move needs Mobility.", 76, { gmOnly: true, icon: "float" }),
   L({ flag: "radiation" }, "Radiation", "Rads per shift (weak), stretch (strong) or round (extreme).", 77, { gmOnly: true, icon: "radiation" }),
-  L({ flag: "flooded" }, "Flooded", "Under water: a Survival roll every round against suffocation.", 75, { gmOnly: true, icon: "water" }),
+  L({ flag: "flooded" }, "Flooded", "Under water: a Survival roll every round against suffocation. A flooded duct stretch is under water from end to end (module decision).", 75, { gmOnly: true, icon: "water" }),
+  L(
+    { flag: "fan" },
+    "Vent fan",
+    "Module decision: a running fan blocks the duct. Stop it at its panel with Comtech, or jam it with Heavy Machinery; either is a full action (p. 60).",
+    60,
+    { gmOnly: true, icon: "fan" },
+  ),
+  L(
+    { flag: "steam" },
+    "Hot pipes",
+    "Extreme heat (p. 75): a Survival roll to get through; on a failure you are fatigued until you are clear of it. One roll per crossing is a module decision.",
+    75,
+    { gmOnly: true, icon: "steam" },
+  ),
+  L(
+    { flag: "collapsed" },
+    "Collapsed section",
+    "Debris walls off the duct here until cleared. Module decision: treat it as an inner bulkhead (armor 2, p. 68) that gives way after 10 damage, like a door (p. 61).",
+    [61, 68],
+    { gmOnly: true, icon: "collapse" },
+  ),
   L({ flag: "dropM" }, "Drop", "A fall deals damage equal to half the height in metres, rounded down.", 75, { gmOnly: true, icon: "hazard" }),
   L({ kind: "out-of-bounds" }, "Out of bounds", "Shown for scale; closed to play.", undefined),
   L({ kind: "shaft" }, "Shaft", "A vertical zone; falling rules apply.", 75),

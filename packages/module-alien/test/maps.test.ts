@@ -70,7 +70,7 @@ describe("site map generator: registration and data", () => {
 
   it("has a legend entry for every border kind, marker kind and area, with GM-only spoilers", () => {
     const borders = MAP_LEGEND.filter((e) => "border" in e.target).map((e) => (e.target as { border: string }).border);
-    for (const k of ["open", "wall", "door", "hatch", "blast", "access", "stairs"]) expect(borders, k).toContain(k);
+    for (const k of ["open", "wall", "door", "hatch", "blast", "access", "stairs", "shaft"]) expect(borders, k).toContain(k);
     const markers = MAP_LEGEND.filter((e) => "marker" in e.target);
     for (const k of ["start", "spawn", "waypoint", "clue", "npc", "win", "hazard"]) expect(markers.some((e) => (e.target as { marker: string }).marker === k), k).toBe(true);
     for (const e of markers) if ((e.target as { marker: string }).marker !== "start") expect(e.gmOnly, JSON.stringify(e.target)).toBe(true);
@@ -205,7 +205,7 @@ function assertInvariants(layout: SiteLayout, inputs: ReturnType<typeof normaliz
 
   // Ids and polygons on the 1 m grid; zones up to 25 m across.
   for (const z of layout.zones) {
-    expect(z.id, where).toMatch(z.layer === "duct" ? /^Z\d{2,}d$/ : /^Z\d{2,}$/);
+    expect(z.id, where).toMatch(z.layer === "duct" ? /^(Z\d{2,}d|D\d{2,})$/ : /^Z\d{2,}$/);
     for (const p of z.poly) expect(Number.isInteger(p[0]) && Number.isInteger(p[1]), `${where} ${z.id}`).toBe(true);
     const b = bounds(z.poly);
     if (z.kind !== "out-of-bounds") expect(Math.max(b.w, b.h), `${where} ${z.id} size`).toBeLessThanOrEqual(25);
@@ -215,11 +215,16 @@ function assertInvariants(layout: SiteLayout, inputs: ReturnType<typeof normaliz
     }
   }
 
-  // Duct zones: crawlspaces, always open, joined to the floor by access borders.
+  // Duct zones: crawlspaces on duct sheets, always open and single file; exits (Z07d) lead to their floor zone (Z07).
+  const ductDecks = new Set(layout.decks.filter((d) => d.layer === "duct").map((d) => d.id));
   for (const z of layout.zones.filter((x) => x.layer === "duct")) {
     expect(z.kind).toBe("crawlspace");
     expect(z.cluttered, `${where} ${z.id}`).toBe(false);
-    expect(byId.has(z.id.slice(0, -1)), `${where} ${z.id} floor`).toBe(true);
+    expect(z.flags?.singleFile, `${where} ${z.id}`).toBe(true);
+    expect(ductDecks.has(z.deck), `${where} ${z.id} sheet`).toBe(true);
+    const exit = z.flags?.exitTo as { zone: string } | undefined;
+    if (z.id.startsWith("Z")) expect(exit?.zone, `${where} ${z.id} exit`).toBe(z.id.slice(0, -1));
+    else expect(exit, `${where} ${z.id}`).toBeUndefined();
   }
   for (const b of layout.borders.filter((x) => x.kind === "access")) {
     expect(b.b, where).toBe(`${b.a}d`);
@@ -362,7 +367,8 @@ describe("site map generator: distances", () => {
     const n = zoneAdjacency(r.layout, 1).get(r.layout.start!)!;
     for (const z of n) expect(table[r.layout.start!]![z]).toBe(1);
     const floorOnly = distancesFrom(r.layout, r.layout.start!, 1, { floorOnly: true });
-    expect(Object.keys(floorOnly).some((z) => z.endsWith("d"))).toBe(false);
+    const layerOf = new Map(r.layout.zones.map((z) => [z.id, z.layer]));
+    expect(Object.keys(floorOnly).some((z) => layerOf.get(z) === "duct")).toBe(false);
   });
 });
 

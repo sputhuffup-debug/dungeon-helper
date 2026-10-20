@@ -8,15 +8,22 @@
  * inline presentation attributes, so a serialised map needs no stylesheet.
  */
 import {
+  ductToOf,
   effectiveBorder,
+  exitLabel,
+  exitToOf,
+  isDuctSheet,
   isFlagTarget,
+  isOneWay,
   lockedInAct,
   matchingFlagEntries,
+  shaftLabel,
+  shaftLinks,
   zoneNumbers,
   type LiveBorderOverride,
 } from "@campaign-forge/core";
-import type { MapBorderData, MapLegendEntry, MapMarker, MapPoint, MapZoneData, SiteLayout } from "@campaign-forge/module-sdk";
-import { LabelPlacer, boxAround, boxInPolygon, boxInside, insetBox, scanPositions, type LabelBox, type PlacedLabel } from "./labelPlacement";
+import type { MapBorderData, MapGeneratorDef, MapLegendEntry, MapMarker, MapPoint, MapZoneData, SiteLayout } from "@campaign-forge/module-sdk";
+import { LabelPlacer, boxAround, boxInPolygon, boxInside, boxesOverlap, insetBox, scanPositions, type LabelBox, type PlacedLabel } from "./labelPlacement";
 import { MAP_FONT, ellipsize, textWidth, wrapText } from "./textMetrics";
 
 // ---------------------------------------------------------------------------
@@ -92,6 +99,17 @@ export interface SiteMapPalette {
   fire: string;
   water: string;
   hazard: string;
+  /** Duct sheets: background, grid, tube fill, tube edge, tube highlight, ink on the sheet. */
+  ductSheet: string;
+  ductGrid: string;
+  tube: string;
+  tubeEdge: string;
+  tubeLine: string;
+  ductInk: string;
+  /** Exit and shaft badges on duct sheets. */
+  badge: string;
+  badgeInk: string;
+  badgeEdge: string;
 }
 
 export const LIGHT_PALETTE: SiteMapPalette = {
@@ -125,6 +143,15 @@ export const LIGHT_PALETTE: SiteMapPalette = {
   fire: "#e5563d",
   water: "#2f7fb8",
   hazard: "#d49a1a",
+  ductSheet: "#24323d",
+  ductGrid: "#32444f",
+  tube: "#6d8597",
+  tubeEdge: "#101a21",
+  tubeLine: "#a9bfcd",
+  ductInk: "#e8eff4",
+  badge: "#f4f1ea",
+  badgeInk: "#1d2329",
+  badgeEdge: "#101a21",
 };
 
 export const DARK_PALETTE: SiteMapPalette = {
@@ -158,6 +185,15 @@ export const DARK_PALETTE: SiteMapPalette = {
   fire: "#ff6b4f",
   water: "#5fb3e0",
   hazard: "#f0b43a",
+  ductSheet: "#1a252d",
+  ductGrid: "#26353f",
+  tube: "#5a7182",
+  tubeEdge: "#070c10",
+  tubeLine: "#9fb6c5",
+  ductInk: "#e6edf1",
+  badge: "#e6edf1",
+  badgeInk: "#0f1418",
+  badgeEdge: "#070c10",
 };
 
 /** Area tints when the legend gives no colour: a fixed palette picked by the area tag. */
@@ -226,13 +262,21 @@ function overlapCenter(a: Box, b: Box): [number, number] | undefined {
 // icons and glyphs (centred on x, y; about one unit across)
 // ---------------------------------------------------------------------------
 
-export type FlagIcon = "fire" | "vacuum" | "float" | "dark" | "radiation" | "water" | "hazard";
+export type FlagIcon = "fire" | "vacuum" | "float" | "dark" | "radiation" | "water" | "fan" | "steam" | "drop" | "collapse" | "exit" | "hazard";
 
-/** The icon for a flag legend entry: its `icon`, else a guess from the flag name, else the generic hazard glyph. */
+export const FLAG_ICONS: readonly FlagIcon[] = ["fire", "vacuum", "float", "dark", "radiation", "water", "fan", "steam", "drop", "collapse", "exit", "hazard"];
+
+/** Zone flags that label links between a floor deck and a duct sheet (drawn as badges, not icons). */
+const LINK_FLAGS = new Set(["exitTo", "ductTo"]);
+
+/** The icon for a flag legend entry: its `icon`, else a guess from the flag name, else the generic hazard glyph (also for unknown icon names). */
 export function flagIcon(entry: MapLegendEntry): FlagIcon {
-  const known: FlagIcon[] = ["fire", "vacuum", "float", "dark", "radiation", "water", "hazard"];
-  if (entry.icon && (known as string[]).includes(entry.icon)) return entry.icon as FlagIcon;
+  if (entry.icon) return (FLAG_ICONS as readonly string[]).includes(entry.icon) ? (entry.icon as FlagIcon) : "hazard";
   const name = isFlagTarget(entry.target) ? entry.target.flag.toLowerCase() : "";
+  if (/fan|blade|turbine/.test(name)) return "fan";
+  if (/steam|vent.?gas|scald/.test(name)) return "steam";
+  if (/collapse|cave|debris|rubble/.test(name)) return "collapse";
+  if (/^drop|fall|chute/.test(name)) return "drop";
   if (/fire|flam|burn/.test(name)) return "fire";
   if (/vacuum|atmos|air/.test(name)) return "vacuum";
   if (/grav/.test(name)) return "float";
@@ -303,6 +347,59 @@ export function iconNode(icon: FlagIcon, x: number, y: number, p: SiteMapPalette
         });
       return el("g", {}, [wave(y - k * 0.3), wave(y + k * 0.35)]);
     }
+    case "fan": {
+      const c = color ?? p.text;
+      const blades: SvgNode[] = [];
+      for (let i = 0; i < 3; i++) {
+        const a = (i * 2 * Math.PI) / 3 - Math.PI / 2;
+        const tx = x + Math.cos(a) * k * 0.8;
+        const ty = y + Math.sin(a) * k * 0.8;
+        const sx = x + Math.cos(a + 0.9) * k * 0.55;
+        const sy = y + Math.sin(a + 0.9) * k * 0.55;
+        blades.push(el("path", { d: `M ${fmt(x)} ${fmt(y)} Q ${fmt(sx)} ${fmt(sy)} ${fmt(tx)} ${fmt(ty)} Q ${fmt((x + tx) / 2)} ${fmt((y + ty) / 2)} ${fmt(x)} ${fmt(y)} Z`, fill: c }));
+      }
+      return el("g", { "data-icon": "fan" }, [
+        el("circle", { cx: x, cy: y, r: k * 0.95, fill: p.halo, stroke: c, "stroke-width": 0.08 * s }),
+        ...blades,
+        el("circle", { cx: x, cy: y, r: k * 0.14, fill: p.halo, stroke: c, "stroke-width": 0.05 * s }),
+      ]);
+    }
+    case "steam": {
+      const c = color ?? p.muted;
+      const wisp = (cx: number) =>
+        el("path", {
+          d: `M ${fmt(cx)} ${fmt(y + k * 0.85)} c ${fmt(-k * 0.3)} ${fmt(-k * 0.3)} ${fmt(k * 0.3)} ${fmt(-k * 0.55)} 0 ${fmt(-k * 0.85)} s ${fmt(k * 0.3)} ${fmt(-k * 0.55)} 0 ${fmt(-k * 0.85)}`,
+          fill: "none",
+          stroke: c,
+          "stroke-width": 0.1 * s,
+          "stroke-linecap": "round",
+        });
+      return el("g", { "data-icon": "steam" }, [el("circle", { cx: x, cy: y, r: k * 0.95, fill: p.halo, "fill-opacity": 0.85 }), wisp(x - k * 0.45), wisp(x), wisp(x + k * 0.45)]);
+    }
+    case "drop": {
+      const c = color ?? p.hazard;
+      return el("g", { "data-icon": "drop" }, [
+        el("path", { d: `M ${fmt(x - k * 0.9)} ${fmt(y - k * 0.75)} L ${fmt(x - k * 0.35)} ${fmt(y - k * 0.75)} M ${fmt(x + k * 0.35)} ${fmt(y - k * 0.75)} L ${fmt(x + k * 0.9)} ${fmt(y - k * 0.75)}`, stroke: p.text, "stroke-width": 0.12 * s, "stroke-linecap": "round" }),
+        el("path", { d: `M ${fmt(x)} ${fmt(y - k * 0.75)} L ${fmt(x)} ${fmt(y + k * 0.35)}`, stroke: c, "stroke-width": 0.16 * s, "stroke-linecap": "round" }),
+        el("path", { d: `M ${fmt(x - k * 0.45)} ${fmt(y + k * 0.2)} L ${fmt(x)} ${fmt(y + k * 0.9)} L ${fmt(x + k * 0.45)} ${fmt(y + k * 0.2)} Z`, fill: c, stroke: p.halo, "stroke-width": 0.04 * s }),
+      ]);
+    }
+    case "collapse": {
+      const c = color ?? p.hazard;
+      return el("g", { "data-icon": "collapse" }, [
+        el("path", { d: `M ${fmt(x - k * 0.9)} ${fmt(y + k * 0.8)} L ${fmt(x - k * 0.45)} ${fmt(y + k * 0.1)} L ${fmt(x)} ${fmt(y + k * 0.8)} Z`, fill: c, stroke: p.halo, "stroke-width": 0.04 * s }),
+        el("path", { d: `M ${fmt(x - k * 0.1)} ${fmt(y + k * 0.8)} L ${fmt(x + k * 0.4)} ${fmt(y - k * 0.05)} L ${fmt(x + k * 0.9)} ${fmt(y + k * 0.8)} Z`, fill: c, stroke: p.halo, "stroke-width": 0.04 * s }),
+        el("path", { d: `M ${fmt(x - k * 0.8)} ${fmt(y - k * 0.8)} L ${fmt(x - k * 0.2)} ${fmt(y - k * 0.45)} L ${fmt(x + k * 0.15)} ${fmt(y - k * 0.75)} L ${fmt(x + k * 0.8)} ${fmt(y - k * 0.4)}`, fill: "none", stroke: p.text, "stroke-width": 0.1 * s, "stroke-linejoin": "round", "stroke-linecap": "round" }),
+      ]);
+    }
+    case "exit": {
+      const c = color ?? p.start;
+      return el("g", { "data-icon": "exit" }, [
+        el("path", { d: `M ${fmt(x - k * 0.85)} ${fmt(y - k * 0.8)} H ${fmt(x + k * 0.2)} M ${fmt(x - k * 0.85)} ${fmt(y + k * 0.8)} H ${fmt(x + k * 0.2)} M ${fmt(x - k * 0.85)} ${fmt(y - k * 0.8)} V ${fmt(y + k * 0.8)}`, fill: "none", stroke: p.text, "stroke-width": 0.1 * s, "stroke-linecap": "round" }),
+        el("path", { d: `M ${fmt(x - k * 0.35)} ${fmt(y)} H ${fmt(x + k * 0.45)}`, stroke: c, "stroke-width": 0.14 * s, "stroke-linecap": "round" }),
+        el("path", { d: `M ${fmt(x + k * 0.95)} ${fmt(y)} L ${fmt(x + k * 0.35)} ${fmt(y - k * 0.45)} L ${fmt(x + k * 0.35)} ${fmt(y + k * 0.45)} Z`, fill: c }),
+      ]);
+    }
     case "hazard":
     default:
       return el("g", {}, [
@@ -360,8 +457,8 @@ function stairsGlyph(x: number, y: number, p: SiteMapPalette, s = 1): SvgNode {
   ]);
 }
 
-function accessGlyph(x: number, y: number, p: SiteMapPalette, sealed: boolean, hidden: boolean): SvgNode {
-  const h = 0.36;
+function accessGlyph(x: number, y: number, p: SiteMapPalette, sealed: boolean, hidden: boolean, scale = 1): SvgNode {
+  const h = 0.36 * scale;
   return el("g", {}, [
     el("rect", { x: x - h, y: y - h, width: 2 * h, height: 2 * h, fill: p.floor, stroke: p.duct, "stroke-width": 0.12, "stroke-dasharray": hidden ? "0.15 0.1" : undefined }),
     sealed && el("path", { d: `M ${fmt(x - h)} ${fmt(y - h)} L ${fmt(x + h)} ${fmt(y + h)} M ${fmt(x - h)} ${fmt(y + h)} L ${fmt(x + h)} ${fmt(y - h)}`, stroke: p.lock, "stroke-width": 0.14 }),
@@ -408,12 +505,15 @@ export interface SiteMapDrawOptions {
    * light grey, beneath walls and labels: for moving miniatures within a zone.
    */
   gridSquares?: boolean | undefined;
+  /** The module's passability rule: shafts it lets through one way only draw as a single down arrow. */
+  passable?: MapGeneratorDef["passable"] | undefined;
 }
 
 /** A marker whose text did not fit in its zone: the map shows its glyph with a letter, the key lists the text. */
 export interface SiteMapCallout {
   /** The letter drawn beside the glyph ("a", "b", ...). */
   ref: string;
+  /** The marker id; for a duct sheet's exit or shaft badge, `exit:<zone>` or `shaft:<border>`. */
   marker: string;
   zone: string;
   /** Zone number (GM and tracking views). */
@@ -482,13 +582,23 @@ export function drawSiteMap(layout: SiteLayout, opts: SiteMapDrawOptions): SiteM
   const zones = layout.zones.filter((z) => !deck || z.deck === deck.id);
   const onDeck = new Set(zones.map((z) => z.id));
   const byId = new Map(layout.zones.map((z) => [z.id, z]));
-  const floors = zones.filter((z) => z.layer !== "duct");
-  const ducts = zones.filter((z) => z.layer === "duct");
+  const decksById = new Map(layout.decks.map((d) => [d.id, d]));
+  // a duct sheet: its own level of crawlspace, every zone on it drawn as a duct
+  const sheet = isDuctSheet(deck);
+  const onSheet = (z: MapZoneData) => isDuctSheet(decksById.get(z.deck));
+  const floors = sheet ? [] : zones.filter((z) => z.layer !== "duct");
+  const ducts = sheet ? zones : zones.filter((z) => z.layer === "duct");
+  // borders drawn on a duct sheet use the sheet's colours
+  const sp: SiteMapPalette = sheet && !tracking ? { ...p, wall: p.tubeEdge, floor: p.tube, open: p.tubeLine } : p;
+  const withIds = gm || tracking;
+  const links: Array<{ box: LabelBox; deck: string; zone: string; label: string }> = [];
+  const deferredAccess: Array<{ b: MapBorderData; here: MapZoneData; there: MapZoneData; attrs: SvgAttrs; sealed: boolean }> = [];
   const flagEntries = legend.filter((e) => isFlagTarget(e.target) && (gm || tracking || !e.gmOnly));
   const hasDarkEntry = flagEntries.some((e) => flagIcon(e) === "dark");
 
   const flagsOf = (z: MapZoneData): Record<string, unknown> => ({ ...(z.flags ?? {}), ...(live.zoneFlags?.[z.id] ?? {}) });
-  const flagHits = (z: MapZoneData) => matchingFlagEntries(flagEntries, flagsOf(z));
+  // exit labels are drawn as badges and access tags, never as icons
+  const flagHits = (z: MapZoneData) => matchingFlagEntries(flagEntries, flagsOf(z)).filter((e) => !isFlagTarget(e.target) || !LINK_FLAGS.has(e.target.flag));
   const isDark = (z: MapZoneData) => {
     const f = flagsOf(z);
     if (hasDarkEntry) return flagHits(z).some((e) => flagIcon(e) === "dark");
@@ -506,11 +616,16 @@ export function drawSiteMap(layout: SiteLayout, opts: SiteMapDrawOptions): SiteM
       el("path", { d: "M 0 0.3 L 0.6 0.3", stroke: p.fogLine, "stroke-width": 0.08 }),
     ]),
     el("pattern", { id: id("act"), width: 0.7, height: 0.7, patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)" }, [el("path", { d: "M 0 0 L 0 0.7", stroke: p.act, "stroke-width": 0.12, "stroke-opacity": 0.5 })]),
+    sheet ? el("pattern", { id: id("dgrid"), width: 1, height: 1, patternUnits: "userSpaceOnUse" }, [el("path", { d: "M 1 0 L 0 0 0 1", fill: "none", stroke: p.ductGrid, "stroke-width": 0.05 })]) : null,
   ]);
 
   const layers: SvgNode[] = [];
-  layers.push(el("rect", { x: -margin, y: -margin, width, height, fill: tracking ? "#ffffff" : p.background }));
-  if (opts.grid && deck) layers.push(el("rect", { x: 0, y: 0, width: deck.width, height: deck.height, fill: `url(#${id("grid")})`, "data-layer": "grid" }));
+  layers.push(el("rect", { x: -margin, y: -margin, width, height, fill: tracking ? "#ffffff" : sheet ? p.ductSheet : p.background, "data-sheet": sheet ? "duct" : undefined }));
+  // a duct sheet always shows its grid: the sheet's own background
+  if (sheet && !tracking && deck) layers.push(el("rect", { x: -margin, y: -margin, width, height, fill: `url(#${id("dgrid")})`, "data-layer": "duct-grid" }));
+  else if (opts.grid && deck) layers.push(el("rect", { x: 0, y: 0, width: deck.width, height: deck.height, fill: `url(#${id("grid")})`, "data-layer": "grid" }));
+  // the players' duct sheet is fog wherever they have not crawled: the projection leaves those zones out
+  if (sheet && view === "player" && deck) layers.push(el("rect", { x: 0, y: 0, width: deck.width, height: deck.height, fill: `url(#${id("fog")})`, "fill-opacity": 0.85, "data-sheet-fog": deck.id }));
 
   // 1. floor zones: base, area tint, out-of-bounds hatch, dark overlay
   const fills: SvgNode[] = [];
@@ -539,6 +654,8 @@ export function drawSiteMap(layout: SiteLayout, opts: SiteMapDrawOptions): SiteM
   // Label placement: everything already drawn blocks later labels.
   const placer = new LabelPlacer(0.06);
   const deckBox: LabelBox = { x0: 0, y0: 0, x1: deck?.width ?? 0, y1: deck?.height ?? 0 };
+  /** Where labels may go in a zone: inside its outline, clear of the walls. */
+  const inZone = (z: MapZoneData, inset = 0.24) => (b: LabelBox) => boxInPolygon(b, z.poly, inset) && boxInside(b, deckBox);
 
   // 3. borders
   const borders: SvgNode[] = [];
@@ -553,11 +670,13 @@ export function drawSiteMap(layout: SiteLayout, opts: SiteMapDrawOptions): SiteM
     const sealed = !!eff.sealed;
     const attrs = { "data-border": b.id, "data-kind": eff.kind, "data-locked": locked ? "true" : undefined, "data-sealed": sealed ? "true" : undefined };
     if (b.segment && aOn && bOn) {
+      // on a duct sheet open joints need no mark: the tubes run into each other
+      if (sheet && eff.kind === "open" && !sealed) continue;
       if (tracking) {
         if (eff.kind === "open") borders.push(el("g", attrs, borderOpen(b.segment, p, true)));
         continue;
       }
-      borders.push(el("g", attrs, drawBorder(eff, b.segment, p, { locked, sealed, hidden: !!b.hidden && gm })));
+      borders.push(el("g", attrs, drawBorder(eff, b.segment, sp, { locked, sealed, hidden: !!b.hidden && gm })));
       // marks that reach into the zones: lock dots, hatch wheels, seals, glyphs on the wall
       const g = seg(b.segment);
       if (locked && (eff.kind === "door" || eff.kind === "hatch" || eff.kind === "blast")) placer.block(boxAround(g.mx + g.nx * 0.42, g.my + g.ny * 0.42, 0.22), "lock", undefined, b.id);
@@ -565,13 +684,35 @@ export function drawSiteMap(layout: SiteLayout, opts: SiteMapDrawOptions): SiteM
       if (sealed) placer.block(boxAround(g.mx, g.my, 0.32), "glyph", undefined, b.id);
       continue;
     }
+    // shafts are drawn as badges on their zones (below)
+    if (eff.kind === "shaft") continue;
     if (tracking && eff.kind !== "access") continue;
     // vertical links: access points and stairs
     const za = byId.get(b.a);
     const zb = byId.get(b.b);
     if (!za || !zb) continue;
+    // joints between two zones of a duct sheet without a drawn segment: a mark where the tubes meet
+    if (sheet && aOn && bOn && eff.kind !== "access" && eff.kind !== "stairs") {
+      if (eff.kind === "open" && !sealed) continue;
+      const s2 = contactSegment(za.poly, zb.poly);
+      if (!s2) continue;
+      const g = seg(s2);
+      borders.push(el("g", attrs, drawBorder(eff, s2, sp, { locked, sealed, hidden: !!b.hidden && gm })));
+      placer.block(boxAround(g.mx, g.my, 0.42), "glyph", undefined, b.id);
+      continue;
+    }
     // other links without a drawn segment (duct to duct) need no glyph: the outlines show them
     if (eff.kind !== "access" && eff.kind !== "stairs") continue;
+    if (eff.kind === "access" && za.deck !== zb.deck) {
+      // an access point between a floor deck and a duct sheet: on the floor, a square in the
+      // room with the duct zone it leads to; on the duct sheet, the zone's exit badge (below)
+      const here = aOn ? za : zb;
+      const there = aOn ? zb : za;
+      if (sheet || onSheet(here)) continue;
+      // placed after the zone's own labels (below), in whatever room they leave
+      deferredAccess.push({ b, here, there, attrs, sealed });
+      continue;
+    }
     if (eff.kind === "access") {
       const pos = overlapCenter(bbox(za.poly), bbox(zb.poly)) ?? (aOn && bOn ? mid(center(za.poly), center(zb.poly)) : center((aOn ? za : zb).poly));
       placer.block(boxAround(pos[0], pos[1], 0.42), "glyph", undefined, b.id);
@@ -603,16 +744,21 @@ export function drawSiteMap(layout: SiteLayout, opts: SiteMapDrawOptions): SiteM
       }
     }
   }
-  layers.push(el("g", { "data-layer": "borders" }, borders));
+  // on a duct sheet the joints are drawn over the tubes
+  if (!sheet) layers.push(el("g", { "data-layer": "borders" }, borders));
 
-  // 4. ducts: dashed outlines over the rooms
-  layers.push(
-    el(
-      "g",
-      { "data-layer": "ducts" },
-      ducts.map((z) => el("polygon", { points: points(z.poly), fill: p.duct, "fill-opacity": 0.08, stroke: p.duct, "stroke-width": 0.12, "stroke-dasharray": "0.45 0.3", "data-duct": z.id })),
-    ),
-  );
+  // 4. ducts: dashed outlines over the rooms; on a duct sheet, tubes with rounded joins,
+  // junction nodes and vent chambers
+  if (sheet) layers.push(drawTubes(layout, ducts, p, tracking));
+  else
+    layers.push(
+      el(
+        "g",
+        { "data-layer": "ducts" },
+        ducts.map((z) => el("polygon", { points: points(z.poly), fill: p.duct, "fill-opacity": 0.08, stroke: p.duct, "stroke-width": 0.12, "stroke-dasharray": "0.45 0.3", "data-duct": z.id })),
+      ),
+    );
+  if (sheet) layers.push(el("g", { "data-layer": "borders" }, borders));
   layers.push(el("g", { "data-layer": "links" }, glyphs));
 
   // 5. zone contents: numbers, names, flag icons, duct numbers, markers, act numerals, clutter.
@@ -623,9 +769,62 @@ export function drawSiteMap(layout: SiteLayout, opts: SiteMapDrawOptions): SiteM
   const callouts: SiteMapCallout[] = [];
   const labelText = (m: MapMarker) => (m.kind === "label" || !m.act || /\bact\b/i.test(m.label) ? m.label : `${m.label} (act ${m.act})`);
   const markersOf = (z: MapZoneData) => (tracking ? [] : layout.markers.filter((m) => m.zone === z.id && (gm || !m.gmOnly)));
-  const playable = (z: MapZoneData) => z.layer !== "duct" && z.kind !== "out-of-bounds";
-  /** Where labels may go in a zone: inside its outline, clear of the walls. */
-  const inZone = (z: MapZoneData, inset = 0.24) => (b: LabelBox) => boxInPolygon(b, z.poly, inset) && boxInside(b, deckBox);
+  const playable = (z: MapZoneData) => z.layer !== "duct" && z.kind !== "out-of-bounds" && !sheet;
+
+  // 4b. duct sheets: exit badges (the room a vent opens into) and shaft badges (the sheet and
+  // zone at the other end of a climb or drop), placed before the other labels so they always
+  // get a spot: beside their zone, clear of the other tubes where possible
+  const badgeNodes: SvgNode[] = [];
+  const tubeBoxes = sheet ? ducts.map((z) => ({ id: z.id, box: bbox(z.poly) })) : [];
+  const inDeck = (b: LabelBox) => boxInside(b, insetBox(deckBox, 0.05));
+  const nearZone = (z: MapZoneData, relax: boolean) => (b: LabelBox) => inDeck(b) && (relax || tubeBoxes.every((t) => t.id === z.id || !boxesOverlap(b, insetBox(t.box, 0.04))));
+  const placeNear = (z: MapZoneData, w: number, h: number, kind: string, ref: string | undefined, insideFirst: boolean, relax: boolean, force = false) => {
+    const bx = bbox(z.poly);
+    const inside = scanPositions(insetBox(bx, 0.08), w, h, "center");
+    const around = aroundPositions(bx, w, h);
+    return placer.place({ w, h, candidates: insideFirst ? [...inside, ...around] : [...around, ...inside], inside: nearZone(z, relax), kind, zone: z.id, ref, force });
+  };
+  const badge = (z: MapZoneData, full: string, shownText: string, glyph: BadgeGlyph, kind: "exit" | "shaft", ref: string, insideFirst: boolean, link: { deck: string; zone: string } | undefined) => {
+    const fit = (text: string, force: boolean) => {
+      for (const relax of [false, true]) {
+        for (const size of [0.42, 0.36, 0.3]) {
+          const h = size * 1.55;
+          const w = h + 0.06 + textWidth(text, size) + 0.18;
+          const last = force && relax && size === 0.3;
+          const box = placeNear(z, w, h, kind, ref, insideFirst, relax, last);
+          if (box) return { box, size, text };
+        }
+      }
+      return undefined;
+    };
+    let placed = fit(shownText, false);
+    if (!placed) {
+      // no room for the words: a letter on the map, the words in the key
+      const letter = calloutRef(callouts.length);
+      placed = fit(letter, true);
+      if (!placed) return;
+      callouts.push({ ref: letter, marker: ref, zone: z.id, number: numbers.get(z.id), label: shownText });
+    }
+    badgeNodes.push(el("g", { "data-badge": kind, "data-badge-zone": z.id, "data-badge-glyph": glyph, "data-ref": ref }, [...badgeNode(placed.box, placed.text, placed.size, glyph, p), el("title", {}, [full])]));
+    if (gm && link) links.push({ box: placed.box, deck: link.deck, zone: link.zone, label: `Go to ${full}` });
+  };
+  if (sheet) {
+    for (const z of shownZones) {
+      const exit = exitToOf(z);
+      if (!exit) continue;
+      const target = byId.get(exit.zone);
+      const text = exitLabel(exit, withIds);
+      badge(z, text, text, "exit", "exit", `exit:${z.id}`, false, target ? { deck: target.deck, zone: target.id } : undefined);
+    }
+  }
+  for (const z of shownZones) {
+    for (const l of shaftLinks(layout, z.id, { act, live: { borders: live.borders ?? {} }, passable: opts.passable })) {
+      if (!byId.has(l.other)) continue;
+      const glyph: BadgeGlyph = isOneWay(l) ? "drop" : l.direction === "up" ? "up" : l.direction === "down" ? "down" : "both";
+      const where = [l.otherDeck?.name, withIds ? l.other : undefined].filter(Boolean).join(", ") || l.other;
+      badge(z, shaftLabel(l, withIds), where, glyph, "shaft", `shaft:${l.border.id}`, false, l.otherDeck ? { deck: l.otherDeck.id, zone: l.other } : undefined);
+    }
+  }
 
   // 5a. zone numbers (fixed positions)
   for (const z of shownZones) {
@@ -635,7 +834,7 @@ export function drawSiteMap(layout: SiteLayout, opts: SiteMapDrawOptions): SiteM
     const [cx, cy] = center(z.poly);
     const w = bx.x1 - bx.x0;
     const h = bx.y1 - bx.y0;
-    const duct = z.layer === "duct";
+    const duct = sheet || z.layer === "duct";
     if (tracking) {
       // room numbers large and centred; duct numbers are placed later, clear of them
       if (duct) continue;
@@ -665,7 +864,7 @@ export function drawSiteMap(layout: SiteLayout, opts: SiteMapDrawOptions): SiteM
   // 5b. key room names: centred, shrunk or wrapped to fit, clear of the number
   if (!tracking) {
     for (const z of shownZones) {
-      if (!z.key || !z.name || z.layer === "duct") continue;
+      if (!z.key || !z.name || z.layer === "duct" || sheet) continue;
       const bx = bbox(z.poly);
       const w = bx.x1 - bx.x0;
       const region = insetBox(bx, 0.2);
@@ -763,6 +962,8 @@ export function drawSiteMap(layout: SiteLayout, opts: SiteMapDrawOptions): SiteM
               break;
             }
           }
+          // on a duct sheet a tube can be too narrow or too full: the glyph sits just beside it
+          if (!box && sheet) box = placeNear(z, 2 * G, 2 * G, "duct-marker", m.id, false, false) ?? placeNear(z, 2 * G, 2 * G, "duct-marker", m.id, false, true);
           box ??=
             placer.place({ w: 2 * G, h: 2 * G, candidates: scanPositions(bx, 2 * G, 2 * G, "bottom-left"), inside: inZone(z, 0), kind: "marker", zone: z.id, ref: m.id, force: true }) ??
             Object.assign(placer.block(boxAround(center(z.poly)[0], center(z.poly)[1], G), "marker", z.id, m.id), { forced: true });
@@ -798,8 +999,44 @@ export function drawSiteMap(layout: SiteLayout, opts: SiteMapDrawOptions): SiteM
     }
   }
 
+  // 5d'. hazard icons on a duct sheet (after the markers, which must sit in the tube): beside the tube, else in it
+  if (!tracking && sheet) {
+    // a condition on most of the sheet (ducts are dark, single file) is the sheet's norm, left to the legend
+    const counts = new Map<MapLegendEntry, number>();
+    for (const z of zones) for (const e of flagHits(z)) counts.set(e, (counts.get(e) ?? 0) + 1);
+    const norm = (e: MapLegendEntry) => zones.length >= 4 && (counts.get(e) ?? 0) > zones.length / 2;
+    for (const z of shownZones) {
+      for (const e of flagHits(z)) {
+        if (norm(e)) continue;
+        const s = 0.75;
+        const ref = isFlagTarget(e.target) ? e.target.flag : "";
+        const box = placeNear(z, s, s, "duct-flag", ref, false, false) ?? placeNear(z, s, s, "duct-flag", ref, false, true, true);
+        if (!box) continue;
+        add(z.id, el("g", { "data-flag-icon": ref }, [el("circle", { cx: (box.x0 + box.x1) / 2, cy: (box.y0 + box.y1) / 2, r: s * 0.55, fill: p.halo, stroke: p.tubeEdge, "stroke-width": 0.04 }), iconNode(flagIcon(e), (box.x0 + box.x1) / 2, (box.y0 + box.y1) / 2, p, s * 0.95, e.color && !e.color.startsWith("var(") ? e.color : undefined), el("title", {}, [e.label])]));
+      }
+    }
+  }
+
+  // 5e. duct sheet zone ids ("D07", the name exits and shafts use), in or beside the tube
+  if (withIds && sheet) {
+    for (const z of shownZones) {
+      if (z.kind === "out-of-bounds") continue;
+      const size = tracking ? 0.5 : 0.38;
+      const w = textWidth(z.id, size, true) + 0.24;
+      const h = size * 1.3;
+      const box = placeNear(z, w, h, "duct-number", undefined, true, false) ?? placeNear(z, w, h, "duct-number", undefined, true, true, true);
+      if (!box) continue;
+      add(
+        z.id,
+        el("g", { "data-number": z.id, "data-duct-id": z.id }, [
+          el("path", { d: roundRectPath(box.x0, box.y0, box.x1, box.y1, h * 0.45), fill: tracking ? "#ffffff" : p.tubeEdge, stroke: tracking ? p.wall : p.tubeLine, "stroke-width": 0.05 }),
+          el("text", { x: (box.x0 + box.x1) / 2, y: (box.y0 + box.y1) / 2 + size * 0.36, "text-anchor": "middle", "font-size": size, "font-family": MAP_FONT, "font-weight": 700, fill: tracking ? p.text : p.ductInk }, [z.id]),
+        ]),
+      );
+    }
+  }
   // 5e. duct numbers: on a corner of the duct, clear of the room's marks
-  if (gm || tracking) {
+  if ((gm || tracking) && !sheet) {
     for (const z of shownZones) {
       const n = numbers.get(z.id);
       if (n === undefined || z.layer !== "duct") continue;
@@ -837,18 +1074,67 @@ export function drawSiteMap(layout: SiteLayout, opts: SiteMapDrawOptions): SiteM
     }
   }
 
+  // 5g. access squares into duct sheets, in the room they open from, with the duct zone they lead to
+  for (const { b, here, there, attrs, sealed } of deferredAccess) {
+    if (view === "player" && fogged.has(here.id)) continue;
+    const bx = bbox(here.poly);
+    let box: PlacedLabel | undefined;
+    let G = 0.42;
+    for (const g of [0.42, 0.32, 0.25]) {
+      G = g;
+      box =
+        placer.place({ w: 2 * g, h: 2 * g, candidates: scanPositions(insetBox(bx, 0.3), 2 * g, 2 * g, "top-right"), inside: inZone(here, 0.25), kind: "glyph", zone: here.id, ref: b.id }) ??
+        placer.place({ w: 2 * g, h: 2 * g, candidates: scanPositions(insetBox(bx, 0.06), 2 * g, 2 * g, "top-right"), inside: inZone(here, 0.04), kind: "glyph", zone: here.id, ref: b.id, force: g === 0.25 });
+      if (box) break;
+    }
+    box ??= Object.assign(placer.block(boxAround(center(here.poly)[0], center(here.poly)[1], G), "glyph", here.id, b.id), { forced: true });
+    const cx = (box.x0 + box.x1) / 2;
+    const cy = (box.y0 + box.y1) / 2;
+    const thereDeck = decksById.get(there.deck);
+    const lead = ductToOf(here);
+    const tag = withIds && lead?.zone === there.id ? lead.zone : undefined;
+    let tagNode: SvgNode | null = null;
+    if (tag) {
+      for (const size of [0.4, 0.32]) {
+        const tw = textWidth(tag, size, true) + 0.08;
+        const th = size * 1.05;
+        const t = placer.place({
+          w: tw,
+          h: th,
+          candidates: [
+            [box.x0 - tw - 0.06, cy - th / 2],
+            [box.x1 + 0.06, cy - th / 2],
+            [cx - tw / 2, box.y1 + 0.06],
+            [cx - tw / 2, box.y0 - th - 0.06],
+          ],
+          inside: inZone(here, 0.08),
+          kind: "link-label",
+          zone: here.id,
+          ref: b.id,
+        });
+        if (!t) continue;
+        tagNode = el("text", { x: t.x0 + 0.04, y: t.y1 - th * 0.2, "font-size": size, "font-family": MAP_FONT, "font-weight": 700, fill: p.duct, stroke: p.halo, "stroke-width": 0.08, "paint-order": "stroke", "data-access-to": tag }, [tag]);
+        break;
+      }
+    }
+    const where = [thereDeck?.name, withIds ? there.id : undefined].filter(Boolean).join(", ");
+    badgeNodes.push(el("g", { ...attrs, "data-glyph": "access", "data-link-zone": there.id }, [accessGlyph(cx, cy, p, sealed, !!b.hidden && gm, G / 0.42), tagNode, el("title", {}, [`Access point to ${where}${sealed ? " (sealed)" : ""}`])]));
+    if (gm && thereDeck) links.push({ box, deck: thereDeck.id, zone: there.id, label: `Go to ${where}` });
+  }
+
   const contents: SvgNode[] = [];
   for (const z of zones) {
     const g = content.get(z.id);
     if (g?.length) contents.push(el("g", { "data-zone-content": z.id }, g));
   }
   layers.push(el("g", { "data-layer": "contents" }, contents));
+  layers.push(el("g", { "data-layer": "duct-links" }, badgeNodes));
 
   // 6. fog
   const fog: SvgNode[] = [];
   for (const z of zones) {
     // ducts run over and under rooms: their fog would cover revealed rooms
-    if (!fogged.has(z.id) || z.layer === "duct") continue;
+    if (!fogged.has(z.id) || (z.layer === "duct" && !sheet)) continue;
     if (view === "player") fog.push(el("polygon", { points: points(z.poly), fill: `url(#${id("fog")})`, stroke: p.fog, "stroke-width": 0.3, "data-fog": z.id }));
     else fog.push(el("polygon", { points: points(z.poly), fill: p.fog, "fill-opacity": 0.35, "data-fog": z.id }));
   }
@@ -946,11 +1232,168 @@ export function drawSiteMap(layout: SiteLayout, opts: SiteMapDrawOptions): SiteM
         }, [el("title", {}, [[label, ...notes].join("\n")])]),
       );
     }
+    // links: an access square, exit badge or shaft badge takes the GM to the zone at the other end
+    for (const l of links) {
+      hits.push(
+        el("rect", {
+          x: l.box.x0,
+          y: l.box.y0,
+          width: l.box.x1 - l.box.x0,
+          height: l.box.y1 - l.box.y0,
+          fill: "#000",
+          "fill-opacity": 0,
+          "data-hit": "link",
+          "data-link-deck": l.deck,
+          "data-link-zone": l.zone,
+          role: "button",
+          tabindex: 0,
+          "aria-label": l.label,
+          class: "cf-sitemap__hit cf-sitemap__link",
+        }, [el("title", {}, [l.label])]),
+      );
+    }
     layers.push(el("g", { "data-layer": "hits" }, hits));
   }
 
   const node = el("g", { transform: `translate(${margin} ${margin})`, "data-deck": deck?.id, "data-view": view }, [defs, ...layers]);
   return { node, width, height, deck: deck?.id, callouts, labels: placer.boxes };
+}
+
+export type BadgeGlyph = "exit" | "up" | "down" | "both" | "drop";
+
+/** A rounded rectangle as a path (the PDF writer has no rounded `rect`). */
+function roundRectPath(x0: number, y0: number, x1: number, y1: number, r: number): string {
+  const rr = Math.max(0, Math.min(r, (x1 - x0) / 2, (y1 - y0) / 2));
+  const f = fmt;
+  return `M ${f(x0 + rr)} ${f(y0)} H ${f(x1 - rr)} A ${f(rr)} ${f(rr)} 0 0 1 ${f(x1)} ${f(y0 + rr)} V ${f(y1 - rr)} A ${f(rr)} ${f(rr)} 0 0 1 ${f(x1 - rr)} ${f(y1)} H ${f(x0 + rr)} A ${f(rr)} ${f(rr)} 0 0 1 ${f(x0)} ${f(y1 - rr)} V ${f(y0 + rr)} A ${f(rr)} ${f(rr)} 0 0 1 ${f(x0 + rr)} ${f(y0)} Z`;
+}
+
+/** The arrow or chevrons of an exit or shaft badge, centred on x, y, `k` half its size. */
+export function badgeGlyph(glyph: BadgeGlyph, x: number, y: number, k: number, p: SiteMapPalette): SvgNode {
+  const line = { fill: "none", stroke: p.badgeInk, "stroke-width": k * 0.32, "stroke-linecap": "round", "stroke-linejoin": "round" } as const;
+  const chevron = (cy: number, dir: 1 | -1, s = 1) => el("path", { ...line, d: `M ${fmt(x - k * s)} ${fmt(cy + dir * k * 0.45 * s)} L ${fmt(x)} ${fmt(cy - dir * k * 0.45 * s)} L ${fmt(x + k * s)} ${fmt(cy + dir * k * 0.45 * s)}` });
+  switch (glyph) {
+    case "exit":
+      return el("g", { "data-glyph": "exit-arrow" }, [
+        el("path", { ...line, stroke: p.start, d: `M ${fmt(x - k * 0.9)} ${fmt(y)} L ${fmt(x + k * 0.3)} ${fmt(y)}` }),
+        el("path", { d: `M ${fmt(x + k * 0.95)} ${fmt(y)} L ${fmt(x + k * 0.15)} ${fmt(y - k * 0.6)} L ${fmt(x + k * 0.15)} ${fmt(y + k * 0.6)} Z`, fill: p.start }),
+      ]);
+    case "up":
+      return el("g", { "data-glyph": "chevron-up" }, [chevron(y, 1)]);
+    case "down":
+      return el("g", { "data-glyph": "chevron-down" }, [chevron(y, -1)]);
+    case "both":
+      return el("g", { "data-glyph": "chevron-both" }, [chevron(y - k * 0.42, 1, 0.75), chevron(y + k * 0.42, -1, 0.75)]);
+    case "drop":
+      return el("g", { "data-glyph": "drop-arrow" }, [
+        el("path", { ...line, stroke: p.lock, d: `M ${fmt(x)} ${fmt(y - k * 0.95)} L ${fmt(x)} ${fmt(y + k * 0.2)}` }),
+        el("path", { d: `M ${fmt(x - k * 0.62)} ${fmt(y + k * 0.05)} L ${fmt(x)} ${fmt(y + k * 0.98)} L ${fmt(x + k * 0.62)} ${fmt(y + k * 0.05)} Z`, fill: p.lock }),
+      ]);
+  }
+}
+
+/** An exit or shaft badge: a rounded plate, the glyph on the left, the text after it. */
+function badgeNode(b: LabelBox, text: string, size: number, glyph: BadgeGlyph, p: SiteMapPalette): SvgNode[] {
+  const h = b.y1 - b.y0;
+  const cy = (b.y0 + b.y1) / 2;
+  return [
+    el("path", { d: roundRectPath(b.x0, b.y0, b.x1, b.y1, h * 0.3), fill: p.badge, stroke: p.badgeEdge, "stroke-width": 0.05 }),
+    badgeGlyph(glyph, b.x0 + h / 2, cy, h * 0.3, p),
+    el("text", { x: b.x0 + h + 0.03, y: cy + size * 0.36, "font-size": size, "font-family": MAP_FONT, fill: p.badgeInk, "data-badge-text": "1" }, [text]),
+  ];
+}
+
+/** Top-left corners for a `w` x `h` box just outside `b`: below and above, then right and left, in widening rings. */
+function aroundPositions(b: Box, w: number, h: number): Array<[number, number]> {
+  const out: Array<[number, number]> = [];
+  const cx = (b.x0 + b.x1 - w) / 2;
+  const cy = (b.y0 + b.y1 - h) / 2;
+  for (let ring = 0; ring < 5; ring++) {
+    const g = 0.1 + ring * 0.45;
+    const xs = [cx, b.x0, b.x1 - w];
+    for (let x = b.x0 - w + 0.5; x <= b.x1 - 0.5 + 1e-9; x += 0.5) xs.push(x);
+    for (const x of xs) out.push([x, b.y1 + g], [x, b.y0 - g - h]);
+    const ys = [cy, b.y0, b.y1 - h];
+    for (let y = b.y0 - h + 0.3; y <= b.y1 - 0.3 + 1e-9; y += 0.5) ys.push(y);
+    for (const y of ys) out.push([b.x1 + g, y], [b.x0 - g - w, y]);
+  }
+  return out;
+}
+
+/** Where two touching zones meet, from their bounding boxes (for joints with no drawn segment). */
+function contactSegment(a: MapPoint[], b: MapPoint[]): [MapPoint, MapPoint] | undefined {
+  const A = bbox(a);
+  const B = bbox(b);
+  const e = 1e-6;
+  const y0 = Math.max(A.y0, B.y0);
+  const y1 = Math.min(A.y1, B.y1);
+  const x0 = Math.max(A.x0, B.x0);
+  const x1 = Math.min(A.x1, B.x1);
+  if (y1 - y0 > e && (Math.abs(A.x1 - B.x0) < e || Math.abs(B.x1 - A.x0) < e)) {
+    const x = Math.abs(A.x1 - B.x0) < e ? A.x1 : A.x0;
+    return [
+      [x, y0],
+      [x, y1],
+    ];
+  }
+  if (x1 - x0 > e && (Math.abs(A.y1 - B.y0) < e || Math.abs(B.y1 - A.y0) < e)) {
+    const y = Math.abs(A.y1 - B.y0) < e ? A.y1 : A.y0;
+    return [
+      [x0, y],
+      [x1, y],
+    ];
+  }
+  return undefined;
+}
+
+/**
+ * The tubes of a duct sheet: every zone outlined with rounded joins, then
+ * filled, so touching zones read as one run; vent chambers (exits at
+ * least 1.8 m across, or zones at least 2.5 m each way) get a grille, junctions (three or more
+ * links) a node, and runs a centre line.
+ */
+function drawTubes(layout: SiteLayout, ducts: MapZoneData[], p: SiteMapPalette, tracking: boolean): SvgNode {
+  const edge = tracking ? p.wall : p.tubeEdge;
+  const fill = tracking ? "#ffffff" : p.tube;
+  const hi = tracking ? p.muted : p.tubeLine;
+  const ids = new Set(ducts.map((z) => z.id));
+  const degree = new Map<string, number>();
+  for (const b of layout.borders) {
+    if (b.a === b.b) continue;
+    for (const end of [b.a, b.b]) if (ids.has(end)) degree.set(end, (degree.get(end) ?? 0) + 1);
+  }
+  const edges: SvgNode[] = [];
+  const fills: SvgNode[] = [];
+  const details: SvgNode[] = [];
+  for (const z of ducts) {
+    if (z.kind === "out-of-bounds") continue;
+    const pts = points(z.poly);
+    edges.push(el("polygon", { points: pts, fill: edge, stroke: edge, "stroke-width": tracking ? 0.16 : 0.34, "stroke-linejoin": "round" }));
+    fills.push(el("polygon", { points: pts, fill, stroke: fill, "stroke-width": 0.1, "stroke-linejoin": "round", "data-duct": z.id }));
+    const b = bbox(z.poly);
+    const w = b.x1 - b.x0;
+    const h = b.y1 - b.y0;
+    const [cx, cy] = center(z.poly);
+    if ((exitToOf(z) && Math.min(w, h) >= 1.8) || (w >= 2.5 && h >= 2.5)) {
+      const i = insetBox(b, Math.min(0.3, Math.min(w, h) / 4));
+      const slats: string[] = [];
+      for (let y = i.y0 + 0.3; y < i.y1 - 0.15; y += 0.35) slats.push(`M ${fmt(i.x0 + 0.15)} ${fmt(y)} H ${fmt(i.x1 - 0.15)}`);
+      details.push(
+        el("g", { "data-chamber": z.id }, [
+          el("path", { d: roundRectPath(i.x0, i.y0, i.x1, i.y1, 0.2), fill: "none", stroke: hi, "stroke-width": 0.07 }),
+          slats.length ? el("path", { d: slats.join(" "), fill: "none", stroke: hi, "stroke-width": 0.05, "stroke-opacity": 0.7 }) : null,
+        ]),
+      );
+    } else if ((degree.get(z.id) ?? 0) >= 3) {
+      const r = Math.max(0.2, Math.min(0.45, Math.min(w, h) * 0.3));
+      // decorative: labels may sit over it
+      details.push(el("circle", { cx, cy, r, fill: edge, stroke: hi, "stroke-width": 0.07, "data-junction": z.id }));
+    } else if (Math.max(w, h) >= 1.5) {
+      const d = w >= h ? `M ${fmt(b.x0 + 0.2)} ${fmt(cy)} H ${fmt(b.x1 - 0.2)}` : `M ${fmt(cx)} ${fmt(b.y0 + 0.2)} V ${fmt(b.y1 - 0.2)}`;
+      details.push(el("path", { d, fill: "none", stroke: hi, "stroke-width": 0.05, "stroke-dasharray": "0.4 0.3", "stroke-opacity": 0.7, "data-run": z.id }));
+    }
+  }
+  return el("g", { "data-layer": "ducts", "data-tubes": "1" }, [...edges, ...fills, ...details]);
 }
 
 /** "a" ... "z", then "aa", "ab", ... */
@@ -1151,6 +1594,10 @@ export function drawBorder(b: Pick<MapBorderData, "kind" | "armor" | "flags">, s
       out.push(...borderOpen(s, p));
       out.push(stairsGlyph(g.mx, g.my, p));
       break;
+    case "shaft":
+      out.push(...borderOpen(s, p));
+      out.push(badgeGlyph("both", g.mx, g.my, 0.35, { ...p, badgeInk: p.wall }));
+      break;
   }
   if (st.sealed && b.kind !== "access") {
     out.push(el("path", { d: `M ${fmt(g.mx - 0.3)} ${fmt(g.my - 0.3)} L ${fmt(g.mx + 0.3)} ${fmt(g.my + 0.3)} M ${fmt(g.mx - 0.3)} ${fmt(g.my + 0.3)} L ${fmt(g.mx + 0.3)} ${fmt(g.my - 0.3)}`, stroke: p.lock, "stroke-width": 0.12 }));
@@ -1171,6 +1618,7 @@ export function legendSwatch(entry: MapLegendEntry, palette: SiteMapDrawOptions[
     const s: [MapPoint, MapPoint] = t.border === "access" || t.border === "stairs" ? [[1, 1], [1, 1]] : [[0.15, 1], [1.85, 1]];
     if (t.border === "access") return el("g", {}, [box, accessGlyph(1, 1, p, false, false)]);
     if (t.border === "stairs") return el("g", {}, [box, stairsGlyph(1, 1, p, 1.4)]);
+    if (t.border === "shaft") return el("g", {}, [box, badgeGlyph("both", 1, 1, 0.6, { ...p, badgeInk: p.wall })]);
     return el("g", {}, [box, ...drawBorder({ kind: t.border }, s, p)]);
   }
   if ("flag" in t) {

@@ -75,16 +75,16 @@ describe("live helpers", () => {
   });
 });
 
-function LiveHarness({ ctx, id }: { ctx: CampaignContextValue; id: string }) {
+function LiveHarness({ ctx, id, sessionId = "none" }: { ctx: CampaignContextValue; id: string; sessionId?: string }) {
   return (
     <CampaignContext.Provider value={ctx}>
-      <Live id={id} />
+      <Live id={id} sessionId={sessionId} />
     </CampaignContext.Provider>
   );
 }
-function Live({ id }: { id: string }) {
+function Live({ id, sessionId }: { id: string; sessionId: string }) {
   const map = useRecord("maps", id);
-  return map ? <LiveSiteMap sessionId="none" map={map} scene={undefined} participants={[]} /> : null;
+  return map ? <LiveSiteMap sessionId={sessionId} map={map} scene={undefined} participants={[]} /> : null;
 }
 function PlayerHarness({ ctx, id }: { ctx: CampaignContextValue; id: string }) {
   return (
@@ -141,5 +141,56 @@ describe("LiveSiteMap and PlayerSiteMap", () => {
     expect(player.innerHTML).not.toContain("Old warden");
     expect(player.innerHTML).not.toContain("curse");
     expect(player.querySelector("[data-ping]")).toBeNull();
+  }, 30_000);
+});
+
+describe("duct sheets at the table", () => {
+  it("rolls the module's duct event for a duct zone, logs it GM-only and keeps it off the player screen; reveal brings the sheet to the players", async () => {
+    const { ctx, map } = await setup();
+    const session = ctx.store.createSession({ status: "running", title: "Night one" });
+    render(<LiveHarness ctx={ctx} id={map.id} sessionId={session.id} />);
+    await act(async () => undefined);
+    // no duct zone selected or occupied: no duct event
+    expect(screen.queryByTestId("duct-events")).toBeNull();
+
+    // follow the crawl hole in the Larder's room to the duct sheet: the zone is selected there
+    const live = screen.getByTestId("live-map");
+    fireEvent.click(live.querySelector('[data-hit="link"][data-link-zone="D01"]')!);
+    expect(within(live).getByTestId("sitemap").getAttribute("data-deck")).toBe("crawl");
+    expect(screen.getByTestId("live-zone").getAttribute("aria-label")).toMatch(/West vent/);
+
+    // the duct event: the module table, with its hint
+    const events = screen.getByTestId("duct-events");
+    expect(events.textContent).toContain("Duct event");
+    expect(events.textContent).toContain("Roll when a token enters a crawlway zone.");
+    fireEvent.click(within(events).getByTestId("duct-event-roll"));
+    const result = screen.getByTestId("duct-event-result");
+    expect(result.textContent).toMatch(/^Crawl event \(\d+ West vent\): (A dry nook|Rats|Loose panel|Followed): /);
+    const ts = ctx.store.list("trackerState").find((t) => t.session === session.id)!;
+    const entry = ts.log.find((l) => (l.data as { kind?: string } | undefined)?.kind === "table")!;
+    expect(entry.tracker).toBe("dice");
+    expect(entry.data).toMatchObject({ kind: "table", table: "example.table.crawl", zone: "D01", map: map.id, gmOnly: true, seed: `${session.id}:0` });
+    // the same seed gives the same result
+    expect(result.textContent).toContain(`seed ${session.id}:0`);
+
+    // closing the zone (no token in a duct) takes the duct event away
+    fireEvent.click(within(screen.getByTestId("live-zone")).getByRole("button", { name: "Close zone" }));
+    expect(screen.queryByTestId("duct-events")).toBeNull();
+
+    // the player screen: no duct sheet yet, then the revealed zone with fog for the rest; never the event
+    render(<PlayerHarness ctx={ctx} id={map.id} />);
+    const player = screen.getByTestId("player-map");
+    expect(within(player).queryByRole("button", { name: "Crawlways" })).toBeNull();
+    fireEvent.click(within(live).getByRole("button", { name: "Reveal" }));
+    fireEvent.keyDown(live.querySelector('[data-hit="zone"][data-zone="D01"]')!, { key: "Enter" });
+    expect(get(ctx, map.id).live!.revealed).toContain("D01");
+    fireEvent.click(within(player).getByRole("button", { name: "Crawlways" }));
+    expect(within(player).getByTestId("sitemap").getAttribute("data-deck")).toBe("crawl");
+    expect(player.querySelector('[data-duct="D01"]')).not.toBeNull();
+    expect(player.querySelector('[data-duct="D02"]')).toBeNull();
+    expect(player.querySelector('[data-sheet-fog="crawl"]')).not.toBeNull();
+    expect(player.innerHTML).not.toContain("Crawl event");
+    expect(player.innerHTML).not.toContain(result.textContent!.split(": ").slice(1).join(": ").split(" · ")[0]!);
+    expect(within(player).queryByTestId("duct-events")).toBeNull();
   }, 30_000);
 });

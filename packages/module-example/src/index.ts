@@ -240,6 +240,20 @@ const dangerTable: RollTable = {
   ],
 };
 
+/** Rolled at the table when a token enters a crawlway (the site map generator's zone table). */
+const crawlTable: RollTable = {
+  id: "example.table.crawl",
+  name: "Crawl events",
+  page: 72,
+  dice: "1d6",
+  rows: [
+    { range: [1, 2], label: "A dry nook", result: { kind: "comfort", text: "A dry nook to catch your breath." } },
+    { range: [3, 4], label: "Rats", result: { kind: "encounter", text: "Rats pour past; someone must keep still." } },
+    { range: [5, 5], label: "Loose panel", result: { kind: "danger", text: "A panel gives way under the lead crawler." } },
+    { range: [6, 6], label: "Followed", result: { kind: "encounter", text: "Scratching behind you, keeping pace." } },
+  ],
+};
+
 const rumorTable: RollTable = {
   id: "example.table.rumor",
   name: "Rumors",
@@ -573,7 +587,7 @@ export const exampleModule: GameModule = {
       fields: { terrain: "hills", danger: "uneasy", population: 3, features: ["crumbling", "watchfire"] },
     },
   ],
-  tables: [terrainTable, dangerTable, rumorTable, encounterTable],
+  tables: [terrainTable, dangerTable, rumorTable, encounterTable, crawlTable],
   procedures: [expedition],
   templates: [
     {

@@ -8,7 +8,7 @@ import { Badge, Button, Card, Dialog, EmptyState, IconButton, pushToast, useThem
 import { errorMessage, relativeTime } from "../../lib/format";
 import { listModules, loadModuleById, moduleEntry } from "../../modules/registry";
 import { createCampaign, deleteCampaign, importCampaignBundle } from "../../state/actions";
-import { loadDemoCampaign } from "../../state/tableActions";
+import { loadDemoCampaign, type DemoKind } from "../../state/tableActions";
 
 export function CampaignListPage() {
   const [campaigns, setCampaigns] = useState<CampaignIndexEntry[] | undefined>();
@@ -42,6 +42,17 @@ export function CampaignListPage() {
     }
   };
 
+  const onLoadDemo = async (kind: DemoKind) => {
+    setBusy(true);
+    try {
+      const id = await loadDemoCampaign(undefined, kind);
+      await navigate({ to: "/c/$campaignId/home", params: { campaignId: id } });
+    } catch (e) {
+      pushToast(`Could not load the demo: ${errorMessage(e)}`, { tone: "danger" });
+      setBusy(false);
+    }
+  };
+
   return (
     <div className="app-page app-page--narrow app-landing">
       <header className="app-landing__header">
@@ -58,21 +69,11 @@ export function CampaignListPage() {
         <Button onClick={() => fileRef.current?.click()} disabled={busy}>
           Import bundle…
         </Button>
-        <Button
-          onClick={async () => {
-            setBusy(true);
-            try {
-              const id = await loadDemoCampaign("skyfire-down");
-              await navigate({ to: "/c/$campaignId/home", params: { campaignId: id } });
-            } catch (e) {
-              pushToast(`Could not load the demo: ${errorMessage(e)}`, { tone: "danger" });
-              setBusy(false);
-            }
-          }}
-          disabled={busy}
-          data-testid="load-demo"
-        >
+        <Button onClick={() => void onLoadDemo("campaign")} disabled={busy} data-testid="load-demo" title="Skyfire Down: campaign play with a job, a crew and a running infection">
           Load demo campaign
+        </Button>
+        <Button onClick={() => void onLoadDemo("cinematic")} disabled={busy} data-testid="load-demo-cinematic" title="Cold Harbor: a cinematic one-shot made with the guided builder, with a live site map">
+          Load cinematic demo
         </Button>
         <input ref={fileRef} type="file" accept=".zip,application/zip" hidden aria-label="Import bundle file" onChange={(e) => void onImport(e.target.files?.[0])} />
       </div>

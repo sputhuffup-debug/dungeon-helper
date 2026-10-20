@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { validateEntityFields } from "@campaign-forge/module-sdk";
-import { applyImportedDocs, exportBundle, extractRefs, importBundle, RichTextRegistry, type CampaignMaps, type Entity } from "@campaign-forge/core";
-import { alienModule } from "@campaign-forge/module-alien";
+import { lifecycleState, validateEntityFields } from "@campaign-forge/module-sdk";
+import { applyImportedDocs, exportBundle, extractRefs, getCampaignTrackerState, importBundle, RichTextRegistry, type CampaignMaps, type Entity } from "@campaign-forge/core";
+import { alienModule, GESTATION_TRACKER } from "@campaign-forge/module-alien";
 import { buildDemoCampaign, demoCampaignJSON } from "../src";
 
 /** The seed-dependent shape of a build: everything except ids and timestamps. */
@@ -77,6 +77,30 @@ describe("buildDemoCampaign", () => {
     expect(sessions).toHaveLength(1);
     expect(sessions[0]!.nextPlan.length).toBeGreaterThan(0);
     expect(Object.values(maps.notes).filter((n) => n.attachedTo?.kind === "campaign" && n.attachedTo.id === maps.meta.id)).toHaveLength(1);
+  });
+
+  it("has a xenomorph life cycle running on an NPC, at a stage that does not hatch during one session", () => {
+    const state = lifecycleState(getCampaignTrackerState(store, GESTATION_TRACKER));
+    expect(state.instances).toHaveLength(1);
+    const inst = state.instances[0]!;
+    const host = maps.entities[inst.host]!;
+    expect(host.type).toBe("alien.character");
+    expect(host.fields["isPC"]).not.toBe(true);
+    expect(host.fields["android"]).not.toBe(true);
+    expect(host.conditions?.map((c) => c.id)).toContain("xx121:embryo");
+    expect(inst.stage).toBe("gestating");
+    expect(inst.pace).toBe("much-slower");
+    expect(inst.paused).toBe(false);
+    // a quarter pace: the one-shift embryo takes four shifts, so two shifts at the table never hatch it
+    expect(inst.duration).toBe(450);
+    expect(Object.values(maps.sessions)[0]!.nextPlan.some((p) => p.includes(host.name))).toBe(true);
+    // same host and stage on a rebuild
+    const again = lifecycleState(getCampaignTrackerState(buildDemoCampaign().store, GESTATION_TRACKER)).instances[0]!;
+    expect([again.hostName, again.stage, again.pace]).toEqual([inst.hostName, inst.stage, inst.pace]);
+  });
+
+  it("has an android character, whose critical injuries roll on the android damage table", () => {
+    expect(entities.some((e) => e.type === "alien.character" && e.fields["android"] === true)).toBe(true);
   });
 
   it("links the crew to the ship and every handout to a PC", () => {

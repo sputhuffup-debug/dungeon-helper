@@ -5,7 +5,7 @@
  * the generator's checks, the zone key and the distance table.
  * Image maps keep the rectangle editor (MapPage).
  */
-import { distanceTable, zoneKeyRows, zoneNumbers, type SiteMap } from "@campaign-forge/core";
+import { distanceTable, exitText, isDuctSheet, zoneKeyRows, zoneNumbers, type SiteMap, type ZoneKeyRow } from "@campaign-forge/core";
 import type { MapCheck } from "@campaign-forge/module-sdk";
 import { Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
@@ -37,6 +37,7 @@ import {
   downloadMapSvg,
   downloadRollPdf,
   downloadZoneKey,
+  deckIn,
   layoutForView,
   maxActOf,
   printMapTiles,
@@ -48,7 +49,7 @@ import "./sitemap.css";
 
 const VIEWS: Array<{ id: SiteMapViewKind; label: string; note: string }> = [
   { id: "gm", label: "GM map", note: "Everything: zone numbers, spawns, clues, NPCs, hazards, locks and act shading." },
-  { id: "player", label: "Player map", note: "What the crew can see, printed whole. At the table the player screen adds fog." },
+  { id: "player", label: "Player map", note: "What the crew can see, printed whole. At the table the player screen adds fog. Duct sheets join it once the players have crawled into one, fogged where they have not been." },
   { id: "tracking", label: "Tracking map", note: "Zone outlines, numbers and ducts, large enough to move hidden tokens on. One page per deck." },
 ];
 
@@ -60,7 +61,7 @@ export function SiteMapPage({ record, onDelete, scenesCard }: { record: SiteMap;
   const layout = record.layout!;
   const location = useRecord("entities", record.location);
   const [view, setView] = useState<SiteMapViewKind>("gm");
-  const [deck, setDeck] = useState<string | undefined>(layout.decks[0]?.id);
+  const [deckChoice, setDeck] = useState<string | undefined>(layout.decks[0]?.id);
   const [selected, setSelected] = useState<string | undefined>();
   const [paper, setPaper] = useState<PaperSize>("a4");
   const [exportTitle, setExportTitle] = useState(false);
@@ -69,7 +70,10 @@ export function SiteMapPage({ record, onDelete, scenesCard }: { record: SiteMap;
   // grid squares follow the view and scale until the GM ticks or unticks them
   const [gridChoice, setGridChoice] = useState<boolean | undefined>();
   const [rollTitle, setRollTitle] = useState(true);
-  const shown = useMemo(() => layoutForView(layout, view, def), [layout, view, def]);
+  const shown = useMemo(() => layoutForView(layout, view, def, record.live), [layout, view, def, record.live]);
+  // the player print has no duct sheet the players have not been in: fall back to the first deck
+  const deck = deckIn(shown, deckChoice);
+  const sheets = layout.decks.filter(isDuctSheet).length;
   const legend = def?.legend ?? [];
   const numbers = useMemo(() => zoneNumbers(layout), [layout]);
   const playable = numbers.size;
@@ -79,7 +83,7 @@ export function SiteMapPage({ record, onDelete, scenesCard }: { record: SiteMap;
   const rollOpts = useMemo(() => ({ view, deck, def, rollWidthIn: roll, mmPerMetre, gridSquares, titleBlock: rollTitle }), [view, deck, def, roll, mmPerMetre, gridSquares, rollTitle]);
   const plan = useMemo(() => rollPlan(record, rollOpts), [record, rollOpts]);
   // marker texts that did not fit in their zones: the map shows a letter, this line the text
-  const callouts = useMemo(() => drawSiteMap(shown, { view, deck, legend }).callouts, [shown, view, deck, legend]);
+  const callouts = useMemo(() => drawSiteMap(shown, { view, deck, legend, passable: def?.passable }).callouts, [shown, view, deck, legend, def]);
 
   const run = async (fn: () => unknown, what: string) => {
     try {
@@ -108,6 +112,8 @@ export function SiteMapPage({ record, onDelete, scenesCard }: { record: SiteMap;
               title={record.name}
               selected={selected ? [selected] : undefined}
               onSelectZone={view === "player" ? undefined : (z) => setSelected((s) => (s === z ? undefined : z))}
+              onFollowLink={(z) => setSelected(z)}
+              passable={def?.passable}
               className="prep-sitemap__map"
             />
             {callouts.length > 0 && (
@@ -247,8 +253,13 @@ export function SiteMapPage({ record, onDelete, scenesCard }: { record: SiteMap;
             <VisibilitySelect value={record.visibility} onChange={(v) => updateSiteMap(ctx, record.id, { visibility: v })} hasPlayers={meta.members.some((m) => m.role === "player")} />
             <Badge>{playable} zones</Badge>
             <Badge>
-              {layout.decks.length} deck{layout.decks.length === 1 ? "" : "s"}
+              {layout.decks.length - sheets} deck{layout.decks.length - sheets === 1 ? "" : "s"}
             </Badge>
+            {sheets > 0 && (
+              <Badge>
+                {sheets} duct sheet{sheets === 1 ? "" : "s"}
+              </Badge>
+            )}
             {def && <Badge title={record.generator ? `Seed ${record.generator.seed}` : undefined}>{def.name}</Badge>}
             {failing.some((c) => c.level === "block") && <Badge tone="danger">blocking checks fail</Badge>}
           </div>
@@ -272,16 +283,39 @@ export function SiteMapPage({ record, onDelete, scenesCard }: { record: SiteMap;
         tabs={VIEWS.map((v) => ({ id: v.id, label: v.label, content: body }))}
       />
 
-      <ZoneKeyCard record={record} onSelect={(id) => setSelected(id)} />
+      <ZoneKeyCard
+        record={record}
+        onSelect={(id) => {
+          setSelected(id);
+          // a duct zone's row opens its duct sheet
+          const z = layout.zones.find((x) => x.id === id);
+          if (z) setDeck(z.deck);
+        }}
+      />
       <DistanceCard record={record} maxAct={maxActOf(layout)} />
       <div className="app-grid">{scenesCard}</div>
     </div>
   );
 }
 
-function ZoneRowDetail({ row }: { row: ReturnType<typeof zoneKeyRows>[number] }) {
+/** One exit of a zone key row: "3 Larder (door)", or a duct sheet's "To Galley (Z14) (access)". */
+function ExitLine({ e }: { e: ZoneKeyRow["exits"][number] }) {
+  return (
+    <div data-exit-label={e.label ? "1" : undefined}>
+      {e.label ?? `${e.number ?? ""} ${e.name}`} <span className="cf-muted">({[e.kind, ...e.notes].join(", ")})</span>
+    </div>
+  );
+}
+
+function ZoneRowDetail({ row }: { row: ZoneKeyRow }) {
   return (
     <dl className="prep-sitemap__dl">
+      {row.layer === "duct" && (
+        <>
+          <dt>Sheet</dt>
+          <dd>{row.deckName}</dd>
+        </>
+      )}
       {row.flags.length > 0 && (
         <>
           <dt>Flags</dt>
@@ -289,15 +323,7 @@ function ZoneRowDetail({ row }: { row: ReturnType<typeof zoneKeyRows>[number] })
         </>
       )}
       <dt>Exits</dt>
-      <dd>
-        {row.exits.length === 0
-          ? "none"
-          : row.exits.map((e, i) => (
-              <div key={i}>
-                {e.number ?? ""} {e.name} <span className="cf-muted">({[e.kind, ...e.notes].join(", ")})</span>
-              </div>
-            ))}
-      </dd>
+      <dd>{row.exits.length === 0 ? "none" : row.exits.map((e, i) => <ExitLine key={i} e={e} />)}</dd>
       {row.details.length > 0 && (
         <>
           <dt>Details</dt>
@@ -389,14 +415,18 @@ function ZoneKeyCard({ record, onSelect }: { record: SiteMap; onSelect: (id: str
                   <button type="button" className="app-linkbtn" onClick={() => onSelect(r.id)}>
                     {r.name}
                   </button>
+                  {r.layer === "duct" && (
+                    <span className="cf-muted" data-zone-sheet={r.deck}>
+                      {" "}
+                      {r.id} · {r.deckName}
+                    </span>
+                  )}
                 </th>
                 <td>{r.cover}</td>
                 <td>{r.flags.join(", ")}</td>
-                <td>
+                <td title={r.exits.map(exitText).join("; ")}>
                   {r.exits.map((e, i) => (
-                    <div key={i}>
-                      {e.number ?? ""} {e.name} <span className="cf-muted">({[e.kind, ...e.notes].join(", ")})</span>
-                    </div>
+                    <ExitLine key={i} e={e} />
                   ))}
                 </td>
                 <td>{r.details.join("; ")}</td>

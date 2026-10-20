@@ -13,10 +13,13 @@ import {
   type MapBorderData,
   type MapGeneratorContext,
   type MapGeneratorDef,
+  type MapDeck,
   type MapGeneratorResult,
   type MapLegendEntry,
   type MapMarker,
+  type MapMove,
   type MapZoneData,
+  type MapZoneTable,
   type RangeBandDef,
   type Rng,
   type SiteLayout,
@@ -139,26 +142,52 @@ export interface BorderState {
   passable: boolean;
 }
 
-/** The effective state of one border in an act, live overrides included. */
-export function borderState(border: MapBorderData, opts: BorderStateOptions): BorderState {
+/** The effective state of one border in an act, live overrides included; `move` asks about one direction of travel. */
+export function borderState(border: MapBorderData, opts: BorderStateOptions, move?: MapMove): BorderState {
   const override = opts.live?.borders[border.id];
   const eff = effectiveBorder(border, opts.act, override);
-  const passable = opts.passable ? opts.passable(eff, opts.act) : defaultPassable(eff, opts.act);
+  const passable = opts.passable ? (move ? opts.passable(eff, opts.act, move) : opts.passable(eff, opts.act)) : defaultPassable(eff, opts.act);
   return { border: eff, locked: lockedInAct(eff, opts.act), sealed: !!eff.sealed, destroyed: !!override?.destroyed, passable };
 }
 
 /** zone id -> zone id -> number of borders crossed on the shortest passable path. Unreachable zones are absent. */
 export type ZoneDistances = Record<string, Record<string, number>>;
 
+/** Zone id -> the deck it is drawn on. */
+function zoneDecks(layout: Pick<SiteLayout, "decks" | "zones">): Map<string, MapDeck | undefined> {
+  const decks = new Map(layout.decks.map((d) => [d.id, d]));
+  return new Map(layout.zones.map((z) => [z.id, decks.get(z.deck)]));
+}
+
+function verticalBetween(from: MapDeck | undefined, to: MapDeck | undefined): MapMove["vertical"] {
+  const a = from?.level;
+  const b = to?.level;
+  if (typeof a !== "number" || typeof b !== "number" || a === b) return "level";
+  return b < a ? "down" : "up";
+}
+
+/** The move from one zone to another: the vertical direction comes from their decks' levels. */
+export function zoneMove(layout: Pick<SiteLayout, "decks" | "zones">, from: string, to: string): MapMove {
+  const decks = zoneDecks(layout);
+  return { from, to, vertical: verticalBetween(decks.get(from), decks.get(to)) };
+}
+
+/**
+ * Directed adjacency: each border is asked once per direction (the module's
+ * `passable` gets the move), so a one-way drop links its top to its bottom
+ * only. Duct sheets and floor decks are one graph.
+ */
 function adjacency(layout: SiteLayout, opts: BorderStateOptions): Map<string, string[]> {
   const adj = new Map<string, string[]>();
   for (const z of layout.zones) adj.set(z.id, []);
+  const decks = zoneDecks(layout);
   for (const b of layout.borders) {
     // hidden borders still count: the distance is the GM's truth
     if (!adj.has(b.a) || !adj.has(b.b) || b.a === b.b) continue;
-    if (!borderState(b, opts).passable) continue;
-    adj.get(b.a)!.push(b.b);
-    adj.get(b.b)!.push(b.a);
+    const ab: MapMove = { from: b.a, to: b.b, vertical: verticalBetween(decks.get(b.a), decks.get(b.b)) };
+    const ba: MapMove = { from: b.b, to: b.a, vertical: verticalBetween(decks.get(b.b), decks.get(b.a)) };
+    if (borderState(b, opts, ab).passable) adj.get(b.a)!.push(b.b);
+    if (borderState(b, opts, ba).passable) adj.get(b.b)!.push(b.a);
   }
   return adj;
 }
@@ -184,7 +213,9 @@ function bfs(adj: Map<string, string[]>, from: string): { dist: Map<string, numb
  * Shortest passable path (breadth-first, one step per border) from every
  * zone to every zone it can reach in `act`, honouring per-act locks, live
  * overrides (locked, open, sealed, destroyed) and sealed access points.
- * Hidden borders stay passable: the table is the GM's.
+ * Hidden borders stay passable: the table is the GM's. Shafts between duct
+ * sheets count like any border, in the directions the module's `passable`
+ * allows, so distances through a one-way drop are not symmetric.
  */
 export function zoneDistances(layout: SiteLayout, opts: BorderStateOptions & { from?: string[] }): ZoneDistances {
   const adj = adjacency(layout, opts);
@@ -256,13 +287,147 @@ export function flagLabels(flags: Record<string, unknown> | undefined, legend: M
   const hasFlagEntries = (legend ?? []).some((e) => isFlagTarget(e.target));
   if (hasFlagEntries) return matchingFlagEntries(legend, flags).map((e) => e.label);
   return Object.entries(flags)
-    .filter(([, v]) => v !== false && v !== undefined && v !== null && v !== 0 && v !== "")
+    .filter(([, v]) => v !== false && v !== undefined && v !== null && v !== 0 && v !== "" && typeof v !== "object")
     .map(([k, v]) => (v === true ? humanizeKey(k) : `${humanizeKey(k)}: ${String(v)}`));
 }
 
 export function borderKindLabel(kind: MapBorderData["kind"], legend: MapLegendEntry[] | undefined): string {
   const e = (legend ?? []).find((x) => "border" in x.target && x.target.border === kind);
   return e?.label ?? kind;
+}
+
+// ---------------------------------------------------------------------------
+// duct sheets: layers, deck groups, exits and shafts
+// ---------------------------------------------------------------------------
+
+/** True for a duct sheet: a deck generated as its own crawlspace level. */
+export function isDuctSheet(deck: Pick<MapDeck, "layer"> | undefined): boolean {
+  return deck?.layer === "duct";
+}
+
+/** A zone's layer: its own `layer`, else its deck's, else "floor". */
+export function zoneLayer(layout: Pick<SiteLayout, "decks">, z: Pick<MapZoneData, "layer" | "deck">): "floor" | "duct" {
+  if (z.layer) return z.layer;
+  return isDuctSheet(layout.decks.find((d) => d.id === z.deck)) ? "duct" : "floor";
+}
+
+/** Floor decks with the duct sheets under each, for the deck switcher. */
+export interface DeckGroup {
+  /** The floor deck; undefined for duct sheets that serve no floor deck. */
+  deck: MapDeck | undefined;
+  /** Its duct sheets, by level (lowest first), then layout order. */
+  ducts: MapDeck[];
+}
+
+/**
+ * Group decks for the deck switcher: every floor deck in layout order, each
+ * followed by the duct sheets it serves (`serves`, else the floor deck most
+ * of the sheet's access points open into). Sheets that serve none come last.
+ */
+export function deckGroups(layout: Pick<SiteLayout, "decks" | "zones" | "borders">): DeckGroup[] {
+  const floors = layout.decks.filter((d) => !isDuctSheet(d));
+  const groups: DeckGroup[] = floors.map((deck) => ({ deck, ducts: [] }));
+  const orphans: DeckGroup = { deck: undefined, ducts: [] };
+  const deckOfZone = new Map(layout.zones.map((z) => [z.id, z.deck]));
+  for (const sheet of layout.decks.filter(isDuctSheet)) {
+    let home = sheet.serves && floors.some((f) => f.id === sheet.serves) ? sheet.serves : undefined;
+    if (!home) {
+      const count = new Map<string, number>();
+      for (const b of layout.borders) {
+        const da = deckOfZone.get(b.a);
+        const db = deckOfZone.get(b.b);
+        const other = da === sheet.id ? db : db === sheet.id ? da : undefined;
+        if (other && floors.some((f) => f.id === other)) count.set(other, (count.get(other) ?? 0) + 1);
+      }
+      home = floors.map((f) => f.id).sort((a, b) => (count.get(b) ?? 0) - (count.get(a) ?? 0))[0];
+      if (home && !count.get(home)) home = undefined;
+    }
+    (groups.find((g) => g.deck?.id === home) ?? orphans).ducts.push(sheet);
+  }
+  const order = new Map(layout.decks.map((d, i) => [d.id, i]));
+  for (const g of [...groups, orphans]) g.ducts.sort((a, b) => (a.level ?? 0) - (b.level ?? 0) || order.get(a.id)! - order.get(b.id)!);
+  return orphans.ducts.length ? [...groups, orphans] : groups;
+}
+
+/** Decks in switcher order: each floor deck, then its duct sheets. */
+export function deckOrder(layout: Pick<SiteLayout, "decks" | "zones" | "borders">): MapDeck[] {
+  return deckGroups(layout).flatMap((g) => [...(g.deck ? [g.deck] : []), ...g.ducts]);
+}
+
+/** A duct exit: the floor zone a duct zone opens into, from its `exitTo` flag. */
+export interface ZoneExitTo {
+  zone: string;
+  name: string;
+}
+
+/** The `exitTo` flag of a duct exit zone, when it is well formed. */
+export function exitToOf(z: Pick<MapZoneData, "flags"> | undefined): ZoneExitTo | undefined {
+  const v = z?.flags?.exitTo;
+  if (!v || typeof v !== "object" || Array.isArray(v)) return undefined;
+  const o = v as Record<string, unknown>;
+  if (typeof o.zone !== "string" || !o.zone) return undefined;
+  return { zone: o.zone, name: typeof o.name === "string" && o.name ? o.name : o.zone };
+}
+
+/** The `ductTo` flag of a floor zone: the duct zone its access point leads to. */
+export function ductToOf(z: Pick<MapZoneData, "flags"> | undefined): { zone: string } | undefined {
+  const v = z?.flags?.ductTo;
+  if (!v || typeof v !== "object" || Array.isArray(v)) return undefined;
+  const zone = (v as Record<string, unknown>).zone;
+  return typeof zone === "string" && zone ? { zone } : undefined;
+}
+
+/** "To Galley (Z14)"; without the id on player outputs. */
+export function exitLabel(exit: ZoneExitTo, withId = true): string {
+  return withId ? `To ${exit.name} (${exit.zone})` : `To ${exit.name}`;
+}
+
+/** One shaft seen from one of its ends. */
+export interface ShaftLink {
+  border: MapBorderData;
+  /** The zone it is seen from, and the zone at the other end. */
+  zone: string;
+  other: string;
+  otherDeck: MapDeck | undefined;
+  /** Where the other end is: above, below, or on the same (or an unknown) level. */
+  direction: MapMove["vertical"];
+  /** Passable from this end to the other, and back, in the act. */
+  go: boolean;
+  back: boolean;
+}
+
+/** The shafts at a zone, with which ways they can be travelled (the module's `passable`, given the direction). */
+export function shaftLinks(layout: SiteLayout, zoneId: string, opts: BorderStateOptions): ShaftLink[] {
+  const decks = zoneDecks(layout);
+  const out: ShaftLink[] = [];
+  for (const b of layout.borders) {
+    if (b.kind !== "shaft" || (b.a !== zoneId && b.b !== zoneId) || b.a === b.b) continue;
+    const other = b.a === zoneId ? b.b : b.a;
+    if (!decks.has(other)) continue;
+    const go: MapMove = { from: zoneId, to: other, vertical: verticalBetween(decks.get(zoneId), decks.get(other)) };
+    const back: MapMove = { from: other, to: zoneId, vertical: verticalBetween(decks.get(other), decks.get(zoneId)) };
+    out.push({ border: b, zone: zoneId, other, otherDeck: decks.get(other), direction: go.vertical, go: borderState(b, opts, go).passable, back: borderState(b, opts, back).passable });
+  }
+  return out;
+}
+
+/** True for a one-way shaft: passable one way only. */
+export function isOneWay(link: Pick<ShaftLink, "go" | "back">): boolean {
+  return link.go !== link.back;
+}
+
+/**
+ * "Shaft up to Duct level 2, D07", "Drop down to Ducts A1, D03" (one-way,
+ * from the top), "Drop from Ducts A2, D07 (no climb back)" (one-way, from the
+ * bottom). Without the zone id on player outputs.
+ */
+export function shaftLabel(link: ShaftLink, withId = true): string {
+  const where = [link.otherDeck?.name, withId ? link.other : undefined].filter(Boolean).join(", ") || link.other;
+  const dir = link.direction === "up" ? "up " : link.direction === "down" ? "down " : "";
+  if (!link.go && !link.back) return `Shaft ${dir}to ${where} (blocked)`;
+  if (link.go && !link.back) return link.direction === "down" ? `Drop down to ${where}` : `Shaft ${dir}to ${where} (one-way)`;
+  if (!link.go && link.back) return link.direction === "up" ? `Drop from ${where} (no climb back)` : `Shaft ${dir}from ${where} (one-way)`;
+  return `Shaft ${dir}to ${where}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -277,9 +442,13 @@ const PLAYER_BORDER_FLAGS = new Set(["outerHull"]);
 
 export interface PlayerLayoutOptions {
   act: number;
-  /** Zones the players have seen; when given (and not printing) every other zone is fogged. */
+  /**
+   * Zones the players have seen. When given (and not printing) every other
+   * zone is fogged. Duct sheets read it in prints too: a duct sheet is shown
+   * only once one of its zones is in this list, with fog on the rest.
+   */
   revealed?: Id[] | undefined;
-  /** Printing shows the whole map (no fog); GM-only data is still removed. */
+  /** Printing shows the floor decks whole (no fog); GM-only data is still removed. */
   print?: boolean;
   /** The module legend: flags with a player-visible legend entry stay. */
   legend?: MapLegendEntry[] | undefined;
@@ -313,6 +482,17 @@ export function playerFlagNames(legend: MapLegendEntry[] | undefined): Set<strin
  *   of key zones, the player note and legend-visible flags; GM notes, act
  *   shading, details and salvage are dropped;
  * - fogged zones keep only id, deck, kind, layer and outline;
+ * - duct zones drawn on a floor deck are outlines only;
+ * - duct sheets (decks with layer "duct") are left out entirely, zones,
+ *   borders and markers included, until one of their zones is revealed or
+ *   known (a `known` border touches it); in prints too (a print with no
+ *   `revealed` list and no known borders has no duct sheets). On a shown
+ *   sheet, revealed zones are projected like floor zones but without names,
+ *   known zones are fogged outlines, and every other zone is left out,
+ *   outline included (the renderer fogs the whole sheet behind them);
+ * - exit labels (`exitTo` on a duct zone, `ductTo` on a floor zone) are
+ *   dropped unless the legend shows that flag to players or the live state
+ *   marks the border between the two zones `known`, and only on visible zones;
  * - hidden borders are dropped unless the live state marks them `known`;
  *   locks show only when `known`; armor, hit points and GM flags are dropped;
  * - markers keep only player kinds (start, win, label, hazard) that are not
@@ -321,9 +501,21 @@ export function playerFlagNames(legend: MapLegendEntry[] | undefined): Set<strin
  */
 export function playerLayout(layout: SiteLayout, opts: PlayerLayoutOptions): PlayerLayout {
   const visibleFlags = playerFlagNames(opts.legend);
-  const revealed = opts.revealed && !opts.print ? new Set(opts.revealed) : undefined;
+  const seen = new Set(opts.revealed ?? []);
+  const revealed = opts.revealed && !opts.print ? seen : undefined;
   const fogged = new Set<string>();
   const borderLive = opts.live?.borders ?? {};
+
+  // duct sheets: a zone is found when revealed, known when a border into it is known
+  const sheets = new Set(layout.decks.filter(isDuctSheet).map((d) => d.id));
+  const knownZones = new Set<string>();
+  for (const b of layout.borders) {
+    if (borderLive[b.id]?.known !== true) continue;
+    knownZones.add(b.a);
+    knownZones.add(b.b);
+  }
+  const shownSheets = new Set<string>();
+  for (const z of layout.zones) if (sheets.has(z.deck) && (seen.has(z.id) || knownZones.has(z.id))) shownSheets.add(z.deck);
 
   // borders first: a duct reached only by hidden borders is a secret network
   const shownBorders = layout.borders.filter((b) => !b.hidden || borderLive[b.id]?.known === true);
@@ -334,15 +526,23 @@ export function playerLayout(layout: SiteLayout, opts: PlayerLayoutOptions): Pla
   }
   const secret = new Set<string>();
   for (const z of layout.zones) {
+    // on a duct sheet, zones the crew has neither found nor heard of are left out, outlines and all
+    if (sheets.has(z.deck) && (!shownSheets.has(z.deck) || (!seen.has(z.id) && !knownZones.has(z.id)))) {
+      secret.add(z.id);
+      continue;
+    }
     if (z.layer !== "duct") continue;
     const all = layout.borders.filter((b) => b.a === z.id || b.b === z.id);
     if (all.length > 0 && !touched.has(z.id)) secret.add(z.id);
   }
+  // exit labels show once the players know the link between the two zones
+  const knownLink = (a: string, b: string) => layout.borders.some((x) => ((x.a === a && x.b === b) || (x.a === b && x.b === a)) && borderLive[x.id]?.known === true);
 
   const zones: MapZoneData[] = [];
   for (const z of layout.zones) {
     if (secret.has(z.id)) continue;
-    const isFogged = !!revealed && z.kind !== "out-of-bounds" && !revealed.has(z.id);
+    const onSheet = sheets.has(z.deck);
+    const isFogged = z.kind !== "out-of-bounds" && (onSheet ? !seen.has(z.id) : !!revealed && !revealed.has(z.id));
     const base: MapZoneData = { id: z.id, deck: z.deck, kind: z.kind, poly: z.poly.map((p) => [p[0], p[1]] as [number, number]), cluttered: false };
     if (z.layer) base.layer = z.layer;
     if (isFogged) {
@@ -350,8 +550,8 @@ export function playerLayout(layout: SiteLayout, opts: PlayerLayoutOptions): Pla
       zones.push(base);
       continue;
     }
-    // duct zones are outlines only
-    if (z.layer === "duct") {
+    // duct zones on a floor deck are outlines only
+    if (z.layer === "duct" && !onSheet) {
       zones.push(base);
       continue;
     }
@@ -359,11 +559,16 @@ export function playerLayout(layout: SiteLayout, opts: PlayerLayoutOptions): Pla
     if (z.area !== undefined) base.area = z.area;
     if (z.key) {
       base.key = true;
-      if (z.name !== undefined) base.name = z.name;
+      // duct zone names are the GM's
+      if (z.name !== undefined && !onSheet) base.name = z.name;
     }
     if (z.playerNote !== undefined) base.playerNote = z.playerNote;
-    const flags = playerFlags(z.flags, visibleFlags);
-    if (flags) base.flags = flags;
+    const flags = playerFlags(z.flags, visibleFlags) ?? {};
+    const exit = exitToOf(z);
+    if (exit && (visibleFlags.has("exitTo") || knownLink(z.id, exit.zone))) flags.exitTo = { zone: exit.zone, name: exit.name };
+    const duct = ductToOf(z);
+    if (duct && (visibleFlags.has("ductTo") || knownLink(z.id, duct.zone))) flags.ductTo = { zone: duct.zone };
+    if (Object.keys(flags).length) base.flags = flags;
     zones.push(base);
   }
   const zoneIds = new Set(zones.map((z) => z.id));
@@ -398,14 +603,17 @@ export function playerLayout(layout: SiteLayout, opts: PlayerLayoutOptions): Pla
     markers.push({ id: m.id, kind: m.kind, zone: m.zone, label: m.label, gmOnly: false });
   }
 
-  const out: PlayerLayout = {
-    decks: layout.decks.map((d) => ({ id: d.id, name: d.name, width: d.width, height: d.height })),
-    zones,
-    borders,
-    markers,
-    checks: [],
-    fogged: [...fogged],
-  };
+  const decks: MapDeck[] = [];
+  for (const d of layout.decks) {
+    if (sheets.has(d.id) && !shownSheets.has(d.id)) continue;
+    const out: MapDeck = { id: d.id, name: d.name, width: d.width, height: d.height };
+    if (d.layer) out.layer = d.layer;
+    if (typeof d.level === "number") out.level = d.level;
+    if (d.serves !== undefined) out.serves = d.serves;
+    decks.push(out);
+  }
+
+  const out: PlayerLayout = { decks, zones, borders, markers, checks: [], fogged: [...fogged] };
   if (layout.start && zoneIds.has(layout.start)) out.start = layout.start;
   if (layout.gridM !== undefined) out.gridM = layout.gridM;
   return out;
@@ -589,6 +797,31 @@ export function clearPings(store: CampaignStore, mapId: Id): SiteMapLiveState {
   });
 }
 
+/** True when a zone table's `when` matches a zone (every condition it names must hold; live flags count). */
+export function zoneTableMatches(t: MapZoneTable, z: MapZoneData, layout: Pick<SiteLayout, "decks">, liveFlags?: Record<string, unknown>): boolean {
+  const w = t.when ?? {};
+  if (w.layer !== undefined && zoneLayer(layout, z) !== w.layer) return false;
+  if (w.kind !== undefined && z.kind !== w.kind) return false;
+  if (w.flag !== undefined) {
+    const flags = { ...(z.flags ?? {}), ...(liveFlags ?? {}) };
+    if (!flags[w.flag]) return false;
+  }
+  return true;
+}
+
+/**
+ * The module's zone tables (e.g. a duct event table) that apply to a zone,
+ * for the GM at the table. GM-only: never project these to players.
+ */
+export function ductEventsFor(map: Pick<SiteMap, "layout" | "generator" | "live">, module: MapModule | undefined, zoneId: Id): MapZoneTable[] {
+  const layout = map.layout;
+  const z = layout?.zones.find((x) => x.id === zoneId);
+  if (!layout || !z) return [];
+  const tables = generatorFor(map, module)?.zoneTables ?? [];
+  const liveFlags = map.live?.zoneFlags?.[zoneId];
+  return tables.filter((t) => zoneTableMatches(t, z, layout, liveFlags));
+}
+
 // ---------------------------------------------------------------------------
 // exports: zone key and distance table
 // ---------------------------------------------------------------------------
@@ -599,9 +832,13 @@ export interface ZoneKeyRow {
   name: string;
   kind: string;
   deck: string;
+  /** The deck's name, and whether it is a duct sheet zone. */
+  deckName: string;
+  layer: "floor" | "duct";
   cover: "cluttered" | "open";
   flags: string[];
-  exits: Array<{ zone: string; number: number | undefined; name: string; kind: string; notes: string[] }>;
+  /** `label` reads the link for duct sheets: "To Galley (Z14)", "Shaft up to Duct level 2, D07", "Duct access to Ducts A1, D07". */
+  exits: Array<{ zone: string; number: number | undefined; name: string; kind: string; notes: string[]; label?: string | undefined }>;
   details: string[];
   salvage: string[];
   clues: string[];
@@ -613,7 +850,7 @@ function zoneName(z: MapZoneData | undefined, fallback: string): string {
 }
 
 /** One row per playable zone, in map-number order: the GM's zone key. */
-export function zoneKeyRows(map: Pick<SiteMap, "layout" | "generator">, module?: MapModule): ZoneKeyRow[] {
+export function zoneKeyRows(map: Pick<SiteMap, "layout" | "generator"> & { live?: SiteMap["live"] }, module?: MapModule): ZoneKeyRow[] {
   const layout = map.layout;
   if (!layout) return [];
   const legend = generatorFor(map, module)?.legend;
@@ -621,11 +858,17 @@ export function zoneKeyRows(map: Pick<SiteMap, "layout" | "generator">, module?:
   const byId = new Map(layout.zones.map((z) => [z.id, z]));
   const rows: ZoneKeyRow[] = [];
   const ordered = [...numbers.keys()].map((id) => byId.get(id)!);
+  const decks = new Map(layout.decks.map((d) => [d.id, d]));
+  const def = generatorFor(map, module);
+  const stateOpts: BorderStateOptions = { act: map.live?.act ?? 1, passable: def?.passable };
   for (const z of ordered) {
     const exits: ZoneKeyRow["exits"] = [];
+    const exitTo = exitToOf(z);
+    const shafts = new Map(shaftLinks(layout, z.id, stateOpts).map((l) => [l.border.id, l]));
     for (const b of layout.borders) {
       if (b.a !== z.id && b.b !== z.id) continue;
       const other = b.a === z.id ? b.b : b.a;
+      const oz = byId.get(other);
       const notes: string[] = [];
       if (b.lock && b.lock !== "none") notes.push(`${b.lock} lock`);
       if (b.lockedInActs?.length) notes.push(`locked in act ${b.lockedInActs.join(", ")}`);
@@ -634,14 +877,23 @@ export function zoneKeyRows(map: Pick<SiteMap, "layout" | "generator">, module?:
       if (typeof b.armor === "number") notes.push(`armor ${b.armor}`);
       if (typeof b.hp === "number") notes.push(`${b.hp} HP`);
       notes.push(...flagLabels(b.flags, legend));
-      exits.push({ zone: other, number: numbers.get(other), name: zoneName(byId.get(other), other), kind: borderKindLabel(b.kind, legend), notes });
+      let label: string | undefined;
+      const shaft = shafts.get(b.id);
+      if (shaft) label = shaftLabel(shaft);
+      else if (oz && oz.deck !== z.deck && zoneLayer(layout, z) === "duct" && zoneLayer(layout, oz) === "floor") label = exitLabel(exitTo?.zone === other ? exitTo : { zone: other, name: zoneName(oz, other) });
+      else if (oz && oz.deck !== z.deck && zoneLayer(layout, oz) === "duct") label = `Duct access to ${[decks.get(oz.deck)?.name, other].filter(Boolean).join(", ")}`;
+      exits.push({ zone: other, number: numbers.get(other), name: zoneName(oz, other), kind: borderKindLabel(b.kind, legend), notes, ...(label ? { label } : {}) });
     }
+    // an exit label whose room has no border here still reads in the key
+    if (exitTo && !exits.some((e) => e.zone === exitTo.zone)) exits.push({ zone: exitTo.zone, number: numbers.get(exitTo.zone), name: exitTo.name, kind: "exit", notes: [], label: exitLabel(exitTo) });
     rows.push({
       number: numbers.get(z.id),
       id: z.id,
       name: zoneName(z, z.id),
       kind: z.kind,
       deck: z.deck,
+      deckName: decks.get(z.deck)?.name ?? z.deck,
+      layer: zoneLayer(layout, z),
       cover: z.cluttered ? "cluttered" : "open",
       flags: flagLabels(z.flags, legend),
       exits,
@@ -654,8 +906,9 @@ export function zoneKeyRows(map: Pick<SiteMap, "layout" | "generator">, module?:
   return rows;
 }
 
-function exitText(e: ZoneKeyRow["exits"][number]): string {
-  const who = e.number !== undefined ? `${e.number} ${e.name}` : e.name;
+/** One exit as the zone key writes it: "3 Larder (door)", "To Galley (Z14) (access, hidden)". */
+export function exitText(e: ZoneKeyRow["exits"][number]): string {
+  const who = e.label ?? (e.number !== undefined ? `${e.number} ${e.name}` : e.name);
   return `${who} (${[e.kind, ...e.notes].join(", ")})`;
 }
 
