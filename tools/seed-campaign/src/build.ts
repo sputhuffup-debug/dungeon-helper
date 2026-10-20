@@ -5,6 +5,11 @@
  * else (names, types, fields, structure, text) depends only on the seed and
  * the module version.
  *
+ * Besides the job, the crew and the adventure it carries a xenomorph life
+ * cycle already running on an NPC (the module's `alien.gestation` tracker),
+ * and a planned first session whose checklist the app fills in. The Life Path
+ * may roll android PCs, whose critical injuries use the android table.
+ *
  * Browser-safe: no `node:` imports here or in index.ts (the web app offers
  * "Load demo campaign" through `demoCampaignJSON`). File I/O lives in cli.ts.
  */
@@ -39,6 +44,7 @@ import {
   type Visibility,
 } from "@campaign-forge/core";
 import { alienModule } from "@campaign-forge/module-alien";
+import { startInfection } from "./infection";
 
 export const DEMO_SEED = "skyfire-down";
 export const DEMO_NAME = "Skyfire Down";
@@ -336,6 +342,12 @@ export function buildDemoCampaign(opts: BuildDemoOptions = {}): DemoCampaign {
   const creatures = sample(rng.fork("creatures"), creaturePool, 2).map((p) => presetToEntity(store, p, { visibility: GM }));
   for (const c of creatures) store.createRelationship("found_at", c.id, planet.id, "Waiting at the destination", GM);
 
+  // -- a life cycle already running: an NPC at the port carries an embryo --
+  // Infected before a long hypersleep, which slows gestation after revival (p. 216): the
+  // embryo grows at a quarter of the normal pace, so the crew has a few shifts to notice.
+  const host = [wildcard, ...npcs].find((n) => n.fields["android"] !== true && n.id !== contact.id) ?? wildcard;
+  startInfection(store, mod, { host, stage: "gestating", pace: "much-slower", seed: `${seed}/infection` });
+
   // -- the adventure from the module's campaign-mode adventure template --------
   const template = mod.templatesFor("adventure", "campaign")[0] ?? mod.templatesFor("adventure")[0];
   if (!template) throw new Error("module has no adventure template");
@@ -371,6 +383,8 @@ export function buildDemoCampaign(opts: BuildDemoOptions = {}): DemoCampaign {
       ...(twist ? [`- Twist: ${twist}`] : []),
       "",
       `Something is loose on ${ref(planet)}: ${creatures.map(ref).join(" and ")}.`,
+      "",
+      `Closer to home: ${ref(host)} carries a xenomorph embryo, picked up off-station before a long hypersleep that slowed it. It is growing; the life-cycle tracker counts it down at the table.`,
     ].join("\n"),
   );
   writeDoc(registry, adventure.epilogueDoc, `If the crew gets paid, ${ref(employer)} offers a second contract. If not, ${ref(wildcard)} knows someone who buys salvage.`);
@@ -440,6 +454,7 @@ export function buildDemoCampaign(opts: BuildDemoOptions = {}): DemoCampaign {
       `Run the briefing with ${contact.name}.`,
       `Let the crew haggle; the ceiling is $${Math.round(payment * 1.25).toLocaleString("en-US")}.`,
       "End on hypersleep, or on the first complication if time allows.",
+      `Check the life-cycle tracker: ${host.name} is carrying an embryo.`,
     ],
   });
   writeDoc(registry, session.logDoc, `Plan: briefing in ${ref(homeSite)}, loading the ${ref(ship)}, departure.`);

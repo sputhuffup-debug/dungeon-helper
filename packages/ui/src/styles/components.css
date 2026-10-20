@@ -1872,6 +1872,31 @@
   display: inline-flex;
   gap: var(--cf-space-1);
   flex-wrap: wrap;
+  align-items: flex-start;
+}
+/* a floor deck with its duct sheets underneath */
+.cf-sitemap__deckgroup {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+.cf-sitemap__ducts {
+  display: inline-flex;
+  gap: 2px;
+  flex-wrap: wrap;
+  padding-left: var(--cf-space-2);
+  border-left: 2px solid #3a4c59;
+}
+.cf-sitemap__ductbtn {
+  font-size: 0.85em;
+}
+.cf-sitemap__ductbtn[aria-pressed="false"] {
+  background: #24323d;
+  color: #e8eff4;
+}
+.cf-sitemap__link {
+  cursor: pointer;
 }
 .cf-maplegend {
   display: grid;

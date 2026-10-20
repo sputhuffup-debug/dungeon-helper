@@ -3,6 +3,10 @@ import type { MapBorderData, MapGeneratorDef, MapLegendEntry, MapMarker, MapZone
 import {
   addPing,
   clearPings,
+  deckGroups,
+  ductEventsFor,
+  shaftLinks,
+  zoneMove,
   distanceTable,
   distanceTableCsv,
   distanceTableJson,
@@ -509,5 +513,269 @@ describe("runMapGenerator", () => {
     expect(seen[1]).toBe(seen[3]);
     expect(seen[4]).not.toBe(seen[0]);
     expect(seen[5]).toBe(seen[1]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// duct sheets
+// ---------------------------------------------------------------------------
+
+/** One-way shafts (flag `oneWay`) are drops: passable downward only. */
+const dropRule: NonNullable<MapGeneratorDef["passable"]> = (b, _act, move) => {
+  if (b.kind === "wall" || b.sealed) return false;
+  if (b.kind === "shaft" && b.flags?.oneWay === true && move && move.vertical !== "down") return false;
+  return true;
+};
+
+/**
+ * A floor deck F (level 1) with rooms A and B behind a wall; a duct sheet S1
+ * (level 1) with D1 - D2; a duct sheet S0 (level 0) with U1 - U2. A opens into
+ * D1, D2 drops one way into U1, U2 opens into B. A ladder L joins D1 and U2.
+ */
+function ductLayout(): SiteLayout {
+  const duct = (id: string, deck: string, x: number, extra: Partial<MapZoneData> = {}): MapZoneData => ({ id, deck, kind: "crawlspace", layer: "duct", poly: sq(x, 0, 3, 1), cluttered: false, ...extra });
+  return {
+    decks: [
+      { id: "F", name: "Deck A", width: 20, height: 6, layer: "floor", level: 1 },
+      { id: "S1", name: "Ducts A1", width: 12, height: 4, layer: "duct", level: 1, serves: "F" },
+      { id: "S0", name: "Ducts A0", width: 12, height: 4, layer: "duct", level: 0 },
+    ],
+    zones: [
+      { id: "A", deck: "F", kind: "room", layer: "floor", poly: sq(0, 0), cluttered: false, key: true, name: "Galley", flags: { ductTo: { zone: "D1" } } },
+      { id: "B", deck: "F", kind: "room", layer: "floor", poly: sq(4, 0), cluttered: false, key: true, name: "Brig", flags: { ductTo: { zone: "U2" } } },
+      duct("D1", "S1", 0, { flags: { exitTo: { zone: "A", name: "Galley" } } }),
+      duct("D2", "S1", 3, { flags: { fan: true } }),
+      duct("U1", "S0", 0),
+      duct("U2", "S0", 3, { flags: { exitTo: { zone: "B", name: "Brig" } } }),
+    ],
+    borders: [
+      { id: "ab", a: "A", b: "B", kind: "wall", segment: [[4, 0], [4, 4]] },
+      { id: "a-d1", a: "A", b: "D1", kind: "access" },
+      { id: "d1-d2", a: "D1", b: "D2", kind: "open" },
+      { id: "drop", a: "D2", b: "U1", kind: "shaft", flags: { dropM: 4, oneWay: true } },
+      { id: "u1-u2", a: "U1", b: "U2", kind: "open" },
+      { id: "u2-b", a: "U2", b: "B", kind: "access", hidden: true },
+    ],
+    markers: [{ id: "m", kind: "spawn", zone: "D2", label: "Lurker", gmOnly: true }],
+    start: "A",
+    gridM: 1,
+    checks: [],
+  };
+}
+
+const ductGen: MapGeneratorDef = {
+  id: "test.ducts",
+  name: "Ducts",
+  inputs: { type: "object" },
+  stages: [],
+  generate: () => ({ layout: ductLayout(), attempts: 1 }),
+  passable: dropRule,
+  legend: [{ target: { flag: "fan" }, label: "Fan", gmOnly: true, icon: "fan" }],
+  zoneTables: [
+    { table: "t.duct", label: "Duct event", when: { layer: "duct" }, hint: "Roll on entering." },
+    { table: "t.fan", label: "Fan", when: { flag: "fan" } },
+    { table: "t.room", label: "Room", when: { layer: "floor", kind: "room" } },
+  ],
+};
+const ductModule = { mapGenerators: [ductGen] };
+
+describe("duct sheets: distances", () => {
+  it("runs through shafts between sheets, one-way drops downward only", () => {
+    const l = ductLayout();
+    const d = zoneDistances(l, { act: 1, passable: dropRule });
+    // A - D1 - D2 - (drop) U1 - U2 - B
+    expect(d.A!.B).toBe(5);
+    expect(d.D2!.U1).toBe(1);
+    // no climbing back up the drop: from below, the upper sheet is out of reach
+    expect(d.U1!.D2).toBeUndefined();
+    expect(d.B!.A).toBeUndefined();
+    expect(zonePath(l, "A", "B", { act: 1, passable: dropRule })).toEqual(["A", "D1", "D2", "U1", "U2", "B"]);
+    expect(zonePath(l, "B", "A", { act: 1, passable: dropRule })).toBeUndefined();
+    // without the module's rule a shaft is an ordinary two-way link
+    expect(zoneDistances(l, { act: 1 }).B!.A).toBe(5);
+    // a ladder back up makes the round trip
+    l.borders.push({ id: "ladder", a: "U2", b: "D1", kind: "shaft" });
+    const back = zoneDistances(l, { act: 1, passable: dropRule });
+    expect(back.B!.A).toBe(3);
+    expect(back.A!.B).toBe(3);
+    // a sealed shaft blocks both ways
+    expect(zoneDistances(l, { act: 1, passable: dropRule, live: { borders: { ladder: { sealed: true } } } }).B!.A).toBeUndefined();
+  });
+
+  it("passes the direction of travel to the module, from the decks' levels", () => {
+    const l = ductLayout();
+    expect(zoneMove(l, "D2", "U1")).toEqual({ from: "D2", to: "U1", vertical: "down" });
+    expect(zoneMove(l, "U1", "D2").vertical).toBe("up");
+    expect(zoneMove(l, "A", "D1").vertical).toBe("level");
+    const seen: string[] = [];
+    zoneDistances(l, { act: 1, passable: (b, _a, move) => (seen.push(`${b.id}:${move?.from}>${move?.to}:${move?.vertical}`), true) });
+    expect(seen).toContain("drop:D2>U1:down");
+    expect(seen).toContain("drop:U1>D2:up");
+    const [link] = shaftLinks(l, "D2", { act: 1, passable: dropRule });
+    expect(link).toMatchObject({ other: "U1", direction: "down", go: true, back: false });
+    expect(shaftLinks(l, "U1", { act: 1, passable: dropRule })[0]).toMatchObject({ other: "D2", direction: "up", go: false, back: true });
+  });
+
+  it("groups duct sheets under the floor deck they serve, by level", () => {
+    const groups = deckGroups(ductLayout());
+    // S0 serves no deck, but its access point opens into deck F
+    expect(groups.map((g) => [g.deck?.id, g.ducts.map((d) => d.id)])).toEqual([["F", ["S0", "S1"]]]);
+    const lone = ductLayout();
+    lone.borders = lone.borders.filter((b) => b.id !== "u2-b");
+    expect(deckGroups(lone).map((g) => [g.deck?.id, g.ducts.map((d) => d.id)])).toEqual([
+      ["F", ["S1"]],
+      [undefined, ["S0"]],
+    ]);
+  });
+});
+
+describe("duct sheets: player projection", () => {
+  it("leaves duct sheets out until one of their zones is revealed or known; unfound zones stay out, outlines and all", () => {
+    const l = ductLayout();
+    const none = playerLayout(l, { act: 1, revealed: ["A"] });
+    expect(none.decks.map((d) => d.id)).toEqual(["F"]);
+    expect(none.zones.map((z) => z.id)).toEqual(["A", "B"]);
+    // the access point into an unseen sheet is not drawn either
+    expect(none.borders.map((b) => b.id)).toEqual(["ab"]);
+    const one = playerLayout(l, { act: 1, revealed: ["A", "D1"] });
+    expect(one.decks.map((d) => d.id)).toEqual(["F", "S1"]);
+    expect(one.decks[1]).toEqual({ id: "S1", name: "Ducts A1", width: 12, height: 4, layer: "duct", level: 1, serves: "F" });
+    expect(one.fogged.sort()).toEqual(["B"]);
+    expect(one.zones.map((z) => z.id)).toEqual(["A", "B", "D1"]);
+    expect(one.markers).toEqual([]);
+    // the drop leads further into the unknown: no run, no shaft yet
+    expect(one.borders.map((b) => b.id).sort()).toEqual(["a-d1", "ab"]);
+    // a known border makes its far zone a fogged outline, and can bring a sheet in
+    const known = playerLayout(l, { act: 1, revealed: ["A", "D1"], live: { borders: { "d1-d2": { known: true }, "u2-b": { known: true } } } });
+    expect(known.decks.map((d) => d.id)).toEqual(["F", "S1", "S0"]);
+    expect(known.fogged.sort()).toEqual(["B", "D2", "U2"]);
+    expect(known.zones.find((z) => z.id === "D2")).toEqual({ id: "D2", deck: "S1", kind: "crawlspace", layer: "duct", poly: sq(3, 0, 3, 1), cluttered: false });
+    // duct zone names are the GM's, even for key zones
+    const named = ductLayout();
+    named.zones.find((z) => z.id === "D1")!.key = true;
+    named.zones.find((z) => z.id === "D1")!.name = "Secret vent";
+    expect(JSON.stringify(playerLayout(named, { act: 1, revealed: ["D1"] }))).not.toContain("Secret vent");
+  });
+
+  it("prints duct sheets for players only once revealed, with fog on what is not", () => {
+    const l = ductLayout();
+    expect(playerLayout(l, { act: 1, print: true }).decks.map((d) => d.id)).toEqual(["F"]);
+    const p = playerLayout(l, { act: 1, print: true, revealed: ["D1", "D2", "U1"] });
+    expect(p.decks.map((d) => d.id)).toEqual(["F", "S1", "S0"]);
+    // floor decks print whole; on duct sheets only what the players found
+    expect(p.fogged).toEqual([]);
+    expect(p.zones.map((z) => z.id)).toEqual(["A", "B", "D1", "D2", "U1"]);
+    expect(p.borders.map((b) => b.id)).toContain("drop");
+  });
+
+  it("drops hazard flags and exit labels until the legend shows them or the link is known", () => {
+    const l = ductLayout();
+    const revealed = ["A", "B", "D1", "D2", "U1", "U2"];
+    const plain = playerLayout(l, { act: 1, revealed, legend: ductGen.legend });
+    for (const z of plain.zones) expect(z.flags).toBeUndefined();
+    const known = playerLayout(l, { act: 1, revealed, legend: ductGen.legend, live: { borders: { "a-d1": { known: true } } } });
+    expect(known.zones.find((z) => z.id === "D1")!.flags).toEqual({ exitTo: { zone: "A", name: "Galley" } });
+    expect(known.zones.find((z) => z.id === "A")!.flags).toEqual({ ductTo: { zone: "D1" } });
+    expect(known.zones.find((z) => z.id === "U2")!.flags).toBeUndefined();
+    expect(known.zones.find((z) => z.id === "D2")!.flags).toBeUndefined();
+    const shown = playerLayout(l, { act: 1, revealed, legend: [{ target: { flag: "fan" }, label: "Fan" }, { target: { flag: "exitTo" }, label: "Exit" }] });
+    expect(shown.zones.find((z) => z.id === "D2")!.flags).toEqual({ fan: true });
+    expect(shown.zones.find((z) => z.id === "U2")!.flags).toEqual({ exitTo: { zone: "B", name: "Brig" } });
+    // a fogged zone keeps no flags at all
+    const fog = playerLayout(l, { act: 1, revealed: ["D1"], legend: [{ target: { flag: "exitTo" }, label: "Exit" }] });
+    expect(fog.zones.find((z) => z.id === "A")!.flags).toBeUndefined();
+  });
+
+  it("never lets an unrevealed duct sheet, a GM hazard or an unknown exit through (property test)", () => {
+    for (let seed = 1; seed <= 200; seed++) {
+      const r = seededRandom(seed * 13);
+      const sheets = ["s1", "s2"];
+      const zones: MapZoneData[] = [];
+      const n = 4 + Math.floor(r() * 8);
+      for (let i = 0; i < n; i++) {
+        const onSheet = r() < 0.6;
+        const deck = onSheet ? sheets[Math.floor(r() * 2)]! : "f";
+        const z: MapZoneData = { id: `z${i}`, deck, kind: onSheet ? "crawlspace" : "room", layer: onSheet ? "duct" : "floor", poly: sq(i * 3, 0, 3, 1), cluttered: r() < 0.5, gmNote: `${SECRET}-note`, flags: { [`${SECRET}haz`]: true, fan: r() < 0.5 } };
+        const target = `z${Math.floor(r() * n)}`;
+        if (onSheet && r() < 0.6) z.flags!.exitTo = { zone: target, name: `${SECRET}-exit-${i}` };
+        if (!onSheet && r() < 0.6) z.flags!.ductTo = { zone: `${SECRET}-duct-${target}` };
+        zones.push(z);
+      }
+      const borders: MapBorderData[] = [];
+      for (let i = 0; i < n * 2; i++) {
+        const a = `z${Math.floor(r() * n)}`;
+        const b = `z${Math.floor(r() * n)}`;
+        borders.push({ id: `b${i}`, a, b, kind: (["open", "access", "shaft", "hatch"] as const)[Math.floor(r() * 4)]!, flags: { dropM: 3, oneWay: r() < 0.5 } });
+      }
+      const layout: SiteLayout = {
+        decks: [
+          { id: "f", name: "Floor", width: 60, height: 4 },
+          { id: "s1", name: "Sheet one", width: 60, height: 4, layer: "duct", level: 2 },
+          { id: "s2", name: "Sheet two", width: 60, height: 4, layer: "duct", level: 0 },
+        ],
+        zones,
+        borders,
+        markers: [],
+        checks: [],
+      };
+      const legend: MapLegendEntry[] = [{ target: { flag: "fan" }, label: "Fan", gmOnly: true, icon: "fan" }];
+      const revealed = zones.filter(() => r() < 0.4).map((z) => z.id);
+      for (const opts of [{ act: 1 }, { act: 1, revealed }, { act: 1, revealed, print: true }, { act: 1, print: true }, { act: 2, revealed, legend }]) {
+        const out = playerLayout(layout, opts);
+        const json = JSON.stringify(out);
+        expect(json, `seed ${seed}`).not.toContain(SECRET);
+        expect(json).not.toContain('"fan"');
+        const seen = new Set(opts.revealed ?? []);
+        const shownSheets = new Set(zones.filter((z) => z.deck !== "f" && seen.has(z.id)).map((z) => z.deck));
+        expect(out.decks.filter((d) => d.layer === "duct").map((d) => d.id).sort(), `seed ${seed}`).toEqual([...shownSheets].sort());
+        for (const z of out.zones) {
+          if (z.deck === "f") continue;
+          expect(shownSheets.has(z.deck)).toBe(true);
+          // duct sheet zones are only those the players found (no known borders here)
+          expect(seen.has(z.id)).toBe(true);
+          expect(out.fogged.includes(z.id)).toBe(false);
+          expect(z.name).toBeUndefined();
+          expect(z.flags?.exitTo).toBeUndefined();
+        }
+        for (const b of out.borders) expect(out.zones.some((z) => z.id === b.a) && out.zones.some((z) => z.id === b.b)).toBe(true);
+      }
+    }
+  }, 60_000);
+});
+
+describe("duct sheets: zone key and duct events", () => {
+  const map = (): Pick<SiteMap, "layout" | "generator" | "live" | "name"> => ({ name: "Ducts", layout: ductLayout(), generator: { id: "test.ducts", seed: "s", inputs: {} } });
+
+  it("lists exits by the room they open into and shafts by sheet and zone", () => {
+    const rows = zoneKeyRows(map(), ductModule);
+    const row = (id: string) => rows.find((r) => r.id === id)!;
+    expect(row("D1")).toMatchObject({ deckName: "Ducts A1", layer: "duct" });
+    expect(row("D1").exits.map((e) => e.label)).toEqual(["To Galley (A)", undefined]);
+    expect(row("D2").exits.map((e) => e.label)).toEqual([undefined, "Drop down to Ducts A0, U1"]);
+    expect(row("U1").exits.map((e) => e.label)).toEqual(["Drop from Ducts A1, D2 (no climb back)", undefined]);
+    expect(row("A").exits.map((e) => e.label)).toEqual([undefined, "Duct access to Ducts A1, D1"]);
+    expect(row("U2").exits.find((e) => e.zone === "B")!.label).toBe("To Brig (B)");
+    // exit labels are not flags
+    expect(row("D1").flags).toEqual([]);
+    const md = zoneKeyMarkdown(map(), ductModule);
+    expect(md).toContain("To Galley (A) (access)");
+    expect(md).toContain("Drop down to Ducts A0, U1 (shaft");
+    expect(zoneKeyCsv(map(), ductModule)).toContain("Drop from Ducts A1, D2 (no climb back)");
+    // a two-way shaft up
+    const two = map();
+    two.layout!.borders.find((b) => b.id === "drop")!.flags = {};
+    expect(zoneKeyRows(two, ductModule).find((r) => r.id === "U1")!.exits[0]!.label).toBe("Shaft up to Ducts A1, D2");
+  });
+
+  it("offers the module's zone tables that match a zone (duct event tables)", () => {
+    const m = map();
+    expect(ductEventsFor(m, ductModule, "D1").map((t) => t.table)).toEqual(["t.duct"]);
+    expect(ductEventsFor(m, ductModule, "D2").map((t) => t.table)).toEqual(["t.duct", "t.fan"]);
+    expect(ductEventsFor(m, ductModule, "A").map((t) => t.table)).toEqual(["t.room"]);
+    expect(ductEventsFor(m, ductModule, "nope")).toEqual([]);
+    expect(ductEventsFor(m, undefined, "D1")).toEqual([]);
+    // live flags count
+    m.live = { act: 1, revealed: [], borders: {}, zoneFlags: { U1: { fan: true } }, tokens: [], pings: [] };
+    expect(ductEventsFor(m, ductModule, "U1").map((t) => t.table)).toEqual(["t.duct", "t.fan"]);
   });
 });

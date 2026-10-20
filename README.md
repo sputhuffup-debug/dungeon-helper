@@ -13,13 +13,14 @@ Campaign Forge is a companion to the rulebook, not a replacement. The module enc
 - **Guided adventure builder.** A step-by-step cinematic scenario builder (basics, situation, cast, locations and puzzles, three acts, review) with a field guide and page references on every step.
 - **Table tools.** Scene cards, rounds/stretches/shifts clock, stress and panic roller, critical injuries (including the android table), initiative cards, supply rolls, countdowns, a xenomorph life-cycle tracker and a session checklist that modules extend. A Hints tab says what each attribute and skill is for in the story and rolls it for the best-placed PC.
 - **Site maps.** A seeded deck-plan generator that reads the adventure's locations, puzzles and crew, checks the map against the zone rules, and produces a GM map, a player map (fogged in play, whole in print), a tracking map, a zone key and a distance table. At the table the GM reveals zones, locks and seals doors, marks fires and pings the tracker; the player screen shows only what the crew has seen.
+- **Duct levels.** Ducts are generated as separate maze sheets with labelled exits, shafts between levels, hazards and a GM-only duct event table rolled from table mode.
 - **Wide-format printing.** Site maps print on 24" or 36" rolls as vector PDFs at 1 inch per metre (28mm miniatures), 28mm true scale or an overview scale, with a title block, scale bar and optional 1 m grid squares.
 - **Maps from images.** Imported images with rectangular zone overlays and open/blocked/door borders.
 - **Rules reference.** Paraphrased rule cards with page references, filtered by play mode (Cinematic or Campaign).
 
 ## Screenshots
 
-The demo campaign (*Skyfire Down*, campaign play) and a cinematic one-shot built with the guided builder.
+Two demo campaigns load from the campaign list: *Skyfire Down* (campaign play, with an infection under way) and *Cold Harbor Relay*, a cinematic one-shot built with the guided builder, with a generated site map, duct levels and live map state ready for session 1.
 
 **Campaign home**: next session, adventures and open hooks.
 
@@ -60,6 +61,10 @@ The demo campaign (*Skyfire Down*, campaign play) and a cinematic one-shot built
 **Roll print**: a 36" wide-format vector PDF at 1 inch per metre for 28mm miniatures, turned to fit the roll with all text upright, with a title block, 5 m scale bar and zone key in the margin. Decks too wide for the roll split into overlapping strips with cut lines.
 
 ![Roll print](docs/screenshots/roll-print.png)
+
+**Duct level**: each deck's ducts are generated as their own maze sheet, with runs, junctions, vent chambers and shafts that climb or drop between levels. Exits are labelled with the room they open into, generated hazards (vent fans, steam, flooding, collapses, drops) sit in the maze, and a GM-only duct event table rolls encounters, dangers and moments of respite at the table. Players see a duct zone only once the crew reaches it.
+
+![Duct level](docs/screenshots/duct-map.png)
 
 **Rules reference**: short paraphrases with printed page references.
 

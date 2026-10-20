@@ -46,17 +46,33 @@ test("a generated site map: views, zone key download, live reveal in table mode,
   const mapPage = page.getByTestId("map-page");
   await expect(mapPage).toHaveAttribute("data-layout", "generated");
 
-  // GM map: numbers, a spawn and the checks
+  // GM map: numbers, a clue, duct access squares and the checks
   const sitemap = mapPage.getByTestId("sitemap");
   await expect(sitemap).toHaveAttribute("data-view", "gm");
-  await expect(sitemap.locator("[data-number]")).toHaveCount(9);
-  await expect(sitemap.locator('[data-marker-kind="spawn"]')).toHaveCount(1);
+  await expect(sitemap.locator("[data-number]")).toHaveCount(8);
+  await expect(sitemap.locator('[data-marker-kind="clue"]')).toHaveCount(1);
+  await expect(sitemap.locator('[data-access-to="D01"]')).toHaveText("D01");
   await expect(page.getByTestId("map-checks")).toContainText("All checks pass");
   await expect(page.getByTestId("map-legend")).toContainText("Portcullis");
 
   // clicking a zone shows its key entry
   await sitemap.locator('[data-hit="zone"][data-zone="R6"]').click();
   await expect(page.getByTestId("zone-detail")).toContainText("Exits");
+
+  // the duct sheets sit under the deck they serve; the crawlways show tubes, exits, the drop and the spawn
+  const decks = sitemap.getByRole("group", { name: "Decks" });
+  await expect(decks.getByRole("group", { name: "Duct sheets of Ground floor" }).getByRole("button")).toHaveText(["Undercroft crawl", "Crawlways"]);
+  await decks.getByRole("button", { name: "Crawlways" }).click();
+  await expect(sitemap).toHaveAttribute("data-deck", "crawl");
+  await expect(sitemap.locator('[data-sheet="duct"]')).toHaveCount(1);
+  await expect(sitemap.locator('[data-badge="exit"]')).toHaveCount(2);
+  await expect(sitemap.locator('[data-badge="exit"] [data-badge-text]').first()).toHaveText(/^To .+ \(R2\)$/);
+  await expect(sitemap.locator('[data-badge="shaft"][data-badge-glyph="drop"] [data-badge-text]')).toHaveText("Undercroft crawl, U01");
+  await expect(sitemap.locator('[data-marker-kind="spawn"]')).toHaveCount(1);
+  // following an exit badge goes back to the room on the floor deck
+  await sitemap.locator('[data-hit="link"][data-link-zone="R2"]').click();
+  await expect(sitemap).toHaveAttribute("data-deck", "main");
+  await expect(page.getByTestId("zone-detail")).toContainText("Duct access to Crawlways, D01");
 
   // 3. switch views
   await page.getByRole("tab", { name: "Player map" }).click();
@@ -76,15 +92,16 @@ test("a generated site map: views, zone key download, live reveal in table mode,
   expect(key.suggestedFilename()).toBe("keep-deck-plan-zone-key.md");
   const md = readFileSync((await key.path())!, "utf8");
   expect(md).toContain("# Keep deck plan: zone key");
-  expect(md).toContain("| 9 | Crawlway (D1) | open |");
-  await expect(page.getByTestId("zone-key").locator("[data-zone-row]")).toHaveCount(9);
+  expect(md).toContain("| 9 | West vent (D01) | open |");
+  expect(md).toMatch(/\| 11 \| Junction \(D03\) \|[^\n]*Drop down to Undercroft crawl, U01 \(Drop shaft/);
+  await expect(page.getByTestId("zone-key").locator("[data-zone-row]")).toHaveCount(15);
   const distDownload = page.waitForEvent("download");
   await page.getByTestId("distance-csv").click();
   const dist = await distDownload;
   expect(readFileSync((await dist.path())!, "utf8").split("\r\n")[0]).toBe("from_number,from_id,from_name,to_number,to_id,to_name,distance,range_band");
   const svgDownload = page.waitForEvent("download");
   await page.getByTestId("download-svg").click();
-  expect((await svgDownload).suggestedFilename()).toBe("keep-deck-plan-gm-map.svg");
+  expect((await svgDownload).suggestedFilename()).toBe("keep-deck-plan-gm-map-ground-floor.svg");
 
   // roll print: a 30 x 20 m keep at 1 in = 1 m fits a 36" roll as it is, and a 24" roll turned
   const roll = page.getByTestId("roll-print");
@@ -94,7 +111,7 @@ test("a generated site map: views, zone key download, live reveal in table mode,
   const pdfDownload = page.waitForEvent("download");
   await roll.getByTestId("download-roll-pdf").click();
   const pdfFile = await pdfDownload;
-  expect(pdfFile.suggestedFilename()).toBe("keep-deck-plan-gm-map-roll-36in-1in-per-m.pdf");
+  expect(pdfFile.suggestedFilename()).toBe("keep-deck-plan-gm-map-ground-floor-roll-36in-1in-per-m.pdf");
   const pdf = readFileSync((await pdfFile.path())!);
   expect(pdf.subarray(0, 5).toString("latin1")).toBe("%PDF-");
   expect(pdf.toString("latin1").match(/\/Type \/Page /g)).toHaveLength(1);
@@ -158,6 +175,31 @@ test("a generated site map: views, zone key download, live reveal in table mode,
   await expect(live.locator("[data-token]")).toHaveCount(2);
   await expect(playerMap.locator("[data-token]")).toHaveCount(1);
   await expect(playerMap).not.toContainText("Ghoul");
+
+  // 7. ducts: follow the crawl hole from the room to the duct sheet, reveal the vent, roll a duct event
+  await expect(playerMap.getByRole("button", { name: "Crawlways" })).toHaveCount(0);
+  await live.locator('[data-hit="link"][data-link-zone="D01"]').click();
+  await expect(live.getByTestId("sitemap")).toHaveAttribute("data-deck", "crawl");
+  const vent = live.getByTestId("live-zone");
+  await expect(vent).toHaveAttribute("aria-label", /West vent/);
+  await vent.getByTestId("reveal-zone").click();
+  await expect(live.locator('[data-fog="D01"]')).toHaveCount(0);
+  const events = live.getByTestId("duct-events");
+  await expect(events).toContainText("Duct event");
+  await expect(events).toContainText("Roll when a token enters a crawlway zone.");
+  await events.getByTestId("duct-event-roll").click();
+  const rolled = live.getByTestId("duct-event-result");
+  await expect(rolled).toContainText(/^Crawl event \(\d+ West vent\): (A dry nook|Rats|Loose panel|Followed)/);
+  const eventText = ((await rolled.textContent()) ?? "").replace(/^[^:]*: /, "").split(" · ")[0]!;
+  // the player screen: the duct sheet with the revealed vent and fog for the rest, never the event
+  await playerMap.getByRole("button", { name: "Crawlways" }).click();
+  await expect(playerMap.getByTestId("sitemap")).toHaveAttribute("data-deck", "crawl");
+  await expect(playerMap.locator('[data-duct="D01"]')).toHaveCount(1);
+  await expect(playerMap.locator('[data-duct="D02"]')).toHaveCount(0);
+  await expect(playerMap.locator('[data-sheet-fog="crawl"]')).toHaveCount(1);
+  await expect(playerMap.locator("[data-number]")).toHaveCount(0);
+  await expect(players.getByTestId("player-screen")).not.toContainText("Crawl event");
+  await expect(players.getByTestId("player-screen")).not.toContainText(eventText);
 
   expect(errors).toEqual([]);
 });

@@ -44,6 +44,7 @@ import {
   createRng,
   lifecycleConfig,
   lifecycleState,
+  rollTable,
   startLifecycle,
   type DiceOperation,
   type DiceOperationResult,
@@ -51,6 +52,7 @@ import {
   type LifecycleConfig,
   type LifecycleInstance,
   type LoadedModule,
+  type MapZoneTable,
   type Prompt,
   type RollRecord,
   type RollResult,
@@ -364,7 +366,7 @@ export function logTable(ctx: Ctx, sessionId: Id, text: string, data?: unknown):
 // ---------------------------------------------------------------------------
 
 export interface DiceLogData {
-  kind: "operation" | "pool" | "free";
+  kind: "operation" | "pool" | "free" | "table";
   seed: string;
   operation?: string;
   input?: Record<string, unknown>;
@@ -373,6 +375,12 @@ export interface DiceLogData {
   rolls?: RollRecord[];
   result?: RollResult;
   effects?: Effect[];
+  /** Table rolls: the module table, and the map zone it was rolled for. */
+  table?: string;
+  map?: Id;
+  zone?: Id;
+  /** GM-only entries never reach a player output. */
+  gmOnly?: boolean;
 }
 
 /** How many dice log entries the session has (the per-roll seed counter). */
@@ -501,6 +509,53 @@ export function recordPoolRoll(ctx: Ctx, sessionId: Id, input: { label: string; 
     text: `${input.label}: ${ctx.module.module.dice.describe(input.result)}`,
     ...(input.entityId ? { entity: input.entityId } : {}),
     data,
+  });
+}
+
+/** A table result in one line: the row label, then the row's text (a string, or a `text` / `description` field). */
+export function tableResultText(record: RollRecord): string {
+  const r = record.result;
+  let body: string | undefined;
+  if (typeof r === "string") body = r;
+  else if (r && typeof r === "object" && !Array.isArray(r)) {
+    const o = r as Record<string, unknown>;
+    for (const k of ["text", "description", "summary", "effect", "value", "name"]) {
+      if (typeof o[k] === "string" && o[k]) {
+        body = o[k] as string;
+        break;
+      }
+    }
+  }
+  const label = record.rowLabel;
+  if (label && body && body !== label) return `${label}: ${body}`;
+  return label ?? body ?? String(record.total);
+}
+
+export interface ZoneTableRoll {
+  zoneTable: MapZoneTable;
+  seed: string;
+  record: RollRecord;
+  /** The one-line result, as logged. */
+  text: string;
+}
+
+/**
+ * Roll a map zone table (e.g. a duct event when a token crawls into a duct
+ * zone) with the session's seeded rng (`sessionId:counter`, as every table
+ * mode roll) and log it to the session's roll log, marked GM-only. Nothing
+ * here reaches the player screen.
+ */
+export function rollZoneTable(ctx: Ctx, sessionId: Id, input: { zoneTable: MapZoneTable; map: Id; zone: Id; zoneLabel: string }): ZoneTableRoll {
+  const store = ctx.store;
+  const table = ctx.module.tables.get(input.zoneTable.table);
+  if (!table) throw new Error(`The module has no table "${input.zoneTable.table}"`);
+  return store.transact(() => {
+    const seed = nextRollSeed(store, sessionId);
+    const record = rollTable(table, createRng(seed), ctx.module.tables, { step: table.id });
+    const text = tableResultText(record);
+    const data: DiceLogData = { kind: "table", seed, label: input.zoneTable.label, table: table.id, total: record.total, rolls: [record], map: input.map, zone: input.zone, gmOnly: true };
+    appendTrackerLog(store, sessionId, { tracker: DICE_LOG, text: `${input.zoneTable.label} (${input.zoneLabel}): ${text}`, data });
+    return { zoneTable: input.zoneTable, seed, record, text };
   });
 }
 
@@ -941,13 +996,16 @@ export function finishSession(ctx: Ctx, sessionId: Id, input: FinishSessionInput
 }
 
 // ---------------------------------------------------------------------------
-// demo campaign
+// demo campaigns
 // ---------------------------------------------------------------------------
 
-/** Create the "Skyfire Down" demo campaign on this device (records, rich-text bodies, index entry). */
-export async function loadDemoCampaign(seed = "skyfire-down"): Promise<Id> {
-  const { demoCampaignJSON } = await import("@campaign-forge/seed-campaign");
-  const { maps, docs } = demoCampaignJSON(seed);
+/** Which demo: "campaign" is Skyfire Down (campaign play), "cinematic" the Cold Harbor one-shot. */
+export type DemoKind = "campaign" | "cinematic";
+
+/** Create a demo campaign on this device (records, rich-text bodies, index entry): "Skyfire Down" by default. */
+export async function loadDemoCampaign(seed?: string, kind: DemoKind = "campaign"): Promise<Id> {
+  const demos = await import("@campaign-forge/seed-campaign");
+  const { maps, docs } = kind === "cinematic" ? demos.cinematicDemoJSON(seed ?? demos.CINEMATIC_DEMO_SEED) : demos.demoCampaignJSON(seed ?? demos.DEMO_SEED);
   const store = CampaignStore.fromJSON(maps);
   const meta = store.meta();
   const registry = new RichTextRegistry();

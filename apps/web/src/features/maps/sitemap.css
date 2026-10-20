@@ -127,6 +127,24 @@
 .app-livemap__flag {
   gap: var(--cf-space-1);
 }
+/* duct events: GM-only zone tables for the zones crawlers are in */
+.app-livemap__ductevents {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cf-space-2);
+  padding: var(--cf-space-3);
+  border: 1px solid #3a4c59;
+  border-left: 4px solid #3a4c59;
+  border-radius: var(--cf-radius);
+  margin: var(--cf-space-2) 0;
+}
+.app-livemap__ductevents .app-list__row {
+  flex-wrap: wrap;
+}
+.app-livemap__ductresult {
+  display: block;
+  font-weight: 600;
+}
 .app-livemap__legend {
   margin: var(--cf-space-2) 0;
 }

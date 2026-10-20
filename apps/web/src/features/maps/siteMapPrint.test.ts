@@ -39,7 +39,9 @@ describe("label placement on Alien site maps", () => {
             ["player", player],
             ["tracking", l],
           ] as const) {
-            const d = drawSiteMap(shown, { view, deck: deck.id, legend, act });
+            // the player print leaves out duct sheets nobody has been in
+            if (!shown.decks.some((x) => x.id === deck.id)) continue;
+            const d = drawSiteMap(shown, { view, deck: deck.id, legend, act, passable: siteMapGenerator.passable });
             expect(placementProblems(d.labels, shown.zones, { x0: 0, y0: 0, x1: deck.width, y1: deck.height }), `${view} ${deck.id} act ${act}`).toEqual([]);
           }
         }
@@ -57,7 +59,8 @@ describe("label placement on Alien site maps", () => {
           ["player", player],
           ["tracking", l],
         ] as const) {
-          const d = drawSiteMap(shown, { view, deck: deck.id, legend, act: 2 });
+          if (!shown.decks.some((x) => x.id === deck.id)) continue;
+          const d = drawSiteMap(shown, { view, deck: deck.id, legend, act: 2, passable: siteMapGenerator.passable });
           expect(placementProblems(d.labels, shown.zones, { x0: 0, y0: 0, x1: deck.width, y1: deck.height }), `${String(inputs.site_type)} ${view} ${deck.id}`).toEqual([]);
         }
       }

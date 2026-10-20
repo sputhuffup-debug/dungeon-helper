@@ -1028,8 +1028,13 @@ export interface MapGeneratorDef {
   generate(inputs: Record<string, unknown>, ctx: MapGeneratorContext): MapGeneratorResult;
   /** Build generator inputs from an adventure review context (cast, acts, fields). */
   inputsFromAdventure?(ctx: Record<string, unknown>): Record<string, unknown>;
-  /** Border kinds and flags that block movement for distance, given the act. */
-  passable?(border: MapBorderData, act: number): boolean;
+  /**
+   * Border kinds and flags that block movement for distance, given the act.
+   * `move`, when given, is the direction of travel across the border (core
+   * passes it for every step of a path search), so a one-way drop can be
+   * passable downward only. Without `move` the question is "passable at all".
+   */
+  passable?(border: MapBorderData, act: number, move?: MapMove): boolean;
   rangeBands?: RangeBandDef[];
   legend?: MapLegendEntry[];
   /**
@@ -1037,6 +1042,14 @@ export interface MapGeneratorDef {
    * rolled when a token enters a duct zone. GM-only: never shown to players.
    */
   zoneTables?: MapZoneTable[];
+}
+
+/** One step across a border: which zone the mover leaves and enters, and the vertical direction from the decks' `level`s. */
+export interface MapMove {
+  from: string;
+  to: string;
+  /** "down" when `to` is on a lower level than `from`, "up" when higher, "level" otherwise (or when a level is missing). */
+  vertical: "up" | "down" | "level";
 }
 
 /** A module table offered at the table for zones that match. */

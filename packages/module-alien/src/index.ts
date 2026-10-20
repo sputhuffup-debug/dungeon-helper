@@ -46,7 +46,7 @@ export * from "./narrative";
 export * from "./builders";
 export * from "./maps";
 export { playGuide, PLAY_GUIDE_ID } from "./guides";
-export { mapTables, LOCATION_DETAIL_TABLE_ID, ANOMALOUS_DETAIL_TABLE_ID, SALVAGE_TABLE_ID } from "./tables/maps";
+export { mapTables, ductEventsTable, LOCATION_DETAIL_TABLE_ID, ANOMALOUS_DETAIL_TABLE_ID, SALVAGE_TABLE_ID, DUCT_EVENTS_TABLE_ID } from "./tables/maps";
 
 export const referenceLists = [...coreReferenceLists, ...dataReferenceLists, campaignThemes, fearStages];
 
