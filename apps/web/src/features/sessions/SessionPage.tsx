@@ -5,6 +5,7 @@
 import { type Id, type Scene, type Session } from "@campaign-forge/core";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { lazyView } from "../../components/lazyView";
 import { useRecordLinks } from "../../components/EntityLinkContext";
 import { Badge, Button, Card, EmptyState, IconButton } from "../../components/ui";
 import { RichTextView } from "../../editor";
@@ -20,7 +21,9 @@ import {
   wrapUpOf,
 } from "../../state/tableActions";
 import { ChecklistSummary, SessionChecklist } from "./SessionChecklist";
-import { WrapUpWizard } from "./WrapUp";
+
+// The end-of-session wrap-up loads when the GM ends a session.
+const WrapUpWizard = lazyView(() => import("./WrapUp").then((m) => m.WrapUpWizard), { what: "the wrap-up" });
 
 const TONE = { planned: "warning", running: "success", done: "muted" } as const;
 

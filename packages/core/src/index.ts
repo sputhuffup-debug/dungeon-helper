@@ -4,6 +4,7 @@ export * from "./paths";
 export * from "./store";
 export * from "./richtext";
 export * from "./persistence";
+export * from "./campaignIndex";
 export * from "./visibility";
 export * from "./graph";
 export * from "./search";

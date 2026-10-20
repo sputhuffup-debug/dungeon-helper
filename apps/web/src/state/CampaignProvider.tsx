@@ -21,7 +21,7 @@ import {
 import type { LoadedModule } from "@campaign-forge/module-sdk";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import * as Y from "yjs";
-import { loadModuleById } from "../modules/registry";
+import { loadModuleById, moduleEntry } from "../modules/registry";
 
 /** Per-map change counters so list hooks can hand React a stable snapshot. */
 export type VersionKey = MapName | "meta" | "*" | "docs";
@@ -88,8 +88,17 @@ export class CampaignNotFoundError extends Error {
   }
 }
 
-/** Open everything for one campaign. The caller owns the result and must `close()` it. */
-export async function openCampaign(campaignId: Id): Promise<CampaignContextValue> {
+/** Where opening a campaign has got to, for the loading screen. */
+export interface OpenProgress {
+  /** Set while the campaign's game module downloads and is checked. */
+  moduleName?: string;
+}
+
+/**
+ * Open everything for one campaign. The caller owns the result and must
+ * `close()` it. The game module loads here, on first use (see the registry).
+ */
+export async function openCampaign(campaignId: Id, onProgress?: (p: OpenProgress) => void): Promise<CampaignContextValue> {
   const doc = new Y.Doc();
   const store = CampaignStore.fromDoc(doc);
   const registry = new RichTextRegistry();
@@ -117,6 +126,7 @@ export async function openCampaign(campaignId: Id): Promise<CampaignContextValue
     await persistence.whenSynced;
     const meta = store.meta();
     if (!meta.id || meta.id !== campaignId) throw new CampaignNotFoundError(campaignId);
+    onProgress?.({ moduleName: moduleEntry(meta.moduleId)?.name ?? meta.moduleId });
     module = await loadModuleById(meta.moduleId);
     assets = new AssetStore(campaignId);
     refIndex = new RefIndex(registry);
@@ -192,26 +202,28 @@ function watchDocs(registry: RichTextRegistry, onChange: () => void): () => void
 
 export const CampaignContext = createContext<CampaignContextValue | undefined>(undefined);
 
-export type CampaignLoadState = { status: "loading" } | { status: "error"; error: unknown } | { status: "ready"; value: CampaignContextValue };
+export type CampaignLoadState = { status: "loading"; progress: OpenProgress } | { status: "error"; error: unknown } | { status: "ready"; value: CampaignContextValue };
 
 export interface CampaignProviderProps {
   campaignId: Id;
   children: ReactNode;
-  /** Rendered while the campaign opens. */
-  loading?: ReactNode;
+  /** Rendered while the campaign opens; a function also gets the progress (the module loading, say). */
+  loading?: ReactNode | ((progress: OpenProgress) => ReactNode);
   /** Rendered when opening fails (campaign missing, module conformance error...). */
   renderError?: (error: unknown, retry: () => void) => ReactNode;
 }
 
 export function CampaignProvider({ campaignId, children, loading, renderError }: CampaignProviderProps) {
-  const [state, setState] = useState<CampaignLoadState>({ status: "loading" });
+  const [state, setState] = useState<CampaignLoadState>({ status: "loading", progress: {} });
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
     let opened: CampaignContextValue | undefined;
-    setState({ status: "loading" });
-    openCampaign(campaignId)
+    setState({ status: "loading", progress: {} });
+    openCampaign(campaignId, (progress) => {
+      if (!cancelled) setState({ status: "loading", progress });
+    })
       .then((value) => {
         if (cancelled) {
           value.close();
@@ -229,7 +241,7 @@ export function CampaignProvider({ campaignId, children, loading, renderError }:
     };
   }, [campaignId, attempt]);
 
-  if (state.status === "loading") return <>{loading ?? null}</>;
+  if (state.status === "loading") return <>{typeof loading === "function" ? loading(state.progress) : (loading ?? null)}</>;
   if (state.status === "error") return <>{renderError ? renderError(state.error, () => setAttempt((a) => a + 1)) : String(state.error)}</>;
   return <CampaignContext.Provider value={state.value}>{children}</CampaignContext.Provider>;
 }

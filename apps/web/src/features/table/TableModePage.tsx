@@ -9,6 +9,7 @@ import { appendTrackerLog, creatureTurnFor, type Id } from "@campaign-forge/core
 import type { Effect, Prompt } from "@campaign-forge/module-sdk";
 import { Link, useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { lazyView } from "../../components/lazyView";
 import { Badge, Button, EmptyState, PromptDialog, Tabs, pushToast, type PromptAnswer } from "../../components/ui";
 import { errorMessage } from "../../lib/format";
 import { useCampaign, useOfflineStatus, useRecord } from "../../state/hooks";
@@ -25,7 +26,6 @@ import {
   type OperationRoll,
 } from "../../state/tableActions";
 import { SessionChecklist, useLogNotesAutoTick } from "../sessions/SessionChecklist";
-import { WrapUpWizard } from "../sessions/WrapUp";
 import { CreatureTurnCard, TakeHitDialog, useInitiativeCurrent, type CombatHandlers } from "./Combat";
 import { DicePanel } from "./DicePanel";
 import { PlayGuidePanel, usePlayGuides } from "./PlayGuidePanel";
@@ -39,6 +39,9 @@ import { SceneMap, useSceneMap } from "./SceneMap";
 import { SpecialAttackDialog, useSpecialAttacks } from "./SpecialAttacks";
 import { EventFeed, SessionLog } from "./SessionLog";
 import { BoundTracker, TrackersPanel, useModeTrackers, type TrackerHandlers } from "./TrackersPanel";
+
+// The end-of-session wrap-up loads when the GM ends a session.
+const WrapUpWizard = lazyView(() => import("../sessions/WrapUp").then((m) => m.WrapUpWizard), { what: "the wrap-up" });
 
 export function TableModePage() {
   const { sessionId } = useParams({ from: "/c/$campaignId/table/$sessionId" });

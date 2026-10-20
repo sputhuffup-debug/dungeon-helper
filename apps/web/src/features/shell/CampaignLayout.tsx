@@ -13,7 +13,7 @@ export function CampaignLayout() {
   return (
     <CampaignProvider
       campaignId={campaignId}
-      loading={<Loading label="Opening campaign…" />}
+      loading={({ moduleName }) => <Loading label={moduleName ? `Loading ${moduleName}…` : "Opening campaign…"} />}
       renderError={(error, retry) => <ErrorPage error={error} retry={retry} />}
     >
       <Shell />
