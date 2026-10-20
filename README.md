@@ -12,6 +12,7 @@ Campaign Forge is a companion to the rulebook, not a replacement. The module enc
 - **Generators.** Seeded, re-rollable procedures over the module's tables: world creation, star systems, jobs, life paths, encounter checks and shore leave, with full roll provenance.
 - **Guided adventure builder.** A step-by-step cinematic scenario builder (basics, situation, cast, locations and puzzles, three acts, review) with a field guide and page references on every step.
 - **Table tools.** Scene cards, rounds/stretches/shifts clock, stress and panic roller, critical injuries (including the android table), initiative cards, supply rolls, countdowns, a xenomorph life-cycle tracker and a session checklist that modules extend. A Hints tab says what each attribute and skill is for in the story and rolls it for the best-placed PC.
+- **Combat.** Creature turns roll or pick the creature's signature attack, rank targets by range from the live map and roll the attack dice; damage tracking with health bars, armor and broken PCs; reactions such as acid splash; special attacks (disarm, shove, grapple and more) with opposed rolls. Creature rolls stay GM-only.
 - **Site maps.** A seeded deck-plan generator that reads the adventure's locations, puzzles and crew, checks the map against the zone rules, and produces a GM map, a player map (fogged in play, whole in print), a tracking map, a zone key and a distance table. At the table the GM reveals zones, locks and seals doors, marks fires and pings the tracker; the player screen shows only what the crew has seen.
 - **Duct levels.** Ducts are generated as separate maze sheets with labelled exits, shafts between levels, hazards and a GM-only duct event table rolled from table mode.
 - **Wide-format printing.** Site maps print on 24" or 36" rolls as vector PDFs at 1 inch per metre (28mm miniatures), 28mm true scale or an overview scale, with a title block, scale bar and optional 1 m grid squares.
@@ -41,6 +42,10 @@ Two demo campaigns load from the campaign list: *Skyfire Down* (campaign play, w
 **Table hints**: for each attribute and skill, the story moments that call for it, what success, failure and a push should do to the scene, lines to say aloud, and the PCs ranked by dice pool; tap one to roll on the spot.
 
 ![Table hints](docs/screenshots/table-hints.png)
+
+**Creature turns**: roll or choose a creature's signature attack, pick a target by range from the live map, roll the dice and apply the damage; armor, acid splash and broken rolls are worked out for you, all GM-only.
+
+![Creature turn](docs/screenshots/creature-turn.png)
 
 **Guided adventure builder**: the cinematic scenario steps with the field guide and what still needs fixing.
 
@@ -92,7 +97,10 @@ pnpm dev          # web app on http://localhost:5173
 pnpm test         # unit tests and module conformance
 pnpm typecheck
 pnpm table-lint   # lints every table in every module
+pnpm screenshots  # builds the app and regenerates every README screenshot from the demo campaigns
 ```
+
+Re-run one screenshot by name once the app is built: `pnpm --filter @campaign-forge/web screenshots -g creature-turn`. Images go to `docs/screenshots/` (or `SCREENSHOTS_DIR`).
 
 ## Licensing note
 

@@ -1,0 +1,416 @@
+/**
+ * The README screenshots, regenerated from the two deterministic demo
+ * campaigns: `pnpm screenshots` at the repo root builds the app and runs
+ * every shot; `pnpm --filter @campaign-forge/web screenshots -g <name>`
+ * re-runs one (the app must be built). Images go to docs/screenshots/, or to
+ * `SCREENSHOTS_DIR`.
+ *
+ * Every page starts from a fixed clock (Date only; timers run) and a seeded
+ * `crypto.getRandomValues`/`Math.random`, so record ids, roll seeds and dice
+ * come out the same on every run, the session timer reads 00:00 and relative
+ * times read "just now". The roll print is drawn Node-side from the same
+ * demo and the app's own roll print code, then rasterised by Chromium.
+ */
+import { mkdirSync } from "node:fs";
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { generatorFor, type SiteMap } from "@campaign-forge/core";
+import { alienModule } from "@campaign-forge/module-alien";
+import { buildCinematicDemo } from "@campaign-forge/seed-campaign";
+import { nodeToString, planRollPrint, rollPrintPages } from "@campaign-forge/ui";
+import { expect, test, type Locator, type Page } from "@playwright/test";
+
+const OUT = process.env.SCREENSHOTS_DIR ? resolve(process.env.SCREENSHOTS_DIR) : fileURLToPath(new URL("../../../docs/screenshots/", import.meta.url));
+mkdirSync(OUT, { recursive: true });
+const file = (name: string) => resolve(OUT, `${name}.png`);
+
+/** The instant every page's Date reads (the demo's own dates are fixed in its data). */
+const FIXED_NOW = new Date("2026-10-20T19:00:00Z");
+
+/** Runs in the page before any app code: a seeded PRNG behind crypto.getRandomValues and Math.random. */
+function seedRandomness(seed: number) {
+  let s = seed >>> 0;
+  const next = () => {
+    s = (s + 0x6d2b79f5) >>> 0;
+    let t = s;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  Math.random = next;
+  const fill = <T extends ArrayBufferView | null>(array: T): T => {
+    if (array) {
+      const bytes = new Uint8Array(array.buffer, array.byteOffset, array.byteLength);
+      for (let i = 0; i < bytes.length; i++) bytes[i] = Math.floor(next() * 256);
+    }
+    return array;
+  };
+  Object.defineProperty(crypto, "getRandomValues", { value: fill, configurable: true });
+}
+
+/** Screenshot-only CSS: no text caret, no scrollbars that come and go. */
+const SHOT_CSS = `
+  *, *::before, *::after { caret-color: transparent !important; }
+  html { scrollbar-width: none; }
+`;
+
+test.beforeEach(async ({ page }) => {
+  await page.clock.setFixedTime(FIXED_NOW);
+  await page.addInitScript(seedRandomness, 0x5eed);
+  await page.addInitScript((css: string) => {
+    const add = () => {
+      const style = document.createElement("style");
+      style.dataset.screenshots = "";
+      style.textContent = css;
+      document.head.append(style);
+    };
+    if (document.head) add();
+    else document.addEventListener("DOMContentLoaded", add, { once: true });
+  }, SHOT_CSS);
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  pageErrors.set(page, errors);
+});
+
+test.afterEach(async ({ page }) => {
+  expect(pageErrors.get(page) ?? []).toEqual([]);
+});
+
+const pageErrors = new WeakMap<Page, string[]>();
+
+/** The cinematic demo, built Node-side once per worker (the same data the app loads). */
+let cinematic: ReturnType<typeof buildCinematicDemo>["maps"] | undefined;
+let cinematicMapId: string | undefined;
+function cinematicDemo() {
+  if (!cinematic) {
+    const demo = buildCinematicDemo();
+    cinematic = demo.maps;
+    cinematicMapId = demo.ids.map;
+    demo.registry.closeAll();
+    demo.store.destroy();
+  }
+  return { maps: cinematic, mapId: cinematicMapId! };
+}
+function cinematicSiteMap() {
+  const { maps, mapId } = cinematicDemo();
+  const map: SiteMap | undefined = maps.maps[mapId];
+  if (!map?.layout) throw new Error("the cinematic demo has no generated site map");
+  return { ...map, layout: map.layout };
+}
+function coldLabZone(): string {
+  const zone = cinematicSiteMap().layout.zones.find((z) => z.name === "Cold Lab");
+  if (!zone) throw new Error("no Cold Lab zone on the cinematic site map");
+  return zone.id;
+}
+
+const nav = (page: Page, name: string) => page.getByRole("navigation", { name: "Campaign" }).getByRole("link", { name, exact: true });
+
+/** Settle: fonts loaded, two frames painted, no pending network. */
+async function settle(page: Page) {
+  await page.evaluate(() => document.fonts.ready.then(() => undefined));
+  await page.waitForLoadState("networkidle");
+  await page.evaluate(() => new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r()))));
+}
+
+async function shot(page: Page, name: string, opts: { clip?: { x: number; y: number; width: number; height: number } } = {}) {
+  await calm(page);
+  await settle(page);
+  await page.screenshot({ path: file(name), animations: "disabled", caret: "hide", ...(opts.clip ? { clip: opts.clip } : {}) });
+}
+
+async function loadDemo(page: Page, which: "skyfire" | "cinematic"): Promise<string> {
+  await page.goto("/");
+  await page.getByTestId(which === "skyfire" ? "load-demo" : "load-demo-cinematic").click();
+  await expect(page).toHaveURL(/\/c\/[0-9A-Z]{26}\/home$/, { timeout: 30_000 });
+  await expect(page.getByTestId("campaign-name")).toHaveText(which === "skyfire" ? "Skyfire Down" : "Cold Harbor Relay");
+  return page.url().replace(/\/home$/, "");
+}
+
+async function startSession1(page: Page) {
+  await nav(page, "Sessions").click();
+  await page.getByRole("button", { name: "Start session 1" }).click();
+  await expect(page.getByTestId("table-mode")).toBeVisible();
+  await expect(page.getByTestId("timer")).toHaveText("00:00");
+}
+
+/** The cinematic demo's saved site map page. */
+async function openSiteMap(page: Page) {
+  await nav(page, "Adventures").click();
+  await page.getByTestId("adventure-card").filter({ hasText: "Cold Harbor" }).click();
+  await page.getByTestId("step-review").click();
+  await page.getByTestId("site-map-card").getByTestId("site-map-link").click();
+  const mapPage = page.getByTestId("map-page");
+  await expect(mapPage).toHaveAttribute("data-layout", "generated");
+  await expect(mapPage.getByTestId("sitemap")).toHaveAttribute("data-view", "gm");
+  return mapPage;
+}
+
+/** Fit the map again once the page has settled: the fit on mount can land a sub-pixel off while the layout still moves. */
+async function refit(mapPage: Locator) {
+  await settle(mapPage.page());
+  await mapPage.getByTestId("sitemap").getByRole("button", { name: "Fit", exact: true }).click();
+}
+
+/** No hover or focus ring left on whatever was clicked last. */
+async function calm(page: Page) {
+  await page.mouse.move(0, 0);
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+  // let hover and focus transitions finish
+  await page.waitForTimeout(400);
+}
+
+// ---------------------------------------------------------------------------
+// Skyfire Down (campaign play)
+// ---------------------------------------------------------------------------
+
+test("home", async ({ page }) => {
+  await loadDemo(page, "skyfire");
+  await expect(page.getByRole("heading", { name: "Next session" })).toBeVisible();
+  await shot(page, "home");
+});
+
+test("character-sheet", async ({ page }) => {
+  const base = await loadDemo(page, "skyfire");
+  await page.goto(`${base}/atlas`);
+  await page.getByRole("tab", { name: /^PCs/ }).click();
+  await page.getByRole("tabpanel").getByRole("link").first().click();
+  await expect(page).toHaveURL(/\/entities\/[0-9A-Z]{26}$/);
+  await expect(page.getByTestId("entity-title")).toHaveValue(/\S/);
+  await shot(page, "character-sheet");
+});
+
+test("generator", async ({ page }) => {
+  const base = await loadDemo(page, "skyfire");
+  await page.goto(`${base}/generate`);
+  await page.getByRole("link", { name: "Re-open" }).nth(1).click();
+  await expect(page.getByRole("heading", { name: /Star System Generator/ })).toBeVisible();
+  await expect(page.getByTestId("workbench")).toBeVisible();
+  await shot(page, "generator");
+});
+
+test("table-mode", async ({ page }) => {
+  await loadDemo(page, "skyfire");
+  await startSession1(page);
+  await shot(page, "table-mode");
+});
+
+test("table-hints", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await loadDemo(page, "skyfire");
+  await startSession1(page);
+  await page.getByRole("tab", { name: "Hints" }).click();
+  const entry = page.locator('[data-entry="observation"]');
+  await entry.getByRole("button", { name: /^Observation/ }).first().click();
+  await entry.evaluate((e) => e.scrollIntoView({ block: "start" }));
+  await shot(page, "table-hints");
+});
+
+test("rules", async ({ page }) => {
+  const base = await loadDemo(page, "skyfire");
+  await page.goto(`${base}/rules`);
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await shot(page, "rules");
+});
+
+// ---------------------------------------------------------------------------
+// Cold Harbor Relay (cinematic)
+// ---------------------------------------------------------------------------
+
+test("creature-turn", async ({ page }) => {
+  // wide enough for the four PCs in one row of participant cards, tall enough for that row under the turn card
+  await page.setViewportSize({ width: 2100, height: 1800 });
+  await loadDemo(page, "cinematic");
+  await startSession1(page);
+  const sceneSelect = page.getByRole("combobox", { name: "Scene" });
+  await sceneSelect.selectOption((await sceneSelect.locator("option", { hasText: "The Cold Lab" }).getAttribute("value"))!);
+  const hugger = page.getByRole("list", { name: "Scene participants" }).locator("li", { hasText: "Facehugger" });
+  const huggerName = (await hugger.locator(".app-participant__name").innerText()).trim();
+
+  // on the live map: the facehugger's token in the Cold Lab (hidden from the players), and two of the
+  // crew in there with it, so the turn shows the range to each PC
+  const live = page.getByTestId("live-map");
+  await live.locator(`[data-hit="zone"][data-zone="${coldLabZone()}"]`).click();
+  const zone = live.getByTestId("live-zone");
+  const place = zone.getByRole("combobox", { name: "Place a participant here" });
+  await place.selectOption((await place.locator("option", { hasText: huggerName }).getAttribute("value"))!);
+  for (const pc of ["Rosa Ilunga", "Ana Kovac"]) {
+    const move = zone.getByRole("combobox", { name: "Move a token here" });
+    await move.selectOption((await move.locator("option", { hasText: pc }).getAttribute("value"))!);
+    await expect(zone.getByRole("list", { name: "Tokens here" })).toContainText(pc);
+  }
+  const token = live.getByRole("list", { name: "Tokens" }).getByRole("listitem").filter({ hasText: huggerName });
+  await token.getByRole("checkbox", { name: "hidden" }).check();
+  await zone.getByRole("button", { name: "Close zone" }).click();
+
+  await hugger.getByRole("button", { name: `Creature turn: ${huggerName}` }).click();
+  const turn = page.getByTestId("creature-turn");
+  await expect(turn).toBeVisible();
+  // the GM picks the row with dice (every facehugger row deals 0 damage) and rolls it at Rosa until it lands
+  await turn.getByRole("button", { name: "Choose attack" }).click();
+  await turn.getByRole("button", { name: "Use Face Grapple" }).click();
+  await expect(turn.getByTestId("attack-name")).toHaveText("Face Grapple");
+  await expect(turn.getByTestId("target-ranges")).toBeVisible();
+  const targetSelect = turn.getByRole("combobox", { name: "Target" });
+  await targetSelect.selectOption((await targetSelect.locator("option", { hasText: "Rosa Ilunga" }).getAttribute("value"))!);
+  for (let i = 0; i < 12; i++) {
+    await turn.getByRole("button", { name: /^Roll attack/ }).click();
+    if (!/^0 /.test(await turn.getByTestId("attack-successes").innerText())) break;
+  }
+  await expect(turn.getByTestId("attack-successes")).not.toHaveText(/^0 /);
+  await expect(turn.getByTestId("target-ranges").locator("li", { hasText: "Rosa Ilunga" })).toContainText("same zone");
+
+  // frame the left column from the turn card to the end of the PCs' participant cards (health bars and all)
+  const participants = page.getByRole("list", { name: "Player characters" });
+  await turn.evaluate((e) => e.scrollIntoView({ block: "start" }));
+  await settle(page);
+  const a = (await turn.boundingBox())!;
+  const b = (await participants.boundingBox())!;
+  const pad = 12;
+  const x = Math.floor(Math.min(a.x, b.x) - pad);
+  const y = Math.floor(a.y - pad);
+  const clip = { x, y, width: Math.ceil(Math.max(a.x + a.width, b.x + b.width) + pad - x), height: Math.ceil(b.y + b.height + 4 - y) };
+  expect(clip.y + clip.height, "the PCs fit under the turn card").toBeLessThanOrEqual(page.viewportSize()!.height);
+  await shot(page, "creature-turn", { clip });
+});
+
+test("guided-builder", async ({ page }) => {
+  await loadDemo(page, "cinematic");
+  await nav(page, "Adventures").click();
+  await page.getByTestId("adventure-card").filter({ hasText: "Cold Harbor" }).click();
+  await expect(page.getByTestId("guided-builder")).toBeVisible();
+  await page.getByTestId("step-basics").click();
+  await expect(page.getByTestId("guided-title")).toHaveValue("Cold Harbor");
+  await expect(page.getByRole("textbox", { name: "Tagline" })).not.toHaveValue("");
+  await expect(page.getByRole("textbox", { name: "Content note" })).not.toHaveValue("");
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await shot(page, "guided-builder");
+});
+
+test("map-generator", async ({ page }) => {
+  await loadDemo(page, "cinematic");
+  const mapPage = await openSiteMap(page);
+  await mapPage.getByTestId("regenerate-map").click();
+  await expect(page).toHaveURL(/\/maps\/new/);
+  const generate = page.getByTestId("map-generate");
+  if (!(await page.getByTestId("map-preview").isVisible())) await generate.click();
+  await expect(page.getByTestId("map-preview")).toBeVisible({ timeout: 20_000 });
+  // the brief's key rooms (from the adventure) beside the checks list
+  const keyRooms = page.getByRole("group", { name: /^Key rooms/ });
+  await keyRooms.evaluate((e) => window.scrollTo(0, e.getBoundingClientRect().top + window.scrollY - 140));
+  await shot(page, "map-generator");
+});
+
+test("site-map-gm", async ({ page }) => {
+  await loadDemo(page, "cinematic");
+  await refit(await openSiteMap(page));
+  await shot(page, "site-map-gm");
+});
+
+test("site-map-player", async ({ page }) => {
+  await loadDemo(page, "cinematic");
+  const mapPage = await openSiteMap(page);
+  await page.getByRole("tab", { name: "Player map" }).click();
+  await expect(mapPage.getByTestId("sitemap")).toHaveAttribute("data-view", "player");
+  await refit(mapPage);
+  await shot(page, "site-map-player");
+});
+
+test("duct-map", async ({ page, browser }) => {
+  await loadDemo(page, "cinematic");
+  const mapPage = await openSiteMap(page);
+  const decks = mapPage.getByTestId("sitemap").getByRole("group", { name: "Decks" });
+  await decks.getByRole("button", { name: /^Ducts over Level 1/ }).click();
+  const download = page.waitForEvent("download");
+  await page.getByTestId("download-svg").click();
+  const svg = await readDownload(await download);
+  await rasterSvg(browser, svg, "duct-map", { width: 1400, background: "#1b2530" });
+});
+
+test("roll-print", async ({ browser }) => {
+  // the cinematic demo's site map, GM view, on a 36" roll at 1 inch per metre, as the map page's "Download PDF" prints it
+  const map = cinematicSiteMap();
+  const def = generatorFor(map, alienModule);
+  const options = {
+    view: "gm" as const,
+    deck: map.layout.decks[0]?.id,
+    legend: def?.legend,
+    passable: def?.passable,
+    rollWidthIn: 36,
+    mmPerMetre: 25.4,
+    gridSquares: false,
+    titleBlock: true,
+    title: map.name,
+    act: 1,
+  };
+  const plan = planRollPrint(map.layout, options);
+  const [first] = rollPrintPages(map.layout, options, plan);
+  if (!first) throw new Error("no roll print page");
+  const DPI = 30;
+  const k = DPI / 72; // pages are in points
+  const width = Math.round(first.width * k);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${Math.round(first.height * k)}" viewBox="0 0 ${first.width} ${first.height}">${nodeToString(first.node)}</svg>`;
+  await rasterSvg(browser, svg, "roll-print", { width, background: "#ffffff" });
+});
+
+/** The cinematic demo's print views, shown as paper sheets on the desk: only the named sheets, each cut to one page. */
+async function printSheets(page: Page, view: "booklet" | "agendas", show: string, zoom: number) {
+  // `show`: the sheets to keep, as a selector list (e.g. ".bk-titlepage, #bk-act-1")
+  await loadDemo(page, "cinematic");
+  await nav(page, "Adventures").click();
+  await page.getByTestId("adventure-card").filter({ hasText: "Cold Harbor" }).click();
+  await page.getByTestId(view === "booklet" ? "guided-booklet" : "guided-agenda-cards").click();
+  await page.getByTestId("paper-letter").click();
+  await page.addStyleTag({
+    content: `
+      .prep-booklet, .prep-cards { flex-direction: row; align-items: flex-start; justify-content: center; gap: 32px; padding-top: 24px; zoom: ${zoom}; }
+      .prep-booklet > .bk-sheet, .prep-cards > .bk-sheet { height: var(--bk-page-h); overflow: hidden; flex: none; }
+      :is(.prep-booklet, .prep-cards) > .bk-sheet:not(${show}) { display: none; }
+    `,
+  });
+}
+
+test("booklet", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 860 });
+  await printSheets(page, "booklet", ".bk-titlepage, #bk-act-1", 0.64);
+  await expect(page.getByRole("heading", { level: 2, name: "Setup", exact: true })).toBeVisible();
+  await shot(page, "booklet");
+});
+
+test("agenda-cards", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await printSheets(page, "agendas", ":first-child", 0.76);
+  await expect(page.getByRole("region", { name: "Act 1 agenda: Rosa Ilunga" })).toBeVisible();
+  await shot(page, "agenda-cards");
+});
+
+// ---------------------------------------------------------------------------
+// helpers for SVG shots
+// ---------------------------------------------------------------------------
+
+async function readDownload(d: import("@playwright/test").Download): Promise<string> {
+  const stream = await d.createReadStream();
+  const chunks: Buffer[] = [];
+  for await (const c of stream) chunks.push(c as Buffer);
+  return Buffer.concat(chunks).toString("utf8");
+}
+
+/** Draw an SVG `width` px wide (height from its viewBox) on a blank page and screenshot it. */
+async function rasterSvg(browser: import("@playwright/test").Browser, svg: string, name: string, o: { width: number; background: string }) {
+  const context = await browser.newContext({ viewport: { width: o.width, height: 900 }, deviceScaleFactor: 1 });
+  try {
+    const page = await context.newPage();
+    await page.setContent(`<!doctype html><html><body style="margin:0;background:${o.background}">${svg.replace(/^<\?xml[^>]*>\s*/, "")}</body></html>`);
+    const root: Locator = page.locator("body > svg");
+    await root.evaluate((s, width) => {
+      const svgEl = s as SVGSVGElement;
+      const vb = svgEl.viewBox.baseVal;
+      svgEl.setAttribute("width", String(width));
+      svgEl.setAttribute("height", String(Math.round((width * vb.height) / vb.width)));
+      svgEl.style.display = "block";
+    }, o.width);
+    await page.evaluate(() => document.fonts.ready.then(() => undefined));
+    await root.screenshot({ path: file(name), animations: "disabled", timeout: 120_000 });
+  } finally {
+    await context.close();
+  }
+}
