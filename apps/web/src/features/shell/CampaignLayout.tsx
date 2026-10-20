@@ -6,6 +6,7 @@ import { Loading } from "../../components/Loading";
 import { Badge, IconButton, useTheme } from "../../components/ui";
 import { CampaignProvider } from "../../state/CampaignProvider";
 import { useCampaign, useMeta, useOfflineStatus } from "../../state/hooks";
+import { crewShipDefOf, hasShipPage } from "../../state/shipActions";
 import { GlobalSearch } from "./GlobalSearch";
 
 export function CampaignLayout() {
@@ -20,6 +21,8 @@ export function CampaignLayout() {
     </CampaignProvider>
   );
 }
+
+const SHIP_NAV = { to: "/c/$campaignId/ship", label: "Ship", icon: <path d="M12 2c3 3 4 7 4 11l2 3v4l-3-2H9l-3 2v-4l2-3c0-4 1-8 4-11Zm0 7v4" /> };
 
 const NAV: Array<{ to: string; label: string; icon: ReactNode }> = [
   { to: "/c/$campaignId/home", label: "Home", icon: <path d="M3 11l9-7 9 7v9h-6v-6H9v6H3Z" /> },
@@ -39,6 +42,12 @@ function Shell() {
   const navigate = useNavigate();
   const campaignId = ctx.campaignId;
   const modeName = ctx.module.manifest.modes.find((m) => m.id === meta.mode)?.name ?? meta.mode;
+  const nav = useMemo(() => {
+    if (!hasShipPage(ctx.module, meta.mode)) return NAV;
+    const ship = { ...SHIP_NAV, label: crewShipDefOf(ctx.module, meta.mode)?.label ?? "Funds" };
+    const at = NAV.findIndex((n) => n.label === "Sessions") + 1;
+    return [...NAV.slice(0, at), ship, ...NAV.slice(at)];
+  }, [ctx.module, meta.mode]);
 
   const links = useMemo<RecordLinks>(
     () => ({
@@ -80,7 +89,7 @@ function Shell() {
           </div>
         </header>
         <nav className="app-nav" aria-label="Campaign">
-          {NAV.map((item) => (
+          {nav.map((item) => (
             <Link
               key={item.to}
               to={item.to}

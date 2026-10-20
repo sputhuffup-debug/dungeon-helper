@@ -114,8 +114,9 @@ const placeholder = (name: "Adventures" | "Adventure" | "Generate" | "Procedure"
 const adventuresRoute = createRoute({ getParentRoute: () => campaignRoute, path: "adventures", validateSearch: (s: Record<string, unknown>): { status?: string } => (typeof s.status === "string" ? { status: s.status } : {}), component: lazyRouteComponent(() => import("./features/adventures/AdventuresPage"), "AdventuresPage") });
 const adventureRoute = createRoute({ getParentRoute: () => campaignRoute, path: "adventures/$adventureId", validateSearch: (s: Record<string, unknown>): { node?: string; view?: string; step?: string } => ({ ...(typeof s.node === "string" ? { node: s.node } : {}), ...(typeof s.view === "string" ? { view: s.view } : {}), ...(typeof s.step === "string" ? { step: s.step } : {}) }), component: lazyRouteComponent(() => import("./features/adventures/AdventurePage"), "AdventurePage") });
 const generateRoute = createRoute({ getParentRoute: () => campaignRoute, path: "generate", component: lazyRouteComponent(() => import("./features/generate/GeneratePage"), "GeneratePage") });
-const procedureRoute = createRoute({ getParentRoute: () => campaignRoute, path: "generate/$procedureId", validateSearch: (s: Record<string, unknown>): { run?: string; chainFrom?: string; chain?: number; within?: string } => ({ ...(typeof s.run === "string" ? { run: s.run } : {}), ...(typeof s.chainFrom === "string" ? { chainFrom: s.chainFrom } : {}), ...(typeof s.chain === "number" || (typeof s.chain === "string" && s.chain !== "") ? { chain: Number(s.chain) } : {}), ...(typeof s.within === "string" ? { within: s.within } : {}) }), component: lazyRouteComponent(() => import("./features/generate/ProcedurePage"), "ProcedurePage") });
+const procedureRoute = createRoute({ getParentRoute: () => campaignRoute, path: "generate/$procedureId", validateSearch: (s: Record<string, unknown>): { run?: string; chainFrom?: string; chain?: number; within?: string; pick?: string } => ({ ...(typeof s.run === "string" ? { run: s.run } : {}), ...(typeof s.pick === "string" && s.pick !== "" ? { pick: s.pick } : {}), ...(typeof s.chainFrom === "string" ? { chainFrom: s.chainFrom } : {}), ...(typeof s.chain === "number" || (typeof s.chain === "string" && s.chain !== "") ? { chain: Number(s.chain) } : {}), ...(typeof s.within === "string" ? { within: s.within } : {}) }), component: lazyRouteComponent(() => import("./features/generate/ProcedurePage"), "ProcedurePage") });
 const tableRoute = createRoute({ getParentRoute: () => campaignRoute, path: "table/$sessionId", validateSearch: (s: Record<string, unknown>): { view?: string } => (typeof s.view === "string" ? { view: s.view } : {}), component: lazyRouteComponent(() => import("./features/table/TableModePage"), "TableModePage") });
+const shipRoute = createRoute({ getParentRoute: () => campaignRoute, path: "ship", component: lazyRouteComponent(() => import("./features/ship/ShipPage"), "ShipPage") });
 const sessionsRoute = createRoute({ getParentRoute: () => campaignRoute, path: "sessions", component: lazyRouteComponent(() => import("./features/sessions/SessionsPage"), "SessionsPage") });
 const sessionRoute = createRoute({ getParentRoute: () => campaignRoute, path: "sessions/$sessionId", component: lazyRouteComponent(() => import("./features/sessions/SessionPage"), "SessionPage") });
 const mapRoute = createRoute({ getParentRoute: () => campaignRoute, path: "maps/$mapId", component: lazyRouteComponent(() => import("./features/maps/MapPage"), "MapPage") });
@@ -141,6 +142,7 @@ export const routeTree = rootRoute.addChildren([
     tableRoute,
     sessionsRoute,
     sessionRoute,
+    shipRoute,
     mapRoute,
     mapGenRoute,
   ]),

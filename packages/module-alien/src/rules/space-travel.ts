@@ -25,7 +25,11 @@ export const spaceTravelRules: RuleCard[] = [
   }),
   card("ndd", "Neurological distortion disorder", "Anyone awake during FTL travel rolls D6 after each period of days equal to the ship's FTL rating, adding +1 per roll after the first. Results run from no effect (1-5) through paranoia, epileptic seizures and dementia to psychosis (12+), which sends you into a violent rampage that triggers panic rolls.", 109, {
     tags: ["space", "travel", "stress"],
-    links: { rules: ["alien.rule.hypersleep", "alien.rule.ftl-travel"] },
+    links: { tables: ["alien.travel.ndd"], rules: ["alien.rule.hypersleep", "alien.rule.ftl-travel"] },
+  }),
+  card("arrival", "Arriving after FTL travel", "Travel time is the FTL rating times the parsecs. On arrival, sleepers come out of hypersleep fatigued, those who stayed awake have made their distortion rolls, and every day awake used a day of food and water each. Crew in cryo eat nothing.", [108, 110], {
+    tags: ["space", "travel", "supply"],
+    links: { tables: ["alien.travel.ndd"], fields: ["alien.spaceship.provisions"], rules: ["alien.rule.ftl-travel", "alien.rule.hypersleep", "alien.rule.ndd", "alien.rule.food-water", "alien.rule.fatigue"] },
   }),
   card("system-distance", "Distance to the job", "The job generator rolls D6−1 for how many systems away the destination lies, and 0 means the same system. Pick a matching system on the star map and work out travel time from the FTL rating.", 244, {
     tags: ["space", "travel", "campaign"],

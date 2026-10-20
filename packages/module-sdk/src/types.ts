@@ -702,7 +702,8 @@ export type Effect =
   | { kind: "log"; text: string }
   | { kind: "prompt"; prompt: Prompt }
   | CreateFromPresetEffect
-  | ApplyPresetEffect;
+  | ApplyPresetEffect
+  | LedgerEffect;
 
 /**
  * Create a new entity from one of the module's presets. `id` asks for a
@@ -1237,6 +1238,237 @@ export interface CombatDef {
 }
 
 // ---------------------------------------------------------------------------
+// Money: the campaign ledger
+// ---------------------------------------------------------------------------
+
+/** How the module's money is named and written. */
+export interface CurrencyDef {
+  /** Singular name, e.g. "UA dollar". */
+  name: string;
+  plural?: string;
+  /** Symbol written with amounts, e.g. "$". */
+  symbol: string;
+  /** Write the symbol after the number ("100 ¥") instead of before it. */
+  symbolAfter?: boolean;
+  /** Decimal places amounts are kept and shown with. Default 0 (whole units). */
+  decimals?: number;
+  /** BCP 47 locale for digit grouping. Default "en-US". */
+  locale?: string;
+  page?: PageRef;
+}
+
+/**
+ * A ledger category. Categories with a `page` are money the book prices or
+ * describes; a category without one is plain GM bookkeeping with no rule
+ * behind it (say so in `description`).
+ */
+export interface LedgerCategoryDef {
+  id: string;
+  label: string;
+  /** Which way money usually moves: income, expense, or either. The app pre-fills the sign from it. */
+  direction: "in" | "out" | "either";
+  /** One line on what goes here, in the module's own words. */
+  description?: string;
+  page?: PageRef;
+  /** Rule card explaining it. */
+  rule?: string;
+}
+
+/**
+ * An entity whose value the GM can post to the ledger in one click (e.g. a
+ * job's payment). `amountPath` is a field path or a computed key.
+ */
+export interface LedgerPayoutDef {
+  entityType: string;
+  amountPath: string;
+  category: string;
+  /** Button label, e.g. "Collect payment". */
+  label: string;
+  /** Field set on the entity when the payout is posted (e.g. status = done). */
+  setOnPost?: { path: string; value: unknown };
+  page?: PageRef;
+}
+
+/**
+ * The campaign's money. Entries live in the core ledger; balances are always
+ * summed from entries, never stored. The default account is the group's
+ * shared funds (party or ship funds); entities of `accountEntityTypes` can
+ * hold accounts of their own.
+ */
+export interface LedgerDef {
+  currency: CurrencyDef;
+  categories: LedgerCategoryDef[];
+  /** Name of the shared account, e.g. "Crew funds". */
+  defaultAccount: string;
+  /** Entity types that may hold a personal account (e.g. PCs). */
+  accountEntityTypes?: string[];
+  payouts?: LedgerPayoutDef[];
+  mode?: PlayModeId[];
+  rules?: string[];
+}
+
+/** Records a ledger entry can point at. Values are entity, session or travel-leg ids. */
+export interface LedgerLinks {
+  job?: string;
+  session?: string;
+  ship?: string;
+  character?: string;
+  travel?: string;
+}
+
+/**
+ * Post a ledger entry. `amount` is signed: positive money in, negative money
+ * out. `account` is an entity id for a personal account (default: the shared
+ * one). `key` makes the posting idempotent: a second effect with the same key
+ * is skipped (e.g. `job-payment:<jobId>` so a job cannot pay out twice).
+ */
+export interface LedgerEffect {
+  kind: "ledger";
+  amount: number;
+  category: string;
+  note: string;
+  account?: string;
+  links?: LedgerLinks;
+  key?: string;
+}
+
+// ---------------------------------------------------------------------------
+// The crew's ship (or wagon, or caravan) and travel between places
+// ---------------------------------------------------------------------------
+
+/**
+ * Where the group's vehicle lives. The chosen entity id is kept in campaign
+ * settings under `setting`; the app shows its card, the ledger and the travel
+ * planner on one page.
+ */
+export interface CrewShipDef {
+  /** Entity types that can be the group's vehicle. */
+  entityTypes: string[];
+  /** `meta.settings` key holding the chosen entity id. */
+  setting: string;
+  /** `meta.settings` key holding the group's current location id, kept in step by travel. */
+  locationSetting?: string;
+  /** Sheet section ids offered for editing on the card (every section when absent). */
+  sections?: string[];
+  /**
+   * Values shown at a glance: a field path or computed key, with `max` for
+   * "value/max". `format` "money" uses the ledger currency; "flag" shows the
+   * label as a warning only while the value is true.
+   */
+  stats?: Array<{ label: string; path: string; max?: string; format?: "number" | "money" | "text" | "flag"; rule?: string }>;
+  /** Array fields shown as short lists: `title` and `detail` are item keys; `badge` is shown as a tag. */
+  lists?: Array<{ label: string; path: string; title: string; detail?: string[]; badge?: string; empty?: string; rule?: string }>;
+  /** Page title, e.g. "Ship". */
+  label?: string;
+  /** Procedure the app offers between jobs (repairs, bills, shore leave), from the page and session wrap-up. */
+  betweenJobs?: string;
+  mode?: PlayModeId[];
+  rules?: string[];
+}
+
+/** A place travel starts or ends at (an entity snapshot). */
+export interface TravelEndpoint {
+  id: string;
+  name: string;
+  type: string;
+  subtype?: string;
+  fields: Record<string, unknown>;
+}
+
+/** The travelling vehicle or a traveller, with computed values. */
+export interface TravelEntity {
+  id: string;
+  name: string;
+  type: string;
+  fields: Record<string, unknown>;
+  computed?: Record<string, unknown>;
+}
+
+export interface TravelRequest {
+  ship?: TravelEntity;
+  origin?: TravelEndpoint;
+  destination: TravelEndpoint;
+  /** Distance in the module's unit (`TravelDef.distance`), as the GM reads it off the map. */
+  distance: number;
+  /** Values for `TravelDef.options` (e.g. who stays awake). */
+  options: Record<string, unknown>;
+  /** The GM's own travel time in days, overriding the rule; the plan's checks follow it. */
+  days?: number;
+}
+
+/** A roll or check travel calls for (e.g. supply or sickness rolls), shown in the planner. */
+export interface TravelCheck {
+  id: string;
+  label: string;
+  /** Who or what it is for (entity id), if anyone in particular. */
+  entity?: string;
+  /** Dice expression, when it is a roll. */
+  dice?: string;
+  /** How many times. */
+  count: number;
+  when: "departure" | "en-route" | "arrival";
+  table?: string;
+  page?: PageRef;
+}
+
+export interface TravelPlan {
+  /** Whole in-world days the trip takes. */
+  days: number;
+  /** One line, e.g. "4 parsecs at FTL 12: 48 days". */
+  summary: string;
+  checks: TravelCheck[];
+  notes: Array<{ text: string; page?: PageRef }>;
+  /** Set when the trip cannot be made (e.g. the drive is broken); the app will not depart. */
+  blocked?: string;
+}
+
+export interface TravelOutcome {
+  rolls: RollRecord[];
+  /** Lines for the travel log. */
+  log: string[];
+  /** Changes on arrival (supplies used, conditions, ledger postings); the GM can review them first. */
+  effects: Effect[];
+}
+
+/**
+ * Travel between places. `plan` is pure; `arrive` makes the plan's rolls with
+ * the seeded RNG the core records on the travel leg, so the same seed gives
+ * the same arrival.
+ */
+export interface TravelDef {
+  /** The unit distances are entered in, e.g. parsecs read off a star map. */
+  distance: { unit: string; plural: string; help?: string; page?: PageRef };
+  /** Entity types (and subtypes) that can be a destination. */
+  destinations: Array<{ entityType: string; subtypes?: string[] }>;
+  /** JSON Schema of planner options; per-character arrays work as in procedure inputs. */
+  options?: JsonSchema;
+  plan(req: TravelRequest): TravelPlan;
+  arrive(req: TravelRequest, plan: TravelPlan, rng: Rng, tables: TableRegistry): TravelOutcome;
+  page?: PageRef;
+  mode?: PlayModeId[];
+  rules?: string[];
+}
+
+/**
+ * Procedure input hint: a property whose schema carries `"x-entity"` is an
+ * entity picker. The app passes the chosen entity as a snapshot
+ * `{ id, name, type, fields }` (so runs stay reproducible), pre-filled from
+ * campaign setting `setting` when given.
+ */
+export const ENTITY_INPUT_HINT = "x-entity" as const;
+export interface EntityInputHint {
+  types: string[];
+  setting?: string;
+}
+/** The value an `x-entity` input carries. */
+export interface EntitySnapshot {
+  id: string;
+  name: string;
+  type: string;
+  fields: Record<string, unknown>;
+}
+
+// ---------------------------------------------------------------------------
 // The module
 // ---------------------------------------------------------------------------
 
@@ -1266,6 +1498,12 @@ export interface GameModule {
   playGuides?: PlayGuideDef[];
   /** Damage taken, creature turns and special attacks at the table. */
   combat?: CombatDef;
+  /** Money: currency, ledger categories and one-click payouts. */
+  ledger?: LedgerDef;
+  /** The group's own vehicle (a ship), shown with the ledger and travel planner. */
+  crewShip?: CrewShipDef;
+  /** Travel time and checks between places. */
+  travel?: TravelDef;
   /** Upgrade stored entity fields from an older module version. */
   migrations?: Array<{ from: string; to: string; migrate: (entity: { type: string; fields: Record<string, unknown> }) => Record<string, unknown> }>;
 }

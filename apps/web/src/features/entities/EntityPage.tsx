@@ -18,6 +18,7 @@ import { SheetTab } from "./SheetTab";
 import { TimelineTab } from "./TimelineTab";
 import { EntityPrepPanels } from "../generate/EntityPrepPanels";
 import { LifecycleStart } from "../table/LifecycleStart";
+import { PayoutButton } from "../ship/PayoutButton";
 import { applyGeneratorEffects } from "../../state/prepActions";
 
 const TABS = ["sheet", "notes", "relationships", "backlinks", "timeline"] as const;
@@ -175,6 +176,7 @@ function EntityHeader({ entity, def }: { entity: Entity; def: EntityTypeDef | un
       </div>
       <div className="app-entity__actions">
         <LifecycleStart entity={entity} onPrompts={(raised) => setPrompts((p) => [...p, ...raised])} />
+        <PayoutButton entity={entity} />
         <Button variant="ghost" onClick={() => setConfirmDelete(true)}>
           Delete
         </Button>

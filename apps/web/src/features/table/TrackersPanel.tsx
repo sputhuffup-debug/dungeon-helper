@@ -6,6 +6,8 @@ import { TrackerHost, type TrackerEntity } from "../../components/ui";
 import { useCampaign, useList, useMeta } from "../../state/hooks";
 import { playerCharacters, setClockState, setTrackerStateOf, trackerStateOf } from "../../state/tableActions";
 import { useEntities, useSessionTrackerState, useTrackerEntities } from "./hooks";
+import { FundsReadout } from "../ship/FundsReadout";
+import "../ship/ship.css";
 
 export interface TrackerHandlers {
   onEffects: (effects: Effect[]) => void;
@@ -97,6 +99,7 @@ export function TrackersPanel({ sessionId, trackers, pcs, participants, map, han
   const allEntities = useTrackerEntities(everyone);
   return (
     <div className="app-stack app-table__trackers" data-testid="trackers">
+      <FundsReadout />
       {trackers.map((def) =>
         def.kind === "lifecycle" ? (
           <LifecycleBound key={def.id} sessionId={sessionId} def={def} entities={allEntities} everyone={everyone} {...handlers} />

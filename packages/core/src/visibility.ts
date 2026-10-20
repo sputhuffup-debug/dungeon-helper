@@ -129,6 +129,8 @@ export function projectCampaignForViewer(maps: CampaignMaps, module: ModuleTypes
     generatorRuns: {},
     trackerState: {},
     assets,
+    ledger: pick(maps.ledger ?? {}),
+    travel: pick(maps.travel ?? {}),
   };
 }
 

@@ -13,7 +13,7 @@ import { errorMessage, relativeTime } from "../../lib/format";
 import { acceptGenerated } from "../../state/prepActions";
 import { useCampaign, useList, useMeta } from "../../state/hooks";
 import { InputForm } from "./InputForm";
-import { initialInputs, inputProperties } from "./prefill";
+import { initialInputs, inputProperties, pickedInputs } from "./prefill";
 import { PreviewPanel } from "./PreviewPanel";
 import { ResultsPanel } from "./ResultsPanel";
 import { changedSteps, contextFromRun, newSeed, requestFromRun, runGenerator, stepViews, type GeneratorRequest } from "./runner";
@@ -21,6 +21,7 @@ import { StepList } from "./StepList";
 import { ChainButtons } from "./ChainButtons";
 
 interface ProcedureSearch {
+  pick?: string;
   run?: string;
   chainFrom?: string;
   chain?: number;
@@ -47,7 +48,7 @@ export function ProcedurePage() {
       </div>
     );
   }
-  const key = `${procedureId}|${search.run ?? ""}|${search.chainFrom ?? ""}|${search.chain ?? ""}|${search.within ?? ""}`;
+  const key = `${procedureId}|${search.run ?? ""}|${search.chainFrom ?? ""}|${search.chain ?? ""}|${search.within ?? ""}|${search.pick ?? ""}`;
   return <Workbench key={key} procedure={procedure} search={search} />;
 }
 
@@ -61,7 +62,8 @@ interface Initial {
 function useInitial(procedure: Procedure, search: ProcedureSearch): Initial {
   const ctx = useCampaign();
   return useMemo(() => {
-    const base: GeneratorRequest = { procedureId: procedure.id, seed: newSeed(), inputs: initialInputs(procedure, ctx.store, ctx.module), stepSeeds: {}, pinned: {}, includeOptional: [] };
+    const inputs0 = { ...initialInputs(procedure, ctx.store, ctx.module), ...pickedInputs(procedure, ctx.store, search.pick) };
+    const base: GeneratorRequest = { procedureId: procedure.id, seed: newSeed(), inputs: inputs0, stepSeeds: {}, pinned: {}, includeOptional: [] };
     if (search.run) {
       const run = ctx.store.get("generatorRuns", search.run);
       if (run && run.procedure === procedure.id) return { request: requestFromRun(procedure, run), restoredFrom: run };
@@ -283,7 +285,7 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
           </div>
           {accepted && (
             <>
-              <ResultsPanel results={accepted.results} />
+              <ResultsPanel results={accepted.results} runId={accepted.id} />
               <ChainButtons run={accepted} />
             </>
           )}

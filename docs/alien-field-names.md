@@ -113,6 +113,10 @@ tool/medical/food/pharmaceutical/other: `effect?: string`, `weight`, `cost`, `su
 ## `alien.spaceship.fields`
 `shipClass` (C G J M R U X), `manufacturer`, `cost`, `crew`, `signature: number`, `ai: string`, `thrusters: number`, `length`, `hull: number`, `ftl: number`, `armor: number`, `passengers`, `modules: string[]` (ship-module ids), `upgrades: string[]`, `armaments: string[]`
 
+State in play (stored; maxima stay on the stat line or are computed): `hullDamage: number`, `componentDamage: { name, severity: minor|major, effect, heavyMachinery, comtech, system }[]` (repair rolls still needed), `spareParts: { mechanical, electronic }`, `provisions: number` (person-days of food and water), `cargo: { item, amount, note }[]`, `ownership` (company leased owned). Computed: `hullLeft`, `majorDamageAt`, `disabled`, `leasePerYear`, `leasePerWeek`.
+
+The crew's ship is the entity id in `meta.settings.ship` (session zero question "ship"); travel keeps `meta.settings.currentLocation` in step. Ledger categories and the travel rule: `src/economy.ts`, `src/travel.ts`.
+
 ## Tracker ids
 `alien.stress`, `alien.story-points`, `alien.clock`, `alien.countdown`, `alien.supply`, `alien.initiative`, `alien.stealth`, `alien.gestation`.
 
@@ -121,7 +125,7 @@ tool/medical/food/pharmaceutical/other: `effect?: string`, `weight`, `cost`, `su
 Host conditions it sets: `xx121:facehugged`, `xx121:implanted` (set by the `inseminationCheck` dice operation), `xx121:embryo`, `xx121:killed-by-chestburster`, `xx121:killed-by-removal`, `xx121:died-in-surgery`, `xx121:cocooned`, `xx121:ovomorphed`.
 
 ## Procedure ids
-`alien.world.create`, `alien.system.create`, `alien.job.create`, `alien.lifepath`, `alien.encounter.check`, `alien.shore-leave`, `alien.session-end` (the last is implemented as a hook, not a procedure).
+`alien.world.create`, `alien.system.create`, `alien.job.create`, `alien.lifepath`, `alien.encounter.check`, `alien.shore-leave`, `alien.between-jobs`, `alien.session-end` (the last is implemented as a hook, not a procedure).
 
 ## Table id convention
 `alien.<family>.<name>` e.g. `alien.world.atmosphere`, `alien.character.panic`, `alien.jobs.truckers.employer`, `alien.encounters.colony.general`, `alien.lifepath.origin`.

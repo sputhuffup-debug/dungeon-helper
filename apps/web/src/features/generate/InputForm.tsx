@@ -3,7 +3,7 @@ import type { CampaignStore } from "@campaign-forge/core";
 import type { LoadedModule } from "@campaign-forge/module-sdk";
 import { Button, IconButton } from "../../components/ui";
 import { humanize } from "../../lib/format";
-import { characterItem, isCharacterArray, playerCharacters, schemaTypeOf, type Schema } from "./prefill";
+import { characterItem, entityHint, entitySnapshot, isCharacterArray, playerCharacters, schemaTypeOf, type Schema } from "./prefill";
 
 export interface InputFormProps {
   properties: Record<string, Schema>;
@@ -29,6 +29,37 @@ export function InputForm({ properties, value, onChange, store, module }: InputF
         const s = properties[key] as Schema;
         if (isCharacterArray(s)) {
           return <CharacterArrayInput key={key} name={key} schema={s} value={value[key]} onChange={(v) => set(key, v)} store={store} module={module} />;
+        }
+        const hint = entityHint(s);
+        if (hint) {
+          const current = value[key] && typeof value[key] === "object" ? (value[key] as { id?: string }).id : undefined;
+          const options = store
+            .list("entities")
+            .filter((e) => hint.types.includes(e.type))
+            .sort((a, b) => a.name.localeCompare(b.name));
+          return (
+            <label key={key} className="app-label prep-form__field">
+              <span>{s.title ?? humanize(key)}</span>
+              <select
+                className="cf-select"
+                aria-label={s.title ?? humanize(key)}
+                value={current ?? ""}
+                onChange={(e) => {
+                  const picked = options.find((o) => o.id === e.target.value);
+                  set(key, picked ? entitySnapshot(picked) : undefined);
+                }}
+                data-testid={`input-${key}`}
+              >
+                <option value="">None</option>
+                {options.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {o.name}
+                  </option>
+                ))}
+              </select>
+              {s.description && <span className="cf-muted prep-form__help">{s.description}</span>}
+            </label>
+          );
         }
         return (
           <label key={key} className="app-label prep-form__field">

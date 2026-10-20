@@ -3,7 +3,8 @@
  * core applies them and records what it did. Prompt effects are returned
  * for the UI to answer (their own effects come back through applyEffects).
  */
-import type { ApplyPresetEffect, CreateFromPresetEffect, Effect, EntityPreset, Prompt } from "@campaign-forge/module-sdk";
+import type { ApplyPresetEffect, CreateFromPresetEffect, CurrencyDef, Effect, EntityPreset, LedgerLinks, Prompt } from "@campaign-forge/module-sdk";
+import { postLedgerEffect } from "./ledger";
 import { presetToEntity, type PresetOverrides } from "./generation";
 import { now } from "./ids";
 import { clone, getPath, setPath } from "./paths";
@@ -15,6 +16,12 @@ export interface EffectContext {
   sessionId?: Id;
   /** Resolves module presets for `createFromPreset` and `applyPreset` (e.g. `loadedModule.preset`). */
   preset?: (id: string) => EntityPreset | undefined;
+  /** Links merged into every `ledger` effect's links (e.g. the travel leg or procedure run that posted it). */
+  ledgerLinks?: LedgerLinks;
+  /** Recorded as each ledger entry's source. */
+  ledgerSource?: { kind: "procedure" | "travel" | "payout" | "effect"; id?: Id };
+  /** Rounds ledger amounts to the module currency. */
+  currency?: Pick<CurrencyDef, "decimals">;
 }
 
 export interface ApplyEffectsResult {
@@ -45,6 +52,8 @@ function describe(effect: Effect, entity?: Entity): string {
       return `${who || effect.name || effect.preset}: created from preset ${effect.preset}`;
     case "applyPreset":
       return `${who}: now preset ${effect.preset}`;
+    case "ledger":
+      return `Ledger: ${effect.amount >= 0 ? "+" : ""}${effect.amount} (${effect.category}) ${effect.note}`.trim();
   }
 }
 
@@ -99,7 +108,15 @@ export function applyEffects(store: CampaignStore, effects: Effect[], ctx: Effec
       }
       const at = now();
       let entity: Entity | undefined;
-      if (effect.kind === "createFromPreset" || effect.kind === "applyPreset") {
+      if (effect.kind === "ledger") {
+        const links = { ...(ctx.ledgerLinks ?? {}), ...(effect.links ?? {}) };
+        if (session !== undefined && !links.session) links.session = session;
+        const posted = postLedgerEffect(store, { ...effect, links }, { source: ctx.ledgerSource ?? { kind: "effect" }, ...(ctx.currency ? { currency: ctx.currency } : {}) });
+        if (posted.duplicate) {
+          skipped.push({ effect, reason: `already posted (${effect.key})` });
+          continue;
+        }
+      } else if (effect.kind === "createFromPreset" || effect.kind === "applyPreset") {
         const preset = ctx.preset?.(effect.preset);
         if (!preset) {
           skipped.push({ effect, reason: ctx.preset ? `preset ${effect.preset} not found` : "no preset resolver" });
@@ -163,6 +180,7 @@ export function applyEffects(store: CampaignStore, effects: Effect[], ctx: Effec
           break;
         }
         case "log":
+        case "ledger":
         case "createFromPreset":
         case "applyPreset":
           break;

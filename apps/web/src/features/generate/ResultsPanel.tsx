@@ -9,10 +9,11 @@ import { useMemo, useState } from "react";
 import { Badge, Button, Card, PageRef, pushToast } from "../../components/ui";
 import { humanize } from "../../lib/format";
 import { applyGeneratorEffects } from "../../state/prepActions";
+import { money } from "../../state/shipActions";
 import { useCampaign } from "../../state/hooks";
 
 export function isEffect(v: unknown): v is Effect {
-  return typeof v === "object" && v !== null && typeof (v as { kind?: unknown }).kind === "string" && ["setField", "incrementField", "addCondition", "removeCondition", "log", "prompt"].includes((v as { kind: string }).kind);
+  return typeof v === "object" && v !== null && typeof (v as { kind?: unknown }).kind === "string" && ["setField", "incrementField", "addCondition", "removeCondition", "log", "prompt", "ledger"].includes((v as { kind: string }).kind);
 }
 
 /** Effects found in a run's results (`results.effects`). */
@@ -33,7 +34,7 @@ export function outcomesOf(results: Record<string, unknown>): Array<{ key: strin
   return out;
 }
 
-export function describeEffect(e: Effect, name: (id: Id) => string, presetName: (id: string) => string = (id) => id): string {
+export function describeEffect(e: Effect, name: (id: Id) => string, presetName: (id: string) => string = (id) => id, money: (amount: number) => string = (n) => `${n >= 0 ? "+" : ""}${n}`): string {
   switch (e.kind) {
     case "setField":
       return `${name(e.entity)}: set ${humanize(e.path)} to ${JSON.stringify(e.value)}`;
@@ -51,10 +52,12 @@ export function describeEffect(e: Effect, name: (id: Id) => string, presetName: 
       return e.name ? `New ${e.name} (${presetName(e.preset)})` : `New ${presetName(e.preset)}`;
     case "applyPreset":
       return `${name(e.entity)}: becomes ${presetName(e.preset)}`;
+    case "ledger":
+      return `Ledger ${money(e.amount)}: ${e.note}${e.account ? ` (${name(e.account)})` : ""}`;
   }
 }
 
-export function ResultsPanel({ results }: { results: Record<string, unknown> }) {
+export function ResultsPanel({ results, runId }: { results: Record<string, unknown>; runId?: Id }) {
   const ctx = useCampaign();
   const name = (id: Id) => ctx.store.get("entities", id)?.name ?? id;
   const presetName = (id: string) => ctx.module.preset(id)?.name ?? id;
@@ -68,9 +71,9 @@ export function ResultsPanel({ results }: { results: Record<string, unknown> }) 
 
   const apply = () => {
     const chosen = plain.filter((x) => selected.has(x.i)).map((x) => x.e);
-    const res = applyGeneratorEffects(ctx, chosen);
+    const res = applyGeneratorEffects(ctx, chosen, undefined, runId);
     setApplied(true);
-    const skipped = res.skipped.length ? `, ${res.skipped.length} skipped (missing character)` : "";
+    const skipped = res.skipped.length ? `, ${res.skipped.length} skipped (${res.skipped.map((x) => x.reason).join("; ")})` : "";
     pushToast(`Applied ${res.applied.length} effect${res.applied.length === 1 ? "" : "s"}${skipped}.`, { tone: res.skipped.length ? "warning" : "success" });
   };
 
@@ -115,7 +118,7 @@ export function ResultsPanel({ results }: { results: Record<string, unknown> }) 
                       })
                     }
                   />
-                  {describeEffect(e, name, presetName)}
+                  {describeEffect(e, name, presetName, (n) => money(ctx, n, { sign: true }))}
                 </label>
               </li>
             ))}

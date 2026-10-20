@@ -274,3 +274,55 @@ describe("filterByMode", () => {
     expect(filterByMode(items, "a").map((i) => i.id)).toEqual([1, 2, 4]);
   });
 });
+
+describe("checkModule: ledger, crew ship and travel", () => {
+  function withEconomy(): GameModule {
+    const m = minimalModule();
+    m.ledger = {
+      currency: { name: "coin", symbol: "c" },
+      defaultAccount: "Purse",
+      categories: [
+        { id: "pay", label: "Pay", direction: "in", page: 3 },
+        { id: "other", label: "Other", direction: "either" },
+      ],
+      payouts: [{ entityType: "min.thing", amountPath: "weight", category: "pay", label: "Sell" }],
+    };
+    m.crewShip = { entityTypes: ["min.thing"], setting: "thing", stats: [{ label: "Weight", path: "weight" }, { label: "Heavy", path: "heavy", format: "flag" }], lists: [], betweenJobs: "min.proc" };
+    m.travel = {
+      distance: { unit: "mile", plural: "miles" },
+      destinations: [{ entityType: "min.thing" }],
+      plan: () => ({ days: 1, summary: "", checks: [], notes: [] }),
+      arrive: () => ({ rolls: [], log: [], effects: [] }),
+    };
+    return m;
+  }
+
+  it("accepts a well-formed definition", () => {
+    const report = checkModule(withEconomy(), { skipProcedureRuns: true });
+    expect(report.issues.filter((i) => i.severity === "error")).toEqual([]);
+  });
+
+  it("reports bad categories, payouts, stats, procedures and destinations", () => {
+    const m = withEconomy();
+    m.ledger!.categories.push({ id: "pay", label: "Again", direction: "in" }, { id: "odd", label: "", direction: "sideways" as "in", page: 0 });
+    m.ledger!.payouts!.push({ entityType: "min.nothing", amountPath: "x", category: "nope", label: "X" });
+    m.crewShip!.stats!.push({ label: "Ghost", path: "ghost" });
+    m.crewShip!.betweenJobs = "min.missing";
+    m.travel!.destinations.push({ entityType: "min.thing", subtypes: ["cave"] }, { entityType: "min.place" });
+    const errors = checkModule(m, { skipProcedureRuns: true }).issues.filter((i) => i.severity === "error").map((i) => `${i.where}: ${i.message}`);
+    for (const expected of [
+      'ledger:category:pay: duplicate ledger category id "pay"',
+      "ledger:category:odd: category has no label",
+      'ledger:category:odd: invalid direction "sideways"',
+      "ledger:category:odd: invalid page reference",
+      'ledger:payout:min.nothing: unknown entity type "min.nothing"',
+      'ledger:payout:min.nothing: unknown ledger category "nope"',
+      'crewShip: stat "Ghost" reads unknown field or computed key "ghost"',
+      'crewShip: betweenJobs references unknown procedure "min.missing"',
+      'travel: unknown subtype "cave" of "min.thing"',
+      'travel: unknown destination entity type "min.place"',
+    ]) {
+      expect(errors).toContain(expected);
+    }
+  });
+});

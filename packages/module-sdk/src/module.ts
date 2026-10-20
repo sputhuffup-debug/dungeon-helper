@@ -594,6 +594,88 @@ function majorOf(version: string): number | undefined {
   return m && m[1] !== undefined ? Number(m[1]) : undefined;
 }
 
+
+function checkEconomy(module: GameModule, declaredModes: Set<PlayModeId>, c: Collector): void {
+  const types = new Set(module.entityTypes.map((t) => t.id));
+  const rules = new Set(module.rules.map((r) => r.id));
+  const checkRules = (ids: string[] | undefined, where: string) => {
+    for (const r of ids ?? []) if (!rules.has(r)) c.error(where, `references unknown rule "${r}"`);
+  };
+  const ledger = module.ledger;
+  if (ledger) {
+    const w = "ledger";
+    if (!ledger.currency?.symbol || !ledger.currency?.name) c.error(w, "currency needs a name and a symbol");
+    const d = ledger.currency?.decimals;
+    if (d !== undefined && (!Number.isInteger(d) || d < 0 || d > 4)) c.error(w, "currency decimals must be an integer from 0 to 4");
+    if (ledger.currency?.page !== undefined && !validPage(ledger.currency.page)) c.error(w, "currency has an invalid page reference");
+    if (!ledger.defaultAccount) c.error(w, "defaultAccount needs a name");
+    if (!Array.isArray(ledger.categories) || ledger.categories.length === 0) c.error(w, "ledger declares no categories");
+    checkUnique(ledger.categories ?? [], (x) => x.id, (x) => `ledger:category:${x.id}`, "ledger category", c);
+    for (const cat of ledger.categories ?? []) {
+      const cw = `ledger:category:${cat.id}`;
+      if (!cat.label) c.error(cw, "category has no label");
+      if (!["in", "out", "either"].includes(cat.direction)) c.error(cw, `invalid direction "${String(cat.direction)}"`);
+      if (cat.page !== undefined && !validPage(cat.page)) c.error(cw, "invalid page reference");
+      if (cat.rule !== undefined) checkRules([cat.rule], cw);
+    }
+    const cats = new Set((ledger.categories ?? []).map((x) => x.id));
+    for (const t of ledger.accountEntityTypes ?? []) if (!types.has(t)) c.error(w, `accountEntityTypes references unknown entity type "${t}"`);
+    for (const p of ledger.payouts ?? []) {
+      const pw = `ledger:payout:${p.entityType}`;
+      if (!types.has(p.entityType)) c.error(pw, `unknown entity type "${p.entityType}"`);
+      if (!cats.has(p.category)) c.error(pw, `unknown ledger category "${p.category}"`);
+      if (!p.amountPath) c.error(pw, "payout has no amountPath");
+      if (p.page !== undefined && !validPage(p.page)) c.error(pw, "invalid page reference");
+    }
+    checkModes(ledger.mode, declaredModes, w, c);
+    checkRules(ledger.rules, w);
+  }
+  const ship = module.crewShip;
+  if (ship) {
+    const w = "crewShip";
+    if (!Array.isArray(ship.entityTypes) || ship.entityTypes.length === 0) c.error(w, "crewShip lists no entity types");
+    for (const t of ship.entityTypes ?? []) if (!types.has(t)) c.error(w, `unknown entity type "${t}"`);
+    if (!ship.setting) c.error(w, "crewShip needs a campaign setting key");
+    if (ship.betweenJobs !== undefined && !module.procedures.some((p) => p.id === ship.betweenJobs)) c.error(w, `betweenJobs references unknown procedure "${ship.betweenJobs}"`);
+    if (ship.sections) {
+      const sections = new Set(ship.entityTypes.flatMap((t) => module.entityTypes.find((e) => e.id === t)?.sheet.sections.map((s) => s.id) ?? []));
+      for (const s of ship.sections) if (!sections.has(s)) c.error(w, `unknown sheet section "${s}"`);
+    }
+    const known = (path: string) =>
+      ship.entityTypes.some((t) => {
+        const def = module.entityTypes.find((e) => e.id === t);
+        return !!def && (fieldSchemaAt(def, path) !== undefined || Object.prototype.hasOwnProperty.call(def.computed ?? {}, path));
+      });
+    for (const st of ship.stats ?? []) {
+      if (!known(st.path)) c.error(w, `stat "${st.label}" reads unknown field or computed key "${st.path}"`);
+      if (st.max !== undefined && !known(st.max)) c.error(w, `stat "${st.label}" reads unknown max "${st.max}"`);
+      if (st.rule !== undefined) checkRules([st.rule], w);
+    }
+    for (const l of ship.lists ?? []) {
+      if (!known(l.path)) c.error(w, `list "${l.label}" reads unknown field "${l.path}"`);
+      if (l.rule !== undefined) checkRules([l.rule], w);
+    }
+    checkModes(ship.mode, declaredModes, w, c);
+    checkRules(ship.rules, w);
+  }
+  const travel = module.travel;
+  if (travel) {
+    const w = "travel";
+    if (typeof travel.plan !== "function" || typeof travel.arrive !== "function") c.error(w, "travel needs plan() and arrive()");
+    if (!travel.distance?.unit) c.error(w, "travel needs a distance unit");
+    if (!Array.isArray(travel.destinations) || travel.destinations.length === 0) c.error(w, "travel lists no destination types");
+    for (const d of travel.destinations ?? []) {
+      const def = module.entityTypes.find((t) => t.id === d.entityType);
+      if (!def) c.error(w, `unknown destination entity type "${d.entityType}"`);
+      for (const s of d.subtypes ?? []) if (def && !def.subtypes?.some((x) => x.id === s)) c.error(w, `unknown subtype "${s}" of "${d.entityType}"`);
+    }
+    if (travel.page !== undefined && !validPage(travel.page)) c.error(w, "invalid page reference");
+    if (travel.distance?.page !== undefined && !validPage(travel.distance.page)) c.error(w, "distance has an invalid page reference");
+    checkModes(travel.mode, declaredModes, w, c);
+    checkRules(travel.rules, w);
+  }
+}
+
 /** Run every conformance check. `ok` is true when no error-severity issue was found. */
 export function checkModule(module: GameModule, options: CheckModuleOptions = {}): ConformanceReport {
   const c = new Collector();
@@ -674,6 +756,9 @@ export function checkModule(module: GameModule, options: CheckModuleOptions = {}
   if (!options.skipProcedureRuns && !hadErrors) {
     for (const p of module.procedures) checkProcedureRuns(p, module, options, c);
   }
+
+  // Money, the crew's vehicle and travel.
+  checkEconomy(module, declaredModes, c);
 
   // Calendar.
   const cal = module.calendar;

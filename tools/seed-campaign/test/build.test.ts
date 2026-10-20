@@ -153,6 +153,32 @@ describe("buildDemoCampaign", () => {
     expect(problems).toEqual([]);
   });
 
+  it("makes the crew's ship real: its state, one finished leg and the crew funds ledger", () => {
+    const meta = store.meta();
+    const ship = maps.entities[String(meta.settings["ship"])]!;
+    expect(ship.type).toBe("alien.spaceship");
+    expect(ship.fields).toMatchObject({ hullDamage: 2, spareParts: { mechanical: 1, electronic: 0 }, provisions: 60, ownership: "company" });
+    expect((ship.fields["componentDamage"] as Array<{ name: string }>).map((d) => d.name)).toEqual(["Coffee Maker Malfunction"]);
+    expect(meta.currentDate).toBe("2183-06-01");
+    const legs = Object.values(maps.travel);
+    expect(legs).toHaveLength(1);
+    const leg = legs[0]!;
+    const homeBase = maps.entities[String(meta.settings["homeBase"])]!;
+    expect(leg).toMatchObject({ ship: ship.id, to: homeBase.id, toName: homeBase.name, distance: 1, days: 12, departDate: "2183-05-16", arriveDate: "2183-05-28", status: "arrived" });
+    expect(maps.entities[leg.from!]?.name).toBe(leg.fromName);
+    expect(maps.entities[leg.from!]?.subtype).toBe("star-system");
+    expect(meta.settings["currentLocation"]).toBe(homeBase.id);
+    const entries = Object.values(maps.ledger);
+    expect(entries).toHaveLength(5);
+    expect(entries.reduce((n, e) => n + e.amount, 0)).toBe(18330);
+    expect(entries.every((e) => e.realDate === "2026-11-01" && e.inWorldDate?.startsWith("2183-"))).toBe(true);
+    expect(entries.find((e) => e.links?.job === job(maps).id)?.amount).toBe(1000);
+    // deterministic: the same leg log and ledger from the same seed
+    const again = buildDemoCampaign().maps;
+    expect(Object.values(again.travel).map((l) => l.log)).toEqual(legs.map((l) => l.log));
+    expect(Object.values(again.ledger).map((e) => [e.amount, e.category, e.note, e.inWorldDate])).toEqual(entries.map((e) => [e.amount, e.category, e.note, e.inWorldDate]));
+  });
+
   it("round-trips through exportBundle/importBundle", async () => {
     const bytes = await exportBundle(store, demo.registry, undefined, { id: alienModule.manifest.id, version: alienModule.manifest.version });
     expect(bytes.byteLength).toBeGreaterThan(0);

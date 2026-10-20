@@ -16,6 +16,7 @@ import type {
   Prompt,
   RolledDie,
   RollResult,
+  RollRecord,
   RollTable,
   Rng,
   RuleCard,
@@ -207,6 +208,79 @@ const placeType: EntityTypeDef = {
     summary: ["terrain", "danger"],
   },
   subtypes: [{ id: "ruin", name: "Ruin" }],
+};
+
+/** The heroes' wagon: the fixture's crew vehicle, with wear (stored) and a computed load limit. */
+const wagonType: EntityTypeDef = {
+  id: "example.wagon",
+  kind: "vehicle",
+  name: "Wagon",
+  plural: "Wagons",
+  schema: {
+    type: "object",
+    properties: {
+      oxen: { type: "integer", minimum: 0, default: 2 },
+      wear: { type: "integer", minimum: 0, default: 0 },
+      food: { type: "integer", minimum: 0, default: 0, description: "Days of food aboard for one hero." },
+      goods: { type: "array", default: [], items: { type: "object", properties: { item: { type: "string" }, note: { type: "string" } } } },
+    },
+  },
+  sheet: {
+    sections: [
+      { id: "wagon", title: "Wagon", fields: [{ path: "oxen", widget: "number" }, { path: "wear", widget: "number" }, { path: "food", widget: "number" }, { path: "loadLimit", widget: "computed" }] },
+      { id: "goods", title: "Goods", fields: [{ path: "goods", widget: "list" }] },
+    ],
+    summary: ["oxen", "wear"],
+  },
+  computed: { loadLimit: { "*": [{ var: ["fields.oxen", 0] }, 10] } },
+};
+
+/** Travel by wagon: a day per 8 leagues, rounded up; each hero eats a day of food per day (p. 40). */
+const exampleTravel: GameModule["travel"] = {
+  distance: { unit: "league", plural: "leagues", help: "Count hexes on the map: one hex is one league.", page: 40 },
+  destinations: [{ entityType: "example.place" }],
+  options: { type: "object", properties: { heroes: { type: "integer", minimum: 0, default: 2, description: "Heroes riding along." } } },
+  plan(req) {
+    const leagues = Math.max(0, req.distance);
+    const ruled = Math.ceil(leagues / 8);
+    const days = req.days ?? ruled;
+    const heroes = typeof req.options.heroes === "number" ? req.options.heroes : 2;
+    const wear = req.ship ? Number(req.ship.fields.wear ?? 0) : 0;
+    const plan: ReturnType<NonNullable<GameModule["travel"]>["plan"]> = {
+      days,
+      summary: `${leagues} leagues: ${days} day${days === 1 ? "" : "s"}`,
+      checks: [
+        ...(days > 0 ? [{ id: "breakdown", label: "Breakdown roll", dice: "1d6", count: days, when: "en-route" as const, page: 40 }] : []),
+        ...(heroes * days > 0 ? [{ id: "food", label: `Food: ${heroes * days} days`, count: heroes * days, when: "en-route" as const, page: 40 }] : []),
+      ],
+      notes: [{ text: "Roll for a breakdown every day on the road.", page: 40 }],
+    };
+    if (!req.ship) plan.blocked = "Choose the wagon first.";
+    else if (wear >= 5) plan.blocked = "The wagon is too worn to travel.";
+    return plan;
+  },
+  arrive(req, plan, rng) {
+    const rolls: RollRecord[] = [];
+    const log: string[] = [];
+    const effects: Effect[] = [];
+    let breakdowns = 0;
+    for (const check of plan.checks) {
+      if (check.id === "breakdown") {
+        for (let i = 0; i < check.count; i++) {
+          const v = rng.int(1, 6);
+          rolls.push({ step: "breakdown", iteration: i, dice: "1d6", raw: [v], modifier: 0, total: v, result: v === 1 ? "breakdown" : "fine", page: 40 });
+          if (v === 1) breakdowns++;
+        }
+        log.push(`${breakdowns} breakdown${breakdowns === 1 ? "" : "s"} on the road.`);
+      }
+      if (check.id === "food" && req.ship) effects.push({ kind: "incrementField", entity: req.ship.id, path: "food", by: -check.count, min: 0 });
+    }
+    if (req.ship && breakdowns > 0) effects.push({ kind: "incrementField", entity: req.ship.id, path: "wear", by: breakdowns });
+    if (breakdowns > 0) effects.push({ kind: "ledger", amount: -3 * breakdowns, category: "repairs", note: `Wheelwright: ${breakdowns} breakdown${breakdowns === 1 ? "" : "s"}` });
+    return { rolls, log, effects };
+  },
+  page: 40,
+  rules: ["example.rule.push"],
 };
 
 /** A creature that takes turns at the table: Speed, Health, damage, armor, a venom reaction and a signature attack table. */
@@ -642,7 +716,7 @@ export const exampleModule: GameModule = {
     sourceBook: { title: "Example Quest Core Book", year: 2026 },
   },
   dice: exampleDice,
-  entityTypes: [heroType, placeType, beastType],
+  entityTypes: [heroType, placeType, beastType, wagonType],
   relationshipTypes: [
     { id: "example.guards", forward: "guards", reverse: "guarded by", fromKinds: ["character"], toKinds: ["location"] },
     { id: "example.risen_from", forward: "risen from", reverse: "raised", fromKinds: ["character"], toKinds: ["character"] },
@@ -859,6 +933,31 @@ export const exampleModule: GameModule = {
     opposedTies: { winner: "defender", text: "A tie goes to the defender.", page: 19 },
     rules: ["example.rule.wounds", "example.rule.push"],
   },
+  ledger: {
+    currency: { name: "silver penny", plural: "silver pennies", symbol: "sp", symbolAfter: true, page: 12 },
+    defaultAccount: "Party purse",
+    accountEntityTypes: ["example.hero"],
+    categories: [
+      { id: "reward", label: "Reward", direction: "in", page: 30, description: "Coin paid for a finished quest." },
+      { id: "repairs", label: "Repairs", direction: "out", page: 40 },
+      { id: "other", label: "Other", direction: "either", description: "GM bookkeeping." },
+    ],
+    payouts: [{ entityType: "example.place", amountPath: "population", category: "reward", label: "Collect bounty", page: 30 }],
+  },
+  crewShip: {
+    entityTypes: ["example.wagon"],
+    setting: "wagon",
+    locationSetting: "here",
+    label: "Wagon",
+    sections: ["wagon"],
+    stats: [
+      { label: "Wear", path: "wear" },
+      { label: "Load limit", path: "loadLimit" },
+      { label: "Food", path: "food" },
+    ],
+    lists: [{ label: "Goods", path: "goods", title: "item", detail: ["note"], empty: "Nothing aboard." }],
+  },
+  travel: exampleTravel,
   hooks: {
     onSessionEnd(ctx): Prompt[] {
       const onYes: Effect[] = ctx.characters.map((c) => ({ kind: "incrementField", entity: c.id, path: "wounds", by: -1, min: 0 }));

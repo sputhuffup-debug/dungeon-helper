@@ -25,6 +25,7 @@ import {
 import { SessionRollPanel, attributeIds, skillInput } from "../table/DicePanel";
 import { WrapChecklistPanel } from "./SessionChecklist";
 import { usePlayerCharacters } from "../table/hooks";
+import { BetweenJobsLink } from "../ship/BetweenJobsLink";
 
 const STEPS = [
   { id: "summary", label: "Summary" },
@@ -139,6 +140,7 @@ export function WrapUpWizard({ sessionId, onCancel, onDone }: WrapUpWizardProps)
           {step === "prompts" && <PromptsStep sessionId={sessionId} prompts={prompts} answers={answers} pcs={pcs} />}
 
           {step === "rewards" && <RewardsStep pcs={pcs} rewards={rewards} setRewards={setRewards} />}
+          {step === "rewards" && <BetweenJobsLink />}
 
           {step === "timeline" && (
             <Card title="Timeline entries" subtitle={`Dated ${meta.currentDate ?? "(no in-world date set)"}, the campaign's current in-world date.`}>

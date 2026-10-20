@@ -40,7 +40,7 @@ function fakeCtx(inputs: Record<string, unknown>, results: Record<string, unknow
   };
 }
 
-const EXPECTED_IDS = ["alien.world.create", "alien.system.create", "alien.job.create", "alien.lifepath", "alien.encounter.check", "alien.shore-leave"];
+const EXPECTED_IDS = ["alien.world.create", "alien.system.create", "alien.job.create", "alien.lifepath", "alien.encounter.check", "alien.shore-leave", "alien.between-jobs"];
 
 describe("alien procedures: static shape", () => {
   it("exports exactly the procedures from the field doc", () => {
