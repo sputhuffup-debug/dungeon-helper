@@ -77,6 +77,7 @@ export const characterSchema = objectSchema(
       },
     },
     stress: intField(0, undefined, 0, "Current stress level; one stress die per point (p. 42, 72)."),
+    damage: intField(0, undefined, 0, "Damage taken since full Health; Health left is computed, never stored. At zero Health the character is broken (p. 67-68)."),
     personalAgenda: stringField("Campaign mode: chosen, persistent, rewards XP (p. 27)."),
     agendas: {
       type: "array",
@@ -208,6 +209,8 @@ export const characterComputed: Record<string, JsonLogicRule> = {
    */
   coverHealth: { max: [coverHalf("strength", "agility"), half("strength", "agility")] },
   coverResolve: coverHalf("wits", "empathy"),
+  /** Health left after the damage taken; zero means broken (p. 68). */
+  healthRemaining: { max: [0, { "-": [{ var: "computed.health" }, { var: ["fields.damage", 0] }] }] },
 };
 
 const sections: SheetSection[] = [
@@ -283,6 +286,8 @@ const sections: SheetSection[] = [
       },
       { path: "health", label: "Health", widget: "computed", span: 3, readonly: true, rule: "alien.rule.health" },
       { path: "resolve", label: "Resolve", widget: "computed", span: 3, readonly: true, rule: "alien.rule.resolve" },
+      number("damage", "Damage taken", { rule: "alien.rule.damage-armor" }),
+      { path: "healthRemaining", label: "Health left", widget: "computed", span: 3, readonly: true, rule: "alien.rule.broken" },
       checkbox("fatigued", "Fatigued"),
       number("rads", "Rads"),
       { path: "criticalInjuries", label: "Critical injuries", widget: "conditions", span: 6, rule: "alien.rule.critical-injuries" },
@@ -411,5 +416,5 @@ export const characterType: EntityTypeDef = {
     secretOrders: "gm",
     coverAttributes: "players",
   },
-  playerEditable: ["stress", "gear", "cash", "talents", "skills", "personalAgenda", "agendas", "storyPoints", "xp", "signatureItem", "buddy", "rival", "background"],
+  playerEditable: ["stress", "damage", "gear", "cash", "talents", "skills", "personalAgenda", "agendas", "storyPoints", "xp", "signatureItem", "buddy", "rival", "background"],
 };

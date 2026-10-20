@@ -113,6 +113,7 @@ export { Button, IconButton, type ButtonProps, type IconButtonProps, type Button
 export { Badge, type BadgeProps, type BadgeTone } from "./primitives/Badge";
 export { Card, type CardProps } from "./primitives/Card";
 export { Pips, type PipsProps } from "./primitives/Pips";
+export { HealthBar, type HealthBarProps } from "./primitives/HealthBar";
 export { Stepper, type StepperProps } from "./primitives/Stepper";
 export { Tabs, type TabsProps, type TabItem } from "./primitives/Tabs";
 export { Dialog, Drawer, type DialogProps, type DrawerProps } from "./primitives/Dialog";

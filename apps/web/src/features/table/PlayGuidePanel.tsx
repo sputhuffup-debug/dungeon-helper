@@ -11,6 +11,7 @@ import { useMemo, useState } from "react";
 import { Badge, Button, EmptyState, PlayGuideView, playGuidesForMode } from "../../components/ui";
 import { useCampaign, useMeta } from "../../state/hooks";
 import { SessionRollPanel, attributeIds, rollSessionPool, skillInput, skillOptions } from "./DicePanel";
+import { SpecialAttackDialog, useSpecialAttacks } from "./SpecialAttacks";
 
 /** The module's play guides that apply in the campaign's play mode. */
 export function usePlayGuides(): PlayGuideDef[] {
@@ -57,9 +58,11 @@ export function rankRollers(module: LoadedModule, pcs: Entity[], roll: string): 
     .sort((a, b) => b.pool - a.pool || a.entity.name.localeCompare(b.entity.name));
 }
 
-export function PlayGuidePanel({ sessionId, pcs }: { sessionId: Id; pcs: Entity[] }) {
+export function PlayGuidePanel({ sessionId, pcs, others = [] }: { sessionId: Id; pcs: Entity[]; others?: Entity[] }) {
   const { module } = useCampaign();
   const guides = usePlayGuides();
+  const specials = useSpecialAttacks();
+  const [special, setSpecial] = useState<string[] | undefined>();
   const [guideId, setGuideId] = useState("");
   const guide = guides.find((g) => g.id === guideId) ?? guides[0];
   const ranked = useMemo(() => {
@@ -91,8 +94,22 @@ export function PlayGuidePanel({ sessionId, pcs }: { sessionId: Id; pcs: Entity[
             </span>
           ) : null;
         }}
-        entryExtra={(e) => (e.roll ? <WhoIsBest sessionId={sessionId} entry={e} ranked={ranked.get(e.id) ?? []} hasPcs={pcs.length > 0} /> : null)}
+        entryExtra={(e) => {
+          if (!e.roll) return null;
+          const matching = specials.filter((s) => s.roll === e.roll);
+          return (
+            <>
+              {matching.length > 0 && (
+                <Button size="sm" variant="ghost" className="app-guide__specials" onClick={() => setSpecial(matching.map((s) => s.id))} data-testid="special-attacks-link">
+                  Special attacks: {matching.map((s) => s.name).join(", ")}
+                </Button>
+              )}
+              <WhoIsBest sessionId={sessionId} entry={e} ranked={ranked.get(e.id) ?? []} hasPcs={pcs.length > 0} />
+            </>
+          );
+        }}
       />
+      <SpecialAttackDialog open={!!special} onClose={() => setSpecial(undefined)} sessionId={sessionId} pcs={pcs} others={others} {...(special ? { attackIds: special } : {})} />
     </div>
   );
 }

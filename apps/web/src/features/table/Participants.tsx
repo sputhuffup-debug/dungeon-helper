@@ -1,5 +1,5 @@
 /** Quick-stat cards for the PCs and the scene's participants; a tap opens the full sheet in a drawer. */
-import { getPath, type Entity, type Id } from "@campaign-forge/core";
+import { creatureTurnFor, getPath, type Entity, type Id } from "@campaign-forge/core";
 import { validateEntityFields, type EntityTypeDef, type LoadedModule, type Prompt, type ReferenceList, type SheetField } from "@campaign-forge/module-sdk";
 import { useMemo, useState } from "react";
 import { EntityIcon } from "../../components/EntityIcon";
@@ -9,6 +9,7 @@ import { updateEntityFields } from "../../state/actions";
 import { useCampaign, useMeta, useRecord } from "../../state/hooks";
 import { computedOf } from "../../state/tableActions";
 import { changedPaths } from "../entities/SheetTab";
+import { ParticipantHealth, type CombatHandlers } from "./Combat";
 import { SessionRollPanel, skillInput } from "./DicePanel";
 import { LifecycleStart } from "./LifecycleStart";
 
@@ -60,8 +61,24 @@ export interface ParticipantLifecycle {
   onPrompts?: (prompts: Prompt[]) => void;
 }
 
-export function ParticipantCard({ entity, onOpen, role, onRoll, lifecycle }: { entity: Entity; onOpen: (id: Id) => void; role?: string; onRoll?: (operationId: string, entityId: Id) => void; lifecycle?: ParticipantLifecycle }) {
+export function ParticipantCard({
+  entity,
+  onOpen,
+  role,
+  onRoll,
+  lifecycle,
+  combat,
+}: {
+  entity: Entity;
+  onOpen: (id: Id) => void;
+  role?: string;
+  onRoll?: (operationId: string, entityId: Id) => void;
+  lifecycle?: ParticipantLifecycle;
+  combat?: CombatHandlers;
+}) {
   const { module } = useCampaign();
+  const takesTurns = !!combat && !!creatureTurnFor(module, entity);
+  const specials = !!combat?.hasSpecialAttacks && role === "PC";
   const def = module.entityType(entity.type);
   const rolls = onRoll ? characterRolls(module, def) : [];
   const computed = useMemo(() => computedOf(module, entity), [module, entity]);
@@ -90,35 +107,60 @@ export function ParticipantCard({ entity, onOpen, role, onRoll, lifecycle }: { e
           ))}
         </span>
       )}
+      {combat && <ParticipantHealth entity={entity} combat={combat} />}
       {lifecycle && <LifecycleStart entity={entity} sessionId={lifecycle.sessionId} onPrompts={lifecycle.onPrompts} />}
-      {rolls.length > 0 && (
+      {(rolls.length > 0 || takesTurns || specials) && (
         <span className="app-participant__rolls">
           {rolls.map((r) => (
             <Button key={r.id} size="sm" onClick={() => onRoll?.(r.id, entity.id)} aria-label={`${r.name} for ${entity.name}`}>
               {r.name}
             </Button>
           ))}
+          {takesTurns && (
+            <Button size="sm" variant="primary" onClick={() => combat!.onCreatureTurn(entity.id)} aria-label={`Creature turn: ${entity.name}`}>
+              Creature turn
+            </Button>
+          )}
+          {specials && (
+            <Button size="sm" onClick={() => combat!.onSpecialAttack(entity.id)} aria-label={`Special attack for ${entity.name}`}>
+              Special attack
+            </Button>
+          )}
         </span>
       )}
     </li>
   );
 }
 
-export function Participants({ pcs, others, onOpen, onRoll, lifecycle }: { pcs: Entity[]; others: Entity[]; onOpen: (id: Id) => void; onRoll?: (operationId: string, entityId: Id) => void; lifecycle?: ParticipantLifecycle }) {
+export function Participants({
+  pcs,
+  others,
+  onOpen,
+  onRoll,
+  lifecycle,
+  combat,
+}: {
+  pcs: Entity[];
+  others: Entity[];
+  onOpen: (id: Id) => void;
+  onRoll?: (operationId: string, entityId: Id) => void;
+  lifecycle?: ParticipantLifecycle;
+  combat?: CombatHandlers;
+}) {
   return (
     <Card title="Participants" className="app-table__participants">
       {pcs.length === 0 && others.length === 0 && <p className="cf-muted">No player characters or scene participants.</p>}
       {pcs.length > 0 && (
         <ul className="app-participants" aria-label="Player characters">
           {pcs.map((e) => (
-            <ParticipantCard key={e.id} entity={e} onOpen={onOpen} role="PC" onRoll={onRoll} lifecycle={lifecycle} />
+            <ParticipantCard key={e.id} entity={e} onOpen={onOpen} role="PC" onRoll={onRoll} lifecycle={lifecycle} combat={combat} />
           ))}
         </ul>
       )}
       {others.length > 0 && (
         <ul className="app-participants" aria-label="Scene participants">
           {others.map((e) => (
-            <ParticipantCard key={e.id} entity={e} onOpen={onOpen} onRoll={onRoll} lifecycle={lifecycle} />
+            <ParticipantCard key={e.id} entity={e} onOpen={onOpen} onRoll={onRoll} lifecycle={lifecycle} combat={combat} />
           ))}
         </ul>
       )}

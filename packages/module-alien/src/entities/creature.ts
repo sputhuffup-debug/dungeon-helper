@@ -9,7 +9,8 @@ export const creatureSchema = objectSchema({
   habitat: stringField(),
   size: stringField(),
   speed: intField(0, undefined, 1, "Full turns per round; draw one initiative card per point (p. 208)."),
-  health: intField(0, undefined, 1),
+  health: intField(0, undefined, 1, "Maximum Health (p. 208-231)."),
+  damage: intField(0, undefined, 0, "Damage taken; Health left is computed, never stored. What zero Health means is in the combat rules (p. 209)."),
   mobility: intField(0, undefined, undefined, "MOBILITY skill level: base dice only, no attributes (p. 208). Absent when the book gives none."),
   observation: intField(0, undefined, undefined, "OBSERVATION skill level (p. 208). Absent when the book gives none."),
   armor: intField(0, undefined, undefined, "Armor Level (p. 209). Absent when the creature has no numeric armor."),
@@ -84,6 +85,8 @@ export const creatureType: EntityTypeDef = {
         fields: [
           number("speed", "Speed", { rule: "alien.rule.creature-attacks" }),
           number("health", "Health"),
+          number("damage", "Damage taken", { rule: "alien.rule.damage-armor" }),
+          { path: "healthRemaining", label: "Health left", widget: "computed", span: 3, readonly: true, rule: "alien.rule.broken-xenomorph" },
           number("mobility", "Mobility", { rule: "alien.rule.creature-attacks" }),
           number("observation", "Observation", { rule: "alien.rule.stealth-mode" }),
           number("armor", "Armor Level", { rule: "alien.rule.creature-armor" }),
@@ -142,5 +145,9 @@ export const creatureType: EntityTypeDef = {
     ],
     summary: ["species", "stage", "speed", "health", "armor"],
   },
-  defaultVisibility: { attacks: "gm", abilities: "gm", lifecycleTrigger: "gm", containment: "gm", health: "gm", armor: "gm" },
+  computed: {
+    /** Health left after the damage taken (p. 209). */
+    healthRemaining: { max: [0, { "-": [{ var: ["fields.health", 0] }, { var: ["fields.damage", 0] }] }] },
+  },
+  defaultVisibility: { damage: "gm", attacks: "gm", abilities: "gm", lifecycleTrigger: "gm", containment: "gm", health: "gm", armor: "gm" },
 };

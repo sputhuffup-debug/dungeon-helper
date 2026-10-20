@@ -1,12 +1,12 @@
 import type { RuleCard } from "@campaign-forge/module-sdk";
 import { CAMPAIGN } from "../modes";
-import { TR, card } from "./card";
+import { F, TR, card } from "./card";
 
 /** Chapter 10: alien species (p. 204-231) and Xenomorphs in campaign play (p. 159). */
 export const creatureRules: RuleCard[] = [
-  card("creature-attacks", "Xenomorph combat", "Xenomorphs have no attributes: they roll base dice equal to a skill level, often far above human levels, and never push. On each turn one either moves or makes a signature attack chosen by a D6 roll (re-roll the same attack twice running, or simply pick one), at Adjacent range unless stated. They never defend or dodge, but their attacks can be defended against.", 208, {
+  card("creature-attacks", "Xenomorph combat", "Xenomorphs have no attributes: they roll base dice equal to a skill level, often far above human levels, and never push. Each turn one either moves or makes a signature attack picked with a D6 on its table, rolling again if it repeats the previous attack, though the GM may simply choose; attacks reach Adjacent range unless stated, and closing in from Short range comes free with them. They never defend or dodge, but their attacks can be defended against, and a grappled Xenomorph spends its turns breaking free with Mobility.", 208, {
     tags: ["creatures", "combat"],
-    links: { tables: ["alien.creatures.attack.drone"], rules: ["alien.rule.creature-speed", "alien.rule.creature-armor", "alien.rule.acid-splash", "alien.rule.broken-xenomorph"], trackers: [TR.initiative] },
+    links: { tables: ["alien.creatures.attack.drone", "alien.creatures.broken-xenomorph"], fields: [F.creatureAttacks, F.creatureSpeed, F.creatureDamage], rules: ["alien.rule.creature-speed", "alien.rule.creature-armor", "alien.rule.acid-splash", "alien.rule.broken-xenomorph", "alien.rule.grappling"], trackers: [TR.initiative] },
   }),
   card("creature-speed", "Speed", "A Xenomorph gets one full turn and one initiative card per point of Speed. Moving instead of attacking covers two zones, or a zone then Short to Adjacent range, and in stealth mode it moves one zone per point of Speed each stretch. An ambushing Xenomorph takes card #1 only for its first turn.", [55, 208], {
     tags: ["creatures", "combat", "initiative"],
@@ -14,11 +14,11 @@ export const creatureRules: RuleCard[] = [
   }),
   card("creature-armor", "Armor, stun and recovery", "Many Xenomorphs have a natural armor level, often lower against fire. They are immune to stun damage unless noted, resisting with Mobility when they are not, and a stretch spent immobile restores all lost Health.", 209, {
     tags: ["creatures", "combat", "damage"],
-    links: { rules: ["alien.rule.damage-armor", "alien.rule.damage-types"] },
+    links: { fields: [F.creatureArmor, F.creatureArmorVsFire], rules: ["alien.rule.damage-armor", "alien.rule.damage-types"] },
   }),
-  card("acid-splash", "Acid splash", "When a Xenomorph XX121 takes damage other than fire, everyone Adjacent and the floor suffer an attack with base dice equal to its Acid Splash rating plus the damage taken, base damage 1. Armor reduces the damage but loses a point per point of damage, and the acid attacks again each round with half the dice (rounded up) until it deals none.", 210, {
+  card("acid-splash", "Acid splash", "When a Xenomorph XX121 takes damage other than fire, everyone Adjacent and the floor suffer an attack with base dice equal to its Acid Splash rating plus the damage taken (counting no more than its maximum Health), base damage 1. Armor reduces the damage but loses a point per point of damage. Anyone the first splash damaged, even if armor soaked it all, is attacked again at the start of each round with half the dice (rounded up) until a roll deals none.", 210, {
     tags: ["creatures", "combat", "damage"],
-    links: { rules: ["alien.rule.creature-attacks", "alien.rule.armor", "alien.rule.barriers"] },
+    links: { fields: [F.acidSplash, F.creatureDamage], rules: ["alien.rule.creature-attacks", "alien.rule.armor", "alien.rule.barriers"] },
   }),
   card("creature-abilities", "Special abilities", "Some creatures have special actions besides their signature attacks, given in their entries. Every XX121 also shrugs off cold and vacuum, treats radiation as two levels weaker, and ignores darkness.", [209, 210], {
     tags: ["creatures"],
@@ -68,9 +68,9 @@ export const creatureRules: RuleCard[] = [
     tags: ["creatures", "lifecycle"],
     links: { tables: ["alien.creatures.attack.queen"], rules: ["alien.rule.lifecycle"] },
   }),
-  card("broken-xenomorph", "Broken xenomorph", "A Xenomorph at zero Health rolls D6: it may rise again, fight on wounded, flee, make one last attack, or (5-6) die. In \"Aliens mode\" the GM may rule that Xenomorphs at zero Health simply die.", [208, 209], {
+  card("broken-xenomorph", "Broken xenomorph", "A Xenomorph at zero Health is not broken like a human but rolls D6: it may rise again, fight on wounded, flee, make one last attack, or (5-6) die. Facehuggers and Chestbursters are simply destroyed. In \"Aliens mode\" the GM may rule that Xenomorphs at zero Health simply die.", [208, 209], {
     tags: ["creatures", "combat"],
-    links: { tables: ["alien.creatures.broken-xenomorph"], rules: ["alien.rule.creature-attacks"] },
+    links: { tables: ["alien.creatures.broken-xenomorph"], fields: [F.creatureDamage], rules: ["alien.rule.creature-attacks", "alien.rule.broken"] },
   }),
   card("neomorph", "Neomorphs", "A separate strain with its own cycle: disturbed egg sacs release a cloud of motes, and infection works as a disease (virulence −2). A failed Stamina roll means a bloodburster erupts within a shift, killing the host, then grows into a neophyte and finally an adult neomorph, each stage with its own stats and attacks.", [223, 225], {
     tags: ["creatures", "lifecycle"],

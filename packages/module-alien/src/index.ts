@@ -25,6 +25,7 @@ import { narrativeFields, campaignThemes, fearStages } from "./narrative";
 import { adventureBuilders } from "./builders";
 import { mapGenerators } from "./maps";
 import { playGuide } from "./guides";
+import { combat } from "./combat";
 
 export { manifest, ALIEN_MODULE_ID, ALIEN_MODULE_VERSION } from "./manifest";
 export { modes, CAMPAIGN, CINEMATIC } from "./modes";
@@ -46,6 +47,7 @@ export * from "./narrative";
 export * from "./builders";
 export * from "./maps";
 export { playGuide, PLAY_GUIDE_ID } from "./guides";
+export * from "./combat";
 export { mapTables, ductEventsTable, LOCATION_DETAIL_TABLE_ID, ANOMALOUS_DETAIL_TABLE_ID, SALVAGE_TABLE_ID, DUCT_EVENTS_TABLE_ID } from "./tables/maps";
 
 export const referenceLists = [...coreReferenceLists, ...dataReferenceLists, campaignThemes, fearStages];
@@ -69,6 +71,7 @@ export const alienModule: GameModule = {
   adventureBuilders,
   mapGenerators,
   playGuides: [playGuide],
+  combat,
   migrations: [],
 };
 

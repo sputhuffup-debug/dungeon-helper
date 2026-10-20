@@ -1134,8 +1134,17 @@ export interface CombatHealthDef {
   maxPath: string;
   /** Armor rating field, if the type has one. */
   armorPath?: string;
-  /** Table rolled when health reaches zero (e.g. critical injuries, a broken-creature table); the first match wins. */
-  broken?: Array<{ when?: JsonLogicRule; table: string; label?: string }>;
+  /**
+   * Armor fields that replace `armorPath` for a hit source (e.g. `{ fire: "armorVsFire" }`).
+   * When the entity has no value at that path, `armorPath` applies.
+   */
+  armorBySource?: Record<string, string>;
+  /**
+   * Table rolled when health reaches zero (e.g. critical injuries, a broken-creature table); the first match wins.
+   * `when` is JSONLogic over `{ fields, computed, type, subtype }`. With `operation`, the table runs that
+   * dice operation for the entity instead of rolling `table` directly (so the operation's effects apply).
+   */
+  broken?: Array<{ when?: JsonLogicRule; table: string; label?: string; operation?: string }>;
   page?: PageRef;
 }
 
@@ -1148,6 +1157,8 @@ export interface HitInput {
   extraSuccesses?: number;
   /** e.g. "fire" when armor differs by source. */
   source?: string;
+  /** The attack was aimed at a weak spot (modules that have the rule lower armor for it). */
+  weakSpot?: boolean;
 }
 export interface HitResult {
   /** Damage that gets through. */
@@ -1165,6 +1176,8 @@ export interface DamageReactionDef {
   ratingPath: string;
   /** Base dice = rating, plus the damage just taken when true. */
   addDamageTaken: boolean;
+  /** Field or computed key capping the damage taken that is added (e.g. maximum Health). */
+  damageTakenCapPath?: string;
   /** Damage per success. */
   damage: number;
   /** Who it reaches, in the module's own words (e.g. "everything Adjacent"). */
@@ -1214,6 +1227,11 @@ export interface CombatDef {
   resolveHit?(hit: HitInput, rng: Rng): HitResult;
   creatureTurns?: CreatureTurnDef[];
   specialAttacks?: SpecialAttackDef[];
+  /**
+   * How an opposed roll is settled: most successes wins; on a tie, `winner`.
+   * Absent: the table shows both results and leaves a tie to the GM.
+   */
+  opposedTies?: { winner: "attacker" | "defender"; text?: string; page?: PageRef };
   /** Rules shown with the combat panel. */
   rules?: string[];
 }

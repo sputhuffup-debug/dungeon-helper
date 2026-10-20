@@ -5,7 +5,7 @@
  * trackers, dice, the module's play-guide hints and the running log on the right. `?view=players` renders
  * the read-only player screen instead. Everything is local.
  */
-import { appendTrackerLog, type Id } from "@campaign-forge/core";
+import { appendTrackerLog, creatureTurnFor, type Id } from "@campaign-forge/core";
 import type { Effect, Prompt } from "@campaign-forge/module-sdk";
 import { Link, useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -26,6 +26,7 @@ import {
 } from "../../state/tableActions";
 import { SessionChecklist, useLogNotesAutoTick } from "../sessions/SessionChecklist";
 import { WrapUpWizard } from "../sessions/WrapUp";
+import { CreatureTurnCard, TakeHitDialog, useInitiativeCurrent, type CombatHandlers } from "./Combat";
 import { DicePanel } from "./DicePanel";
 import { PlayGuidePanel, usePlayGuides } from "./PlayGuidePanel";
 import { formatDuration, useCrossTabSync, useEntities, usePlayerCharacters, useSessionScenes, useSessionTrackerState, useTableState, useTick } from "./hooks";
@@ -35,6 +36,7 @@ import { RevealPanel } from "./RevealPanel";
 import { RollResultDialog } from "./RollResultDialog";
 import { SceneCard } from "./SceneCard";
 import { SceneMap, useSceneMap } from "./SceneMap";
+import { SpecialAttackDialog, useSpecialAttacks } from "./SpecialAttacks";
 import { EventFeed, SessionLog } from "./SessionLog";
 import { BoundTracker, TrackersPanel, useModeTrackers, type TrackerHandlers } from "./TrackersPanel";
 
@@ -78,6 +80,40 @@ function GmTable({ sessionId }: { sessionId: Id }) {
   const [tab, setTab] = useState("trackers");
   const hasGuide = usePlayGuides().length > 0;
   const resolveName = useCallback((id: string) => ctx.store.get("entities", id)?.name ?? id, [ctx.store]);
+
+  // combat: take a hit, creature turns (opened from a card, or the creature holding the current initiative card), special attacks
+  const hasCombat = !!ctx.module.module.combat;
+  const specials = useSpecialAttacks();
+  const [hitTarget, setHitTarget] = useState<Id | undefined>();
+  const [specialPc, setSpecialPc] = useState<Id | undefined>();
+  const [turnId, setTurnId] = useState<Id | undefined>();
+  const [dismissedTurn, setDismissedTurn] = useState<string | undefined>();
+  const initiative = useInitiativeCurrent(sessionId);
+  const initiativeEntity = useRecord("entities", initiative?.entityId);
+  const initiativeKey = initiative ? `${initiative.round}:${initiative.entityId}:${initiative.card}` : undefined;
+  const autoTurn = hasCombat && initiativeEntity && creatureTurnFor(ctx.module, initiativeEntity) && dismissedTurn !== initiativeKey ? initiativeEntity.id : undefined;
+  const shownTurn = turnId ?? autoTurn;
+  const turnCreature = useRecord("entities", shownTurn);
+  const everyone = useMemo(() => [...pcs, ...others], [pcs, others]);
+  const turnTargets = useMemo(() => everyone.filter((e) => e.id !== shownTurn && ctx.module.entityType(e.type)?.kind === "character"), [everyone, shownTurn, ctx.module]);
+  const combat = useMemo<CombatHandlers | undefined>(
+    () =>
+      hasCombat
+        ? {
+            sessionId,
+            onTakeHit: setHitTarget,
+            onCreatureTurn: (id) => setTurnId(id),
+            onSpecialAttack: setSpecialPc,
+            onOperationRoll: setRoll,
+            hasSpecialAttacks: specials.length > 0,
+          }
+        : undefined,
+    [hasCombat, sessionId, specials.length],
+  );
+  const closeTurn = () => {
+    if (!turnId && initiativeKey) setDismissedTurn(initiativeKey);
+    setTurnId(undefined);
+  };
 
   const handlers = useMemo<TrackerHandlers>(
     () => ({
@@ -195,7 +231,20 @@ function GmTable({ sessionId }: { sessionId: Id }) {
         <div className="app-table__grid">
           <div className="app-table__col">
             <SceneCard sessionId={sessionId} scenes={scenes} scene={scene} onOpenEntity={setDrawer} />
-            <Participants pcs={pcs} others={others} onOpen={setDrawer} onRoll={(op, id) => handlers.onRollOperation(op, id)} lifecycle={{ sessionId, onPrompts: handlers.onPrompts }} />
+            {turnCreature && (
+              <CreatureTurnCard
+                key={turnCreature.id}
+                sessionId={sessionId}
+                creature={turnCreature}
+                targets={turnTargets}
+                participants={everyone}
+                map={map}
+                {...(initiative && initiative.entityId === turnCreature.id ? { current: { round: initiative.round, card: initiative.card } } : {})}
+                onClose={closeTurn}
+                onOperationRoll={setRoll}
+              />
+            )}
+            <Participants pcs={pcs} others={others} onOpen={setDrawer} onRoll={(op, id) => handlers.onRollOperation(op, id)} lifecycle={{ sessionId, onPrompts: handlers.onPrompts }} combat={combat} />
             <RevealPanel sessionId={sessionId} scene={scene} />
             {map && <SceneMap sessionId={sessionId} map={map} scene={scene} participants={[...pcs, ...others]} />}
           </div>
@@ -205,8 +254,8 @@ function GmTable({ sessionId }: { sessionId: Id }) {
               onChange={setTab}
               tabs={[
                 { id: "trackers", label: "Trackers", content: <TrackersPanel sessionId={sessionId} trackers={panelTrackers} pcs={pcs} participants={others} map={map} handlers={handlers} /> },
-                { id: "dice", label: "Dice", content: <DicePanel sessionId={sessionId} pcs={pcs} /> },
-                ...(hasGuide ? [{ id: "hints", label: "Hints", content: <PlayGuidePanel sessionId={sessionId} pcs={pcs} /> }] : []),
+                { id: "dice", label: "Dice", content: <DicePanel sessionId={sessionId} pcs={pcs} others={others} /> },
+                ...(hasGuide ? [{ id: "hints", label: "Hints", content: <PlayGuidePanel sessionId={sessionId} pcs={pcs} others={others} /> }] : []),
                 { id: "checklist", label: "Checklist", content: <SessionChecklist session={session} focus="play" title="Checklist" className="app-table__checklist" /> },
                 {
                   id: "log",
@@ -225,6 +274,10 @@ function GmTable({ sessionId }: { sessionId: Id }) {
       )}
 
       <EntityDrawer entityId={drawer} sessionId={sessionId} onClose={() => setDrawer(undefined)} />
+      {hasCombat && <TakeHitDialog sessionId={sessionId} entityId={hitTarget} participants={everyone} map={map} onClose={() => setHitTarget(undefined)} onOperationRoll={setRoll} />}
+      {specials.length > 0 && (
+        <SpecialAttackDialog key={specialPc ?? "none"} open={!!specialPc} onClose={() => setSpecialPc(undefined)} sessionId={sessionId} pcs={pcs} others={others} {...(specialPc ? { initialPc: specialPc } : {})} />
+      )}
       <RollResultDialog roll={roll} onClose={() => setRoll(undefined)} resolveName={resolveName} />
       <PromptDialog prompt={roll ? undefined : prompts[0]} onAnswer={onAnswer} onCancel={() => setPrompts((p) => p.slice(1))} resolveEntityName={(id) => ctx.store.get("entities", id)?.name} />
     </div>

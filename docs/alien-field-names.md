@@ -45,6 +45,7 @@ attributes: { strength, agility, wits, empathy }: number 1..5 (androids up to 8/
 skills: { <skillId>: number 0..5 }
 talents: [{ id: string, count: number }]
 stress: number >= 0
+damage: integer >= 0, default 0   // damage taken; players may edit; Health left is computed
 personalAgenda: string
 agendas: [{ act: number, text: string }]        // cinematic
 gear: [{ name: string, weight: number, qty: number, supply?: number, itemId?: string }]
@@ -68,18 +69,25 @@ coverAttributes: { strength, agility, wits, empathy }: number 1..5   // shown an
 fairClues: string[]
 secretOrders: string
 ```
-Computed: `health = ceil((strength+agility)/2) + hardenedCount`, `resolve = ceil((wits+empathy)/2) + seenItAllCount`, `encumbranceLimit = strength*2`, `encumbrance = sum(gear.weight*qty)`, `coverHealth = max(ceil((cover str+agi)/2), ceil((str+agi)/2))` (Health shown for a secret synthetic), `coverResolve = ceil((cover wits+emp)/2)`.
+Computed: `health = ceil((strength+agility)/2) + hardenedCount`, `resolve = ceil((wits+empathy)/2) + seenItAllCount`, `encumbranceLimit = strength*2`, `encumbrance = sum(gear.weight*qty)`, `coverHealth = max(ceil((cover str+agi)/2), ceil((str+agi)/2))` (Health shown for a secret synthetic), `coverResolve = ceil((cover wits+emp)/2)`, `healthRemaining = max(0, health - damage)`.
 
 ## `alien.creature.fields`
 ```
 species: string ("xx121" | "neomorph" | ...), stage: string, variant?: string
 speed: number, health: number, mobility: number, observation: number
-armor: number, armorNotes?: string, acidSplash?: number
+damage: integer >= 0, default 0   // damage taken (GM-only); Health left is computed
+armor: number, armorVsFire?: number, armorNotes?: string, acidSplash?: number
+attackTable?: string      // id of the signature attack table, alien.creatures.attack.<variant>
 attacks: [{ roll: number (1..6), name, dice: number, damage: number|string, armorPiercing?: boolean, effect: string }]
 abilities: [{ name, text, page? }]
 lifecycleTrigger?: string, containment?: string
 loreOnly?: boolean
 ```
+
+Computed: `healthRemaining = max(0, health - damage)`.
+
+## Combat at the table (`alien.combat`, `src/combat.ts`)
+Health: `alien.character` (`damagePath: damage`, `maxPath: health`; broken: android -> `alien.character.android-critical-damage` via the `androidCriticalDamage` operation, otherwise `alien.character.critical-injury` via `criticalInjury`) and `alien.creature` (`damage`, `health`, `armorPath: armor`, `armorBySource: { fire: armorVsFire }`; broken: XX121 except Stages II-III, and Neomorphs -> `alien.creatures.broken-xenomorph`). Hit sources: `fire`, `fall` (no armor), `stun` (no Health lost), `acid`. Creature turns: `speed`, `attackTable`, acid splash from `acidSplash` (cap `health`). Special attack ids: `disarm`, `pass`, `shove`, `grapple` (roll `closeCombat`). Critical injury condition ids: `critical-injury:<d66>`; android: `android-critical:<row id>`.
 
 ## `alien.location.fields` by subtype
 star-system: `starClass` (O B A F G K M), `brightness` (Ia Ib II III IV V D), `region`, `allegiance`, `bodies: [{ type: "gas-giant"|"terrestrial"|"ice"|"asteroid-belt", name?, features?: string[] }]`

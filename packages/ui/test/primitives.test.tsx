@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import type { RuleCard } from "@campaign-forge/module-sdk";
-import { Markdown, PageRef, PlayGuideView, PromptDialog, RuleCardList, RuleCardView, clearToasts, formatPageRef, playGuidesForMode, pushToast, ToastViewport, useTheme } from "../src/index";
+import { HealthBar, Markdown, PageRef, PlayGuideView, PromptDialog, RuleCardList, RuleCardView, clearToasts, formatPageRef, playGuidesForMode, pushToast, ToastViewport, useTheme } from "../src/index";
 import { exampleModule } from "./fixtures";
 
 describe("PageRef", () => {
@@ -10,6 +10,20 @@ describe("PageRef", () => {
     expect(formatPageRef([42, 43])).toBe("p. 42–43");
     render(<PageRef page={[40, 41]} />);
     expect(screen.getByText("p. 40–41")).toBeInTheDocument();
+  });
+});
+
+describe("HealthBar", () => {
+  it("shows health left as segments and a meter, and flags broken", () => {
+    const { container, rerender } = render(<HealthBar max={6} damage={2} label="Ada health" />);
+    const meter = screen.getByRole("meter", { name: "Ada health" });
+    expect(meter).toHaveAttribute("aria-valuenow", "4");
+    expect(screen.getByTestId("health-value")).toHaveTextContent("4/6");
+    expect(container.querySelectorAll(".cf-health__seg--on")).toHaveLength(4);
+    rerender(<HealthBar max={6} damage={9} broken brokenLabel="Broken" label="Ada health" />);
+    expect(screen.getByTestId("health-value")).toHaveTextContent("0/6");
+    expect(screen.getByText("Broken")).toBeInTheDocument();
+    expect(meter.className).toContain("cf-health--danger");
   });
 });
 

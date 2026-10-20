@@ -11,6 +11,7 @@ import { Badge, Button, Card, DiceRollPanel, DieFace, RollLog, Stepper, humanize
 import { useCampaign, useMeta } from "../../state/hooks";
 import { DICE_LOG, applySessionEffects, diceCounter, recordPoolRoll, type DiceLogData } from "../../state/tableActions";
 import { useSessionTrackerState } from "./hooks";
+import { SpecialAttackCard, useSpecialAttacks } from "./SpecialAttacks";
 
 const isRecordLike = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
 
@@ -114,7 +115,7 @@ export function rollSessionPool(ctx: ReturnType<typeof useCampaign>, sessionId: 
 }
 
 /** A DiceRollPanel bound to the session: seeded, logged, and a push adds one stress to the roller. */
-export function SessionRollPanel({ sessionId, entity, label, input, initialResult }: { sessionId: Id; entity?: Entity; label: string; input: Record<string, unknown>; initialResult?: RollResult }) {
+export function SessionRollPanel({ sessionId, entity, label, input, initialResult, onResult }: { sessionId: Id; entity?: Entity; label: string; input: Record<string, unknown>; initialResult?: RollResult; onResult?: (result: RollResult) => void }) {
   const ctx = useCampaign();
   const ts = useSessionTrackerState(sessionId);
   const counter = ts ? ts.log.filter((l) => l.tracker === DICE_LOG).length : 0;
@@ -137,6 +138,7 @@ export function SessionRollPanel({ sessionId, entity, label, input, initialResul
           const path = stressPathFor(ctx.module, entity);
           if (path) applySessionEffects(ctx, sessionId, [{ kind: "incrementField", entity: entity.id, path, by: 1, min: 0 }]);
         }
+        onResult?.(r);
       }}
     />
   );
@@ -270,10 +272,12 @@ export function SessionRollLog({ sessionId, max }: { sessionId: Id; max?: number
   return <RollLog entries={entries} dice={ctx.module.module.dice} max={max} />;
 }
 
-export function DicePanel({ sessionId, pcs }: { sessionId: Id; pcs: Entity[] }) {
+export function DicePanel({ sessionId, pcs, others = [] }: { sessionId: Id; pcs: Entity[]; others?: Entity[] }) {
+  const specials = useSpecialAttacks();
   return (
     <div className="app-stack" data-testid="dice-tab">
       <SkillRoll sessionId={sessionId} pcs={pcs} />
+      {specials.length > 0 && <SpecialAttackCard sessionId={sessionId} pcs={pcs} others={others} />}
       <FreeRoll sessionId={sessionId} />
       <Card title="Roll log">
         <SessionRollLog sessionId={sessionId} max={40} />

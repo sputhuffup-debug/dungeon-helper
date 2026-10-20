@@ -164,3 +164,24 @@ describe("guided quest builder", () => {
     for (const kind of ["adventure", "act", "scene"] as const) expect(loaded.narrativeFieldsFor(kind, "standard")?.kind).toBe(kind);
   });
 });
+
+describe("combat fixture", () => {
+  const combat = exampleModule.combat!;
+
+  it("resolves a hit: armor stops its rating, piercing ignores it, extra successes add damage", () => {
+    const rng = createRng("hit");
+    expect(combat.resolveHit!({ damage: 2, armor: 1 }, rng)).toEqual({ damage: 1, explain: "2 damage − armor 1 = 1 (p. 20)" });
+    expect(combat.resolveHit!({ damage: 2, armor: 3, armorPiercing: true, extraSuccesses: 1 }, rng).damage).toBe(3);
+    expect(combat.resolveHit!({ damage: 1, armor: 4 }, rng).damage).toBe(0);
+  });
+
+  it("points every table it names at a real table, and attack rows follow the attack convention", () => {
+    const ids = new Set(exampleModule.tables.map((t) => t.id));
+    for (const h of combat.health) for (const b of h.broken ?? []) expect(ids.has(b.table)).toBe(true);
+    const beast = exampleModule.entityTypes.find((t) => t.id === "example.beast")!;
+    expect(validateEntityFields(beast, defaultFieldsFor(beast)).valid).toBe(true);
+    const attacks = exampleModule.tables.find((t) => t.id === defaultFieldsFor(beast).attackTable)!;
+    for (const row of attacks.rows) expect(row.result).toMatchObject({ name: expect.any(String), dice: expect.any(Number), damage: expect.any(Number), effect: expect.any(String) });
+    for (const s of combat.specialAttacks ?? []) expect(s.page).toBeDefined();
+  });
+});
