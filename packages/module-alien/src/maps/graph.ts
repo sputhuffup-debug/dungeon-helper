@@ -177,3 +177,45 @@ export function components(adj: Adjacency, nodes: Iterable<string>): string[][] 
   }
   return out;
 }
+
+/**
+ * The vertices of the largest biconnected block (Tarjan): the part of the graph
+ * where any two vertices have two separate routes between them. Dead-end
+ * branches hang off it through cut vertices and are not in it.
+ */
+export function largestBlock(adj: Adjacency): Set<string> {
+  const index = new Map<string, number>();
+  const low = new Map<string, number>();
+  const stack: Array<[string, string]> = [];
+  let best = new Set<string>();
+  let counter = 0;
+  const visit = (v: string, parent: string | undefined) => {
+    index.set(v, counter);
+    low.set(v, counter);
+    counter++;
+    for (const w of adj.get(v) ?? []) {
+      if (w === parent) continue;
+      if (!index.has(w)) {
+        stack.push([v, w]);
+        visit(w, v);
+        low.set(v, Math.min(low.get(v)!, low.get(w)!));
+        if (low.get(w)! >= index.get(v)!) {
+          const block = new Set<string>();
+          for (;;) {
+            const e = stack.pop();
+            if (!e) break;
+            block.add(e[0]);
+            block.add(e[1]);
+            if (e[0] === v && e[1] === w) break;
+          }
+          if (block.size > best.size) best = block;
+        }
+      } else if (index.get(w)! < index.get(v)!) {
+        stack.push([v, w]);
+        low.set(v, Math.min(low.get(v)!, index.get(w)!));
+      }
+    }
+  };
+  for (const v of adj.keys()) if (!index.has(v)) visit(v, undefined);
+  return best;
+}

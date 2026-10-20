@@ -197,11 +197,28 @@ export const ROOM_TYPES: Record<string, RoomType> = Object.fromEntries(
     R("hatchery", "Hatchery", "alien", [8, 12], [7, 10], 0.8, { tags: ["dead_end"], keywords: ["hatchery", "egg", "nest", "hive"] }),
     R("fissure", "Fissure", "alien", [4, 7], [4, 7], 0.6, { tags: ["dead_end"], keywords: ["fissure", "crack", "cave"] }),
     R("surface-exit", "Surface exit", "transit", [5, 9], [5, 8], 0.3, { tags: ["escape", "airlock", "start", "hull"], keywords: ["exit", "surface", "landing", "outside", "dropship"] }),
+    R("hub", "Central hub", "ops", [8, 12], [8, 12], 0.4, { keywords: ["hub", "concourse", "plaza"] }),
+    R("atrium", "Atrium", "science", [9, 13], [9, 13], 0.3, { keywords: ["atrium", "lobby", "foyer"] }),
+    R("decon", "Decon", "medical", [3, 4], [3, 4], 0.1, { tags: ["airlock"], keywords: ["decon", "decontamination", "scrub"] }),
   ].map((r) => [r.id, r]),
 );
 
+/**
+ * Floor plan archetypes (see archetypes.ts): a ship's spine, a derelict's
+ * broken hull, a station's ring, a colony's cluster of prefabs, a mine's
+ * winding adit, a lab's wings around a core, a ruin's chambers.
+ */
+export const LAYOUT_ARCHETYPES = ["starship", "derelict", "station", "colony", "mine", "lab", "ruin"] as const;
+export type LayoutArchetype = (typeof LAYOUT_ARCHETYPES)[number];
+
 export interface SiteProfile {
   id: SiteTypeId;
+  /** The floor plan's shape. */
+  layout: LayoutArchetype;
+  /** Multiplier on the catalog's room sizes (small cells in a mine, great halls in a ruin). */
+  roomScale: number;
+  /** Size range in metres of plan lines no room sizes (tunnel stretches, gaps between buildings). */
+  freeLine: [number, number];
   /** "space" sites have outer bulkheads that can decompress; "ground" sites have exterior walls; "rock" sites are cut into stone. */
   hull: "space" | "ground" | "rock";
   /** Most ships auto-seal a breached zone (p. 75). */
@@ -236,6 +253,9 @@ const commonWin = (escape: string[]): Record<WinPathId, string[]> => ({
 export const SITE_PROFILES: Record<SiteTypeId, SiteProfile> = {
   station_deck: {
     id: "station_deck",
+    layout: "station",
+    roomScale: 1,
+    freeLine: [3, 6],
     hull: "space",
     autoSeal: true,
     wallArmor: BARRIER_ARMOR.innerBulkhead,
@@ -251,6 +271,9 @@ export const SITE_PROFILES: Record<SiteTypeId, SiteProfile> = {
   },
   starship: {
     id: "starship",
+    layout: "starship",
+    roomScale: 1,
+    freeLine: [3, 5],
     hull: "space",
     autoSeal: true,
     wallArmor: BARRIER_ARMOR.innerBulkhead,
@@ -260,12 +283,15 @@ export const SITE_PROFILES: Record<SiteTypeId, SiteProfile> = {
     hatchShare: 0.5,
     darkBias: 0.05,
     anomalous: 0,
-    rooms: [["quarters", 3], ["galley", 1], ["mess", 1], ["medlab", 1], ["cryo", 1], ["storage", 2], ["cargo-hold", 2], ["maintenance", 2], ["life-support", 1], ["workshop", 1], ["armory", 1], ["data-center", 1], ["comms", 1], ["cold-storage", 1]],
+    rooms: [["quarters", 3], ["galley", 1], ["mess", 1], ["medlab", 1], ["cryo", 2], ["storage", 2], ["cargo-hold", 4], ["maintenance", 2], ["life-support", 1], ["workshop", 1], ["armory", 1], ["data-center", 1], ["comms", 1], ["cold-storage", 1]],
     start: ["airlock", "dock"],
     win: commonWin(["escape-pods", "hangar"]),
   },
   derelict: {
     id: "derelict",
+    layout: "derelict",
+    roomScale: 1,
+    freeLine: [3, 5],
     hull: "space",
     autoSeal: false,
     wallArmor: BARRIER_ARMOR.innerBulkhead,
@@ -281,6 +307,9 @@ export const SITE_PROFILES: Record<SiteTypeId, SiteProfile> = {
   },
   colony_block: {
     id: "colony_block",
+    layout: "colony",
+    roomScale: 1,
+    freeLine: [3, 6],
     hull: "ground",
     autoSeal: false,
     wallArmor: BARRIER_ARMOR.innerBulkhead,
@@ -296,6 +325,9 @@ export const SITE_PROFILES: Record<SiteTypeId, SiteProfile> = {
   },
   research_lab: {
     id: "research_lab",
+    layout: "lab",
+    roomScale: 0.9,
+    freeLine: [3, 5],
     hull: "ground",
     autoSeal: false,
     wallArmor: BARRIER_ARMOR.innerBulkhead,
@@ -311,6 +343,9 @@ export const SITE_PROFILES: Record<SiteTypeId, SiteProfile> = {
   },
   mine: {
     id: "mine",
+    layout: "mine",
+    roomScale: 0.5,
+    freeLine: [3, 8],
     hull: "rock",
     autoSeal: false,
     wallArmor: BARRIER_ARMOR.armoredBulkhead,
@@ -320,12 +355,15 @@ export const SITE_PROFILES: Record<SiteTypeId, SiteProfile> = {
     hatchShare: 0.1,
     darkBias: 0.15,
     anomalous: 0,
-    rooms: [["drill-head", 2], ["ore-processing", 2], ["storage", 2], ["explosives", 1], ["workshop", 2], ["maintenance", 2], ["pump-room", 2], ["quarters", 2], ["galley", 1], ["medlab", 1], ["office", 1], ["life-support", 1]],
+    rooms: [["drill-head", 1], ["ore-processing", 1], ["storage", 3], ["explosives", 2], ["workshop", 2], ["maintenance", 3], ["pump-room", 2], ["quarters", 2], ["galley", 1], ["medlab", 1], ["office", 1], ["life-support", 1]],
     start: ["lift-station"],
     win: { escape_craft: ["lift-station", "vehicle-bay"], airlock: ["airlock", "surface-exit"], self_destruct: ["explosives", "reactor"], signal: ["comms", "office"], seal_section: ["security", "office"] },
   },
   alien_ruin: {
     id: "alien_ruin",
+    layout: "ruin",
+    roomScale: 1.45,
+    freeLine: [5, 11],
     hull: "rock",
     autoSeal: false,
     wallArmor: BARRIER_ARMOR.armoredBulkhead,
@@ -335,7 +373,7 @@ export const SITE_PROFILES: Record<SiteTypeId, SiteProfile> = {
     hatchShare: 0.4,
     darkBias: 0.3,
     anomalous: 1,
-    rooms: [["glyph-hall", 2], ["ossuary", 2], ["ampule-vault", 1], ["hatchery", 1], ["fissure", 2], ["antechamber", 1], ["storage", 1], ["cold-storage", 1]],
+    rooms: [["glyph-hall", 3], ["ossuary", 2], ["ampule-vault", 1], ["hatchery", 2], ["pilot-chamber", 1], ["fissure", 2], ["antechamber", 2], ["storage", 1]],
     start: ["surface-exit", "antechamber"],
     win: { escape_craft: ["surface-exit"], airlock: ["surface-exit", "antechamber"], self_destruct: ["pilot-chamber"], signal: ["pilot-chamber", "glyph-hall"], seal_section: ["antechamber", "glyph-hall"] },
   },
@@ -530,6 +568,7 @@ export const MAP_LEGEND: MapLegendEntry[] = [
   ),
   L({ flag: "dropM" }, "Drop", "A fall deals damage equal to half the height in metres, rounded down.", 75, { gmOnly: true, icon: "hazard" }),
   L({ kind: "out-of-bounds" }, "Out of bounds", "Shown for scale; closed to play.", undefined),
+  L({ kind: "exterior" }, "Outside", "Open ground between buildings: yards and streets. The doors in the walls around it lead in.", undefined),
   L({ kind: "shaft" }, "Shaft", "A vertical zone; falling rules apply.", 75),
   // GM-only markers
   L({ marker: "start" }, "Start", "Where the crew begins."),

@@ -15,9 +15,9 @@ import { mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { generatorFor, type SiteMap } from "@campaign-forge/core";
-import { alienModule } from "@campaign-forge/module-alien";
+import { alienModule, createMapContext, generateSiteMap, MAP_LEGEND, SITE_TYPE_LABELS, SITE_TYPES, siteMapGenerator } from "@campaign-forge/module-alien";
 import { buildCinematicDemo } from "@campaign-forge/seed-campaign";
-import { nodeToString, planRollPrint, rollPrintPages } from "@campaign-forge/ui";
+import { LIGHT_PALETTE, drawSiteMap, nodeToString, planRollPrint, rollPrintPages } from "@campaign-forge/ui";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
 const OUT = process.env.SCREENSHOTS_DIR ? resolve(process.env.SCREENSHOTS_DIR) : fileURLToPath(new URL("../../../docs/screenshots/", import.meta.url));
@@ -350,6 +350,44 @@ test("roll-print", async ({ browser }) => {
   const width = Math.round(first.width * k);
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${Math.round(first.height * k)}" viewBox="0 0 ${first.width} ${first.height}">${nodeToString(first.node)}</svg>`;
   await rasterSvg(browser, svg, "roll-print", { width, background: "#ffffff" });
+});
+
+/** Seeds for the site-types shot: one medium map per site type from the same brief (fixed, so the image is reproducible). */
+const SITE_TYPE_SEEDS: Record<(typeof SITE_TYPES)[number], string> = {
+  starship: "look-1",
+  derelict: "look-1",
+  station_deck: "look-3",
+  colony_block: "look-1",
+  mine: "look-3",
+  research_lab: "look-3",
+  alien_ruin: "look-4",
+};
+
+test("site-types", async ({ browser }) => {
+  // one medium map per site type, GM view, generated Node-side and tiled 4 x 2 with each type's name
+  const cols = 4;
+  const cellW = 120;
+  const cellH = 92;
+  const head = 7;
+  const tiles = SITE_TYPES.map((site, i) => {
+    const r = generateSiteMap({ site_type: site, size: "medium" }, createMapContext(SITE_TYPE_SEEDS[site]));
+    if (r.failedCheck) throw new Error(`${site}: ${r.failedCheck}`);
+    const deck = r.layout.decks.find((d) => d.layer !== "duct")!.id;
+    const d = drawSiteMap(r.layout, { view: "gm", deck, legend: MAP_LEGEND, passable: siteMapGenerator.passable, act: 1, idPrefix: `st${i}` });
+    const k = Math.min((cellW - 4) / d.width, (cellH - head - 4) / d.height);
+    const x = (i % cols) * cellW;
+    const y = Math.floor(i / cols) * cellH;
+    const w = d.width * k;
+    const h = d.height * k;
+    const label = `<text x="${x + cellW / 2}" y="${y + 5}" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="3.6" font-weight="600" fill="${LIGHT_PALETTE.text}">${SITE_TYPE_LABELS[site]}</text>`;
+    return `${label}<svg x="${x + (cellW - w) / 2}" y="${y + head + (cellH - head - 2 - h) / 2}" width="${w}" height="${h}" viewBox="0 0 ${d.width} ${d.height}">${nodeToString(d.node)}</svg>`;
+  });
+  const last = SITE_TYPES.length;
+  const note = `<text x="${(last % cols) * cellW + cellW / 2}" y="${Math.floor(last / cols) * cellH + cellH / 2}" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="3" fill="${LIGHT_PALETTE.muted}"><tspan x="${(last % cols) * cellW + cellW / 2}">One brief, seven site types:</tspan><tspan x="${(last % cols) * cellW + cellW / 2}" dy="4.5">medium maps, GM view, first deck</tspan></text>`;
+  const width = cols * cellW;
+  const height = Math.ceil((last + 1) / cols) * cellH;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}"><rect width="${width}" height="${height}" fill="${LIGHT_PALETTE.background}"/>${tiles.join("")}${note}</svg>`;
+  await rasterSvg(browser, svg, "site-types", { width: 2000, background: LIGHT_PALETTE.background });
 });
 
 /** The cinematic demo's print views, shown as paper sheets on the desk: only the named sheets, each cut to one page. */

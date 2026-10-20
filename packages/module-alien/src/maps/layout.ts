@@ -1,15 +1,17 @@
 /**
- * Stage 2 of the site map generator: the grid layout. Sizes every row
- * (bands of rooms and corridor lines) and column of each deck on a 1 m grid,
- * turns plan nodes into rectangles, numbers the zones in reading order
- * (Z01...), and measures shared edges and the edges that face the hull. Then
- * it grows the duct sheets (ducts.ts) and gives every sheet and deck its level.
+ * Stage 2 of the site map generator: the grid layout. Gives every line of
+ * each deck's sketch a size on a 1 m grid (corridor lines the site's corridor
+ * width, room lines what their rooms ask of the catalog), turns plan nodes
+ * into rectangles, numbers the zones in reading order (Z01...), and measures
+ * shared edges and the edges that face the hull. Then it grows the duct
+ * sheets (ducts.ts) and gives every sheet and deck its level.
  */
 import type { MapDeck, MapPoint, MapZoneData, Rng } from "@campaign-forge/module-sdk";
 import { ROOM_TYPES, type SiteProfile } from "./data";
 import { layoutDucts, type DuctLayout } from "./ducts";
 import type { MapInputs } from "./inputs";
 import type { Plan, PlanNode } from "./plan";
+import { sizeSketch, type ZoneDemand } from "./sketch";
 
 export interface Rect {
   x0: number;
@@ -52,40 +54,6 @@ export function polyBounds(poly: MapPoint[]): Rect {
   const xs = poly.map((p) => p[0]);
   const ys = poly.map((p) => p[1]);
   return { x0: Math.min(...xs), y0: Math.min(...ys), x1: Math.max(...xs), y1: Math.max(...ys) };
-}
-
-/** Integer widths in [lo, hi] (soft) summing to `total`; never below `floors`, never above `caps`. */
-function partition(rng: Rng, total: number, ranges: Array<[number, number]>, floors: number[], caps: number[]): number[] {
-  const mins = ranges.map((r) => r[0]);
-  const sum = mins.reduce((a, b) => a + b, 0);
-  let w: number[];
-  if (sum >= total) {
-    w = mins.map((m, i) => Math.min(caps[i]!, Math.max(floors[i]!, Math.floor((m * total) / sum))));
-  } else {
-    w = mins.slice();
-    let rem = total - sum;
-    while (rem > 0) {
-      const open = w.map((_, i) => i).filter((i) => w[i]! < ranges[i]![1] && w[i]! < caps[i]!);
-      const pool = open.length > 0 ? open : w.map((_, i) => i).filter((i) => w[i]! < caps[i]!);
-      if (pool.length === 0) break;
-      const i = pool[rng.int(0, pool.length - 1)]!;
-      w[i]!++;
-      rem--;
-    }
-  }
-  let diff = total - w.reduce((a, b) => a + b, 0);
-  let guard = 0;
-  while (diff !== 0 && guard++ < 1000) {
-    const i = rng.int(0, w.length - 1);
-    if (diff > 0 && w[i]! < caps[i]!) {
-      w[i]!++;
-      diff--;
-    } else if (diff < 0 && w[i]! > floors[i]!) {
-      w[i]!--;
-      diff++;
-    }
-  }
-  return w;
 }
 
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -141,6 +109,7 @@ function outerEdges(r: Rect, segs: Array<[MapPoint, MapPoint]>): Array<[MapPoint
 }
 
 const DECK_LETTERS = "ABCDEFGH";
+const NAME_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 /** Stage 2: sizes and places every zone. */
 export function layoutSite(rng: Rng, plan: Plan, profile: SiteProfile, inputs: MapInputs): LayoutResult {
@@ -150,124 +119,45 @@ export function layoutSite(rng: Rng, plan: Plan, profile: SiteProfile, inputs: M
   const typeOf = (n: PlanNode) => (n.type ? ROOM_TYPES[n.type] : undefined);
   const [cwLo, cwHi] = profile.corridorWidth;
 
+  const scale = (r: [number, number], k: number): [number, number] => [Math.max(4, Math.round(r[0] * k)), Math.max(4, Math.round(r[1] * k))];
+
   for (const deck of plan.decks) {
-    const { K, s, index: d } = deck;
-    const rowH: number[] = [];
-    for (let r = 0; r <= 2 * K; r++) {
-      if (r % 2 === 1) {
-        rowH.push(rng.int(cwLo, cwHi));
-        continue;
-      }
-      const band = r / 2;
-      const cells = deck.cells[band]!;
-      const slots = cells.flat();
-      if (slots.some((x) => x.split)) {
-        rowH.push(rng.int(9, 13));
-        continue;
-      }
-      const ds = slots
-        .flatMap((x) => x.keys)
-        .map((k) => typeOf(nodes.get(k)!))
-        .filter((t): t is NonNullable<typeof t> => !!t)
-        .map((t) => t.d);
-      const lo = ds.length > 0 ? Math.round(ds.reduce((n, x) => n + x[0], 0) / ds.length) : 5;
-      const hi = ds.length > 0 ? Math.round(ds.reduce((n, x) => n + x[1], 0) / ds.length) : 9;
-      rowH.push(rng.int(Math.max(4, Math.min(lo, 11)), Math.max(Math.max(4, Math.min(lo, 11)), Math.min(hi, 12))));
-    }
-
-    // Columns: a width every band's slots can share, at most 24 m (one corridor zone each).
-    const slotRange = (slot: { kind: string; keys: string[] }): [number, number] => {
-      if (slot.kind === "cross") return [cwLo, cwHi];
-      if (slot.kind === "oob") return [4, 8];
-      const ranges: Array<[number, number]> = slot.keys.map((k) => typeOf(nodes.get(k)!)?.w ?? [4, 8]);
-      return [Math.max(...ranges.map((x) => x[0])), Math.max(...ranges.map((x) => x[1]))];
+    const sk = deck.sketch;
+    const d = deck.index;
+    const demands: ZoneDemand[] = [];
+    // Minimum sizes leave room for a zone's number, flags and markers: rooms and yards 5 m each way
+    // (8 m along when the other way is held thin by corridor or set-range lines), corridors 7 m long (5 m when 3 m wide).
+    // (a 2 m corridor needs more length for its doors and markers than a 3 m tunnel)
+    const corrLen = cwLo <= 2 ? 7 : 5;
+    const thin = (lines: typeof sk.cols, lo: number, hi: number) => {
+      const span = lines.slice(lo, hi + 1);
+      return span.every((l) => l.kind === "corr" || l.range) && span.reduce((n, l) => n + (l.kind === "corr" ? cwHi : l.range![1]), 0) < 5;
     };
-    const colW: number[] = [];
-    for (let col = 0; col < s; col++) {
-      let lo = 0;
-      let hi = Infinity;
-      for (let band = 0; band <= K; band++) {
-        const rs = deck.cells[band]![col]!.map(slotRange);
-        lo = Math.max(lo, rs.reduce((n, x) => n + x[0], 0));
-        hi = Math.min(hi, rs.reduce((n, x) => n + x[1], 0));
-      }
-      const a = Math.min(Math.max(lo, 6), 24);
-      const b = Math.max(a, Math.min(hi, 24));
-      colW.push(rng.int(a, b));
-    }
-
-    // End zones and their widths.
-    const endWidth = new Map<string, number>();
-    for (const e of deck.ends) {
-      const n = nodes.get(e.key)!;
+    for (const [key, b] of sk.boxes) {
+      const n = nodes.get(key)!;
       const t = typeOf(n);
-      const w = e.kind === "connector" ? rng.int(cwLo, cwHi) : e.kind === "oob" ? rng.int(6, 14) : Math.min(12, Math.max(4, rng.int(t?.w[0] ?? 4, t?.w[1] ?? 8)));
-      endWidth.set(e.key, w);
+      const tx = thin(sk.cols, b.c0, b.c1);
+      const ty = thin(sk.rows, b.r0, b.r1);
+      const min = n.role === "corridor" ? { x: ty ? corrLen : 0, y: tx ? corrLen : 0 } : n.role === "oob" ? {} : { x: ty ? 8 : 5, y: tx ? 8 : 5 };
+      if ((n.role === "room" || n.role === "cap") && t) demands.push({ box: b, x: scale(t.w, profile.roomScale), y: scale(t.d, profile.roomScale), min });
+      else demands.push({ box: b, free: true, min });
     }
-    const sideMax = (side: "L" | "R") => Math.max(0, ...deck.ends.filter((e) => e.side === side).map((e) => endWidth.get(e.key)!));
-    const EL = sideMax("L");
-    const xStart = 1 + EL;
+    const { colW, rowH } = sizeSketch(rng, sk, demands, { corridor: [cwLo, cwHi], free: profile.freeLine, max: 24 });
     const colX: number[] = [];
-    let x = xStart;
-    for (let col = 0; col < s; col++) {
+    let x = 1;
+    for (const w of colW) {
       colX.push(x);
-      x += colW[col]!;
+      x += w;
     }
-    const xEnd = x;
     const rowY: number[] = [];
     let y = 1;
     for (const h of rowH) {
       rowY.push(y);
       y += h;
     }
-
-    for (let j = 1; j <= K; j++) {
-      const r = 2 * j - 1;
-      for (let col = 0; col < s; col++) rects.set(`${d}:L${j}:c${col}`, { x0: colX[col]!, y0: rowY[r]!, x1: colX[col]! + colW[col]!, y1: rowY[r]! + rowH[r]! });
-    }
-    for (let band = 0; band <= K; band++) {
-      const r = 2 * band;
-      const top = rowY[r]!;
-      const depth = rowH[r]!;
-      for (let col = 0; col < s; col++) {
-        const cell = deck.cells[band]![col]!;
-        const widths = partition(
-          rng,
-          colW[col]!,
-          cell.map(slotRange),
-          cell.map((c) => (c.kind === "cross" ? cwLo : 3)),
-          cell.map((c) => (c.kind === "cross" ? cwHi : Infinity)),
-        );
-        let cx = colX[col]!;
-        cell.forEach((slot, i) => {
-          const w = widths[i]!;
-          if (slot.split) {
-            const f = rng.int(4, depth - 3);
-            const [frontKey, backKey] = slot.keys as [string, string];
-            if (band === 0) {
-              rects.set(backKey, { x0: cx, y0: top, x1: cx + w, y1: top + depth - f });
-              rects.set(frontKey, { x0: cx, y0: top + depth - f, x1: cx + w, y1: top + depth });
-            } else {
-              rects.set(frontKey, { x0: cx, y0: top, x1: cx + w, y1: top + f });
-              rects.set(backKey, { x0: cx, y0: top + f, x1: cx + w, y1: top + depth });
-            }
-          } else {
-            rects.set(slot.keys[0]!, { x0: cx, y0: top, x1: cx + w, y1: top + depth });
-          }
-          cx += w;
-        });
-      }
-    }
-    for (const e of deck.ends) {
-      const w = endWidth.get(e.key)!;
-      const y0 = rowY[e.rows[0]]!;
-      const y1 = rowY[e.rows[1]]! + rowH[e.rows[1]]!;
-      rects.set(e.key, e.side === "L" ? { x0: xStart - w, y0, x1: xStart, y1 } : { x0: xEnd, y0, x1: xEnd + w, y1 });
-    }
-    const width = xEnd + sideMax("R") + 1;
-    const height = y + 1;
+    for (const [key, b] of sk.boxes) rects.set(key, { x0: colX[b.c0]!, y0: rowY[b.r0]!, x1: colX[b.c1]! + colW[b.c1]!, y1: rowY[b.r1]! + rowH[b.r1]! });
     const letter = DECK_LETTERS[d] ?? String(d + 1);
-    decks.push({ id: letter, name: profile.hull === "space" ? `Deck ${letter}` : `Level ${d + 1}`, width, height, layer: "floor" });
+    decks.push({ id: letter, name: profile.hull === "space" ? `Deck ${letter}` : `Level ${d + 1}`, width: x + 1, height: y + 1, layer: "floor" });
   }
 
   // Number floor zones in reading order, deck by deck.
@@ -287,37 +177,33 @@ export function layoutSite(rng: Rng, plan: Plan, profile: SiteProfile, inputs: M
     nodeOf.set(id, k);
   });
 
-  // Line letters for corridor names.
-  const lineLetter = new Map<string, string>();
-  let li = 0;
-  for (const deck of plan.decks) for (let j = 1; j <= deck.K; j++) lineLetter.set(`${deck.index}:${j}`, DECK_LETTERS[li++] ?? String(li));
-
+  // Names: duplicates get a number (rooms) or a letter (corridors and yards); key rooms keep theirs.
   const oobName = profile.hull === "space" ? "Sealed section" : profile.hull === "ground" ? "Sealed wing" : "Collapsed tunnel";
+  const baseName = (n: PlanNode): string | undefined => {
+    if (n.role === "corridor") return n.name ?? profile.corridorName;
+    if (n.role === "yard") return n.name ?? "Yard";
+    if (n.role === "oob") return n.name ?? oobName;
+    return n.name ?? typeOf(n)?.name;
+  };
   const zones: MapZoneData[] = [];
   const nameCount = new Map<string, number>();
   for (const k of floorKeys) {
     const n = nodes.get(k)!;
-    if ((n.role === "room" || n.role === "cap") && !n.keyRoom && n.name) nameCount.set(n.name, (nameCount.get(n.name) ?? 0) + 1);
+    const name = baseName(n);
+    if (name && !n.keyRoom) nameCount.set(name, (nameCount.get(name) ?? 0) + 1);
   }
   const nameSeen = new Map<string, number>();
   for (const k of floorKeys) {
     const n = nodes.get(k)!;
     const r = rects.get(k)!;
     const t = typeOf(n);
-    let name: string | undefined;
-    if (n.role === "corridor") name = `${profile.corridorName} ${lineLetter.get(`${n.deck}:${n.line}`)}`;
-    else if (n.role === "connector") name = `${profile.corridorName} link`;
-    else if (n.role === "cross") name = "Cross corridor";
-    else if (n.role === "oob") name = oobName;
-    else {
-      name = n.name ?? t?.name;
-      if (name && !n.keyRoom && (nameCount.get(name) ?? 0) > 1) {
-        const i = (nameSeen.get(name) ?? 0) + 1;
-        nameSeen.set(name, i);
-        name = `${name} ${i}`;
-      }
+    let name = baseName(n);
+    if (name && !n.keyRoom && (nameCount.get(name) ?? 0) > 1) {
+      const i = (nameSeen.get(name) ?? 0) + 1;
+      nameSeen.set(name, i);
+      name = `${name} ${n.role === "corridor" || n.role === "yard" ? (NAME_LETTERS[i - 1] ?? String(i)) : i}`;
     }
-    const kind: MapZoneData["kind"] = n.role === "room" || n.role === "cap" ? "room" : n.role === "oob" ? "out-of-bounds" : "corridor";
+    const kind: MapZoneData["kind"] = n.role === "room" || n.role === "cap" ? "room" : n.role === "oob" ? "out-of-bounds" : n.role === "yard" ? "exterior" : "corridor";
     const zone: MapZoneData = {
       id: zoneOf.get(k)!,
       deck: decks[n.deck]!.id,
