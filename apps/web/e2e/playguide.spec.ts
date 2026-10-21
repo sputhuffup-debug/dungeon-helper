@@ -33,7 +33,7 @@ test("table mode hints: search the play guide, read the cues and roll for the be
   // the best PC comes first; one tap rolls in place
   const best = entry.getByRole("list", { name: "Who's best at Observation" }).getByRole("button").first();
   const label = (await best.getAttribute("aria-label")) ?? "";
-  const name = /^Roll Observation for (.+) \(\d+ dice\)$/.exec(label)?.[1];
+  const name = /^Roll Observation for (.+) \(\d+ dice(?:, best|, worst)?\)$/.exec(label)?.[1];
   expect(name).toBeTruthy();
   await best.click();
   const panel = entry.getByTestId("dice-panel");

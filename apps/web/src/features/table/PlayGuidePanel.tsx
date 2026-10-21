@@ -6,7 +6,7 @@
  * push adds stress the same way (SessionRollPanel).
  */
 import type { Entity, Id } from "@campaign-forge/core";
-import type { LoadedModule, PlayGuideDef, PlayGuideEntry } from "@campaign-forge/module-sdk";
+import { poolStrength, type LoadedModule, type PlayGuideDef, type PlayGuideEntry } from "@campaign-forge/module-sdk";
 import { useMemo, useState } from "react";
 import { Badge, Button, EmptyState, PlayGuideView, playGuidesForMode } from "../../components/ui";
 import { useCampaign, useMeta } from "../../state/hooks";
@@ -24,6 +24,14 @@ export interface RankedRoller {
   entity: Entity;
   /** Dice from attribute + skill (the module's `buildPool` with no stress). */
   pool: number;
+  /** How good that pool is (higher is better): the dice system's strength, e.g. a d20 bonus or a dice count. */
+  score: number;
+  /** The score as shown ("+5", "65%", "4"). */
+  scoreLabel: string;
+  /** The score read in full ("+5", "65%", "4 dice"). */
+  scoreSpoken: string;
+  /** Top or bottom of the ranking, when the PCs are not all equal. */
+  standing?: "best" | "worst";
   /** Further dice the roll adds today (e.g. stress dice). */
   extra: number;
   /** "Attribute 3 · Skill 2 · …", from the full pool's breakdown. */
@@ -40,22 +48,39 @@ function canRoll(module: LoadedModule, entity: Entity, roll: string): boolean {
   return skillOptions(module, module.entityType(entity.type)).some((s) => s.id === roll);
 }
 
-/** PCs that can roll `roll`, best pool first (ties by name). */
+const signedCount = (n: number) => (n < 0 ? `−${-n}` : `+${n}`);
+
+/**
+ * PCs that can roll `roll`, strongest first (ties by name): ranked by the dice
+ * system's pool strength, so a d20 system ranks by bonus and a pool system by
+ * dice. When the PCs are not all equal, the top and bottom are marked.
+ */
 export function rankRollers(module: LoadedModule, pcs: Entity[], roll: string): RankedRoller[] {
   const dice = module.module.dice;
-  return pcs
+  const ranked: RankedRoller[] = pcs
     .filter((pc) => canRoll(module, pc, roll))
     .map((entity) => {
       const { label, input } = skillInput(module, entity, roll);
       const full = dice.buildPool(input);
-      const pool = diceCount(dice.buildPool({ ...input, stress: 0 }).dice);
+      const base = dice.buildPool({ ...input, stress: 0 });
+      const pool = diceCount(base.dice);
+      const strength = poolStrength(dice, base);
       const breakdown = (full.breakdown ?? [])
         .filter((b) => b.count !== 0)
-        .map((b) => `${b.label} ${b.count}`)
+        // flat modifiers (a d20 bonus) read signed; dice read as a count
+        .map((b) => `${b.label} ${b.die === "mod" ? signedCount(b.count) : b.count}`)
         .join(" · ");
-      return { entity, pool, extra: Math.max(0, diceCount(full.dice) - pool), breakdown, label, input };
+      return { entity, pool, score: strength.score, scoreLabel: strength.label, scoreSpoken: strength.spoken ?? strength.label, extra: Math.max(0, diceCount(full.dice) - pool), breakdown, label, input };
     })
-    .sort((a, b) => b.pool - a.pool || a.entity.name.localeCompare(b.entity.name));
+    .sort((a, b) => b.score - a.score || a.entity.name.localeCompare(b.entity.name));
+  const top = ranked[0]?.score;
+  const bottom = ranked[ranked.length - 1]?.score;
+  if (top !== undefined && bottom !== undefined && top > bottom)
+    for (const r of ranked) {
+      if (r.score === top) r.standing = "best";
+      else if (r.score === bottom) r.standing = "worst";
+    }
+  return ranked;
 }
 
 export function PlayGuidePanel({ sessionId, pcs, others = [] }: { sessionId: Id; pcs: Entity[]; others?: Entity[] }) {
@@ -89,8 +114,8 @@ export function PlayGuidePanel({ sessionId, pcs, others = [] }: { sessionId: Id;
         entryMeta={(e) => {
           const best = ranked.get(e.id)?.[0];
           return best ? (
-            <span className="cf-muted app-guide__bestline" title={`Best pool: ${best.entity.name}, ${best.pool} dice`}>
-              {best.entity.name} {best.pool}
+            <span className="cf-muted app-guide__bestline" title={`Best: ${best.entity.name}, ${best.scoreSpoken}`}>
+              {best.entity.name} {best.scoreLabel}
             </span>
           ) : null;
         }}
@@ -122,7 +147,7 @@ interface ActiveRoll {
   result: ReturnType<typeof rollSessionPool>;
 }
 
-/** The session's PCs ranked by pool for this entry; a tap rolls it for that PC, shown below and logged. */
+/** The session's PCs ranked by roll strength for this entry, best and worst marked; a tap rolls it for that PC, shown below and logged. */
 function WhoIsBest({ sessionId, entry, ranked, hasPcs }: { sessionId: Id; entry: PlayGuideEntry; ranked: RankedRoller[]; hasPcs: boolean }) {
   const ctx = useCampaign();
   const [active, setActive] = useState<ActiveRoll | undefined>();
@@ -143,12 +168,14 @@ function WhoIsBest({ sessionId, entry, ranked, hasPcs }: { sessionId: Id; entry:
               size="sm"
               variant={active?.entityId === r.entity.id ? "primary" : "default"}
               onClick={() => roll(r)}
-              aria-label={`Roll ${entry.label} for ${r.entity.name} (${r.pool} dice)`}
+              aria-label={`Roll ${entry.label} for ${r.entity.name} (${r.scoreSpoken}${r.standing ? `, ${r.standing}` : ""})`}
               title={r.breakdown}
               data-roller={r.entity.id}
+              {...(r.standing ? { "data-standing": r.standing } : {})}
             >
               <span>{r.entity.name}</span>
-              <Badge tone="accent">{r.pool}</Badge>
+              <Badge tone={r.standing === "best" ? "success" : r.standing === "worst" ? "danger" : "accent"}>{r.scoreLabel}</Badge>
+              {r.standing && <span className="app-guide__standing">{r.standing}</span>}
               {r.extra > 0 && <span className="cf-muted">+{r.extra}</span>}
             </Button>
           </li>

@@ -68,6 +68,28 @@ describe("play guide helpers", () => {
     expect(rank("attr:might")).toEqual([["Aria", 4], ["Bren", 2]]);
     expect(rank("attr:luck")).toEqual([]);
     expect(rankRollers(ctx.module, pcs, "fight")[0]!.breakdown).toBe("Attribute 4 · Skill 2");
+    expect(rankRollers(ctx.module, pcs, "fight").map((r) => r.standing)).toEqual(["best", "worst"]);
+  });
+
+  it("ranks d20 characters by their bonus, not their dice, and marks the best and worst", async () => {
+    const id = await createCampaign({ name: "Guide d20", moduleId: "dnd5e-srd" });
+    const ctx = await openCampaign(id);
+    opened.push(ctx.close);
+    const pc = (name: string, intelligence: number, skills: Record<string, number> = {}, saves: Record<string, number> = {}) =>
+      createEntity(ctx, {
+        type: "dnd5e-srd.character",
+        name,
+        fields: { isPC: true, level: 5, hp: { max: 30, current: 30 }, abilities: { strength: 10, dexterity: 10, constitution: 10, intelligence, wisdom: 10, charisma: 10 }, skills, saves },
+      });
+    const pcs = [pc("Ada", 8), pc("Bo", 18), pc("Cy", 12, { nature: 1 }, { "intelligence-save": 1 }), pc("Di", 12)];
+    const rank = (roll: string) => rankRollers(ctx.module, pcs, roll).map((r) => [r.entity.name, r.scoreLabel, r.standing ?? ""]);
+    // proficiency at level 5 is +3
+    expect(rank("nature")).toEqual([["Bo", "+4", "best"], ["Cy", "+4", "best"], ["Di", "+1", ""], ["Ada", "−1", "worst"]]);
+    expect(rank("attr:intelligence")).toEqual([["Bo", "+4", "best"], ["Cy", "+1", ""], ["Di", "+1", ""], ["Ada", "−1", "worst"]]);
+    expect(rank("intelligence-save")).toEqual([["Bo", "+4", "best"], ["Cy", "+4", "best"], ["Di", "+1", ""], ["Ada", "−1", "worst"]]);
+    expect(rankRollers(ctx.module, pcs, "nature").find((r) => r.entity.name === "Cy")!.breakdown).toBe("Intelligence 12 +1 · Proficiency +3");
+    // all equal: nobody is marked
+    expect(rankRollers(ctx.module, pcs, "attr:strength").every((r) => r.standing === undefined)).toBe(true);
   });
 });
 
@@ -126,7 +148,7 @@ describe("PlayGuidePanel", () => {
     fireEvent.click(within(entry("lore")!).getByRole("button", { expanded: false }));
     const best = within(entry("lore")!).getByRole("list", { name: "Who's best at Lore" });
     const buttons = within(best).getAllByRole("button");
-    expect(buttons.map((b) => b.getAttribute("aria-label"))).toEqual(["Roll Lore for Bren (7 dice)", "Roll Lore for Aria (1 dice)"]);
+    expect(buttons.map((b) => b.getAttribute("aria-label"))).toEqual(["Roll Lore for Bren (7 dice, best)", "Roll Lore for Aria (1 die, worst)"]);
 
     await act(async () => {
       fireEvent.click(buttons[0]!);

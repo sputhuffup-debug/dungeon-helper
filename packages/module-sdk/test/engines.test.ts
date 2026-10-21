@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { abilityModifier, createDiceEngine, createRng, type DiceSystem, type RollResult } from "../src";
+import { abilityModifier, createDiceEngine, createRng, poolStrength, type DiceSystem, type RollResult } from "../src";
 
 function rollMany(dice: DiceSystem, input: Record<string, unknown>, n: number, prefix = "s"): RollResult[] {
   const pool = dice.buildPool(input);
@@ -357,5 +357,19 @@ describe("dice engines", () => {
       expect(pushed.canPush).toBe(false);
       expect(pushed.notes).toEqual(["pushed"]);
     });
+  });
+
+  it("rates pools for ranking: d20 and 2d6 by modifier, d100 by target, pools by dice, or the system's own strength", () => {
+    const d20 = createDiceEngine({ engine: "d20" });
+    expect(poolStrength(d20, d20.buildPool({ attribute: 16, skill: 0 }))).toEqual({ score: 3, label: "+3" });
+    expect(poolStrength(d20, d20.buildPool({ attribute: 8, skill: 0, advantage: "Advantage" }))).toEqual({ score: -1, label: "−1" });
+    const twoD6 = createDiceEngine({ engine: "2d6" });
+    expect(poolStrength(twoD6, twoD6.buildPool({ attribute: 2 }))).toEqual({ score: 2, label: "+2" });
+    const d100 = createDiceEngine({ engine: "d100" });
+    expect(poolStrength(d100, d100.buildPool({ skill: 65 }))).toEqual({ score: 65, label: "65%" });
+    const pool = createDiceEngine({ engine: "pool" });
+    expect(poolStrength(pool, pool.buildPool({ attribute: 3, skill: 2 }))).toEqual({ score: 5, label: "5", spoken: "5 dice" });
+    const own: Pick<DiceSystem, "strength"> = { strength: () => ({ score: 9, label: "nine" }) };
+    expect(poolStrength(own, { dice: { d6: 1 } })).toEqual({ score: 9, label: "nine" });
   });
 });
