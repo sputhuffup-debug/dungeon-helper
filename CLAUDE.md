@@ -14,13 +14,14 @@ A Game Master's workspace for tabletop RPG campaigns. Every game system is a plu
 - `packages/core` game-agnostic domain model (`src/types.ts`), Yjs campaign store with IndexedDB persistence, visibility, backlinks, search, export/import bundle.
 - `packages/module-alien` the Alien module: data, procedures, templates, rule cards. The only package allowed to know what a xenomorph is.
 - `packages/module-example` a tiny fixture module; core, sdk and ui are tested against it so the core never grows Alien-specific behaviour.
+- Other game systems plug in the same way: a TypeScript module package, or a declarative JSON data pack (no code) that the SDK turns into a module. See `docs/modules/` for the author guide.
 - `packages/ui` schema-driven sheet renderer, widgets, trackers (React).
 - `apps/web` the React 19 + Vite PWA.
 - `tools/table-lint` dice coverage, page refs, enum references. `tools/seed-campaign` builds the demo campaign.
 
 ## Rules every package obeys
 1. Rules live in modules, never in core. Core/sdk/ui must not import `module-alien`.
-2. Every table and rule card cites its page. Rows are paraphrase or data, never book prose.
+2. Every table and rule card cites its page. For rulebooks without an open licence (e.g. the Alien core rules), rows are paraphrase or data, never book prose. Openly licensed content (e.g. the D&D 5e SRD 5.1 under CC-BY-4.0) may be used as written, with the licence's attribution shipped in the module and shown in the app.
 3. Deterministic generation: same seed + module version => same output. Tested in CI.
 4. Computed values (Health, Resolve...) are never stored; derived from `x-computed`/`computed` JSONLogic at render time.
 5. No `eval`. Expressions are JSONLogic.
