@@ -82,6 +82,20 @@ function validPage(page: PageRef | undefined): boolean {
   return false;
 }
 
+/** A section citation: a short non-empty line of text. */
+export function validCite(cite: unknown): boolean {
+  return typeof cite === "string" && cite.trim().length > 0 && cite.length <= 200 && !/[\r\n]/.test(cite);
+}
+
+/** Something that should cite its source: a valid page, a valid cite, or `original: true`. */
+export function citesSource(item: { page?: PageRef; cite?: string; original?: boolean }): boolean {
+  return (item.page !== undefined && validPage(item.page)) || (item.cite !== undefined && validCite(item.cite)) || item.original === true;
+}
+
+function checkCite(item: { cite?: unknown }, where: string, c: Collector, label = ""): void {
+  if (item.cite !== undefined && !validCite(item.cite)) c.error(where, `${label}cite must be one line of text (1-200 characters)`);
+}
+
 function checkUnique<T>(items: T[], key: (item: T) => string, where: (item: T) => string, label: string, c: Collector): void {
   const seen = new Set<string>();
   for (const item of items) {
@@ -112,6 +126,7 @@ function checkTable(table: RollTable, registry: TableRegistry, declaredModes: Se
   const where = `table:${table.id}`;
   if (!table.name) c.warn(where, "table has no name");
   if (table.page !== undefined && !validPage(table.page)) c.error(where, "invalid page reference");
+  checkCite(table, where, c);
   checkModes(table.mode, declaredModes, where, c);
   if (table.rows.length === 0) {
     c.error(where, "table has no rows");
@@ -127,6 +142,7 @@ function checkTable(table: RollTable, registry: TableRegistry, declaredModes: Se
   for (const [i, row] of table.rows.entries()) {
     if (row.range.length !== 2 || row.range[0] > row.range[1]) c.error(where, `row ${i} has an invalid range [${row.range.join(", ")}]`);
     if (row.page !== undefined && !validPage(row.page)) c.error(where, `row ${i} has an invalid page reference`);
+    checkCite(row, where, c, `row ${i} `);
     for (const nr of row.roll ?? []) {
       if (!registry.get(nr.table)) c.error(where, `row ${i} nests unknown table "${nr.table}"`);
       if (!nr.as) c.error(where, `row ${i} nested roll on "${nr.table}" has no "as" key`);
@@ -264,7 +280,9 @@ function checkEntityType(def: EntityTypeDef, module: GameModule, declaredModes: 
 
 function checkRule(rule: RuleCard, module: GameModule, declaredModes: Set<PlayModeId>, c: Collector): void {
   const where = `rule:${rule.id}`;
-  if (!validPage(rule.page)) c.error(where, "rule card has no valid page reference");
+  if (rule.page !== undefined && !validPage(rule.page)) c.error(where, "invalid page reference");
+  checkCite(rule, where, c);
+  if (rule.page === undefined && rule.cite === undefined && rule.original !== true) c.error(where, "rule card cites no source: give it a page, a cite, or mark it original");
   if (!rule.summary) c.warn(where, "rule card has no summary");
   checkModes(rule.mode, declaredModes, where, c);
   const links = rule.links ?? {};
@@ -282,6 +300,7 @@ function checkProcedureStatic(proc: Procedure, module: GameModule, declaredModes
   const where = `procedure:${proc.id}`;
   checkModes(proc.mode, declaredModes, where, c);
   if (proc.page !== undefined && !validPage(proc.page)) c.error(where, "invalid page reference");
+  checkCite(proc, where, c);
   checkUnique(proc.steps, (s) => s.id, (s) => `${where}:step:${s.id}`, "step", c);
   const stepIds = proc.steps.map((s) => s.id);
   for (const [i, step] of proc.steps.entries()) {
@@ -340,6 +359,7 @@ function checkProcedureRuns(proc: Procedure, module: GameModule, options: CheckM
 function checkPreset(preset: EntityPreset, module: GameModule, c: Collector): void {
   const where = `preset:${preset.id}`;
   if (preset.page !== undefined && !validPage(preset.page)) c.error(where, "invalid page reference");
+  checkCite(preset, where, c);
   const def = module.entityTypes.find((t) => t.id === preset.entityType);
   if (!def) {
     c.error(where, `unknown entity type "${preset.entityType}"`);
@@ -353,6 +373,7 @@ function checkTracker(tracker: TrackerDef, module: GameModule, declaredModes: Se
   const where = `tracker:${tracker.id}`;
   checkModes(tracker.mode, declaredModes, where, c);
   if (tracker.page !== undefined && !validPage(tracker.page)) c.error(where, "invalid page reference");
+  checkCite(tracker, where, c);
   for (const r of tracker.rules ?? []) if (!module.rules.some((x) => x.id === r)) c.error(where, `references unknown rule "${r}"`);
   for (const b of tracker.binds ?? []) {
     const typed = findEntityTypeForFieldRef(module.entityTypes, b);
@@ -370,10 +391,12 @@ function checkTracker(tracker: TrackerDef, module: GameModule, declaredModes: Se
 function checkReferenceList(list: ReferenceList, declaredModes: Set<PlayModeId>, c: Collector): void {
   const where = `referenceList:${list.id}`;
   if (list.page !== undefined && !validPage(list.page)) c.error(where, "invalid page reference");
+  checkCite(list, where, c);
   checkUnique(list.items, (i) => i.id, (i) => `${where}:item:${i.id}`, "item", c);
   for (const item of list.items) {
     checkModes(item.mode, declaredModes, `${where}:item:${item.id}`, c);
     if (item.page !== undefined && !validPage(item.page)) c.error(`${where}:item:${item.id}`, "invalid page reference");
+    checkCite(item, `${where}:item:${item.id}`, c);
     if (list.itemSchema) {
       const res = validateAgainstSchema(list.itemSchema, item);
       for (const err of res.errors) c.warn(`${where}:item:${item.id}`, `${err.path}: ${err.message}`);
@@ -385,6 +408,7 @@ function checkTemplate(t: Template, moduleId: string, declaredModes: Set<PlayMod
   const where = `template:${t.id}`;
   checkModes(t.mode, declaredModes, where, c);
   if (t.page !== undefined && !validPage(t.page)) c.error(where, "invalid page reference");
+  checkCite(t, where, c);
   if (!t.scaffold || typeof t.scaffold !== "object") c.error(where, "template has no scaffold");
   if (t.appliesTo !== undefined && t.kind !== "checklist") c.error(where, "appliesTo is only for checklist templates");
   if (t.appliesTo !== undefined && t.appliesTo !== "session" && t.appliesTo !== "session-zero") c.error(where, `unknown appliesTo "${String(t.appliesTo)}"`);
@@ -587,6 +611,7 @@ function checkPlayGuide(g: PlayGuideDef, declaredModes: Set<PlayModeId>, c: Coll
     else if (e.callFor.length === 0) c.warn(ew, "entry has no callFor cues");
     if (e.roll !== undefined && (typeof e.roll !== "string" || e.roll.trim() === "")) c.error(ew, "roll must be a non-empty string");
     if (e.page !== undefined && !validPage(e.page)) c.error(ew, "invalid page reference");
+    checkCite(e, ew, c);
     checkModes(e.mode, declaredModes, ew, c);
   }
 }
@@ -791,6 +816,14 @@ export function checkModule(module: GameModule, options: CheckModuleOptions = {}
   checkUnique(manifest?.modes ?? [], (m) => m.id, () => mw, "mode", c);
   if (manifest && !declaredModes.has(manifest.defaultMode)) c.error(mw, `defaultMode "${manifest.defaultMode}" is not a declared mode`);
   for (const m of manifest?.modes ?? []) if (m.page !== undefined && !validPage(m.page)) c.error(mw, `mode "${m.id}" has an invalid page reference`);
+  const license = manifest?.license;
+  if (license !== undefined) {
+    if (!license.name || typeof license.name !== "string") c.error(mw, "license needs a name");
+    if (!license.attribution || typeof license.attribution !== "string") c.error(mw, "license needs the attribution text it requires");
+    if (license.url !== undefined && !/^https?:\/\//i.test(license.url)) c.error(mw, "license url must be an http(s) link");
+  }
+  if (manifest?.sourceBook?.url !== undefined && !/^https?:\/\//i.test(manifest.sourceBook.url)) c.error(mw, "sourceBook url must be an http(s) link");
+  if (manifest?.citationStyle !== undefined && manifest.citationStyle !== "page" && manifest.citationStyle !== "section") c.error(mw, `citationStyle must be "page" or "section"`);
   const requiredMajor = manifest ? majorOf(manifest.requiredCore) : undefined;
   const coreMajor = majorOf(CONTRACT_VERSION);
   if (requiredMajor === undefined) c.error(mw, `requiredCore "${manifest?.requiredCore}" is not a semver version`);
@@ -801,6 +834,7 @@ export function checkModule(module: GameModule, options: CheckModuleOptions = {}
   else {
     checkUnique(module.dice.dice, (d) => d.id, (d) => `dice:${d.id}`, "die", c);
     for (const d of module.dice.dice) if (!Number.isInteger(d.faces) || d.faces < 1) c.error(`dice:${d.id}`, "die has invalid faces");
+    if (module.dice.resultStyle !== undefined && module.dice.resultStyle !== "successes" && module.dice.resultStyle !== "total") c.error("dice", `resultStyle must be "successes" or "total"`);
     for (const [id, op] of Object.entries(module.dice.operations ?? {})) {
       if (op.id !== id) c.warn(`dice:operation:${id}`, `operation id "${op.id}" differs from its key "${id}"`);
       if (op.page !== undefined && !validPage(op.page)) c.error(`dice:operation:${id}`, "invalid page reference");

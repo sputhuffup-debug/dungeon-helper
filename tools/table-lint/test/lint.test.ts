@@ -50,7 +50,7 @@ describe("lintModule", () => {
     const report = lintModule(synthetic, { skipProcedureRuns: true });
     const errors = fmt(report.errors);
     expect(report.ok).toBe(false);
-    expect(errors).toContain("table:example.table.bad-d66: table has no page reference");
+    expect(errors).toContain("table:example.table.bad-d66: table cites no source: give it a page, a cite, or mark it original");
     expect(errors.some((e) => e.startsWith("table:example.table.bad-d66: row 1 [41-47] has d66 bound 47"))).toBe(true);
     expect(errors.some((e) => e.startsWith("table:example.table.bad-d66: row 2 [48-66] has d66 bound 48"))).toBe(true);
     expect(errors).toContain('table:example.table.misfiled: family "weather" does not match the id segment "table"');

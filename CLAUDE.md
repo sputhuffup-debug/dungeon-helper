@@ -17,7 +17,7 @@ A Game Master's workspace for tabletop RPG campaigns. Every game system is a plu
 - Other game systems plug in the same way: a TypeScript module package, or a declarative JSON data pack (no code) that the SDK turns into a module. See `docs/modules/` for the author guide.
 - `packages/ui` schema-driven sheet renderer, widgets, trackers (React).
 - `apps/web` the React 19 + Vite PWA.
-- `tools/table-lint` dice coverage, page refs, enum references. `tools/seed-campaign` builds the demo campaign.
+- `tools/table-lint` dice coverage, page refs, enum references. `tools/seed-campaign` builds the demo campaign. `tools/module-check` validates a data pack or module (schema, conformance, lint, determinism). `tools/create-module` scaffolds one.
 
 ## Rules every package obeys
 1. Rules live in modules, never in core. Core/sdk/ui must not import `module-alien`.
@@ -37,4 +37,5 @@ Shots never show the rulebook's text or its purchase watermark; demos use origin
 
 ## Commands
 - `pnpm install`, `pnpm typecheck`, `pnpm test`, `pnpm dev` (web app), `pnpm table-lint`.
+- `pnpm module-check <id|pack.json|folder> [--all]` checks modules and data packs; `pnpm create-module <name> --engine d20|pool|2d6|d100 [--ts]` scaffolds one.
 - `pnpm screenshots` rebuilds the web app and regenerates every README screenshot in `docs/screenshots/`.

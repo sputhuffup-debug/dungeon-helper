@@ -1,7 +1,7 @@
 /**
  * Tool-level lint over a GameModule: wraps the sdk conformance suite
  * (`checkModule`) and adds the data-entry checks from the architecture seed's
- * repository appendix: page refs on every table, id/family convention, d66
+ * repository appendix: a citation (page, section cite, or `original`) on every table, id/family convention, d66
  * bounds, row labels, rule-card summary length (no book prose), preset field
  * validation, `within:` containment tags, reference item ids and procedure
  * chains, plus a data-status summary (how much is still `unverified`).
@@ -130,7 +130,8 @@ export function countSentences(text: string): number {
 
 function checkTable(table: RollTable, moduleId: string, c: Issues): void {
   const where = `table:${table.id}`;
-  if (table.page === undefined) c.error(where, "table has no page reference");
+  // Rule 2: every table cites its source, by page or by section, unless the module author wrote it.
+  if (table.page === undefined && table.cite === undefined && table.original !== true) c.error(where, "table cites no source: give it a page, a cite, or mark it original");
 
   const segments = table.id.split(".");
   if (segments.length < 3 || segments.some((s) => s.length === 0)) {

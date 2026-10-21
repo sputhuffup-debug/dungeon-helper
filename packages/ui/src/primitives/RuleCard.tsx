@@ -32,7 +32,7 @@ export function RuleCardView({ card, onOpenRule, onOpenTable, onOpenField, onOpe
       <header className="cf-rule__header">
         <h3 className="cf-rule__title">{card.title}</h3>
         <div className="cf-rule__meta">
-          <PageRef page={card.page} />
+          <PageRef page={card.page} cite={card.cite} original={card.original} />
           {card.mode?.map((m) => (
             <Badge key={m} tone="accent">
               {m}
@@ -109,7 +109,7 @@ export function RuleCardList({ cards, modes, mode, onOpen, className }: RuleCard
                   <span className="cf-rulelist__item-title">{c.title}</span>
                   <span className="cf-rulelist__item-summary">{c.summary}</span>
                 </span>
-                <PageRef page={c.page} />
+                <PageRef page={c.page} cite={c.cite} original={c.original} />
               </button>
             </li>
           ))}

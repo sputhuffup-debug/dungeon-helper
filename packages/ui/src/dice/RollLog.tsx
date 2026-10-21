@@ -4,6 +4,7 @@ import { EmptyState } from "../primitives/Toolbar";
 import { cx } from "../sheet/paths";
 import { DieFace } from "./DieFace";
 import { specById } from "./DiceRollPanel";
+import { resultHeadline } from "./outcome";
 
 export interface RollLogEntry {
   id: string;
@@ -49,10 +50,11 @@ export function RollLog({ entries, dice, newestFirst = true, max, className }: R
           {e.result && (
             <div className="cf-rolllog__faces cf-dice__faces">
               {e.result.dice.map((d, i) => (
-                <DieFace key={i} spec={dice ? specById(dice, d.die) : undefined} value={d.value} kept={d.kept} special={baseId !== undefined && d.die !== baseId} />
+                <DieFace key={i} spec={dice ? specById(dice, d.die) : undefined} value={d.value} kept={d.kept} dropped={d.dropped} special={baseId !== undefined && d.die !== baseId} />
               ))}
               <span className="cf-mono">
-                {e.result.successes} ✓{dice ? ` · ${dice.describe(e.result)}` : ""}
+                {resultHeadline(dice, e.result)}
+                {dice ? ` · ${dice.describe(e.result)}` : ""}
               </span>
             </div>
           )}

@@ -34,6 +34,7 @@ export { SchemaValueEditor, schemaType } from "./widgets/SchemaValueEditor";
 export { DieFace, type DieFaceProps } from "./dice/DieFace";
 export { DiceRollPanel, specById, type DiceRollPanelProps } from "./dice/DiceRollPanel";
 export { RollLog, type RollLogEntry, type RollLogProps } from "./dice/RollLog";
+export { toneBadge, showsTotal, resultHeadline, rollOptionFields, type RollOptionField } from "./dice/outcome";
 
 // Trackers
 export { registerTracker, getTracker, hasTracker, trackerKinds } from "./trackers/registry";
@@ -120,7 +121,7 @@ export { Tabs, type TabsProps, type TabItem } from "./primitives/Tabs";
 export { Dialog, Drawer, type DialogProps, type DrawerProps } from "./primitives/Dialog";
 export { Toolbar, ToolbarGroup, ToolbarSpacer, EmptyState, type ToolbarProps, type EmptyStateProps } from "./primitives/Toolbar";
 export { ProvenanceBadge, RollRecordList, type ProvenanceBadgeProps, type ProvenanceKind } from "./primitives/ProvenanceBadge";
-export { PageRef, formatPageRef, type PageRefProps } from "./primitives/PageRef";
+export { PageRef, formatPageRef, formatCitation, type PageRefProps } from "./primitives/PageRef";
 export { Markdown, renderInline } from "./primitives/Markdown";
 export { RuleCardView, RuleCardList, filterRuleCards, type RuleCardViewProps, type RuleCardListProps } from "./primitives/RuleCard";
 export { PlayGuideView, PlayGuideEntryView, PlayGuideTips, playGuidesForMode, filterPlayGuideEntries, type PlayGuideViewProps, type PlayGuideEntryViewProps, type PlayGuideTipsProps } from "./primitives/PlayGuide";

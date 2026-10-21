@@ -21,8 +21,23 @@ export interface BundleCampaignFile {
   maps: CampaignMaps;
 }
 
+/** Where a bundle carries the campaign's data pack, when its module is an imported pack. */
+export const BUNDLE_PACK_FILE = "module/pack.json";
+
+/** The module a bundle is exported with. `pack` is the module's data pack JSON, embedded so the campaign opens on another device. */
+export interface BundleModule {
+  id: string;
+  version: string;
+  pack?: unknown;
+}
+
 export interface ImportedBundle {
   store: CampaignStore;
+  /**
+   * The data pack embedded in the bundle (parsed JSON, not validated: the app
+   * validates it with the SDK before installing it).
+   */
+  pack?: unknown;
   /** doc id -> Markdown body */
   docs: Map<Id, string>;
   assets: Map<Id, { blob: Blob; meta: Asset }>;
@@ -81,7 +96,7 @@ function readme(manifest: BundleManifest): string {
     "",
     `Re-importing needs module \`${manifest.moduleId}\` version ${manifest.moduleVersion} or newer (older data runs the module's migrations).`,
     "",
-    "Contents: `campaign.json` (every map plus this manifest), `notes/<docId>.md` (rich-text bodies, entity references as `[[id|name]]`), `assets/<id>.<ext>` (binary assets).",
+    "Contents: `campaign.json` (every map plus this manifest), `notes/<docId>.md` (rich-text bodies, entity references as `[[id|name]]`), `assets/<id>.<ext>` (binary assets) and, when the module is an imported data pack, `module/pack.json`.",
     "",
   ].join("\n");
 }
@@ -91,13 +106,14 @@ export async function exportBundle(
   store: CampaignStore,
   registry: RichTextRegistry,
   assets: AssetStore | undefined,
-  module: { id: string; version: string },
+  module: BundleModule,
 ): Promise<Uint8Array> {
   const maps = store.toJSON();
   const manifest = buildManifest(store, module);
   const files: Record<string, Uint8Array> = {};
   files["campaign.json"] = strToU8(JSON.stringify({ manifest, maps } satisfies BundleCampaignFile, null, 2));
   files["README.md"] = strToU8(readme(manifest));
+  if (module.pack !== undefined) files[BUNDLE_PACK_FILE] = strToU8(JSON.stringify(module.pack));
   const resolve = nameResolver(store);
   for (const docId of docIdsOf(maps)) {
     await registry.whenReady(docId);
@@ -191,7 +207,16 @@ export async function importBundle(bytes: Uint8Array, opts: ImportOptions = {}):
   }
 
   const store = CampaignStore.fromJSON(maps);
-  return { store, docs, assets, manifest, idMap };
+  const out: ImportedBundle = { store, docs, assets, manifest, idMap };
+  const packFile = files[BUNDLE_PACK_FILE];
+  if (packFile) {
+    try {
+      out.pack = JSON.parse(strFromU8(packFile)) as unknown;
+    } catch {
+      throw new Error(`bundle has an unreadable ${BUNDLE_PACK_FILE}`);
+    }
+  }
+  return out;
 }
 
 /** Write imported Markdown bodies into docs opened through the registry. */

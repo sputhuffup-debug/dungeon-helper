@@ -95,6 +95,7 @@ export function SheetTab({ entity, def }: { entity: Entity; def: EntityTypeDef |
           onPickEntity={onPickEntity}
           resolveEntityName={resolveEntityName}
           onRoll={onRoll}
+          dice={ctx.module.module.dice}
         />
       )}
       <RuleDrawer ruleId={rule} onClose={() => setRule(undefined)} onOpenRule={setRule} />

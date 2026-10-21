@@ -21,6 +21,7 @@ Campaign Forge is a companion to the rulebook, not a replacement. The module enc
 - **Wide-format printing.** Site maps print on 24" or 36" rolls as vector PDFs at 1 inch per metre (28mm miniatures), 28mm true scale or an overview scale, with a title block, scale bar and optional 1 m grid squares.
 - **Maps from images.** Imported images with rectangular zone overlays and open/blocked/door borders.
 - **Rules reference.** Paraphrased rule cards with page references, filtered by play mode (Cinematic or Campaign).
+- **Modules.** Every game system is a module: a TypeScript package, or a JSON data pack a GM imports in the app (*Game modules…*), validated before it is stored and never run as code. Packs pick a built-in dice engine (d20, dice pool, 2d6 bands, d100 roll-under), carry their licence and attribution, and travel inside campaign bundles. `pnpm create-module` scaffolds one and `pnpm module-check` validates it; see [docs/modules](docs/modules/README.md).
 
 ## Screenshots
 

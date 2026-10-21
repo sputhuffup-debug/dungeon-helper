@@ -28,6 +28,14 @@ export type PlayModeId = string;
 /** A rulebook page reference. A single page or an inclusive range. */
 export type PageRef = number | [number, number];
 
+/**
+ * A citation that is not a page number, for sources cited by section (e.g.
+ * "SRD 5.1, Conditions" or "§ 7.2"). Wherever the contract wants a source,
+ * `page` or `cite` will do; `original: true` marks content the module author
+ * wrote themselves, which has no source to cite.
+ */
+export type CiteRef = string;
+
 /** Seeded random source. `next()` is in [0, 1). `int` is inclusive on both ends. */
 export interface Rng {
   next(): number;
@@ -45,6 +53,23 @@ export interface PlayMode {
   name: string;
   description?: string;
   page?: PageRef;
+  cite?: CiteRef;
+}
+
+/**
+ * The licence the module's content is published under, and the attribution
+ * the licence requires. The app shows `attribution` wherever the module is
+ * described (module list, campaign settings) and in exports.
+ */
+export interface ModuleLicense {
+  /** SPDX identifier when there is one, e.g. "CC-BY-4.0", "OGL-1.0a", "MIT". */
+  spdx?: string;
+  /** Human-readable licence name, e.g. "Creative Commons Attribution 4.0". */
+  name: string;
+  /** http(s) link to the licence text. */
+  url?: string;
+  /** The attribution text the licence requires, shown as written (plain text). */
+  attribution: string;
 }
 
 export interface ModuleManifest {
@@ -66,7 +91,17 @@ export interface ModuleManifest {
   /** Whether bundled data has been checked against the source book. */
   dataStatus: "unverified" | "partially-verified" | "verified";
   /** Rulebook the page references point to. */
-  sourceBook?: { title: string; year?: number; pageNote?: string };
+  sourceBook?: { title: string; year?: number; pageNote?: string; url?: string };
+  /** Licence and required attribution (required for data packs; recommended for every module). */
+  license?: ModuleLicense;
+  /**
+   * How the module cites its source: by page number (the default) or by
+   * section name (`cite` strings), e.g. for an SRD published as web pages.
+   * Purely informative; either field satisfies the citation checks.
+   */
+  citationStyle?: "page" | "section";
+  /** Authors or maintainers of the module, shown in the module list. */
+  authors?: string[];
 }
 
 // ---------------------------------------------------------------------------
@@ -87,8 +122,15 @@ export interface DieSpec {
 export interface DicePool {
   /** die id -> count */
   dice: Record<string, number>;
-  /** Free-form data describing how the pool was built (for the provenance popover). */
+  /**
+   * Free-form data describing how the pool was built (for the provenance popover).
+   * Total-style systems list flat modifiers here too (`die` "mod", `count` the modifier).
+   */
   breakdown?: Array<{ label: string; die: string; count: number }>;
+  /** Flat modifier added to the dice total (total-style systems). */
+  modifier?: number;
+  /** Short display of the pool, e.g. "1d20 + 5 (advantage)"; shown instead of a die count. */
+  label?: string;
   meta?: Record<string, unknown>;
 }
 
@@ -97,11 +139,30 @@ export interface RolledDie {
   value: number;
   /** True when kept from a previous roll (e.g. not re-rolled on a push). */
   kept?: boolean;
+  /** True when rolled but not counted (e.g. the lower d20 with advantage). */
+  dropped?: boolean;
+}
+
+/** How an outcome reads at a glance; the UI colours it. */
+export type RollTone = "critical" | "success" | "partial" | "failure" | "fumble" | "neutral";
+
+/** A named outcome of a roll: a band (10+ / 7-9 / 6-), a degree (hard success) or pass/fail. */
+export interface RollOutcome {
+  /** Stable id, e.g. "strong-hit", "hard", "success". */
+  id: string;
+  /** Display label, e.g. "Strong hit". */
+  label: string;
+  tone?: RollTone;
 }
 
 export interface RollResult {
   pool: DicePool;
   dice: RolledDie[];
+  /**
+   * Pool systems: dice showing a success. Total-style systems: the degree of
+   * success (0 = failure, 1 = success, 2+ = better degrees), so code that
+   * asks "did it succeed?" (`successes > 0`) works for every system.
+   */
   successes: number;
   /** symbol id -> count across all dice */
   symbols: Record<string, number>;
@@ -109,6 +170,16 @@ export interface RollResult {
   pushes: number;
   /** Whether the system allows another push from this state. */
   canPush: boolean;
+  /** Total-style systems: the number the roll came to (dice kept + modifier). */
+  total?: number;
+  /** The number the total is compared with (a DC, a skill percentage), when there is one. */
+  target?: number;
+  /** The named outcome (band, degree, pass/fail), when the system has one. */
+  outcome?: RollOutcome;
+  /** A natural critical (e.g. a natural 20, a 01 on percentile dice). */
+  critical?: boolean;
+  /** A natural fumble (e.g. a natural 1, a 00 on percentile dice). */
+  fumble?: boolean;
   /** Module-specific notes, e.g. "stress die showed 1". */
   notes?: string[];
   meta?: Record<string, unknown>;
@@ -119,7 +190,20 @@ export interface RollResult {
  * All randomness goes through the supplied Rng.
  */
 export interface DiceSystem {
+  /** Built-in engine id (e.g. "d20", "pool") when the system came from `createDiceEngine`. */
+  engine?: string;
   dice: DieSpec[];
+  /**
+   * What the roll panel shows: "successes" (default) puts the success count
+   * first; "total" puts the total and the outcome first (d20, 2d6, d100 systems).
+   */
+  resultStyle?: "successes" | "total";
+  /**
+   * Options the roll panel offers before rolling (JSON Schema of an object
+   * whose properties are integers, numbers, booleans or string enums, e.g. a
+   * DC, advantage). Their values are merged into the `buildPool` input.
+   */
+  rollOptions?: JsonSchema;
   /** Build a pool from module-specific input (attribute, skill, modifiers...). */
   buildPool(input: Record<string, unknown>): DicePool;
   roll(pool: DicePool, rng: Rng): RollResult;
@@ -169,6 +253,10 @@ export interface RollTable {
   id: string;
   name: string;
   page?: PageRef;
+  /** Section citation, when the source is not cited by page. */
+  cite?: CiteRef;
+  /** Written by the module author (no source to cite). */
+  original?: boolean;
   dice: string;
   /** Modifiers applied to the roll total, evaluated against the roll context. */
   modifiers?: TableModifier[];
@@ -203,6 +291,7 @@ export interface TableRow {
   /** Follow-up rolls triggered by this row. */
   roll?: NestedRoll[];
   page?: PageRef;
+  cite?: CiteRef;
   unverified?: boolean;
 }
 
@@ -236,6 +325,7 @@ export interface RollRecord {
   /** Nested rolls fired by the row. */
   nested?: RollRecord[];
   page?: PageRef;
+  cite?: CiteRef;
 }
 
 export interface TableRollOptions {
@@ -270,6 +360,7 @@ export interface ProcedureStep {
   id: string;
   title?: string;
   page?: PageRef;
+  cite?: CiteRef;
   /** Table id, or a function choosing a table from context. */
   table?: string | ((ctx: ProcedureContext) => string);
   /** Step ids this step's modifiers read; used for the step graph and re-roll invalidation. */
@@ -295,6 +386,8 @@ export interface Procedure {
   name: string;
   description?: string;
   page?: PageRef;
+  cite?: CiteRef;
+  original?: boolean;
   mode?: PlayModeId[];
   /** JSON Schema for `inputs`. */
   inputs?: JsonSchema;
@@ -470,6 +563,8 @@ export interface ReferenceList {
   id: string;
   name: string;
   page?: PageRef;
+  cite?: CiteRef;
+  original?: boolean;
   /** JSON Schema of one item. */
   itemSchema?: JsonSchema;
   items: ReferenceItem[];
@@ -480,6 +575,7 @@ export interface ReferenceItem {
   id: string;
   name: string;
   page?: PageRef;
+  cite?: CiteRef;
   mode?: PlayModeId[];
   summary?: string;
   [key: string]: unknown;
@@ -494,6 +590,8 @@ export interface EntityPreset {
   name: string;
   summary?: string;
   page?: PageRef;
+  cite?: CiteRef;
+  original?: boolean;
   tags?: string[];
   fields: Record<string, unknown>;
   unverified?: boolean;
@@ -619,6 +717,8 @@ export interface Template {
   description?: string;
   mode?: PlayModeId[];
   page?: PageRef;
+  cite?: CiteRef;
+  original?: boolean;
   /**
    * For `checklist` templates: what the checklist is for. `session` items
    * join the core's generic session checklist (every session, after the core
@@ -637,9 +737,17 @@ export interface Template {
 export interface RuleCard {
   id: string;
   title: string;
-  /** Short paraphrase in Markdown. Never book prose. */
+  /**
+   * Markdown. A short paraphrase for sources without an open licence (never
+   * book prose); openly licensed text may be used as written.
+   */
   summary: string;
-  page: PageRef;
+  /** Page cited. Every card cites its source: `page`, `cite`, or `original: true`. */
+  page?: PageRef;
+  /** Section citation, e.g. "SRD 5.1, Combat: Cover". */
+  cite?: CiteRef;
+  /** Written by the module author (advice, house summaries): nothing to cite. */
+  original?: boolean;
   mode?: PlayModeId[];
   tags?: string[];
   links?: {
@@ -670,6 +778,7 @@ export interface TrackerDef {
   scope: TrackerScope;
   mode?: PlayModeId[];
   page?: PageRef;
+  cite?: CiteRef;
   /** Entity field paths this tracker reads and writes, for the character scope. */
   binds?: string[];
   /** Rule card ids explaining this tracker. */
@@ -1128,12 +1237,15 @@ export interface PlayGuideEntry {
   /** Short example prompts the GM can say aloud. */
   examples?: string[];
   page?: PageRef;
+  cite?: CiteRef;
   mode?: PlayModeId[];
 }
 
 export interface PlayGuideDef {
   id: string;
   title: string;
+  /** Written by the module author (play advice): nothing to cite. */
+  original?: boolean;
   intro?: string;
   /** General tips for weaving rolls into the story (when to roll, failing forward, pushing). */
   tips?: Array<{ text: string; page?: PageRef }>;

@@ -5,7 +5,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { Badge, Button, Card, Dialog, EmptyState, IconButton, pushToast, useTheme } from "../../components/ui";
 import { errorMessage, relativeTime } from "../../lib/format";
-import { listModules, loadModuleById, moduleEntry } from "../../modules/registry";
+import { loadModuleById, moduleEntry } from "../../modules/registry";
+import { useModuleList } from "../../modules/useModules";
+import { ModuleLicenseView } from "../modules/ModuleLicense";
+import { ModulesDialog } from "../modules/ModulesDialog";
 import type { DemoKind } from "../../state/tableActions";
 
 // The campaign list is the first page: the store actions (Yjs documents,
@@ -17,6 +20,9 @@ export function CampaignListPage() {
   const [campaigns, setCampaigns] = useState<CampaignIndexEntry[] | undefined>();
   const [error, setError] = useState<string | undefined>();
   const [creating, setCreating] = useState(false);
+  const [modulesOpen, setModulesOpen] = useState(false);
+  // re-render when imported packs are read, so campaign badges name them
+  useModuleList();
   const [toDelete, setToDelete] = useState<CampaignIndexEntry | undefined>();
   const [busy, setBusy] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -35,8 +41,8 @@ export function CampaignListPage() {
     setBusy(true);
     try {
       const { importCampaignBundle } = await actions();
-      const id = await importCampaignBundle(new Uint8Array(await file.arrayBuffer()));
-      pushToast("Campaign imported", { tone: "success" });
+      const { id, installedPack } = await importCampaignBundle(new Uint8Array(await file.arrayBuffer()));
+      pushToast(installedPack ? `Campaign imported with its game module ${installedPack}` : "Campaign imported", { tone: "success" });
       await navigate({ to: "/c/$campaignId/home", params: { campaignId: id } });
     } catch (e) {
       pushToast(`Import failed: ${errorMessage(e)}`, { tone: "danger", timeout: 8000 });
@@ -74,6 +80,9 @@ export function CampaignListPage() {
         <Button onClick={() => fileRef.current?.click()} disabled={busy}>
           Import bundle…
         </Button>
+        <Button onClick={() => setModulesOpen(true)} data-testid="open-modules">
+          Game modules…
+        </Button>
         <Button onClick={() => void onLoadDemo("campaign")} disabled={busy} data-testid="load-demo" title="Skyfire Down: campaign play with a job, a crew and a running infection">
           Load demo campaign
         </Button>
@@ -106,6 +115,7 @@ export function CampaignListPage() {
           ))}
         </ul>
       )}
+      <ModulesDialog open={modulesOpen} onClose={() => setModulesOpen(false)} />
       <CreateCampaignDialog
         open={creating}
         onClose={() => setCreating(false)}
@@ -144,7 +154,8 @@ export function CampaignListPage() {
 }
 
 function CreateCampaignDialog({ open, onClose, onCreated }: { open: boolean; onClose: () => void; onCreated: (id: string) => void }) {
-  const modules = listModules();
+  const modules = useModuleList();
+  const [modulesOpen, setModulesOpen] = useState(false);
   const [name, setName] = useState("");
   const [moduleId, setModuleId] = useState(modules[0]?.id ?? "alien");
   const [mode, setMode] = useState(modules[0]?.defaultMode ?? "");
@@ -219,11 +230,18 @@ function CreateCampaignDialog({ open, onClose, onCreated }: { open: boolean; onC
           <select className="cf-select" value={moduleId} onChange={(e) => chooseModule(e.target.value)}>
             {modules.map((m) => (
               <option key={m.id} value={m.id}>
-                {m.dev ? `${m.name} (fixture)` : m.name}
+                {m.dev ? `${m.name} (fixture)` : m.source === "imported" ? `${m.name} (imported)` : m.name}
               </option>
             ))}
           </select>
         </label>
+        <p className="cf-muted">
+          Another game system?{" "}
+          <button type="button" className="app-linkbtn" onClick={() => setModulesOpen(true)} data-testid="create-import-pack">
+            Import a data pack…
+          </button>
+        </p>
+        {entry?.license && <ModuleLicenseView license={entry.license} />}
         {loadError && (
           <p className="cf-field__error" role="alert">
             Could not load the game module: {loadError}{" "}
@@ -252,6 +270,14 @@ function CreateCampaignDialog({ open, onClose, onCreated }: { open: boolean; onC
           <input className="cf-input" value={gmName} onChange={(e) => setGmName(e.target.value)} placeholder="GM" />
         </label>
       </form>
+      <ModulesDialog
+        open={modulesOpen}
+        onClose={() => setModulesOpen(false)}
+        onImported={(e) => {
+          setModulesOpen(false);
+          chooseModule(e.id);
+        }}
+      />
     </Dialog>
   );
 }

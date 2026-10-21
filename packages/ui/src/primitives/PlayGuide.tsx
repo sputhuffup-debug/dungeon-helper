@@ -98,7 +98,7 @@ export function PlayGuideEntryView({ entry, expanded, onToggle, meta, children }
         {entry.summary && !expanded && <span className="cf-guide__line">{entry.summary}</span>}{" "}
         <span className="cf-guide__row-end">
           {meta}
-          <PageRef page={entry.page} />
+          <PageRef page={entry.page} cite={entry.cite} />
         </span>
       </button>
       {expanded && (

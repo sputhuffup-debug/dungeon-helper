@@ -10,6 +10,8 @@ import { deleteCampaign, exportCampaignBundle, exportCampaignJSON, importBundleI
 import { useCampaign, useList, useMeta } from "../../state/hooks";
 import { pushToast } from "../../components/ui";
 import { ChecklistSettings } from "./ChecklistSettings";
+import { moduleEntry } from "../../modules/registry";
+import { ModuleLicenseView, safeHttpUrl } from "../modules/ModuleLicense";
 
 export function SettingsPage() {
   const ctx = useCampaign();
@@ -23,6 +25,8 @@ export function SettingsPage() {
   const fileRef = useRef<HTMLInputElement>(null);
   const manifest = ctx.module.manifest;
   const warnings = ctx.module.report.issues.filter((i) => i.severity === "warning");
+  const entry = moduleEntry(manifest.id);
+  const sourceUrl = safeHttpUrl(manifest.sourceBook?.url);
 
   const run = async (label: string, fn: () => Promise<unknown> | unknown) => {
     setBusy(true);
@@ -164,12 +168,18 @@ export function SettingsPage() {
       </Card>
 
       <Card title="Game module" subtitle={`${manifest.name} ${manifest.version}`}>
-        <div className="app-stack">
-          <p>
-            {manifest.ruleset}
-            {manifest.edition ? ` · ${manifest.edition}` : ""}
-            {manifest.publisher ? ` · ${manifest.publisher}` : ""}
+        <div className="app-stack" data-testid="module-info">
+          <p className="app-row">
+            <span>
+              {manifest.ruleset}
+              {manifest.edition ? ` · ${manifest.edition}` : ""}
+              {manifest.publisher ? ` · ${manifest.publisher}` : ""}
+            </span>
+            {entry?.source === "imported" ? <Badge tone="accent">Imported</Badge> : <Badge>Built-in</Badge>}
+            {entry?.format === "pack" && <Badge>Data pack</Badge>}
           </p>
+          {manifest.authors && manifest.authors.length > 0 && <p className="cf-muted">By {manifest.authors.join(", ")}</p>}
+          {manifest.license && <ModuleLicenseView license={manifest.license} testId="module-attribution" />}
           {manifest.dataStatus !== "verified" && (
             <p className="app-note app-note--warning" data-testid="data-status">
               Data {manifest.dataStatus}: unverified against the rulebook. Rows and stat lines may differ from the printed book.
@@ -177,7 +187,14 @@ export function SettingsPage() {
           )}
           {manifest.sourceBook && (
             <p className="cf-muted">
-              Page references: {manifest.sourceBook.title}
+              {manifest.citationStyle === "section" ? "Citations" : "Page references"}:{" "}
+              {sourceUrl ? (
+                <a href={sourceUrl} target="_blank" rel="noopener noreferrer">
+                  {manifest.sourceBook.title}
+                </a>
+              ) : (
+                manifest.sourceBook.title
+              )}
               {manifest.sourceBook.year ? ` (${manifest.sourceBook.year})` : ""}. {manifest.sourceBook.pageNote ?? ""}
             </p>
           )}

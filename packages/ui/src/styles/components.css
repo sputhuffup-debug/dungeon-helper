@@ -789,6 +789,11 @@
   font-size: var(--cf-text-xs);
   white-space: nowrap;
 }
+.cf-page--cite {
+  font-family: var(--cf-font-sans);
+  font-style: italic;
+  white-space: normal;
+}
 
 .cf-rule {
   display: flex;
@@ -1365,6 +1370,11 @@
 .cf-die--kept {
   opacity: 0.6;
 }
+.cf-die--dropped {
+  opacity: 0.45;
+  border-style: dashed;
+  text-decoration: line-through;
+}
 .cf-die__symbol {
   position: absolute;
   top: -8px;
@@ -1403,6 +1413,22 @@
   font-size: var(--cf-text-xl);
   font-weight: 700;
   color: var(--cf-accent-strong);
+}
+.cf-dice__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cf-space-3);
+  align-items: end;
+}
+.cf-dice__option {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cf-space-1);
+  font-size: var(--cf-text-sm);
+  color: var(--cf-muted);
+}
+.cf-dice__number {
+  width: 6em;
 }
 .cf-dice__describe {
   color: var(--cf-muted);

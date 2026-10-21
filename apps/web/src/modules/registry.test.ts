@@ -4,7 +4,8 @@ import { clearModuleCache, listModules, loadModuleById, moduleEntry } from "./re
 describe("module registry", () => {
   it("hides dev-only modules unless the dev flag is on", () => {
     expect(listModules({ dev: false }).map((m) => m.id)).toEqual(["alien"]);
-    expect(listModules({ dev: true }).map((m) => m.id)).toEqual(["alien", "example"]);
+    expect(listModules({ dev: true }).map((m) => m.id)).toEqual(["alien", "example", "example-pack"]);
+    expect(moduleEntry("example-pack")).toMatchObject({ source: "builtin", format: "pack", dev: true });
     expect(moduleEntry("example")?.dev).toBe(true);
   });
 

@@ -326,3 +326,35 @@ describe("checkModule: ledger, crew ship and travel", () => {
     }
   });
 });
+
+describe("citations and licences", () => {
+  const where = (m: GameModule) => checkModule(m, { skipProcedureRuns: true }).issues.filter((i) => i.severity === "error").map((i) => `${i.where}: ${i.message}`);
+
+  it("accepts a page, a section cite or original content on rule cards", () => {
+    const m = minimalModule();
+    m.rules = [
+      { id: "min.rule.page", title: "Page", summary: "s", page: 3 },
+      { id: "min.rule.cite", title: "Cite", summary: "s", cite: "SRD 5.1, Conditions" },
+      { id: "min.rule.own", title: "Own", summary: "s", original: true },
+      { id: "min.rule.none", title: "None", summary: "s" },
+      { id: "min.rule.blank", title: "Blank", summary: "s", cite: " " },
+    ];
+    const errors = where(m);
+    expect(errors).toContain("rule:min.rule.none: rule card cites no source: give it a page, a cite, or mark it original");
+    expect(errors).toContain("rule:min.rule.blank: cite must be one line of text (1-200 characters)");
+    expect(errors.filter((e) => /min\.rule\.(page|cite|own)/.test(e))).toEqual([]);
+  });
+
+  it("checks the licence and its links", () => {
+    const m = minimalModule();
+    m.manifest.license = { name: "CC BY 4.0", attribution: "", url: "javascript:alert(1)" };
+    m.manifest.sourceBook = { title: "Book", url: "ftp://x" };
+    const errors = where(m);
+    expect(errors).toContain("manifest:min: license needs the attribution text it requires");
+    expect(errors).toContain("manifest:min: license url must be an http(s) link");
+    expect(errors).toContain("manifest:min: sourceBook url must be an http(s) link");
+    m.manifest.license = { spdx: "CC-BY-4.0", name: "CC BY 4.0", attribution: "Includes material from X.", url: "https://creativecommons.org/licenses/by/4.0/" };
+    m.manifest.sourceBook = { title: "Book" };
+    expect(where(m).filter((e) => e.startsWith("manifest"))).toEqual([]);
+  });
+});

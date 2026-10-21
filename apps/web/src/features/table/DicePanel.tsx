@@ -5,9 +5,9 @@
  * logs its seed, so the log can reproduce it.
  */
 import { getPath, type Entity, type Id, type TrackerState } from "@campaign-forge/core";
-import { createRng, poolValue, type DicePool, type EntityTypeDef, type LoadedModule, type PlayModeId, type RollResult } from "@campaign-forge/module-sdk";
+import { computeFields, createRng, poolValue, type DicePool, type EntityTypeDef, type LoadedModule, type PlayModeId, type RollResult } from "@campaign-forge/module-sdk";
 import { useMemo, useRef, useState } from "react";
-import { Badge, Button, Card, DiceRollPanel, DieFace, RollLog, Stepper, humanize, pushToast, resolveBindPath, specById, type RollLogEntry } from "../../components/ui";
+import { Badge, Button, Card, DiceRollPanel, DieFace, RollLog, Stepper, humanize, pushToast, resolveBindPath, showsTotal, specById, toneBadge, type RollLogEntry } from "../../components/ui";
 import { errorMessage } from "../../lib/format";
 import { useCampaign, useMeta, useRecord } from "../../state/hooks";
 import { entityAdvances, poolOf, spendStoryPoint, storyUses } from "../../state/progressionActions";
@@ -77,16 +77,23 @@ export function attributeIds(module: LoadedModule, entity: Entity): string[] {
   return isRecordLike(attrs) ? Object.keys(attrs) : [];
 }
 
-/** Pool input for a skill (or an attribute alone) of an entity, captured at the moment it is picked. */
+/**
+ * Pool input for a skill (or an attribute alone) of an entity, captured at the
+ * moment it is picked: the numbers every dice system reads (`attribute`,
+ * `skill`, their ids, `stress`), plus the entity's `fields` and `computed`
+ * values for dice engines whose numbers are JSONLogic over the sheet (a
+ * proficiency bonus, a skill percentage).
+ */
 export function skillInput(module: LoadedModule, entity: Entity, choice: string): { label: string; input: Record<string, unknown> } {
   const def = module.entityType(entity.type);
   const attrPath = attributesPathFor(def);
   const stressPath = stressPathFor(module, entity);
   const stress = stressPath ? Number(getPath(entity.fields, stressPath) ?? 0) : 0;
   const num = (v: unknown) => (typeof v === "number" ? v : 0);
+  const sheet = { fields: entity.fields, computed: def ? computeFields(def, entity.fields) : {} };
   if (choice.startsWith("attr:")) {
     const attributeId = choice.slice(5);
-    return { label: humanize(attributeId), input: { attribute: num(getPath(entity.fields, `${attrPath}.${attributeId}`)), skill: 0, attributeId, stress, entity: entity.id } };
+    return { label: humanize(attributeId), input: { attribute: num(getPath(entity.fields, `${attrPath}.${attributeId}`)), skill: 0, attributeId, stress, entity: entity.id, ...sheet } };
   }
   const skill = skillOptions(module, def).find((s) => s.id === choice);
   const attributeId = skill?.attribute;
@@ -99,6 +106,7 @@ export function skillInput(module: LoadedModule, entity: Entity, choice: string)
       ...(attributeId ? { attributeId } : {}),
       stress,
       entity: entity.id,
+      ...sheet,
     },
   };
 }
@@ -275,13 +283,20 @@ export function FreeRoll({ sessionId }: { sessionId: Id }) {
         <div className="app-stack">
           <div className="cf-dice__faces" aria-label="Rolled dice">
             {result.dice.map((d, i) => (
-              <DieFace key={i} spec={specById(dice, d.die)} value={d.value} special={d.die !== baseId} />
+              <DieFace key={i} spec={specById(dice, d.die)} value={d.value} dropped={d.dropped} special={d.die !== baseId} />
             ))}
           </div>
           <div className="app-row">
-            <Badge tone={result.successes > 0 ? "success" : "muted"}>
-              {result.successes} success{result.successes === 1 ? "" : "es"}
-            </Badge>
+            {showsTotal(dice, result) && result.total !== undefined ? (
+              <Badge tone={toneBadge(result.outcome?.tone)} data-testid="free-roll-total">
+                {result.total}
+                {result.outcome ? ` · ${result.outcome.label}` : ""}
+              </Badge>
+            ) : (
+              <Badge tone={result.successes > 0 ? "success" : "muted"}>
+                {result.successes} success{result.successes === 1 ? "" : "es"}
+              </Badge>
+            )}
             <span className="cf-muted">{dice.describe(result)}</span>
           </div>
         </div>

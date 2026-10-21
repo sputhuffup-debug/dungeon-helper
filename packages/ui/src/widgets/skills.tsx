@@ -41,6 +41,25 @@ export function SkillsField(props: WidgetProps) {
     return typeof sub?.maximum === "number" ? sub.maximum : 5;
   };
   const set = (id: string, n: number) => onChange({ ...skills, [id]: n });
+  const { computed } = props;
+  /** What the module's dice system gets for this row: the numbers, the ids, and the sheet for JSONLogic. */
+  const rollInput = (r: SkillRow, attrValue: number, skillValue: number): Record<string, unknown> => ({
+    attribute: attrValue,
+    skill: skillValue,
+    skillId: r.id,
+    ...(r.attribute ? { attributeId: r.attribute } : {}),
+    fields,
+    computed,
+  });
+  /** A dice system that labels its pools (e.g. "1d20 + 5") shows that; pool systems keep attribute + skill. */
+  const poolText = (input: Record<string, unknown>, fallback: number): string => {
+    if (!ctx.dice) return String(fallback);
+    try {
+      return ctx.dice.buildPool(input).label ?? String(fallback);
+    } catch {
+      return String(fallback);
+    }
+  };
   return (
     <table className="cf-skills">
       <thead>
@@ -63,7 +82,8 @@ export function SkillsField(props: WidgetProps) {
         {rows.map((r) => {
           const attrValue = r.attribute ? asNumber(getPath(fields, `${attrPath}.${r.attribute}`)) : 0;
           const skillValue = asNumber(skills[r.id]);
-          const pool = attrValue + skillValue;
+          const input = rollInput(r, attrValue, skillValue);
+          const pool = poolText(input, attrValue + skillValue);
           return (
             <tr key={r.id} data-skill={r.id}>
               <th scope="row">{r.name}</th>
@@ -77,7 +97,7 @@ export function SkillsField(props: WidgetProps) {
               </td>
               {ctx.onRoll && (
                 <td>
-                  <Button size="sm" onClick={() => ctx.onRoll?.(r.id, { attribute: attrValue, skill: skillValue, skillId: r.id, attributeId: r.attribute })}>
+                  <Button size="sm" onClick={() => ctx.onRoll?.(r.id, input)}>
                     Roll
                   </Button>
                 </td>
