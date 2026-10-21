@@ -200,6 +200,14 @@ export interface RollResult {
   meta?: Record<string, unknown>;
 }
 
+/** How good a pool is for ranking (higher is better), with a short label ("+5", "65%", "4"). */
+export interface PoolStrength {
+  score: number;
+  label: string;
+  /** The label read in full, e.g. for screen readers ("4 dice"); defaults to `label`. */
+  spoken?: string;
+}
+
 /**
  * A module's dice adapter. The core calls these; the module decides semantics.
  * All randomness goes through the supplied Rng.
@@ -226,6 +234,12 @@ export interface DiceSystem {
   push?(previous: RollResult, rng: Rng, input?: Record<string, unknown>): RollResult;
   /** One-line human description of a result. */
   describe(result: RollResult): string;
+  /**
+   * How good a pool is, to rank characters for a roll (higher is better) and
+   * the short label to show for it. Optional: `poolStrength` falls back to a
+   * roll-under target, then the pool's flat modifier, then its dice count.
+   */
+  strength?(pool: DicePool): PoolStrength;
   /**
    * Named module-specific roll operations beyond pool rolls (for example a
    * reaction roll against a table). Each takes an input object and the Rng.

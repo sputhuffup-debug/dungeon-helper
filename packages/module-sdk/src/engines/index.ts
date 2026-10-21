@@ -11,6 +11,7 @@ export { abilityModifier, createD20Engine, type Advantage } from "./d20";
 export { createPoolEngine } from "./pool";
 export { createTwoD6Engine, DEFAULT_BANDS } from "./twod6";
 export { createD100Engine, DEFAULT_DEGREES } from "./d100";
+export { poolStrength } from "./strength";
 
 /** Build a DiceSystem from an engine config. Throws on a config the engine cannot use. */
 export function createDiceEngine(config: DiceEngineConfig): DiceSystem {

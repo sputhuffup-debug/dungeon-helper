@@ -2513,6 +2513,12 @@ a.cf-btn {
 .app-guide__bestline {
   font-size: var(--cf-text-xs);
 }
+.app-guide__standing {
+  font-size: var(--cf-text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.75;
+}
 .app-guide__rollers .cf-btn--primary .cf-badge {
   background: var(--cf-surface);
   color: var(--cf-text);

@@ -116,6 +116,16 @@ Roll-under percentile with degrees of success (BRP, Call of Cthulhu style).
 
 Roll panel options: **Target modifier**, **Bonus (+) / penalty (−) dice**.
 
+## Who is best at a roll
+
+The table's Hints tab ranks the party for each check and marks the best and worst. It asks the dice system how good each character's pool is (`poolStrength` in the SDK):
+
+- `d20` and `2d6`: the flat bonus, so a +7 Stealth beats a +2 even though both roll one d20.
+- `d100`: the roll-under target.
+- `pool`: the number of dice.
+
+A TypeScript dice system can define `strength(pool)` to rank its own way.
+
 ## Free rolls
 
 The table's free roll lets the GM roll any number of each die kind. Engines roll a free pool as a plain sum (no outcome); pool engines count successes as usual.

@@ -46,7 +46,7 @@ Four demo campaigns load from the campaign list: *Skyfire Down* (Alien campaign 
 
 ![Table mode](docs/screenshots/table-mode.png)
 
-**Table hints**: for each attribute and skill, the story moments that call for it, what success, failure and a push should do to the scene, lines to say aloud, and the PCs ranked by dice pool; tap one to roll on the spot.
+**Table hints**: for each attribute and skill, the story moments that call for it, what success, failure and a push should do to the scene, lines to say aloud, and the PCs ranked by how good their roll is, best and worst marked; tap one to roll on the spot.
 
 ![Table hints](docs/screenshots/table-hints.png)
 
@@ -125,6 +125,10 @@ Four demo campaigns load from the campaign list: *Skyfire Down* (Alien campaign 
 **Fifth edition table**: the opening ambush with rolled initiative, highest first, and hit points for the party and the goblins in the scene.
 
 ![Fifth edition table mode](docs/screenshots/dnd5e-table.png)
+
+**Fifth edition hints**: each ability check, skill and saving throw with its story cues, and the party ranked by their d20 bonus (ability, proficiency and expertise), best and worst marked.
+
+![Fifth edition hints](docs/screenshots/dnd5e-hints.png)
 
 **Remaster sheet**: a level 1 cleric from *Hollowmere*; attribute modifiers and proficiency ranks are written down, and every check total, AC, Hit Points, class DC and spell DC is computed.
 

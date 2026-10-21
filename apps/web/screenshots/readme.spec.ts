@@ -602,6 +602,21 @@ test("dnd5e-table", async ({ page }) => {
   await shot(page, "dnd5e-table");
 });
 
+test("dnd5e-hints", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await loadDemo(page, "dnd5e");
+  await startSession1(page);
+  await page.getByRole("tab", { name: "Hints" }).click();
+  const entry = page.locator('[data-entry="stealth"]');
+  await entry.getByRole("button", { name: /^Stealth/ }).first().click();
+  // ranked by d20 bonus: Wren's expertise first, the heavy-armoured fighter last
+  const rollers = entry.getByRole("list", { name: "Who's best at Stealth" });
+  await expect(rollers.locator("[data-standing=best]").first()).toContainText("Wren Talliver");
+  await expect(rollers.locator("[data-standing=worst]")).not.toHaveCount(0);
+  await entry.evaluate((e) => e.scrollIntoView({ block: "start" }));
+  await shot(page, "dnd5e-hints");
+});
+
 // ---------------------------------------------------------------------------
 // Hollowmere (second edition remaster, ORC core rules)
 // ---------------------------------------------------------------------------

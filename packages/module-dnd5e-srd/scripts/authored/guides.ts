@@ -1,5 +1,5 @@
 /**
- * The play guide: when to call for each ability check and skill, and how a
+ * The play guide: when to call for each ability check, skill and saving throw, and how a
  * success or a failure should move the story. All advice here is original
  * (written for Campaign Forge); the rules it leans on are the SRD's.
  */
@@ -74,6 +74,15 @@ const SKILL_ADVICE: Record<string, Advice> = {
   survival: { summary: "Tracking, foraging, navigating, enduring.", callFor: ["the trail splits", "food is running out", "a blizzard closes in"], success: "They find the way, the food, or the shelter.", failure: "They lose time or supplies, or arrive somewhere unexpected." },
 };
 
+const SAVE_ADVICE: Record<string, Advice> = {
+  strength: { summary: "Resisting force that would move, pin or crush them.", callFor: ["a wave sweeps the deck", "a vine drags them toward the pit", "a giant's shove at the cliff edge"], success: "They hold their ground, and the danger turns to someone or something else.", failure: "They are moved, pinned or knocked down; show where they end up." },
+  dexterity: { summary: "Getting out of the way: blasts, traps, falling things.", callFor: ["a fireball blooms", "the floor tile clicks", "rocks come down in the mine"], success: "They dive clear, usually for half the harm; describe the near miss.", failure: "It catches them full on; describe the scorch, the bruise, the dust." },
+  constitution: { summary: "Enduring poison, disease, cold and exhaustion, and holding concentration.", callFor: ["a poisoned blade bites", "a night in the freezing pass", "a caster is hit while holding a spell"], success: "They shrug it off, for now. Concentration holds.", failure: "The poison takes hold or the spell drops; make the cost visible at once." },
+  intelligence: { summary: "Seeing through illusions and resisting attacks on the mind's reasoning.", callFor: ["a wall that might not be there", "a psychic assault", "a maze that rearranges itself"], success: "They see the trick for what it is; tell them what is real.", failure: "The illusion holds for them; play it straight and let the others notice." },
+  wisdom: { summary: "Resisting charm, fear and control of the will.", callFor: ["a vampire's gaze", "a dragon's frightful presence", "a voice that offers exactly what they want"], success: "Their will is their own; the creature knows they resisted.", failure: "They are charmed, frightened or compelled; give the player a clear rule for what that means." },
+  charisma: { summary: "Holding on to their self: banishment, possession, planar pull.", callFor: ["a spirit tries to take over", "a banishing word", "a curse that would rewrite them"], success: "They stay themselves and stay here.", failure: "They are pushed out of body or plane for a while; keep the player involved with what they see." },
+};
+
 export const playGuide: PlayGuideDef = {
   id: id("guide.checks"),
   title: "Calling for ability checks",
@@ -95,5 +104,6 @@ export const playGuide: PlayGuideDef = {
       if (!advice) throw new Error(`no play advice for ${s.id}`);
       return { id: s.id, label: s.name, group: s.ability, kind: "skill", roll: s.id, ...advice };
     }),
+    ...ABILITIES.map((a): PlayGuideEntry => ({ id: `${a.id}-save`, label: `${a.name} save`, group: a.id, kind: "skill", roll: `${a.id}-save`, ...SAVE_ADVICE[a.id]! })),
   ],
 };
