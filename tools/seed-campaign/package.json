@@ -14,9 +14,10 @@
     "seed-campaign": "node --experimental-strip-types --no-warnings --import ./register.mjs src/cli.ts"
   },
   "dependencies": {
-    "@campaign-forge/module-sdk": "workspace:*",
     "@campaign-forge/core": "workspace:*",
-    "@campaign-forge/module-alien": "workspace:*"
+    "@campaign-forge/module-alien": "workspace:*",
+    "@campaign-forge/module-dnd5e-srd": "workspace:*",
+    "@campaign-forge/module-sdk": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.9.3",

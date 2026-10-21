@@ -1,9 +1,10 @@
 /**
  * seed-campaign CLI: build a demo campaign and write it out. `--demo campaign`
- * (default) is "Skyfire Down"; `--demo cinematic` is the "Cold Harbor" one-shot.
+ * (default) is "Skyfire Down"; `--demo cinematic` is the "Cold Harbor" one-shot;
+ * `--demo dnd5e` is "Thornwick Crossing", the fifth edition (SRD 5.1) one-shot.
  *
  *   node --experimental-strip-types --no-warnings --import ./register.mjs src/cli.ts \
- *     --out demo.cfbundle.zip [--demo campaign|cinematic] [--seed s] [--name "Skyfire Down"] [--json demo.json]
+ *     --out demo.cfbundle.zip [--demo campaign|cinematic|dnd5e] [--seed s] [--name "Skyfire Down"] [--json demo.json]
  *
  * `--out` writes a Campaign Forge bundle (exportBundle); `--json` writes
  * `{ maps, docs }` (the same shape as demoCampaignJSON). At least one is needed.
@@ -11,20 +12,20 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { exportBundle } from "@campaign-forge/core";
-import { alienModule } from "@campaign-forge/module-alien";
 import { buildDemoCampaign, DEMO_SEED } from "./build";
 import { buildCinematicDemo, CINEMATIC_DEMO_SEED } from "./cinematic";
+import { buildDnd5eDemo, DND5E_DEMO_SEED } from "./dnd5e";
 
 interface Args {
   out?: string;
   json?: string;
   seed?: string;
-  demo: "campaign" | "cinematic";
+  demo: "campaign" | "cinematic" | "dnd5e";
   name?: string;
   help: boolean;
 }
 
-const USAGE = "usage: seed-campaign --out demo.cfbundle.zip [--json demo.json] [--demo campaign|cinematic] [--seed s] [--name \"Skyfire Down\"]";
+const USAGE = "usage: seed-campaign --out demo.cfbundle.zip [--json demo.json] [--demo campaign|cinematic|dnd5e] [--seed s] [--name \"Skyfire Down\"]";
 
 function parseArgs(argv: string[]): Args {
   const args: Args = { demo: "campaign", help: false };
@@ -41,7 +42,7 @@ function parseArgs(argv: string[]): Args {
     else if (a === "--seed") args.seed = next();
     else if (a === "--demo") {
       const d = next();
-      if (d !== "campaign" && d !== "cinematic") throw new Error(`--demo must be campaign or cinematic, not "${d}"`);
+      if (d !== "campaign" && d !== "cinematic" && d !== "dnd5e") throw new Error(`--demo must be campaign, cinematic or dnd5e, not "${d}"`);
       args.demo = d;
     }
     else if (a === "--name") args.name = next();
@@ -77,10 +78,11 @@ async function main(): Promise<number> {
     return 2;
   }
 
-  const seed = args.seed ?? (args.demo === "cinematic" ? CINEMATIC_DEMO_SEED : DEMO_SEED);
+  const seed = args.seed ?? (args.demo === "cinematic" ? CINEMATIC_DEMO_SEED : args.demo === "dnd5e" ? DND5E_DEMO_SEED : DEMO_SEED);
   const opts = { seed, ...(args.name ? { name: args.name } : {}) };
   const cinematic = args.demo === "cinematic" ? buildCinematicDemo(opts) : undefined;
-  const demo = cinematic ?? buildDemoCampaign(opts);
+  const dnd5e = args.demo === "dnd5e" ? await buildDnd5eDemo(opts) : undefined;
+  const demo = cinematic ?? dnd5e ?? buildDemoCampaign(opts);
   const { store, registry, maps, docs } = demo;
   const meta = store.meta();
   const entities = Object.values(maps.entities);
@@ -94,8 +96,8 @@ async function main(): Promise<number> {
   for (const [t, n] of [...byType.entries()].sort(([a], [b]) => a.localeCompare(b))) console.log(`    ${t.padEnd(30)} ${n}`);
   console.log(`  adventures ${Object.keys(maps.adventures).length}, acts ${Object.keys(maps.acts).length}, scenes ${Object.keys(maps.scenes).length}, handouts ${Object.keys(maps.handouts).length}`);
   console.log(`  sessions ${Object.keys(maps.sessions).length}, timeline events ${Object.keys(maps.timeline).length}, notes ${Object.keys(maps.notes).length}, rich-text docs ${Object.keys(docs).length}`);
-  const pcs = entities.filter((e) => e.fields["isPC"] === true).map((e) => `${e.name} (${String(e.fields["career"])})`);
-  console.log(`  crew: ${pcs.join(", ")}`);
+  const pcs = entities.filter((e) => e.fields["isPC"] === true).map((e) => `${e.name} (${String(e.fields["career"] ?? e.fields["class"])})`);
+  console.log(`  ${dnd5e ? "party" : "crew"}: ${pcs.join(", ")}`);
   const job = entities.find((e) => e.type === "alien.job");
   if (job) console.log(`  job: ${job.name} [${job.summary ?? ""}]`);
   if (cinematic) {
@@ -108,7 +110,7 @@ async function main(): Promise<number> {
   }
 
   if (args.out) {
-    const bytes = await exportBundle(store, registry, undefined, { id: alienModule.manifest.id, version: alienModule.manifest.version });
+    const bytes = await exportBundle(store, registry, undefined, { id: meta.moduleId, version: meta.moduleVersion });
     console.log(`Wrote bundle (${bytes.byteLength} bytes) to ${write(args.out, bytes)}`);
   }
   if (args.json) {

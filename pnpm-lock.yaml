@@ -320,6 +320,9 @@ importers:
       '@campaign-forge/module-alien':
         specifier: workspace:*
         version: link:../../packages/module-alien
+      '@campaign-forge/module-dnd5e-srd':
+        specifier: workspace:*
+        version: link:../../packages/module-dnd5e-srd
       '@campaign-forge/module-sdk':
         specifier: workspace:*
         version: link:../../packages/module-sdk

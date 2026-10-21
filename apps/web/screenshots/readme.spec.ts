@@ -1,6 +1,6 @@
 /**
- * The README screenshots, regenerated from the two deterministic demo
- * campaigns: `pnpm screenshots` at the repo root builds the app and runs
+ * The README screenshots, regenerated from the three deterministic demo
+ * campaigns (Skyfire Down, Cold Harbor Relay, Thornwick Crossing): `pnpm screenshots` at the repo root builds the app and runs
  * every shot; `pnpm --filter @campaign-forge/web screenshots -g <name>`
  * re-runs one (the app must be built). Images go to docs/screenshots/, or to
  * `SCREENSHOTS_DIR`.
@@ -11,7 +11,7 @@
  * times read "just now". The roll print is drawn Node-side from the same
  * demo and the app's own roll print code, then rasterised by Chromium.
  */
-import { mkdirSync } from "node:fs";
+import { mkdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { generatorFor, type SiteMap } from "@campaign-forge/core";
@@ -118,11 +118,17 @@ async function shot(page: Page, name: string, opts: { clip?: { x: number; y: num
   await page.screenshot({ path: file(name), animations: "disabled", caret: "hide", ...(opts.clip ? { clip: opts.clip } : {}) });
 }
 
-async function loadDemo(page: Page, which: "skyfire" | "cinematic"): Promise<string> {
+const DEMOS = {
+  skyfire: { button: "load-demo", name: "Skyfire Down" },
+  cinematic: { button: "load-demo-cinematic", name: "Cold Harbor Relay" },
+  dnd5e: { button: "load-demo-5e", name: "Thornwick Crossing" },
+} as const;
+
+async function loadDemo(page: Page, which: keyof typeof DEMOS): Promise<string> {
   await page.goto("/");
-  await page.getByTestId(which === "skyfire" ? "load-demo" : "load-demo-cinematic").click();
+  await page.getByTestId(DEMOS[which].button).click();
   await expect(page).toHaveURL(/\/c\/[0-9A-Z]{26}\/home$/, { timeout: 30_000 });
-  await expect(page.getByTestId("campaign-name")).toHaveText(which === "skyfire" ? "Skyfire Down" : "Cold Harbor Relay");
+  await expect(page.getByTestId("campaign-name")).toHaveText(DEMOS[which].name);
   return page.url().replace(/\/home$/, "");
 }
 
@@ -483,6 +489,102 @@ test("agenda-cards", async ({ page }) => {
   await printSheets(page, "agendas", ":first-child", 0.76);
   await expect(page.getByRole("region", { name: "Act 1 agenda: Rosa Ilunga" })).toBeVisible();
   await shot(page, "agenda-cards");
+});
+
+// ---------------------------------------------------------------------------
+// Game modules and Thornwick Crossing (fifth edition, SRD 5.1)
+// ---------------------------------------------------------------------------
+
+/** The example fixture pack's files under another id (its own id is built into the app), as a GM would import them. */
+function examplePackAs(id: string) {
+  const dir = fileURLToPath(new URL("../../../packages/module-example/packs/example-pack/", import.meta.url));
+  return ["pack.json", "rules.part.json"].map((name) => ({ name, mimeType: "application/json", buffer: Buffer.from(readFileSync(`${dir}${name}`, "utf8").split("example-pack").join(id)) }));
+}
+
+test("game-modules", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/");
+  await page.getByTestId("open-modules").click();
+  const modules = page.getByRole("dialog", { name: "Game modules" });
+  await modules.getByTestId("pack-file-input").setInputFiles(examplePackAs("lantern"));
+  await expect(modules.getByTestId("module-lantern")).toContainText("Imported");
+  await expect(modules.getByTestId("module-alien")).toContainText("Built-in");
+  await expect(modules.getByTestId("module-licence-dnd5e-srd")).toContainText("System Reference Document 5.1");
+  await expect(modules.getByTestId("module-licence-lantern")).toContainText("Creative Commons Attribution 4.0");
+  await dismissToasts(page);
+  await shot(page, "game-modules");
+});
+
+/** Toasts repeat what the page shows and time out on their own: dismiss them so a shot does not depend on the timing. */
+async function dismissToasts(page: Page) {
+  // (programmatic: under a modal dialog the toasts are inert to the pointer)
+  for (const dismiss of await page.locator(".cf-toasts").getByRole("button", { name: "Dismiss", includeHidden: true }).all()) await dismiss.evaluate((b) => (b as HTMLButtonElement).click());
+  await expect(page.locator(".cf-toast")).toHaveCount(0);
+}
+
+/** A Thornwick Crossing PC's sheet. */
+async function openPc(page: Page, name: string) {
+  const base = await loadDemo(page, "dnd5e");
+  await page.goto(`${base}/atlas`);
+  await page.getByRole("tab", { name: /^PCs/ }).click();
+  await page.getByRole("tabpanel").getByRole("link", { name, exact: true }).click();
+  await expect(page.getByTestId("entity-page")).toBeVisible();
+}
+
+test("dnd5e-sheet", async ({ page }) => {
+  // tall enough for the saving throws under the ability scores and combat numbers
+  await page.setViewportSize({ width: 1440, height: 1720 });
+  await openPc(page, "Isolde Fairweather");
+  // scores and proficiencies are stored; every number marked "computed" is derived at render time
+  await expect(page.getByTestId("computed-proficiencyBonus")).toHaveText("2");
+  await expect(page.getByTestId("computed-intelligenceMod")).toHaveText("3");
+  await expect(page.getByTestId("computed-initiative")).toHaveText("2");
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await shot(page, "dnd5e-sheet");
+});
+
+test("dnd5e-roll", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await openPc(page, "Wren Talliver");
+  // Stealth with expertise, rolled with advantage against the goblins' DC
+  const stealth = page.locator('tr[data-skill="stealth"]');
+  await expect(stealth.getByTestId("pool-stealth")).toHaveText("1d20 + 7");
+  await stealth.evaluate((e) => e.scrollIntoView({ block: "center" }));
+  await stealth.getByRole("button", { name: "Roll" }).click();
+  const panel = page.getByTestId("dice-panel");
+  await panel.getByTestId("roll-option-dc").fill("13");
+  await panel.getByTestId("roll-option-advantage").selectOption("advantage");
+  await expect(panel.getByTestId("dicepool")).toContainText("1d20 + 7 (advantage) vs DC 13");
+  await panel.getByRole("button", { name: "Roll" }).click();
+  await expect(panel.getByTestId("roll-total")).toHaveText(/^\d+$/);
+  await expect(panel.getByTestId("roll-outcome")).toHaveText(/Success|Failure/);
+  await expect(panel.locator('[data-dropped="true"]')).toHaveCount(1);
+  await dismissToasts(page);
+  await shot(page, "dnd5e-roll");
+});
+
+test("dnd5e-table", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1300 });
+  await loadDemo(page, "dnd5e");
+  await startSession1(page);
+  await expect(page.getByRole("heading", { name: "Ambush at the toll-house" })).toBeVisible();
+  // everyone in the opening fight on the initiative tracker, rolled d20 + initiative, highest first
+  const init = page.locator('[data-tracker="dnd5e-srd.tracker.initiative"]');
+  const pick = init.getByRole("combobox", { name: "Add from entities" });
+  for (const name of ["Brannoc Ashby", "Isolde Fairweather", "Tobin Greaves", "Wren Talliver", "Goblin 1", "Goblin 2", "Wolf 1"]) {
+    await pick.selectOption({ label: name });
+    await init.getByRole("button", { name: "Add", exact: true }).click();
+  }
+  await init.getByRole("button", { name: "Roll initiative" }).click();
+  const scores = await init.locator("[data-testid^=card-]").evaluateAll((els) => els.map((e) => Number((e as HTMLInputElement).value)));
+  expect(scores).toHaveLength(7);
+  expect(scores).toEqual([...scores].sort((a, b) => b - a));
+  // a round in: a goblin arrow found Brannoc, and Brannoc found a goblin
+  const hp = page.locator('[data-tracker="dnd5e-srd.tracker.hp"]');
+  for (let i = 0; i < 5; i++) await hp.getByRole("button", { name: "Decrease Brannoc Ashby HP" }).click();
+  for (let i = 0; i < 4; i++) await hp.getByRole("button", { name: "Decrease Goblin 1 HP" }).click();
+  await expect(hp.getByRole("spinbutton", { name: "Goblin 1 HP" })).toHaveValue("3");
+  await shot(page, "dnd5e-table");
 });
 
 // ---------------------------------------------------------------------------

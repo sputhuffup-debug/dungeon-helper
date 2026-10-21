@@ -121,3 +121,46 @@ test("Skyfire Down: the life-cycle tracker shows the NPC's running infection at 
 
   expect(errors).toEqual([]);
 });
+
+test("Thornwick Crossing: the fifth edition demo loads with derived sheets, SRD monsters and a session ready for the table", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.setViewportSize({ width: 1400, height: 1000 });
+
+  await page.goto("/");
+  await page.getByTestId("load-demo-5e").click();
+  await expect(page).toHaveURL(/\/c\/[0-9A-Z]{26}\/home$/, { timeout: 30_000 });
+  await expect(page.getByTestId("campaign-name")).toHaveText("Thornwick Crossing");
+  const base = page.url().replace(/\/home$/, "");
+
+  // a PC whose numbers are derived: Wren's Stealth is expertise on Dexterity 17 at level 3
+  await page.goto(`${base}/atlas`);
+  await page.getByRole("tab", { name: /^PCs/ }).click();
+  await expect(page.getByRole("tabpanel").getByRole("link")).toHaveCount(4);
+  await page.getByRole("tabpanel").getByRole("link", { name: "Wren Talliver", exact: true }).click();
+  await expect(page.getByTestId("computed-proficiencyBonus")).toHaveText("2");
+  await expect(page.getByTestId("computed-dexterityMod")).toHaveText("3");
+  await expect(page.getByTestId("pool-stealth")).toHaveText("1d20 + 7");
+  await expect(page.getByRole("spinbutton", { name: "Initiative bonus", exact: true })).toHaveValue("0");
+  await shot(page, "dnd5e-pc");
+
+  // the bugbear chief is an SRD preset with its stat block
+  await page.goto(`${base}/atlas`);
+  await page.getByRole("tab", { name: /^Creatures/ }).click();
+  await page.getByRole("tabpanel").getByRole("link", { name: "Grisk Hollowjaw", exact: true }).click();
+  await expect(page.getByTestId("computed-crLabel")).toHaveText("1");
+  await expect(page.locator('[data-entry="Surprise Attack"]')).toBeVisible();
+
+  // session 1 opens on the ambush, with the party and the scene's monsters on the hit point tracker
+  await nav(page, "Sessions").click();
+  await page.getByRole("button", { name: "Start session 1" }).click();
+  await expect(page.getByTestId("table-mode")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Ambush at the toll-house" })).toBeVisible();
+  const hp = page.locator('[data-tracker="dnd5e-srd.tracker.hp"]');
+  for (const [name, max] of [["Brannoc Ashby", "28"], ["Wren Talliver", "21"], ["Goblin 1", "7"], ["Wolf 1", "11"]] as const) {
+    await expect(hp.getByRole("spinbutton", { name: `${name} HP` })).toHaveValue(max);
+  }
+  await shot(page, "dnd5e-table", { tall: 2000 });
+
+  expect(errors).toEqual([]);
+});
