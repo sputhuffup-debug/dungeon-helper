@@ -466,6 +466,7 @@ const definitions: Record<string, JsonSchema> = {
       optional: bool,
       modifier: logic,
       derive: { type: "object", additionalProperties: logic },
+      display: logic,
     },
     ["id"],
   ),

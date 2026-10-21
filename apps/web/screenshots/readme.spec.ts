@@ -647,6 +647,9 @@ test("pf2e-encounter", async ({ page }) => {
   await expect(page.getByTestId("step-budget")).toContainText("120");
   await expect(page.getByTestId("step-shape")).toContainText("pf2e-orc.encounter.budget-120");
   await expect(page.getByTestId("step-g1")).toContainText("pf2e-orc.creature.level-");
+  await expect(page.getByTestId("step-result-budget")).toHaveText("120 XP");
+  await expect(page.getByTestId("step-result-shape")).toHaveText(/^\d+ × party level/);
+  await expect(page.getByTestId("step-result-g1list")).toHaveText(/^\d+ × .+$/);
   await dismissToasts(page);
   await shot(page, "pf2e-encounter");
 });

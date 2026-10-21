@@ -9685,6 +9685,14 @@
         ]
        }
       ]
+     },
+     "display": {
+      "cat": [
+       {
+        "var": "result"
+       },
+       " XP"
+      ]
      }
     },
     {
@@ -9693,6 +9701,228 @@
      "reads": [
       "budget"
      ],
+     "display": {
+      "cat": [
+       {
+        "cat": [
+         {
+          "var": "result.n1"
+         },
+         " × party level",
+         {
+          "if": [
+           {
+            ">": [
+             {
+              "var": [
+               "result.o1",
+               0
+              ]
+             },
+             0
+            ]
+           },
+           {
+            "cat": [
+             " +",
+             {
+              "var": [
+               "result.o1",
+               0
+              ]
+             }
+            ]
+           },
+           {
+            "<": [
+             {
+              "var": [
+               "result.o1",
+               0
+              ]
+             },
+             0
+            ]
+           },
+           {
+            "cat": [
+             " −",
+             {
+              "-": [
+               0,
+               {
+                "var": [
+                 "result.o1",
+                 0
+                ]
+               }
+              ]
+             }
+            ]
+           },
+           ""
+          ]
+         }
+        ]
+       },
+       {
+        "if": [
+         {
+          "var": [
+           "result.n2",
+           0
+          ]
+         },
+         {
+          "cat": [
+           ", ",
+           {
+            "cat": [
+             {
+              "var": "result.n2"
+             },
+             " × party level",
+             {
+              "if": [
+               {
+                ">": [
+                 {
+                  "var": [
+                   "result.o2",
+                   0
+                  ]
+                 },
+                 0
+                ]
+               },
+               {
+                "cat": [
+                 " +",
+                 {
+                  "var": [
+                   "result.o2",
+                   0
+                  ]
+                 }
+                ]
+               },
+               {
+                "<": [
+                 {
+                  "var": [
+                   "result.o2",
+                   0
+                  ]
+                 },
+                 0
+                ]
+               },
+               {
+                "cat": [
+                 " −",
+                 {
+                  "-": [
+                   0,
+                   {
+                    "var": [
+                     "result.o2",
+                     0
+                    ]
+                   }
+                  ]
+                 }
+                ]
+               },
+               ""
+              ]
+             }
+            ]
+           }
+          ]
+         },
+         ""
+        ]
+       },
+       {
+        "if": [
+         {
+          "var": [
+           "result.n3",
+           0
+          ]
+         },
+         {
+          "cat": [
+           ", ",
+           {
+            "cat": [
+             {
+              "var": "result.n3"
+             },
+             " × party level",
+             {
+              "if": [
+               {
+                ">": [
+                 {
+                  "var": [
+                   "result.o3",
+                   0
+                  ]
+                 },
+                 0
+                ]
+               },
+               {
+                "cat": [
+                 " +",
+                 {
+                  "var": [
+                   "result.o3",
+                   0
+                  ]
+                 }
+                ]
+               },
+               {
+                "<": [
+                 {
+                  "var": [
+                   "result.o3",
+                   0
+                  ]
+                 },
+                 0
+                ]
+               },
+               {
+                "cat": [
+                 " −",
+                 {
+                  "-": [
+                   0,
+                   {
+                    "var": [
+                     "result.o3",
+                     0
+                    ]
+                   }
+                  ]
+                 }
+                ]
+               },
+               ""
+              ]
+             }
+            ]
+           }
+          ]
+         },
+         ""
+        ]
+       }
+      ]
+     },
      "table": {
       "cat": [
        "pf2e-orc.encounter.budget-",
@@ -9837,6 +10067,25 @@
         0
        ]
       }
+     },
+     "display": {
+      "cat": [
+       {
+        "var": "result.name"
+       },
+       " (level ",
+       {
+        "var": "result.level"
+       },
+       ", ",
+       {
+        "var": [
+         "result.xp",
+         0
+        ]
+       },
+       " XP each)"
+      ]
      }
     },
     {
@@ -9860,6 +10109,24 @@
      },
      "value": {
       "var": "results.g1"
+     },
+     "display": {
+      "cat": [
+       {
+        "len": [
+         {
+          "var": [
+           "result",
+           []
+          ]
+         }
+        ]
+       },
+       " × ",
+       {
+        "var": "result.0.name"
+       }
+      ]
      }
     },
     {
@@ -9945,6 +10212,25 @@
         0
        ]
       }
+     },
+     "display": {
+      "cat": [
+       {
+        "var": "result.name"
+       },
+       " (level ",
+       {
+        "var": "result.level"
+       },
+       ", ",
+       {
+        "var": [
+         "result.xp",
+         0
+        ]
+       },
+       " XP each)"
+      ]
      }
     },
     {
@@ -9968,6 +10254,24 @@
      },
      "value": {
       "var": "results.g2"
+     },
+     "display": {
+      "cat": [
+       {
+        "len": [
+         {
+          "var": [
+           "result",
+           []
+          ]
+         }
+        ]
+       },
+       " × ",
+       {
+        "var": "result.0.name"
+       }
+      ]
      }
     },
     {
@@ -10053,6 +10357,25 @@
         0
        ]
       }
+     },
+     "display": {
+      "cat": [
+       {
+        "var": "result.name"
+       },
+       " (level ",
+       {
+        "var": "result.level"
+       },
+       ", ",
+       {
+        "var": [
+         "result.xp",
+         0
+        ]
+       },
+       " XP each)"
+      ]
      }
     },
     {
@@ -10076,6 +10399,24 @@
      },
      "value": {
       "var": "results.g3"
+     },
+     "display": {
+      "cat": [
+       {
+        "len": [
+         {
+          "var": [
+           "result",
+           []
+          ]
+         }
+        ]
+       },
+       " × ",
+       {
+        "var": "result.0.name"
+       }
+      ]
      }
     },
     {
@@ -10478,32 +10819,74 @@
     {
      "id": "ancestry",
      "title": "Ancestry",
-     "table": "pf2e-orc.npc.ancestry"
+     "table": "pf2e-orc.npc.ancestry",
+     "display": {
+      "var": [
+       "result.ancestry",
+       ""
+      ]
+     }
     },
     {
      "id": "occupation",
      "title": "Occupation",
-     "table": "pf2e-orc.npc.occupation"
+     "table": "pf2e-orc.npc.occupation",
+     "display": {
+      "cat": [
+       {
+        "var": "result.occupation"
+       },
+       " (stat block: ",
+       {
+        "var": "result.statBlock"
+       },
+       ")"
+      ]
+     }
     },
     {
      "id": "quirk",
      "title": "Quirk",
-     "table": "pf2e-orc.npc.quirk"
+     "table": "pf2e-orc.npc.quirk",
+     "display": {
+      "var": [
+       "result.text",
+       ""
+      ]
+     }
     },
     {
      "id": "voice",
      "title": "Voice",
-     "table": "pf2e-orc.npc.voice"
+     "table": "pf2e-orc.npc.voice",
+     "display": {
+      "var": [
+       "result.text",
+       ""
+      ]
+     }
     },
     {
      "id": "motivation",
      "title": "Wants",
-     "table": "pf2e-orc.npc.motivation"
+     "table": "pf2e-orc.npc.motivation",
+     "display": {
+      "var": [
+       "result.text",
+       ""
+      ]
+     }
     },
     {
      "id": "secret",
      "title": "Secret",
-     "table": "pf2e-orc.npc.secret"
+     "table": "pf2e-orc.npc.secret",
+     "display": {
+      "var": [
+       "result.text",
+       ""
+      ]
+     }
     }
    ],
    "produce": {
@@ -10586,17 +10969,50 @@
     {
      "id": "size",
      "title": "Size",
-     "table": "pf2e-orc.settlement.size"
+     "table": "pf2e-orc.settlement.size",
+     "display": {
+      "cat": [
+       {
+        "var": [
+         "label",
+         {
+          "var": "result.size"
+         }
+        ]
+       },
+       " (",
+       {
+        "var": "result.population"
+       },
+       ", level ",
+       {
+        "var": "result.level"
+       },
+       ")"
+      ]
+     }
     },
     {
      "id": "feature",
      "title": "Notable feature",
-     "table": "pf2e-orc.settlement.feature"
+     "table": "pf2e-orc.settlement.feature",
+     "display": {
+      "var": [
+       "result.text",
+       ""
+      ]
+     }
     },
     {
      "id": "trouble",
      "title": "Local trouble",
-     "table": "pf2e-orc.settlement.trouble"
+     "table": "pf2e-orc.settlement.trouble",
+     "display": {
+      "var": [
+       "result.text",
+       ""
+      ]
+     }
     },
     {
      "id": "tavernA",
@@ -10611,7 +11027,13 @@
     {
      "id": "special",
      "title": "House speciality",
-     "table": "pf2e-orc.tavern.special"
+     "table": "pf2e-orc.tavern.special",
+     "display": {
+      "var": [
+       "result.text",
+       ""
+      ]
+     }
     },
     {
      "id": "keeperFirst",
@@ -10626,7 +11048,13 @@
     {
      "id": "keeperQuirk",
      "title": "Innkeeper's quirk",
-     "table": "pf2e-orc.npc.quirk"
+     "table": "pf2e-orc.npc.quirk",
+     "display": {
+      "var": [
+       "result.text",
+       ""
+      ]
+     }
     }
    ],
    "produce": {

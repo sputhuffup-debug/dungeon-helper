@@ -137,6 +137,25 @@ describe("runProcedure", () => {
     expect(a.skipped.some((s) => s.step === "bonus")).toBe(false);
   });
 
+  it("records each step's display line after the run, with the step's own rolls, and none when no step has one", () => {
+    expect(runProcedure(proc, module, { seed: "d", inputs: { name: "n" } }).display).toBeUndefined();
+    const shown: Procedure = {
+      ...proc,
+      steps: proc.steps.map((s) => {
+        if (s.id === "size") return { ...s, display: (_ctx, result) => `a ${(result as { size: string }).size} world` };
+        if (s.id === "features") return { ...s, display: (_ctx, result, rolls) => `${(result as unknown[]).length} features from ${rolls.length} rolls` };
+        if (s.id === "count") return { ...s, display: () => "  " };
+        return s;
+      }),
+    };
+    const g = runProcedure(shown, module, { seed: "d", inputs: { name: "n" }, pinned: { size: { size: "large", mod: 1 }, climate: { climate: "hot" } } });
+    const n = (g.results.features as unknown[]).length;
+    // the pinned step still gets its line; a blank line is left out
+    expect(g.display).toEqual({ size: "a large world", features: `${n} features from ${n} rolls` });
+    // display never changes results
+    expect(g.results).toEqual(runProcedure(proc, module, { seed: "d", inputs: { name: "n" }, pinned: { size: { size: "large", mod: 1 }, climate: { climate: "hot" } } }).results);
+  });
+
   it("throws on unknown tables and steps without table or compute", () => {
     const bad: Procedure = { id: "bad", name: "bad", steps: [{ id: "x", table: "nope" }], produce: () => ({ entities: [], relationships: [] }) };
     expect(() => runProcedure(bad, module, { seed: "s" })).toThrow(/unknown table/);

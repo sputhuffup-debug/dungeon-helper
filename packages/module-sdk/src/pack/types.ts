@@ -67,6 +67,14 @@ export interface PackProcedureStep {
   modifier?: JsonLogicRule;
   /** Keys merged into an object result after rolling: name -> JSONLogic over the context plus `result`. */
   derive?: Record<string, JsonLogicRule>;
+  /**
+   * JSONLogic yielding the line the GM sees for this step instead of the
+   * result object (e.g. `{ "cat": [{ "var": "result.n" }, " × ", { "var": "result.name" }] }`).
+   * Reads the context plus `result` (the step's result) and `label` (the
+   * table row label it rolled; a list of them when the step repeats).
+   * Empty falls back to the app's generic rendering.
+   */
+  display?: JsonLogicRule;
 }
 
 /** One entity a procedure produces. String or JSONLogic values read the procedure context. */

@@ -379,6 +379,14 @@ export interface ProcedureStep {
   after?: (ctx: ProcedureContext, result: unknown, rng: Rng) => unknown;
   /** Extra flat modifier derived from context. Added on top of table modifiers. */
   modifier?: (ctx: ProcedureContext) => number;
+  /**
+   * How the GM sees the step's result: a short line (e.g. "4 × Dero Stalker")
+   * shown instead of the result object, whose keys are for other steps and
+   * `produce`. Runs after every step, with the step's result (also for a
+   * pinned step) and its own rolls; must not roll. Empty or absent falls back
+   * to the app's generic rendering.
+   */
+  display?: (ctx: ProcedureContext, result: unknown, rolls: RollRecord[]) => string | undefined;
 }
 
 export interface Procedure {
@@ -434,6 +442,8 @@ export interface GeneratedGraph {
   produced: { entities: ProducedEntity[]; relationships: ProducedRelationship[] };
   /** Steps that were skipped, with the reason. */
   skipped: Array<{ step: string; reason: string }>;
+  /** Step id -> the step's `display` line, for steps that declare one. Absent when none does. */
+  display?: Record<string, string>;
 }
 
 export interface ProcedureRunOptions {

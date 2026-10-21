@@ -1864,6 +1864,9 @@
           "additionalProperties": {
             "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
           }
+        },
+        "display": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
         }
       },
       "required": [

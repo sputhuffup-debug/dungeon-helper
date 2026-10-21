@@ -6,7 +6,7 @@
  * Procedures: each declarative step becomes the contract's step functions:
  *   table (id or JSONLogic)  -> `table`
  *   roll / value             -> `compute` (the roll is seeded by the runner)
- *   skipIf / repeat / modifier / derive -> `skipIf` / `repeat` / `modifier` / `after`
+ *   skipIf / repeat / modifier / derive / display -> `skipIf` / `repeat` / `modifier` / `after` / `display`
  * and `produce` becomes a function that fills the entity templates.
  */
 import { rollDice } from "../dice";
@@ -86,6 +86,15 @@ function stepFromPack(step: PackProcedureStep): ProcedureStep {
       const data = procedureData(ctx, { result: base });
       for (const [key, rule] of derive) base[key] = evaluateLogic(rule, data);
       return base;
+    };
+  }
+  if (step.display !== undefined) {
+    const rule = step.display;
+    const repeats = step.repeat !== undefined;
+    out.display = (ctx, result, rolls) => {
+      const labels = rolls.map((r) => r.rowLabel);
+      const label = repeats ? labels : labels[0];
+      return text(evaluateLogic(rule, procedureData(ctx, { result, label })));
     };
   }
   return out;

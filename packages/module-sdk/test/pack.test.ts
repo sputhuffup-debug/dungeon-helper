@@ -52,7 +52,7 @@ describe("example data pack", () => {
     expect(steps.some((s) => typeof s.table === "string")).toBe(true);
     expect(steps.some((s) => s.table !== undefined && typeof s.table === "object")).toBe(true);
     expect(steps.some((s) => s.roll && s.value)).toBe(true);
-    for (const k of ["skipIf", "modifier", "derive", "optional", "reads"] as const) expect(steps.some((s) => s[k] !== undefined), k).toBe(true);
+    for (const k of ["skipIf", "modifier", "derive", "display", "optional", "reads"] as const) expect(steps.some((s) => s[k] !== undefined), k).toBe(true);
     expect(new Set(steps.map((s) => typeof s.repeat))).toEqual(new Set(["undefined", "object", "string", "number"]));
     const rules = merged.rules!;
     expect(rules.some((r) => r.page !== undefined) && rules.some((r) => r.cite !== undefined) && rules.some((r) => r.original)).toBe(true);
@@ -78,7 +78,28 @@ describe("example data pack", () => {
       for (const r of a.produced.relationships) expect(ids.has(r.from) && ids.has(r.to)).toBe(true);
       // the roll step is recorded
       expect(a.rolls.some((r) => r.step === "coins" && r.dice === "2d6")).toBe(true);
+      // display: the danger row's label, plus a note read from the derived flag; steps without one have no line
+      const dangerRoll = a.rolls.find((r) => r.step === "danger")!;
+      const hostile = (a.results.danger as { hostile: boolean }).hostile;
+      expect(a.display).toEqual({ danger: `${dangerRoll.rowLabel}${hostile ? " (hostile)" : ""}` });
     }
+  });
+
+  it("shows a step's display line, from its result alone when the step is pinned", () => {
+    const m = loadPack(mainFile(), { parts: parts(), skipProcedureRuns: true }).module!;
+    const proc = m.procedures[0]!;
+    // a pinned step has no roll, so no row label: the line comes from the result, and an empty line is left out
+    const hostile = runProcedure(proc, m, { seed: "p", inputs: { depth: 1, lucky: false }, pinned: { danger: { level: "deadly", hostile: true } } });
+    expect(hostile.display).toEqual({ danger: " (hostile)" });
+    const calm = runProcedure(proc, m, { seed: "p", inputs: { depth: 1, lucky: false }, pinned: { danger: { level: "calm", hostile: false } } });
+    expect(calm.display).toBeUndefined();
+    // a repeated step sees the list of its row labels
+    const pack = clone(mainFile()) as { procedures: Array<{ steps: Array<Record<string, unknown>> }> };
+    pack.procedures[0]!.steps[3]!.display = { cat: [{ len: [{ var: "label" }] }, " finds: ", { var: "label.0" }] };
+    const m2 = loadPack(pack, { parts: parts(), skipProcedureRuns: true }).module!;
+    const run = runProcedure(m2.procedures[0]!, m2, { seed: "q", inputs: { depth: 1, lucky: false } });
+    const loot = run.rolls.filter((r) => r.step === "loot");
+    expect(run.display?.loot).toBe(`${loot.length} finds: ${loot[0]!.rowLabel}`);
   });
 
   it("starts produced entities from a preset, with the entity's own fields on top", () => {
@@ -150,12 +171,14 @@ describe("pack validation", () => {
     bad.entityTypes[0].schema.properties.notes.pattern = "(a+)+$";
     bad.referenceLists[0].itemSchema.$ref = "https://example.org/remote.json";
     bad.dice.proficiency = { method: ["x", "y"] };
+    bad.procedures[0].steps[1].display = { method: ["x", "y"] };
     const errors = errorsOf(bad);
     expect(errors).toContain('$.entityTypes[0].computed.evil (example-pack.adventurer): JSONLogic: unknown operator "method"');
     expect(errors).toContain('$.procedures[0].steps[4].value (example-pack.proc.delve): JSONLogic: unknown operator "eval"');
     expect(errors).toContain('$.entityTypes[0].schema.properties.notes.pattern (example-pack.adventurer): JSON Schema keyword "pattern" is not allowed in a pack');
     expect(errors.some((e) => e.startsWith("$.referenceLists[0].itemSchema.$ref"))).toBe(true);
     expect(errors).toContain('$.dice.proficiency: JSONLogic: unknown operator "method"');
+    expect(errors).toContain('$.procedures[0].steps[1].display (example-pack.proc.delve): JSONLogic: unknown operator "method"');
   });
 
   it("refuses prototype keys, deep nesting and oversized input", () => {

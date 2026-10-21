@@ -10,6 +10,7 @@ import {
   runProcedure,
   type EntityTypeDef,
   type GameModule,
+  type GeneratedGraph,
   type LoadedModule,
   type ReferenceItem,
 } from "@campaign-forge/module-sdk";
@@ -39,6 +40,17 @@ const item = (listId: string, id: string): ReferenceItem => {
   return i;
 };
 const pc = (): EntityTypeDef => loaded.entityType("dnd5e-srd.character")!;
+/** Every step whose result is an object (more than a label or name) shows the GM a line of its own, never a preset id or the result's keys. */
+function expectReadableSteps(graph: GeneratedGraph): void {
+  for (const [step, result] of Object.entries(graph.results)) {
+    // a bare label or name already reads as itself
+    if (result === null || typeof result !== "object" || Object.keys(result).every((k) => k === "label" || k === "name")) continue;
+    const line = graph.display?.[step];
+    expect(line, `${graph.procedure} step ${step}`).toBeTruthy();
+    expect(line).not.toMatch(/dnd5e\-srd\.|preset|\b[a-z]\w*: (-?\d|\{)/);
+  }
+}
+
 const monster = (): EntityTypeDef => loaded.entityType("dnd5e-srd.monster")!;
 const preset = (name: string) => {
   const p = module.presets.find((x) => x.name === name);
@@ -174,6 +186,11 @@ describe("SRD 5.1 data pack", () => {
           expect(p.fields).toMatchObject({ ac: c.fields.ac, abilities: c.fields.abilities });
           expect(graph.produced.relationships).toContainEqual({ type: "appears_in", from: c.tempId, to: "encounter" });
         }
+        // The steps read as the GM would say them.
+        expectReadableSteps(graph);
+        const foe = graph.results.foe as { name: string; cr: number; xp: number };
+        expect(graph.display?.foe).toBe(`${foe.name} (CR ${foe.cr}, ${foe.xp} XP each)`);
+        expect(graph.display?.group).toBe(`${creatures.length} × ${foe.name}`);
         // Creatures come from the right level band.
         const crs = creatures.map((c) => Number(c.fields.cr));
         const band = partyLevel <= 4 ? [0, 3] : partyLevel <= 10 ? [1, 8] : partyLevel <= 16 ? [4, 15] : [9, 30];
@@ -189,6 +206,7 @@ describe("SRD 5.1 data pack", () => {
     const town = runProcedure(loaded.procedure("dnd5e-srd.proc.settlement")!, module, { seed: "town-1" });
     expect(town.produced.entities.map((e) => e.type)).toEqual(["dnd5e-srd.location", "dnd5e-srd.location", "dnd5e-srd.npc", "dnd5e-srd.quest"]);
     expect(town.produced.entities[1]!.name).toMatch(/^The \w+ \w+$/);
+    for (const g of [npc, town]) expectReadableSteps(g);
   });
 
   it("marks everything it wrote itself as original, and cites everything from the SRD by section", () => {

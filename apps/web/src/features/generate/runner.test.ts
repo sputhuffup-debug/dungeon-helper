@@ -1,6 +1,6 @@
 import { alienModule } from "@campaign-forge/module-alien";
-import { exampleModule } from "@campaign-forge/module-example";
-import { dependentSteps, loadModule, type GeneratedGraph } from "@campaign-forge/module-sdk";
+import { exampleModule, examplePackSource } from "@campaign-forge/module-example";
+import { dependentSteps, loadModule, loadPack, packFromSource, type GeneratedGraph } from "@campaign-forge/module-sdk";
 import { describe, expect, it } from "vitest";
 import { changedSteps, includedOptional, newSeed, runGenerator, stepViews, summarizeValue, UnknownProcedureError, type GeneratorRequest } from "./runner";
 
@@ -87,6 +87,20 @@ describe("runGenerator", () => {
     expect(views.map((v) => v.id)).toEqual(["terrain", "danger", "encounters", "omen"]);
     expect(views.find((v) => v.id === "omen")?.skipReason).toMatch(/Optional/);
     expect(() => runGenerator(example, { procedureId: "nope", seed: "s" })).toThrow(UnknownProcedureError);
+  });
+
+  it("carries a step's display line into its view; steps without one keep the generic rendering", async () => {
+    const pack = loadPack(await packFromSource(examplePackSource), { skipProcedureRuns: true }).module!;
+    const loaded = loadModule(pack, { skipProcedureRuns: true });
+    const procedure = loaded.procedure("example-pack.proc.delve")!;
+    const graph = runGenerator(loaded, { procedureId: procedure.id, seed: "s1", inputs: { depth: 1, lucky: false } });
+    const views = stepViews(procedure, graph);
+    const danger = views.find((v) => v.id === "danger")!;
+    expect(danger.display).toBe(graph.display?.danger);
+    expect(danger.display).toMatch(/^(Calm|Tense|Perilous|Deadly)/);
+    expect(views.filter((v) => v.display !== undefined).map((v) => v.id)).toEqual(["danger"]);
+    // the Alien generators declare none, so their steps render as before
+    expect(stepViews(alien.procedure("alien.job.create")!, runGenerator(alien, job())).some((v) => v.display !== undefined)).toBe(false);
   });
 
   it("formats values compactly and makes fresh seeds", () => {

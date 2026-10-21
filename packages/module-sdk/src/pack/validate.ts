@@ -297,6 +297,7 @@ function semanticChecks(doc: PackCollections & Record<string, unknown>, packId: 
       if (s.repeat !== undefined && typeof s.repeat === "object") checkLogicAt(s.repeat, at("steps", j, "repeat"), w);
       checkLogicAt(s.modifier, at("steps", j, "modifier"), w);
       for (const [k, rule] of Object.entries((s.derive as Record<string, unknown> | undefined) ?? {})) checkLogicAt(rule, at("steps", j, "derive", k), w);
+      checkLogicAt(s.display, at("steps", j, "display"), w);
     });
     const produce = (p.produce ?? {}) as Record<string, unknown>;
     asList(produce.entities).forEach((e, j) => {

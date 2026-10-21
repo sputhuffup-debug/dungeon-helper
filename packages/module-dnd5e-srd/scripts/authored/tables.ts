@@ -388,6 +388,11 @@ const tablesList = (monsters: EntityPreset[]): RollTable[] => {
   ];
 };
 
+/** A table result's `text`, as the line the GM sees for the step. */
+const TEXT: Rule = v("result.text", "");
+/** A repeated step's line: "4 × Goblin". */
+const countOf = (name: Rule): Rule => cat({ len: [v("result", [])] }, " × ", name);
+
 const tierOf = (level: Rule): Rule => ifs({ "<=": [level, 4] }, 1, { "<=": [level, 10] }, 2, { "<=": [level, 16] }, 3, 4);
 
 const procedures = (): PackProcedure[] => [
@@ -404,8 +409,13 @@ const procedures = (): PackProcedure[] => [
       },
     },
     steps: [
-      { id: "foe", title: "Who", table: cat(id("encounter."), v("inputs.terrain", "forest"), "-", tierOf(v("inputs.partyLevel", 3))) },
-      { id: "group", title: "How many", reads: ["foe"], repeat: { var: ["results.foe.count.n", 1] }, value: { var: "results.foe" } },
+      {
+        id: "foe",
+        title: "Who",
+        table: cat(id("encounter."), v("inputs.terrain", "forest"), "-", tierOf(v("inputs.partyLevel", 3))),
+        display: cat(v("result.name"), " (CR ", v("result.cr"), ", ", v("result.xp", 0), " XP each)"),
+      },
+      { id: "group", title: "How many", reads: ["foe"], repeat: { var: ["results.foe.count.n", 1] }, value: { var: "results.foe" }, display: countOf(v("result.0.name")) },
       { id: "activity", title: "Doing what", table: id("encounter.activity") },
       { id: "twist", title: "Twist", optional: true, table: id("encounter.twist") },
     ],
@@ -447,12 +457,12 @@ const procedures = (): PackProcedure[] => [
     steps: [
       { id: "first", title: "First name", table: id("npc.first-name") },
       { id: "family", title: "Family name", table: id("npc.family-name") },
-      { id: "race", title: "Race", table: id("npc.race") },
-      { id: "occupation", title: "Occupation", table: id("npc.occupation") },
-      { id: "quirk", title: "Quirk", table: id("npc.quirk") },
-      { id: "voice", title: "Voice", table: id("npc.voice") },
-      { id: "motivation", title: "Wants", table: id("npc.motivation") },
-      { id: "secret", title: "Secret", table: id("npc.secret") },
+      { id: "race", title: "Race", table: id("npc.race"), display: v("result.race", "") },
+      { id: "occupation", title: "Occupation", table: id("npc.occupation"), display: cat(v("result.occupation"), " (stat block: ", v("result.statBlock"), ")") },
+      { id: "quirk", title: "Quirk", table: id("npc.quirk"), display: TEXT },
+      { id: "voice", title: "Voice", table: id("npc.voice"), display: TEXT },
+      { id: "motivation", title: "Wants", table: id("npc.motivation"), display: TEXT },
+      { id: "secret", title: "Secret", table: id("npc.secret"), display: TEXT },
     ],
     produce: {
       entities: [
@@ -484,15 +494,15 @@ const procedures = (): PackProcedure[] => [
     steps: [
       { id: "start", title: "Name", table: id("settlement.name-start") },
       { id: "end", title: "Name ending", table: id("settlement.name-end") },
-      { id: "size", title: "Size", table: id("settlement.size") },
-      { id: "feature", title: "Notable feature", table: id("settlement.feature") },
-      { id: "trouble", title: "Local trouble", table: id("settlement.trouble") },
+      { id: "size", title: "Size", table: id("settlement.size"), display: cat(v("label", v("result.size")), " (", v("result.population"), ")") },
+      { id: "feature", title: "Notable feature", table: id("settlement.feature"), display: TEXT },
+      { id: "trouble", title: "Local trouble", table: id("settlement.trouble"), display: TEXT },
       { id: "tavernA", title: "Tavern name", table: id("tavern.name-first") },
       { id: "tavernB", title: "Tavern name", table: id("tavern.name-second") },
-      { id: "special", title: "House speciality", table: id("tavern.special") },
+      { id: "special", title: "House speciality", table: id("tavern.special"), display: TEXT },
       { id: "keeperFirst", title: "Innkeeper", table: id("npc.first-name") },
       { id: "keeperFamily", title: "Innkeeper's family", table: id("npc.family-name") },
-      { id: "keeperQuirk", title: "Innkeeper's quirk", table: id("npc.quirk") },
+      { id: "keeperQuirk", title: "Innkeeper's quirk", table: id("npc.quirk"), display: TEXT },
     ],
     produce: {
       entities: [

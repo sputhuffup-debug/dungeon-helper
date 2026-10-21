@@ -394,6 +394,20 @@ const budgetRule: Rule = add(
   { "*": [{ "-": [v("inputs.partySize", 4), 4] }, { lookup: [Object.fromEntries(Object.entries(THREAT_BUDGETS).map(([k, b]) => [k, b.perCharacter])), v("inputs.threat", "moderate"), 20] }] },
 );
 
+/** A table result's `text`, as the line the GM sees for the step. */
+const TEXT: Rule = v("result.text", "");
+/** A repeated step's line: "4 × Goblin". */
+const countOf = (name: Rule): Rule => cat({ len: [v("result", [])] }, " × ", name);
+
+/** "4 × party level −1, 1 × party level +2" from a shape row's result, so a pinned shape reads the same. */
+function shapeDisplay(): Rule {
+  const group = (k: number): Rule => {
+    const o = v(`result.o${k}`, 0);
+    return cat(v(`result.n${k}`), " × party level", ifs({ ">": [o, 0] }, cat(" +", o), { "<": [o, 0] }, cat(" −", { "-": [0, o] }), ""));
+  };
+  return cat(group(1), ifs(v("result.n2", 0), cat(", ", group(2)), ""), ifs(v("result.n3", 0), cat(", ", group(3)), ""));
+}
+
 function groupSteps(k: number): PackProcedure["steps"] {
   const offset = v(`results.shape.o${k}`, 0);
   return [
@@ -407,8 +421,17 @@ function groupSteps(k: number): PackProcedure["steps"] {
         n: v(`results.shape.n${k}`, 1),
         xp: { lookup: [CREATURE_XP, { "-": [v("result.level", 0), v("inputs.partyLevel", 1)] }, 0] },
       },
+      display: cat(v("result.name"), " (level ", v("result.level"), ", ", v("result.xp", 0), " XP each)"),
     },
-    { id: `g${k}list`, title: `Group ${k}`, reads: [`g${k}`], skipIf: { "!": [{ var: `results.shape.n${k}` }] }, repeat: v(`results.shape.n${k}`, 1), value: v(`results.g${k}`) },
+    {
+      id: `g${k}list`,
+      title: `Group ${k}`,
+      reads: [`g${k}`],
+      skipIf: { "!": [{ var: `results.shape.n${k}` }] },
+      repeat: v(`results.shape.n${k}`, 1),
+      value: v(`results.g${k}`),
+      display: countOf(v("result.0.name")),
+    },
   ];
 }
 
@@ -433,11 +456,12 @@ export function procedures(): PackProcedure[] {
         },
       },
       steps: [
-        { id: "budget", title: "XP budget", value: budgetRule },
+        { id: "budget", title: "XP budget", value: budgetRule, display: cat(v("result"), " XP") },
         {
           id: "shape",
           title: "Creature levels",
           reads: ["budget"],
+          display: shapeDisplay(),
           table: cat(id("encounter.budget-"), v("results.budget", 80), ifs({ "<=": [v("inputs.partyLevel", 1), 2] }, cat("-l", v("inputs.partyLevel", 1)), { ">=": [v("inputs.partyLevel", 1), 18] }, cat("-l", v("inputs.partyLevel", 1)), "")),
         },
         ...groupSteps(1),
@@ -485,12 +509,12 @@ export function procedures(): PackProcedure[] {
       steps: [
         { id: "first", title: "First name", table: id("npc.first-name") },
         { id: "family", title: "Family name", table: id("npc.family-name") },
-        { id: "ancestry", title: "Ancestry", table: id("npc.ancestry") },
-        { id: "occupation", title: "Occupation", table: id("npc.occupation") },
-        { id: "quirk", title: "Quirk", table: id("npc.quirk") },
-        { id: "voice", title: "Voice", table: id("npc.voice") },
-        { id: "motivation", title: "Wants", table: id("npc.motivation") },
-        { id: "secret", title: "Secret", table: id("npc.secret") },
+        { id: "ancestry", title: "Ancestry", table: id("npc.ancestry"), display: v("result.ancestry", "") },
+        { id: "occupation", title: "Occupation", table: id("npc.occupation"), display: cat(v("result.occupation"), " (stat block: ", v("result.statBlock"), ")") },
+        { id: "quirk", title: "Quirk", table: id("npc.quirk"), display: TEXT },
+        { id: "voice", title: "Voice", table: id("npc.voice"), display: TEXT },
+        { id: "motivation", title: "Wants", table: id("npc.motivation"), display: TEXT },
+        { id: "secret", title: "Secret", table: id("npc.secret"), display: TEXT },
       ],
       produce: {
         entities: [
@@ -522,15 +546,15 @@ export function procedures(): PackProcedure[] {
       steps: [
         { id: "start", title: "Name", table: id("settlement.name-start") },
         { id: "end", title: "Name ending", table: id("settlement.name-end") },
-        { id: "size", title: "Size", table: id("settlement.size") },
-        { id: "feature", title: "Notable feature", table: id("settlement.feature") },
-        { id: "trouble", title: "Local trouble", table: id("settlement.trouble") },
+        { id: "size", title: "Size", table: id("settlement.size"), display: cat(v("label", v("result.size")), " (", v("result.population"), ", level ", v("result.level"), ")") },
+        { id: "feature", title: "Notable feature", table: id("settlement.feature"), display: TEXT },
+        { id: "trouble", title: "Local trouble", table: id("settlement.trouble"), display: TEXT },
         { id: "tavernA", title: "Tavern name", table: id("tavern.name-first") },
         { id: "tavernB", title: "Tavern name", table: id("tavern.name-second") },
-        { id: "special", title: "House speciality", table: id("tavern.special") },
+        { id: "special", title: "House speciality", table: id("tavern.special"), display: TEXT },
         { id: "keeperFirst", title: "Innkeeper", table: id("npc.first-name") },
         { id: "keeperFamily", title: "Innkeeper's family", table: id("npc.family-name") },
-        { id: "keeperQuirk", title: "Innkeeper's quirk", table: id("npc.quirk") },
+        { id: "keeperQuirk", title: "Innkeeper's quirk", table: id("npc.quirk"), display: TEXT },
       ],
       produce: {
         entities: [

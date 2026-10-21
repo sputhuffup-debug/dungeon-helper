@@ -11,6 +11,7 @@ import {
   type DicePool,
   type EntityTypeDef,
   type GameModule,
+  type GeneratedGraph,
   type LoadedModule,
   type ReferenceItem,
   type RollResult,
@@ -45,6 +46,17 @@ const preset = (name: string) => {
   if (!p) throw new Error(`no preset ${name}`);
   return p;
 };
+/** Every step whose result is an object (more than a label or name) shows the GM a line of its own, never a preset id or the result's keys. */
+function expectReadableSteps(graph: GeneratedGraph): void {
+  for (const [step, result] of Object.entries(graph.results)) {
+    // a bare label or name already reads as itself
+    if (result === null || typeof result !== "object" || Object.keys(result).every((k) => k === "label" || k === "name")) continue;
+    const line = graph.display?.[step];
+    expect(line, `${graph.procedure} step ${step}`).toBeTruthy();
+    expect(line).not.toMatch(/pf2e\-orc\.|preset|\b[a-z]\w*: (-?\d|\{)/);
+  }
+}
+
 const pcType = (): EntityTypeDef => loaded.entityType("pf2e-orc.character")!;
 
 /** A level-N character with the given attribute modifiers (default 0) and ranks. */
@@ -258,6 +270,14 @@ describe("Fantasy d20 Remaster (ORC) data pack", () => {
           const def = loaded.entityType("pf2e-orc.encounter")!;
           expect(computeFields(def, encounter.fields).xpBudget).toBe(budget(threat, partySize));
           for (const c of creatures) expect(graph.produced.relationships).toContainEqual({ type: "appears_in", from: c.tempId, to: "encounter" });
+          // the steps read as the GM would say them
+          expectReadableSteps(graph);
+          const shown = graph.display!;
+          expect(shown.budget).toBe(`${budget(threat, partySize)} XP`);
+          expect(shown.shape).toMatch(/^\d+ × party level( [+−]\d)?(, \d+ × party level( [+−]\d)?)*$/);
+          const g1 = graph.results.g1 as { name: string; level: number; n: number; xp: number };
+          expect(shown.g1).toBe(`${g1.name} (level ${g1.level}, ${g1.xp} XP each)`);
+          expect(shown.g1list).toBe(`${g1.n} × ${g1.name}`);
         }
       }
     }
@@ -269,6 +289,10 @@ describe("Fantasy d20 Remaster (ORC) data pack", () => {
     expect(module.presets.some((p) => p.name === npc.produced.entities[0]!.fields.statBlock)).toBe(true);
     const town = runProcedure(loaded.procedure("pf2e-orc.proc.settlement")!, module, { seed: "town-1" });
     expect(town.produced.entities.map((e) => e.type)).toEqual(["pf2e-orc.location", "pf2e-orc.location", "pf2e-orc.npc", "pf2e-orc.quest"]);
+    for (const g of [npc, town]) expectReadableSteps(g);
+    const occupation = npc.results.occupation as { occupation: string; statBlock: string };
+    expect(npc.display?.occupation).toBe(`${occupation.occupation} (stat block: ${occupation.statBlock})`);
+    expect(town.display?.size).toMatch(/^(Hamlet|Village|Town|City|Metropolis) \(.+, level \d+\)$/);
   });
 
   it("cites every converted entry by book and section, and marks what it wrote itself as original", () => {
