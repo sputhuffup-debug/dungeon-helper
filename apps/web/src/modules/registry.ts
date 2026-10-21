@@ -17,6 +17,7 @@
  */
 import { deleteInstalledPack, getInstalledPack, listInstalledPacks, type InstalledPackMeta } from "@campaign-forge/core";
 import type { GameModule, LoadedModule, ModuleLicense, ModuleManifest, PackSource } from "@campaign-forge/module-sdk";
+import { pf2eOrcManifest } from "@campaign-forge/module-pf2e-orc/manifest";
 
 /** What the app knows about a module before loading it. */
 export type StaticManifest = Pick<ModuleManifest, "id" | "name" | "version" | "modes" | "defaultMode" | "dataStatus">;
@@ -138,6 +139,9 @@ const BUILTIN: ModuleEntry[] = [
     },
     () => import("@campaign-forge/module-dnd5e-srd").then((m) => m.dnd5eSrdSource),
   ),
+  // The ORC core rules for the second edition remaster. Its static manifest (with the long ORC
+  // attribution) is generated next to the pack, so it is imported rather than copied here.
+  builtinPack(pf2eOrcManifest, () => import("@campaign-forge/module-pf2e-orc").then((m) => m.pf2eOrcSource)),
 ];
 
 const BUILTIN_IDS = new Set(BUILTIN.map((e) => e.id));

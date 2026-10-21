@@ -1,0 +1,7762 @@
+{
+ "$schema": "../../module-sdk/schema/module-pack.schema.json",
+ "format": "campaign-forge-pack",
+ "formatVersion": 1,
+ "manifest": {
+  "id": "pf2e-orc",
+  "version": "0.1.0",
+  "name": "Fantasy d20 Remaster (ORC)",
+  "ruleset": "ORC core rules (second edition remaster)",
+  "edition": "Player Core, Player Core 2, GM Core, Monster Core (ORC content only)",
+  "publisher": "ORC-licensed content by Paizo Inc. (see attribution)",
+  "authors": [
+   "Campaign Forge contributors (conversion and GM tools)"
+  ],
+  "licenseNotice": "ORC-licensed rules content (see attribution); JSON structure derived from the Foundry VTT pf2e system (Apache-2.0). Tables, generators, templates and play advice marked Original were written for Campaign Forge. Compatible with Pathfinder Second Edition (Remaster). Not affiliated with or endorsed by Paizo Inc. Pathfinder is a trademark of Paizo Inc.",
+  "requiredCore": "0.1.0",
+  "modes": [
+   {
+    "id": "campaign",
+    "name": "Campaign",
+    "description": "Long-running play: characters gain levels, feats and gear over many sessions, with factions, quests and a living world between adventures."
+   },
+   {
+    "id": "one-shot",
+    "name": "One-shot",
+    "description": "A single session: ready-made characters, one adventure in three acts, and a clear ending tonight."
+   }
+  ],
+  "defaultMode": "campaign",
+  "dataStatus": "partially-verified",
+  "sourceBook": {
+   "title": "Player Core, Player Core 2, GM Core, Monster Core (ORC License content)",
+   "pageNote": "Cited by book and section; ORC content is used as written, without Reserved Material.",
+   "url": "https://paizo.com/orclicense"
+  },
+  "citationStyle": "section",
+  "license": {
+   "spdx": "LicenseRef-ORC",
+   "name": "ORC License",
+   "url": "https://paizo.com/orclicense",
+   "attribution": "ORC Notice: This product is licensed under the ORC License located at the Library of Congress at TX 9-307-067 and available online at various locations. All warranties are disclaimed as set forth therein.\n\nAttribution Notice: this module includes material from:\nPathfinder Player Core © 2023, Paizo Inc.; Designers: Logan Bonner, Jason Bulmahn, Stephen Radney-MacFarland, and Mark Seifter. Authors: Alexander Augunas, Kate Baker, Logan Bonner, Jason Bulmahn, Carlos Cabrera, Calder CaDavid, James Case, Eleanor Ferron, Steven Hammond, Joan Hong, Vanessa Hoskins, James Jacobs, Jenny Jarzabski, Erik Keith, Dustin Knight, Lyz Liddell, Luis Loza, Patchen Mortimer, Dennis Muldoon, Stephen Radney-MacFarland, Mikhail Rekun, David N. Ross, Michael Sayre, Mark Seifter, Kendra Leigh, Speedling, Mark Thompson, Clark Valentine, Andrew White, Landon Winkler, and Linda Zayas-Palmer\nPathfinder GM Core © 2023, Paizo Inc.; Designers: Logan Bonner and Mark Seifter. Authors: Amirali Attar Olyaee, Logan Bonner, Creighton Broadhurst, Jason Bulmahn, James Case, Jesse Decker, Eleanor Ferron, Fabby Garza Marroquín, Jaym Gates, Matthew Goetz, James Jacobs, Brian R. James, Jenny Jarzabski, Dustin Knight, Jason LeMaitre, Lyz Liddell, Luis Loza, Ron Lundeen, Stephen Radney-MacFarland, David N. Ross, Michael Sayre, Mark Seifter, Owen K.C. Stephens, Amber Stewart, Clark Valentine, Landon Winkler, and Linda Zayas-Palmer\nPathfinder Player Core 2 © 2024, Paizo Inc.; Authors: Amirali Attar Olyaee, Alexander Augunas, Brian Bauman, Joshua Birdsong, Logan Bonner, Jason Bulmahn, James Case, Jessica Catalan, John Compton, Paris Crenshaw, Jesse Decker, Eleanor Ferron, Fabby Garza Marroquín, Steven Hammond, Sasha Laranoa Harving, Joan Hong, Nicolas Hornyak, Vanessa Hoskins, James Jacobs, Jason Keeley, Dustin Knight, Avi Kool, Lyz Liddell, Nicolas Logue, Luis Loza, Ron Lundeen, Patchen Mortimer, Stephen Radney‑MacFarland, Jessica Redekop, Mikhail Rekun, Alex Riggs, David N. Ross, Michael Sayre, Mark Seifter, Owen K.C. Stephens, Jason Tondro, Clark Valentine, Andrew White, Landon Winkler, and Tonya Woldridge.\nPathfinder Monster Core © 2024, Paizo Inc.\n\nReserved Material: none of the publishers' Reserved Material (trademarks, and setting names such as deities, places, organizations and characters) is used. The converted rules text and statistics are Licensed Material under the ORC License. The JSON structure of the data is derived from the Foundry VTT pf2e system (Apache License 2.0; see the module's NOTICE).\n\nCompatible with Pathfinder Second Edition (Remaster). Not affiliated with or endorsed by Paizo Inc. Pathfinder is a trademark of Paizo Inc."
+  }
+ },
+ "dice": {
+  "engine": "d20",
+  "abilityModifier": false,
+  "proficiencyMode": "add",
+  "proficiency": {
+   "if": [
+    {
+     "var": [
+      "computed.statBlock",
+      false
+     ]
+    },
+    0,
+    {
+     ">": [
+      {
+       "var": [
+        "skill",
+        0
+       ]
+      },
+      0
+     ]
+    },
+    {
+     "+": [
+      {
+       "var": [
+        "fields.level",
+        1
+       ]
+      },
+      {
+       "*": [
+        2,
+        {
+         "var": [
+          "skill",
+          0
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    0
+   ]
+  },
+  "bonus": {
+   "if": [
+    {
+     "var": [
+      "computed.statBlock",
+      false
+     ]
+    },
+    {
+     "var": [
+      "skill",
+      0
+     ]
+    },
+    {
+     "var": [
+      {
+       "cat": [
+        "fields.bonuses.",
+        {
+         "var": [
+          "skillId",
+          "none"
+         ]
+        }
+       ]
+      },
+      0
+     ]
+    }
+   ]
+  },
+  "critOn": 20,
+  "fumbleOn": 1,
+  "critMargin": 10,
+  "naturalShift": true,
+  "advantageNames": {
+   "normal": "normal",
+   "advantage": "fortune",
+   "disadvantage": "misfortune"
+  },
+  "modifierChoices": [
+   {
+    "id": "map",
+    "title": "Attack",
+    "choices": [
+     {
+      "label": "1st attack",
+      "value": 0
+     },
+     {
+      "label": "2nd attack (−5)",
+      "value": -5
+     },
+     {
+      "label": "3rd attack (−10)",
+      "value": -10
+     },
+     {
+      "label": "2nd attack, agile (−4)",
+      "value": -4
+     },
+     {
+      "label": "3rd attack, agile (−8)",
+      "value": -8
+     }
+    ]
+   }
+  ],
+  "freeDice": [
+   4,
+   6,
+   8,
+   10,
+   12,
+   100
+  ],
+  "labels": {
+   "criticalSuccess": "Critical success",
+   "success": "Success",
+   "failure": "Failure",
+   "criticalFailure": "Critical failure"
+  }
+ },
+ "parts": [
+  "core-reference.json",
+  "core-rules.json",
+  "core-character-1.json",
+  "core-character-2.json",
+  "core-feats-1.json",
+  "core-feats-2.json",
+  "core-feats-3.json",
+  "core-feats-4.json",
+  "core-spells-1.json",
+  "core-spells-2.json",
+  "core-equipment-1.json",
+  "core-equipment-2.json",
+  "core-equipment-3.json",
+  "core-creatures-1.json",
+  "core-creatures-2.json",
+  "core-creatures-3.json",
+  "core-creatures-4.json",
+  "core-creatures-5.json",
+  "core-hazards.json",
+  "encounters.json",
+  "tables.json"
+ ],
+ "entityTypes": [
+  {
+   "id": "pf2e-orc.character",
+   "kind": "character",
+   "name": "Player character",
+   "plural": "Player characters",
+   "icon": "shield",
+   "schema": {
+    "type": "object",
+    "properties": {
+     "isPC": {
+      "type": "boolean",
+      "default": true
+     },
+     "player": {
+      "type": "string",
+      "maxLength": 120
+     },
+     "ancestry": {
+      "type": "string",
+      "enum": [
+       "catfolk",
+       "dwarf",
+       "elf",
+       "gnome",
+       "goblin",
+       "halfling",
+       "hobgoblin",
+       "human",
+       "kholo",
+       "kobold",
+       "leshy",
+       "lizardfolk",
+       "orc",
+       "ratfolk",
+       "tengu",
+       "tripkee"
+      ]
+     },
+     "heritage": {
+      "type": "string",
+      "maxLength": 120
+     },
+     "background": {
+      "type": "string",
+      "maxLength": 120
+     },
+     "class": {
+      "type": "string",
+      "enum": [
+       "alchemist",
+       "barbarian",
+       "bard",
+       "champion",
+       "cleric",
+       "druid",
+       "fighter",
+       "investigator",
+       "monk",
+       "oracle",
+       "ranger",
+       "rogue",
+       "sorcerer",
+       "swashbuckler",
+       "witch",
+       "wizard"
+      ]
+     },
+     "subclass": {
+      "type": "string",
+      "maxLength": 120,
+      "description": "Class choice: a doctrine, instinct, muse, racket, mystery, school and so on."
+     },
+     "level": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 20,
+      "default": 1
+     },
+     "xp": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 999,
+      "default": 0
+     },
+     "keyAttribute": {
+      "type": "string",
+      "enum": [
+       "strength",
+       "dexterity",
+       "constitution",
+       "intelligence",
+       "wisdom",
+       "charisma"
+      ],
+      "default": "strength"
+     },
+     "attributes": {
+      "type": "object",
+      "properties": {
+       "strength": {
+        "type": "integer",
+        "minimum": -5,
+        "maximum": 7,
+        "default": 0,
+        "title": "Strength"
+       },
+       "dexterity": {
+        "type": "integer",
+        "minimum": -5,
+        "maximum": 7,
+        "default": 0,
+        "title": "Dexterity"
+       },
+       "constitution": {
+        "type": "integer",
+        "minimum": -5,
+        "maximum": 7,
+        "default": 0,
+        "title": "Constitution"
+       },
+       "intelligence": {
+        "type": "integer",
+        "minimum": -5,
+        "maximum": 7,
+        "default": 0,
+        "title": "Intelligence"
+       },
+       "wisdom": {
+        "type": "integer",
+        "minimum": -5,
+        "maximum": 7,
+        "default": 0,
+        "title": "Wisdom"
+       },
+       "charisma": {
+        "type": "integer",
+        "minimum": -5,
+        "maximum": 7,
+        "default": 0,
+        "title": "Charisma"
+       }
+      },
+      "required": [
+       "strength",
+       "dexterity",
+       "constitution",
+       "intelligence",
+       "wisdom",
+       "charisma"
+      ],
+      "additionalProperties": false
+     },
+     "saves": {
+      "type": "object",
+      "properties": {
+       "perception": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 4,
+        "default": 0
+       },
+       "fortitude": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 4,
+        "default": 0
+       },
+       "reflex": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 4,
+        "default": 0
+       },
+       "will": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 4,
+        "default": 0
+       }
+      },
+      "additionalProperties": false,
+      "default": {}
+     },
+     "skills": {
+      "type": "object",
+      "properties": {
+       "acrobatics": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 4,
+        "default": 0
+       },
+       "arcana": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 4,
+        "default": 0
+       },
+       "athletics": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 4,
+        "default": 0
+       },
+       "crafting": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 4,
+        "default": 0
+       },
+       "deception": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 4,
+        "default": 0
+       },
+       "diplomacy": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 4,
+        "default": 0
+       },
+       "intimidation": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 4,
+        "default": 0
+       },
+       "medicine": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 4,
+        "default": 0
+       },
+       "nature": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 4,
+        "default": 0
+       },
+       "occultism": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 4,
+        "default": 0
+       },
+       "performance": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 4,
+        "default": 0
+       },
+       "religion": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 4,
+        "default": 0
+       },
+       "society": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 4,
+        "default": 0
+       },
+       "stealth": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 4,
+        "default": 0
+       },
+       "survival": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 4,
+        "default": 0
+       },
+       "thievery": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 4,
+        "default": 0
+       },
+       "lore-a": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 4,
+        "default": 0
+       },
+       "lore-b": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 4,
+        "default": 0
+       }
+      },
+      "additionalProperties": false,
+      "default": {}
+     },
+     "loreTopics": {
+      "type": "object",
+      "properties": {
+       "first": {
+        "type": "string",
+        "maxLength": 80
+       },
+       "second": {
+        "type": "string",
+        "maxLength": 80
+       }
+      },
+      "additionalProperties": false,
+      "default": {}
+     },
+     "bonuses": {
+      "type": "object",
+      "description": "Item, status and circumstance bonuses (or penalties) per check, on top of attribute and proficiency.",
+      "properties": {
+       "perception": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Perception"
+       },
+       "fortitude": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Fortitude"
+       },
+       "reflex": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Reflex"
+       },
+       "will": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Will"
+       },
+       "acrobatics": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Acrobatics"
+       },
+       "arcana": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Arcana"
+       },
+       "athletics": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Athletics"
+       },
+       "crafting": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Crafting"
+       },
+       "deception": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Deception"
+       },
+       "diplomacy": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Diplomacy"
+       },
+       "intimidation": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Intimidation"
+       },
+       "medicine": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Medicine"
+       },
+       "nature": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Nature"
+       },
+       "occultism": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Occultism"
+       },
+       "performance": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Performance"
+       },
+       "religion": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Religion"
+       },
+       "society": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Society"
+       },
+       "stealth": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Stealth"
+       },
+       "survival": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Survival"
+       },
+       "thievery": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Thievery"
+       },
+       "lore-a": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Lore (first)"
+       },
+       "lore-b": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Lore (second)"
+       },
+       "ac": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "AC"
+       }
+      },
+      "additionalProperties": false,
+      "default": {}
+     },
+     "classDcRank": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4,
+      "default": 1,
+      "title": "Class DC proficiency"
+     },
+     "defenses": {
+      "type": "object",
+      "properties": {
+       "unarmored": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 4,
+        "default": 0
+       },
+       "light": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 4,
+        "default": 0
+       },
+       "medium": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 4,
+        "default": 0
+       },
+       "heavy": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 4,
+        "default": 0
+       }
+      },
+      "additionalProperties": false,
+      "default": {
+       "unarmored": 1,
+       "light": 0,
+       "medium": 0,
+       "heavy": 0
+      }
+     },
+     "attacks": {
+      "type": "object",
+      "properties": {
+       "simple": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 4,
+        "default": 0
+       },
+       "martial": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 4,
+        "default": 0
+       },
+       "advanced": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 4,
+        "default": 0
+       },
+       "unarmed": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 4,
+        "default": 0
+       }
+      },
+      "additionalProperties": false,
+      "default": {
+       "simple": 1,
+       "martial": 0,
+       "advanced": 0,
+       "unarmed": 1
+      }
+     },
+     "armor": {
+      "type": "object",
+      "properties": {
+       "name": {
+        "type": "string",
+        "maxLength": 80
+       },
+       "category": {
+        "type": "string",
+        "enum": [
+         "unarmored",
+         "light",
+         "medium",
+         "heavy"
+        ],
+        "default": "unarmored"
+       },
+       "acBonus": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 10,
+        "default": 0
+       },
+       "dexCap": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 10,
+        "description": "Leave empty when the armor has no Dexterity cap."
+       },
+       "strength": {
+        "type": "integer",
+        "minimum": -5,
+        "maximum": 7
+       },
+       "checkPenalty": {
+        "type": "integer",
+        "minimum": -5,
+        "maximum": 0
+       },
+       "speedPenalty": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 0
+       },
+       "potency": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 3,
+        "default": 0
+       }
+      },
+      "additionalProperties": false,
+      "default": {
+       "category": "unarmored",
+       "acBonus": 0,
+       "potency": 0
+      }
+     },
+     "shield": {
+      "type": "object",
+      "properties": {
+       "name": {
+        "type": "string",
+        "maxLength": 80
+       },
+       "acBonus": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 5,
+        "default": 0
+       },
+       "hardness": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 50,
+        "default": 0
+       },
+       "hp": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 200,
+        "default": 0
+       },
+       "maxHp": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 200,
+        "default": 0
+       }
+      },
+      "additionalProperties": false,
+      "default": {}
+     },
+     "hp": {
+      "type": "object",
+      "properties": {
+       "current": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 1000,
+        "default": 10
+       },
+       "temp": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 500,
+        "default": 0
+       }
+      },
+      "required": [
+       "current"
+      ],
+      "additionalProperties": false,
+      "default": {
+       "current": 10,
+       "temp": 0
+      }
+     },
+     "hpBonus": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 200,
+      "default": 0,
+      "description": "Extra maximum Hit Points from feats and the like (e.g. Toughness)."
+     },
+     "speed": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 200,
+      "default": 25
+     },
+     "heroPoints": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 3,
+      "default": 1
+     },
+     "dying": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4,
+      "default": 0
+     },
+     "wounded": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 3,
+      "default": 0
+     },
+     "doomed": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 3,
+      "default": 0
+     },
+     "conditions": {
+      "type": "object",
+      "description": "Valued conditions; the GM applies their penalties to rolls.",
+      "properties": {
+       "frightened": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 10,
+        "default": 0
+       },
+       "sickened": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 10,
+        "default": 0
+       },
+       "clumsy": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 10,
+        "default": 0
+       },
+       "drained": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 10,
+        "default": 0
+       },
+       "enfeebled": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 10,
+        "default": 0
+       },
+       "stupefied": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 10,
+        "default": 0
+       },
+       "slowed": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 10,
+        "default": 0
+       },
+       "stunned": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 10,
+        "default": 0
+       }
+      },
+      "additionalProperties": false,
+      "default": {
+       "frightened": 0,
+       "sickened": 0,
+       "clumsy": 0,
+       "drained": 0,
+       "enfeebled": 0,
+       "stupefied": 0,
+       "slowed": 0,
+       "stunned": 0
+      }
+     },
+     "otherConditions": {
+      "type": "array",
+      "items": {
+       "type": "object"
+      },
+      "default": []
+     },
+     "initiativeSkill": {
+      "type": "string",
+      "enum": [
+       "perception",
+       "acrobatics",
+       "arcana",
+       "athletics",
+       "crafting",
+       "deception",
+       "diplomacy",
+       "intimidation",
+       "medicine",
+       "nature",
+       "occultism",
+       "performance",
+       "religion",
+       "society",
+       "stealth",
+       "survival",
+       "thievery"
+      ],
+      "default": "perception"
+     },
+     "focus": {
+      "type": "object",
+      "properties": {
+       "current": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 3,
+        "default": 0
+       },
+       "max": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 3,
+        "default": 0
+       }
+      },
+      "additionalProperties": false,
+      "default": {
+       "current": 0,
+       "max": 0
+      }
+     },
+     "spellcasting": {
+      "type": "object",
+      "properties": {
+       "tradition": {
+        "type": "string",
+        "enum": [
+         "arcane",
+         "divine",
+         "occult",
+         "primal"
+        ]
+       },
+       "kind": {
+        "type": "string",
+        "enum": [
+         "prepared",
+         "spontaneous"
+        ]
+       },
+       "attribute": {
+        "type": "string",
+        "enum": [
+         "strength",
+         "dexterity",
+         "constitution",
+         "intelligence",
+         "wisdom",
+         "charisma"
+        ]
+       },
+       "rank": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 4,
+        "default": 0,
+        "title": "Spell proficiency"
+       }
+      },
+      "additionalProperties": false,
+      "default": {
+       "rank": 0
+      }
+     },
+     "slots": {
+      "type": "object",
+      "properties": {
+       "r1": {
+        "type": "object",
+        "title": "Rank 1",
+        "properties": {
+         "max": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9,
+          "default": 0
+         },
+         "used": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9,
+          "default": 0
+         }
+        },
+        "additionalProperties": false
+       },
+       "r2": {
+        "type": "object",
+        "title": "Rank 2",
+        "properties": {
+         "max": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9,
+          "default": 0
+         },
+         "used": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9,
+          "default": 0
+         }
+        },
+        "additionalProperties": false
+       },
+       "r3": {
+        "type": "object",
+        "title": "Rank 3",
+        "properties": {
+         "max": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9,
+          "default": 0
+         },
+         "used": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9,
+          "default": 0
+         }
+        },
+        "additionalProperties": false
+       },
+       "r4": {
+        "type": "object",
+        "title": "Rank 4",
+        "properties": {
+         "max": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9,
+          "default": 0
+         },
+         "used": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9,
+          "default": 0
+         }
+        },
+        "additionalProperties": false
+       },
+       "r5": {
+        "type": "object",
+        "title": "Rank 5",
+        "properties": {
+         "max": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9,
+          "default": 0
+         },
+         "used": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9,
+          "default": 0
+         }
+        },
+        "additionalProperties": false
+       },
+       "r6": {
+        "type": "object",
+        "title": "Rank 6",
+        "properties": {
+         "max": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9,
+          "default": 0
+         },
+         "used": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9,
+          "default": 0
+         }
+        },
+        "additionalProperties": false
+       },
+       "r7": {
+        "type": "object",
+        "title": "Rank 7",
+        "properties": {
+         "max": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9,
+          "default": 0
+         },
+         "used": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9,
+          "default": 0
+         }
+        },
+        "additionalProperties": false
+       },
+       "r8": {
+        "type": "object",
+        "title": "Rank 8",
+        "properties": {
+         "max": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9,
+          "default": 0
+         },
+         "used": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9,
+          "default": 0
+         }
+        },
+        "additionalProperties": false
+       },
+       "r9": {
+        "type": "object",
+        "title": "Rank 9",
+        "properties": {
+         "max": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9,
+          "default": 0
+         },
+         "used": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9,
+          "default": 0
+         }
+        },
+        "additionalProperties": false
+       },
+       "r10": {
+        "type": "object",
+        "title": "Rank 10",
+        "properties": {
+         "max": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9,
+          "default": 0
+         },
+         "used": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9,
+          "default": 0
+         }
+        },
+        "additionalProperties": false
+       }
+      },
+      "additionalProperties": false,
+      "default": {}
+     },
+     "spells": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "default": [],
+      "description": "Spells known or prepared (names from the spell lists)."
+     },
+     "strikes": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "name": {
+         "type": "string",
+         "maxLength": 80
+        },
+        "bonus": {
+         "type": "string",
+         "maxLength": 30
+        },
+        "damage": {
+         "type": "string",
+         "maxLength": 80
+        },
+        "traits": {
+         "type": "string",
+         "maxLength": 200
+        }
+       },
+       "required": [
+        "name"
+       ]
+      },
+      "default": []
+     },
+     "feats": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "level": {
+         "type": "integer",
+         "minimum": 1,
+         "maximum": 20,
+         "default": 1
+        },
+        "type": {
+         "type": "string",
+         "enum": [
+          "ancestry",
+          "class",
+          "general",
+          "skill",
+          "archetype",
+          "bonus"
+         ]
+        },
+        "name": {
+         "type": "string",
+         "maxLength": 120
+        }
+       },
+       "required": [
+        "name"
+       ]
+      },
+      "default": []
+     },
+     "features": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "name": {
+         "type": "string"
+        },
+        "desc": {
+         "type": "string",
+         "maxLength": 40000
+        }
+       },
+       "required": [
+        "name"
+       ]
+      },
+      "default": []
+     },
+     "languages": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "default": []
+     },
+     "inventory": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "name": {
+         "type": "string",
+         "maxLength": 120
+        },
+        "quantity": {
+         "type": "integer",
+         "minimum": 0,
+         "maximum": 9999,
+         "default": 1
+        },
+        "bulk": {
+         "type": "number",
+         "minimum": 0,
+         "maximum": 50,
+         "description": "Light is 0.1."
+        },
+        "invested": {
+         "type": "boolean"
+        },
+        "notes": {
+         "type": "string",
+         "maxLength": 200
+        }
+       },
+       "required": [
+        "name"
+       ]
+      },
+      "default": []
+     },
+     "coins": {
+      "type": "object",
+      "properties": {
+       "cp": {
+        "type": "integer",
+        "minimum": 0
+       },
+       "sp": {
+        "type": "integer",
+        "minimum": 0
+       },
+       "gp": {
+        "type": "integer",
+        "minimum": 0
+       },
+       "pp": {
+        "type": "integer",
+        "minimum": 0
+       }
+      },
+      "additionalProperties": false,
+      "default": {
+       "cp": 0,
+       "sp": 0,
+       "gp": 15,
+       "pp": 0
+      }
+     },
+     "appearance": {
+      "type": "string",
+      "maxLength": 4000
+     },
+     "personality": {
+      "type": "string",
+      "maxLength": 4000
+     },
+     "backstory": {
+      "type": "string",
+      "maxLength": 40000
+     },
+     "notes": {
+      "type": "string",
+      "maxLength": 40000
+     }
+    },
+    "required": [
+     "attributes",
+     "level",
+     "hp"
+    ],
+    "additionalProperties": false
+   },
+   "computed": {
+    "perceptionTotal": {
+     "+": [
+      {
+       "var": [
+        "fields.attributes.wisdom",
+        0
+       ]
+      },
+      {
+       "if": [
+        {
+         ">": [
+          {
+           "var": [
+            "fields.saves.perception",
+            0
+           ]
+          },
+          0
+         ]
+        },
+        {
+         "+": [
+          {
+           "var": [
+            "fields.level",
+            1
+           ]
+          },
+          {
+           "*": [
+            2,
+            {
+             "var": [
+              "fields.saves.perception",
+              0
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      {
+       "var": [
+        "fields.bonuses.perception",
+        0
+       ]
+      }
+     ]
+    },
+    "fortitudeTotal": {
+     "+": [
+      {
+       "var": [
+        "fields.attributes.constitution",
+        0
+       ]
+      },
+      {
+       "if": [
+        {
+         ">": [
+          {
+           "var": [
+            "fields.saves.fortitude",
+            0
+           ]
+          },
+          0
+         ]
+        },
+        {
+         "+": [
+          {
+           "var": [
+            "fields.level",
+            1
+           ]
+          },
+          {
+           "*": [
+            2,
+            {
+             "var": [
+              "fields.saves.fortitude",
+              0
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      {
+       "var": [
+        "fields.bonuses.fortitude",
+        0
+       ]
+      }
+     ]
+    },
+    "reflexTotal": {
+     "+": [
+      {
+       "var": [
+        "fields.attributes.dexterity",
+        0
+       ]
+      },
+      {
+       "if": [
+        {
+         ">": [
+          {
+           "var": [
+            "fields.saves.reflex",
+            0
+           ]
+          },
+          0
+         ]
+        },
+        {
+         "+": [
+          {
+           "var": [
+            "fields.level",
+            1
+           ]
+          },
+          {
+           "*": [
+            2,
+            {
+             "var": [
+              "fields.saves.reflex",
+              0
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      {
+       "var": [
+        "fields.bonuses.reflex",
+        0
+       ]
+      }
+     ]
+    },
+    "willTotal": {
+     "+": [
+      {
+       "var": [
+        "fields.attributes.wisdom",
+        0
+       ]
+      },
+      {
+       "if": [
+        {
+         ">": [
+          {
+           "var": [
+            "fields.saves.will",
+            0
+           ]
+          },
+          0
+         ]
+        },
+        {
+         "+": [
+          {
+           "var": [
+            "fields.level",
+            1
+           ]
+          },
+          {
+           "*": [
+            2,
+            {
+             "var": [
+              "fields.saves.will",
+              0
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      {
+       "var": [
+        "fields.bonuses.will",
+        0
+       ]
+      }
+     ]
+    },
+    "acrobaticsTotal": {
+     "+": [
+      {
+       "var": [
+        "fields.attributes.dexterity",
+        0
+       ]
+      },
+      {
+       "if": [
+        {
+         ">": [
+          {
+           "var": [
+            "fields.skills.acrobatics",
+            0
+           ]
+          },
+          0
+         ]
+        },
+        {
+         "+": [
+          {
+           "var": [
+            "fields.level",
+            1
+           ]
+          },
+          {
+           "*": [
+            2,
+            {
+             "var": [
+              "fields.skills.acrobatics",
+              0
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      {
+       "var": [
+        "fields.bonuses.acrobatics",
+        0
+       ]
+      }
+     ]
+    },
+    "arcanaTotal": {
+     "+": [
+      {
+       "var": [
+        "fields.attributes.intelligence",
+        0
+       ]
+      },
+      {
+       "if": [
+        {
+         ">": [
+          {
+           "var": [
+            "fields.skills.arcana",
+            0
+           ]
+          },
+          0
+         ]
+        },
+        {
+         "+": [
+          {
+           "var": [
+            "fields.level",
+            1
+           ]
+          },
+          {
+           "*": [
+            2,
+            {
+             "var": [
+              "fields.skills.arcana",
+              0
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      {
+       "var": [
+        "fields.bonuses.arcana",
+        0
+       ]
+      }
+     ]
+    },
+    "athleticsTotal": {
+     "+": [
+      {
+       "var": [
+        "fields.attributes.strength",
+        0
+       ]
+      },
+      {
+       "if": [
+        {
+         ">": [
+          {
+           "var": [
+            "fields.skills.athletics",
+            0
+           ]
+          },
+          0
+         ]
+        },
+        {
+         "+": [
+          {
+           "var": [
+            "fields.level",
+            1
+           ]
+          },
+          {
+           "*": [
+            2,
+            {
+             "var": [
+              "fields.skills.athletics",
+              0
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      {
+       "var": [
+        "fields.bonuses.athletics",
+        0
+       ]
+      }
+     ]
+    },
+    "craftingTotal": {
+     "+": [
+      {
+       "var": [
+        "fields.attributes.intelligence",
+        0
+       ]
+      },
+      {
+       "if": [
+        {
+         ">": [
+          {
+           "var": [
+            "fields.skills.crafting",
+            0
+           ]
+          },
+          0
+         ]
+        },
+        {
+         "+": [
+          {
+           "var": [
+            "fields.level",
+            1
+           ]
+          },
+          {
+           "*": [
+            2,
+            {
+             "var": [
+              "fields.skills.crafting",
+              0
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      {
+       "var": [
+        "fields.bonuses.crafting",
+        0
+       ]
+      }
+     ]
+    },
+    "deceptionTotal": {
+     "+": [
+      {
+       "var": [
+        "fields.attributes.charisma",
+        0
+       ]
+      },
+      {
+       "if": [
+        {
+         ">": [
+          {
+           "var": [
+            "fields.skills.deception",
+            0
+           ]
+          },
+          0
+         ]
+        },
+        {
+         "+": [
+          {
+           "var": [
+            "fields.level",
+            1
+           ]
+          },
+          {
+           "*": [
+            2,
+            {
+             "var": [
+              "fields.skills.deception",
+              0
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      {
+       "var": [
+        "fields.bonuses.deception",
+        0
+       ]
+      }
+     ]
+    },
+    "diplomacyTotal": {
+     "+": [
+      {
+       "var": [
+        "fields.attributes.charisma",
+        0
+       ]
+      },
+      {
+       "if": [
+        {
+         ">": [
+          {
+           "var": [
+            "fields.skills.diplomacy",
+            0
+           ]
+          },
+          0
+         ]
+        },
+        {
+         "+": [
+          {
+           "var": [
+            "fields.level",
+            1
+           ]
+          },
+          {
+           "*": [
+            2,
+            {
+             "var": [
+              "fields.skills.diplomacy",
+              0
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      {
+       "var": [
+        "fields.bonuses.diplomacy",
+        0
+       ]
+      }
+     ]
+    },
+    "intimidationTotal": {
+     "+": [
+      {
+       "var": [
+        "fields.attributes.charisma",
+        0
+       ]
+      },
+      {
+       "if": [
+        {
+         ">": [
+          {
+           "var": [
+            "fields.skills.intimidation",
+            0
+           ]
+          },
+          0
+         ]
+        },
+        {
+         "+": [
+          {
+           "var": [
+            "fields.level",
+            1
+           ]
+          },
+          {
+           "*": [
+            2,
+            {
+             "var": [
+              "fields.skills.intimidation",
+              0
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      {
+       "var": [
+        "fields.bonuses.intimidation",
+        0
+       ]
+      }
+     ]
+    },
+    "medicineTotal": {
+     "+": [
+      {
+       "var": [
+        "fields.attributes.wisdom",
+        0
+       ]
+      },
+      {
+       "if": [
+        {
+         ">": [
+          {
+           "var": [
+            "fields.skills.medicine",
+            0
+           ]
+          },
+          0
+         ]
+        },
+        {
+         "+": [
+          {
+           "var": [
+            "fields.level",
+            1
+           ]
+          },
+          {
+           "*": [
+            2,
+            {
+             "var": [
+              "fields.skills.medicine",
+              0
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      {
+       "var": [
+        "fields.bonuses.medicine",
+        0
+       ]
+      }
+     ]
+    },
+    "natureTotal": {
+     "+": [
+      {
+       "var": [
+        "fields.attributes.wisdom",
+        0
+       ]
+      },
+      {
+       "if": [
+        {
+         ">": [
+          {
+           "var": [
+            "fields.skills.nature",
+            0
+           ]
+          },
+          0
+         ]
+        },
+        {
+         "+": [
+          {
+           "var": [
+            "fields.level",
+            1
+           ]
+          },
+          {
+           "*": [
+            2,
+            {
+             "var": [
+              "fields.skills.nature",
+              0
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      {
+       "var": [
+        "fields.bonuses.nature",
+        0
+       ]
+      }
+     ]
+    },
+    "occultismTotal": {
+     "+": [
+      {
+       "var": [
+        "fields.attributes.intelligence",
+        0
+       ]
+      },
+      {
+       "if": [
+        {
+         ">": [
+          {
+           "var": [
+            "fields.skills.occultism",
+            0
+           ]
+          },
+          0
+         ]
+        },
+        {
+         "+": [
+          {
+           "var": [
+            "fields.level",
+            1
+           ]
+          },
+          {
+           "*": [
+            2,
+            {
+             "var": [
+              "fields.skills.occultism",
+              0
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      {
+       "var": [
+        "fields.bonuses.occultism",
+        0
+       ]
+      }
+     ]
+    },
+    "performanceTotal": {
+     "+": [
+      {
+       "var": [
+        "fields.attributes.charisma",
+        0
+       ]
+      },
+      {
+       "if": [
+        {
+         ">": [
+          {
+           "var": [
+            "fields.skills.performance",
+            0
+           ]
+          },
+          0
+         ]
+        },
+        {
+         "+": [
+          {
+           "var": [
+            "fields.level",
+            1
+           ]
+          },
+          {
+           "*": [
+            2,
+            {
+             "var": [
+              "fields.skills.performance",
+              0
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      {
+       "var": [
+        "fields.bonuses.performance",
+        0
+       ]
+      }
+     ]
+    },
+    "religionTotal": {
+     "+": [
+      {
+       "var": [
+        "fields.attributes.wisdom",
+        0
+       ]
+      },
+      {
+       "if": [
+        {
+         ">": [
+          {
+           "var": [
+            "fields.skills.religion",
+            0
+           ]
+          },
+          0
+         ]
+        },
+        {
+         "+": [
+          {
+           "var": [
+            "fields.level",
+            1
+           ]
+          },
+          {
+           "*": [
+            2,
+            {
+             "var": [
+              "fields.skills.religion",
+              0
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      {
+       "var": [
+        "fields.bonuses.religion",
+        0
+       ]
+      }
+     ]
+    },
+    "societyTotal": {
+     "+": [
+      {
+       "var": [
+        "fields.attributes.intelligence",
+        0
+       ]
+      },
+      {
+       "if": [
+        {
+         ">": [
+          {
+           "var": [
+            "fields.skills.society",
+            0
+           ]
+          },
+          0
+         ]
+        },
+        {
+         "+": [
+          {
+           "var": [
+            "fields.level",
+            1
+           ]
+          },
+          {
+           "*": [
+            2,
+            {
+             "var": [
+              "fields.skills.society",
+              0
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      {
+       "var": [
+        "fields.bonuses.society",
+        0
+       ]
+      }
+     ]
+    },
+    "stealthTotal": {
+     "+": [
+      {
+       "var": [
+        "fields.attributes.dexterity",
+        0
+       ]
+      },
+      {
+       "if": [
+        {
+         ">": [
+          {
+           "var": [
+            "fields.skills.stealth",
+            0
+           ]
+          },
+          0
+         ]
+        },
+        {
+         "+": [
+          {
+           "var": [
+            "fields.level",
+            1
+           ]
+          },
+          {
+           "*": [
+            2,
+            {
+             "var": [
+              "fields.skills.stealth",
+              0
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      {
+       "var": [
+        "fields.bonuses.stealth",
+        0
+       ]
+      }
+     ]
+    },
+    "survivalTotal": {
+     "+": [
+      {
+       "var": [
+        "fields.attributes.wisdom",
+        0
+       ]
+      },
+      {
+       "if": [
+        {
+         ">": [
+          {
+           "var": [
+            "fields.skills.survival",
+            0
+           ]
+          },
+          0
+         ]
+        },
+        {
+         "+": [
+          {
+           "var": [
+            "fields.level",
+            1
+           ]
+          },
+          {
+           "*": [
+            2,
+            {
+             "var": [
+              "fields.skills.survival",
+              0
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      {
+       "var": [
+        "fields.bonuses.survival",
+        0
+       ]
+      }
+     ]
+    },
+    "thieveryTotal": {
+     "+": [
+      {
+       "var": [
+        "fields.attributes.dexterity",
+        0
+       ]
+      },
+      {
+       "if": [
+        {
+         ">": [
+          {
+           "var": [
+            "fields.skills.thievery",
+            0
+           ]
+          },
+          0
+         ]
+        },
+        {
+         "+": [
+          {
+           "var": [
+            "fields.level",
+            1
+           ]
+          },
+          {
+           "*": [
+            2,
+            {
+             "var": [
+              "fields.skills.thievery",
+              0
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      {
+       "var": [
+        "fields.bonuses.thievery",
+        0
+       ]
+      }
+     ]
+    },
+    "loreATotal": {
+     "+": [
+      {
+       "var": [
+        "fields.attributes.intelligence",
+        0
+       ]
+      },
+      {
+       "if": [
+        {
+         ">": [
+          {
+           "var": [
+            "fields.skills.lore-a",
+            0
+           ]
+          },
+          0
+         ]
+        },
+        {
+         "+": [
+          {
+           "var": [
+            "fields.level",
+            1
+           ]
+          },
+          {
+           "*": [
+            2,
+            {
+             "var": [
+              "fields.skills.lore-a",
+              0
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      {
+       "var": [
+        "fields.bonuses.lore-a",
+        0
+       ]
+      }
+     ]
+    },
+    "loreBTotal": {
+     "+": [
+      {
+       "var": [
+        "fields.attributes.intelligence",
+        0
+       ]
+      },
+      {
+       "if": [
+        {
+         ">": [
+          {
+           "var": [
+            "fields.skills.lore-b",
+            0
+           ]
+          },
+          0
+         ]
+        },
+        {
+         "+": [
+          {
+           "var": [
+            "fields.level",
+            1
+           ]
+          },
+          {
+           "*": [
+            2,
+            {
+             "var": [
+              "fields.skills.lore-b",
+              0
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      {
+       "var": [
+        "fields.bonuses.lore-b",
+        0
+       ]
+      }
+     ]
+    },
+    "ancestryHp": {
+     "lookup": [
+      {
+       "catfolk": 8,
+       "dwarf": 10,
+       "elf": 6,
+       "gnome": 8,
+       "goblin": 6,
+       "halfling": 6,
+       "hobgoblin": 8,
+       "human": 8,
+       "kholo": 8,
+       "kobold": 6,
+       "leshy": 8,
+       "lizardfolk": 8,
+       "orc": 10,
+       "ratfolk": 6,
+       "tengu": 6,
+       "tripkee": 6
+      },
+      {
+       "var": [
+        "fields.ancestry",
+        ""
+       ]
+      },
+      0
+     ]
+    },
+    "classHp": {
+     "lookup": [
+      {
+       "alchemist": 8,
+       "barbarian": 12,
+       "bard": 8,
+       "champion": 10,
+       "cleric": 8,
+       "druid": 8,
+       "fighter": 10,
+       "investigator": 8,
+       "monk": 10,
+       "oracle": 8,
+       "ranger": 10,
+       "rogue": 8,
+       "sorcerer": 6,
+       "swashbuckler": 10,
+       "witch": 6,
+       "wizard": 6
+      },
+      {
+       "var": [
+        "fields.class",
+        ""
+       ]
+      },
+      0
+     ]
+    },
+    "hpMax": {
+     "max": [
+      1,
+      {
+       "+": [
+        {
+         "var": [
+          "computed.ancestryHp",
+          0
+         ]
+        },
+        {
+         "*": [
+          {
+           "+": [
+            {
+             "var": [
+              "computed.classHp",
+              0
+             ]
+            },
+            {
+             "var": [
+              "fields.attributes.constitution",
+              0
+             ]
+            }
+           ]
+          },
+          {
+           "var": [
+            "fields.level",
+            1
+           ]
+          }
+         ]
+        },
+        {
+         "var": [
+          "fields.hpBonus",
+          0
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    "classDc": {
+     "+": [
+      10,
+      {
+       "var": [
+        {
+         "cat": [
+          "fields.attributes.",
+          {
+           "var": [
+            "fields.keyAttribute",
+            "strength"
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      {
+       "if": [
+        {
+         ">": [
+          {
+           "var": [
+            "fields.classDcRank",
+            0
+           ]
+          },
+          0
+         ]
+        },
+        {
+         "+": [
+          {
+           "var": [
+            "fields.level",
+            1
+           ]
+          },
+          {
+           "*": [
+            2,
+            {
+             "var": [
+              "fields.classDcRank",
+              0
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      }
+     ]
+    },
+    "armorRank": {
+     "var": [
+      {
+       "cat": [
+        "fields.defenses.",
+        {
+         "var": [
+          "fields.armor.category",
+          "unarmored"
+         ]
+        }
+       ]
+      },
+      0
+     ]
+    },
+    "ac": {
+     "+": [
+      10,
+      {
+       "min": [
+        {
+         "var": [
+          "fields.attributes.dexterity",
+          0
+         ]
+        },
+        {
+         "var": [
+          "fields.armor.dexCap",
+          99
+         ]
+        }
+       ]
+      },
+      {
+       "if": [
+        {
+         ">": [
+          {
+           "var": [
+            "computed.armorRank",
+            0
+           ]
+          },
+          0
+         ]
+        },
+        {
+         "+": [
+          {
+           "var": [
+            "fields.level",
+            1
+           ]
+          },
+          {
+           "*": [
+            2,
+            {
+             "var": [
+              "computed.armorRank",
+              0
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      {
+       "var": [
+        "fields.armor.acBonus",
+        0
+       ]
+      },
+      {
+       "var": [
+        "fields.armor.potency",
+        0
+       ]
+      },
+      {
+       "var": [
+        "fields.bonuses.ac",
+        0
+       ]
+      }
+     ]
+    },
+    "acShieldRaised": {
+     "+": [
+      {
+       "var": [
+        "computed.ac",
+        10
+       ]
+      },
+      {
+       "var": [
+        "fields.shield.acBonus",
+        0
+       ]
+      }
+     ]
+    },
+    "spellDc": {
+     "if": [
+      {
+       ">": [
+        {
+         "var": [
+          "fields.spellcasting.rank",
+          0
+         ]
+        },
+        0
+       ]
+      },
+      {
+       "+": [
+        10,
+        {
+         "var": [
+          {
+           "cat": [
+            "fields.attributes.",
+            {
+             "var": [
+              "fields.spellcasting.attribute",
+              "charisma"
+             ]
+            }
+           ]
+          },
+          0
+         ]
+        },
+        {
+         "if": [
+          {
+           ">": [
+            {
+             "var": [
+              "fields.spellcasting.rank",
+              0
+             ]
+            },
+            0
+           ]
+          },
+          {
+           "+": [
+            {
+             "var": [
+              "fields.level",
+              1
+             ]
+            },
+            {
+             "*": [
+              2,
+              {
+               "var": [
+                "fields.spellcasting.rank",
+                0
+               ]
+              }
+             ]
+            }
+           ]
+          },
+          0
+         ]
+        }
+       ]
+      },
+      null
+     ]
+    },
+    "spellAttack": {
+     "if": [
+      {
+       ">": [
+        {
+         "var": [
+          "fields.spellcasting.rank",
+          0
+         ]
+        },
+        0
+       ]
+      },
+      {
+       "if": [
+        {
+         ">=": [
+          {
+           "+": [
+            {
+             "var": [
+              {
+               "cat": [
+                "fields.attributes.",
+                {
+                 "var": [
+                  "fields.spellcasting.attribute",
+                  "charisma"
+                 ]
+                }
+               ]
+              },
+              0
+             ]
+            },
+            {
+             "if": [
+              {
+               ">": [
+                {
+                 "var": [
+                  "fields.spellcasting.rank",
+                  0
+                 ]
+                },
+                0
+               ]
+              },
+              {
+               "+": [
+                {
+                 "var": [
+                  "fields.level",
+                  1
+                 ]
+                },
+                {
+                 "*": [
+                  2,
+                  {
+                   "var": [
+                    "fields.spellcasting.rank",
+                    0
+                   ]
+                  }
+                 ]
+                }
+               ]
+              },
+              0
+             ]
+            }
+           ]
+          },
+          0
+         ]
+        },
+        {
+         "cat": [
+          "+",
+          {
+           "+": [
+            {
+             "var": [
+              {
+               "cat": [
+                "fields.attributes.",
+                {
+                 "var": [
+                  "fields.spellcasting.attribute",
+                  "charisma"
+                 ]
+                }
+               ]
+              },
+              0
+             ]
+            },
+            {
+             "if": [
+              {
+               ">": [
+                {
+                 "var": [
+                  "fields.spellcasting.rank",
+                  0
+                 ]
+                },
+                0
+               ]
+              },
+              {
+               "+": [
+                {
+                 "var": [
+                  "fields.level",
+                  1
+                 ]
+                },
+                {
+                 "*": [
+                  2,
+                  {
+                   "var": [
+                    "fields.spellcasting.rank",
+                    0
+                   ]
+                  }
+                 ]
+                }
+               ]
+              },
+              0
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "cat": [
+          {
+           "+": [
+            {
+             "var": [
+              {
+               "cat": [
+                "fields.attributes.",
+                {
+                 "var": [
+                  "fields.spellcasting.attribute",
+                  "charisma"
+                 ]
+                }
+               ]
+              },
+              0
+             ]
+            },
+            {
+             "if": [
+              {
+               ">": [
+                {
+                 "var": [
+                  "fields.spellcasting.rank",
+                  0
+                 ]
+                },
+                0
+               ]
+              },
+              {
+               "+": [
+                {
+                 "var": [
+                  "fields.level",
+                  1
+                 ]
+                },
+                {
+                 "*": [
+                  2,
+                  {
+                   "var": [
+                    "fields.spellcasting.rank",
+                    0
+                   ]
+                  }
+                 ]
+                }
+               ]
+              },
+              0
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      null
+     ]
+    },
+    "totalBulk": {
+     "floor": {
+      "+": [
+       {
+        "sum": [
+         {
+          "map": [
+           {
+            "var": [
+             "fields.inventory",
+             []
+            ]
+           },
+           {
+            "*": [
+             {
+              "var": [
+               "quantity",
+               1
+              ]
+             },
+             {
+              "var": [
+               "bulk",
+               0
+              ]
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       0.001
+      ]
+     }
+    },
+    "encumberedAt": {
+     "+": [
+      5,
+      {
+       "var": [
+        "fields.attributes.strength",
+        0
+       ]
+      }
+     ]
+    },
+    "maxBulk": {
+     "+": [
+      10,
+      {
+       "var": [
+        "fields.attributes.strength",
+        0
+       ]
+      }
+     ]
+    },
+    "bulkStatus": {
+     "if": [
+      {
+       ">": [
+        {
+         "var": [
+          "computed.totalBulk",
+          0
+         ]
+        },
+        {
+         "var": [
+          "computed.maxBulk",
+          10
+         ]
+        }
+       ]
+      },
+      "over the maximum: cannot carry more",
+      {
+       ">": [
+        {
+         "var": [
+          "computed.totalBulk",
+          0
+         ]
+        },
+        {
+         "var": [
+          "computed.encumberedAt",
+          5
+         ]
+        }
+       ]
+      },
+      "encumbered",
+      "unencumbered"
+     ]
+    },
+    "dyingMax": {
+     "max": [
+      1,
+      {
+       "-": [
+        4,
+        {
+         "var": [
+          "fields.doomed",
+          0
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    "recoveryDc": {
+     "+": [
+      10,
+      {
+       "var": [
+        "fields.dying",
+        0
+       ]
+      }
+     ]
+    },
+    "initiative": {
+     "var": [
+      {
+       "cat": [
+        "computed.",
+        {
+         "var": [
+          "fields.initiativeSkill",
+          "perception"
+         ]
+        },
+        "Total"
+       ]
+      },
+      0
+     ]
+    },
+    "xpToLevel": {
+     "max": [
+      0,
+      {
+       "-": [
+        1000,
+        {
+         "var": [
+          "fields.xp",
+          0
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   },
+   "sheet": {
+    "sections": [
+     {
+      "id": "identity",
+      "title": "Character",
+      "columns": 3,
+      "fields": [
+       {
+        "path": "ancestry",
+        "label": "Ancestry",
+        "widget": "select",
+        "options": {
+         "ref": "pf2e-orc.ancestries"
+        }
+       },
+       {
+        "path": "heritage",
+        "label": "Heritage",
+        "widget": "text"
+       },
+       {
+        "path": "background",
+        "label": "Background",
+        "widget": "text"
+       },
+       {
+        "path": "class",
+        "label": "Class",
+        "widget": "select",
+        "options": {
+         "ref": "pf2e-orc.classes"
+        }
+       },
+       {
+        "path": "subclass",
+        "label": "Class choice",
+        "widget": "text"
+       },
+       {
+        "path": "level",
+        "label": "Level",
+        "widget": "number"
+       },
+       {
+        "path": "keyAttribute",
+        "label": "Key attribute",
+        "widget": "select",
+        "options": {
+         "ref": "pf2e-orc.attributes"
+        }
+       },
+       {
+        "path": "xp",
+        "label": "Experience points",
+        "widget": "number"
+       },
+       {
+        "path": "xpToLevel",
+        "label": "XP to next level",
+        "widget": "computed"
+       },
+       {
+        "path": "player",
+        "label": "Player",
+        "widget": "text"
+       },
+       {
+        "path": "isPC",
+        "label": "Player character",
+        "widget": "checkbox"
+       }
+      ]
+     },
+     {
+      "id": "attributes",
+      "title": "Attribute modifiers",
+      "columns": 6,
+      "fields": [
+       {
+        "path": "attributes.strength",
+        "label": "Strength",
+        "widget": "attribute",
+        "rule": "pf2e-orc.rule.advice.attributes"
+       },
+       {
+        "path": "attributes.dexterity",
+        "label": "Dexterity",
+        "widget": "attribute",
+        "rule": "pf2e-orc.rule.advice.attributes"
+       },
+       {
+        "path": "attributes.constitution",
+        "label": "Constitution",
+        "widget": "attribute",
+        "rule": "pf2e-orc.rule.advice.attributes"
+       },
+       {
+        "path": "attributes.intelligence",
+        "label": "Intelligence",
+        "widget": "attribute",
+        "rule": "pf2e-orc.rule.advice.attributes"
+       },
+       {
+        "path": "attributes.wisdom",
+        "label": "Wisdom",
+        "widget": "attribute",
+        "rule": "pf2e-orc.rule.advice.attributes"
+       },
+       {
+        "path": "attributes.charisma",
+        "label": "Charisma",
+        "widget": "attribute",
+        "rule": "pf2e-orc.rule.advice.attributes"
+       }
+      ]
+     },
+     {
+      "id": "defense",
+      "title": "Defense and health",
+      "columns": 4,
+      "fields": [
+       {
+        "path": "ac",
+        "label": "Armor Class",
+        "widget": "computed",
+        "rule": "pf2e-orc.rule.advice.armor-class"
+       },
+       {
+        "path": "acShieldRaised",
+        "label": "AC with shield raised",
+        "widget": "computed",
+        "rule": "pf2e-orc.rule.action.raise-a-shield"
+       },
+       {
+        "path": "hpMax",
+        "label": "Hit Point maximum",
+        "widget": "computed",
+        "rule": "pf2e-orc.rule.advice.hit-points"
+       },
+       {
+        "path": "hp.current",
+        "label": "Hit Points",
+        "widget": "number"
+       },
+       {
+        "path": "hp.temp",
+        "label": "Temporary Hit Points",
+        "widget": "number"
+       },
+       {
+        "path": "hpBonus",
+        "label": "Bonus max HP",
+        "widget": "number"
+       },
+       {
+        "path": "speed",
+        "label": "Speed (feet)",
+        "widget": "number"
+       },
+       {
+        "path": "heroPoints",
+        "label": "Hero Points",
+        "widget": "number",
+        "rule": "pf2e-orc.rule.advice.hero-points"
+       },
+       {
+        "path": "classDc",
+        "label": "Class DC",
+        "widget": "computed"
+       },
+       {
+        "path": "classDcRank",
+        "label": "Class DC proficiency (0–4)",
+        "widget": "number"
+       },
+       {
+        "path": "initiative",
+        "label": "Initiative",
+        "widget": "computed"
+       },
+       {
+        "path": "initiativeSkill",
+        "label": "Initiative uses",
+        "widget": "select",
+        "options": [
+         "perception",
+         "acrobatics",
+         "arcana",
+         "athletics",
+         "crafting",
+         "deception",
+         "diplomacy",
+         "intimidation",
+         "medicine",
+         "nature",
+         "occultism",
+         "performance",
+         "religion",
+         "society",
+         "stealth",
+         "survival",
+         "thievery"
+        ]
+       }
+      ]
+     },
+     {
+      "id": "saves",
+      "title": "Perception and saving throws",
+      "fields": [
+       {
+        "path": "saves.*",
+        "label": "Perception and saving throws",
+        "widget": "skills",
+        "rule": "pf2e-orc.rule.advice.proficiency",
+        "config": {
+         "ref": "pf2e-orc.saves",
+         "attributesPath": "attributes",
+         "levels": [
+          {
+           "value": 0,
+           "label": "Untrained"
+          },
+          {
+           "value": 1,
+           "label": "Trained"
+          },
+          {
+           "value": 2,
+           "label": "Expert"
+          },
+          {
+           "value": 3,
+           "label": "Master"
+          },
+          {
+           "value": 4,
+           "label": "Legendary"
+          }
+         ],
+         "labels": {
+          "skill": "Check",
+          "attribute": "Attribute",
+          "attributeValue": "Mod",
+          "value": "Proficiency",
+          "pool": "Roll"
+         }
+        }
+       }
+      ]
+     },
+     {
+      "id": "skills",
+      "title": "Skills",
+      "fields": [
+       {
+        "path": "skills.*",
+        "label": "Skills",
+        "widget": "skills",
+        "rule": "pf2e-orc.rule.advice.proficiency",
+        "config": {
+         "skills": [
+          {
+           "id": "acrobatics",
+           "name": "Acrobatics",
+           "attribute": "dexterity"
+          },
+          {
+           "id": "arcana",
+           "name": "Arcana",
+           "attribute": "intelligence"
+          },
+          {
+           "id": "athletics",
+           "name": "Athletics",
+           "attribute": "strength"
+          },
+          {
+           "id": "crafting",
+           "name": "Crafting",
+           "attribute": "intelligence"
+          },
+          {
+           "id": "deception",
+           "name": "Deception",
+           "attribute": "charisma"
+          },
+          {
+           "id": "diplomacy",
+           "name": "Diplomacy",
+           "attribute": "charisma"
+          },
+          {
+           "id": "intimidation",
+           "name": "Intimidation",
+           "attribute": "charisma"
+          },
+          {
+           "id": "medicine",
+           "name": "Medicine",
+           "attribute": "wisdom"
+          },
+          {
+           "id": "nature",
+           "name": "Nature",
+           "attribute": "wisdom"
+          },
+          {
+           "id": "occultism",
+           "name": "Occultism",
+           "attribute": "intelligence"
+          },
+          {
+           "id": "performance",
+           "name": "Performance",
+           "attribute": "charisma"
+          },
+          {
+           "id": "religion",
+           "name": "Religion",
+           "attribute": "wisdom"
+          },
+          {
+           "id": "society",
+           "name": "Society",
+           "attribute": "intelligence"
+          },
+          {
+           "id": "stealth",
+           "name": "Stealth",
+           "attribute": "dexterity"
+          },
+          {
+           "id": "survival",
+           "name": "Survival",
+           "attribute": "wisdom"
+          },
+          {
+           "id": "thievery",
+           "name": "Thievery",
+           "attribute": "dexterity"
+          },
+          {
+           "id": "lore-a",
+           "name": "Lore (first)",
+           "attribute": "intelligence"
+          },
+          {
+           "id": "lore-b",
+           "name": "Lore (second)",
+           "attribute": "intelligence"
+          }
+         ],
+         "attributesPath": "attributes",
+         "levels": [
+          {
+           "value": 0,
+           "label": "Untrained"
+          },
+          {
+           "value": 1,
+           "label": "Trained"
+          },
+          {
+           "value": 2,
+           "label": "Expert"
+          },
+          {
+           "value": 3,
+           "label": "Master"
+          },
+          {
+           "value": 4,
+           "label": "Legendary"
+          }
+         ],
+         "labels": {
+          "skill": "Skill",
+          "attribute": "Attribute",
+          "attributeValue": "Mod",
+          "value": "Proficiency",
+          "pool": "Roll"
+         }
+        }
+       },
+       {
+        "path": "loreTopics",
+        "label": "Lore topics",
+        "widget": "object"
+       }
+      ]
+     },
+     {
+      "id": "armor",
+      "title": "Armor, shield and proficiencies",
+      "collapsed": true,
+      "columns": 2,
+      "fields": [
+       {
+        "path": "armor",
+        "label": "Armor",
+        "widget": "object"
+       },
+       {
+        "path": "shield",
+        "label": "Shield",
+        "widget": "object"
+       },
+       {
+        "path": "defenses",
+        "label": "Armor proficiency (0 untrained ... 4 legendary)",
+        "widget": "object"
+       },
+       {
+        "path": "attacks",
+        "label": "Weapon proficiency (0 untrained ... 4 legendary)",
+        "widget": "object"
+       }
+      ]
+     },
+     {
+      "id": "strikes",
+      "title": "Strikes",
+      "fields": [
+       {
+        "path": "strikes",
+        "label": "Strikes",
+        "widget": "table",
+        "config": {
+         "columns": [
+          "name",
+          {
+           "key": "bonus",
+           "label": "Attack"
+          },
+          "damage",
+          "traits"
+         ]
+        }
+       }
+      ]
+     },
+     {
+      "id": "conditions",
+      "title": "Conditions and dying",
+      "columns": 4,
+      "fields": [
+       {
+        "path": "dying",
+        "label": "Dying",
+        "widget": "number",
+        "rule": "pf2e-orc.rule.condition.dying"
+       },
+       {
+        "path": "wounded",
+        "label": "Wounded",
+        "widget": "number",
+        "rule": "pf2e-orc.rule.condition.wounded"
+       },
+       {
+        "path": "doomed",
+        "label": "Doomed",
+        "widget": "number",
+        "rule": "pf2e-orc.rule.condition.doomed"
+       },
+       {
+        "path": "recoveryDc",
+        "label": "Recovery check DC",
+        "widget": "computed"
+       },
+       {
+        "path": "conditions.frightened",
+        "label": "Frightened",
+        "widget": "number",
+        "rule": "pf2e-orc.rule.condition.frightened"
+       },
+       {
+        "path": "conditions.sickened",
+        "label": "Sickened",
+        "widget": "number",
+        "rule": "pf2e-orc.rule.condition.sickened"
+       },
+       {
+        "path": "conditions.clumsy",
+        "label": "Clumsy",
+        "widget": "number",
+        "rule": "pf2e-orc.rule.condition.clumsy"
+       },
+       {
+        "path": "conditions.drained",
+        "label": "Drained",
+        "widget": "number",
+        "rule": "pf2e-orc.rule.condition.drained"
+       },
+       {
+        "path": "conditions.enfeebled",
+        "label": "Enfeebled",
+        "widget": "number",
+        "rule": "pf2e-orc.rule.condition.enfeebled"
+       },
+       {
+        "path": "conditions.stupefied",
+        "label": "Stupefied",
+        "widget": "number",
+        "rule": "pf2e-orc.rule.condition.stupefied"
+       },
+       {
+        "path": "conditions.slowed",
+        "label": "Slowed",
+        "widget": "number",
+        "rule": "pf2e-orc.rule.condition.slowed"
+       },
+       {
+        "path": "conditions.stunned",
+        "label": "Stunned",
+        "widget": "number",
+        "rule": "pf2e-orc.rule.condition.stunned"
+       },
+       {
+        "path": "otherConditions",
+        "label": "Other conditions",
+        "widget": "conditions",
+        "span": 12
+       }
+      ]
+     },
+     {
+      "id": "feats",
+      "title": "Feats and features",
+      "fields": [
+       {
+        "path": "feats",
+        "label": "Feats by level",
+        "widget": "table",
+        "config": {
+         "columns": [
+          "level",
+          "type",
+          "name"
+         ]
+        }
+       },
+       {
+        "path": "features",
+        "label": "Class and ancestry features",
+        "widget": "entries"
+       },
+       {
+        "path": "languages",
+        "label": "Languages",
+        "widget": "tags"
+       }
+      ]
+     },
+     {
+      "id": "spellcasting",
+      "title": "Spellcasting",
+      "columns": 4,
+      "fields": [
+       {
+        "path": "spellcasting",
+        "label": "Spellcasting",
+        "widget": "object",
+        "span": 6
+       },
+       {
+        "path": "spellDc",
+        "label": "Spell DC",
+        "widget": "computed"
+       },
+       {
+        "path": "spellAttack",
+        "label": "Spell attack",
+        "widget": "computed"
+       },
+       {
+        "path": "focus.current",
+        "label": "Focus Points",
+        "widget": "number"
+       },
+       {
+        "path": "focus.max",
+        "label": "Focus Point maximum",
+        "widget": "number"
+       },
+       {
+        "path": "slots",
+        "label": "Spell slots per day (max and used)",
+        "widget": "object",
+        "span": 12
+       },
+       {
+        "path": "spells",
+        "label": "Spells",
+        "widget": "tags",
+        "span": 12
+       }
+      ]
+     },
+     {
+      "id": "inventory",
+      "title": "Inventory",
+      "fields": [
+       {
+        "path": "inventory",
+        "label": "Inventory",
+        "widget": "table",
+        "config": {
+         "columns": [
+          "name",
+          "quantity",
+          {
+           "key": "bulk",
+           "label": "Bulk (L = 0.1)"
+          },
+          "invested",
+          "notes"
+         ]
+        }
+       },
+       {
+        "path": "totalBulk",
+        "label": "Bulk carried",
+        "widget": "computed",
+        "rule": "pf2e-orc.rule.advice.bulk"
+       },
+       {
+        "path": "encumberedAt",
+        "label": "Encumbered above",
+        "widget": "computed"
+       },
+       {
+        "path": "maxBulk",
+        "label": "Maximum Bulk",
+        "widget": "computed"
+       },
+       {
+        "path": "bulkStatus",
+        "label": "Load",
+        "widget": "computed"
+       },
+       {
+        "path": "coins",
+        "label": "Coins",
+        "widget": "object"
+       }
+      ]
+     },
+     {
+      "id": "story",
+      "title": "Personality and story",
+      "collapsed": true,
+      "fields": [
+       {
+        "path": "appearance",
+        "label": "Appearance",
+        "widget": "textarea"
+       },
+       {
+        "path": "personality",
+        "label": "Personality",
+        "widget": "textarea"
+       },
+       {
+        "path": "backstory",
+        "label": "Backstory",
+        "widget": "textarea"
+       }
+      ]
+     },
+     {
+      "id": "bonuses",
+      "title": "Other bonuses and penalties",
+      "collapsed": true,
+      "fields": [
+       {
+        "path": "bonuses",
+        "label": "Flat bonuses by check (and AC)",
+        "widget": "object"
+       }
+      ]
+     },
+     {
+      "id": "notes",
+      "title": "GM notes",
+      "collapsed": true,
+      "fields": [
+       {
+        "path": "notes",
+        "label": "Notes",
+        "widget": "textarea"
+       }
+      ]
+     }
+    ],
+    "summary": [
+     "class",
+     "level",
+     "ac",
+     "hp.current",
+     "perceptionTotal"
+    ]
+   },
+   "defaultVisibility": {
+    "notes": "gm"
+   },
+   "playerEditable": [
+    "hp.current",
+    "hp.temp",
+    "heroPoints",
+    "focus.current",
+    "slots",
+    "inventory",
+    "coins",
+    "notes"
+   ]
+  },
+  {
+   "id": "pf2e-orc.creature",
+   "kind": "creature",
+   "name": "Creature",
+   "plural": "Creatures",
+   "icon": "bug",
+   "schema": {
+    "type": "object",
+    "properties": {
+     "level": {
+      "type": "integer",
+      "minimum": -1,
+      "maximum": 30,
+      "default": 0
+     },
+     "rarity": {
+      "type": "string",
+      "enum": [
+       "common",
+       "uncommon",
+       "rare",
+       "unique"
+      ],
+      "default": "common"
+     },
+     "size": {
+      "type": "string",
+      "enum": [
+       "Tiny",
+       "Small",
+       "Medium",
+       "Large",
+       "Huge",
+       "Gargantuan"
+      ],
+      "default": "Medium"
+     },
+     "traits": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "default": []
+     },
+     "saves": {
+      "type": "object",
+      "properties": {
+       "perception": {
+        "type": "integer",
+        "minimum": -10,
+        "maximum": 60,
+        "default": 0
+       },
+       "fortitude": {
+        "type": "integer",
+        "minimum": -10,
+        "maximum": 60,
+        "default": 0
+       },
+       "reflex": {
+        "type": "integer",
+        "minimum": -10,
+        "maximum": 60,
+        "default": 0
+       },
+       "will": {
+        "type": "integer",
+        "minimum": -10,
+        "maximum": 60,
+        "default": 0
+       }
+      },
+      "additionalProperties": false,
+      "default": {
+       "perception": 0,
+       "fortitude": 0,
+       "reflex": 0,
+       "will": 0
+      }
+     },
+     "senses": {
+      "type": "string",
+      "maxLength": 600
+     },
+     "languages": {
+      "type": "string",
+      "maxLength": 600
+     },
+     "skills": {
+      "type": "object",
+      "properties": {
+       "acrobatics": {
+        "type": "integer",
+        "minimum": -10,
+        "maximum": 60,
+        "default": 0
+       },
+       "arcana": {
+        "type": "integer",
+        "minimum": -10,
+        "maximum": 60,
+        "default": 0
+       },
+       "athletics": {
+        "type": "integer",
+        "minimum": -10,
+        "maximum": 60,
+        "default": 0
+       },
+       "crafting": {
+        "type": "integer",
+        "minimum": -10,
+        "maximum": 60,
+        "default": 0
+       },
+       "deception": {
+        "type": "integer",
+        "minimum": -10,
+        "maximum": 60,
+        "default": 0
+       },
+       "diplomacy": {
+        "type": "integer",
+        "minimum": -10,
+        "maximum": 60,
+        "default": 0
+       },
+       "intimidation": {
+        "type": "integer",
+        "minimum": -10,
+        "maximum": 60,
+        "default": 0
+       },
+       "medicine": {
+        "type": "integer",
+        "minimum": -10,
+        "maximum": 60,
+        "default": 0
+       },
+       "nature": {
+        "type": "integer",
+        "minimum": -10,
+        "maximum": 60,
+        "default": 0
+       },
+       "occultism": {
+        "type": "integer",
+        "minimum": -10,
+        "maximum": 60,
+        "default": 0
+       },
+       "performance": {
+        "type": "integer",
+        "minimum": -10,
+        "maximum": 60,
+        "default": 0
+       },
+       "religion": {
+        "type": "integer",
+        "minimum": -10,
+        "maximum": 60,
+        "default": 0
+       },
+       "society": {
+        "type": "integer",
+        "minimum": -10,
+        "maximum": 60,
+        "default": 0
+       },
+       "stealth": {
+        "type": "integer",
+        "minimum": -10,
+        "maximum": 60,
+        "default": 0
+       },
+       "survival": {
+        "type": "integer",
+        "minimum": -10,
+        "maximum": 60,
+        "default": 0
+       },
+       "thievery": {
+        "type": "integer",
+        "minimum": -10,
+        "maximum": 60,
+        "default": 0
+       }
+      },
+      "additionalProperties": false,
+      "default": {}
+     },
+     "lore": {
+      "type": "string",
+      "maxLength": 400
+     },
+     "attributes": {
+      "type": "object",
+      "properties": {
+       "strength": {
+        "type": "integer",
+        "minimum": -5,
+        "maximum": 15,
+        "default": 0,
+        "title": "Strength"
+       },
+       "dexterity": {
+        "type": "integer",
+        "minimum": -5,
+        "maximum": 15,
+        "default": 0,
+        "title": "Dexterity"
+       },
+       "constitution": {
+        "type": "integer",
+        "minimum": -5,
+        "maximum": 15,
+        "default": 0,
+        "title": "Constitution"
+       },
+       "intelligence": {
+        "type": "integer",
+        "minimum": -5,
+        "maximum": 15,
+        "default": 0,
+        "title": "Intelligence"
+       },
+       "wisdom": {
+        "type": "integer",
+        "minimum": -5,
+        "maximum": 15,
+        "default": 0,
+        "title": "Wisdom"
+       },
+       "charisma": {
+        "type": "integer",
+        "minimum": -5,
+        "maximum": 15,
+        "default": 0,
+        "title": "Charisma"
+       }
+      },
+      "required": [
+       "strength",
+       "dexterity",
+       "constitution",
+       "intelligence",
+       "wisdom",
+       "charisma"
+      ],
+      "additionalProperties": false
+     },
+     "items": {
+      "type": "string",
+      "maxLength": 1000
+     },
+     "ac": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 70,
+      "default": 10
+     },
+     "acNote": {
+      "type": "string",
+      "maxLength": 200
+     },
+     "saveNote": {
+      "type": "string",
+      "maxLength": 400
+     },
+     "hp": {
+      "type": "object",
+      "properties": {
+       "max": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2000,
+        "default": 10
+       },
+       "current": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2000,
+        "default": 10
+       },
+       "temp": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 500,
+        "default": 0
+       }
+      },
+      "required": [
+       "max",
+       "current"
+      ],
+      "additionalProperties": false
+     },
+     "hpNote": {
+      "type": "string",
+      "maxLength": 400
+     },
+     "hardness": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 50
+     },
+     "immunities": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "default": []
+     },
+     "weaknesses": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "default": []
+     },
+     "resistances": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "default": []
+     },
+     "speed": {
+      "type": "string",
+      "maxLength": 300
+     },
+     "strikes": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "name": {
+         "type": "string",
+         "maxLength": 120
+        },
+        "type": {
+         "type": "string",
+         "enum": [
+          "melee",
+          "ranged"
+         ]
+        },
+        "bonus": {
+         "type": "string",
+         "maxLength": 40
+        },
+        "traits": {
+         "type": "string",
+         "maxLength": 400
+        },
+        "damage": {
+         "type": "string",
+         "maxLength": 400
+        }
+       },
+       "required": [
+        "name"
+       ]
+      },
+      "default": []
+     },
+     "abilities": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "name": {
+         "type": "string"
+        },
+        "desc": {
+         "type": "string",
+         "maxLength": 40000
+        }
+       },
+       "required": [
+        "name"
+       ]
+      },
+      "default": []
+     },
+     "defenses": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "name": {
+         "type": "string"
+        },
+        "desc": {
+         "type": "string",
+         "maxLength": 40000
+        }
+       },
+       "required": [
+        "name"
+       ]
+      },
+      "default": []
+     },
+     "actions": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "name": {
+         "type": "string"
+        },
+        "desc": {
+         "type": "string",
+         "maxLength": 40000
+        }
+       },
+       "required": [
+        "name"
+       ]
+      },
+      "default": []
+     },
+     "spells": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "name": {
+         "type": "string"
+        },
+        "desc": {
+         "type": "string",
+         "maxLength": 40000
+        }
+       },
+       "required": [
+        "name"
+       ]
+      },
+      "default": []
+     },
+     "focusPoints": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 3
+     },
+     "conditions": {
+      "type": "object",
+      "description": "Valued conditions; the GM applies their penalties to rolls.",
+      "properties": {
+       "frightened": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 10,
+        "default": 0
+       },
+       "sickened": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 10,
+        "default": 0
+       },
+       "clumsy": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 10,
+        "default": 0
+       },
+       "drained": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 10,
+        "default": 0
+       },
+       "enfeebled": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 10,
+        "default": 0
+       },
+       "stupefied": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 10,
+        "default": 0
+       },
+       "slowed": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 10,
+        "default": 0
+       },
+       "stunned": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 10,
+        "default": 0
+       }
+      },
+      "additionalProperties": false,
+      "default": {
+       "frightened": 0,
+       "sickened": 0,
+       "clumsy": 0,
+       "drained": 0,
+       "enfeebled": 0,
+       "stupefied": 0,
+       "slowed": 0,
+       "stunned": 0
+      }
+     },
+     "description": {
+      "type": "string",
+      "maxLength": 40000
+     },
+     "notes": {
+      "type": "string",
+      "maxLength": 40000
+     }
+    },
+    "required": [
+     "attributes",
+     "hp"
+    ],
+    "additionalProperties": false
+   },
+   "computed": {
+    "statBlock": true,
+    "initiative": {
+     "var": [
+      "fields.saves.perception",
+      0
+     ]
+    },
+    "hpLeft": {
+     "max": [
+      0,
+      {
+       "var": [
+        "fields.hp.current",
+        0
+       ]
+      }
+     ]
+    }
+   },
+   "sheet": {
+    "sections": [
+     {
+      "id": "statblock",
+      "title": "Stat block",
+      "columns": 4,
+      "fields": [
+       {
+        "path": "level",
+        "label": "Level",
+        "widget": "number"
+       },
+       {
+        "path": "rarity",
+        "label": "Rarity",
+        "widget": "select",
+        "options": [
+         "common",
+         "uncommon",
+         "rare",
+         "unique"
+        ]
+       },
+       {
+        "path": "size",
+        "label": "Size",
+        "widget": "select",
+        "options": [
+         "Tiny",
+         "Small",
+         "Medium",
+         "Large",
+         "Huge",
+         "Gargantuan"
+        ]
+       },
+       {
+        "path": "traits",
+        "label": "Traits",
+        "widget": "tags"
+       },
+       {
+        "path": "senses",
+        "label": "Senses",
+        "widget": "text",
+        "span": 6
+       },
+       {
+        "path": "languages",
+        "label": "Languages",
+        "widget": "text",
+        "span": 6
+       },
+       {
+        "path": "ac",
+        "label": "AC",
+        "widget": "number"
+       },
+       {
+        "path": "acNote",
+        "label": "AC note",
+        "widget": "text"
+       },
+       {
+        "path": "hp.max",
+        "label": "HP",
+        "widget": "number"
+       },
+       {
+        "path": "hp.current",
+        "label": "Current HP",
+        "widget": "number"
+       },
+       {
+        "path": "hp.temp",
+        "label": "Temporary HP",
+        "widget": "number"
+       },
+       {
+        "path": "hpNote",
+        "label": "HP note",
+        "widget": "text"
+       },
+       {
+        "path": "hardness",
+        "label": "Hardness",
+        "widget": "number"
+       },
+       {
+        "path": "speed",
+        "label": "Speed",
+        "widget": "text",
+        "span": 6
+       },
+       {
+        "path": "saveNote",
+        "label": "Save note",
+        "widget": "text",
+        "span": 6
+       },
+       {
+        "path": "immunities",
+        "label": "Immunities",
+        "widget": "tags"
+       },
+       {
+        "path": "weaknesses",
+        "label": "Weaknesses",
+        "widget": "tags"
+       },
+       {
+        "path": "resistances",
+        "label": "Resistances",
+        "widget": "tags"
+       }
+      ]
+     },
+     {
+      "id": "saves",
+      "title": "Perception and saves",
+      "fields": [
+       {
+        "path": "saves.*",
+        "label": "Perception and saves",
+        "widget": "skills",
+        "config": {
+         "skills": [
+          {
+           "id": "perception",
+           "name": "Perception"
+          },
+          {
+           "id": "fortitude",
+           "name": "Fortitude"
+          },
+          {
+           "id": "reflex",
+           "name": "Reflex"
+          },
+          {
+           "id": "will",
+           "name": "Will"
+          }
+         ],
+         "min": -10,
+         "max": 60,
+         "labels": {
+          "skill": "Check",
+          "attribute": "—",
+          "attributeValue": "—",
+          "value": "Modifier",
+          "pool": "Roll"
+         }
+        }
+       }
+      ]
+     },
+     {
+      "id": "skills",
+      "title": "Skills",
+      "fields": [
+       {
+        "path": "skills.*",
+        "label": "Skills",
+        "widget": "skills",
+        "config": {
+         "skills": [
+          {
+           "id": "acrobatics",
+           "name": "Acrobatics"
+          },
+          {
+           "id": "arcana",
+           "name": "Arcana"
+          },
+          {
+           "id": "athletics",
+           "name": "Athletics"
+          },
+          {
+           "id": "crafting",
+           "name": "Crafting"
+          },
+          {
+           "id": "deception",
+           "name": "Deception"
+          },
+          {
+           "id": "diplomacy",
+           "name": "Diplomacy"
+          },
+          {
+           "id": "intimidation",
+           "name": "Intimidation"
+          },
+          {
+           "id": "medicine",
+           "name": "Medicine"
+          },
+          {
+           "id": "nature",
+           "name": "Nature"
+          },
+          {
+           "id": "occultism",
+           "name": "Occultism"
+          },
+          {
+           "id": "performance",
+           "name": "Performance"
+          },
+          {
+           "id": "religion",
+           "name": "Religion"
+          },
+          {
+           "id": "society",
+           "name": "Society"
+          },
+          {
+           "id": "stealth",
+           "name": "Stealth"
+          },
+          {
+           "id": "survival",
+           "name": "Survival"
+          },
+          {
+           "id": "thievery",
+           "name": "Thievery"
+          }
+         ],
+         "min": -10,
+         "max": 60,
+         "hideZero": true,
+         "labels": {
+          "skill": "Skill",
+          "attribute": "—",
+          "attributeValue": "—",
+          "value": "Modifier",
+          "pool": "Roll"
+         }
+        }
+       },
+       {
+        "path": "lore",
+        "label": "Lore",
+        "widget": "text"
+       }
+      ]
+     },
+     {
+      "id": "attributes",
+      "title": "Attribute modifiers",
+      "columns": 6,
+      "fields": [
+       {
+        "path": "attributes.strength",
+        "label": "Str",
+        "widget": "number"
+       },
+       {
+        "path": "attributes.dexterity",
+        "label": "Dex",
+        "widget": "number"
+       },
+       {
+        "path": "attributes.constitution",
+        "label": "Con",
+        "widget": "number"
+       },
+       {
+        "path": "attributes.intelligence",
+        "label": "Int",
+        "widget": "number"
+       },
+       {
+        "path": "attributes.wisdom",
+        "label": "Wis",
+        "widget": "number"
+       },
+       {
+        "path": "attributes.charisma",
+        "label": "Cha",
+        "widget": "number"
+       }
+      ]
+     },
+     {
+      "id": "items",
+      "title": "Items",
+      "fields": [
+       {
+        "path": "items",
+        "label": "Items",
+        "widget": "text"
+       }
+      ]
+     },
+     {
+      "id": "abilities",
+      "title": "Abilities",
+      "fields": [
+       {
+        "path": "abilities",
+        "label": "Senses and interaction",
+        "widget": "entries"
+       },
+       {
+        "path": "defenses",
+        "label": "Defensive abilities and reactions",
+        "widget": "entries"
+       }
+      ]
+     },
+     {
+      "id": "offense",
+      "title": "Strikes, actions and spells",
+      "fields": [
+       {
+        "path": "strikes",
+        "label": "Strikes",
+        "widget": "table",
+        "rule": "pf2e-orc.rule.action.strike",
+        "config": {
+         "columns": [
+          "name",
+          "type",
+          {
+           "key": "bonus",
+           "label": "Attack [MAP]"
+          },
+          "traits",
+          "damage"
+         ]
+        }
+       },
+       {
+        "path": "actions",
+        "label": "Actions",
+        "widget": "entries"
+       },
+       {
+        "path": "spells",
+        "label": "Spellcasting",
+        "widget": "entries"
+       },
+       {
+        "path": "focusPoints",
+        "label": "Focus Points",
+        "widget": "number"
+       }
+      ]
+     },
+     {
+      "id": "conditions",
+      "title": "Conditions",
+      "collapsed": true,
+      "columns": 4,
+      "fields": [
+       {
+        "path": "conditions.frightened",
+        "label": "Frightened",
+        "widget": "number"
+       },
+       {
+        "path": "conditions.sickened",
+        "label": "Sickened",
+        "widget": "number"
+       },
+       {
+        "path": "conditions.clumsy",
+        "label": "Clumsy",
+        "widget": "number"
+       },
+       {
+        "path": "conditions.drained",
+        "label": "Drained",
+        "widget": "number"
+       },
+       {
+        "path": "conditions.enfeebled",
+        "label": "Enfeebled",
+        "widget": "number"
+       },
+       {
+        "path": "conditions.stupefied",
+        "label": "Stupefied",
+        "widget": "number"
+       },
+       {
+        "path": "conditions.slowed",
+        "label": "Slowed",
+        "widget": "number"
+       },
+       {
+        "path": "conditions.stunned",
+        "label": "Stunned",
+        "widget": "number"
+       }
+      ]
+     },
+     {
+      "id": "description",
+      "title": "Description",
+      "collapsed": true,
+      "fields": [
+       {
+        "path": "description",
+        "label": "Description",
+        "widget": "textarea"
+       }
+      ]
+     },
+     {
+      "id": "notes",
+      "title": "GM notes",
+      "collapsed": true,
+      "fields": [
+       {
+        "path": "notes",
+        "label": "Notes",
+        "widget": "textarea"
+       }
+      ]
+     }
+    ],
+    "summary": [
+     "level",
+     "ac",
+     "hp.current",
+     "saves.perception"
+    ]
+   },
+   "defaultVisibility": {
+    "notes": "gm",
+    "description": "gm"
+   }
+  },
+  {
+   "id": "pf2e-orc.hazard",
+   "kind": "creature",
+   "name": "Hazard",
+   "plural": "Hazards",
+   "icon": "pin",
+   "schema": {
+    "type": "object",
+    "properties": {
+     "level": {
+      "type": "integer",
+      "minimum": -1,
+      "maximum": 30,
+      "default": 0
+     },
+     "complexity": {
+      "type": "string",
+      "enum": [
+       "simple",
+       "complex"
+      ],
+      "default": "simple"
+     },
+     "rarity": {
+      "type": "string",
+      "enum": [
+       "common",
+       "uncommon",
+       "rare",
+       "unique"
+      ],
+      "default": "common"
+     },
+     "traits": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "default": []
+     },
+     "stealth": {
+      "type": "integer",
+      "minimum": -10,
+      "maximum": 60,
+      "default": 0,
+      "description": "Stealth modifier (the DC is 10 higher)."
+     },
+     "stealthNote": {
+      "type": "string",
+      "maxLength": 400
+     },
+     "description": {
+      "type": "string",
+      "maxLength": 40000
+     },
+     "disable": {
+      "type": "string",
+      "maxLength": 40000
+     },
+     "ac": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 70,
+      "default": 10
+     },
+     "saves": {
+      "type": "object",
+      "properties": {
+       "fortitude": {
+        "type": "integer",
+        "minimum": -10,
+        "maximum": 60,
+        "default": 0
+       },
+       "reflex": {
+        "type": "integer",
+        "minimum": -10,
+        "maximum": 60,
+        "default": 0
+       },
+       "will": {
+        "type": "integer",
+        "minimum": -10,
+        "maximum": 60,
+        "default": 0
+       }
+      },
+      "additionalProperties": false,
+      "default": {}
+     },
+     "hardness": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100,
+      "default": 0
+     },
+     "hp": {
+      "type": "object",
+      "properties": {
+       "max": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2000,
+        "default": 0
+       },
+       "current": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2000,
+        "default": 0
+       },
+       "temp": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 500,
+        "default": 0
+       }
+      },
+      "required": [
+       "max",
+       "current"
+      ],
+      "additionalProperties": false,
+      "default": {
+       "max": 0,
+       "current": 0,
+       "temp": 0
+      }
+     },
+     "hpNote": {
+      "type": "string",
+      "maxLength": 400
+     },
+     "immunities": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "default": []
+     },
+     "weaknesses": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "default": []
+     },
+     "resistances": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "default": []
+     },
+     "actions": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "name": {
+         "type": "string"
+        },
+        "desc": {
+         "type": "string",
+         "maxLength": 40000
+        }
+       },
+       "required": [
+        "name"
+       ]
+      },
+      "default": []
+     },
+     "routine": {
+      "type": "string",
+      "maxLength": 40000
+     },
+     "reset": {
+      "type": "string",
+      "maxLength": 40000
+     },
+     "notes": {
+      "type": "string",
+      "maxLength": 40000
+     }
+    },
+    "additionalProperties": false
+   },
+   "computed": {
+    "statBlock": true,
+    "stealthDc": {
+     "+": [
+      10,
+      {
+       "var": [
+        "fields.stealth",
+        0
+       ]
+      }
+     ]
+    },
+    "brokenThreshold": {
+     "floor": {
+      "/": [
+       {
+        "var": [
+         "fields.hp.max",
+         0
+        ]
+       },
+       2
+      ]
+     }
+    },
+    "initiative": {
+     "var": [
+      "fields.stealth",
+      0
+     ]
+    }
+   },
+   "sheet": {
+    "sections": [
+     {
+      "id": "hazard",
+      "title": "Hazard",
+      "columns": 4,
+      "fields": [
+       {
+        "path": "level",
+        "label": "Level",
+        "widget": "number"
+       },
+       {
+        "path": "complexity",
+        "label": "Complexity",
+        "widget": "select",
+        "options": [
+         "simple",
+         "complex"
+        ]
+       },
+       {
+        "path": "rarity",
+        "label": "Rarity",
+        "widget": "select",
+        "options": [
+         "common",
+         "uncommon",
+         "rare",
+         "unique"
+        ]
+       },
+       {
+        "path": "traits",
+        "label": "Traits",
+        "widget": "tags"
+       },
+       {
+        "path": "stealth",
+        "label": "Stealth modifier",
+        "widget": "number"
+       },
+       {
+        "path": "stealthDc",
+        "label": "Stealth DC",
+        "widget": "computed"
+       },
+       {
+        "path": "stealthNote",
+        "label": "Stealth note",
+        "widget": "text",
+        "span": 6
+       },
+       {
+        "path": "description",
+        "label": "Description",
+        "widget": "textarea",
+        "span": 12
+       },
+       {
+        "path": "disable",
+        "label": "Disable",
+        "widget": "textarea",
+        "span": 12
+       },
+       {
+        "path": "ac",
+        "label": "AC",
+        "widget": "number"
+       },
+       {
+        "path": "hardness",
+        "label": "Hardness",
+        "widget": "number"
+       },
+       {
+        "path": "hp.max",
+        "label": "HP",
+        "widget": "number"
+       },
+       {
+        "path": "hp.current",
+        "label": "Current HP",
+        "widget": "number"
+       },
+       {
+        "path": "brokenThreshold",
+        "label": "Broken Threshold",
+        "widget": "computed"
+       },
+       {
+        "path": "immunities",
+        "label": "Immunities",
+        "widget": "tags"
+       },
+       {
+        "path": "weaknesses",
+        "label": "Weaknesses",
+        "widget": "tags"
+       },
+       {
+        "path": "resistances",
+        "label": "Resistances",
+        "widget": "tags"
+       }
+      ]
+     },
+     {
+      "id": "saves",
+      "title": "Saves",
+      "fields": [
+       {
+        "path": "saves.*",
+        "label": "Saves",
+        "widget": "skills",
+        "config": {
+         "skills": [
+          {
+           "id": "fortitude",
+           "name": "Fortitude"
+          },
+          {
+           "id": "reflex",
+           "name": "Reflex"
+          },
+          {
+           "id": "will",
+           "name": "Will"
+          }
+         ],
+         "min": -10,
+         "max": 60,
+         "labels": {
+          "skill": "Save",
+          "attribute": "—",
+          "attributeValue": "—",
+          "value": "Modifier",
+          "pool": "Roll"
+         }
+        }
+       }
+      ]
+     },
+     {
+      "id": "actions",
+      "title": "Actions and routine",
+      "fields": [
+       {
+        "path": "actions",
+        "label": "Actions",
+        "widget": "entries"
+       },
+       {
+        "path": "routine",
+        "label": "Routine",
+        "widget": "textarea"
+       },
+       {
+        "path": "reset",
+        "label": "Reset",
+        "widget": "textarea"
+       }
+      ]
+     },
+     {
+      "id": "notes",
+      "title": "GM notes",
+      "collapsed": true,
+      "fields": [
+       {
+        "path": "notes",
+        "label": "Notes",
+        "widget": "textarea"
+       }
+      ]
+     }
+    ],
+    "summary": [
+     "level",
+     "complexity",
+     "stealthDc",
+     "hp.current"
+    ]
+   },
+   "defaultVisibility": {
+    "notes": "gm",
+    "disable": "gm",
+    "stealthNote": "gm"
+   }
+  },
+  {
+   "id": "pf2e-orc.npc",
+   "kind": "character",
+   "name": "NPC",
+   "plural": "NPCs",
+   "icon": "user",
+   "schema": {
+    "type": "object",
+    "properties": {
+     "occupation": {
+      "type": "string",
+      "maxLength": 120
+     },
+     "ancestry": {
+      "type": "string",
+      "maxLength": 80
+     },
+     "attitude": {
+      "type": "string",
+      "enum": [
+       "hostile",
+       "unfriendly",
+       "indifferent",
+       "friendly",
+       "helpful"
+      ],
+      "default": "indifferent"
+     },
+     "appearance": {
+      "type": "string",
+      "maxLength": 2000
+     },
+     "quirk": {
+      "type": "string",
+      "maxLength": 400
+     },
+     "voice": {
+      "type": "string",
+      "maxLength": 400
+     },
+     "motivation": {
+      "type": "string",
+      "maxLength": 400
+     },
+     "secret": {
+      "type": "string",
+      "maxLength": 400
+     },
+     "statBlock": {
+      "type": "string",
+      "maxLength": 120,
+      "description": "The creature stat block to use if it comes to a fight."
+     },
+     "notes": {
+      "type": "string",
+      "maxLength": 40000
+     }
+    },
+    "additionalProperties": false
+   },
+   "sheet": {
+    "sections": [
+     {
+      "id": "who",
+      "title": "Who they are",
+      "columns": 2,
+      "fields": [
+       {
+        "path": "occupation",
+        "label": "Occupation",
+        "widget": "text"
+       },
+       {
+        "path": "ancestry",
+        "label": "Ancestry",
+        "widget": "text"
+       },
+       {
+        "path": "attitude",
+        "label": "Attitude toward the party",
+        "widget": "select",
+        "options": [
+         "hostile",
+         "unfriendly",
+         "indifferent",
+         "friendly",
+         "helpful"
+        ],
+        "rule": "pf2e-orc.rule.condition.indifferent"
+       },
+       {
+        "path": "statBlock",
+        "label": "Stat block",
+        "widget": "text"
+       }
+      ]
+     },
+     {
+      "id": "roleplay",
+      "title": "Playing them",
+      "columns": 2,
+      "fields": [
+       {
+        "path": "appearance",
+        "label": "Appearance",
+        "widget": "textarea"
+       },
+       {
+        "path": "quirk",
+        "label": "Quirk",
+        "widget": "textarea"
+       },
+       {
+        "path": "voice",
+        "label": "Voice and manner",
+        "widget": "textarea"
+       },
+       {
+        "path": "motivation",
+        "label": "What they want",
+        "widget": "textarea"
+       },
+       {
+        "path": "secret",
+        "label": "Secret",
+        "widget": "textarea"
+       }
+      ]
+     },
+     {
+      "id": "notes",
+      "title": "GM notes",
+      "collapsed": true,
+      "fields": [
+       {
+        "path": "notes",
+        "label": "Notes",
+        "widget": "textarea"
+       }
+      ]
+     }
+    ],
+    "summary": [
+     "occupation",
+     "attitude"
+    ]
+   },
+   "defaultVisibility": {
+    "secret": "gm",
+    "notes": "gm",
+    "statBlock": "gm"
+   }
+  },
+  {
+   "id": "pf2e-orc.location",
+   "kind": "location",
+   "name": "Location",
+   "plural": "Locations",
+   "icon": "map",
+   "schema": {
+    "type": "object",
+    "properties": {
+     "environment": {
+      "type": "string",
+      "enum": [
+       "aquatic",
+       "arctic",
+       "desert",
+       "forest",
+       "mountain",
+       "plains",
+       "swamp",
+       "underground",
+       "urban",
+       "planar"
+      ]
+     },
+     "level": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 25,
+      "description": "Settlement level, or the level of the threats here."
+     },
+     "size": {
+      "type": "string",
+      "enum": [
+       "hamlet",
+       "village",
+       "town",
+       "city",
+       "metropolis"
+      ]
+     },
+     "population": {
+      "type": "string",
+      "maxLength": 120
+     },
+     "government": {
+      "type": "string",
+      "maxLength": 200
+     },
+     "danger": {
+      "type": "string",
+      "enum": [
+       "safe",
+       "low",
+       "moderate",
+       "high",
+       "deadly"
+      ],
+      "default": "low"
+     },
+     "features": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "default": []
+     },
+     "description": {
+      "type": "string",
+      "maxLength": 40000
+     },
+     "secrets": {
+      "type": "string",
+      "maxLength": 40000
+     }
+    },
+    "additionalProperties": false
+   },
+   "sheet": {
+    "sections": [
+     {
+      "id": "overview",
+      "title": "Overview",
+      "columns": 2,
+      "fields": [
+       {
+        "path": "environment",
+        "label": "Environment",
+        "widget": "select",
+        "options": [
+         "aquatic",
+         "arctic",
+         "desert",
+         "forest",
+         "mountain",
+         "plains",
+         "swamp",
+         "underground",
+         "urban",
+         "planar"
+        ]
+       },
+       {
+        "path": "danger",
+        "label": "Danger",
+        "widget": "select",
+        "options": [
+         "safe",
+         "low",
+         "moderate",
+         "high",
+         "deadly"
+        ]
+       },
+       {
+        "path": "features",
+        "label": "Notable features",
+        "widget": "tags",
+        "span": 12
+       },
+       {
+        "path": "description",
+        "label": "Description",
+        "widget": "textarea",
+        "span": 12
+       }
+      ]
+     },
+     {
+      "id": "secrets",
+      "title": "Secrets",
+      "fields": [
+       {
+        "path": "secrets",
+        "label": "Secrets",
+        "widget": "textarea"
+       }
+      ]
+     }
+    ],
+    "summary": [
+     "environment",
+     "danger"
+    ]
+   },
+   "subtypes": [
+    {
+     "id": "settlement",
+     "name": "Settlement",
+     "sheet": {
+      "sections": [
+       {
+        "id": "settlement",
+        "title": "Settlement",
+        "columns": 4,
+        "fields": [
+         {
+          "path": "size",
+          "label": "Size",
+          "widget": "select",
+          "options": [
+           "hamlet",
+           "village",
+           "town",
+           "city",
+           "metropolis"
+          ]
+         },
+         {
+          "path": "level",
+          "label": "Level",
+          "widget": "number"
+         },
+         {
+          "path": "population",
+          "label": "Population",
+          "widget": "text"
+         },
+         {
+          "path": "government",
+          "label": "Who is in charge",
+          "widget": "text"
+         }
+        ]
+       }
+      ]
+     }
+    },
+    {
+     "id": "dungeon",
+     "name": "Dungeon or lair"
+    },
+    {
+     "id": "wilderness",
+     "name": "Wilderness"
+    },
+    {
+     "id": "building",
+     "name": "Building"
+    },
+    {
+     "id": "plane",
+     "name": "Plane"
+    }
+   ],
+   "defaultVisibility": {
+    "secrets": "gm"
+   }
+  },
+  {
+   "id": "pf2e-orc.faction",
+   "kind": "faction",
+   "name": "Faction",
+   "plural": "Factions",
+   "icon": "flag",
+   "schema": {
+    "type": "object",
+    "properties": {
+     "goal": {
+      "type": "string",
+      "maxLength": 400
+     },
+     "leader": {
+      "type": "string",
+      "maxLength": 200
+     },
+     "resources": {
+      "type": "string",
+      "maxLength": 1000
+     },
+     "standing": {
+      "type": "integer",
+      "minimum": -3,
+      "maximum": 3,
+      "default": 0,
+      "description": "The party's standing: -3 sworn enemies, 0 unknown, +3 trusted allies."
+     },
+     "methods": {
+      "type": "string",
+      "maxLength": 1000
+     },
+     "secrets": {
+      "type": "string",
+      "maxLength": 40000
+     }
+    },
+    "additionalProperties": false
+   },
+   "sheet": {
+    "sections": [
+     {
+      "id": "overview",
+      "title": "Overview",
+      "columns": 2,
+      "fields": [
+       {
+        "path": "goal",
+        "label": "What they want",
+        "widget": "textarea",
+        "span": 12
+       },
+       {
+        "path": "leader",
+        "label": "Leader",
+        "widget": "text"
+       },
+       {
+        "path": "standing",
+        "label": "Party standing (-3 to +3)",
+        "widget": "attribute"
+       },
+       {
+        "path": "resources",
+        "label": "Resources",
+        "widget": "textarea"
+       },
+       {
+        "path": "methods",
+        "label": "Methods",
+        "widget": "textarea"
+       }
+      ]
+     },
+     {
+      "id": "secrets",
+      "title": "Secrets",
+      "fields": [
+       {
+        "path": "secrets",
+        "label": "Secrets",
+        "widget": "textarea"
+       }
+      ]
+     }
+    ],
+    "summary": [
+     "goal",
+     "standing"
+    ]
+   },
+   "defaultVisibility": {
+    "secrets": "gm"
+   }
+  },
+  {
+   "id": "pf2e-orc.item",
+   "kind": "item",
+   "name": "Item",
+   "plural": "Items",
+   "icon": "box",
+   "schema": {
+    "type": "object",
+    "properties": {
+     "level": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 30,
+      "default": 0
+     },
+     "rarity": {
+      "type": "string",
+      "enum": [
+       "common",
+       "uncommon",
+       "rare",
+       "unique"
+      ],
+      "default": "common"
+     },
+     "category": {
+      "type": "string",
+      "maxLength": 80
+     },
+     "traits": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "default": []
+     },
+     "price": {
+      "type": "string",
+      "maxLength": 80
+     },
+     "bulk": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 50,
+      "description": "Light is 0.1."
+     },
+     "usage": {
+      "type": "string",
+      "maxLength": 120
+     },
+     "invested": {
+      "type": "boolean",
+      "default": false
+     },
+     "heldBy": {
+      "type": "string",
+      "maxLength": 120
+     },
+     "description": {
+      "type": "string",
+      "maxLength": 40000
+     },
+     "notes": {
+      "type": "string",
+      "maxLength": 40000
+     }
+    },
+    "additionalProperties": false
+   },
+   "sheet": {
+    "sections": [
+     {
+      "id": "item",
+      "title": "Item",
+      "columns": 3,
+      "fields": [
+       {
+        "path": "level",
+        "label": "Item level",
+        "widget": "number"
+       },
+       {
+        "path": "rarity",
+        "label": "Rarity",
+        "widget": "select",
+        "options": [
+         "common",
+         "uncommon",
+         "rare",
+         "unique"
+        ]
+       },
+       {
+        "path": "category",
+        "label": "Category",
+        "widget": "text"
+       },
+       {
+        "path": "traits",
+        "label": "Traits",
+        "widget": "tags",
+        "span": 12
+       },
+       {
+        "path": "price",
+        "label": "Price",
+        "widget": "text"
+       },
+       {
+        "path": "bulk",
+        "label": "Bulk (L = 0.1)",
+        "widget": "number"
+       },
+       {
+        "path": "usage",
+        "label": "Usage",
+        "widget": "text"
+       },
+       {
+        "path": "invested",
+        "label": "Invested",
+        "widget": "checkbox"
+       },
+       {
+        "path": "heldBy",
+        "label": "Carried by",
+        "widget": "text"
+       },
+       {
+        "path": "description",
+        "label": "Description",
+        "widget": "textarea",
+        "span": 12
+       }
+      ]
+     },
+     {
+      "id": "notes",
+      "title": "GM notes",
+      "collapsed": true,
+      "fields": [
+       {
+        "path": "notes",
+        "label": "Notes",
+        "widget": "textarea"
+       }
+      ]
+     }
+    ],
+    "summary": [
+     "level",
+     "price"
+    ]
+   },
+   "defaultVisibility": {
+    "notes": "gm"
+   }
+  },
+  {
+   "id": "pf2e-orc.encounter",
+   "kind": "encounter",
+   "name": "Encounter",
+   "plural": "Encounters",
+   "icon": "swords",
+   "schema": {
+    "type": "object",
+    "properties": {
+     "environment": {
+      "type": "string",
+      "enum": [
+       "aquatic",
+       "arctic",
+       "desert",
+       "forest",
+       "mountain",
+       "plains",
+       "swamp",
+       "underground",
+       "urban",
+       "planar"
+      ]
+     },
+     "partyLevel": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 20,
+      "default": 1
+     },
+     "partySize": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10,
+      "default": 4
+     },
+     "threat": {
+      "type": "string",
+      "enum": [
+       "trivial",
+       "low",
+       "moderate",
+       "severe",
+       "extreme"
+      ],
+      "default": "moderate"
+     },
+     "creatures": {
+      "type": "string",
+      "maxLength": 2000
+     },
+     "xpTotal": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10000,
+      "default": 0
+     },
+     "activity": {
+      "type": "string",
+      "maxLength": 400
+     },
+     "twist": {
+      "type": "string",
+      "maxLength": 400
+     },
+     "tactics": {
+      "type": "string",
+      "maxLength": 2000
+     },
+     "treasure": {
+      "type": "string",
+      "maxLength": 2000
+     },
+     "status": {
+      "type": "string",
+      "enum": [
+       "planned",
+       "running",
+       "done",
+       "skipped"
+      ],
+      "default": "planned"
+     },
+     "notes": {
+      "type": "string",
+      "maxLength": 40000
+     }
+    },
+    "additionalProperties": false
+   },
+   "computed": {
+    "xpBudget": {
+     "+": [
+      {
+       "lookup": [
+        {
+         "trivial": 40,
+         "low": 60,
+         "moderate": 80,
+         "severe": 120,
+         "extreme": 160
+        },
+        {
+         "var": [
+          "fields.threat",
+          "moderate"
+         ]
+        },
+        80
+       ]
+      },
+      {
+       "*": [
+        {
+         "-": [
+          {
+           "var": [
+            "fields.partySize",
+            4
+           ]
+          },
+          4
+         ]
+        },
+        {
+         "lookup": [
+          {
+           "trivial": 10,
+           "low": 20,
+           "moderate": 20,
+           "severe": 30,
+           "extreme": 40
+          },
+          {
+           "var": [
+            "fields.threat",
+            "moderate"
+           ]
+          },
+          20
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    "xpLeft": {
+     "-": [
+      {
+       "var": [
+        "computed.xpBudget",
+        80
+       ]
+      },
+      {
+       "var": [
+        "fields.xpTotal",
+        0
+       ]
+      }
+     ]
+    }
+   },
+   "sheet": {
+    "sections": [
+     {
+      "id": "encounter",
+      "title": "Encounter",
+      "columns": 3,
+      "fields": [
+       {
+        "path": "environment",
+        "label": "Environment",
+        "widget": "select",
+        "options": [
+         "aquatic",
+         "arctic",
+         "desert",
+         "forest",
+         "mountain",
+         "plains",
+         "swamp",
+         "underground",
+         "urban",
+         "planar"
+        ]
+       },
+       {
+        "path": "partyLevel",
+        "label": "Party level",
+        "widget": "number"
+       },
+       {
+        "path": "partySize",
+        "label": "Party size",
+        "widget": "number"
+       },
+       {
+        "path": "threat",
+        "label": "Threat",
+        "widget": "select",
+        "options": [
+         "trivial",
+         "low",
+         "moderate",
+         "severe",
+         "extreme"
+        ],
+        "rule": "pf2e-orc.rule.advice.encounter-budget"
+       },
+       {
+        "path": "xpBudget",
+        "label": "XP budget",
+        "widget": "computed"
+       },
+       {
+        "path": "xpTotal",
+        "label": "XP spent",
+        "widget": "number"
+       },
+       {
+        "path": "xpLeft",
+        "label": "XP left in the budget",
+        "widget": "computed"
+       },
+       {
+        "path": "status",
+        "label": "Status",
+        "widget": "select",
+        "options": [
+         "planned",
+         "running",
+         "done",
+         "skipped"
+        ]
+       },
+       {
+        "path": "creatures",
+        "label": "Creatures",
+        "widget": "textarea",
+        "span": 12
+       },
+       {
+        "path": "activity",
+        "label": "What they are doing",
+        "widget": "text",
+        "span": 6
+       },
+       {
+        "path": "twist",
+        "label": "Twist",
+        "widget": "text",
+        "span": 6
+       },
+       {
+        "path": "tactics",
+        "label": "Tactics",
+        "widget": "textarea",
+        "span": 12
+       },
+       {
+        "path": "treasure",
+        "label": "Treasure",
+        "widget": "textarea",
+        "span": 12
+       }
+      ]
+     },
+     {
+      "id": "notes",
+      "title": "GM notes",
+      "collapsed": true,
+      "fields": [
+       {
+        "path": "notes",
+        "label": "Notes",
+        "widget": "textarea"
+       }
+      ]
+     }
+    ],
+    "summary": [
+     "threat",
+     "creatures",
+     "status"
+    ]
+   },
+   "defaultVisibility": {
+    "tactics": "gm",
+    "notes": "gm",
+    "treasure": "gm"
+   }
+  },
+  {
+   "id": "pf2e-orc.quest",
+   "kind": "job",
+   "name": "Quest",
+   "plural": "Quests",
+   "icon": "briefcase",
+   "schema": {
+    "type": "object",
+    "properties": {
+     "hook": {
+      "type": "string",
+      "maxLength": 1000
+     },
+     "patron": {
+      "type": "string",
+      "maxLength": 200
+     },
+     "objective": {
+      "type": "string",
+      "maxLength": 1000
+     },
+     "reward": {
+      "type": "string",
+      "maxLength": 400
+     },
+     "deadline": {
+      "type": "string",
+      "maxLength": 200
+     },
+     "status": {
+      "type": "string",
+      "enum": [
+       "rumour",
+       "offered",
+       "active",
+       "completed",
+       "failed"
+      ],
+      "default": "rumour"
+     },
+     "complications": {
+      "type": "string",
+      "maxLength": 40000
+     }
+    },
+    "additionalProperties": false
+   },
+   "sheet": {
+    "sections": [
+     {
+      "id": "quest",
+      "title": "Quest",
+      "columns": 2,
+      "fields": [
+       {
+        "path": "hook",
+        "label": "Hook",
+        "widget": "textarea",
+        "span": 12
+       },
+       {
+        "path": "patron",
+        "label": "Patron",
+        "widget": "text"
+       },
+       {
+        "path": "status",
+        "label": "Status",
+        "widget": "select",
+        "options": [
+         "rumour",
+         "offered",
+         "active",
+         "completed",
+         "failed"
+        ]
+       },
+       {
+        "path": "objective",
+        "label": "Objective",
+        "widget": "textarea"
+       },
+       {
+        "path": "reward",
+        "label": "Reward",
+        "widget": "text"
+       },
+       {
+        "path": "deadline",
+        "label": "Deadline",
+        "widget": "text"
+       },
+       {
+        "path": "complications",
+        "label": "Complications",
+        "widget": "textarea",
+        "span": 12
+       }
+      ]
+     }
+    ],
+    "summary": [
+     "status",
+     "patron"
+    ]
+   },
+   "defaultVisibility": {
+    "complications": "gm"
+   }
+  }
+ ],
+ "relationshipTypes": [
+  {
+   "id": "pf2e-orc.rival-of",
+   "forward": "rival of",
+   "reverse": "rival of",
+   "symmetric": true,
+   "fromKinds": [
+    "character",
+    "faction",
+    "creature"
+   ],
+   "toKinds": [
+    "character",
+    "faction",
+    "creature"
+   ]
+  },
+  {
+   "id": "pf2e-orc.serves",
+   "forward": "serves",
+   "reverse": "served by",
+   "fromKinds": [
+    "character",
+    "creature"
+   ],
+   "toKinds": [
+    "character",
+    "faction",
+    "creature"
+   ]
+  },
+  {
+   "id": "pf2e-orc.lairs-in",
+   "forward": "lairs in",
+   "reverse": "lair of",
+   "fromKinds": [
+    "creature"
+   ],
+   "toKinds": [
+    "location"
+   ]
+  },
+  {
+   "id": "pf2e-orc.guards",
+   "forward": "guards",
+   "reverse": "guarded by",
+   "fromKinds": [
+    "creature"
+   ],
+   "toKinds": [
+    "location",
+    "item"
+   ]
+  }
+ ],
+ "referenceLists": [
+  {
+   "id": "pf2e-orc.attributes",
+   "name": "Attributes",
+   "cite": "Player Core — Attributes",
+   "columns": [
+    "abbr",
+    "summary"
+   ],
+   "items": [
+    {
+     "id": "strength",
+     "name": "Strength",
+     "abbr": "Str",
+     "summary": "Physical power: melee damage, Athletics, carrying Bulk."
+    },
+    {
+     "id": "dexterity",
+     "name": "Dexterity",
+     "abbr": "Dex",
+     "summary": "Agility and aim: AC (up to the armor's cap), Reflex saves, ranged attacks, Acrobatics, Stealth, Thievery."
+    },
+    {
+     "id": "constitution",
+     "name": "Constitution",
+     "abbr": "Con",
+     "summary": "Health and stamina: Hit Points per level, Fortitude saves."
+    },
+    {
+     "id": "intelligence",
+     "name": "Intelligence",
+     "abbr": "Int",
+     "summary": "Reasoning: trained skills and languages, Arcana, Crafting, Occultism, Society, Lore."
+    },
+    {
+     "id": "wisdom",
+     "name": "Wisdom",
+     "abbr": "Wis",
+     "summary": "Awareness and intuition: Perception, Will saves, Medicine, Nature, Religion, Survival."
+    },
+    {
+     "id": "charisma",
+     "name": "Charisma",
+     "abbr": "Cha",
+     "summary": "Force of personality: Deception, Diplomacy, Intimidation, Performance."
+    }
+   ]
+  },
+  {
+   "id": "pf2e-orc.skills",
+   "name": "Skills",
+   "cite": "Player Core — Skills",
+   "columns": [
+    "attribute"
+   ],
+   "items": [
+    {
+     "id": "acrobatics",
+     "name": "Acrobatics",
+     "attribute": "dexterity"
+    },
+    {
+     "id": "arcana",
+     "name": "Arcana",
+     "attribute": "intelligence"
+    },
+    {
+     "id": "athletics",
+     "name": "Athletics",
+     "attribute": "strength"
+    },
+    {
+     "id": "crafting",
+     "name": "Crafting",
+     "attribute": "intelligence"
+    },
+    {
+     "id": "deception",
+     "name": "Deception",
+     "attribute": "charisma"
+    },
+    {
+     "id": "diplomacy",
+     "name": "Diplomacy",
+     "attribute": "charisma"
+    },
+    {
+     "id": "intimidation",
+     "name": "Intimidation",
+     "attribute": "charisma"
+    },
+    {
+     "id": "medicine",
+     "name": "Medicine",
+     "attribute": "wisdom"
+    },
+    {
+     "id": "nature",
+     "name": "Nature",
+     "attribute": "wisdom"
+    },
+    {
+     "id": "occultism",
+     "name": "Occultism",
+     "attribute": "intelligence"
+    },
+    {
+     "id": "performance",
+     "name": "Performance",
+     "attribute": "charisma"
+    },
+    {
+     "id": "religion",
+     "name": "Religion",
+     "attribute": "wisdom"
+    },
+    {
+     "id": "society",
+     "name": "Society",
+     "attribute": "intelligence"
+    },
+    {
+     "id": "stealth",
+     "name": "Stealth",
+     "attribute": "dexterity"
+    },
+    {
+     "id": "survival",
+     "name": "Survival",
+     "attribute": "wisdom"
+    },
+    {
+     "id": "thievery",
+     "name": "Thievery",
+     "attribute": "dexterity"
+    }
+   ]
+  },
+  {
+   "id": "pf2e-orc.saves",
+   "name": "Perception and saving throws",
+   "cite": "Player Core — Perception and Saving Throws",
+   "columns": [
+    "attribute"
+   ],
+   "items": [
+    {
+     "id": "perception",
+     "name": "Perception",
+     "attribute": "wisdom"
+    },
+    {
+     "id": "fortitude",
+     "name": "Fortitude",
+     "attribute": "constitution"
+    },
+    {
+     "id": "reflex",
+     "name": "Reflex",
+     "attribute": "dexterity"
+    },
+    {
+     "id": "will",
+     "name": "Will",
+     "attribute": "wisdom"
+    }
+   ]
+  },
+  {
+   "id": "pf2e-orc.proficiency-ranks",
+   "name": "Proficiency ranks",
+   "cite": "Player Core — Proficiency",
+   "columns": [
+    "value",
+    "bonus"
+   ],
+   "items": [
+    {
+     "id": "untrained",
+     "name": "Untrained",
+     "value": 0,
+     "bonus": "+0"
+    },
+    {
+     "id": "trained",
+     "name": "Trained",
+     "value": 1,
+     "bonus": "level + 2"
+    },
+    {
+     "id": "expert",
+     "name": "Expert",
+     "value": 2,
+     "bonus": "level + 4"
+    },
+    {
+     "id": "master",
+     "name": "Master",
+     "value": 3,
+     "bonus": "level + 6"
+    },
+    {
+     "id": "legendary",
+     "name": "Legendary",
+     "value": 4,
+     "bonus": "level + 8"
+    }
+   ]
+  }
+ ],
+ "trackers": [
+  {
+   "id": "pf2e-orc.tracker.initiative",
+   "name": "Initiative",
+   "kind": "initiative",
+   "scope": "encounter",
+   "cite": "Player Core — Encounter Mode: Initiative",
+   "rules": [
+    "pf2e-orc.rule.advice.initiative",
+    "pf2e-orc.rule.action.delay"
+   ],
+   "config": {
+    "method": "roll",
+    "dice": "1d20",
+    "modifier": {
+     "var": [
+      "computed.initiative",
+      0
+     ]
+    },
+    "order": "desc",
+    "label": "Roll initiative"
+   }
+  },
+  {
+   "id": "pf2e-orc.tracker.hp",
+   "name": "Hit Points",
+   "kind": "counter",
+   "scope": "encounter",
+   "binds": [
+    "pf2e-orc.character.hp.current",
+    "pf2e-orc.creature.hp.current",
+    "pf2e-orc.hazard.hp.current"
+   ],
+   "rules": [
+    "pf2e-orc.rule.advice.hit-points",
+    "pf2e-orc.rule.condition.dying"
+   ],
+   "cite": "Player Core — Hit Points, Healing, and Dying",
+   "config": {
+    "label": "HP",
+    "min": 0,
+    "maxes": {
+     "pf2e-orc.character.hp.current": {
+      "var": [
+       "computed.hpMax",
+       1
+      ]
+     },
+     "pf2e-orc.creature.hp.current": {
+      "var": "fields.hp.max"
+     },
+     "pf2e-orc.hazard.hp.current": {
+      "var": "fields.hp.max"
+     }
+    },
+    "labels": {
+     "pf2e-orc.character.hp.current": "HP",
+     "pf2e-orc.creature.hp.current": "HP",
+     "pf2e-orc.hazard.hp.current": "HP"
+    },
+    "style": "stepper"
+   }
+  },
+  {
+   "id": "pf2e-orc.tracker.temp-hp",
+   "name": "Temporary Hit Points",
+   "kind": "counter",
+   "scope": "encounter",
+   "binds": [
+    "hp.temp"
+   ],
+   "cite": "Player Core — Hit Points, Healing, and Dying: Temporary Hit Points",
+   "config": {
+    "label": "Temp HP",
+    "min": 0,
+    "style": "stepper"
+   }
+  },
+  {
+   "id": "pf2e-orc.tracker.dying",
+   "name": "Dying, wounded, doomed",
+   "kind": "counter",
+   "scope": "character",
+   "binds": [
+    "pf2e-orc.character.dying",
+    "pf2e-orc.character.wounded",
+    "pf2e-orc.character.doomed"
+   ],
+   "rules": [
+    "pf2e-orc.rule.condition.dying",
+    "pf2e-orc.rule.condition.wounded",
+    "pf2e-orc.rule.condition.doomed"
+   ],
+   "cite": "Player Core — Conditions: Dying",
+   "config": {
+    "maxes": {
+     "pf2e-orc.character.dying": {
+      "var": [
+       "computed.dyingMax",
+       4
+      ]
+     },
+     "pf2e-orc.character.wounded": 3,
+     "pf2e-orc.character.doomed": 3
+    },
+    "labels": {
+     "pf2e-orc.character.dying": "Dying",
+     "pf2e-orc.character.wounded": "Wounded",
+     "pf2e-orc.character.doomed": "Doomed"
+    }
+   }
+  },
+  {
+   "id": "pf2e-orc.tracker.hero-points",
+   "name": "Hero Points",
+   "kind": "counter",
+   "scope": "character",
+   "binds": [
+    "pf2e-orc.character.heroPoints"
+   ],
+   "rules": [
+    "pf2e-orc.rule.advice.hero-points"
+   ],
+   "cite": "Player Core — Hero Points",
+   "config": {
+    "label": "Hero Points",
+    "max": 3
+   }
+  },
+  {
+   "id": "pf2e-orc.tracker.focus",
+   "name": "Focus Points",
+   "kind": "counter",
+   "scope": "character",
+   "binds": [
+    "pf2e-orc.character.focus.current"
+   ],
+   "cite": "Player Core — Spells: Focus Spells",
+   "config": {
+    "label": "Focus",
+    "max": {
+     "var": [
+      "fields.focus.max",
+      0
+     ]
+    },
+    "hideWhenNoMax": true
+   }
+  },
+  {
+   "id": "pf2e-orc.tracker.conditions",
+   "name": "Conditions",
+   "kind": "counter",
+   "scope": "encounter",
+   "binds": [
+    "pf2e-orc.character.conditions.frightened",
+    "pf2e-orc.creature.conditions.frightened",
+    "pf2e-orc.character.conditions.sickened",
+    "pf2e-orc.creature.conditions.sickened",
+    "pf2e-orc.character.conditions.clumsy",
+    "pf2e-orc.creature.conditions.clumsy",
+    "pf2e-orc.character.conditions.drained",
+    "pf2e-orc.creature.conditions.drained",
+    "pf2e-orc.character.conditions.enfeebled",
+    "pf2e-orc.creature.conditions.enfeebled",
+    "pf2e-orc.character.conditions.stupefied",
+    "pf2e-orc.creature.conditions.stupefied",
+    "pf2e-orc.character.conditions.slowed",
+    "pf2e-orc.creature.conditions.slowed",
+    "pf2e-orc.character.conditions.stunned",
+    "pf2e-orc.creature.conditions.stunned"
+   ],
+   "rules": [
+    "pf2e-orc.rule.condition.frightened",
+    "pf2e-orc.rule.condition.sickened",
+    "pf2e-orc.rule.condition.clumsy",
+    "pf2e-orc.rule.condition.drained",
+    "pf2e-orc.rule.condition.enfeebled",
+    "pf2e-orc.rule.condition.stupefied",
+    "pf2e-orc.rule.condition.slowed",
+    "pf2e-orc.rule.condition.stunned"
+   ],
+   "cite": "Player Core — Conditions",
+   "config": {
+    "labels": {
+     "pf2e-orc.character.conditions.frightened": "Frightened",
+     "pf2e-orc.creature.conditions.frightened": "Frightened",
+     "pf2e-orc.character.conditions.sickened": "Sickened",
+     "pf2e-orc.creature.conditions.sickened": "Sickened",
+     "pf2e-orc.character.conditions.clumsy": "Clumsy",
+     "pf2e-orc.creature.conditions.clumsy": "Clumsy",
+     "pf2e-orc.character.conditions.drained": "Drained",
+     "pf2e-orc.creature.conditions.drained": "Drained",
+     "pf2e-orc.character.conditions.enfeebled": "Enfeebled",
+     "pf2e-orc.creature.conditions.enfeebled": "Enfeebled",
+     "pf2e-orc.character.conditions.stupefied": "Stupefied",
+     "pf2e-orc.creature.conditions.stupefied": "Stupefied",
+     "pf2e-orc.character.conditions.slowed": "Slowed",
+     "pf2e-orc.creature.conditions.slowed": "Slowed",
+     "pf2e-orc.character.conditions.stunned": "Stunned",
+     "pf2e-orc.creature.conditions.stunned": "Stunned"
+    },
+    "max": 4,
+    "style": "pips"
+   }
+  },
+  {
+   "id": "pf2e-orc.tracker.spell-slots",
+   "name": "Spell slots used",
+   "kind": "counter",
+   "scope": "character",
+   "binds": [
+    "pf2e-orc.character.slots.r1.used",
+    "pf2e-orc.character.slots.r2.used",
+    "pf2e-orc.character.slots.r3.used",
+    "pf2e-orc.character.slots.r4.used",
+    "pf2e-orc.character.slots.r5.used",
+    "pf2e-orc.character.slots.r6.used",
+    "pf2e-orc.character.slots.r7.used",
+    "pf2e-orc.character.slots.r8.used",
+    "pf2e-orc.character.slots.r9.used",
+    "pf2e-orc.character.slots.r10.used"
+   ],
+   "cite": "Player Core — Spells: Spell Slots",
+   "config": {
+    "labels": {
+     "pf2e-orc.character.slots.r1.used": "Rank 1",
+     "pf2e-orc.character.slots.r2.used": "Rank 2",
+     "pf2e-orc.character.slots.r3.used": "Rank 3",
+     "pf2e-orc.character.slots.r4.used": "Rank 4",
+     "pf2e-orc.character.slots.r5.used": "Rank 5",
+     "pf2e-orc.character.slots.r6.used": "Rank 6",
+     "pf2e-orc.character.slots.r7.used": "Rank 7",
+     "pf2e-orc.character.slots.r8.used": "Rank 8",
+     "pf2e-orc.character.slots.r9.used": "Rank 9",
+     "pf2e-orc.character.slots.r10.used": "Rank 10"
+    },
+    "maxes": {
+     "pf2e-orc.character.slots.r1.used": {
+      "var": [
+       "fields.slots.r1.max",
+       0
+      ]
+     },
+     "pf2e-orc.character.slots.r2.used": {
+      "var": [
+       "fields.slots.r2.max",
+       0
+      ]
+     },
+     "pf2e-orc.character.slots.r3.used": {
+      "var": [
+       "fields.slots.r3.max",
+       0
+      ]
+     },
+     "pf2e-orc.character.slots.r4.used": {
+      "var": [
+       "fields.slots.r4.max",
+       0
+      ]
+     },
+     "pf2e-orc.character.slots.r5.used": {
+      "var": [
+       "fields.slots.r5.max",
+       0
+      ]
+     },
+     "pf2e-orc.character.slots.r6.used": {
+      "var": [
+       "fields.slots.r6.max",
+       0
+      ]
+     },
+     "pf2e-orc.character.slots.r7.used": {
+      "var": [
+       "fields.slots.r7.max",
+       0
+      ]
+     },
+     "pf2e-orc.character.slots.r8.used": {
+      "var": [
+       "fields.slots.r8.max",
+       0
+      ]
+     },
+     "pf2e-orc.character.slots.r9.used": {
+      "var": [
+       "fields.slots.r9.max",
+       0
+      ]
+     },
+     "pf2e-orc.character.slots.r10.used": {
+      "var": [
+       "fields.slots.r10.max",
+       0
+      ]
+     }
+    },
+    "hideWhenNoMax": true
+   }
+  },
+  {
+   "id": "pf2e-orc.tracker.clock",
+   "name": "Time",
+   "kind": "clock",
+   "scope": "session",
+   "cite": "Player Core — Encounter Mode: Rounds",
+   "rules": [
+    "pf2e-orc.rule.advice.initiative"
+   ],
+   "config": {
+    "units": [
+     {
+      "id": "round",
+      "name": "Round",
+      "duration": "6 seconds",
+      "minutes": 0.1
+     },
+     {
+      "id": "minute",
+      "name": "Minute",
+      "duration": "10 rounds",
+      "minutes": 1,
+      "per": 10
+     },
+     {
+      "id": "hour",
+      "name": "Hour",
+      "duration": "60 minutes",
+      "minutes": 60,
+      "per": 60
+     }
+    ],
+    "calendar": "pf2e-orc.calendar"
+   }
+  },
+  {
+   "id": "pf2e-orc.tracker.countdown",
+   "name": "Countdown",
+   "kind": "countdown",
+   "scope": "scene",
+   "config": {
+    "unit": "rounds",
+    "default": 10
+   }
+  }
+ ],
+ "playGuides": [
+  {
+   "id": "pf2e-orc.guide.checks",
+   "title": "Calling for checks",
+   "original": true,
+   "intro": "Call for a check only when failure is interesting and the outcome uncertain. Set the DC before the dice land: use a simple DC for the task's proficiency (untrained 10, trained 15, expert 20, master 30, legendary 40) or the level-based DC for the threat. Every roll has four outcomes: decide what a critical success and a critical failure look like, not only pass or fail.",
+   "tips": [
+    {
+     "text": "No roll when there is time and no cost to retrying: the character succeeds, given time."
+    },
+    {
+     "text": "Read all four degrees. A critical success should feel like more than a success (extra information, extra time, an advantage for the next roll); a critical failure costs something more than a failure."
+    },
+    {
+     "text": "Fortune and misfortune (roll twice, keep the higher or lower) are for special effects; for a good plan or bad footing use +2 or −2 circumstance modifiers instead."
+    },
+    {
+     "text": "A natural 20 improves the result one step and a natural 1 worsens it one step: a natural 20 that misses the DC by 3 is still a success."
+    },
+    {
+     "text": "Use Perception for initiative unless the characters were already doing something: sneaking rolls Stealth, talking rolls Deception or Diplomacy."
+    },
+    {
+     "text": "Recall Knowledge is a free action economy for curious players: answer one useful question on a success, two on a critical success."
+    }
+   ],
+   "groups": [
+    {
+     "id": "awareness",
+     "label": "Awareness",
+     "summary": "Noticing, tracking and reading a situation before it reads you."
+    },
+    {
+     "id": "physical",
+     "label": "Physical",
+     "summary": "Moving, climbing, grappling and keeping your feet."
+    },
+    {
+     "id": "knowledge",
+     "label": "Knowledge",
+     "summary": "Recalling, identifying and making things."
+    },
+    {
+     "id": "social",
+     "label": "Social",
+     "summary": "Changing what other people do or believe."
+    },
+    {
+     "id": "subterfuge",
+     "label": "Subterfuge",
+     "summary": "Staying unseen and getting past locks and traps."
+    },
+    {
+     "id": "saves",
+     "label": "Saving throws",
+     "summary": "Resisting what the world does to you."
+    }
+   ],
+   "entries": [
+    {
+     "id": "perception",
+     "label": "Perception",
+     "group": "awareness",
+     "kind": "skill",
+     "roll": "perception",
+     "summary": "Spotting, hearing, sensing motives; also what most characters roll for initiative.",
+     "callFor": [
+      "something moves at the edge of the torchlight",
+      "a door that should be locked stands ajar",
+      "the host's smile slips for a moment"
+     ],
+     "success": "They notice it in time to act on it: name the detail and what it suggests.",
+     "failure": "They miss it, or notice it only as it happens. Do not hide the whole adventure behind one Perception roll.",
+     "examples": [
+      "Roll Perception: what do you see in the rafters?",
+      "Roll Perception for initiative; the ambush is already moving."
+     ]
+    },
+    {
+     "id": "fortitude",
+     "label": "Fortitude",
+     "group": "saves",
+     "kind": "skill",
+     "roll": "fortitude",
+     "summary": "Poison, disease, exhaustion, and effects that test the body.",
+     "callFor": [
+      "a poisoned blade",
+      "a day's march through the burning plain",
+      "a cloud of spores"
+     ],
+     "success": "They shrug off the worst of it; describe the near miss.",
+     "failure": "It takes hold; make the cost visible on the sheet and in the scene."
+    },
+    {
+     "id": "reflex",
+     "label": "Reflex",
+     "group": "saves",
+     "kind": "skill",
+     "roll": "reflex",
+     "summary": "Dodging blasts, traps and falling rocks.",
+     "callFor": [
+      "a fireball",
+      "the floor giving way",
+      "a scything blade from the wall"
+     ],
+     "success": "They dive clear, or take only part of it.",
+     "failure": "Caught: they take it in full, and maybe end up prone."
+    },
+    {
+     "id": "will",
+     "label": "Will",
+     "group": "saves",
+     "kind": "skill",
+     "roll": "will",
+     "summary": "Fear, charms, illusions and mental attacks.",
+     "callFor": [
+      "a dragon's frightful presence",
+      "a voice that commands obedience",
+      "an illusion that seems too real"
+     ],
+     "success": "Their mind stays their own; let them see the trick for what it is.",
+     "failure": "The fear or the charm lands; play it, then let them fight it next turn."
+    },
+    {
+     "id": "acrobatics",
+     "label": "Acrobatics",
+     "group": "physical",
+     "kind": "skill",
+     "roll": "acrobatics",
+     "summary": "Balance, tumbling, squeezing and acrobatic flying.",
+     "callFor": [
+      "a narrow beam over a drop",
+      "slipping past a foe's guard",
+      "a rope bridge in high wind"
+     ],
+     "success": "They are where they wanted to be, with the next move open.",
+     "failure": "They stall or slip; a critical failure means a fall or a foe's free swing."
+    },
+    {
+     "id": "arcana",
+     "label": "Arcana",
+     "group": "knowledge",
+     "kind": "skill",
+     "roll": "arcana",
+     "summary": "Arcane magic, constructs, magical theory and arcane creatures.",
+     "callFor": [
+      "a glowing sigil on a vault door",
+      "a construct that will not stop",
+      "a wizard's coded notes"
+     ],
+     "success": "Name what it is and one useful way to deal with it.",
+     "failure": "They know what it is, not how it ends; a critical failure gives a confident wrong answer."
+    },
+    {
+     "id": "athletics",
+     "label": "Athletics",
+     "group": "physical",
+     "kind": "skill",
+     "roll": "athletics",
+     "summary": "Climbing, jumping, swimming, and every grapple, shove and trip.",
+     "callFor": [
+      "a cliff with a deadline",
+      "a river in flood",
+      "pinning the cultist before they finish the chant"
+     ],
+     "success": "Fast and clean: give them the position or the grip they wanted.",
+     "failure": "They make little headway, tire, or end up in a worse spot."
+    },
+    {
+     "id": "crafting",
+     "label": "Crafting",
+     "group": "knowledge",
+     "kind": "skill",
+     "roll": "crafting",
+     "summary": "Making, repairing and understanding how things are built.",
+     "callFor": [
+      "a broken axle on the road",
+      "a lock's mechanism under a spotlight",
+      "copying a key from a wax impression"
+     ],
+     "success": "It works, and they understand how; give them a fact about the maker.",
+     "failure": "It takes longer, costs more, or works once and then fails."
+    },
+    {
+     "id": "deception",
+     "label": "Deception",
+     "group": "social",
+     "kind": "skill",
+     "roll": "deception",
+     "summary": "Lies, feints, disguises and impersonation.",
+     "callFor": [
+      "a forged pass at the gate",
+      "a feint before the real strike",
+      "pretending to belong at the ball"
+     ],
+     "success": "The lie holds for now; decide what would break it.",
+     "failure": "Doubt creeps in: a follow-up question, a guard sent to check."
+    },
+    {
+     "id": "diplomacy",
+     "label": "Diplomacy",
+     "group": "social",
+     "kind": "skill",
+     "roll": "diplomacy",
+     "summary": "Making an impression, asking for help, gathering information.",
+     "callFor": [
+      "asking a stranger for directions to the ruin",
+      "talking the mob down",
+      "a favor from the harbor master"
+     ],
+     "success": "Their attitude improves, or they agree to a reasonable request.",
+     "failure": "No, or not yet: a price, a condition, or a task first."
+    },
+    {
+     "id": "intimidation",
+     "label": "Intimidation",
+     "group": "social",
+     "kind": "skill",
+     "roll": "intimidation",
+     "summary": "Coercing and demoralizing.",
+     "callFor": [
+      "a thug who should back down",
+      "an informant holding out",
+      "a battle cry to break the line"
+     ],
+     "success": "They comply or are frightened, now. Fear has a long memory.",
+     "failure": "They call the bluff, get angry, or go for help."
+    },
+    {
+     "id": "medicine",
+     "label": "Medicine",
+     "group": "knowledge",
+     "kind": "skill",
+     "roll": "medicine",
+     "summary": "First aid, treating wounds and diseases, reading a body.",
+     "callFor": [
+      "a friend bleeding out mid-fight",
+      "a sickness spreading in the village",
+      "how long the body has been here"
+     ],
+     "success": "Stable, treated or dated: give them a hard, useful fact.",
+     "failure": "Time passes without progress; on a critical failure the patient is hurt."
+    },
+    {
+     "id": "nature",
+     "label": "Nature",
+     "group": "knowledge",
+     "kind": "skill",
+     "roll": "nature",
+     "summary": "Animals, plants, weather, terrain and primal magic.",
+     "callFor": [
+      "which mushrooms are safe",
+      "tracks of something heavy",
+      "a druid's circle of standing stones"
+     ],
+     "success": "They know what it is and what it means for them right now.",
+     "failure": "They know the common case; this one is different."
+    },
+    {
+     "id": "occultism",
+     "label": "Occultism",
+     "group": "knowledge",
+     "kind": "skill",
+     "roll": "occultism",
+     "summary": "Strange philosophies, aberrations, spirits and occult magic.",
+     "callFor": [
+      "a haunting that repeats every night",
+      "a sigil that hurts to look at",
+      "a medium's séance gone wrong"
+     ],
+     "success": "Name the pattern and what the spirit or creature wants.",
+     "failure": "They recognize the shape of it but not its rules."
+    },
+    {
+     "id": "performance",
+     "label": "Performance",
+     "group": "social",
+     "kind": "skill",
+     "roll": "performance",
+     "summary": "Music, acting, oratory; earning coin and attention.",
+     "callFor": [
+      "earning a meal at the inn",
+      "distracting a crowd while a friend works",
+      "a festival contest"
+     ],
+     "success": "The audience is theirs: coin, attention, or a useful admirer.",
+     "failure": "Polite silence, a heckler, or a rival who now wants to compete."
+    },
+    {
+     "id": "religion",
+     "label": "Religion",
+     "group": "knowledge",
+     "kind": "skill",
+     "roll": "religion",
+     "summary": "Faiths, rites, divine magic and undead.",
+     "callFor": [
+      "an unfamiliar shrine",
+      "a priest's oddly worded blessing",
+      "an undead that ignores holy water"
+     ],
+     "success": "Name the rite, the faith's customs or the creature's weakness.",
+     "failure": "They know the faith, but miss that this is a heresy of it."
+    },
+    {
+     "id": "society",
+     "label": "Society",
+     "group": "knowledge",
+     "kind": "skill",
+     "roll": "society",
+     "summary": "Customs, law, history, etiquette and forgeries.",
+     "callFor": [
+      "a noble's crest on a ring",
+      "a law that makes no sense",
+      "a letter that is almost right"
+     ],
+     "success": "Give them the custom, the person, or the flaw in the forgery.",
+     "failure": "They recall the popular version, which is wrong in one way that matters."
+    },
+    {
+     "id": "stealth",
+     "label": "Stealth",
+     "group": "subterfuge",
+     "kind": "skill",
+     "roll": "stealth",
+     "summary": "Hiding, sneaking and avoiding notice while travelling.",
+     "callFor": [
+      "slipping past sentries",
+      "following someone through the market",
+      "approaching the camp before dawn"
+     ],
+     "success": "They are unnoticed, and where they want to be.",
+     "failure": "Spotted at the worst moment, or they must choose: retreat or go loud."
+    },
+    {
+     "id": "survival",
+     "label": "Survival",
+     "group": "awareness",
+     "kind": "skill",
+     "roll": "survival",
+     "summary": "Tracking, finding the way, living off the land.",
+     "callFor": [
+      "the trail splits at a stream",
+      "supplies run short two days from town",
+      "a storm is coming over the ridge"
+     ],
+     "success": "They find the trail, the shelter or the food, and gain time.",
+     "failure": "They lose time, a day's rations, or arrive somewhere other than planned."
+    },
+    {
+     "id": "thievery",
+     "label": "Thievery",
+     "group": "subterfuge",
+     "kind": "skill",
+     "roll": "thievery",
+     "summary": "Picking locks, disabling devices, stealing and palming.",
+     "callFor": [
+      "a lock with guards on patrol",
+      "a trap's trigger plate",
+      "lifting a key from a belt"
+     ],
+     "success": "Done, quietly, and nobody saw.",
+     "failure": "Not done yet; on a critical failure the trap triggers or someone saw."
+    }
+   ]
+  }
+ ],
+ "templates": [
+  {
+   "id": "pf2e-orc.template.one-shot",
+   "kind": "adventure",
+   "name": "One-shot in three acts",
+   "description": "A single evening: a hook that starts in motion, a middle that complicates it, and a finale with a clear win or loss.",
+   "mode": [
+    "one-shot"
+   ],
+   "original": true,
+   "scaffold": {
+    "title": "One-shot",
+    "premise": "Who needs help, what goes wrong if nobody acts, and why tonight?",
+    "playerIntro": "Start mid-scene: the characters already know each other and already have a reason to act.",
+    "gmSituation": "Write the villain's plan in three steps; each act the party fails to stop one, the next one happens.",
+    "acts": [
+     {
+      "number": 1,
+      "title": "The hook",
+      "goal": "Get the party moving within ten minutes of play.",
+      "pacing": "One short encounter (a low threat), then a choice of two ways forward.",
+      "scenes": [
+       {
+        "purpose": "Open on trouble: an attack, a theft, a plea for help.",
+        "mandatory": true
+       },
+       {
+        "purpose": "A quick social scene to learn what is at stake and who to trust."
+       }
+      ]
+     },
+     {
+      "number": 2,
+      "title": "Complications",
+      "goal": "The obvious plan meets the villain's first step.",
+      "pacing": "Alternate exploration with one moderate encounter; keep each under an hour.",
+      "scenes": [
+       {
+        "purpose": "A place to explore with a hazard and a clue to the finale.",
+        "mandatory": true
+       },
+       {
+        "purpose": "A fight against the villain's minions; let the terrain matter."
+       }
+      ]
+     },
+     {
+      "number": 3,
+      "title": "Finale",
+      "goal": "Face the villain where it matters, with the clock almost out.",
+      "pacing": "One severe encounter with a goal besides defeating everything.",
+      "scenes": [
+       {
+        "purpose": "The showdown, and a minute of epilogue for each character.",
+        "mandatory": true
+       }
+      ]
+     }
+    ],
+    "epilogue": "Tell each player one thing their character changed."
+   }
+  },
+  {
+   "id": "pf2e-orc.template.delve",
+   "kind": "adventure",
+   "name": "A short delve",
+   "description": "A location-based adventure: rumours lead to a lair, the lair pushes back with creatures and hazards, the aftermath sets up the next session.",
+   "mode": [
+    "campaign",
+    "one-shot"
+   ],
+   "original": true,
+   "scaffold": {
+    "title": "A short delve",
+    "premise": "Something has made its home nearby, and the people next door are paying for it.",
+    "acts": [
+     {
+      "number": 1,
+      "title": "Rumours",
+      "goal": "Learn where the lair is and one thing about its master.",
+      "scenes": [
+       {
+        "purpose": "Witnesses disagree about what they saw (Recall Knowledge and Diplomacy).",
+        "mandatory": true
+       },
+       {
+        "purpose": "The road there: a low-threat encounter from the encounter builder."
+       }
+      ]
+     },
+     {
+      "number": 2,
+      "title": "The lair",
+      "goal": "Get past a hazard, a guardian and a puzzle to the heart of the lair.",
+      "scenes": [
+       {
+        "purpose": "Entrance: a simple hazard that rewards Searching.",
+        "mandatory": true
+       },
+       {
+        "purpose": "A setback or a twist: an unexpected ally, prisoner or rival."
+       },
+       {
+        "purpose": "The master of the lair, on its own ground (a severe threat).",
+        "mandatory": true
+       }
+      ]
+     },
+     {
+      "number": 3,
+      "title": "Aftermath",
+      "goal": "Treasure, consequences and a new rumour.",
+      "scenes": [
+       {
+        "purpose": "Return to the people who suffered; something has changed while they were away."
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "pf2e-orc.template.scene.social",
+   "kind": "scene",
+   "name": "Social encounter",
+   "original": true,
+   "scaffold": {
+    "purpose": "Someone has what the party needs and wants something in return.",
+    "body": "- Their attitude now (hostile to helpful), and what would move it one step.\n- What will they never agree to?\n- What happens if the talk fails?\n- Which checks fit: Perception (Sense Motive), Diplomacy, Deception, Intimidation, a Lore."
+   }
+  },
+  {
+   "id": "pf2e-orc.template.scene.combat",
+   "kind": "scene",
+   "name": "Combat encounter",
+   "original": true,
+   "scaffold": {
+    "purpose": "A fight with a reason and a way to end other than death.",
+    "body": "- Threat and XP budget for this party (use the encounter builder).\n- Terrain: one feature that offers cover, one that is difficult or hazardous.\n- When do the foes flee or surrender?\n- What is the reward for winning, and the cost of losing?"
+   }
+  },
+  {
+   "id": "pf2e-orc.template.scene.hazard",
+   "kind": "scene",
+   "name": "Hazard",
+   "original": true,
+   "scaffold": {
+    "purpose": "A trap or a dangerous place that tests the party's caution.",
+    "body": "- Stealth DC to notice it, and who is Searching.\n- How to disable it, and which skill and proficiency it needs.\n- What it does when triggered, and whether it rolls initiative (a complex hazard).\n- What a clever party can do instead of disabling it."
+   }
+  },
+  {
+   "id": "pf2e-orc.template.session-checklist",
+   "kind": "checklist",
+   "appliesTo": "session",
+   "name": "Remaster session checklist",
+   "original": true,
+   "scaffold": {
+    "title": "Remaster d20",
+    "items": [
+     {
+      "id": "pf2e-orc.prep.levels",
+      "phase": "prep",
+      "text": "Check each character's level, Hit Points, Focus Points and spell slots",
+      "guidance": "Note who levelled up, who ended the session wounded, and who spent their Hero Points."
+     },
+     {
+      "id": "pf2e-orc.prep.encounters",
+      "phase": "prep",
+      "text": "Budget tonight's encounters",
+      "guidance": "Use the encounter builder: pick the threat (low for warm-ups, moderate for most fights, severe for a boss) and the party's level and size."
+     },
+     {
+      "id": "pf2e-orc.prep.names",
+      "phase": "prep",
+      "text": "Have three names and one quirk ready",
+      "guidance": "Roll the NPC generator once or twice so improvised characters do not all sound alike."
+     },
+     {
+      "id": "pf2e-orc.play.hero-points",
+      "phase": "play",
+      "text": "Give each character 1 Hero Point at the start, more for heroics",
+      "guidance": "The Hero Points tracker keeps count; a character can hold up to 3."
+     },
+     {
+      "id": "pf2e-orc.play.initiative",
+      "phase": "play",
+      "text": "Roll initiative for every fight",
+      "guidance": "The Initiative tracker rolls d20 plus Perception (or the skill a character was using) and sorts highest first."
+     },
+     {
+      "id": "pf2e-orc.wrap.conditions",
+      "phase": "wrap",
+      "text": "Clear conditions and note wounded and doomed values",
+      "guidance": "Wounded goes away with a full rest or Treat Wounds; doomed drops by 1 after a full night's rest."
+     },
+     {
+      "id": "pf2e-orc.wrap.xp",
+      "phase": "wrap",
+      "text": "Award experience points",
+      "autoWhen": "awards-given",
+      "guidance": "A character levels up at 1,000 XP and keeps the rest."
+     },
+     {
+      "id": "pf2e-orc.wrap.loot",
+      "phase": "wrap",
+      "text": "Record treasure and who carries it (and their Bulk)"
+     }
+    ]
+   }
+  },
+  {
+   "id": "pf2e-orc.template.session-zero",
+   "kind": "checklist",
+   "appliesTo": "session-zero",
+   "name": "Session zero",
+   "description": "Settle expectations before the first session; answers go into campaign settings.",
+   "original": true,
+   "scaffold": {
+    "title": "Session zero",
+    "items": [
+     {
+      "id": "tone",
+      "text": "What tone are we going for?",
+      "kind": "choice",
+      "options": [
+       "heroic",
+       "gritty",
+       "lighthearted",
+       "horror"
+      ],
+      "writesTo": "settings.tone"
+     },
+     {
+      "id": "limits",
+      "text": "Which topics are off the table, and which should fade to black?",
+      "kind": "text",
+      "writesTo": "settings.contentLimits"
+     },
+     {
+      "id": "start-level",
+      "text": "Starting level, and experience or milestone advancement?",
+      "kind": "text",
+      "writesTo": "settings.advancement"
+     },
+     {
+      "id": "options",
+      "text": "Which character options are allowed (common only, or uncommon with a reason)?",
+      "kind": "text",
+      "writesTo": "settings.characterOptions"
+     },
+     {
+      "id": "variants",
+      "text": "Any variant or house rules (free archetype, automatic bonuses, critical cards)?",
+      "kind": "text",
+      "writesTo": "settings.houseRules"
+     },
+     {
+      "id": "party-tie",
+      "text": "Why does this party stick together?",
+      "kind": "text",
+      "writesTo": "settings.partyTie"
+     },
+     {
+      "id": "home",
+      "text": "Where does the campaign start?",
+      "kind": "entity",
+      "writesTo": "settings.startingLocation"
+     }
+    ]
+   }
+  }
+ ],
+ "calendar": {
+  "id": "pf2e-orc.calendar",
+  "name": "Hearth reckoning",
+  "defaultYear": 812,
+  "months": [
+   {
+    "name": "Frostwane",
+    "days": 30
+   },
+   {
+    "name": "Thawmonth",
+    "days": 30
+   },
+   {
+    "name": "Sowing",
+    "days": 30
+   },
+   {
+    "name": "Bloom",
+    "days": 30
+   },
+   {
+    "name": "Greening",
+    "days": 30
+   },
+   {
+    "name": "Longsun",
+    "days": 30
+   },
+   {
+    "name": "Haymaking",
+    "days": 30
+   },
+   {
+    "name": "Reaping",
+    "days": 30
+   },
+   {
+    "name": "Gleaning",
+    "days": 30
+   },
+   {
+    "name": "Leafturn",
+    "days": 30
+   },
+   {
+    "name": "Mistfall",
+    "days": 30
+   },
+   {
+    "name": "Deepdark",
+    "days": 30
+   }
+  ],
+  "weekdays": [
+   "Firstday",
+   "Seedday",
+   "Wellday",
+   "Hearthday",
+   "Marketday",
+   "Highday",
+   "Restday"
+  ],
+  "format": "{year}-{month:02}-{day:02}"
+ },
+ "styleNotes": [
+  "Heroic fantasy with teeth: describe the world vividly, set DCs before the dice land, and give all four degrees of success a meaning.",
+  "ORC core-rules text is used as written, without the publisher's setting names; GM advice, tables and generators marked Original are Campaign Forge's own."
+ ]
+}

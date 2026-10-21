@@ -78,6 +78,8 @@ export interface StepView {
   rolls: RollRecord[];
   result: unknown;
   hasResult: boolean;
+  /** The step's own line for the GM (its `display`), shown instead of the result object. */
+  display?: string;
   /** Steps that read this one, transitively (re-rolling it changes them). */
   dependents: string[];
   reads: string[];
@@ -115,6 +117,8 @@ export function stepViews(procedure: Procedure, graph: GeneratedGraph | undefine
     if (table !== undefined) view.table = table;
     if (page !== undefined) view.page = page;
     if (skipped) view.skipReason = skipReasonText(skipped.reason);
+    const display = hasResult ? graph?.display?.[s.id] : undefined;
+    if (display !== undefined) view.display = display;
     return view;
   });
 }

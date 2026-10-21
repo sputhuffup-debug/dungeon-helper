@@ -311,6 +311,12 @@
         "proficiency": {
           "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
         },
+        "proficiencyMode": {
+          "enum": [
+            "multiply",
+            "add"
+          ]
+        },
         "bonus": {
           "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
         },
@@ -329,6 +335,39 @@
         },
         "fumbleFails": {
           "type": "boolean"
+        },
+        "critMargin": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 40
+        },
+        "naturalShift": {
+          "type": "boolean"
+        },
+        "advantageNames": {
+          "type": "object",
+          "properties": {
+            "normal": {
+              "type": "string",
+              "minLength": 1
+            },
+            "advantage": {
+              "type": "string",
+              "minLength": 1
+            },
+            "disadvantage": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "modifierChoices": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/d20ModifierChoice"
+          },
+          "maxItems": 4
         },
         "freeDice": {
           "type": "array",
@@ -349,6 +388,14 @@
             "failure": {
               "type": "string",
               "minLength": 1
+            },
+            "criticalSuccess": {
+              "type": "string",
+              "minLength": 1
+            },
+            "criticalFailure": {
+              "type": "string",
+              "minLength": 1
             }
           },
           "additionalProperties": false
@@ -356,6 +403,49 @@
       },
       "required": [
         "engine"
+      ],
+      "additionalProperties": false
+    },
+    "d20ModifierChoice": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z][a-zA-Z0-9-]{0,39}$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "choices": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string",
+                "minLength": 1
+              },
+              "value": {
+                "type": "integer",
+                "minimum": -50,
+                "maximum": 50
+              }
+            },
+            "required": [
+              "label",
+              "value"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 2,
+          "maxItems": 12
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "choices"
       ],
       "additionalProperties": false
     },
@@ -1774,6 +1864,9 @@
           "additionalProperties": {
             "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
           }
+        },
+        "display": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
         }
       },
       "required": [

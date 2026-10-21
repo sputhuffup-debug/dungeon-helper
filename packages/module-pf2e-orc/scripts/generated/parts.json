@@ -1,0 +1,21 @@
+[
+ "core-reference.json",
+ "core-rules.json",
+ "core-character-1.json",
+ "core-character-2.json",
+ "core-feats-1.json",
+ "core-feats-2.json",
+ "core-feats-3.json",
+ "core-feats-4.json",
+ "core-spells-1.json",
+ "core-spells-2.json",
+ "core-equipment-1.json",
+ "core-equipment-2.json",
+ "core-equipment-3.json",
+ "core-creatures-1.json",
+ "core-creatures-2.json",
+ "core-creatures-3.json",
+ "core-creatures-4.json",
+ "core-creatures-5.json",
+ "core-hazards.json"
+]

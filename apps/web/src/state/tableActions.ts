@@ -1003,8 +1003,11 @@ export function finishSession(ctx: Ctx, sessionId: Id, input: FinishSessionInput
 // demo campaigns
 // ---------------------------------------------------------------------------
 
-/** Which demo: "campaign" is Skyfire Down (campaign play), "cinematic" the Cold Harbor one-shot, "dnd5e" the Thornwick Crossing one-shot (SRD 5.1). */
-export type DemoKind = "campaign" | "cinematic" | "dnd5e";
+/**
+ * Which demo: "campaign" is Skyfire Down (campaign play), "cinematic" the Cold Harbor one-shot, "dnd5e" the
+ * Thornwick Crossing one-shot (SRD 5.1), "pf2e" the Hollowmere one-shot (ORC core rules, second edition remaster).
+ */
+export type DemoKind = "campaign" | "cinematic" | "dnd5e" | "pf2e";
 
 /** Create a demo campaign on this device (records, rich-text bodies, index entry): "Skyfire Down" by default. */
 export async function loadDemoCampaign(seed?: string, kind: DemoKind = "campaign"): Promise<Id> {
@@ -1013,6 +1016,8 @@ export async function loadDemoCampaign(seed?: string, kind: DemoKind = "campaign
     kind === "dnd5e"
       ? // the SRD pack loads through the module registry (and its cache), not a second time inside the demo builder
         await demos.dnd5eDemoJSON(seed ?? demos.DND5E_DEMO_SEED, (await loadModuleById(demos.DND5E_MODULE_ID)).module)
+      : kind === "pf2e"
+        ? await demos.pf2eDemoJSON(seed ?? demos.PF2E_DEMO_SEED, (await loadModuleById(demos.PF2E_MODULE_ID)).module)
       : kind === "cinematic"
         ? demos.cinematicDemoJSON(seed ?? demos.CINEMATIC_DEMO_SEED)
         : demos.demoCampaignJSON(seed ?? demos.DEMO_SEED);

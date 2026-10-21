@@ -213,6 +213,15 @@ describe("demo campaign loader", () => {
     expect(plainText(ctx.registry.open(scene.bodyDoc)).length).toBeGreaterThan(0);
   }, 60_000);
 
+  it("creates the Hollowmere campaign with the ORC core rules module loaded through the registry", async () => {
+    const id = await loadDemoCampaign(undefined, "pf2e");
+    expect((await listCampaigns()).some((c) => c.id === id && c.name === "Hollowmere" && c.moduleId === "pf2e-orc")).toBe(true);
+    const ctx = await open(id);
+    expect(ctx.store.meta().mode).toBe("one-shot");
+    expect(playerCharacters(ctx)).toHaveLength(4);
+    expect(ctx.store.list("sessions").find((s) => s.status === "planned")?.nextPlan.length).toBeGreaterThan(0);
+  }, 60_000);
+
   it("creates the Thornwick Crossing campaign with the SRD 5.1 module loaded through the registry", async () => {
     const id = await loadDemoCampaign(undefined, "dnd5e");
     expect((await listCampaigns()).some((c) => c.id === id && c.name === "Thornwick Crossing" && c.moduleId === "dnd5e-srd")).toBe(true);

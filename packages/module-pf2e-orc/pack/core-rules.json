@@ -1,0 +1,2056 @@
+{
+ "$schema": "../../module-sdk/schema/module-pack-part.schema.json",
+ "format": "campaign-forge-pack-part",
+ "formatVersion": 1,
+ "pack": "pf2e-orc",
+ "name": "core-rules.json",
+ "rules": [
+  {
+   "id": "pf2e-orc.rule.condition.blinded",
+   "title": "Blinded",
+   "summary": "You can't see. All normal terrain is difficult terrain to you. You can't detect anything using vision. You automatically critically fail Perception checks that require you to be able to see, and if vision is your only precise sense, you take a –4 status penalty to Perception checks. You are immune to visual effects. Blinded overrides dazzled.",
+   "cite": "Player Core — Conditions: Blinded",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.broken",
+   "title": "Broken",
+   "summary": "Broken is a condition that affects only objects. An object is broken when damage has reduced its Hit Points to equal or less than its Broken Threshold. A broken object can't be used for its normal function, nor does it grant bonuses—with the exception of armor. Broken armor still grants its item bonus to AC, but it also imparts a status penalty to AC depending on its category: –1 for broken light armor, –2 for broken medium armor, or –3 for broken heavy armor.\n\nA broken item still imposes penalties and limitations normally incurred by carrying, holding, or wearing it. For example, broken armor would still impose its Dexterity modifier cap, check penalty, and so forth. If an effect makes an item broken automatically and the item has more HP than its Broken Threshold, that effect also reduces the item's current HP to the Broken Threshold.",
+   "cite": "Player Core — Conditions: Broken",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.clumsy",
+   "title": "Clumsy",
+   "summary": "Your movements become clumsy and inexact. Clumsy always includes a value. You take a status penalty equal to the condition value to Dexterity-based rolls and DCs, including AC, Reflex saves, ranged attack rolls, and skill checks using Acrobatics, Stealth, and Thievery.",
+   "cite": "Player Core — Conditions: Clumsy",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.concealed",
+   "title": "Concealed",
+   "summary": "You are difficult for one or more creatures to see due to thick fog or some other obscuring feature. You can be concealed to some creatures but not others. While concealed, you can still be observed, but you're tougher to target. A creature that you're concealed from must succeed at a DC 5 flat when targeting you with an attack, spell, or other effect. If the check fails, you aren't affected. Area effects aren't subject to this flat check.",
+   "cite": "Player Core — Conditions: Concealed",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.confused",
+   "title": "Confused",
+   "summary": "You don't have your wits about you, and you attack wildly. You are off-guard, you don't treat anyone as your ally (though they might still treat you as theirs), and you can't Delay, Ready, or use reactions.\n\nYou use all your actions to Strike or cast offensive cantrips, though the GM can have you use other actions to facilitate attack, such as draw a weapon, move so target is in reach, and so forth. Your targets are determined randomly by the GM. If you have no other viable targets, you target yourself, automatically hitting but not scoring a critical hit. If it's impossible for you to attack or cast spells, you babble incoherently, wasting your actions.\n\nEach time you take damage from an attack or spell, you can attempt a DC 11 flat to recover from your confusion and end the condition.",
+   "cite": "Player Core — Conditions: Confused",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.controlled",
+   "title": "Controlled",
+   "summary": "You have been commanded, magically dominated, or otherwise had your will subverted. The controller dictates how you act and can make you use any of your actions, including attacks, reactions, or even Delay. The controller usually doesn't have to spend their own actions when controlling you.",
+   "cite": "Player Core — Conditions: Controlled",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.cursebound",
+   "title": "Cursebound",
+   "summary": "Your oracular curse is constricting around you as you receive divine punishment after drawing too deeply on your mystery's powers. Cursebound is a condition that affects only creatures with an oracular curse, and cursebound always includes a value. Your specific oracular curse imposes unique negative effects depending on your cursebound value. You can remove the cursebound condition only by Refocusing.",
+   "cite": "Player Core 2 — Conditions: Cursebound",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.dazzled",
+   "title": "Dazzled",
+   "summary": "Your eyes are overstimulated or your vision is swimming. If vision is your only precise sense, all creatures and objects are concealed from you.",
+   "cite": "Player Core — Conditions: Dazzled",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.deafened",
+   "title": "Deafened",
+   "summary": "You can't hear. You automatically critically fail Perception checks that require you to be able to hear. You take a –2 status penalty to Perception checks for initiative and checks that involve sound but also rely on other senses. If you perform an action that has the auditory trait, you must succeed at a DC 5 flat or the action is lost; attempt the check after spending the action but before any effects are applied. You are immune to auditory effects while deafened.",
+   "cite": "Player Core — Conditions: Deafened",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.doomed",
+   "title": "Doomed",
+   "summary": "Your soul has been gripped by a powerful force that calls you closer to death. Doomed always includes a value. The dying value at which you die is reduced by your doomed value. If your maximum dying value is reduced to 0, you instantly die. When you die, you're no longer doomed.\n\nYour doomed value decreases by 1 each time you get a full night's rest.",
+   "cite": "Player Core — Conditions: Doomed",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.drained",
+   "title": "Drained",
+   "summary": "Your health and vitality have been depleted as you've lost blood, life force, or some other essence. Drained always includes a value. You take a status penalty equal to your drained value on Constitution-based rolls and DCs, such as Fortitude saves. You also lose a number of Hit Points equal to your level (minimum 1) times the drained value, and your maximum Hit Points are reduced by the same amount. For example, if you become drained 3 and you're a 3rd-level character, you lose 9 Hit Points and reduce your maximum Hit Points by 9. Losing these Hit Points doesn't count as taking damage.\n\nEach time you get a full night's rest, your drained value decreases by 1. This increases your maximum Hit Points, but you don't immediately recover the lost Hit Points.",
+   "cite": "Player Core — Conditions: Drained",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.dying",
+   "title": "Dying",
+   "summary": "You are bleeding out or otherwise at death's door. While you have this condition, you are unconscious. Dying always includes a value, and if it ever reaches dying 4, you die. When you're dying, you must attempt a recovery check at the start of your turn each round to determine whether you get better or worse. Your dying condition increases by 1 if you take damage while dying, or by 2 if you take damage from an enemy's critical hit or a critical failure on your save.\n\nIf you lose the dying condition by succeeding at a recovery check and are still at 0 Hit Points, you remain unconscious, but you can wake up as described in that condition. You lose the dying condition automatically and wake up if you ever have 1 Hit Point or more. Any time you lose the dying condition, you gain the Wounded 1 condition, or increase your wounded condition value by 1 if you already have that condition.",
+   "cite": "Player Core — Conditions: Dying",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.encumbered",
+   "title": "Encumbered",
+   "summary": "You are carrying more weight than you can manage. While you're encumbered, you're Clumsy 1 and take a 10-foot penalty to all your Speeds. As with all penalties to your Speed, this can't reduce your Speed below 5 feet.",
+   "cite": "Player Core — Conditions: Encumbered",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.enfeebled",
+   "title": "Enfeebled",
+   "summary": "You're physically weakened. Enfeebled always includes a value. When you are enfeebled, you take a status penalty equal to the condition value to Strength-based rolls and DCs, including Strength-based melee attack rolls, Strength-based damage rolls, and Athletics checks.",
+   "cite": "Player Core — Conditions: Enfeebled",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.fascinated",
+   "title": "Fascinated",
+   "summary": "You're compelled to focus your attention on something, distracting you from whatever else is going on around you. You take a –2 status penalty to Perception and skill checks, and you can't use concentrate actions unless they (or their intended consequences) are related to the subject of your fascination, as determined by the GM. For instance, you might be able to Seek and Recall Knowledge about the subject, but you likely couldn't cast a spell targeting a different creature. This condition ends if a creature uses hostile actions against you or any of your allies.",
+   "cite": "Player Core — Conditions: Fascinated",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.fatigued",
+   "title": "Fatigued",
+   "summary": "You're tired and can't summon much energy. You take a –1 status penalty to AC and saving throws. You can't use exploration activities performed while traveling.\n\nYou recover from fatigue after a full night's rest.",
+   "cite": "Player Core — Conditions: Fatigued",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.fleeing",
+   "title": "Fleeing",
+   "summary": "You're forced to run away due to fear or some other compulsion. On your turn, you must spend each of your actions trying to escape the source of the fleeing condition as expediently as possible (such as by using move actions to flee, or opening doors barring your escape). The source is usually the effect or creature that gave you the condition, though some effects might define something else as the source. You can't Delay or Ready while fleeing.",
+   "cite": "Player Core — Conditions: Fleeing",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.friendly",
+   "title": "Friendly",
+   "summary": "This condition reflects a creature's disposition toward a particular character, and only supernatural effects (like a spell) can impose this condition on a PC. A creature that is friendly to a character likes that character. It is likely to agree to Requests from that character as long as they are simple, safe, and don't cost too much to fulfill. If the character (or one of their allies) uses hostile actions against the creature, the creature gains a worse attitude condition depending on the severity of the hostile action, as determined by the GM.",
+   "cite": "Player Core — Conditions: Friendly",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.frightened",
+   "title": "Frightened",
+   "summary": "You're gripped by fear and struggle to control your nerves. The frightened condition always includes a value. You take a status penalty equal to this value to all your checks and DCs. Unless specified otherwise, at the end of each of your turns, the value of your frightened condition decreases by 1.",
+   "cite": "Player Core — Conditions: Frightened",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.grabbed",
+   "title": "Grabbed",
+   "summary": "You're held in place by another creature, giving you the off-guard and immobilized conditions. If you attempt a manipulate action while grabbed, you must succeed at a DC 5 flat or it is lost; roll the check after spending the action, but before any effects are applied.",
+   "cite": "Player Core — Conditions: Grabbed",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.helpful",
+   "title": "Helpful",
+   "summary": "This condition reflects a creature's disposition toward a particular character, and only supernatural effects (like a spell) can impose this condition on a PC. A creature that is helpful to a character wishes to actively aid that character. It will accept reasonable Requests from that character, as long as such requests aren't at the expense of the helpful creature's goals or quality of life. If the character (or one of their allies) uses a hostile action against the creature, the creature gains a worse attitude condition depending on the severity of the hostile action, as determined by the GM.",
+   "cite": "Player Core — Conditions: Helpful",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.hidden",
+   "title": "Hidden",
+   "summary": "While you're hidden from a creature, that creature knows the space you're in but can't tell precisely where you are. You typically become hidden by using Stealth to Hide. When Seeking a creature using only imprecise senses, it remains hidden, rather than observed. A creature you're hidden from is off-guard to you, and it must succeed at a DC 11 flat when targeting you with an attack, spell, or other effect or it fails to affect you. Area effects aren't subject to this flat check.\n\nA creature might be able to use the seek action to try to observe you.",
+   "cite": "Player Core — Conditions: Hidden",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.hostile",
+   "title": "Hostile",
+   "summary": "This condition reflects a creature's disposition toward a particular character, and only supernatural effects (like a spell) can impose on a PC. A creature hostile to a character actively seeks to harm that character. It doesn't necessarily attack, but it won't accept Requests from the character.",
+   "cite": "Player Core — Conditions: Hostile",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.immobilized",
+   "title": "Immobilized",
+   "summary": "You are incapable of movement. You can't use any actions that have the move trait. If you're immobilized by something holding you in place and an external force would move you out of your space, the force must succeed at a check against either the DC of the effect holding you in place or the relevant defense (usually Fortitude DC) of the monster holding you in place.",
+   "cite": "Player Core — Conditions: Immobilized",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.indifferent",
+   "title": "Indifferent",
+   "summary": "This condition reflects a creature's disposition toward a particular character, and only supernatural effects (like a spell) can impose this condition on a PC. A creature that is indifferent to a character doesn't really care one way or the other about that character. Assume a creature's attitude to a given character is indifferent unless specified otherwise.",
+   "cite": "Player Core — Conditions: Indifferent",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.invisible",
+   "title": "Invisible",
+   "summary": "You can't be seen. You're undetected to everyone. Creatures can Seek to detect you; if a creature succeeds at its Perception check against your Stealth DC, you become hidden to that creature until you Sneak to become undetected again. If you become invisible while someone can already see you, you start out hidden to them (instead of undetected) until you successfully Sneak. You can't become observed while invisible except via special abilities or magic.",
+   "cite": "Player Core — Conditions: Invisible",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.observed",
+   "title": "Observed",
+   "summary": "Anything in plain view is observed by you. If a creature takes measures to avoid detection, such as by using Stealth to Hide, it can become hidden or undetected instead of observed. If you have another precise sense besides sight, you might be able to observe a creature or object using that sense instead. You can observe a creature with only your precise senses. When Seeking a creature using only imprecise senses, it remains hidden, rather than observed.",
+   "cite": "Player Core — Conditions: Observed",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.off-guard",
+   "title": "Off-Guard",
+   "summary": "You're distracted or otherwise unable to focus your full attention on defense. You take a –2 circumstance penalty to AC. Some effects give you the off-guard condition only to certain creatures or against certain attacks. Others—especially conditions—can make you off-guard against everything. If a rule doesn't specify that the condition applies only to certain circumstances, it applies to all of them, such as \"The target is off-guard.\"",
+   "cite": "Player Core — Conditions: Off-Guard",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.paralyzed",
+   "title": "Paralyzed",
+   "summary": "You're frozen in place. You have the off-guard condition and can't act except to Recall Knowledge and use actions that require only your mind (as determined by the GM). Your senses still function, but only in the areas you can perceive without moving, so you can't Seek.",
+   "cite": "Player Core — Conditions: Paralyzed",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.persistent-damage",
+   "title": "Persistent Damage",
+   "summary": "You are taking damage from an ongoing effect, such as from being lit on fire. This appears as \"X persistent [type] damage,\" where \"X\" is the amount of damage dealt and \"[type]\" is the damage type. Like normal damage, it can be doubled or halved based on the results of an attack roll or saving throw. Instead of taking persistent damage immediately, you take it at the end of each of your turns as long as you have the condition, rolling any damage dice anew each time. After you take persistent damage, roll a DC 15 flat to see if you recover from the persistent damage. If you succeed, the condition ends.",
+   "cite": "Player Core — Conditions: Persistent Damage",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.petrified",
+   "title": "Petrified",
+   "summary": "You have been turned to stone. You can't act, nor can you sense anything. You become an object with a Bulk double your normal Bulk (typically 12 for a petrified Medium creature or 6 for a petrified Small creature), AC 9, Hardness 8, and the same current Hit Points you had when alive. You don't have a Broken Threshold. When the petrified condition ends, you have the same number of Hit Points you had as a statue. If the statue is destroyed, you immediately die. While petrified, your mind and body are in stasis, so you don't age or notice the passing of time.",
+   "cite": "Player Core — Conditions: Petrified",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.prone",
+   "title": "Prone",
+   "summary": "You're lying on the ground. You are off-guard and take a –2 circumstance penalty to attack rolls. The only move actions you can use while you're prone are Crawl and Stand. Standing up ends the prone condition. You can Take Cover while prone to hunker down and gain greater cover against ranged attacks, even if you don't have an object to get behind, which grants you a +4 circumstance bonus to AC against ranged attacks (but you remain off-guard).\n\nIf you would be knocked prone while you're Climbing or Flying, you fall. You can't be knocked prone when Swimming.",
+   "cite": "Player Core — Conditions: Prone",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.quickened",
+   "title": "Quickened",
+   "summary": "You're able to act more quickly. You gain 1 additional action at the start of your turn each round. Many effects that make you quickened require you use this extra action only in certain ways. If you become quickened from multiple sources, you can use the extra action you've been granted for any single action allowed by any of the effects that made you quickened. Because quickened has its effect at the start of your turn, you don't immediately gain actions if you become quickened during your turn.",
+   "cite": "Player Core — Conditions: Quickened",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.restrained",
+   "title": "Restrained",
+   "summary": "You're tied up and can barely move, or a creature has you pinned. You have the off-guard and immobilized conditions, and you can't use any attack or manipulate actions except to attempt to Escape or Force Open your bonds. Restrained overrides grabbed.",
+   "cite": "Player Core — Conditions: Restrained",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.sickened",
+   "title": "Sickened",
+   "summary": "You feel ill. Sickened always includes a value. You take a status penalty equal to this value on all your checks and DCs. You can't willingly ingest anything-including elixirs and potions-while sickened.\n\nYou can spend a single action retching in an attempt to recover, which lets you immediately attempt a Fortitude save against the DC of the effect that made you sickened. On a success, you reduce your sickened value by 1 (or by 2 on a critical success).",
+   "cite": "Player Core — Conditions: Sickened",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.slowed",
+   "title": "Slowed",
+   "summary": "You have fewer actions. Slowed always includes a value. When you regain your actions, reduce the number of actions regained by your slowed value. Because you regain actions at the start of your turn, you don't immediately lose actions if you become slowed during your turn.",
+   "cite": "Player Core — Conditions: Slowed",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.stunned",
+   "title": "Stunned",
+   "summary": "You've become senseless. You can't act. Stunned usually includes a value, which indicates how many total actions you lose, possibly over multiple turns, from being stunned. Each time you regain actions, reduce the number you regain by your stunned value, then reduce your stunned value by the number of actions you lost. For example, if you were stunned 4, you would lose all 3 of your actions on your turn, reducing you to stunned 1; on your next turn, you would lose 1 more action, and then be able to use your remaining 2 actions normally. Stunned might also have a duration instead, such as \"stunned for 1 minute,\" causing you to lose all your actions for the duration.\n\nStunned overrides slowed. If the duration of your stunned condition ends while you are slowed, you count the actions lost to the stunned condition toward those lost to being slowed. So, if you were stunned 1 and slowed 2 at the beginning of your turn, you would lose 1 action from stunned, and then lose only 1 additional action by being slowed, so you would still have 1 action remaining to use that turn.",
+   "cite": "Player Core — Conditions: Stunned",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.stupefied",
+   "title": "Stupefied",
+   "summary": "Your thoughts and instincts are clouded. Stupefied always includes a value. You take a status penalty equal to this value on Intelligence-, Wisdom-, and Charisma-based rolls and DCs, including Will saving throws, spell attack modifiers, spell DCs, and skill checks that use these attribute modifiers. Any time you attempt to Cast a Spell while stupefied, the spell is disrupted unless you succeed at a flat with a DC equal to 5 + your stupefied value.",
+   "cite": "Player Core — Conditions: Stupefied",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.unconscious",
+   "title": "Unconscious",
+   "summary": "You're sleeping or have been knocked out. You can't act. You take a –4 status penalty to AC, Perception, and Reflex saves, and you have the blinded and off-guard conditions. When you gain this condition, you fall prone and drop items you're holding unless the effect states otherwise or the GM determines you're positioned so you wouldn't.\n\nIf you're unconscious because you're dying, you can't wake up while you have 0 Hit Points. If you are restored to 1 Hit Point or more, you lose the dying and unconscious conditions and can act normally on your next turn.\n\nIf you are unconscious and at 0 Hit Points, but not dying, you return to 1 Hit Point and awaken after sufficient time passes. The GM determines how long you remain unconscious, from a minimum of 10 minutes to several hours. If you are healed, you lose the unconscious condition and can act normally on your next turn.\n\nIf you're unconscious and have more than 1 Hit Point (typically because you are asleep or unconscious due to an effect), you wake up in one of the following ways.\n\n- You take damage, though if the damage reduces you to 0 Hit Points, you remain unconscious and gain the dying condition as normal.\n- You receive healing, other than the natural healing you get from resting.\n- Someone shakes you awake with an Interact action.\n- Loud noise around you might wake you. At the start of your turn, you automatically attempt a Perception check against the noise's DC (or the lowest DC if there is more than one noise), waking up if you succeed. If creatures are attempting to stay quiet around you, this Perception check uses their Stealth DCs. Some effects make you sleep so deeply that they don't allow you this Perception check.\n- If you are simply asleep, the GM decides you wake up either because you have had a restful night's sleep or something disrupted that rest.",
+   "cite": "Player Core — Conditions: Unconscious",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.undetected",
+   "title": "Undetected",
+   "summary": "When you are undetected by a creature, that creature can't see you at all, has no idea what space you occupy, and can't target you, though you still can be affected by abilities that target an area. When you're undetected by a creature, that creature is off-guard to you.\n\nA creature you're undetected by can guess which square you're in to try targeting you. It must pick a square and attempt an attack. This works like targeting a hidden creature (requiring a DC 11 flat), but the flat check and attack roll are rolled in secret by the GM, who doesn't reveal whether the attack missed due to failing the flat check, failing the attack roll, or choosing the wrong square. They can Seek to try to find you.",
+   "cite": "Player Core — Conditions: Undetected",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.unfriendly",
+   "title": "Unfriendly",
+   "summary": "This condition reflects a creature's disposition toward a particular character, and only supernatural effects (like a spell) can impose this condition on a PC. A creature that is unfriendly to a character dislikes and distrusts that character. The unfriendly creature won't accept Requests from the character.",
+   "cite": "Player Core — Conditions: Unfriendly",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.unnoticed",
+   "title": "Unnoticed",
+   "summary": "If you're unnoticed by a creature, that creature has no idea you're present. When you're unnoticed, you're also undetected. This matters for abilities that can be used only against targets totally unaware of your presence.",
+   "cite": "Player Core — Conditions: Unnoticed",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.condition.wounded",
+   "title": "Wounded",
+   "summary": "You have been seriously injured. If you lose the dying condition and do not already have the wounded condition, you become wounded 1. If you already have the wounded condition when you lose the dying condition, your wounded condition value increases by 1. If you gain the dying condition while wounded, increase your dying condition value by your wounded value.\n\nThe wounded condition ends if someone successfully restores Hit Points to you using Treat Wounds, or if you are restored to full Hit Points by any means and rest for 10 minutes.",
+   "cite": "Player Core — Conditions: Wounded",
+   "tags": [
+    "condition"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.anchor",
+   "title": "Anchor ◆",
+   "summary": "*leshy*\n\n**Requirements** You're on a solid surface\n\n**Effect** You send your roots into or across the ground, making it harder for you to stumble. Until you move, you gain a +2 circumstance bonus to your Fortitude or Reflex DC against attempts to Reposition, Shove, or Trip you (or a +4 circumstance bonus if you're a root leshy). This bonus also applies to saving throws against spells or effects that attempt to move you or knock you prone. If an effect forces you to move, you move only half the normal distance, as some of the effort goes to tearing loose the roots.",
+   "cite": "Player Core — Ancestry Actions: Anchor",
+   "tags": [
+    "action",
+    "ancestry actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.call-on-ancient-blood",
+   "title": "Call on Ancient Blood ↺",
+   "summary": "**Trigger** You attempt a saving throw against a magical effect, but you haven't rolled yet\n\nYour ancestors' innate resistance to magic surges before slowly ebbing down. You gain a +1 circumstance bonus to saving throws on the triggering save and other saves against magical effects until the end of this turn.",
+   "cite": "Player Core — Ancestry Actions: Call on Ancient Blood",
+   "tags": [
+    "action",
+    "ancestry actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.jinx",
+   "title": "Jinx ◆◆",
+   "summary": "*curse, occult*\n\n**Frequency** once per day\n\n**Effect** You can curse another creature with clumsiness. This curse has a range of 30 feet, and you must be able to see your target. The target gets a Will saving throw against your class DC or spell DC, whichever is higher.\n\n**Success** The target is unaffected and temporarily immune for 24 hours.\n\n**Failure** The target is Clumsy 1 for 1 minute.\n\n**Critical Failure** The target is Clumsy 2 for 1 minute.",
+   "cite": "Player Core — Ancestry Actions: Jinx",
+   "tags": [
+    "action",
+    "ancestry actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.resist-elf-magic",
+   "title": "Resist Elf Magic ↺",
+   "summary": "**Trigger** You attempt a saving throw against a magical effect but haven't rolled yet\n\nYour ancestral resistance to magic protects you. You gain a +1 circumstance bonus to the triggering saving throw. If the triggering effect is arcane, you gain a +2 circumstance bonus instead.",
+   "cite": "Player Core 2 — Ancestry Actions: Resist Elf Magic",
+   "tags": [
+    "action",
+    "ancestry actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.tail-toxin",
+   "title": "Tail Toxin ◆",
+   "summary": "*kobold, poison*\n\n**Frequency** once per day\n\n**Requirements** You are wielding a piercing or slashing weapon\n\nYou apply your tail's venom to a piercing or slashing weapon. If your next Strike with that weapon before the end of your next turn hits and deals damage, you deal persistent poison damage equal to your level to the target.",
+   "cite": "Player Core 2 — Ancestry Actions: Tail Toxin",
+   "tags": [
+    "action",
+    "ancestry actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.threatening-approach",
+   "title": "Threatening Approach ◆◆",
+   "summary": "You Stride to be adjacent to a foe and Demoralize that foe. If you succeed, the foe is Frightened 2 instead of frightened 1.",
+   "cite": "Player Core 2 — Ancestry Actions: Threatening Approach",
+   "tags": [
+    "action",
+    "ancestry actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.toxic-skin",
+   "title": "Toxic Skin ↺",
+   "summary": "*poison, tripkee*\n\n**Frequency** once per hour\n\n**Trigger** A creature touches you, such as by Grappling you, successfully hitting you with an unarmed attack, or using a touch-range spell against you\n\n**Effect** You exude a deadly toxin. The triggering creature takes (1d4 per 2 levels) poison damage (basic Fortitude save using your class DC or spell DC, whichever is higher). At 3rd level and every 2 levels thereafter, the damage increases by 1d4.",
+   "cite": "Player Core 2 — Ancestry Actions: Toxic Skin",
+   "tags": [
+    "action",
+    "ancestry actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.basic-finisher",
+   "title": "Basic Finisher ◆",
+   "summary": "*finisher*\n\nYou make a graceful, deadly attack. Make a Strike; if you hit and your weapon qualifies for Precise Strike, you deal the full 1d6 damage from precise strike.",
+   "cite": "Player Core 2 — Archetype Actions: Basic Finisher",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.boarding-assault",
+   "title": "Boarding Assault ◆◆",
+   "summary": "*flourish*\n\nEither Stride twice or attempt an Acrobatics check (DC determined by the GM, but usually DC 20) to swing up to twice your Speed on a rope or similar object, then Strike.\n\nIf you boarded or disembarked from a boat or similar vehicle during this movement, the Strike deals one additional weapon damage die.",
+   "cite": "Player Core 2 — Archetype Actions: Boarding Assault",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.call-companion",
+   "title": "Call Companion",
+   "summary": "*exploration*\n\nYou spend 1 minute calling for a different animal companion, switching your active companion for another of your animal companions.",
+   "cite": "Player Core 2 — Archetype Actions: Call Companion",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.cobble-together",
+   "title": "Cobble Together",
+   "summary": "*exploration*\n\nYou Craft a temporary item out of anything, anywhere, with whatever materials happen to be on hand, spending only 10 minutes to perform the initial Crafting check.\n\nThe temporary item must be one you've memorized or have the formula for, and must be common, non-magical, half your level or lower, and must be a weapon, armor, or a non-consumable piece of adventuring gear (non-consumable adventuring gear appears on page 291 of Player Core). Instead of a single item, you can create 10 pieces of a single type of ammunition. You can create only the physical item, not any information or magic, so for example, while you could create a blank journal or one with random pages, you couldn't use it as a scholarly journal or a religious text",
+   "cite": "Player Core 2 — Archetype Actions: Cobble Together",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.eldritch-shot",
+   "title": "Eldritch Shot ◆◆◆",
+   "summary": "**Requirements** You are wielding a bow or a loaded crossbow\n\n**Effect** You Cast a Spell that takes 1 or 2 actions to cast and requires a spell attack roll. The effects of the spell do not occur immediately but are imbued into the bow you're wielding. Make a Strike with that bow. Your spell flies with the ammunition, using your attack roll result to determine the effects of both the Strike and the spell. This counts as two attacks for your multiple attack penalty, but you don't apply the penalty until after you've completed the Eldritch Shot. Combine the Strike and spell's damage for the purpose of resistances and weaknesses.",
+   "cite": "Player Core 2 — Archetype Actions: Eldritch Shot",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.influence-rumor",
+   "title": "Influence Rumor",
+   "summary": "*downtime*\n\nYou spend at least 1 day of downtime attempting to manipulate the course, tone, or content of a rumor to your benefit. You need to succeed at a Diplomacy check to shift the rumor as you intend. The difficulty is determined by the GM based on the size of the community, the relative perceptiveness of the inhabitants, and the agency of other rumormongers, but it typically is no lower than DC 15 for a small village, DC 20 for a town, DC 30 for a city, or DC 40 for a metropolis.",
+   "cite": "Player Core 2 — Archetype Actions: Influence Rumor",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.mark-for-death",
+   "title": "Mark for Death ◆◆◆",
+   "summary": "*concentrate*\n\n**Requirements** The creature you intend to mark is observed by you\n\n**Effect** You designate a single creature as your mark. Using Mark for Death while hidden or undetected doesn't make you observed. Mark for Death lasts until the mark dies or you use Mark for Death again. You gain a +2 circumstance bonus to Perception checks to Seek your mark, as well as to Deception checks to Feint against your mark. Your mark takes a –2 circumstance penalty to all Perception checks to Seek you.\n\nIn addition, when attacking your mark, you have the Sneak Attack class feature, except it deals 1d4 precision damage and you don't increase the number of dice as you gain levels. At 6th level, the damage increases to 1d6. If you already have the sneak attack class feature, you instead deal an additional 1 precision damage with your sneak attacks made against your mark, increasing to 2 precision damage at 6th level.",
+   "cite": "Player Core 2 — Archetype Actions: Mark for Death",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.once-bitten",
+   "title": "Once Bitten ↺",
+   "summary": "**Trigger** A creature adjacent to you hits you with a melee unarmed Strike\n\n**Requirements** You have prepared your clothing to poison attackers\n\n**Effect** The triggering creature is exposed to the suffused poison, and the poison becomes inert.",
+   "cite": "Player Core 2 — Archetype Actions: Once Bitten",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.upstage",
+   "title": "Upstage ↺",
+   "summary": "**Trigger** An enemy attempts a skill check and doesn't get a critical success\n\nAfter your foe has tried their best, you show everyone how it's really done. Attempt a check using the same skill that triggered this reaction.\n\n**Critical Success** You gain a +1 status bonus to attack rolls, Perception checks, saving throws, and skill checks until the end of your next turn.\n\n**Success** As critical success, except you gain the benefits only if the triggering creature failed their skill check.\n\nEffect: Upstage",
+   "cite": "Player Core 2 — Archetype Actions: Upstage",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.feys-fortune",
+   "title": "Fey's Fortune ◇",
+   "summary": "*concentrate, fortune*\n\n**Frequency** once per day\n\n**Trigger** You attempt a skill check and haven't yet rolled\n\n**Effect** Roll the skill check twice and use the better result",
+   "cite": "Player Core 2 — Background Actions: Fey's Fortune",
+   "tags": [
+    "action",
+    "background actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.warding-sign",
+   "title": "Warding Sign ↺",
+   "summary": "*concentrate*\n\n**Frequency** once per minute\n\n**Trigger** You attempt a saving throw against a magical effect, but you haven't rolled yet\n\n**Effect** You call on the power of a personal, eldritch sign of protection, which flares brightly before slowly fading. You gain a +2 circumstance bonus to the triggering saving throw, or a +3 circumstance bonus if the effect is a curse.",
+   "cite": "Player Core 2 — Background Actions: Warding Sign",
+   "tags": [
+    "action",
+    "background actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.affix-a-talisman",
+   "title": "Affix a Talisman",
+   "summary": "*exploration, manipulate*\n\n**Requirements** You must use a Repair Toolkit\n\nYou spend 10 minutes affixing a talisman to an item, placing the item on a stable surface and using the repair toolkit with both hands. You can also use this activity to remove a talisman. Attaching more than one talisman to an item deactivates all the talismans. They must be removed and re-affixed before they can be used again.",
+   "cite": "GM Core — Basic Actions: Affix a Talisman",
+   "tags": [
+    "action",
+    "basic actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.aid",
+   "title": "Aid ↺",
+   "summary": "**Trigger** An ally is about to use an action that requires a skill check or attack roll.\n\n**Requirements** The ally is willing to accept your aid, and you have prepared to help (see below).\n\nYou try to help your ally with a task. To use this reaction, you must first prepare to help, usually by using an action during your turn. You must explain to the GM exactly how you're trying to help, and they determine whether you can Aid your ally.\n\nWhen you use your Aid reaction, attempt a skill check or attack roll of a type decided by the GM. The typical DC is 15, but the GM might adjust this DC for particularly hard or easy tasks. The GM can add any relevant traits to your preparatory action or to your Aid reaction depending on the situation, or even allow you to Aid checks other than skill checks and attack rolls.\n\n**Critical Success** You grant your ally a +2 circumstance bonus to the triggering check. If you're a master with the check you attempted, the bonus is +3, and if you're legendary, it's +4.\n\n**Success** You grant your ally a +1 circumstance bonus to the triggering check.\n\n**Critical Failure** Your ally takes a –1 circumstance penalty to the triggering check.\n\nEffect: Aid",
+   "cite": "Player Core — Basic Actions: Aid",
+   "tags": [
+    "action",
+    "basic actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.arrest-a-fall",
+   "title": "Arrest a Fall ↺",
+   "summary": "**Trigger** You fall.\n\n**Requirements** You have a fly Speed.\n\nYou attempt an Acrobatics check or Reflex save to slow your fall. The DC is typically 15, but it might be higher due to air turbulence or other circumstances.\n\n**Success** You take no damage from the fall.",
+   "cite": "Player Core — Basic Actions: Arrest a Fall",
+   "tags": [
+    "action",
+    "basic actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.avert-gaze",
+   "title": "Avert Gaze ◆",
+   "summary": "You avert your gaze from danger, such as a medusa's gaze. You gain a +2 circumstance bonus to saves against visual abilities that require you to look at a creature or object, such as a medusa's petrifying gaze. Your gaze remains averted until the start of your next turn.",
+   "cite": "Player Core — Basic Actions: Avert Gaze",
+   "tags": [
+    "action",
+    "basic actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.burrow",
+   "title": "Burrow ◆",
+   "summary": "*move*\n\n**Requirements** You have a burrow Speed.\n\nYou dig your way through dirt, sand, or a similar loose material at a rate up to your burrow Speed. You can't burrow through rock or other substances denser than dirt unless you have an ability that allows you to do so.",
+   "cite": "Player Core — Basic Actions: Burrow",
+   "tags": [
+    "action",
+    "basic actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.cast-a-spell",
+   "title": "Cast a Spell",
+   "summary": "Spells can vary in how many actions they take, as shown in the spell's stat block. You cast cantrips, spells from spell slots, and focus spells using the same process, but must expend the spell when casting a spell from a spell slot and must spend 1 Focus Point to cast a focus spell. Some rules will refer to the Cast a Spell activity, such as \"if the next action you use is to Cast a Spell.\" Any spell qualifies as a Cast a Spell activity, and any characteristics of the spell use those of the specific spell you're casting.\n\n**Costs and Loci** Some spells require you to pay a cost or provide a locus. If the spell lists a cost, you must have the listed money, valuable materials, or other resources to cast the spell (such as gems or magical reagents), and they're expended during the casting.\n\nA **locus** is an object that funnels or directs the magical energy of the spell but is not consumed in its casting. As part of Casting the Spell, you retrieve the locus (if necessary, and if you have a free hand), and you can put it away again if you so choose. Loci tend to be expensive, and you need to acquire them in advance to cast the spell, but they aren't expended like costs are. Unless noted otherwise, a locus has negligible Bulk.\n\n**Long Casting Times** Some spells take minutes or hours to cast. You can't use other actions or reactions while casting such a spell, though at the GM's discretion, you might be able to speak a few sentences. As with other activities that take a long time, these spells have the exploration trait, and you can't cast them in an encounter. If combat breaks out while you're casting one, your spell is disrupted.\n\n**Disrupted and Lost Spells** Some abilities and spells can disrupt a spell, causing it to have no effect and be lost. When you lose a spell, you've already expended the spell slot and spent the spell's costs and actions. If a spell is disrupted during a Sustain action, the spell immediately ends.",
+   "cite": "Player Core — Basic Actions: Cast a Spell",
+   "tags": [
+    "action",
+    "basic actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.crawl",
+   "title": "Crawl ◆",
+   "summary": "*move*\n\n**Requirements** You are prone and your Speed is at least 10 feet.\n\nYou move 5 feet by crawling and continue to stay prone.",
+   "cite": "Player Core — Basic Actions: Crawl",
+   "tags": [
+    "action",
+    "basic actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.delay",
+   "title": "Delay ◇",
+   "summary": "**Trigger** Your turn begins.\n\nYou wait for the right moment to act. The rest of your turn doesn't happen yet. Instead, you're removed from the initiative order. You can return to the initiative order as a free action triggered by the end of any other creature's turn. This permanently changes your initiative to the new position. You can't use reactions until you return to the initiative order. If you Delay an entire round without returning to the initiative order, the actions from the Delayed turn are lost, your initiative doesn't change, and your next turn occurs at your original position in the initiative order.\n\nWhen you Delay, any persistent damage or other negative effects that normally occur at the start or end of your turn occur immediately when you use the Delay action. Any beneficial effects that would end at any point during your turn also end. The GM might determine that other effects end when you Delay as well. Essentially, you can't Delay to avoid negative consequences that would happen on your turn or to extend beneficial effects that would end on your turn.",
+   "cite": "Player Core — Basic Actions: Delay",
+   "tags": [
+    "action",
+    "basic actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.dismiss",
+   "title": "Dismiss ◆",
+   "summary": "*concentrate*\n\nYou end an effect that states you can Dismiss it. Dismissing ends the entire effect unless noted otherwise.",
+   "cite": "Player Core — Basic Actions: Dismiss",
+   "tags": [
+    "action",
+    "basic actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.drop-prone",
+   "title": "Drop Prone ◆",
+   "summary": "*move*\n\nYou fall prone.",
+   "cite": "Player Core — Basic Actions: Drop Prone",
+   "tags": [
+    "action",
+    "basic actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.escape",
+   "title": "Escape ◆",
+   "summary": "*attack*\n\nYou attempt to escape from being grabbed, immobilized, or restrained. Choose one creature, object, spell effect, hazard, or other impediment imposing any of those conditions on you. Attempt a check using your unarmed attack modifier against the DC of the effect. This is typically the Athletics DC of a creature grabbing you, the Thievery DC of a creature who tied you up, the spell DC for a spell effect, or the listed Escape DC of an object, hazard, or other impediment. You can attempt an Acrobatics or Athletics check instead of using your attack modifier if you choose (but this action still has the attack trait).\n\n**Critical Success** You get free and remove the grabbed, immobilized, and restrained conditions imposed by your chosen target. You can then Stride up to 5 feet.\n\n**Success** You get free and remove the grabbed, immobilized, and restrained conditions imposed by your chosen target.\n\n**Critical Failure** You don't get free, and you can't attempt to Escape again until your next turn.",
+   "cite": "Player Core — Basic Actions: Escape",
+   "tags": [
+    "action",
+    "basic actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.fly",
+   "title": "Fly ◆",
+   "summary": "*move*\n\n**Requirements** You have a fly Speed.\n\nYou move through the air up to your fly Speed. Moving upward (straight up or diagonally) uses the rules for moving through difficult terrain. You can move straight down 10 feet for every 5 feet of movement you spend. If you Fly to the ground, you don't take falling damage. You can use an action to Fly 0 feet to hover in place. If you're airborne at the end of your turn and didn't use a Fly action this round, you fall.",
+   "cite": "Player Core — Basic Actions: Fly",
+   "tags": [
+    "action",
+    "basic actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.grab-an-edge",
+   "title": "Grab an Edge ↺",
+   "summary": "*manipulate*\n\n**Trigger** You fall from or past an edge or handhold.\n\n**Requirements** Your hands are not tied behind your back or otherwise restrained.\n\nWhen you fall off or past an edge or other handhold, you can try to grab it, potentially stopping your fall. You must succeed at your choice of an Acrobatics check or a Reflex save, usually at the Climb DC. If you grab the edge or handhold, you can then Climb up using Athletics.\n\n**Critical Success** You grab the edge or handhold, whether or not you have a hand free, typically by using a suitable held item to catch yourself (catching a battle axe on a ledge, for example). You still take damage from the distance fallen so far, but you treat the fall as though it were 30 feet shorter.\n\n**Success** If you have at least one hand free, you grab the edge or handhold, stopping your fall. You still take damage from the distance fallen so far, but you treat the fall as though it were 20 feet shorter. If you have no hands free, you continue to fall as if you had failed the check.\n\n**Critical Failure** You continue to fall, and if you've fallen 20 feet or more before you use this reaction, you take 10 bludgeoning damage from the impact for every 20 feet fallen.",
+   "cite": "Player Core — Basic Actions: Grab an Edge",
+   "tags": [
+    "action",
+    "basic actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.interact",
+   "title": "Interact ◆",
+   "summary": "*manipulate*\n\nYou use your hand or hands to manipulate an object or the terrain. You can grab an unattended or stored object, draw a weapon, swap a held item for another, open a door, or achieve a similar effect. On rare occasions, you might have to attempt a skill check to determine if your Interact action was successful.",
+   "cite": "Player Core — Basic Actions: Interact",
+   "tags": [
+    "action",
+    "basic actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.invest-an-item",
+   "title": "Invest an Item",
+   "summary": "You invest your energy in an item with the invested trait as you don it. This process requires 1 or more Interact actions, usually taking the same amount of time it takes to don the item. Once you've Invested the Item, you benefit from its constant magical abilities as long as you meet its other requirements (for most invested items, the only other requirement is that you must be wearing the item). This investiture lasts until you remove the item.\n\nYou can invest no more than 10 items per day. If you remove an invested item, it loses its investiture. The item still counts against your daily limit after it loses its investiture. You reset the limit during your daily preparations, at which point you Invest your Items anew. If you're still wearing items you had invested the previous day, you can typically keep them invested on the new day, but they still count against your limit.",
+   "cite": "GM Core — Basic Actions: Invest an Item",
+   "tags": [
+    "action",
+    "basic actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.leap",
+   "title": "Leap ◆",
+   "summary": "*move*\n\nYou take a short horizontal or vertical jump. Jumping a greater distance requires using the Athletics skill for a High Jump or Long Jump.\n\n- **Horizontal** Jump up to 10 feet horizontally if your Speed is at least 15 feet, or up to 15 feet horizontally if your speed is at least 30 feet. You land in the space where your Leap ends (meaning you can typically clear a 5-foot gap, or a 10-foot gap if your Speed is 30 feet or more). You can't make a horizontal Leap if your Speed is less than 15 feet.\n- **Vertical** Jump up to 3 feet vertically and 5 feet horizontally onto an elevated surface.",
+   "cite": "Player Core — Basic Actions: Leap",
+   "tags": [
+    "action",
+    "basic actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.mount",
+   "title": "Mount ◆",
+   "summary": "*move*\n\n**Requirements** You are adjacent to a creature that is at least one size larger than you and is willing to be your mount.\n\nYou move onto the creature and ride it. If you're already mounted, you can instead use this action to dismount, moving off the mount into a space adjacent to it.",
+   "cite": "Player Core — Basic Actions: Mount",
+   "tags": [
+    "action",
+    "basic actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.point-out",
+   "title": "Point Out ◆",
+   "summary": "*auditory, manipulate, visual*\n\n**Requirements** A creature is undetected by one or more of your allies but isn't undetected by you.\n\nYou indicate a creature that you can see to one or more allies, gesturing in a direction and describing the distance verbally. That creature is hidden to your allies, rather than undetected. This works only for allies who can see you and are in a position where they could potentially detect the target. If your allies can't hear or understand you, they must succeed at a Perception check against the creature's Stealth DC or they misunderstand and believe the target is in a different location.",
+   "cite": "Player Core — Basic Actions: Point Out",
+   "tags": [
+    "action",
+    "basic actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.raise-a-shield",
+   "title": "Raise a Shield ◆",
+   "summary": "**Requirements** You are wielding a shield.\n\nYou position your shield to protect yourself. When you have Raised a Shield, you gain its listed circumstance bonus to AC. Your shield remains raised until the start of your next turn.",
+   "cite": "Player Core — Basic Actions: Raise a Shield",
+   "tags": [
+    "action",
+    "basic actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.ready",
+   "title": "Ready ◆◆",
+   "summary": "*concentrate*\n\nYou prepare to use an action that will occur outside your turn. Choose a single action or free action you can use, and designate a trigger. Your turn then ends. If the trigger you designated occurs before the start of your next turn, you can use the chosen action as a reaction (provided you still meet the requirements to use it). You can't Ready a free action that already has a trigger.\n\nIf you have a multiple attack penalty and your readied action is an attack action, your readied attack takes the multiple attack penalty you had at the time you used Ready. This is one of the few times the multiple attack penalty applies when it's not your turn.",
+   "cite": "Player Core — Basic Actions: Ready",
+   "tags": [
+    "action",
+    "basic actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.release",
+   "title": "Release ◇",
+   "summary": "*manipulate*\n\nYou release something you're holding in your hand or hands. This might mean dropping an item, removing one hand from your weapon while continuing to hold it in another hand, releasing a rope suspending a chandelier, or performing a similar action. Unlike most manipulate actions, Release does not trigger reactions that can be triggered by actions with the manipulate trait (such as Reactive Strike).\n\nIf you want to prepare to Release something outside of your turn, use the Ready activity.",
+   "cite": "Player Core — Basic Actions: Release",
+   "tags": [
+    "action",
+    "basic actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.seek",
+   "title": "Seek ◆",
+   "summary": "*concentrate, secret*\n\nYou scan an area for signs of creatures or objects, possibly including secret doors or hazards. Choose an area to scan. The GM determines the area you can scan with one Seek action—almost always 30 feet or less in any dimension. The GM might impose a penalty if you search far away from you or adjust the number of actions it takes to Seek a particularly cluttered area.\n\nThe GM attempts a single secret Perception check for you and compares the result to the Stealth DCs of any undetected or hidden creatures in the area, or the DC to detect each object in the area (as determined by the GM or by someone Concealing the Object). A creature you detect might remain hidden, rather than becoming observed, if you're using an imprecise sense or if an effect (such as Invisibility) prevents the subject from being observed.\n\n**Critical Success** Any undetected or hidden creature you critically succeeded against becomes observed by you. You learn the location of objects in the area you critically succeeded against.\n\n**Success** Any undetected creature you suceeded against becomes hidden from you instead of undetected, and any hidden creature you succeeded against becomes observed by you. You learn the location of any object or get a clue to its whereabouts, as determined by the GM.",
+   "cite": "Player Core — Basic Actions: Seek",
+   "tags": [
+    "action",
+    "basic actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.sense-motive",
+   "title": "Sense Motive ◆",
+   "summary": "*concentrate, secret*\n\nYou try to tell whether a creature's behavior is abnormal. Choose one creature and assess it for odd body language, signs of nervousness, and other indicators that it might be trying to deceive someone. The GM attempts a single secret Perception check for you and compares the result to the Deception DC of the creature, the DC of a spell affecting the creature's mental state, or another appropriate DC determined by the GM. You typically can't try to Sense the Motive of the same creature again until the situation changes significantly.\n\n**Critical Success** You determine the creature's true intentions and get a solid idea of any mental magic affecting it.\n\n**Success** You can tell whether the creature is behaving normally, but you don't know its exact intentions or what magic might be affecting it.\n\n**Failure** You detect what a deceptive creature wants you to believe. If they're not being deceptive, you believe they're behaving normally.\n\n**Critical Failure** You get a false sense of the creature's intentions.",
+   "cite": "Player Core — Basic Actions: Sense Motive",
+   "tags": [
+    "action",
+    "basic actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.stand",
+   "title": "Stand ◆",
+   "summary": "*move*\n\nYou stand up from prone.",
+   "cite": "Player Core — Basic Actions: Stand",
+   "tags": [
+    "action",
+    "basic actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.step",
+   "title": "Step ◆",
+   "summary": "*move*\n\n**Requirements** Your Speed is at least 10 feet.\n\nYou carefully move 5 feet. Unlike most types of movement, Stepping doesn't trigger reactions, such as Reactive Strike, that can be triggered by move actions or upon leaving or entering a square.\n\nYou can't Step into difficult terrain, and you can't Step using a Speed other than your land Speed.",
+   "cite": "Player Core — Basic Actions: Step",
+   "tags": [
+    "action",
+    "basic actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.stride",
+   "title": "Stride ◆",
+   "summary": "*move*\n\nYou move up to your Speed.",
+   "cite": "Player Core — Basic Actions: Stride",
+   "tags": [
+    "action",
+    "basic actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.strike",
+   "title": "Strike ◆",
+   "summary": "*attack*\n\nYou attack with a weapon you're wielding or with an unarmed attack, targeting one creature within your reach (for a melee attack) or within range (for a ranged attack). Roll an attack roll using the attack modifier for the weapon or unarmed attack you're using, and compare the result to the target creature's AC to determine the effect.\n\n**Critical Success** You make a damage roll according to the weapon or unarmed attack and deal double damage.\n\n**Success** You make a damage roll according to the weapon or unarmed attack and deal damage.",
+   "cite": "Player Core — Basic Actions: Strike",
+   "tags": [
+    "action",
+    "basic actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.sustain",
+   "title": "Sustain ◆",
+   "summary": "*concentrate*\n\nChoose one of your effects that has a sustained duration or lists a special benefit when you Sustain it. Most such effects come from spells or magic item activations. If the effect has a sustained duration, its duration extends until the end of your next turn. (Sustaining more than once in the same turn doesn't extend the duration to subsequent turns.) If an ability can be sustained but doesn't list how long, it can be sustained up to 10 minutes.\n\nAn effect might list an additional benefit that occurs if you Sustain it, and this can even appear on effects that don't have a sustained duration. If the effect has both a special benefit and a sustained duration, your Sustain action extends the duration as well as having the special benefit.\n\nIf your Sustain action is disrupted, the ability ends.",
+   "cite": "Player Core — Basic Actions: Sustain",
+   "tags": [
+    "action",
+    "basic actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.take-cover",
+   "title": "Take Cover ◆",
+   "summary": "**Requirements** You are benefiting from standard cover, are near a feature that allows you to take cover, or are prone.\n\nYou press yourself against a wall or duck behind an obstacle to take better advantage of cover. If you would have standard cover, you instead gain greater cover, which provides a +4 circumstance bonus to AC; to Reflex saves against area effects; and to Stealth checks to Hide, Sneak, or otherwise avoid detection. Otherwise, you gain standard cover (a +2 circumstance bonus instead). If you're prone, you gain greater cover against ranged attacks. Take Cover lasts until you move from your current space, use an attack action, become unconscious, or end it as a free action.",
+   "cite": "Player Core — Basic Actions: Take Cover",
+   "tags": [
+    "action",
+    "basic actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.clue-in",
+   "title": "Clue In ↺",
+   "summary": "*concentrate, investigator*\n\n**Frequency** once per 10 minutes\n\n**Trigger** Another creature attempts a check that could help get you closer to answering the question at the heart of one of your active investigations.\n\nYou share information with the triggering creature. They gain a circumstance bonus to their check equal to your investigation bonus from Pursue a Lead. The GM can add any relevant traits to this reaction depending on the situation, such as auditory and linguistic if you're conveying information verbally.\n\nEffect: Clue In",
+   "cite": "Player Core 2 — Class Actions: Clue In",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.confident-finisher",
+   "title": "Confident Finisher ◆",
+   "summary": "*finisher*\n\nYou make an incredibly graceful attack, piercing your foe's defenses. Make a Strike with the following failure effect.\n\n**Failure** You deal half your Precise Strike damage to the target. This damage type is that of the weapon or unarmed attack you used for the Strike.",
+   "cite": "Player Core 2 — Class Actions: Confident Finisher",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.debilitating-strike",
+   "title": "Debilitating Strike ◇",
+   "summary": "*rogue*\n\n**Trigger** Your Strike hits an off-guard creature and deals damage\n\nYou apply one of the following debilitations, which lasts until the end of your next turn:\n\n- **Debilitation** The target takes a –10-foot status penalty to its Speeds.\n- **Debilitation** The target becomes Enfeebled 1.",
+   "cite": "Player Core — Class Actions: Debilitating Strike",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.destructive-vengeance",
+   "title": "Destructive Vengeance ↺",
+   "summary": "*champion, divine*\n\n**Trigger** An enemy in your champion's aura damages you\n\n**Effect** Bloodshed begets bloodshed as you drag your enemy toward oblivion. You increase the amount of damage you take by level-based, and you deal level-based spirit damage to the triggering enemy. The damage you take and deal when you use this reaction increases to 2d6 at 5th level, 3d6 at 9th level, 4d6 at 12th level, 5d6 at 16th level, and 6d6 at 19th level.\n\nIn addition, until the end of your next turn, your Strikes against the triggering creature deal 2 extra spirit damage. This extra damage increases to 4 at 9th level and 6 at 16th level.\n\nEffect: Champion's Extra Damage",
+   "cite": "Player Core 2 — Class Actions: Destructive Vengeance",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.devise-a-stratagem",
+   "title": "Devise a Stratagem ◆",
+   "summary": "*concentrate, investigator*\n\n**Frequency** once per round\n\nYou assess a foe's weaknesses in combat and use them to formulate a plan of attack. Choose a creature you can see. You can Devise a Stratagem as a free action if you're aware that creature could help answer the question at the heart of one of your active investigations. Roll a d20, then decide on an attack stratagem or skill stratagem.\n\n**Attack Stratagem** If you Strike the chosen creature before the start of your next turn, your Strike gains the fortune trait and you must use the result of the d20 roll for your Strike's attack roll instead of rolling. You make this substitution only for the first Strike you make against the creature this round, not any subsequent ones. When you make this substitution, you can add your Intelligence modifier to your attack roll instead of your Strength or Dexterity modifier. If you Strike with a melee weapon, melee unarmed attack, or thrown weapon, it must have the agile or finesse trait to benefit from the substitution.\n\n**Skill Stratagem** You can't attempt to Strike the target until the start of your next turn. You gain a +1 circumstance bonus to your next Intelligence-, Wisdom-, or Charisma-based skill check or Perception check involving the target before the start of your next turn. If you would gain your Pursue a Lead investigation bonus to such a check, that bonus increases by 1 instead of you gaining the +1 bonus listed.",
+   "cite": "Player Core 2 — Class Actions: Devise a Stratagem",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.drain-bonded-item",
+   "title": "Drain Bonded Item ◇",
+   "summary": "*arcane, wizard*\n\n**Frequency** once per day\n\n**Requirements** Your bonded item is on your person.\n\nYou expend the magical power stored in your bonded item. During the current turn, you can cast one spell you prepared today and already cast, without spending a spell slot. You must still Cast the Spell and meet the spell's other requirements.",
+   "cite": "Player Core — Class Actions: Drain Bonded Item",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.expeditious-inspection",
+   "title": "Expeditious Inspection ◇",
+   "summary": "*investigator*\n\n**Frequency** once per 10 minutes\n\nYou observe and assess your surroundings with great speed. You Recall Knowledge, Seek, or Sense Motive.",
+   "cite": "Player Core 2 — Class Actions: Expeditious Inspection",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.flash-of-grandeur",
+   "title": "Flash of Grandeur ↺",
+   "summary": "*champion, divine*\n\n**Trigger** An enemy damages your ally, and both are in your champion's aura\n\n**Effect** Imperious divine light flashes out from you to surround your foe. The ally gains resistance to all damage against the triggering damage equal to 2 + your level. Until the end of your next turn, the attacker is affected by Revealing Light.\n\nEffect: Champion's Resistance",
+   "cite": "Player Core 2 — Class Actions: Flash of Grandeur",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.glimpse-of-redemption",
+   "title": "Glimpse of Redemption ↺",
+   "summary": "*champion, divine*\n\n**Trigger** An enemy damages your ally, and both are in your champion's aura\n\n**Effect** Your enemy hesitates under the weight of sin as visions of redemption play in their mind's eye. The enemy must choose to repent or refuse, with the following effects. If the enemy is mindless or otherwise unable to repent, use the refuse result.\n\n- **Repent** The ally is unharmed by the triggering damage.\n- **Refuse** The ally gains resistance to all damage against the triggering damage equal to 2 + your level. After the damaging effect is applied, the enemy becomes Enfeebled 2 until the end of its next turn.\n\nEffect: Champion's Resistance",
+   "cite": "Player Core 2 — Class Actions: Glimpse of Redemption",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.hunt-prey",
+   "title": "Hunt Prey ◆",
+   "summary": "*concentrate, ranger*\n\nYou designate a single creature as your prey and focus your attacks against that creature. You must be able to see or hear the prey, or you must be tracking the prey during exploration.\n\nYou gain a +2 circumstance bonus to Perception checks when you Seek your prey and a +2 circumstance bonus to Survival checks when you Track your prey. You also ignore the penalty for making ranged attacks within your second range increment against the prey you're hunting.\n\nYou can have only one creature designated as your prey at a time. If you use Hunt Prey against a creature when you already have a creature designated, the prior creature loses the designation and the new prey gains the designation. Your designation lasts until your next daily preparations.",
+   "cite": "Player Core — Class Actions: Hunt Prey",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.inspired-stratagem",
+   "title": "Inspired Stratagem ↺",
+   "summary": "*fortune, linguistic*\n\n**Frequency** once per hour\n\n**Trigger** An ally you reviewed stratagems with is about to attempt an attack roll or skill check\n\n**Effect** The ally rolls the triggering check twice and takes the better of the two results. That ally then becomes temporarily immune to your Inspired Stratagem until your next daily preparations.\n\nEffect: Inspired Stratagem",
+   "cite": "Player Core — Class Actions: Inspired Stratagem",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.iron-command",
+   "title": "Iron Command ↺",
+   "summary": "*champion, divine, emotion, mental*\n\n**Trigger** An enemy in your champion's aura damages you\n\n**Effect** You put an impertinent foe who dared harm you in their proper place. You command your enemy to kneel before you in obedience. If they dare to refuse, they must pay the price in pain and anguish. The enemy must choose one of the following options.\n\n- **Kneel** The enemy drops prone as a free action.\n- **Refuse** You deal level-based mental damage to the enemy. This damage increases to 2d6 at 5th level, 3d6 at 9th level, 4d6 at 12th level, 5d6 at 16th level, and 6d6 at 19th level.\n\nRegardless of which option the enemy chose, your Strikes against it deal 1 extra spirit damage until the end of your next turn. This extra damage increases to 2 at 9th level and 3 at 16th level.\n\nEffect: Champion's Extra Damage",
+   "cite": "Player Core 2 — Class Actions: Iron Command",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.liberating-step",
+   "title": "Liberating Step ↺",
+   "summary": "*champion*\n\n**Trigger** An enemy damages, grabs, or restrains your ally, and both are in your champion's aura\n\nYou free an ally from restraint.\n\nIf the trigger was an ally taking damage, the ally gains resistance to all damage against the triggering damage equal to 2 + your level.\n\nThe ally can attempt to break free of effects grabbing, Restraining, Immobilizing, or Paralyzing them. They either attempt a new save against one such effect that allows a save, or attempt to Escape from one effect as a free action.\n\nIf they can move, the ally can Step as a free action, even if they didn't need to escape.\n\nEffect: Champion's Resistance",
+   "cite": "Player Core 2 — Class Actions: Liberating Step",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.master-strike",
+   "title": "Master Strike ◇",
+   "summary": "*incapacitation, rogue*\n\n**Trigger** Your Strike hits an off-guard creature and deals damage.\n\nThe target attempts a Fortitude save against your class DC. It then becomes temporarily immune to your Master Strike for 1 day.\n\n**Critical Success** The target is unaffected.\n\n**Success** The target is Enfeebled 2 until the end of your next turn.\n\n**Failure** The target is paralyzed for 4 rounds.\n\n**Critical Failure** The target is paralyzed for 4 rounds, knocked unconscious for 2 hours, or killed (your choice).",
+   "cite": "Player Core — Class Actions: Master Strike",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.opportune-riposte",
+   "title": "Opportune Riposte ↺",
+   "summary": "*bravado, swashbuckler*\n\n**Trigger** A foe within your reach critically fails a Strike against you\n\nYou take advantage of an opening from your enemy's fumbled attack. You either make a melee Strike against the triggering foe or attempt to Disarm it of the weapon it used for the Strike.",
+   "cite": "Player Core 2 — Class Actions: Opportune Riposte",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.patrons-claim",
+   "title": "Patron's Claim ◆◆",
+   "summary": "**Frequency** once per hour\n\n**Effect** Your familiar's mouth opens impossibly wide before your patron's grasping limb stretches forth from it at a creature within 30 feet, dealing 10d10 spirit damage with a basic Fortitude save against your spell DC. If the creature fails its save and takes damage, it is also Drained 2 (or Drained 4 on a critical failure) and you regain 1 Focus Point, up to your usual maximum, as your patron grants you additional magic in exchange for your gift of your opponent's spirit.",
+   "cite": "Player Core — Class Actions: Patron's Claim",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.patrons-presence",
+   "title": "Patron's Presence ◆◆",
+   "summary": "*aura*\n\n**Frequency** once per hour\n\n**Effect** A palpable weight extends from your familiar in a 15-foot emanation. Enemies who enter or start their turn within the aura must succeed at a Will save against your spell DC or become Stupefied 2 as long as they remain within the aura, or Stupefied 3 on a critical failure. The aura lasts until the end of your next turn, but the familiar can Sustain it up to 1 minute.",
+   "cite": "Player Core — Class Actions: Patron's Presence",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.pointed-question",
+   "title": "Pointed Question ◆",
+   "summary": "*auditory, concentrate, investigator, linguistic, mental*\n\nYou ask a question that charms or needles someone in just the right way. Ask a question of a non-allied creature that you can see. Attempt a Diplomacy check against the creature's Will DC. The creature is then temporarily immune for 1 hour.\n\n**Critical Success** The target must directly answer your question. It doesn't have to answer truthfully, but you gain a +4 circumstance bonus to your Perception DC if the creature attempts to Lie to you.\n\nWhether it answers truthfully or not, you glean something from its body language, and it is off-guard to the Strike you make using Devise a Stratagem against it before the end of your turn.\n\n**Success** As critical success, but the circumstance bonus to your Perception DC is +2.\n\nEffect: Pointed Question\n\n**Failure** The target can refuse to answer you as normal.\n\n**Critical Failure** The target can refuse to answer you as normal, and its attitude toward you decreases by one step due to your aggravating attention.",
+   "cite": "Player Core 2 — Class Actions: Pointed Question",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.primal-howl",
+   "title": "Primal Howl ◆◆",
+   "summary": "*primal, sonic*\n\n**Frequency** once per hour\n\n**Effect** Your animal companion screeches and howls, empowered with natural magic. All creatures in a 30-foot cone take (1d6 per 2 levels) sonic damage for every 2 levels your companion has, with a basic Fortitude save against your spell DC. Creatures that fail become Frightened 1, and creatures that critically fail become Frightened 2. The fright is an emotion, fear, and mental effect.",
+   "cite": "Player Core — Class Actions: Primal Howl",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.pursue-a-lead",
+   "title": "Pursue a Lead",
+   "summary": "*concentrate, exploration, investigator*\n\n**Frequency** once per 10 minutes\n\nYou name one detail you've identified that you think is part of a larger mystery, then spend 1 minute examining it. The detail is typically either obvious or something you've already discovered using Recall Knowledge, Sense Motive, Gather Information, or a similar action. After the minute passes, the GM either confirms there's a larger mystery or tells you there's nothing more to learn (the detail is inconsequential or you know all the information already). If there is in fact a larger mystery at play, you can't Pursue a Lead again for 10 minutes, but you can choose to open an investigation. To do so, define the question at the heart of the mystery, such as \"Where has the priceless work of art that was supposed to hang here been taken?\" or \"Who or what killed this priest?\" Work with your GM to refine the question if need be.\n\n**Investigation Bonus** Whenever you attempt a Perception check or skill check to attempt to get closer to answering the question at the heart of an active investigation, you gain a +1 circumstance bonus to the check. The exact checks this applies to depend on the actions you use to investigate and are determined by the GM, but checks to investigate are typically Perception checks or skill checks that use Intelligence, Wisdom, or Charisma.\n\n**Active Investigations** You can maintain two active investigations at a time. If you Pursue another Lead after that, the case must be different from any of your current investigations (as far as you are aware), and you give up on a current investigation of your choice. Once you've given up pursuit of an investigation, you can't Pursue a Lead into it again until after the next time you make your daily preparations.\n\n**Solving an Investigation** If you answer the question at the heart of your investigation, the GM tells you that you've done so. You don't lose the bonus or other benefits until you choose to close the investigation by Pursuing a Lead again or voluntarily Dismissing it. If what you discover points to an even larger mystery, you can work with the GM to adapt the question and name of the investigation to the new information.",
+   "cite": "Player Core 2 — Class Actions: Pursue a Lead",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.quick-alchemy",
+   "title": "Quick Alchemy ◆",
+   "summary": "*alchemist, manipulate*\n\n**Requirements** You're either holding or wearing an Alchemist's Toolkit. and you have a free hand.\n\nYou can either use up a versatile vial to make another alchemical consumable at a moment's notice or create an especially short-lived versatile vial. Any effect created by an item made with Quick Alchemy that would have a duration longer than 10 minutes lasts for 10 minutes instead.\n\n- **Create Consumable** You expend one of your versatile vials to create a single alchemical consumable item of your level or lower that's in your formula book. You don't have to spend the normal monetary cost in alchemical raw materials or need to attempt a Crafting check. This item has the infused trait, but it remains potent only until the start of your next turn. (As normal, you need only one formula for an item to create any level of that item.)\n- **Quick Vial** You create a versatile vial that can be used only as a bomb or for the versatile vial option from your research field (it can't be used to create a consumable, for example). This item has the infused trait, but it remains potent only until the end of your current turn.",
+   "cite": "Player Core 2 — Class Actions: Quick Alchemy",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.quick-tincture",
+   "title": "Quick Tincture ◆",
+   "summary": "*investigator, manipulate*\n\n**Cost** 1 versatile vial\n\n**Requirements** You know the formula for the alchemical item you're creating, you are holding or wearing alchemist's toolkit, and you have a free hand.\n\nYou quickly brew up a short-lived tincture. You create a single alchemical elixir or tool of your level or lower without having to spend the normal monetary cost in alchemical reagents or needing to attempt a Crafting check. This item has the infused trait, but it remains potent only until the end of the current turn.",
+   "cite": "Player Core 2 — Class Actions: Quick Tincture",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.quick-tempered",
+   "title": "Quick-Tempered ◇",
+   "summary": "*barbarian*\n\n**Trigger** You roll initiative.\n\n**Requirements** You are not encumbered or wearing heavy armor.\n\nSo long as you are able to move freely, your fury is instinctive and instantaneous. You Rage.",
+   "cite": "Player Core 2 — Class Actions: Quick-Tempered",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.rage",
+   "title": "Rage ◆",
+   "summary": "*barbarian, concentrate, emotion, mental*\n\n**Requirements** You aren't fatigued or raging.\n\nYou tap into your inner fury and begin raging. You gain a number of temporary Hit Points equal to your level plus your Constitution modifier. While you are raging:\n\n- You deal 2 additional damage on melee Strikes. This additional damage is halved if your weapon or unarmed attack is agile.\n- You can't use actions with the concentrate trait unless they also have the rage trait. You can Seek while raging.\n\nRage lasts for 1 minute, until you fall unconscious, or until the encounter ends, whichever comes first. You can't voluntarily stop raging. When you stop raging, you lose any remaining temporary Hit Points from Rage, and can't gain temporary Hit Points from using the Rage action again for 1 minute.\n\nEffect: Rage Temporary Hit Points Immunity",
+   "cite": "Player Core 2 — Class Actions: Rage",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.reactive-strike",
+   "title": "Reactive Strike ↺",
+   "summary": "**Trigger** A creature within your reach uses a manipulate action or a move action, makes a ranged attack, or leaves a square during a move action it's using.\n\nYou lash out at a foe that leaves an opening. Make a melee Strike against the triggering creature. If your attack is a critical hit and the trigger was a manipulate action, you disrupt that action. This Strike doesn't count toward your multiple attack penalty, and your multiple attack penalty doesn't apply to this Strike.",
+   "cite": "Player Core — Class Actions: Reactive Strike",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.retributive-strike",
+   "title": "Retributive Strike ↺",
+   "summary": "*champion, divine*\n\n**Trigger** An enemy damages your ally, and both are in your champion's aura\n\n**Effect** You protect your ally and strike your enemy. The ally gains resistance to all damage against the triggering damage equal to 2 + your level. If the enemy is within reach, make a melee Strike against it.\n\nEffect: Champion's Resistance",
+   "cite": "Player Core 2 — Class Actions: Retributive Strike",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.selfish-shield",
+   "title": "Selfish Shield ↺",
+   "summary": "*champion, divine*\n\n**Trigger** An enemy in your champion's aura damages you\n\n**Effect** Your self-interest keeps you safe. You gain resistance against the triggering damage equal to 2 + half your level, regardless of damage type.\n\nEffect: Selfish Shield\n\nIn addition, your Strikes against the triggering creature deal 1 extra spirit damage until the end of your next turn. This extra damage increases to 2 at 9th level and 3 at 16th level.\n\nEffect: Champion's Extra Damage",
+   "cite": "Player Core 2 — Class Actions: Selfish Shield",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.shed-spirit",
+   "title": "Shed Spirit ◆◆",
+   "summary": "**Frequency** once per 10 minutes\n\n**Effect** Your familiar's spirit exits its body, leaving its empty shell behind, before flying at an enemy within 20 feet and dealing level-based spirit damage, with a basic Will save against your spell DC. If the familiar dealt damage, it then flies to an ally within 30 feet of the enemy, restoring Hit Points equal to half the damage dealt. Your familiar then re-forms in its original square. At 9th level, and every 2 levels thereafter, the attack deals an additional 2d6 damage.",
+   "cite": "Player Core — Class Actions: Shed Spirit",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.stitching-strike",
+   "title": "Stitching Strike ◆◆",
+   "summary": "**Frequency** once per 10 minutes\n\n**Effect** Your familiar unravels into magical fibers that encompass an enemy within 30 feet and deal level-based slashing damage, with a basic Reflex save against your spell DC. On a failure, the target is also immobilized for 1 round or until it Escapes against your spell DC. Your familiar then re-forms in its original square. At 9th level, and every 2 levels thereafter, the attack deals an additional 2d6 damage.",
+   "cite": "Player Core — Class Actions: Stitching Strike",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.true-shapeshift",
+   "title": "True Shapeshift ◆◆",
+   "summary": "*concentrate*\n\n**Frequency** once per hour\n\n**Requirements** You're under the effects of Untamed Form\n\n**Effect** You change into any other shape on your *untamed form* list. If the duration of that shape is different from the one you were previously in, use the shorter duration to determine your duration remaining.",
+   "cite": "Player Core — Class Actions: True Shapeshift",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.verdant-rest",
+   "title": "Verdant Rest ◆",
+   "summary": "*concentrate*\n\n**Frequency** once per hour\n\nYou turn into a tree or other non-creature plant. This has the effect of using One with Plants to turn into a plant, except that your AC is 30. You can Dismiss this effect to turn back. If you rest for 10 minutes in this form in natural sunlight, you recover half your maximum Hit Points. If you take your daily rest in this form, the rest restores you to maximum Hit Points and removes all non-permanent drained, enfeebled, clumsy, and stupefied conditions, as well as all poisons and diseases of 19th level or lower.",
+   "cite": "Player Core — Class Actions: Verdant Rest",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.long-term-rest",
+   "title": "Long-Term Rest",
+   "summary": "*downtime*\n\nYou can spend an entire day and night resting during downtime to recover Hit Points equal to your Constitution modifier (minimum 1) multiplied by twice your level.",
+   "cite": "Player Core — Downtime Activities: Long-Term Rest",
+   "tags": [
+    "action",
+    "downtime activities"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.retraining",
+   "title": "Retraining",
+   "summary": "*downtime*\n\nRetraining offers a way to alter your character choices, which is helpful when you want to take your character in a new direction or change decisions that didn't meet your expectations. You can retrain feats, skills, and some selectable class features. You can't retrain your ancestry, heritage, background, class, or attribute modifiers. You can't perform other downtime activities while retraining.\n\nRetraining usually requires you to spend time learning from a teacher, whether that entails physical training, studying at a library, or falling into shared magical trances. Your GM determines whether you can get proper training or whether something can be retrained at all. In some cases, you'll have to pay your instructor. Some abilities can be difficult or impossible to retrain (for instance, witch can retrain their patron only in extraordinary circumstances).\n\nWhen retraining, you generally can't make choices you couldn't make when you selected the original option. For instance, you can't replace a skill feat you chose at 2nd level for a 4th-level one, or for one that requires prerequisites you didn't meet at the time you took the original feat. If you don't remember whether you met the prerequisites at the time, ask your GM to make the call. If you cease to meet the prerequisites for an ability due to retraining, you can't use that ability. You might need to retrain several abilities in sequence in order to get all the abilities you want.\n\n### Feats\n\nYou can spend a week of downtime retraining to swap out one of your feats. Remove the old feat and replace it with another of the same type. For example, you could swap a skill feat for another skill feat, but not for a wizard feat.\n\n### Skills\n\nYou can spend a week of downtime retraining to swap out one of your skill increases. Reduce your proficiency rank in the skill losing its increase by one step and increase your proficiency rank in another skill by one step. The new proficiency rank has to be equal to or lower than the proficiency rank you traded away. For instance, if your bard is a master in Performance and Stealth, and an expert in Occultism, you could reduce the character's proficiency in Stealth to expert and become a master in Occultism, but you couldn't reassign that skill increase to become legendary in Performance. Keep track of your level when you reassign skill increases; the level at which your skill proficiencies changed can influence your ability to retrain feats with skill prerequisites.\n\nYou can also spend a week to retrain an initial trained skill you selected during character creation.\n\n### Class Features\n\nYou can change a class feature that required a choice, making a different choice instead. Some, like changing a spell in your spell repertoire, take a week. The GM will tell you how long it takes to retrain larger choices like a druid order or a wizard school—it is always at least a month.",
+   "cite": "Player Core — Downtime Activities: Retraining",
+   "tags": [
+    "action",
+    "downtime activities"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.avoid-notice",
+   "title": "Avoid Notice",
+   "summary": "*exploration*\n\nYou attempt a Stealth check to avoid notice while traveling at half speed. If you're Avoiding Notice at the start of an encounter, you usually roll a Stealth check instead of a Perception check both to determine your initiative and to see if the enemies notice you (based on their Perception DCs, as normal for Sneak, regardless of their initiative check results).",
+   "cite": "Player Core — Exploration Activities: Avoid Notice",
+   "tags": [
+    "action",
+    "exploration activities"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.defend",
+   "title": "Defend",
+   "summary": "*exploration*\n\nYou move at half your travel speed with your shield raised. If combat breaks out, you gain the benefits of Raising a Shield before your first turn begins.",
+   "cite": "Player Core — Exploration Activities: Defend",
+   "tags": [
+    "action",
+    "exploration activities"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.detect-magic",
+   "title": "Detect Magic",
+   "summary": "*concentrate, exploration*\n\nYou cast Detect Magic at regular intervals. You move at half your travel speed or slower. You have no chance of accidentally overlooking a magic aura at a travel speed up to 300 feet per minute, but must be traveling no more than 150 feet per minute to detect magic auras before the party moves into them.",
+   "cite": "Player Core — Exploration Activities: Detect Magic",
+   "tags": [
+    "action",
+    "exploration activities"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.follow-the-expert",
+   "title": "Follow the Expert",
+   "summary": "*auditory, concentrate, exploration, visual*\n\nChoose an ally attempting a recurring skill check while exploring, such as climbing, or performing a different exploration tactic that requires a skill check (like Avoiding Notice). The ally must be at least an expert in that skill and must be willing to provide assistance. While Following the Expert, you match their tactic or attempt similar skill checks.\n\nThanks to your ally's assistance, you can add your level as a proficiency bonus to the associated skill check, even if you're untrained. Additionally, you gain a circumstance bonus to your skill check based on your ally's proficiency (+2 for expert, +3 for master, and +4 for legendary).\n\nEffect: Follow The Expert",
+   "cite": "Player Core — Exploration Activities: Follow the Expert",
+   "tags": [
+    "action",
+    "exploration activities"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.hustle",
+   "title": "Hustle",
+   "summary": "*exploration, move*\n\nYou strain yourself to move at double your travel speed. You can Hustle only for a number of minutes equal to your Constitution modifier × 10 (minimum 10 minutes). If you are in a group that is Hustling, use the lowest Constitution modifier among everyone to determine how fast the group can Hustle together.",
+   "cite": "Player Core — Exploration Activities: Hustle",
+   "tags": [
+    "action",
+    "exploration activities"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.investigate",
+   "title": "Investigate",
+   "summary": "*concentrate, exploration*\n\nYou seek out information about your surroundings while traveling at half speed. You use Recall Knowledge as a secret check to discover clues among the various things you can see and engage with as you journey along. You can use any skill that has a Recall Knowledge action while Investigating, but the GM determines whether the skill is relevant to the clues you could find.",
+   "cite": "Player Core — Exploration Activities: Investigate",
+   "tags": [
+    "action",
+    "exploration activities"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.refocus",
+   "title": "Refocus",
+   "summary": "*concentrate, exploration*\n\n**Requirements** You have a focus pool.\n\nYou spend 10 minutes performing deeds to restore your magical connection. This restores 1 Focus Point to your focus pool. The deeds you need to perform are specified in the class or ability that gives you your focus spells. These deeds can usually overlap with other tasks that relate to the source of your focus spells. For instance, a cleric with focus spells from a holy deity can usually Refocus while tending the wounds of their allies.",
+   "cite": "Player Core — Exploration Activities: Refocus",
+   "tags": [
+    "action",
+    "exploration activities"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.repeat-a-spell",
+   "title": "Repeat a Spell",
+   "summary": "*concentrate, exploration*\n\nYou repeatedly cast the same spell while moving at half speed. Typically, this spell is a cantrip that you want to have in effect in the event a combat breaks out, and it must be one you can cast in 2 actions or fewer. Repeating a spell that requires making complex decisions, such as Figment, can make you fatigued, as determined by the GM.",
+   "cite": "Player Core — Exploration Activities: Repeat a Spell",
+   "tags": [
+    "action",
+    "exploration activities"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.research",
+   "title": "Research",
+   "summary": "*concentrate, exploration*\n\nYou comb through information to learn more about the topic at hand. Choose your research topic, section of the library, or other division depending on the form of research, and attempt a skill check. The skills to use and the DC for the check depend on the specific research task, and the Research activity gains any traits appropriate to the type of research (such as linguistic when perusing books).\n\n**Critical Success** You gain 2 RP.\n\n**Success** You gain 1 RP.\n\n**Critical Failure** You make a false discovery and lose 1 RP.",
+   "cite": "GM Core — Exploration Activities: Research",
+   "tags": [
+    "action",
+    "exploration activities"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.scout",
+   "title": "Scout",
+   "summary": "*concentrate, exploration*\n\nYou scout ahead and behind the group to watch danger, moving at half speed. At the start of the next encounter, every creature in your party gains a +1 circumstance bonus to their initiative rolls.\n\nEffect: Scout",
+   "cite": "Player Core — Exploration Activities: Scout",
+   "tags": [
+    "action",
+    "exploration activities"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.search",
+   "title": "Search",
+   "summary": "*concentrate, exploration*\n\nYou Seek meticulously for hidden doors, concealed hazards, and so on. You can usually make an educated guess as to which locations are best to check and move at half speed, but if you want to be thorough and guarantee you checked everything, you need to travel at a Speed of no more than 300 feet per minute, or 150 feet per minute to ensure you check everything before you walk into it. You can always move more slowly while Searching to cover the area more thoroughly, and the Expeditious Search feat increases these maximum Speeds. If you come across a secret door, item, or hazard while Searching, the GM will attempt a free secret check to Seek to see if you notice the hidden object or hazard. In locations with many objects to search, you have to stop and spend significantly longer to search thoroughly.",
+   "cite": "Player Core — Exploration Activities: Search",
+   "tags": [
+    "action",
+    "exploration activities"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.sustain-an-effect",
+   "title": "Sustain an Effect",
+   "summary": "*concentrate, exploration*\n\nYou Sustain one effect with a sustained duration while moving at half speed. Most such effects can be sustained for 10 minutes, though some specify they can be sustained for a different duration. Sustaining an effect that requires making complex decisions, such as Spiritual Armament, can make you fatigued, as determined by the GM.",
+   "cite": "Player Core — Exploration Activities: Sustain an Effect",
+   "tags": [
+    "action",
+    "exploration activities"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.final-surge",
+   "title": "Final Surge ◆",
+   "summary": "You Stride twice. The Drakeheart Mutagen's duration ends.",
+   "cite": "Player Core 2 — Item Actions: Final Surge",
+   "tags": [
+    "action",
+    "item actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.transform-ammunition",
+   "title": "Transform Ammunition ◇",
+   "summary": "*magical*\n\n**Frequency** once per round\n\n**Effect** You transform a non-magical arrow or bolt on your person into a piece of magical ammunition of one type you chose for the Magic Ammunition feat. You must shoot the ammunition before the end of your turn or the magic dissipates. If the ammunition has an Activate entry, you still need to spend the required actions to activate the ammunition before shooting it.\n\nYou can choose a type of magical ammunition that is typically not available to the type of ammunition you're using—for example, you can use Climbing Bolt on an arrow, even though that magical ammunition is normally only found on bolts.",
+   "cite": "Player Core 2 — Item Actions: Transform Ammunition",
+   "tags": [
+    "action",
+    "item actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.administer-first-aid",
+   "title": "Administer First Aid ◆◆",
+   "summary": "*manipulate*\n\n**Requirements** You're wearing or holding a Healer's Toolkit.\n\nYou perform first aid on an adjacent creature that is dying or Bleeding. If a creature is both dying and bleeding, choose which ailment you're trying to treat before you roll. You can Administer First Aid again to attempt to remedy the other effect.\n\n- **Stabilize** Attempt a Medicine check on a creature that has 0 Hit Points and the dying condition. The DC is equal to 5 + that creature's recovery roll DC (typically 15 + its dying value).\n- **Stop Bleeding** Attempt a Medicine check on a creature that is taking persistent bleed damage. The DC is usually the DC of the effect that caused the bleed.\n\n**Success** If you're trying to stabilize, the target loses the dying condition (but remains unconscious). If you're trying to stop bleeding, the target benefits from an assisted recovery with the lowered DC for particularly appropriate help.\n\n**Critical Failure** If you were trying to stabilize, the target's dying value increases by 1. If you were trying to stop bleeding, the target immediately takes an amount of damage equal to its persistent bleed damage.",
+   "cite": "Player Core — Skill Actions: Administer First Aid",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.balance",
+   "title": "Balance ◆",
+   "summary": "*move*\n\n**Requirements** You are in a square that contains a narrow surface, uneven ground, or another similar feature.\n\nYou move across a narrow surface or uneven ground, attempting an Acrobatics check against its Balance DC. You are off-guard while on a narrow surface or uneven ground.\n\n**Critical Success** You move up to your Speed.\n\n**Success** You move up to your Speed, treating it as difficult terrain (every 5 feet costs 10 feet of movement).\n\n**Failure** You must remain stationary to keep your balance (wasting the action) or you fall. If you fall, your turn ends.\n\n**Critical Failure** You fall and your turn ends.\n\n### Sample Balance Tasks\n\n- **Untrained** tangled roots, uneven cobblestones\n- **Trained** wooden beam\n- **Expert** deep, loose gravel\n- **Master** tightrope, smooth sheet of ice\n- **Legendary** razor's edge, chunks of floor falling in midair",
+   "cite": "Player Core — Skill Actions: Balance",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.borrow-an-arcane-spell",
+   "title": "Borrow an Arcane Spell",
+   "summary": "*concentrate, exploration*\n\nIf you're an arcane spellcaster who prepares from a spellbook, you can attempt to prepare a spell from someone else's spellbook. The GM sets the DC for the check based on the spell's rank and rarity; it's typically a bit easier than Learning the Spell.\n\n**Success** You prepare the borrowed spell as part of your normal spell preparation.\n\n**Failure** You fail to prepare the spell, but the spell slot remains available for you to prepare a different spell. You can't try to prepare this spell until the next time you prepare spells.",
+   "cite": "Player Core — Skill Actions: Borrow an Arcane Spell",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.climb",
+   "title": "Climb ◆",
+   "summary": "*move*\n\n**Requirements** You have both hands free\n\nYou attempt an Athletics check to move a maximum distance of 5 feet up, down, or across an incline. You're off-guard while climbing unless you have a climb Speed. The GM determines the DC based on the nature of the incline and environmental circumstances; you might get an automatic critical success on an incline that's trivial to climb. If your land Speed is 40 feet or higher, increase the maximum distance by 5 feet for every 20 feet of Speed above 20 feet.\n\n**Critical Success** You move along the incline, increasing the maximum distance by 5 feet.\n\n**Success** You move along the incline.\n\n**Critical Failure** You fall. If you began the climb on stable ground, you fall and land prone.\n\n### Sample Climb Tasks\n\n- **Untrained** ladder, steep slope, low-branched tree\n- **Trained** rigging, rope, typical tree\n- **Expert** wall with small handholds and footholds\n- **Master** ceiling with handholds and footholds, rock wall\n- **Legendary** smooth surface",
+   "cite": "Player Core — Skill Actions: Climb",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.coerce",
+   "title": "Coerce",
+   "summary": "*auditory, concentrate, emotion, exploration, linguistic, mental*\n\nWith threats either veiled or overt, you attempt to bully a creature into doing what you want. You must spend at least 1 minute of conversation with the creature. At the end of the conversation, attempt an Intimidation check against the target's Will DC, modified by any circumstances the GM determines. (The attitudes referenced in the effects below are summarized in the Changing Attitudes section at the bottom)\n\n**Critical Success** The target gives you the information you seek or agrees to follow your directives so long as they aren't likely to harm the target in any way. The target continues to comply for an amount of time determined by the GM but not exceeding 1 day, at which point the target becomes unfriendly (if it wasn't already unfriendly or hostile). However, the target is too scared of you to retaliate—at least in the short term.\n\n**Success** As critical success, but once the target becomes unfriendly, they might decide to act against you—for example, by reporting you to the authorities or assisting your enemies.\n\n**Failure** The target doesn't do what you say, and if they were not already unfriendly or hostile, they become unfriendly.\n\n**Critical Failure** The target refuses to comply, becomes hostile if they weren't already, and is temporarily immune to your Coercion for at least 1 week.\n\n### Changing Attitudes\n\nYour influence on NPCs is measured with a set of attitudes that reflect how they view your character. These are only a brief summary of a creature's disposition. The GM will supply additional nuance based on the history and beliefs of the characters you're interacting with, and their attitudes can change in accordance with the story. The attitudes are detailed in the Conditions Appendix and are summarized here.\n\n- **Helpful:** Willing to help you and responds favorably to your requests.\n- **Friendly:** Has a good attitude toward you, but won't necessarily stick their neck out to help you.\n- **Indifferent:** Doesn't care about you either way. (Most NPCs start out indifferent.)\n- **Unfriendly:** Dislikes you and doesn't want to help you.\n- **Hostile:** Actively works against you—and might attack you just because of their dislike.\n\nNo one can ever change the attitude of a player character with these skills. You can roleplay interactions with player characters, and even use Diplomacy results if the player wants a mechanical sense of how convincing or charming a character is, but players make the ultimate decisions about how their characters respond.",
+   "cite": "Player Core — Skill Actions: Coerce",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.command-an-animal",
+   "title": "Command an Animal ◆",
+   "summary": "*auditory, concentrate*\n\nYou issue an order to an animal. Attempt a Nature check against the animal's Will DC. The GM might adjust the DC if the animal has a good attitude toward you, you suggest a course of action it was predisposed toward, or you offer it a treat.\n\nYou automatically fail if the animal is hostile or unfriendly to you. If the animal is helpful to you, increase your degree of success by one step. You might be able to Command an Animal more easily with a feat like Ride.\n\nMost animals know the Drop Prone, Leap, Seek, Stand, Stride, and Strike basic actions. If an animal knows an activity, such as a horse's Gallop, you can Command the Animal to perform the activity, but you must spend as many actions on Command an Animal as the activity's number of actions. You can also spend multiple actions to Command the Animal to perform that number of basic actions on its next turn; for instance, you could spend 3 actions to Command an Animal to Stride three times or to Stride twice and then make a Strike.\n\n**Success** The animal does as you command on its next turn.\n\n**Failure** The animal is hesitant or resistant, and it does nothing.\n\n**Critical Failure** The animal misbehaves or misunderstands, and it takes some other action determined by the GM.",
+   "cite": "Player Core — Skill Actions: Command an Animal",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.conceal-an-object",
+   "title": "Conceal an Object ◆",
+   "summary": "*manipulate, secret*\n\nYou hide a small object on your person (such as a weapon of light Bulk). When you try to sneak a concealed object past someone who might notice it, the GM rolls your Stealth check and compares it to this passive observer's Perception DC. Once the GM rolls your check for a concealed object, that same result is used no matter how many passive observers you try to sneak it past. If a creature is specifically searching you for an item, it can attempt a Perception check against your Stealth DC (finding the object on success).\n\nYou can also conceal an object somewhere other than your person, such as among undergrowth or in a secret compartment within a piece of furniture. In this case, characters Seeking in an area compare their Perception check results to your Stealth DC to determine whether they find the object.\n\n**Success** The object remains undetected.\n\n**Failure** The searcher finds the object.",
+   "cite": "Player Core — Skill Actions: Conceal an Object",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.cover-tracks",
+   "title": "Cover Tracks",
+   "summary": "*concentrate, exploration, move*\n\nYou cover your tracks, moving up to half your travel Speed, using the Travel Speed rules. You don't need to attempt a Survival check to cover your tracks, but anyone tracking you must succeed at a Survival check against your Survival DC if it is higher than the normal DC to Track.\n\nIn some cases, you might Cover Tracks in an encounter. In this case, Cover Tracks is a single action and doesn't have the exploration trait.",
+   "cite": "Player Core — Skill Actions: Cover Tracks",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.craft",
+   "title": "Craft",
+   "summary": "*downtime, manipulate*\n\nYou can make an item from raw materials. You need the Alchemical Crafting skill feat to create alchemical items and the Magical Crafting feat to create magic items.\n\nTo craft an item, you must meet the following requirements:\n\n- The item is your level or lower. An item that doesn't list a level is level 0. If the item is 9th level or higher, you must be a master in Crafting, and if it's 17th or higher, you must be legendary.\n- The item must be common, or you must otherwise have access to it.\n- You have an appropriate set of tools and, in many cases, a workshop. For example, you need access to a smithy to forge a metal shield, or an Alchemist's Lab to produce alchemical items.\n- You must supply raw materials worth at least half the item's Price. You always expend at least that amount of raw materials when you Craft successfully. If you're in a settlement, you can usually spend currency to get the amount of raw materials you need, except in the case of rarer precious materials.\n\nYou attempt a Crafting check after you spend 2 days of work setting up, or 1 day if you have the item's formula. The GM determines the DC to Craft the item based on its level, rarity, and other circumstances.\n\nIf your attempt to create the item is successful, you expend the raw materials you supplied. You can pay the remaining portion of the item's Price in materials to complete the item immediately, or you can spend additional downtime days working on it. For each additional day you spend, reduce the value of the materials you need to expend to complete the item. This amount is determined using the Income Earned table, based on your proficiency rank in Crafting and using your own level instead of a task level.\n\nAfter any of these downtime days, you can complete the item by spending the remaining portion of its Price in materials. If the downtime days you spend are interrupted, you can return to finish the item later, continuing where you left off.\n\n**Critical Success** Your attempt is successful. Each additional day spent Crafting reduces the materials needed to complete the item by an amount based on your level + 1 and your proficiency rank in Crafting.\n\n**Success** Your attempt is successful. Each additional day spent Crafting reduces the materials needed to complete the item by an amount based on your level and your proficiency rank.\n\n**Failure** You fail to complete the item. You can salvage the raw materials you supplied for their full value. If you want to try again, you must start over.\n\n**Critical Failure** You fail to complete the item. You ruin 10% of the raw materials you supplied, but you can salvage the rest. If you want to try again, you must start over.",
+   "cite": "Player Core — Skill Actions: Craft",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.create-a-diversion",
+   "title": "Create a Diversion ◆",
+   "summary": "*mental*\n\nWith a gesture, a trick, or some distracting words, you can create a diversion that draws creatures' attention elsewhere. If you use a gesture or trick, this action gains the manipulate trait. If you use distracting words, it gains the auditory and linguistic traits.\n\nAttempt a single Deception check and compare it to the Perception DCs of the creatures whose attention you're trying to divert. Whether or not you succeed, creatures you attempt to divert gain a +4 circumstance bonus to their Perception DCs against your attempts to Create a Diversion for 1 minute.\n\n**Success** You become hidden to each creature whose Perception DC is less than or equal to your result. (The hidden condition allows you to Sneak away.) This lasts until the end of your turn or until you do anything except Step or use the Stealth skill to Hide or Sneak. If you Strike a creature, the creature remains off-guard against that attack, and you then become observed. If you do anything else, you become observed just before you act unless the GM determines otherwise.\n\n**Failure** You don't divert the attention of any creatures whose Perception DC exceeds your result, and those creatures are aware you were trying to trick them.",
+   "cite": "Player Core — Skill Actions: Create a Diversion",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.create-forgery",
+   "title": "Create Forgery",
+   "summary": "*downtime, secret*\n\n**Requirements** You provide the proper writing materials for your forgery.\n\nYou create a forged document, usually over the course of a day or a week. The GM rolls a secret DC 20 Society check. If you need to forge a specific person's handwriting, you need a sample of that person's handwriting. Otherwise, you need only to have seen a similar document, and you gain up to a +4 circumstance bonus to the check (the GM determines the bonus).\n\n**Success** The forgery is of good enough quality that passive observers can't notice the fake (but see Examining Forgeries).\n\n**Failure** The forgery has some obvious signs of being a fake, potentially allowing passive observers to detect it. Each time a passive observer sees the document, the GM compares your check result to the observer's Perception DC or Society DC, whichever is higher. If your result doesn't exceed a passive observer's DC, that observer knows the document is a forgery.\n\n### Examining Forgeries\n\nA creature on the lookout for forgeries, even one who was fooled on a passive glance, can take time to closely examine a document to see if it's a forgery. They apply different techniques and analysis methods to look beyond the surface elements and attempt a secret Perception or Society check against the forger's Society DC; any bonus you had to create the forgery initially applies to this DC. On a success, the examiner knows the document is a forgery. On a failure, they think the document is genuine and can't try again unless they get a new reason to be suspicious of the document. If a PC examines a genuine document, the GM might still pretend to roll a secret check before revealing the document is genuine.",
+   "cite": "Player Core — Skill Actions: Create Forgery",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.decipher-writing",
+   "title": "Decipher Writing",
+   "summary": "*concentrate, exploration, secret*\n\nYou attempt to decipher complicated writing or literature on an obscure topic. This usually takes 1 minute per page of text, but might take longer (typically an hour per page for decrypting ciphers or the like). The text must be in a language you can read, though the GM might allow you to attempt to decipher text written in an unfamiliar language using Society instead.\n\nThe DC is determined by the GM based on the state or complexity of the document. The GM might have you roll one check for a short text or a check for each section of a larger text.\n\n| Skill | Typically used for |\n| --- | --- |\n| Arcana | Writing about magic or science |\n| Occultism | Esoteric texts about mysteries and philosophy |\n| Religion | Scripture |\n| Society | Coded messages or archaic documents |\n\n**Critical Success** You understand the true meaning of the text.\n\n**Success** You understand the true meaning of the text. If it was a coded document, you know the general meaning but might not have a word-for-word translation.\n\n**Failure** You can't understand the text and take a –2 circumstance penalty to further checks to decipher it.\n\n**Critical Failure** You believe you understand the text on that page, but you have in fact misconstrued its message.\n\n### Sample Decipher Tasks\n\n**Trained** entry-level philosophy treatise\n\n**Expert** complex code, such as a cipher\n\n**Master** spymaster's code or advanced research notes\n\n**Legendary** esoteric planar text written in metaphor by an ancient celestial",
+   "cite": "Player Core — Skill Actions: Decipher Writing",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.demoralize",
+   "title": "Demoralize ◆",
+   "summary": "*auditory, concentrate, emotion, fear, mental*\n\nWith a sudden shout, a well-timed taunt, or a cutting put-down, you can shake an enemy's resolve. Choose a creature within 30 feet of you who you're aware of. Attempt an Intimidation check against that target's Will DC. If the target doesn't understand the language you are speaking, or you're not speaking a language, you take a –4 circumstance penalty to the check. Regardless of your result, the target is temporarily immune to your attempts to Demoralize it for 10 minutes.\n\n**Critical Success** The target becomes Frightened 2.\n\n**Success** The target becomes Frightened 1.",
+   "cite": "Player Core — Skill Actions: Demoralize",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.disable-a-device",
+   "title": "Disable a Device ◆◆",
+   "summary": "*manipulate*\n\nThis action allows you to disarm a trap or another complex device. Often, a device requires numerous successes before becoming disabled, depending on its construction and complexity. A Thieves' Toolkit is helpful and sometimes even required to Disable a Device, as determined by the GM, and sometimes a device requires a higher proficiency rank in Thievery to disable it.\n\nYour Thievery check result determines your progress.\n\n**Critical Success** You disable the device, or you achieve two successes toward disabling a device requiring more than one success. You leave no trace of your tampering, and you can rearm the device later, if that type of device can be rearmed.\n\n**Success** You disable the device, or you achieve one success toward disabling a device that requires more than one success.\n\n**Critical Failure** You trigger the device.",
+   "cite": "Player Core — Skill Actions: Disable a Device",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.disarm",
+   "title": "Disarm ◆",
+   "summary": "*attack*\n\n**Requirements** You have at least one hand free. The target can't be more than one size larger than you.\n\nYou try to knock an item out of a creature's grasp. Attempt an Athletics check against the target's Reflex DC.\n\n**Critical Success** You knock the item out of the target's grasp. It falls to the ground in the target's space.\n\n**Success** You weaken your target's grasp on the item. Further attempts to Disarm the target of that item gain a +2 circumstance bonus, and the target takes a –2 circumstance penalty to attacks with the item or other checks requiring a firm grasp on the item. The creature can end the effect by Interacting to change its grip on the item; otherwise, it lasts as long as the creature holds the item.\n\nEffect: Disarm (Success)\n\n**Critical Failure** You lose your balance and become off-guard until the start of your next turn.",
+   "cite": "Player Core — Skill Actions: Disarm",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.earn-income",
+   "title": "Earn Income",
+   "summary": "*downtime*\n\nYou can use a skill to earn money during downtime. You must be trained in the skill to do so. This takes time to set up, and your income depends on your proficiency rank and how lucrative a task you can find. Because this process requires a significant amount of time and involves tracking things outside the progress of adventures, it won't come up in every campaign. The most typical ways to earn income, detailed further in this section are:\n\n- Crafting goods for the market (Crafting)\n- Practicing a Trade (Lore)\n- Staging a Performance (Performance)\n\nIn some cases, the GM might let you use a different skill to Earn Income through specialized work. Usually, this is scholarly work, such as using Religion in a monastery to study old texts—but giving sermons at a church would still fall under Performance instead of Religion. You also might be able to use physical skills to make money, such as using Acrobatics to perform feats in a circus or Thievery to pick pockets. If you're using a skill other than Crafting, Lore, or Performance, the DC tends to be significantly higher.\n\n### Earn Income\n\nDowntime\n\nYou use one of your skills to make money during downtime. The GM assigns a task level representing the most lucrative job available. You can search for lower-level tasks, with the GM determining whether you find any. Sometimes you can attempt to find better work than the initial offerings, though this takes time and requires using the Diplomacy skill to Gather Information, doing some research, or socializing.\n\nWhen you take on a job, the GM secretly sets the DC of your skill check. After your first day of work, you roll to determine your earnings. You gain an amount of income based on your result, the task's level, and your proficiency rank (as listed on the Income Earned table).\n\nYou can continue working at the task on subsequent days without needing to roll again. For each day you spend after the first, you earn the same amount as the first day, up until the task's completion. The GM determines how long you can work at the task. Most tasks last a week or two, though some can take months or even years.\n\n### Table 4-2: Income Earned\n\n| Task Level | Failure | Trained | Expert | Master | Legendary |\n| --- | --- | --- | --- | --- | --- |\n| 0 | 1 cp | 5 cp | 5 cp | 5 cp | 5 cp |\n| 1 | 2 cp | 2 sp | 2 sp | 2 sp | 2 sp |\n| 2 | 4 cp | 3 sp | 3 sp | 3 sp | 3 sp |\n| 3 | 8 cp | 5 sp | 5 sp | 5 sp | 5 sp |\n| 4 | 1 sp | 7 sp | 8 sp | 8 sp | 8 sp |\n| 5 | 2 sp | 9 sp | 1 gp | 1 gp | 1 gp |\n| 6 | 3 sp | 1 gp, 5 sp | 2 gp | 2 gp | 2 gp |\n| 7 | 4 sp | 2 gp | 2 gp, 5 sp | 2 gp, 5 sp | 2 gp, 5 sp |\n| 8 | 5 sp | 2 gp, 5 sp | 3 gp | 3 gp | 3 gp |\n| 9 | 6 sp | 3 gp | 4 gp | 4 gp | 4 gp |\n| 10 | 7 sp | 4 gp | 5 gp | 6 gp | 6 gp |\n| 11 | 8 sp | 5 gp | 6 gp | 8 gp | 8 gp |\n| 12 | 9 sp | 6 gp | 8 gp | 10 gp | 10 gp |\n| 13 | 1 gp | 7 gp | 10 gp | 15 gp | 15 gp |\n| 14 | 1 gp, 5 sp | 8 gp | 15 gp | 20 gp | 20 gp |\n| 15 | 2 gp | 10 gp | 20 gp | 28 gp | 28 gp |\n| 16 | 2 gp, 5 sp | 13 gp | 25 gp | 36 gp | 40 gp |\n| 17 | 3 gp | 15 gp | 30 gp | 45 gp | 55 gp |\n| 18 | 4 gp | 20 gp | 45 gp | 70 gp | 90 gp |\n| 19 | 6 gp | 30 gp | 60 gp | 100 gp | 130 gp |\n| 20 | 8 gp | 40 gp | 75 gp | 150 gp | 200 gp |\n| 20 (critical success) | - | 50 gp | 90 gp | 175 gp | 300 gp |\n\n**Critical Success** You do outstanding work. Gain the amount of currency listed for the task level + 1 and your proficiency rank.\n\n**Success** You do competent work. Gain the amount of currency listed for the task level and your proficiency rank.\n\n**Failure** You do shoddy work and get paid the bare minimum for your time. Gain the amount of currency listed in the failure column for the task level. The GM will likely reduce how long you can continue at the task.\n\n**Critical Failure** You earn nothing for your work and are fired immediately. You can't continue at the task. Your reputation suffers, potentially making it difficult for you to find rewarding jobs in that community in the future.\n\n### Sample Earn Income Tasks\n\nThese examples use Alcohol Lore to work in a bar or Legal Lore to perform legal work.\n\n- **Trained** bartend, do legal research\n- **Expert** curate drink selection, present minor court cases\n- **Master** run a large brewery, present important court cases\n- **Legendary** run an international brewing franchise, present a case in Hell's courts\n\n### Crafting Goods for the Market [Crafting]\n\nUsing Crafting, you can work at producing common items for the market. It's usually easy to find work making basic items whose level is 1 or 2 below your settlement's level.\n\nHigher-level tasks represent special commissions, which might require you to Craft a specific item using the Craft downtime activity and sell it to a buyer at full Price. These opportunities don't occur as often and might have special requirements—or serious consequences if you disappoint a prominent client.\n\n### Practicing a Trade [Lore]\n\nYou apply the practical benefits of one of your Lore specialties during downtime by practicing your trade. This is most effective for Lore specialties such as business, law, or sailing, where there's high demand for workers. The GM might increase the DC or determine only low-level tasks are available if you're attempting to use an obscure Lore skill to earn income. You might also need specialized tools to accept a job, like mining tools to work in a mine or a merchant's scale to buy and sell valuables in a market.\n\n### Staging a Performance [Performance]\n\nYou perform for an audience to make money. The available audiences determine the level of your task, since more discerning audiences are harder to impress but provide a bigger payout. The GM determines the task level based on the audiences available. Performing for a typical audience of commoners on the street is a level 0 task, but a performance for a group of artisans with more refined tastes might be a 2nd- or 3rd-level task, and ones for merchants, nobility, and royalty are increasingly higher level.\n\nYour degree of success determines whether you moved your audience and whether you were rewarded with applause or rotten fruit.\n\n### Ending or Interrupting Tasks\n\nWhen a task you're doing is complete, or if you stop in the middle of one, you normally have to find a new task if you want to keep Earning Income. For instance, if you quit your job working at the docks, you'll need to find another place of employment instead of picking up where you left off. This usually takes 1 day or more of downtime looking for leads on new jobs.\n\nHowever, you might pause a task due to an adventure or event that wouldn't prevent you from returning to the old job later. The GM might decide that you can pick up where you left off, assuming the task hasn't been completed by others in your absence. Whether you roll a new skill check when you resume is also up to the GM. Generally speaking, if you had a good initial roll and want to keep it, you can, but if you had a bad initial roll, you can't try for a better one by pausing to do something else. If your statistics changed during the break—usually because you leveled up while adventuring—you can attempt a new check.",
+   "cite": "Player Core — Skill Actions: Earn Income",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.feint",
+   "title": "Feint ◆",
+   "summary": "*mental*\n\n**Requirements** You are within melee reach of the target you attempt to Feint.\n\nWith a misleading flourish, you leave an opponent unprepared for your real attack. Attempt a Deception check against your target's Perception DC.\n\n**Critical Success** You throw your enemy's defenses against you entirely off. The target is off-guard against melee attacks that you attempt against it until the end of your next turn.\n\n**Success** Your foe is fooled, but only momentarily. The target is off-guard against the next melee attack that you attempt against it before the end of your current turn.\n\n**Critical Failure** Your feint backfires. You are off-guard against melee attacks the target attempts against you until the end of your next turn.",
+   "cite": "Player Core — Skill Actions: Feint",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.force-open",
+   "title": "Force Open ◆",
+   "summary": "*attack*\n\nUsing your body, a lever, or some other tool, you attempt to forcefully open a door, window, container or heavy gate. With a high enough result, you can even smash through walls. Without a crowbar, prying something open takes a –2 item penalty to the Athletics check to Force Open.\n\n**Critical Success** You open the door, window, container, or gate and can avoid damaging it in the process.\n\n**Success** You break the door, window, container, or gate open, and it gains the broken condition. If it's especially sturdy, the GM might have it take damage but not be broken.\n\n**Critical Failure** Your attempt jams the door, window, container, or gate shut, imposing a –2 circumstance penalty on future attempts to Force it Open.\n\n### Sample Force Open Tasks\n\n- **Untrained** fabric, flimsy glass\n- **Trained** ice, sturdy glass\n- **Expert** flimsy wooden door, wooden portcullis\n- **Master** sturdy wooden door, iron portcullis, metal bar\n- **Legendary** stone or iron door",
+   "cite": "Player Core — Skill Actions: Force Open",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.gather-information",
+   "title": "Gather Information",
+   "summary": "*exploration, secret*\n\nYou canvass local markets, taverns, and gathering places in an attempt to learn about a specific individual or topic. The GM determines the DC of the Diplomacy check and the amount of time it takes (typically 2 hours, but sometimes more), along with any benefit you might be able to gain by spending coin on bribes, drinks, or gifts.\n\n**Success** You collect information about the individual or topic. The GM determines the specifics.\n\n**Critical Failure** You collect incorrect information about the individual or topic.\n\n### Sample Gather Information Tasks\n\n- **Untrained** talk of the town\n- **Trained** common rumor\n- **Expert** obscure rumor, poorly guarded secret\n- **Master** well-guarded or esoteric information\n- **Legendary** information known only to an incredibly select few, or only to extraordinary beings",
+   "cite": "Player Core — Skill Actions: Gather Information",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.grapple",
+   "title": "Grapple ◆",
+   "summary": "*attack*\n\n**Requirements** You have at least one free hand and your target is no more than one size larger than you.\n\nYou attempt to grab a creature or object with your free hand. Attempt an Athletics check against the target's Fortitude DC. You can grapple a target you already have grabbed or restrained without having a hand free.\n\n**Critical Success** Your target is restrained until the end of your next turn unless you move or your target Escapes.\n\n**Success** Your target is grabbed until the end of your next turn unless you move or your target Escapes.\n\n**Failure** You fail to grab your target. If you already had the target grabbed or restrained using a Grapple, those conditions on the target end.\n\n**Critical Failure** If you already had the target grabbed or restrained, it breaks free. Your target can either grab you, as if it succeeded at using the Grapple action against you, or force you to fall and land prone.",
+   "cite": "Player Core — Skill Actions: Grapple",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.hide",
+   "title": "Hide ◆",
+   "summary": "*secret*\n\nYou huddle behind cover or greater cover or deeper into concealment to become hidden, rather than observed. The GM rolls your Stealth check in secret and compares the result to the Perception DC of each creature you're observed by but that you have cover or greater cover against or are concealed from. You get a +2 circumstance bonus to your check if you have standard cover (or +4 from greater cover).\n\n**Success** If the creature could see you, you're now hidden from it instead of observed. If you were hidden from or undetected by the creature, you retain that condition.\n\nIf you successfully become hidden to a creature but then cease to have cover or greater cover against it or be concealed from it, you become observed again. You cease being hidden if you do anything except Hide, Sneak, or Step. If you attempt to Strike a creature, the creature remains off-guard against that attack, and you then become observed. If you do anything else, you become observed just before you act unless the GM determines otherwise. The GM might allow you to perform a particularly unobtrusive action without being noticed, possibly requiring another Stealth check.\n\nIf a creature uses Seek to make you observed by it, you must successfully Hide to become hidden from it again.",
+   "cite": "Player Core — Skill Actions: Hide",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.high-jump",
+   "title": "High Jump ◆◆",
+   "summary": "*move*\n\nYou Stride, then attempt a DC 30 Athletics check to jump vertically. If you didn't Stride at least 10 feet, you automatically fail. This DC might be increased or decreased due to the situation, as determined by the GM.\n\n**Critical Success** You Leap up to 8 feet vertically and 10 feet horizontally.\n\n**Success** You Leap up to 5 feet vertically and 5 feet horizontally.\n\n**Failure** You Leap normally.\n\n**Critical Failure** You fall prone in your space.",
+   "cite": "Player Core — Skill Actions: High Jump",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.identify-alchemy",
+   "title": "Identify Alchemy",
+   "summary": "*concentrate, exploration, secret*\n\n**Requirements** You're holding or wearing an Alchemist's Toolkit.\n\nYou can identify the nature of an alchemical item with 10 minutes of testing using alchemist's toolkit. If your attempt is interrupted in any way, you must start over.\n\n**Success** You identify the item and the means of activating it.\n\n**Failure** You fail to identify the item but can try again.\n\n**Critical Failure** You misidentify the item as another item of the GM's choice.",
+   "cite": "Player Core — Skill Actions: Identify Alchemy",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.identify-magic",
+   "title": "Identify Magic",
+   "summary": "*concentrate, exploration, secret*\n\nOnce you discover that an item, location, or ongoing effect is magical, you can spend 10 minutes to try to identify the particulars of its magic. If your attempt is interrupted, you must start over. The GM sets the DC for your check. Cursed magic or esoteric subjects usually have higher DCs or might even be impossible to identify using this activity alone. Heightening a spell doesn't increase the DC to identify it.\n\n**Critical Success** You learn all the attributes of the magic, including its name (for an effect), what it does, any means of activating it (for an item or location), and whether it is cursed.\n\n**Success** For an item or location, you get a sense of what it does and learn any means of activating it. For an ongoing effect (such as a spell with a duration), you learn the effect's name and what it does. You can't try again in hopes of getting a critical success.\n\n**Failure** You fail to identify the magic and can't try again for 1 day.\n\n**Critical Failure** You misidentify the magic as something else of the GM's choice.",
+   "cite": "Player Core — Skill Actions: Identify Magic",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.impersonate",
+   "title": "Impersonate",
+   "summary": "*concentrate, exploration, manipulate, secret*\n\nYou create a disguise to pass yourself off as someone or something you are not. Assembling a convincing disguise takes 10 minutes and requires a Disguise Kit, but a simpler, quicker disguise might do the job if you're not trying to imitate a specific individual, at the GM's discretion.\n\nIn most cases, creatures have a chance to detect your deception only if they use the Seek action to attempt Perception checks against your Deception DC. If you attempt to directly interact with someone while disguised, the GM rolls a secret Deception check for you against that creature's Perception DC instead.\n\nIf you're disguised as a specific individual, the GM might give creatures you interact with a circumstance bonus based on how well they know the person you're imitating, or the GM might roll a secret Deception check even if you aren't directly interacting with others.\n\n**Success** You trick the creature into thinking you're the person you're disguised as. You might have to attempt a new check if your behavior changes.\n\n**Failure** The creature can tell you're not who you claim to be.\n\n**Critical Failure** The creature can tell you're not who you claim to be, and it recognizes you if it would know you without a disguise.",
+   "cite": "Player Core — Skill Actions: Impersonate",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.learn-a-spell",
+   "title": "Learn a Spell",
+   "summary": "*concentrate, exploration*\n\n### Magical Traditions and Skills\n\nEach magical tradition has a corresponding skill, as shown on the table below. You must have the trained proficiency rank in a skill to use it to Identify Magic or Learn a Spell. Something without a specific tradition, such as an item with the magical trait, can be identified using any of these skills.\n\n| Magical Tradition | Corresponding Skill |\n| --- | --- |\n| Arcane | Arcana |\n| Divine | Religion |\n| Occult | Occultism |\n| Primal | Nature |\n\n**Requirements** You have a spellcasting class feature, and the spell you want to learn is on your magical tradition's spell list.\n\nYou can gain access to a new spell of your tradition from someone who knows that spell or from magical writing like a spellbook or scroll. If you can cast spells of multiple traditions, you can Learn a Spell of any of those traditions, but you must use the corresponding skill to do so. For example, if you were a cleric with the bard multiclass archetype, you couldn't use Religion to add an occult spell to your bardic spell repertoire.\n\nTo learn the spell, you must do the following:\n\n- Spend 1 hour per spell rank, during which you must remain in conversation with a person who knows the spell or have the magical writing in your possession.\n- Have materials with the Price indicated in the Learning a Spell table.\n- Attempt a skill check for the skill corresponding to your tradition (DC determined by the GM, often close to the DC on the Learning a Spell Table). Uncommon or rare spells have higher DCs; full guidelines for the GM appear on page 52 of GM Core.\n\n### Learning a Spell\n\n| Spell Rank | Price | Typical DC |\n| --- | --- | --- |\n| 1st or cantrip | 2 gp | 15 |\n| 2nd | 6 gp | 18 |\n| 3rd | 16 gp | 20 |\n| 4th | 36 gp | 23 |\n| 5th | 70 gp | 26 |\n| 6th | 140 gp | 28 |\n| 7th | 300 gp | 31 |\n| 8th | 650 gp | 34 |\n| 9th | 1,500 gp | 36 |\n| 10th | 7,000 gp | 41 |\n\n**Critical Success** You expend half the materials and learn the spell.\n\n**Success** You expend the materials and learn the spell.\n\n**Failure** You fail to learn the spell but can try again after you gain a level. The materials aren't expended.\n\n**Critical Failure** As failure, except you expend half the materials.",
+   "cite": "Player Core — Skill Actions: Learn a Spell",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.lie",
+   "title": "Lie",
+   "summary": "*auditory, concentrate, linguistic, mental, secret*\n\nYou try to fool someone with an untruth. Doing so takes at least 1 round, or longer if the lie is elaborate. You roll a single Deception check and compare it against the Perception DC of every creature you are trying to fool. The GM might give them a circumstance bonus based on the situation and the nature of the lie you are trying to tell. Elaborate or highly unbelievable lies are much harder to get a creature to believe than simpler and more believable lies, and some lies are so big that it's impossible to get anyone to believe them.\n\nAt the GM's discretion, if a creature initially believes your lie, it might attempt a Perception check later to Sense Motive against your Deception DC to realize it's a lie. This usually happens if the creature discovers enough evidence to counter your statements.\n\n**Success** The target believes your lie.\n\n**Failure** The target doesn't believe your lie and gains a +4 circumstance bonus against your attempts to Lie for the duration of your conversation. The target is also more likely to be suspicious of you in the future.",
+   "cite": "Player Core — Skill Actions: Lie",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.long-jump",
+   "title": "Long Jump ◆◆",
+   "summary": "*move*\n\nYou Stride, then attempt a DC 15 Athletics check to make a long jump in the direction you were Striding. If you didn't Stride at least 10 feet, you automatically fail your check. The GM might increase or decrease this DC depending on the situation.\n\n**Success** You Leap up to a distance equal to your check result rounded down to the nearest 5 feet. You can't jump farther than your land Speed.\n\n**Failure** You make a normal horizontal Leap.\n\n**Critical Failure** You make a normal horizontal Leap, then fall and land prone.",
+   "cite": "Player Core — Skill Actions: Long Jump",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.make-an-impression",
+   "title": "Make an Impression",
+   "summary": "*auditory, concentrate, exploration, linguistic, mental*\n\nWith at least 1 minute of conversation, during which you engage in charismatic overtures, flattery, and other acts of goodwill, you seek to make a good impression on someone to make them temporarily agreeable. At the end of the conversation, attempt a Diplomacy check against the Will DC of one target. You can instead choose up to five targets if you take a –2 penalty. The GM might add other bonuses or penalties based on the situation. Any impression you make lasts for only the current social interaction unless the GM decides otherwise. See Changing Attitudes below for a summary of the attitude conditions.\n\n**Critical Success** The target's attitude toward you improves by two steps.\n\n**Success** The target's attitude toward you improves by one step.\n\n**Critical Failure** The target's attitude toward you decreases by one step.\n\n### Changing Attitudes\n\nYour influence on NPCs is measured with a set of attitudes that reflect how they view your character. These are only a brief summary of a creature's disposition. The GM will supply additional nuance based on the history and beliefs of the characters you're interacting with, and their attitudes can change in accordance with the story. The attitudes are detailed in the Conditions Appendix and are summarized here.\n\n- **Helpful:** Willing to help you and responds favorably to your requests.\n- **Friendly:** Has a good attitude toward you, but won't necessarily stick their neck out to help you.\n- **Indifferent:** Doesn't care about you either way. (Most NPCs start out indifferent.)\n- **Unfriendly:** Dislikes you and doesn't want to help you.\n- **Hostile:** Actively works against you—and might attack you just because of their dislike.\n\nNo one can ever change the attitude of a player character with these skills. You can roleplay interactions with player characters, and even use Diplomacy results if the player wants a mechanical sense of how convincing or charming a character is, but players make the ultimate decisions about how their characters respond.",
+   "cite": "Player Core — Skill Actions: Make an Impression",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.maneuver-in-flight",
+   "title": "Maneuver in Flight ◆",
+   "summary": "*move*\n\n**Requirements** You have a fly Speed.\n\nYou try a difficult maneuver while flying. Attempt an Acrobatics check. The GM determines what maneuvers are possible, but they rarely allow you to move farther than your fly Speed.\n\n**Success** You succeed at the maneuver.\n\n**Failure** Your maneuver fails. The GM chooses if you simply can't move or if some other detrimental effect happens. The outcome should be appropriate for the maneuver you attempted (for instance, being blown off course if you were trying to fly against a strong wind).\n\n**Critical Failure** As failure, but the consequence is more dire.\n\n### Sample Maneuver in Flight Tasks\n\n- **Trained** steep ascent or descent\n- **Expert** fly against the wind\n- **Master** reverse direction\n- **Legendary** fly through gale force winds",
+   "cite": "Player Core — Skill Actions: Maneuver in Flight",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.palm-an-object",
+   "title": "Palm an Object ◆",
+   "summary": "*manipulate*\n\nYou pick up a small, unattended object and try not to be noticed. Roll a single Thievery check against the Perception DCs of all creatures who are currently observing you. You can typically only Palm Objects of negligible Bulk, though the GM might determine otherwise depending on the situation.\n\n**Success** The creature doesn't notice you Palming the Object.\n\n**Failure** The creature notices you Palming the Object.",
+   "cite": "Player Core — Skill Actions: Palm an Object",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.perform",
+   "title": "Perform ◆",
+   "summary": "*concentrate*\n\nWhen making a brief performance—one song, a quick dance, or a few jokes—you use the Perform action. This action is most useful when you want to prove your capability or impress someone quickly. Performing rarely has an impact on its own, but it might influence the DCs of subsequent Diplomacy checks against the observers, or even change their attitudes if the GM sees fit.\n\n| Performance | Additional Traits | Examples |\n| --- | --- | --- |\n| Acting | Auditory, linguistic, and visual | Drama, pantomime, puppetry |\n| Comedy | Auditory, linguistic, and visual | Buffoonery, joke telling, limericks |\n| Dance | Move and visual | Ballet, huara, jig, macru |\n| Play Keyboard | Auditory and manipulate | Harpsichord, organ, piano |\n| Oratory | Auditory and linguistic | Epic, ode, poetry, storytelling |\n| Play Percussion | Auditory and manipulate | Chimes, drum, gong, xylophone |\n| Singing | Auditory and linguistic | Ballad, chant, melody, rhyming |\n| Play Strings | Auditory and manipulate | Fiddle, harp, lute, viol |\n| Play Winds | Auditory and manipulate | Bagpipe, flute, recorder, trumpet |\n\n**Critical Success** Your performance impresses the observers, and they're likely to share stories of your ability.\n\n**Success** You prove yourself, and observers appreciate the quality of your performance.\n\n**Failure** Your performance falls flat.\n\n**Critical Failure** You demonstrate only incompetence.\n\n### Sample Perform Tasks\n\n- **Untrained** audience of commoners\n- **Trained** audience of artisans\n- **Expert** audience of merchants or minor nobles\n- **Master** audience of high nobility or minor royalty\n- **Legendary** audience of major royalty or otherworldly beings",
+   "cite": "Player Core — Skill Actions: Perform",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.pick-a-lock",
+   "title": "Pick a Lock ◆◆",
+   "summary": "*manipulate*\n\n**Requirements** You're holding or wearing a Thieves' Toolkit.\n\nOpening a lock without a key is very similar to Disabling a Device, but the DC of the check is determined by the complexity and construction of the lock you are attempting to pick. Locks of higher quality might require multiple successes to unlock. If you lack the proper tools, the GM might let you use improvised picks, which are treated as a shoddy toolkit.\n\n**Critical Success** You unlock the lock, or you achieve two successes toward opening a lock that requires more than one success. You leave no trace of your tampering.\n\n**Success** You open the lock, or you achieve one success toward opening a lock that requires more than one success. You leave behind damage that indicates the lock was picked on close scrutiny.\n\n**Critical Failure** You break your toolkit and leave behind obvious damage. Fixing a broken toolkit requires using Crafting to Repair it or else swapping in replacement picks (costing 3 sp, or 3 gp for an infiltrator thieves' toolkit).",
+   "cite": "Player Core — Skill Actions: Pick a Lock",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.plummeting-roll",
+   "title": "Plummeting Roll ↺",
+   "summary": "**Trigger** You fall at least 10 feet and take no damage from the fall\n\n**Effect** You tuck and roll with the motion. You land on your feet and Stride up to half your Speed",
+   "cite": "Player Core 2 — Skill Actions: Plummeting Roll",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.recall-knowledge",
+   "title": "Recall Knowledge ◆",
+   "summary": "*concentrate, secret*\n\nYou attempt a skill check to try to remember a bit of knowledge regarding a topic related to that skill. Suggest which skill you'd like to use and ask the GM one question. The GM determines the DC. You might need to collaborate with the GM to narrow down the question or skills, and you can decide not to Recall Knowledge before committing to the action if you don't like your options.\n\n**Critical Success** You recall the knowledge accurately. The GM answers your question truthfully and either tells you additional information or context, or answers one follow-up question.\n\n**Success** You recall the knowledge accurately. The GM answers your question truthfully.\n\n**Critical Failure** You recall incorrect information. The GM answers your question falsely (or decides to give you no information, as on a failure).",
+   "cite": "Player Core — Skill Actions: Recall Knowledge",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.repair",
+   "title": "Repair",
+   "summary": "*exploration, manipulate*\n\n**Requirements** You are holding or wearing a Repair Kit\n\nYou spend 10 minutes attempting to fix a damaged item, placing the item on a stable surface and using the repair kit with both hands. The GM sets the DC, but it's usually about the same DC to Repair a given item as it is to Craft it in the first place. You can't Repair a destroyed item.\n\n**Critical Success** You restore 10 Hit Points to the item, plus an additional 10 Hit Points per proficiency rank you have in Crafting (a total of 20 HP if you're trained, 30 HP if you're an expert, 40 HP if you're a master, or 50 HP if you're legendary).\n\n**Success** You restore 5 Hit Points to the item, plus an additional 5 per proficiency rank you have in Crafting (for a total of 10 HP if you are trained, 15 HP if you're an expert, 20 HP if you're a master, or 25 HP if you're legendary).\n\n**Critical Failure** You deal 2d6 damage to the item. Apply the item's Hardness to this damage.",
+   "cite": "Player Core — Skill Actions: Repair",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.reposition",
+   "title": "Reposition ◆",
+   "summary": "*attack*\n\n**Requirements** You either have at least one hand free, or you're grabbing or restraining the target. The target can't be more than one size larger than you.\n\nYou muscle a creature or object around. Attempt an Athletics check against the target's Fortitude DC.\n\n**Critical Success** You move the creature up to 10 feet. It must remain within your reach during this movement, and you can't move it into or through obstacles.\n\n**Success** You move the target up to 5 feet. It must remain within your reach during this movement, and you can't move it into or through obstacles.\n\n**Critical Failure** The target can move you up to 5 feet as though it successfully Repositioned you.",
+   "cite": "Player Core — Skill Actions: Reposition",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.request",
+   "title": "Request ◆",
+   "summary": "*auditory, concentrate, linguistic, mental*\n\nYou can make a request of a creature that's friendly or helpful to you. You must couch the request in terms that the target would accept given their current attitude toward you. The GM sets the DC of the Diplomacy check based on the difficulty of the request. Some requests are unsavory or impossible, and even a helpful NPC would never agree to them.\n\n**Critical Success** The target agrees to your request without qualifications.\n\n**Success** The target agrees to your request, but they might demand added provisions or alterations to the request.\n\n**Failure** The target refuses the request, though they might propose an alternative that is less extreme.\n\n**Critical Failure** Not only does the target refuse the request, but their attitude toward you decreases by one step due to the temerity of the request.",
+   "cite": "Player Core — Skill Actions: Request",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.sense-direction",
+   "title": "Sense Direction",
+   "summary": "*exploration, secret*\n\nUsing the stars, the position of the sun, traits of the geography or flora, or the behavior of fauna, you can stay oriented in the wild. Typically, you attempt a Survival check only once per day, but some environments or changes might necessitate rolling more often. The GM determines the DC and how long this activity takes (usually just a minute or so). More unusual locales or those you're unfamiliar with might require you to have a minimum proficiency rank to Sense Direction. Without a Compass, you take a –2 item penalty to checks to Sense Direction.\n\n**Critical Success** You get an excellent sense of where you are. If you are in an environment with cardinal directions, you know them exactly.\n\n**Success** You gain enough orientation to avoid becoming hopelessly lost. If you are in an environment with cardinal directions, you have a sense of those directions.\n\n### Sense Direction Tasks\n\n- **Untrained** determine a cardinal direction using the sun\n- **Trained** find an overgrown path in a forest\n- **Expert** navigate a hedge maze\n- **Master** navigate a byzantine labyrinth or relatively featureless desert\n- **Legendary** navigate an ever-changing dream realm",
+   "cite": "Player Core — Skill Actions: Sense Direction",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.shove",
+   "title": "Shove ◆",
+   "summary": "*attack*\n\n**Requirements** You have at least one hand free. The target can't be more than one size larger than you.\n\nYou push a creature away from you. Attempt an Athletics check against your target's Fortitude DC.\n\n**Critical Success** You push your target up to 10 feet away from you. You can Stride after it, but you must move the same distance and in the same direction.\n\n**Success** You push your target back 5 feet. You can Stride after it, but you must move the same distance and in the same direction.\n\n**Critical Failure** You lose your balance, fall, and land prone.",
+   "cite": "Player Core — Skill Actions: Shove",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.sneak",
+   "title": "Sneak ◆",
+   "summary": "*move, secret*\n\nYou attempt to move to another place while becoming or staying undetected. Stride up to half your Speed. (You can use Sneak while Burrowing, Climbing, Flying, or Swimming instead of Striding if you have the corresponding movement type; you must move at half that Speed.)\n\nAt the end of your movement, the GM rolls your Sneak check in secret and compares the result to the Perception DC of each creature you were hidden from or undetected by at the start of your movement. If you have cover or greater cover from the creature throughout your Stride, you gain the +2 circumstance bonus from cover (or +4 from greater cover) to your Stealth check. Because you're moving, the bonus increase from Taking Cover doesn't apply. You don't get to roll against a creature if, at the end of your movement, you neither are concealed from it nor have cover or greater cover against it. You automatically become observed by such a creature.\n\n**Success** You're undetected by the creature during your movement and remain undetected by the creature at the end of it.\n\nYou become observed as soon as you do anything other than Hide, Sneak, or Step. If you attempt to Strike a creature, the creature remains off-guard against that attack, and you then become observed. If you do anything else, you become observed just before you act unless the GM determines otherwise. The GM might allow you to perform a particularly unobtrusive action without being noticed, possibly requiring another Stealth check. If you speak or make a deliberate loud noise, you become hidden instead of undetected.\n\nIf a creature uses Seek and you become hidden to it as a result, you must Sneak if you want to become undetected by that creature again.\n\n**Failure** A telltale sound or other sign gives your position away, though you still remain unseen. You're hidden from the creature throughout your movement and remain so.\n\n**Critical Failure** You're spotted! You're observed by the creature throughout your movement and remain so. If you're invisible and were hidden from the creature, instead of being observed you're hidden throughout your movement and remain so.",
+   "cite": "Player Core — Skill Actions: Sneak",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.squeeze",
+   "title": "Squeeze",
+   "summary": "*exploration, move*\n\nYou contort yourself to squeeze through a space so small you can barely fit through. This action is for exceptionally small spaces; many tight spaces are difficult terrain that you can move through more quickly and without a check.\n\n**Critical Success** You squeeze through the tight space in 1 minute per 10 feet of squeezing.\n\n**Success** You squeeze through in 1 minute per 5 feet.\n\n**Critical Failure** You become stuck in the tight space. While you're stuck, you can spend 1 minute attempting another Acrobatics check at the same DC. Any result on that check other than a critical failure causes you to become unstuck.\n\n### Sample Squeeze Tasks\n\n- **Trained** space barely fitting your shoulders\n- **Master** space barely fitting your head",
+   "cite": "Player Core — Skill Actions: Squeeze",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.steal",
+   "title": "Steal ◆",
+   "summary": "*manipulate*\n\nYou try to take a small object from another creature without being noticed. Typically, you can Steal only an object of negligible Bulk, you must have a free hand, and you automatically fail if the creature who has the object is in combat or on guard.\n\nAttempt a Thievery check to determine if you successfully Steal the object. The DC is usually the Perception DC of the creature wearing the object. It's easiest to steal an object that is worn but not closely guarded (like a loosely carried pouch filled with coins, or an object within such a pouch). The GM might increase the DC if the object is protected or if the nature of the object makes it harder to steal (such as a very small item in a large pack, or a sheet of parchment mixed in with other documents). For instance, the DC is typically 5 higher if the object is in a pocket, held in a creature's hand, or similarly protected.\n\nYou might also need to compare your Thievery check result against the Perception DCs of observers other than the person wearing the object. The GM might impose a circumstance penalty to the DCs of observers who are distracted.\n\n**Success** You steal the item without the bearer noticing, or an observer doesn't see you take or attempt to take the item.\n\n**Failure** The item's bearer notices your attempt before you can take the object, or an observer sees you take or attempt to take the item. The GM determines the response of any creature that notices your theft.",
+   "cite": "Player Core — Skill Actions: Steal",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.subsist",
+   "title": "Subsist",
+   "summary": "*downtime*\n\nYou try to provide food and shelter for yourself, and possibly others as well, with a standard of living. This typically uses Society if you're in a settlement or Survival if you're in the wild. The GM determines the DC based on the nature of the place where you're trying to Subsist. You might need a minimum proficiency rank to Subsist in particularly strange environments. Unlike most downtime activities, you can Subsist after 8 hours or less of exploration, but if you do, you take a –5 penalty.\n\n### Sample Subsist Tasks\n\n- **Untrained** a lush forest with calm weather or a large city with plentiful resources\n- **Trained** typical hillside or village\n- **Expert** typical mountains or insular hamlet\n- **Master** typical desert or city under siege\n- **Legendary** barren wasteland or city of undead\n\n**Critical Success** You either provide a subsistence living for yourself and one additional creature, or you improve your own food and shelter, granting yourself a comfortable living.\n\n**Success** You find enough food and shelter with basic protection from the elements to provide you a subsistence living.\n\n**Failure** You're exposed to the elements and don't get enough food, becoming fatigued until you attain sufficient food and shelter.\n\n**Critical Failure** You attract trouble, eat something you shouldn't, or otherwise worsen your situation. You take a –2 circumstance penalty to checks to Subsist for 1 week. You don't find any food at all; if you don't have any stored up, you're in danger of starving or dying of thirst if you continue failing.\n\nEffect: Adverse Subsist Situation",
+   "cite": "Player Core — Skill Actions: Subsist",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.swim",
+   "title": "Swim ◆",
+   "summary": "*move*\n\nYou attempt an Athletics check to move a maximum distance of 10 feet through water. The GM determines the DC based on the turbulence or danger of the water; in most instances of calm water, you get an automatic critical success. If your land Speed is 40 feet or higher, increase the maximum possible distance by 5 feet for every 20 feet of Speed above 20 feet.\n\nIf you end your turn in water and haven't succeeded at a Swim action that turn, you sink 10 feet or get moved by the current, as determined by the GM. This doesn't apply if your last action on your turn was to enter the water.\n\n**Critical Success** You move through the water, increasing the maximum distance by 5 feet.\n\n**Success** You move through the water.\n\n**Critical Failure** You make no progress. If you're holding your breath, you lose 1 round of air.\n\n### Sample Swim Tasks\n\n**Untrained** lake or other still water\n\n**Trained** flowing water, like a river\n\n**Expert** swiftly flowing river\n\n**Master** stormy sea\n\n**Legendary** maelstrom, waterfall",
+   "cite": "Player Core — Skill Actions: Swim",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.track",
+   "title": "Track",
+   "summary": "*concentrate, exploration, move*\n\nYou follow tracks, moving at up to half your travel Speed, using the Travel Speed rules. After a successful check to Track, you can continue following the tracks at half your Speed without attempting additional checks for up to 1 hour.\n\nIn some cases, you might Track in an encounter. In this case, Track is a single action and doesn't have the exploration trait, but you might need to roll more often because you're in a tense situation. The GM determines how often you must attempt this check.\n\nYou attempt your Survival check when you start Tracking, once every hour you continue tracking, and any time something significant changes in the trail. The GM determines the DCs for such checks, depending on the freshness of the trail, the weather, and the type of ground.\n\n### Sample Track Tasks\n\n- **Untrained** the path of a large army following a road\n- **Trained** relatively fresh tracks of a rampaging bear through the plains\n- **Expert** a nimble panther's tracks through a jungle, tracks obscured by rainfall\n- **Master** tracks obscured by winter snow, tracks of a mouse or smaller creature, tracks left on surfaces that can't hold prints like bare rock\n- **Legendary** old tracks through a windy desert's sands, tracks obscured by a major blizzard or hurricane\n\n**Success** You find the trail or continue to follow the one you're already following.\n\n**Failure** You lose the trail but can try again after a 1-hour delay.\n\n**Critical Failure** You lose the trail and can't try again for 24 hours.",
+   "cite": "Player Core — Skill Actions: Track",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.treat-disease",
+   "title": "Treat Disease",
+   "summary": "*downtime, manipulate*\n\n**Requirements** You're wearing or holding a Healer's Toolkit\n\nYou spend at least 8 hours caring for a diseased creature. Attempt a Medicine check against the disease's DC. After you attempt to Treat a Disease for a creature, you can't try again until after that creature's next save against the disease.\n\n**Critical Success** You grant the creature a +4 circumstance bonus to its next saving throw against the disease.\n\n**Success** You grant the creature a +2 circumstance bonus to its next saving throw against the disease.\n\n**Critical Failure** Your efforts cause the creature to take a −2 circumstance penalty to its next save against the disease.\n\nEffect: Treat Disease",
+   "cite": "Player Core — Skill Actions: Treat Disease",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.treat-poison",
+   "title": "Treat Poison ◆",
+   "summary": "*manipulate*\n\n**Requirements** You're wearing or holding a Healer's Toolkit\n\nYou treat a patient to prevent the spread of poison. Attempt a Medicine check against the poison's DC. After you attempt to Treat a Poison for a creature, you can't try again until after the next time that creature attempts a save against the poison.\n\n**Critical Success** You grant the creature a +4 circumstance bonus to its next saving throw against the poison.\n\n**Success** You grant the creature a +2 circumstance bonus to its next saving throw against the poison.\n\n**Critical Failure** Your efforts cause the creature to take a −2 circumstance penalty to its next save against the poison.\n\nEffect: Treat Poison",
+   "cite": "Player Core — Skill Actions: Treat Poison",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.treat-wounds",
+   "title": "Treat Wounds",
+   "summary": "*exploration, healing, manipulate*\n\n**Requirements** You're wearing or holding a Healer's Toolkit.\n\nYou spend 10 minutes treating one injured living creature (targeting yourself, if you so choose). The target is then temporarily immune to Treat Wounds actions for 1 hour, but this interval overlaps with the time you spent treating (so a patient can be treated once per hour, not once per 70 minutes).\n\nThe Medicine check DC is usually 15, though the GM might adjust it based on the circumstances, such as treating a patient outside in a storm, or treating magically cursed wounds. If you're an expert in Medicine, you can instead attempt a DC 20 check to increase the Hit Points regained by 10; if you're a master of Medicine, you can instead attempt a DC 30 check to increase the Hit Points regained by 30; and if you're legendary, you can instead attempt a DC 40 check to increase the Hit Points regained by 50. The damage dealt on a critical failure remains the same.\n\nIf you succeed at your check, you can continue treating the target to grant additional healing. If you treat it for a total of 1 hour, double the Hit Points it regains from Treat Wounds.\n\nThe result of your Medicine check determines how many Hit Points the target regains.\n\n**Critical Success** The target regains 4d8 Hit Points and loses the wounded condition.\n\n**Success** The target regains 2d8 Hit Points, and loses the wounded condition.\n\n**Critical Failure** The target takes 1d8 untyped damage.",
+   "cite": "Player Core — Skill Actions: Treat Wounds",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.trip",
+   "title": "Trip ◆",
+   "summary": "*attack*\n\n**Requirements** You have at least one hand free. Your target can't be more than one size larger than you.\n\nYou try to knock a creature to the ground. Attempt an Athletics check against the target's Reflex DC.\n\n**Critical Success** The target falls, lands prone, and takes 1d6 bludgeoning damage.\n\n**Success** The target falls and lands prone.\n\n**Critical Failure** You lose your balance, fall, and land prone.",
+   "cite": "Player Core — Skill Actions: Trip",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.tumble-through",
+   "title": "Tumble Through ◆",
+   "summary": "*move*\n\nYou Stride up to your Speed. During this movement, you can try to move through the space of one enemy. Attempt an Acrobatics check against the enemy's Reflex DC as soon as you try to enter its space. You can Tumble Through using Climb, Fly, Swim, or another action instead of Stride in the appropriate environment.\n\n**Success** You move through the enemy's space, treating the squares in its space as difficult terrain (every 5 feet costs 10 feet of movement). If you don't have enough Speed to move all the way through its space, you get the same effect as a failure.\n\n**Failure** Your movement ends, and you trigger reactions as if you had moved out of the square you started in.",
+   "cite": "Player Core — Skill Actions: Tumble Through",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.dragon-breath-dragon-form",
+   "title": "Dragon Breath (Dragon Form) ◆◆",
+   "summary": "You exhale deadly magical energy in an area, dealing 10d6 untyped damage to each creature in the area with a basic save against your spell DC. The shape, damage type, and save type match that of your chosen dragon's breath. If the chosen dragon's breath can deal more than one type of damage, choose one when you cast *dragon form*. The shape is a 30-foot cone or a 100-foot line. Once activated, Dragon Breath can't be used again for 1d4 rounds. Dragon Breath has the tradition trait matching the type of dragon and the damage trait matching the type of damage it deals, if applicable.",
+   "cite": "Player Core — Spell Actions: Dragon Breath (Dragon Form)",
+   "tags": [
+    "action",
+    "spell actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.foresight",
+   "title": "Foresight ↺",
+   "summary": "**Trigger** The target of Foresight defends against a hostile creature or other danger.\n\n**Effect** If the hostile creature or danger forces the target to roll dice (a saving throw, for example), the target rolls twice and uses the higher result, and this spell gains the fortune trait. But if the hostile creature or danger is rolling against the target (an attack roll or skill check, for example), that hostile creature or danger rolls twice and uses the lower result, and this spell gains the misfortune trait.",
+   "cite": "Player Core — Spell Actions: Foresight",
+   "tags": [
+    "action",
+    "spell actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.bribe-contact",
+   "title": "Bribe Contact",
+   "summary": "*downtime, secret*\n\n**Cost** A bribe worth at least one-tenth of the Currency per Additional PC listed on Party Treasure by level. Doubling this amount grants a +2 circumstance bonus to the check.\n\n**Requirements** You've successfully Gained a Contact.\n\nYou offer a bribe to your contact to help the heist in some way. Attempt a hard or very hard Deception or Diplomacy check.\n\n**Success** The contact accepts the bribe and you gain 1 EP.\n\n**Failure** You believe you successfully Bribed your Contact and gained 1 EP, but in fact the contact informs the opposition of the attempted bribery, adding 1 AP to the infiltration. The GM can reveal that this Edge Point grants no benefit at any point during the infiltration, as befits the story.\n\n**Critical Failure** As failure, but adding 2 AP to the infiltration.",
+   "cite": "GM Core — Subsystem Actions: Bribe Contact",
+   "tags": [
+    "action",
+    "subsystem actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.bullying-press",
+   "title": "Bullying Press ↺",
+   "summary": "*flourish*\n\n**Trigger** You attempt a melee Strike against your opponent, but haven't rolled yet.\n\n**Requirements** You're in a duel, you're trained in Intimidation, and you rolled an Intimidation check for initiative this round.\n\nIf you hit, your opponent becomes Frightened 1. If your opponent is using Perception for initiative when this ability is used, they become Frightened 2 instead.",
+   "cite": "GM Core — Subsystem Actions: Bullying Press",
+   "tags": [
+    "action",
+    "subsystem actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.change-tradition-focus",
+   "title": "Change Tradition Focus ◆",
+   "summary": "**Requirements** You are in a duel and are trained in the skill for the tradition you're changing your focus to (Arcana for arcane, Occultism for occult, Nature for primal, or Religion for divine).\n\nYou change your tradition focus to another magical tradition.",
+   "cite": "GM Core — Subsystem Actions: Change Tradition Focus",
+   "tags": [
+    "action",
+    "subsystem actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.deceptive-sidestep",
+   "title": "Deceptive Sidestep ↺",
+   "summary": "*misfortune*\n\n**Trigger** An opponent hits, but does not critically hit you, with a melee Strike.\n\n**Requirements** You're in a duel, you're trained in Deception, and you rolled a Deception check for initiative this round.\n\nYou draw your enemy in and pull away at the last moment. The triggering opponent must roll again and take the second result. If your opponent is using Intimidation for initiative when this ability is used, they also take a -2 circumstance penalty to the second attack roll.",
+   "cite": "GM Core — Subsystem Actions: Deceptive Sidestep",
+   "tags": [
+    "action",
+    "subsystem actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.discover",
+   "title": "Discover",
+   "summary": "*concentrate, secret*\n\nYou watch or study an NPC to learn more about that NPC's preferences. Attempt a Perception check or an appropriate skill check determined by the GM. The DC is found in the NPC's influence stat block.\n\n**Critical Success** Choose two of the options detailed in Success below; you can choose the same option twice to learn two pieces of information from the same category.\n\n**Success** Choose one of the following: You learn which skill that can Influence the NPC has the lowest DC (skipping any skills that you already know), one of the NPC's personal biases, one of the NPC's resistances, or one of the NPC's weaknesses.\n\n**Failure** You learn no information.\n\n**Critical Failure** Choose a piece of information to learn about, as success, but the information is incorrect.",
+   "cite": "GM Core — Subsystem Actions: Discover",
+   "tags": [
+    "action",
+    "subsystem actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.dueling-counter",
+   "title": "Dueling Counter ↺",
+   "summary": "*magical*\n\n**Trigger** Your opponent Casts a Spell from the same tradition as your tradition focus.\n\n**Requirements** You are in a duel and have a tradition focus.\n\nExpend a prepared spell or spell slot. You then attempt to counteract the triggering spell with the expended spell.",
+   "cite": "GM Core — Subsystem Actions: Dueling Counter",
+   "tags": [
+    "action",
+    "subsystem actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.forge-documents",
+   "title": "Forge Documents",
+   "summary": "*downtime, secret*\n\nYou prepare forgeries that might serve as convincing props. Attempt a hard or very hard Society check.\n\n**Success** You create convincing forgeries and gain 1 EP you can use only when presenting some form of paperwork.\n\n**Failure** You create unconvincing documents. You gain 1 EP that (unknown to you) grants no benefit when used.\n\n**Critical Failure** As a failure, but a PC who tries to use the Edge Point gets a critical failure, even if they use the Edge Point after rolling a failure.",
+   "cite": "GM Core — Subsystem Actions: Forge Documents",
+   "tags": [
+    "action",
+    "subsystem actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.gain-contact",
+   "title": "Gain Contact",
+   "summary": "*downtime*\n\nYou try to make contact with an individual who can aid you in the infiltration. Attempt a normal, hard, or very hard DC Diplomacy or Society check, or a check using a Lore skill appropriate to your prospective contact.\n\n**Success** You make contact and gain 1 EP.\n\n**Failure** You fail to make contact.\n\n**Critical Failure** You insult or spook the contact in some way. Future attempts take a -2 circumstance penalty.\n\n**Special** Multiple critical failures might cause the contact to work against the PCs in some way, likely increasing the party's Awareness Points.",
+   "cite": "GM Core — Subsystem Actions: Gain Contact",
+   "tags": [
+    "action",
+    "subsystem actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.gossip",
+   "title": "Gossip",
+   "summary": "*downtime, secret*\n\nYou seek out rumors about the infiltration's target. Attempt a normal, hard, or very hard Diplomacy check.\n\n**Critical Success** You gain inside information about the location or group you're trying to infiltrate. This grants you a +2 circumstance bonus to future checks you attempt for preparation activities for this infiltration. If you share this information, those you share it with also gain this bonus.\n\n**Success** You gain inside information about the place or group you're attempting to infiltrate that aids your planning.\n\n**Failure** You learn nothing.\n\n**Critical Failure** You hear a few mistaken rumors and take a -2 circumstance penalty to your next check for a preparation activity. Word spreads around that you're asking after that group or individual, increasing your Awareness Points by 1.",
+   "cite": "GM Core — Subsystem Actions: Gossip",
+   "tags": [
+    "action",
+    "subsystem actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.influence",
+   "title": "Influence",
+   "summary": "*concentrate, linguistic*\n\nYou attempt to make a favorable impression on an NPC to convince the NPC to support your cause. Attempt a skill check to impress that NPC. The DC and skills which can apply can be found in the NPC's stat block.\n\n**Critical Success** You gain 2 Influence Points with the chosen NPC.\n\n**Success** You gain 1 Influence Point with the chosen NPC.\n\n**Failure** You gain no Influence Points with the chosen NPC.\n\n**Critical Failure** You lose 1 Influence Point with the chosen NPC.",
+   "cite": "GM Core — Subsystem Actions: Influence",
+   "tags": [
+    "action",
+    "subsystem actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.scout-location",
+   "title": "Scout Location",
+   "summary": "*downtime, secret*\n\nYou spend time observing the place or group you wish to infiltrate. Attempt a normal, hard, or very hard DC Perception, Society or Stealth check.\n\n**Success** You make observations that provide 1 EP.\n\n**Failure** You learn nothing particularly noteworthy.\n\n**Critical Failure** You misjudge some aspect of what you observed, gaining 1 EP that results in a critical failure instead of a success when used, even if a PC uses the Edge Point after rolling a failure.",
+   "cite": "GM Core — Subsystem Actions: Scout Location",
+   "tags": [
+    "action",
+    "subsystem actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.secure-disguises",
+   "title": "Secure Disguises",
+   "summary": "*downtime*\n\nYou seek to procure or create disguises. Attempt a normal, hard, or very hard Crafting, Deception, Performance, or Society check.\n\n**Success** You procure or creates disguises, gaining 1 EP that can be used only to maintain a cover identity.\n\n**Failure** Your efforts result in an unusable disguise.",
+   "cite": "GM Core — Subsystem Actions: Secure Disguises",
+   "tags": [
+    "action",
+    "subsystem actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.sense-weakness",
+   "title": "Sense Weakness ↺",
+   "summary": "**Trigger** You attempt a melee Strike against your opponent, but haven't rolled yet.\n\n**Requirements** You're in a duel, you're trained in Perception, and you rolled a Perception check for initiative this round.\n\nYou pick a precise moment to attack, giving you an edge. Your opponent is off-guard against the attack. If your opponent is using Deception for initiative when this ability is used, they are instead off-guard until the start of their next turn.",
+   "cite": "GM Core — Subsystem Actions: Sense Weakness",
+   "tags": [
+    "action",
+    "subsystem actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.travel",
+   "title": "Travel",
+   "summary": "*move*\n\nYou progress toward moving into an adjacent hex. In open terrain, like a plain, using 1 Travel activity allows you to move from one hex to an adjacent hex. Traversing a hex with difficult terrain (such as a typical forest or desert) requires 2 Travel activities, and hexes of greater difficult terrain (such as a steep mountain or typical swamp) require 3 Travel activities to traverse. Traveling along a road uses a terrain type one step better than the surrounding terrain. For example, if you are traveling on a road over a mountain pass, the terrain is difficult terrain instead of greater difficult terrain.\n\nThe Travel activity assumes you are walking overland. If you are flying or traveling on water, most hexes are open terrain, though there are exceptions. Flying into storms or high winds count as difficult or greater difficult terrain. Traveling down a river is open terrain, but traveling upriver is difficult or greater difficult terrain.",
+   "cite": "GM Core — Subsystem Actions: Travel",
+   "tags": [
+    "action",
+    "subsystem actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.board",
+   "title": "Board ◆",
+   "summary": "*move*\n\n**Requirements** You are adjacent to a point of entry on the vehicle you are attempting to board.\n\nYou board a vehicle through an open top, a door, a portal, or a hatch; if you're already on board, you can instead use this action to disembark into an empty space adjacent to the vehicle's point of entry. Using this action while the vehicle is in motion is challenging, requiring a successful Acrobatics or Athletics check with a DC equal to the vehicle's AC.",
+   "cite": "GM Core — Vehicle Actions: Board",
+   "tags": [
+    "action",
+    "vehicle actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.drive",
+   "title": "Drive ◆",
+   "summary": "*move*\n\n**Requirements** You are piloting a vehicle.\n\nYou pilot your vehicle to move. Decide how many actions you intend to spend before you begin Driving. The effects depend on the number of actions you spend. You can't Drive through spaces occupied by creatures, even if they are allies.\n\n◆ Attempt a piloting check. On a success, the vehicle moves up to its Speed and can turn normally. On a failure, the vehicle moves its Speed in a straight line. On a critical failure, the vehicle moves its Speed in a straight line and becomes uncontrolled\n\n◆◆ (reckless) The vehicle moves up to twice its Speed in a straight line at the vehicle's current heading.\n\n◆◆◆ (reckless) You take a –5 penalty on your piloting check to maintain control of the vehicle. The vehicle moves up to three times its Speed in a straight line at the vehicle's current heading.",
+   "cite": "GM Core — Vehicle Actions: Drive",
+   "tags": [
+    "action",
+    "vehicle actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.run-over",
+   "title": "Run Over ◆◆◆",
+   "summary": "*move*\n\n**Requirements** You are piloting a vehicle.\n\n(reckless) You try to run over creatures with your vehicle, possibly also ramming one larger creature or object. If you maintain control of your vehicle, the vehicle moves up to twice its Speed in a straight line at the vehicle's current heading. You attempt to run over any creatures in your path two sizes smaller than the vehicle or smaller, and you can attempt to ram one target creature or object in your path one size smaller than the vehicle or larger.\n\nEach creature in your path, including a rammed target, takes the vehicle's collision damage (basic Reflex save at vehicle's collision DC). If the rammed target is a vehicle, its pilot can attempt a piloting check in place of this Reflex save, with the same results. If the target of your ram takes damage, you and your vehicle each take collision damage (no save) and your movement ends.",
+   "cite": "GM Core — Vehicle Actions: Run Over",
+   "tags": [
+    "action",
+    "vehicle actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.stop",
+   "title": "Stop ◆",
+   "summary": "*manipulate*\n\n**Requirements** You are piloting a vehicle in motion.\n\nYou bring the vehicle to a stop.",
+   "cite": "GM Core — Vehicle Actions: Stop",
+   "tags": [
+    "action",
+    "vehicle actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc.rule.action.take-control",
+   "title": "Take Control ◆",
+   "summary": "*manipulate*\n\n**Requirements** You are aboard the vehicle and adjacent to its controls.\n\nYou grab the reins, the wheel, or some other mechanism to control the vehicle. Attempt a piloting check; on a success, you become the vehicle's pilot, or regain control of the vehicle if it was uncontrolled. Some vehicles have complicated controls that cause this action to become a multi-action activity.",
+   "cite": "GM Core — Vehicle Actions: Take Control",
+   "tags": [
+    "action",
+    "vehicle actions"
+   ]
+  }
+ ]
+}

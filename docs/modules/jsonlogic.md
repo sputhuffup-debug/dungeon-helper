@@ -12,6 +12,7 @@ Every expression in a pack is [JSONLogic](https://jsonlogic.com): a JSON object 
 | `tables[].modifiers[].when` / `.add` | the procedure context, flat: inputs and step results by name (`{ "var": "terrain.kind" }`) |
 | procedure `skipIf`, `repeat`, `modifier`, `value`, `table` | `{ inputs, results, ...inputs, ...results }`; `value` also gets `roll` after a `roll` step |
 | procedure `derive.<key>` | as above plus `result`, the step's own result |
+| procedure `display` | as above plus `result` and `label`, the row label the step rolled (a list when it repeats) |
 | `produce` names, fields, `when`, `each` | as above; inside `each`, `item` and `index` |
 | `chains[].inputs.<name>` | as above |
 | dice engine numbers (`proficiency`, `stat`, `target`, `count`) | the roll input: `attribute`, `skill`, `fields`, `computed`, options |

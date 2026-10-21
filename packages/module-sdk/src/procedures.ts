@@ -119,7 +119,7 @@ export function runProcedure(
   }
 
   const produced = procedure.produce(ctx);
-  return {
+  const graph: GeneratedGraph = {
     procedure: procedure.id,
     moduleVersion: module.manifest.version,
     seed: options.seed,
@@ -129,6 +129,20 @@ export function runProcedure(
     produced: { entities: [...produced.entities], relationships: [...produced.relationships] },
     skipped,
   };
+  const display = stepDisplays(procedure, ctx);
+  if (display) graph.display = display;
+  return graph;
+}
+
+/** The `display` line of every step that declares one and has a result. */
+function stepDisplays(procedure: Procedure, ctx: ProcedureContext): Record<string, string> | undefined {
+  let out: Record<string, string> | undefined;
+  for (const step of procedure.steps) {
+    if (!step.display || !Object.prototype.hasOwnProperty.call(ctx.results, step.id)) continue;
+    const line = step.display(ctx, ctx.results[step.id], ctx.rolls.filter((r) => r.step === step.id));
+    if (typeof line === "string" && line.trim() !== "") (out ??= {})[step.id] = line;
+  }
+  return out;
 }
 
 /** Step graph summary for the workbench UI. */

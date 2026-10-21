@@ -355,7 +355,8 @@
           "table": "example-pack.site.danger",
           "reads": ["kind"],
           "modifier": { "var": "inputs.depth" },
-          "derive": { "hostile": { "!=": [{ "var": "result.level" }, "calm"] } }
+          "derive": { "hostile": { "!=": [{ "var": "result.level" }, "calm"] } },
+          "display": { "cat": [{ "var": ["label", ""] }, { "if": [{ "var": "result.hostile" }, " (hostile)", ""] }] }
         },
         {
           "id": "encounters",

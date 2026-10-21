@@ -18,7 +18,7 @@ import type { JsonLogicRule, RollTone } from "../types";
 
 export type DiceEngineId = "d20" | "pool" | "2d6" | "d100";
 
-/** d20 + modifiers against an optional DC, with advantage/disadvantage and natural crit/fumble flags. */
+/** d20 + modifiers against an optional DC, with advantage/disadvantage, natural crit/fumble flags and optional four degrees of success. */
 export interface D20EngineConfig {
   engine: "d20";
   /**
@@ -30,8 +30,12 @@ export interface D20EngineConfig {
    * Proficiency bonus: a number, or JSONLogic over the roll input (e.g.
    * `{ "var": "computed.proficiencyBonus" }`). It is multiplied by `skill`
    * (0 none, 0.5 half, 1 proficient, 2 expertise) and rounded down. Default 0.
+   * With `proficiencyMode: "add"` it is added as is instead (the rule reads
+   * `skill` itself, e.g. a rank-based bonus).
    */
   proficiency?: JsonLogicRule;
+  /** `multiply` (default): proficiency × skill. `add`: the proficiency rule's value is added as is. */
+  proficiencyMode?: "multiply" | "add";
   /** Extra flat bonus for every roll: a number or JSONLogic over the input. Default 0. */
   bonus?: JsonLogicRule;
   /** A natural roll at or above this is a critical (default 20). */
@@ -43,11 +47,44 @@ export interface D20EngineConfig {
   /** A natural fumble fails whatever the DC (default false: flagged only). */
   fumbleFails?: boolean;
   /**
+   * Four degrees of success against a DC: a total at or above DC + `critMargin`
+   * is a critical success, one at or below DC − `critMargin` a critical
+   * failure (success and failure in between). Unset: two degrees.
+   */
+  critMargin?: number;
+  /**
+   * A natural `critOn`+ improves the degree of success one step and a natural
+   * `fumbleOn`- worsens it one step (default false). With two degrees this
+   * turns a natural failure into a success and the reverse.
+   */
+  naturalShift?: boolean;
+  /**
+   * Names for the roll modes the roll panel offers, e.g. `{ "advantage":
+   * "fortune", "disadvantage": "misfortune" }`. The mechanics stay the same:
+   * two d20, keep the higher or the lower. Default normal / advantage / disadvantage.
+   */
+  advantageNames?: { normal?: string; advantage?: string; disadvantage?: string };
+  /**
+   * Situational modifiers the roll panel offers as a choice, e.g. a multiple
+   * attack penalty: `{ "id": "map", "title": "Attack", "choices": [{ "label":
+   * "1st attack", "value": 0 }, { "label": "2nd attack (−5)", "value": -5 }] }`.
+   * The first choice is the default; the chosen value is added to the roll.
+   */
+  modifierChoices?: D20ModifierChoice[];
+  /**
    * Other dice the table's free roll offers next to the d20, by faces (e.g.
    * [4, 6, 8, 10, 12] for damage). Free rolls are summed. Default none.
    */
   freeDice?: number[];
-  labels?: { success?: string; failure?: string };
+  labels?: { success?: string; failure?: string; criticalSuccess?: string; criticalFailure?: string };
+}
+
+/** One situational modifier the d20 roll panel offers as a select (see `modifierChoices`). */
+export interface D20ModifierChoice {
+  /** Roll option key: letters, digits, hyphens; not one of the engine's own options. */
+  id: string;
+  title: string;
+  choices: Array<{ label: string; value: number }>;
 }
 
 /** One kind of die in a pool. */

@@ -3,7 +3,7 @@
  *
  *   pnpm module-check <target...> [--all] [--seeds N] [--determinism-seeds N] [--quiet] [--json]
  *
- * A target is a built-in module id (alien, example, example-pack, dnd5e-srd), a pack's
+ * A target is a built-in module id (alien, example, example-pack, dnd5e-srd, pf2e-orc), a pack's
  * main JSON file, a folder with a pack.json, a TypeScript module package
  * folder, or a .ts file. Relative paths resolve against the folder pnpm was
  * started in. Exit code 1 when any target has errors, 2 for usage errors.

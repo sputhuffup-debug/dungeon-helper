@@ -21,6 +21,7 @@ Two rules from the project's `CLAUDE.md` apply to every module:
 - `url` and `sourceBook.url` must be `http(s)`; the app links nothing else.
 - `licenseNotice` stays a short notice for exports and the settings page; it is not a substitute for the attribution.
 - When you write your own game, say so (`"name": "All rights reserved"` and your own credit line) or pick an open licence.
+- The ORC License is not on the SPDX list; name it with the license reference `"spdx": "LicenseRef-ORC"` and `"name": "ORC License"`, and put the ORC Notice and each source's Attribution Notice in `attribution`. ORC content may be used as written, but its Reserved Material (trademarks, and setting proper nouns: deities, places, organizations, named characters) is not licensed: leave it out. `packages/module-pf2e-orc` is a worked example (its converter drops or rewrites setting names and its tests check none are left).
 
 ## Citing the source
 
@@ -36,5 +37,5 @@ Two rules from the project's `CLAUDE.md` apply to every module:
 
 - `manifest.dataStatus` says whether the data was checked against the source: `unverified` shows a warning when a campaign is created and in Settings.
 - `unverified: true` on a table, row, preset or reference list marks entries you could not check.
-- table-lint warns about rule card summaries that look like copied prose (long, many sentences, long quotes), unless `license.spdx` is an open text licence (`CC-BY-*`, `CC-BY-SA-*`, `CC0-*`), where quoting the source is expected. For anything else, paraphrase.
+- table-lint warns about rule card summaries that look like copied prose (long, many sentences, long quotes), unless `license.spdx` is an open text licence (`CC-BY-*`, `CC-BY-SA-*`, `CC0-*`, `LicenseRef-ORC`), where quoting the source is expected. For anything else, paraphrase.
 - Never commit a rulebook PDF, its extracted text or a purchase watermark.

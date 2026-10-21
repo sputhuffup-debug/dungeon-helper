@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { GameModule, RollTable } from "@campaign-forge/module-sdk";
 import { alienModule } from "@campaign-forge/module-alien";
 import { exampleModule } from "@campaign-forge/module-example";
-import { countSentences, lintModule, renderSpotCheck, spotCheck } from "../src";
+import { countSentences, hasOpenLicense, lintModule, renderSpotCheck, spotCheck } from "../src";
 
 const fmt = (issues: Array<{ where: string; message: string }>) => issues.map((i) => `${i.where}: ${i.message}`);
 
@@ -91,6 +91,10 @@ describe("lintModule", () => {
     };
     const warnings = fmt(lintModule(open, { skipProcedureRuns: true }).warnings);
     expect(warnings.filter((w) => w.startsWith("rule:example.rule.prose"))).toEqual([]);
+    // The ORC License is not an SPDX id; packs name it with the license reference LicenseRef-ORC.
+    expect(hasOpenLicense({ ...open, manifest: { ...open.manifest, license: { spdx: "LicenseRef-ORC", name: "ORC License", attribution: "Fixture." } } })).toBe(true);
+    expect(hasOpenLicense({ ...open, manifest: { ...open.manifest, license: { spdx: "LicenseRef-ORCA", name: "Other", attribution: "Fixture." } } })).toBe(false);
+    expect(hasOpenLicense({ ...open, manifest: { ...open.manifest, license: { name: "All rights reserved", attribution: "Fixture." } } })).toBe(false);
   });
 
   it("counts sentences without splitting on page references or decimals", () => {

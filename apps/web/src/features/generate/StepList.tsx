@@ -86,7 +86,7 @@ export function StepList({ steps, changed, pinnedRolls, includeOptional, onRerol
                 {s.hasResult && (
                   <div className="prep-step__result">
                     <span className="prep-step__value" data-testid={`step-result-${s.id}`}>
-                      {summarizeValue(s.result)}
+                      {s.display ?? summarizeValue(s.result)}
                     </span>
                     <ProvenanceBadge kind={s.state === "pinned" ? "edited" : s.kind === "compute" ? "computed" : "rolled"} label={s.state === "pinned" ? "pinned" : undefined} rolls={rolls} detail={`Step ${s.id}`} onReroll={s.state === "pinned" ? undefined : () => onReroll(s.id)} />
                   </div>

@@ -1,6 +1,6 @@
 # Campaign Forge
 
-A Game Master's workspace for designing, organizing and running tabletop RPG campaigns. Every game system is a plugin ("module"). Two are built in: the **Alien RPG, Evolved Edition** (Free League, 2025) and **5th Edition SRD 5.1 (fantasy d20)**, built on the openly licensed System Reference Document 5.1. Other systems plug in as TypeScript packages or as JSON data packs a GM imports in the app.
+A Game Master's workspace for designing, organizing and running tabletop RPG campaigns. Every game system is a plugin ("module"). Three are built in: the **Alien RPG, Evolved Edition** (Free League, 2025), **5th Edition SRD 5.1 (fantasy d20)**, built on the openly licensed System Reference Document 5.1, and **Fantasy d20 Remaster (ORC)**, the ORC-licensed core rules compatible with Pathfinder Second Edition (Remaster). Other systems plug in as TypeScript packages or as JSON data packs a GM imports in the app.
 
 For Alien, Campaign Forge is a companion to the rulebook, not a replacement. The module encodes structure, tables and mechanics as data and cites the page; it does not reproduce the book's prose or art. The Alien data has been checked against the printed Evolved Edition core rules; `docs/verification/` records what was corrected, and the few entries the book does not supply remain flagged `unverified`.
 
@@ -20,13 +20,14 @@ For Alien, Campaign Forge is a companion to the rulebook, not a replacement. The
 - **Printed booklets.** A black-and-white GM booklet (Letter or A4) with a title page, cast cards, locations and puzzles, the site map and each act's scenes with boxed read-aloud text, plus cut-out agenda cards for the players.
 - **Wide-format printing.** Site maps print on 24" or 36" rolls as vector PDFs at 1 inch per metre (28mm miniatures), 28mm true scale or an overview scale, with a title block, scale bar and optional 1 m grid squares.
 - **Maps from images.** Imported images with rectangular zone overlays and open/blocked/door borders.
-- **Rules reference.** Rule cards filtered by play mode: paraphrases with page references for Alien, the SRD's own text cited by section for the fifth edition module.
-- **Multi-system modules.** Every game system is a module: a TypeScript package, or a declarative JSON data pack (no code) that the SDK turns into one. GMs import packs in the app (*Game modules…* on the campaign list); a pack is validated before it is stored, never runs as code, shows its licence and attribution, and travels inside campaign bundles. Packs pick one of four built-in dice engines: d20 (advantage, disadvantage, DC), dice pool, 2d6 bands and d100 roll-under. `pnpm create-module` scaffolds a pack or a TypeScript module and `pnpm module-check` validates one or `--all`; the author guide is [docs/modules](docs/modules/README.md).
+- **Rules reference.** Rule cards filtered by play mode: paraphrases with page references for Alien, the source's own text cited by section for the fifth edition and ORC modules.
+- **Multi-system modules.** Every game system is a module: a TypeScript package, or a declarative JSON data pack (no code) that the SDK turns into one. GMs import packs in the app (*Game modules…* on the campaign list); a pack is validated before it is stored, never runs as code, shows its licence and attribution, and travels inside campaign bundles. Packs pick one of four built-in dice engines: d20 (advantage, disadvantage, DC, optional four degrees of success with natural 20/1 shifts, situational modifier choices), dice pool, 2d6 bands and d100 roll-under. `pnpm create-module` scaffolds a pack or a TypeScript module and `pnpm module-check` validates one or `--all`; the author guide is [docs/modules](docs/modules/README.md).
 - **Fifth edition (SRD 5.1).** A built-in data pack with the whole SRD 5.1: 334 monster stat blocks as presets, 319 spells, magic items, equipment, classes and races as reference lists, rule cards cited by section, and dice tables. Character sheets derive ability modifiers, proficiency bonus, saves, skills (with expertise), passive scores, initiative and spellcasting numbers; d20 rolls from a sheet or the table take advantage, disadvantage and a DC. Initiative, hit point, death save, spell slot and other trackers, plus original encounter, NPC, settlement and tavern generators and a one-shot template. Not affiliated with Wizards of the Coast; see the licence note below.
+- **Second edition remaster (ORC core rules).** A built-in data pack with the ORC-licensed content of Player Core, Player Core 2, GM Core and Monster Core and none of the setting's names: 490 Monster Core stat blocks and 32 hazards as presets; ancestries, heritages, backgrounds, classes, 1,814 feats, 663 spells and 1,243 items as reference lists; every condition and action as a rule card cited by section. Character sheets derive Perception, saves and skills from proficiency ranks (level + 2/4/6/8), class DC, AC, Hit Points, spell DC and Bulk; rolls read four degrees of success (DC ± 10, natural 20 and 1 shift one step) with fortune, misfortune and the multiple attack penalty in the roll panel. An encounter builder spends GM Core's XP budgets on Monster Core creatures; trackers for initiative, Hit Points, dying/wounded/doomed, Hero and Focus Points and valued conditions. Not affiliated with Paizo; see the licence note below.
 
 ## Screenshots
 
-Three demo campaigns load from the campaign list: *Skyfire Down* (Alien campaign play, with an infection under way), *Cold Harbor Relay*, an Alien cinematic one-shot built with the guided builder, with a generated site map, duct levels and live map state ready for session 1, and *Thornwick Crossing*, a fifth edition one-shot on the SRD 5.1 module with four level 3 characters, SRD monsters and a goblin ambush ready for table mode.
+Four demo campaigns load from the campaign list: *Skyfire Down* (Alien campaign play, with an infection under way), *Cold Harbor Relay*, an Alien cinematic one-shot built with the guided builder, with a generated site map, duct levels and live map state ready for session 1, *Thornwick Crossing*, a fifth edition one-shot on the SRD 5.1 module with four level 3 characters, SRD monsters and a goblin ambush ready for table mode, and *Hollowmere*, a second edition remaster one-shot on the ORC core rules module with four level 1 characters, kobold oil thieves and a xulgath den.
 
 **Campaign home**: next session, adventures and open hooks.
 
@@ -120,6 +121,18 @@ Three demo campaigns load from the campaign list: *Skyfire Down* (Alien campaign
 
 ![Fifth edition table mode](docs/screenshots/dnd5e-table.png)
 
+**Remaster sheet**: a level 1 cleric from *Hollowmere*; attribute modifiers and proficiency ranks are written down, and every check total, AC, Hit Points, class DC and spell DC is computed.
+
+![Remaster character sheet](docs/screenshots/pf2e-sheet.png)
+
+**Four degrees of success**: a Stealth check rolled with fortune against a DC and beaten by 10 or more: a critical success.
+
+![Four-degree skill roll with fortune](docs/screenshots/pf2e-roll.png)
+
+**Encounter builder**: a severe encounter for four level 3 characters, GM Core's XP budget spent on Monster Core creatures by level.
+
+![Encounter builder](docs/screenshots/pf2e-encounter.png)
+
 ## Repository layout
 
 ```
@@ -127,6 +140,7 @@ packages/module-sdk     the GameModule contract and runtime (dice, tables, proce
 packages/core           game-agnostic domain model, Yjs store, persistence, visibility, search, bundles
 packages/module-alien   the Alien RPG module: data, procedures, templates, rule cards
 packages/module-dnd5e-srd the 5th Edition SRD 5.1 module, a built-in JSON data pack
+packages/module-pf2e-orc  the Fantasy d20 Remaster (ORC) module, a built-in JSON data pack of the ORC core rules
 packages/module-example a tiny fixture module (and fixture data pack) the core and UI are tested against
 packages/ui             schema-driven sheet renderer, widgets, trackers, map editor and site map renderer
 apps/web                the React 19 + Vite PWA
@@ -158,5 +172,13 @@ The 5th Edition SRD 5.1 module (`packages/module-dnd5e-srd`) includes material f
 > This work includes material taken from the System Reference Document 5.1 ("SRD 5.1") by Wizards of the Coast LLC and available at https://dnd.wizards.com/resources/systems-reference-document. The SRD 5.1 is licensed under the Creative Commons Attribution 4.0 International License available at https://creativecommons.org/licenses/by/4.0/legalcode.
 
 The module is compatible with fifth edition rules and is not affiliated with, endorsed, sponsored or approved by Wizards of the Coast LLC. Its JSON structure derives from 5e-bits/5e-database (MIT); see the module's [NOTICE](packages/module-dnd5e-srd/NOTICE). The *Thornwick Crossing* demo is original content.
+
+The Fantasy d20 Remaster (ORC) module (`packages/module-pf2e-orc`) includes material from Player Core, Player Core 2, GM Core and Monster Core under the ORC License, and only entries the source marks as ORC-licensed and remastered. Its notices, shown in the app wherever the module's licence appears and in full in its [NOTICE](packages/module-pf2e-orc/NOTICE):
+
+> **ORC Notice.** This product is licensed under the ORC License located at the Library of Congress at TX 9-307-067 and available online at various locations. All warranties are disclaimed as set forth therein.
+>
+> **Attribution Notice.** This product includes material from Pathfinder Player Core © 2023, Paizo Inc.; Pathfinder Player Core 2 © 2024, Paizo Inc.; Pathfinder GM Core © 2023, Paizo Inc.; and Pathfinder Monster Core © 2024, Paizo Inc. (the full designer and author credits are in the module's NOTICE and manifest).
+
+None of the publisher's Reserved Material is used: the converter drops or rewrites the setting's proper nouns (deities, places, planes, organizations, characters) and the tests check none remain. Compatible with Pathfinder Second Edition (Remaster). Not affiliated with or endorsed by Paizo Inc. Pathfinder is a trademark of Paizo Inc. Its JSON structure derives from the Foundry VTT pf2e system (Apache-2.0). The *Hollowmere* demo is original content.
 
 Alien is the property of 20th Century Studios, licensed to Free League Publishing. This project contains structure and short paraphrased reference data intended for owners of the rulebook. It is not affiliated with or endorsed by either company. Review `docs/architecture-seed.md` (section "Risks, open questions, and licensing") before any public release.

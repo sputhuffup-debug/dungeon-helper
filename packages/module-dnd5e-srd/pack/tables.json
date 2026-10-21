@@ -10200,6 +10200,25 @@
         ]
        }
       ]
+     },
+     "display": {
+      "cat": [
+       {
+        "var": "result.name"
+       },
+       " (CR ",
+       {
+        "var": "result.cr"
+       },
+       ", ",
+       {
+        "var": [
+         "result.xp",
+         0
+        ]
+       },
+       " XP each)"
+      ]
      }
     },
     {
@@ -10216,6 +10235,24 @@
      },
      "value": {
       "var": "results.foe"
+     },
+     "display": {
+      "cat": [
+       {
+        "len": [
+         {
+          "var": [
+           "result",
+           []
+          ]
+         }
+        ]
+       },
+       " × ",
+       {
+        "var": "result.0.name"
+       }
+      ]
      }
     },
     {
@@ -10381,32 +10418,74 @@
     {
      "id": "race",
      "title": "Race",
-     "table": "dnd5e-srd.npc.race"
+     "table": "dnd5e-srd.npc.race",
+     "display": {
+      "var": [
+       "result.race",
+       ""
+      ]
+     }
     },
     {
      "id": "occupation",
      "title": "Occupation",
-     "table": "dnd5e-srd.npc.occupation"
+     "table": "dnd5e-srd.npc.occupation",
+     "display": {
+      "cat": [
+       {
+        "var": "result.occupation"
+       },
+       " (stat block: ",
+       {
+        "var": "result.statBlock"
+       },
+       ")"
+      ]
+     }
     },
     {
      "id": "quirk",
      "title": "Quirk",
-     "table": "dnd5e-srd.npc.quirk"
+     "table": "dnd5e-srd.npc.quirk",
+     "display": {
+      "var": [
+       "result.text",
+       ""
+      ]
+     }
     },
     {
      "id": "voice",
      "title": "Voice",
-     "table": "dnd5e-srd.npc.voice"
+     "table": "dnd5e-srd.npc.voice",
+     "display": {
+      "var": [
+       "result.text",
+       ""
+      ]
+     }
     },
     {
      "id": "motivation",
      "title": "Wants",
-     "table": "dnd5e-srd.npc.motivation"
+     "table": "dnd5e-srd.npc.motivation",
+     "display": {
+      "var": [
+       "result.text",
+       ""
+      ]
+     }
     },
     {
      "id": "secret",
      "title": "Secret",
-     "table": "dnd5e-srd.npc.secret"
+     "table": "dnd5e-srd.npc.secret",
+     "display": {
+      "var": [
+       "result.text",
+       ""
+      ]
+     }
     }
    ],
    "produce": {
@@ -10489,17 +10568,46 @@
     {
      "id": "size",
      "title": "Size",
-     "table": "dnd5e-srd.settlement.size"
+     "table": "dnd5e-srd.settlement.size",
+     "display": {
+      "cat": [
+       {
+        "var": [
+         "label",
+         {
+          "var": "result.size"
+         }
+        ]
+       },
+       " (",
+       {
+        "var": "result.population"
+       },
+       ")"
+      ]
+     }
     },
     {
      "id": "feature",
      "title": "Notable feature",
-     "table": "dnd5e-srd.settlement.feature"
+     "table": "dnd5e-srd.settlement.feature",
+     "display": {
+      "var": [
+       "result.text",
+       ""
+      ]
+     }
     },
     {
      "id": "trouble",
      "title": "Local trouble",
-     "table": "dnd5e-srd.settlement.trouble"
+     "table": "dnd5e-srd.settlement.trouble",
+     "display": {
+      "var": [
+       "result.text",
+       ""
+      ]
+     }
     },
     {
      "id": "tavernA",
@@ -10514,7 +10622,13 @@
     {
      "id": "special",
      "title": "House speciality",
-     "table": "dnd5e-srd.tavern.special"
+     "table": "dnd5e-srd.tavern.special",
+     "display": {
+      "var": [
+       "result.text",
+       ""
+      ]
+     }
     },
     {
      "id": "keeperFirst",
@@ -10529,7 +10643,13 @@
     {
      "id": "keeperQuirk",
      "title": "Innkeeper's quirk",
-     "table": "dnd5e-srd.npc.quirk"
+     "table": "dnd5e-srd.npc.quirk",
+     "display": {
+      "var": [
+       "result.text",
+       ""
+      ]
+     }
     }
    ],
    "produce": {

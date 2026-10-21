@@ -247,8 +247,12 @@ function fromSdk(issue: ConformanceIssue): Issue {
   return { severity: issue.severity, where: issue.where, message: issue.message, source: "sdk" };
 }
 
-/** SPDX ids of licences that allow the source text to be used as written (with attribution). */
-const OPEN_TEXT_LICENSES = /^(CC-BY(-SA)?-\d|CC0-)/i;
+/**
+ * SPDX ids of licences that allow the source text to be used as written (with
+ * attribution): Creative Commons BY / BY-SA, CC0, and the ORC License, which
+ * SPDX does not list, as the license reference `LicenseRef-ORC`.
+ */
+const OPEN_TEXT_LICENSES = /^(CC-BY(-SA)?-\d|CC0-|LicenseRef-ORC$)/i;
 
 /** Whether the module's source text is openly licensed (`manifest.license.spdx`), so rule cards may quote it. */
 export function hasOpenLicense(module: GameModule): boolean {

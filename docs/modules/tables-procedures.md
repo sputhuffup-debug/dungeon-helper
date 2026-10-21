@@ -70,8 +70,19 @@ A procedure is a list of steps rolled in order with a seed, then `produce` turns
 | `optional` | The GM ticks it to include it. |
 | `modifier` | JSONLogic number added to the table roll, on top of the table's own modifiers. |
 | `derive` | Keys added to the result: name → JSONLogic over the context plus `result`. A non-object result becomes `{ value, ...derived }`. |
+| `display` | JSONLogic yielding the line the GM sees for the step in the workbench, instead of the result object (whose keys are for later steps and `produce`). It reads the context plus `result` and `label`, the row label the step rolled (a list when the step repeats; absent when the step is pinned, so prefer the result's own keys). An empty line falls back to the generic rendering. |
 
 Exactly one of `table`, `roll`/`value` per step. Results are stored under the step id: `{ "var": "results.danger.level" }`.
+
+Give a step a `display` when its result is an object a GM should not have to read: a row result like `{ "preset": "my-pack.preset.goblin", "name": "Goblin", "n": 4, "xp": 40 }` shows as `Goblin (preset: my-pack.preset.goblin, n: 4, xp: 40)` without one. For example:
+
+```json
+{ "id": "foe", "table": "my-pack.encounter.who", "display": { "cat": [{ "var": "result.name" }, " (", { "var": "result.xp" }, " XP each)"] } },
+{ "id": "group", "reads": ["foe"], "repeat": { "var": "results.foe.n" }, "value": { "var": "results.foe" },
+  "display": { "cat": [{ "len": [{ "var": "result" }] }, " × ", { "var": "result.0.name" }] } }
+```
+
+The lines are worked out once the run is done (also for pinned steps) and land in the run's `display` map; they never change a result.
 
 ### `produce`
 

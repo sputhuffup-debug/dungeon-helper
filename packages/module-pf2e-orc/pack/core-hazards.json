@@ -1,0 +1,1580 @@
+{
+ "$schema": "../../module-sdk/schema/module-pack-part.schema.json",
+ "format": "campaign-forge-pack-part",
+ "formatVersion": 1,
+ "pack": "pf2e-orc",
+ "name": "core-hazards.json",
+ "presets": [
+  {
+   "id": "pf2e-orc.preset.hazard.armageddon-orb",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Armageddon Orb",
+   "summary": "Simple hazard 23. magical. Stealth DC 10.",
+   "cite": "GM Core — Hazards: Armageddon Orb",
+   "tags": [
+    "hazard",
+    "simple"
+   ],
+   "fields": {
+    "level": 23,
+    "complexity": "simple",
+    "rarity": "rare",
+    "traits": [
+     "magical"
+    ],
+    "stealth": 0,
+    "stealthNote": "or detect magic",
+    "ac": 10,
+    "saves": {
+     "fortitude": 0,
+     "reflex": 0,
+     "will": 0
+    },
+    "hardness": 0,
+    "hp": {
+     "max": 0,
+     "current": 0,
+     "temp": 0
+    },
+    "immunities": [],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Burn It All ↺",
+      "desc": "(death, divine, fire) **Trigger** A special condition set by the trap's creator occurs, typically the event of their death.\n\n**Effect** Fire rains from the sky in a 100-mile radius, dealing 10d6 fire damage to creatures and objects in the area. Each creature or object can attempt a DC 46 basic Reflex save. Any creature reduced to 0 Hit Points by this damage dies instantly. This is not enough damage to completely burn away a forest or level an entire mountain or city, but it typically kills most creatures in the area."
+     }
+    ]
+   }
+  },
+  {
+   "id": "pf2e-orc.preset.hazard.bloodthirsty-urge",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Bloodthirsty Urge",
+   "summary": "Simple hazard 10. haunt. Stealth DC 31.",
+   "cite": "GM Core — Hazards: Bloodthirsty Urge",
+   "tags": [
+    "hazard",
+    "simple"
+   ],
+   "fields": {
+    "level": 10,
+    "complexity": "simple",
+    "rarity": "common",
+    "traits": [
+     "haunt"
+    ],
+    "stealth": 21,
+    "stealthNote": "(trained)",
+    "description": "An object haunted by the echoes of a vicious mind attempts to kill someone who comes near.",
+    "disable": "DC 29 Religion (master) to exorcise the spirit or DC 31 Diplomacy (expert) to talk it down",
+    "ac": 10,
+    "saves": {
+     "fortitude": 0,
+     "reflex": 0,
+     "will": 0
+    },
+    "hardness": 0,
+    "hp": {
+     "max": 0,
+     "current": 0,
+     "temp": 0
+    },
+    "immunities": [],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Quietus ↺",
+      "desc": "(death, emotion, fear, illusion, mental, occult) **Trigger** A creature moves within 10 feet of the haunted object\n\n**Effect** The haunt takes control of the triggering creature, forcing it to attack itself. The creature must attempt a DC 29 Will save.\n\n**Critical Success** The target is unaffected.\n\n**Success** The target makes a Strike against itself and automatically hits; the target also becomes Frightened 1.\n\n**Failure** The target makes a Strike against itself and automatically scores a critical hit; the target also becomes Frightened 2.\n\n**Critical Failure** The target attempts a Fortitude save. If the target succeeds, it is subject to the effects of a failure instead. If the target fails, it is reduced to 0 HP and dies"
+     }
+    ]
+   }
+  },
+  {
+   "id": "pf2e-orc.preset.hazard.bottomless-pit",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Bottomless Pit",
+   "summary": "Simple hazard 9. magical, mechanical, trap. Stealth DC 30.",
+   "cite": "GM Core — Hazards: Bottomless Pit",
+   "tags": [
+    "hazard",
+    "simple"
+   ],
+   "fields": {
+    "level": 9,
+    "complexity": "simple",
+    "rarity": "common",
+    "traits": [
+     "magical",
+     "mechanical",
+     "trap"
+    ],
+    "stealth": 20,
+    "stealthNote": "(or 0 if the trapdoor is disabled or broken) or detect magic",
+    "description": "An iron trapdoor covers an infinitely deep 10-foot-square pit.",
+    "disable": "DC 28 Thievery (trained) to remove the trapdoor",
+    "ac": 28,
+    "saves": {
+     "fortitude": 12,
+     "reflex": 12,
+     "will": 0
+    },
+    "hardness": 9,
+    "hp": {
+     "max": 36,
+     "current": 36,
+     "temp": 0
+    },
+    "immunities": [
+     "critical hits",
+     "precision"
+    ],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Infinite Pitfall ↺",
+      "desc": "**Trigger** A creature walks onto the trapdoor\n\n**Effect** The triggering creature falls in and continues to fall, potentially forever. That creature can try to Grab an Edge to avoid falling. The DC to Climb the walls or Grab an Edge is 26. The pit contains many handholds, so the falling creature can try to Grab an Edge again every 6 seconds. If the creature succeeds, it can start to Climb out from that point (though it might be a very long climb, depending on how far the creature fell). Since the creature falls endlessly, it can rest and even prepare spells while falling, though items dropped while falling are usually lost forever."
+     }
+    ],
+    "reset": "The trap still causes creatures to fall forever if they fall in, but the trapdoor must be reset manually for the trap to become Hidden again."
+   }
+  },
+  {
+   "id": "pf2e-orc.preset.hazard.confounding-betrayal",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Confounding Betrayal",
+   "summary": "Complex hazard 8. haunt. Stealth DC 31.",
+   "cite": "GM Core — Hazards: Confounding Betrayal",
+   "tags": [
+    "hazard",
+    "complex"
+   ],
+   "fields": {
+    "level": 8,
+    "complexity": "complex",
+    "rarity": "common",
+    "traits": [
+     "haunt"
+    ],
+    "stealth": 21,
+    "stealthNote": "(expert)",
+    "description": "Allies appear to shed their disguises and reveal themselves to be malevolent monsters.",
+    "disable": "DC 28 Deception (expert) twice to confound the haunt with your own deceptions, or DC 28 Occultism (trained) twice to create a ward against the haunt's mental influence",
+    "ac": 10,
+    "saves": {
+     "fortitude": 0,
+     "reflex": 0,
+     "will": 0
+    },
+    "hardness": 0,
+    "hp": {
+     "max": 0,
+     "current": 0,
+     "temp": 0
+    },
+    "immunities": [],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Unmask ↺",
+      "desc": "(illusion, occult) **Trigger** Two or more creatures enter the haunt's area\n\n**Effect** Each creature sees the forms of nearby creatures shift and change, appearing to transform into fiendish or aberrant beings with a thirst for blood. Each creature in the area must attempt a DC 30 Will save. The haunt then rolls initiative.\n\n**Critical Success** The creature sees through the illusions entirely and is temporarily immune to the haunt's routine for 1 minute.\n\n**Success** The creature is unaffected by the strange images.\n\n**Failure** The creature believes the illusions to be true; if they become confused by the haunt's routine, they can't attempt flat checks to end the confused condition when they take damage.\n\n**Critical Failure** As failure, but the creature is left with a lingering suspicion of others and can't benefit from Aid reactions for 24 hours."
+     }
+    ],
+    "routine": "(1 action; illusion, incapacitation, occult) The haunt continues to confound victims' senses and inspire them to commit violence against each other. Each creature in the haunt's area must attempt a DC 26 Will save.\n\n**Critical Success** The creature is unaffected and temporarily immune for 1 minute.\n\n**Success** The creature is unaffected.\n\n**Failure** The creature is confused for 1 round.\n\n**Critical Failure** The creature is confused for 1 minute.",
+    "reset": "The haunt deactivates 1 minute after all creatures leave the area but resets immediately thereafter."
+   }
+  },
+  {
+   "id": "pf2e-orc.preset.hazard.dance-of-death",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Dance Of Death",
+   "summary": "Complex hazard 16. haunt. Stealth DC 42.",
+   "cite": "GM Core — Hazards: Dance Of Death",
+   "tags": [
+    "hazard",
+    "complex"
+   ],
+   "fields": {
+    "level": 16,
+    "complexity": "complex",
+    "rarity": "common",
+    "traits": [
+     "haunt"
+    ],
+    "stealth": 32,
+    "stealthNote": "(master)",
+    "description": "An eerie orchestra compels all who hear it to dance until they collapse from exhaustion.",
+    "disable": "DC 42 Intimidation (expert) three times to frighten dancers and spectral musicians alike away from participating in the deadly performance, DC 40 Performance (master) twice to produce a tune discordant enough to disrupt the compulsion, or DC 42 Religion (master) three times to banish the spirits with prayers",
+    "ac": 10,
+    "saves": {
+     "fortitude": 0,
+     "reflex": 0,
+     "will": 0
+    },
+    "hardness": 0,
+    "hp": {
+     "max": 0,
+     "current": 0,
+     "temp": 0
+    },
+    "immunities": [],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Prelude ↺",
+      "desc": "(auditory, incapacitation, occult) **Trigger** A creature approaches within 30 feet of the orchestra\n\n**Effect** The orchestra compels all creatures that can hear it to begin dancing. Each creature must attempt a DC 41 Will save, with the following effects. The haunt then rolls initiative.\n\n**Critical Success** The creature is unaffected.\n\n**Success** The creature is off-guard and cannot use reactions. Additionally, it must spend 1 of its actions each round dancing. Dancing is a move action that allows the creature to Stride up to half its Speed.\n\n**Failure** As success, except the creature must spend 2 of its actions each round dancing.\n\n**Critical Failure** As failure, except the creature must spend 3 of its actions each round dancing."
+     }
+    ],
+    "routine": "(1 action; auditory, incapacitation, mental, occult) The orchestra performs a raucous tune, compelling all creatures that can hear it to spend actions dancing. Each round, creature must attempt a DC 37 Will save; the results of this save modify the number of actions that the creature must spend dancing each round. If this would cause the creature to spend more actions dancing than it can use on its turn, the creature takes 10d6 damage (or double that on a critical failure) from moving faster than its body can manage.\n\n**Critical Success** The creature decreases the number of actions it must spend dancing by 1.\n\n**Success** No effect.\n\n**Failure** The creature increases the actions it must spend dancing by 1.\n\n**Critical Failure** The creature increases the actions it must spend dancing by 2.",
+    "reset": "The eerie orchestra spends an hour retuning its phantasmal instruments, after which it is ready to begin its routine again."
+   }
+  },
+  {
+   "id": "pf2e-orc.preset.hazard.drowning-pit",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Drowning Pit",
+   "summary": "Complex hazard 3. mechanical, trap. Stealth DC 20.",
+   "cite": "GM Core — Hazards: Drowning Pit",
+   "tags": [
+    "hazard",
+    "complex"
+   ],
+   "fields": {
+    "level": 3,
+    "complexity": "complex",
+    "rarity": "common",
+    "traits": [
+     "mechanical",
+     "trap"
+    ],
+    "stealth": 10,
+    "stealthNote": "(trained); DC 22 Perception (expert) to notice the water spouts once the pit opens",
+    "description": "A trapdoor covers a 10-foot-square pit that's 30 feet deep and has 5 feet of water at the bottom. Four water spouts in the walls connect to hidden water tanks. Each water spout extends out of a different wall, 6 inches from the top of the pit.",
+    "disable": "DC 18 Thievery (trained) to seal each water spout, DC 22 Thievery (trained) to open the trapdoor, or DC 22 Athletics to Force Open: Athletics the trapdoor",
+    "ac": 19,
+    "saves": {
+     "fortitude": 8,
+     "reflex": 5,
+     "will": 0
+    },
+    "hardness": 15,
+    "hp": {
+     "max": 60,
+     "current": 60,
+     "temp": 0
+    },
+    "hpNote": "Spout Hardness 8, Spout HP 32 (BT 16)",
+    "immunities": [
+     "critical hits",
+     "precision"
+    ],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Pitfall ↺",
+      "desc": "**Trigger** A creature walks onto the trapdoor\n\n**Effect** The triggering creature falls in and takes damage from the fall, reduced by 5 feet for falling into the water (typically 12 bludgeoning damage). A creature can Grab an Edge to avoid falling. The trapdoor then slams shut, and the hazard rolls initiative."
+     }
+    ],
+    "routine": "(4 actions) The trap loses 1 action each turn for each disabled water spout. On each of the trap's actions, a spout pours water, increasing the depth of the water by 5 feet. Once the pit is full of water, the pit stops using actions, but creatures in the pit begin drowning.",
+    "reset": "The trap can be reset if the door is manually reengaged and the water tanks are refilled; it can be reset without draining the pit, but doing so renders the pit less effective."
+   }
+  },
+  {
+   "id": "pf2e-orc.preset.hazard.electric-latch-rune",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Electric Latch Rune",
+   "summary": "Simple hazard 3. electricity, magical, trap. Stealth DC 20.",
+   "cite": "GM Core — Hazards: Electric Latch Rune",
+   "tags": [
+    "hazard",
+    "simple"
+   ],
+   "fields": {
+    "level": 3,
+    "complexity": "simple",
+    "rarity": "common",
+    "traits": [
+     "electricity",
+     "magical",
+     "trap"
+    ],
+    "stealth": 10,
+    "stealthNote": "(trained)",
+    "description": "An invisible rune imprinted on a door latch releases a powerful electric discharge.",
+    "disable": "DC 20 Thievery (expert) to scratch out the rune without allowing electricity to flow, or Dispel Magic (2nd rank; counteract DC 18) to counteract the rune",
+    "ac": 10,
+    "saves": {
+     "fortitude": 0,
+     "reflex": 0,
+     "will": 0
+    },
+    "hardness": 0,
+    "hp": {
+     "max": 0,
+     "current": 0,
+     "temp": 0
+    },
+    "immunities": [],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Electrocution ↺",
+      "desc": "(arcane, electricity) **Trigger** A creature grasps the door latch directly or with a tool\n\n**Effect** The trap deals 3d12 electricity damage to the triggering creature (DC 22 basic Reflex save)."
+     }
+    ]
+   }
+  },
+  {
+   "id": "pf2e-orc.preset.hazard.eternal-flame",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Eternal Flame",
+   "summary": "Complex hazard 7. haunt. Stealth DC 28.",
+   "cite": "GM Core — Hazards: Eternal Flame",
+   "tags": [
+    "hazard",
+    "complex"
+   ],
+   "fields": {
+    "level": 7,
+    "complexity": "complex",
+    "rarity": "common",
+    "traits": [
+     "haunt"
+    ],
+    "stealth": 18,
+    "stealthNote": "(expert)",
+    "description": "A raging spectral inferno arises out of thin air, strengthening all undead creatures within its area. This haunt most often arises from the charred remains of a group of three people who burned to death, whether in a terrible accident or a deliberate execution, and their unavenged souls burn with rage.",
+    "disable": "DC 27 Diplomacy (expert) to temporarily calm the rage of one of the three spirits, or DC 30 Religion (trained) to exorcise one of the spirits; three total successes are required to disable the haunt",
+    "ac": 10,
+    "saves": {
+     "fortitude": 0,
+     "reflex": 0,
+     "will": 0
+    },
+    "hardness": 0,
+    "hp": {
+     "max": 0,
+     "current": 0,
+     "temp": 0
+    },
+    "immunities": [],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Searing Agony ↺",
+      "desc": "(mental) **Trigger** A living creature approaches within 10 feet of the remains of a victim of the original fire\n\n**Effect** Memories of the pain suffered by the fire's past victims assault the triggering creature's mind. The creature must attempt a DC 25 Will save, and the haunt then rolls initiative.\n\n**Critical Success** The creature is unaffected.\n\n**Success** The creature is Sickened 1.\n\n**Failure** The creature is Sickened 2.\n\n**Critical Failure** The creature is Sickened 3, and it is off-guard for as long as it remains within the haunt's area and for 3 rounds thereafter."
+     }
+    ],
+    "routine": "(1 action) Phantom flames rage across the haunted area, dealing 4d6 fire damage to each living creature within the area (DC 23 basic Will save). Undead creatures in the area are infused with flames for the following round. They gain the fire trait and immunity to fire, and all their attacks deal an additional 1d6 fire damage. Objects in the area are unaffected.",
+    "reset": "The flames cease 1 minute after all living creatures leave the area, but after 1 hour, the anger and pain simmer up and the haunt is ready to trigger again."
+   }
+  },
+  {
+   "id": "pf2e-orc.preset.hazard.fireball-rune",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Fireball Rune",
+   "summary": "Simple hazard 5. fire, magical, trap. Stealth DC 24.",
+   "cite": "GM Core — Hazards: Fireball Rune",
+   "tags": [
+    "hazard",
+    "simple"
+   ],
+   "fields": {
+    "level": 5,
+    "complexity": "simple",
+    "rarity": "common",
+    "traits": [
+     "fire",
+     "magical",
+     "trap"
+    ],
+    "stealth": 14,
+    "stealthNote": "(expert)",
+    "description": "An invisible rune creates an invisible, spherical magical sensor with a 20-foot radius.",
+    "disable": "DC 22 Thievery (expert) to erase the rune without triggering the sensor, or Dispel Magic (3rd rank; counteract DC 20) to counteract the rune",
+    "ac": 0,
+    "saves": {
+     "fortitude": 0,
+     "reflex": 0,
+     "will": 0
+    },
+    "hardness": 0,
+    "hp": {
+     "max": 0,
+     "current": 0,
+     "temp": 0
+    },
+    "immunities": [],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Fireball ↺",
+      "desc": "(arcane, fire) **Trigger** A living creature enters the sensor area\n\n**Effect** The rune detonates a Fireball centered on the triggering creature's square. This is a 3rd-rank fireball spell that deals 6d6 fire damage (DC 22 basic Reflex save)."
+     }
+    ]
+   }
+  },
+  {
+   "id": "pf2e-orc.preset.hazard.flensing-blades",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Flensing Blades",
+   "summary": "Complex hazard 12. haunt. Stealth DC 35.",
+   "cite": "GM Core — Hazards: Flensing Blades",
+   "tags": [
+    "hazard",
+    "complex"
+   ],
+   "fields": {
+    "level": 12,
+    "complexity": "complex",
+    "rarity": "common",
+    "traits": [
+     "haunt"
+    ],
+    "stealth": 25,
+    "stealthNote": "(expert)",
+    "description": "A whirling tornado of spectrally propelled glass and steel slices whatever it touches to ribbons.",
+    "disable": "DC 35 Thievery (master) to precisely adjust the blades so that they destroy each other, or DC 38 Religion (expert) to weaken the haunt; four successes are required to disable it",
+    "ac": 33,
+    "saves": {
+     "fortitude": 27,
+     "reflex": 25,
+     "will": 22
+    },
+    "hardness": 20,
+    "hp": {
+     "max": 100,
+     "current": 100,
+     "temp": 0
+    },
+    "immunities": [
+     "critical hits",
+     "precision"
+    ],
+    "weaknesses": [
+     "vitality 15"
+    ],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Whirling Blades ↺",
+      "desc": "**Trigger** Three or more creatures enter the area of the haunt\n\n**Effect** Sharp fragments lift up from the ground and begin to spin in rapid circles taking up one 5-foot square. The haunt rolls initiative."
+     }
+    ],
+    "routine": "(3 actions) The tornado of blades uses 3 actions to move, traveling up to 30 feet with each action and dealing 2d10+10 slashing damage. Each creature in its path must attempt a DC 33 Reflex.\n\n**Critical Success** The creature is unaffected.\n\n**Success** The creature takes half damage.\n\n**Failure** The creature takes full damage plus 1d10 bleed.\n\n**Critical Failure** The creature takes double damage and 1d10 bleed. It also becomes Wounded 1 (or increases its wounded value by 1, if it is already wounded).\n\nEach successful check to disable this hazard reduces the haunt's movement by 30 feet, and the fourth success disables it completely.",
+    "reset": "The haunt draws jagged shards back into its area over the course of an hour, after which it can trigger again."
+   }
+  },
+  {
+   "id": "pf2e-orc.preset.hazard.ghostly-choir",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Ghostly Choir",
+   "summary": "Simple hazard 6. haunt. Stealth DC 20.",
+   "cite": "GM Core — Hazards: Ghostly Choir",
+   "tags": [
+    "hazard",
+    "simple"
+   ],
+   "fields": {
+    "level": 6,
+    "complexity": "simple",
+    "rarity": "common",
+    "traits": [
+     "haunt"
+    ],
+    "stealth": 10,
+    "stealthNote": "(expert)",
+    "description": "A choir of lost souls rises out of the floor, singing an eerie chant that terrifies its listeners and buffets their bodies with walls of sound.",
+    "disable": "DC 28 Performance (trained) to disrupt the song's resonance with another tune or DC 28 Religion (trained) to ritually silence the spirits",
+    "ac": 0,
+    "saves": {
+     "fortitude": 0,
+     "reflex": 0,
+     "will": 0
+    },
+    "hardness": 0,
+    "hp": {
+     "max": 0,
+     "current": 0,
+     "temp": 0
+    },
+    "immunities": [],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Profane Chant ↺",
+      "desc": "(auditory, emotion, fear, mental, occult) **Trigger** A creature moves within 10 feet of the section of floor from which the choir can arise\n\n**Effect** The choir rises, and its song deals 4d8+18 mental damage to living creatures within 30 feet of the souls' spectral forms. Affected creatures must each attempt a DC 24 Will save.\n\n**Critical Success** The creature is unaffected.\n\n**Success** The creature takes half damage and becomes Frightened 1.\n\n**Failure** The creature takes full damage and becomes Frightened 2.\n\n**Critical Failure** The creature takes double damage. It also becomes Frightened 3 and fleeing for 1 round."
+     }
+    ]
+   }
+  },
+  {
+   "id": "pf2e-orc.preset.hazard.hallucination-powder-trap",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Hallucination Powder Trap",
+   "summary": "Simple hazard 6. mechanical, trap. Stealth DC 24.",
+   "cite": "GM Core — Hazards: Hallucination Powder Trap",
+   "tags": [
+    "hazard",
+    "simple"
+   ],
+   "fields": {
+    "level": 6,
+    "complexity": "simple",
+    "rarity": "common",
+    "traits": [
+     "mechanical",
+     "trap"
+    ],
+    "stealth": 14,
+    "stealthNote": "(expert)",
+    "description": "A tube of hallucinogenic powder armed with a miniature explosive is connected to a doorknob or similar latch.",
+    "disable": "DC 26 Thievery (expert) to disable the hammer that strikes the percussion cap",
+    "ac": 24,
+    "saves": {
+     "fortitude": 0,
+     "reflex": 0,
+     "will": 0
+    },
+    "hardness": 0,
+    "hp": {
+     "max": 1,
+     "current": 1,
+     "temp": 0
+    },
+    "immunities": [
+     "critical hits",
+     "precision"
+    ],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Powder Burst ↺",
+      "desc": "(mental, poison) **Trigger** The latch is opened or the tube is broken.\n\n**Effect** The tube explodes, spraying hallucinogenic powder in a 30-foot cone. Any creature in the cone must succeed at a DC 24 Will save or be confused for 1 round and take a -2 status penalty to Perception checks and saves against mental effects for 1d4 hours. On a critical failure, the penalty is instead -4.\n\nEffect: Powder Burst"
+     }
+    ]
+   }
+  },
+  {
+   "id": "pf2e-orc.preset.hazard.hammer-of-forbiddance",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Hammer Of Forbiddance",
+   "summary": "Simple hazard 11. magical, mechanical, trap. Stealth DC 30.",
+   "cite": "GM Core — Hazards: Hammer Of Forbiddance",
+   "tags": [
+    "hazard",
+    "simple"
+   ],
+   "fields": {
+    "level": 11,
+    "complexity": "simple",
+    "rarity": "common",
+    "traits": [
+     "magical",
+     "mechanical",
+     "trap"
+    ],
+    "stealth": 20,
+    "stealthNote": "(expert)",
+    "description": "An enormous hammer at an edifice's entrance swings down in an attempt to damage a creature entering an area, push it back, and prevent it from going any further.",
+    "disable": "DC 28 Thievery (expert) once on the hammer itself and once on its joint to prevent the hammer from swinging",
+    "ac": 32,
+    "saves": {
+     "fortitude": 24,
+     "reflex": 15,
+     "will": 0
+    },
+    "hardness": 22,
+    "hp": {
+     "max": 88,
+     "current": 88,
+     "temp": 0
+    },
+    "hpNote": "Joint Hardness: 16, Joint HP: 64 (BT 32)",
+    "immunities": [
+     "critical hits",
+     "precision"
+    ],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Forbid Entry ↺",
+      "desc": "(divine) **Trigger** A creature attempts to enter through the entrance.\n\n**Effect** The hammer swings down, making a Strike against the triggering creature."
+     }
+    ],
+    "reset": "The trap resets over the course of the round, and is ready to swing again 1 round later."
+   }
+  },
+  {
+   "id": "pf2e-orc.preset.hazard.hampering-web",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Hampering Web",
+   "summary": "Simple hazard 1. environmental. Stealth DC 18.",
+   "cite": "GM Core — Hazards: Hampering Web",
+   "tags": [
+    "hazard",
+    "simple"
+   ],
+   "fields": {
+    "level": 1,
+    "complexity": "simple",
+    "rarity": "common",
+    "traits": [
+     "environmental"
+    ],
+    "stealth": 8,
+    "stealthNote": "(expert)",
+    "description": "Semitransparent sheets of webbing span the entryway, ready to capture small insects or hamper larger creatures that pass through.",
+    "disable": "DC 17 Survival (trained) to dislodge it",
+    "ac": 19,
+    "saves": {
+     "fortitude": 10,
+     "reflex": 11,
+     "will": 0
+    },
+    "hardness": 0,
+    "hp": {
+     "max": 26,
+     "current": 26,
+     "temp": 0
+    },
+    "immunities": [
+     "critical hits",
+     "precision"
+    ],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Ensnare ↺",
+      "desc": "**Trigger** A creature that isn't a spider walks into the web\n\n**Effect** The web wraps around the triggering creature's body, clinging to their limbs. The triggering creature must succeed at a DC 20 Reflex save or take a –10-foot circumstance penalty to all their Speeds until they Escape the web (DC 20). On a critical failure, the webbing also clings to the creature's face, making them Sickened 1, and they can't attempt to reduce this condition until they Escape the web."
+     }
+    ]
+   }
+  },
+  {
+   "id": "pf2e-orc.preset.hazard.hidden-pit",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Hidden Pit",
+   "summary": "Simple hazard 0. mechanical, trap. Stealth DC 18.",
+   "cite": "GM Core — Hazards: Hidden Pit",
+   "tags": [
+    "hazard",
+    "simple"
+   ],
+   "fields": {
+    "level": 0,
+    "complexity": "simple",
+    "rarity": "common",
+    "traits": [
+     "mechanical",
+     "trap"
+    ],
+    "stealth": 8,
+    "stealthNote": "(or 0 if the trapdoor is disabled or broken)",
+    "description": "A wooden trapdoor covers a pit that's 10 feet square and 20 feet deep.",
+    "disable": "DC 12 Thievery to remove the trapdoor",
+    "ac": 10,
+    "saves": {
+     "fortitude": 1,
+     "reflex": 1,
+     "will": 0
+    },
+    "hardness": 3,
+    "hp": {
+     "max": 12,
+     "current": 12,
+     "temp": 0
+    },
+    "immunities": [
+     "critical hits",
+     "precision"
+    ],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Pitfall ↺",
+      "desc": "**Trigger** A creature walks onto the trapdoor.\n\n**Effect** The triggering creature falls in and takes falling damage (typically 10 bludgeoning damage). That creature can use the Grab an Edge reaction to avoid falling."
+     }
+    ],
+    "reset": "Creatures can still fall into the trap, but the trapdoor must be reset manually for the trap to become hidden again."
+   }
+  },
+  {
+   "id": "pf2e-orc.preset.hazard.pharaohs-ward",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Pharaoh's Ward",
+   "summary": "Simple hazard 7. magical, trap. Stealth DC 25.",
+   "cite": "GM Core — Hazards: Pharaoh's Ward",
+   "tags": [
+    "hazard",
+    "simple"
+   ],
+   "fields": {
+    "level": 7,
+    "complexity": "simple",
+    "rarity": "common",
+    "traits": [
+     "magical",
+     "trap"
+    ],
+    "stealth": 15,
+    "stealthNote": "(expert)",
+    "description": "A curse is imbued on an entryway's threshold.",
+    "disable": "DC 27 Thievery (master) to painstakingly remove the lintel without triggering the magic, or Dispel Magic (4th rank; counteract DC 25) to counteract the rune",
+    "ac": 0,
+    "saves": {
+     "fortitude": 0,
+     "reflex": 0,
+     "will": 0
+    },
+    "hardness": 0,
+    "hp": {
+     "max": 0,
+     "current": 0,
+     "temp": 0
+    },
+    "immunities": [],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Curse the Intruders ↺",
+      "desc": "(curse, divine) **Trigger** The seal on the tomb is broken from the outside.\n\n**Effect** Each living creature within 60 feet must succeed at a DC 23 Will save or be subjected to the pharaoh's curse. A cursed creature takes a -2 status penalty to Fortitude saves, and any natural or magical healing it receives is halved. The curse remains until removed by Cleanse Affliction or similar magic."
+     }
+    ],
+    "reset": "The trap resets when the door is shut."
+   }
+  },
+  {
+   "id": "pf2e-orc.preset.hazard.planar-rift",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Planar Rift",
+   "summary": "Simple hazard 13. magical, trap. Stealth DC 35.",
+   "cite": "GM Core — Hazards: Planar Rift",
+   "tags": [
+    "hazard",
+    "simple"
+   ],
+   "fields": {
+    "level": 13,
+    "complexity": "simple",
+    "rarity": "common",
+    "traits": [
+     "magical",
+     "trap"
+    ],
+    "stealth": 25,
+    "stealthNote": "(trained)",
+    "description": "A rift attempts to draw creatures into another plane (the GM chooses the specific plane).",
+    "disable": "DC 33 Thievery (master) to assemble a rift seal using objects strongly grounded to your plane, or Dispel Magic (7th rank; counteract DC 31) to counteract the rift",
+    "ac": 10,
+    "saves": {
+     "fortitude": 0,
+     "reflex": 0,
+     "will": 0
+    },
+    "hardness": 0,
+    "hp": {
+     "max": 0,
+     "current": 0,
+     "temp": 0
+    },
+    "immunities": [],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Into the Great Beyond ↺",
+      "desc": "(occult, teleportation) **Trigger** A creature moves within 10 feet of the rift.\n\n**Effect** The triggering creature and all creatures within 30 feet of the rift are drawn into another plane. Each creature can attempt a DC 33 Reflex save to avoid this fate."
+     }
+    ]
+   }
+  },
+  {
+   "id": "pf2e-orc.preset.hazard.poisoned-dart-gallery",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Poisoned Dart Gallery",
+   "summary": "Complex hazard 8. mechanical, trap. Stealth DC 26.",
+   "cite": "GM Core — Hazards: Poisoned Dart Gallery",
+   "tags": [
+    "hazard",
+    "complex"
+   ],
+   "fields": {
+    "level": 8,
+    "complexity": "complex",
+    "rarity": "common",
+    "traits": [
+     "mechanical",
+     "trap"
+    ],
+    "stealth": 16,
+    "stealthNote": "(expert) or DC 31 Perception (master) to notice the control panel",
+    "description": "Countless holes to launch poison darts from line a long hallway with a hidden control panel on the far end.",
+    "disable": "DC 21 Thievery (expert) on the control panel deactivates the trap.",
+    "ac": 27,
+    "saves": {
+     "fortitude": 13,
+     "reflex": 17,
+     "will": 0
+    },
+    "hardness": 14,
+    "hp": {
+     "max": 56,
+     "current": 56,
+     "temp": 0
+    },
+    "hpNote": "to destroy the control panel and disable the trap",
+    "immunities": [
+     "precision",
+     "critical hits"
+    ],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Dart Volley ↺",
+      "desc": "**Trigger** A creature enters the hallway or ends its turn in the hallway\n\n**Effect** The trap makes a poisoned dart Strike against the triggering creature, then rolls initiative."
+     },
+     {
+      "name": "Continuous Barrage ◇",
+      "desc": "**Trigger** A creature within the active gallery finishes an action\n\n**Effect** The trap makes a poisoned dart Strike against the triggering creature."
+     },
+     {
+      "name": "Flesset Poison",
+      "desc": "(poison) **Saving Throw** DC 22 Fortitude\n\n**Maximum Duration** 6 rounds\n\n**Stage 1** 1d6 poison damage and Clumsy 1 (1 round)\n\n**Stage 2** 2d6 poison damage and Clumsy 2 (1 round)\n\n**Stage 3** 3d6 poison damage and Clumsy 3 (1 round)"
+     }
+    ],
+    "routine": "(1 action) The trap launches one dart against every creature in the gallery as 1 action. Because it launches darts continuously, the trap can also use the Continuous Barrage free action (see below) to launch darts at each creature during that creature's turn.",
+    "reset": "The trap deactivates and resets after 1 minute."
+   }
+  },
+  {
+   "id": "pf2e-orc.preset.hazard.poisoned-lock",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Poisoned Lock",
+   "summary": "Simple hazard 1. mechanical, trap. Stealth DC 17.",
+   "cite": "GM Core — Hazards: Poisoned Lock",
+   "tags": [
+    "hazard",
+    "simple"
+   ],
+   "fields": {
+    "level": 1,
+    "complexity": "simple",
+    "rarity": "common",
+    "traits": [
+     "mechanical",
+     "trap"
+    ],
+    "stealth": 7,
+    "stealthNote": "(trained)",
+    "description": "A spring-loaded, poisoned spine is hidden near the keyhole of a lock. Disabling or breaking the trap does not disable or break the lock.",
+    "disable": "DC 17 Thievery (trained) on the spring mechanism",
+    "ac": 15,
+    "saves": {
+     "fortitude": 8,
+     "reflex": 4,
+     "will": 0
+    },
+    "hardness": 6,
+    "hp": {
+     "max": 24,
+     "current": 24,
+     "temp": 0
+    },
+    "immunities": [
+     "critical hits",
+     "precision"
+    ],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Spring ↺",
+      "desc": "(attack) **Trigger** A creature tries to unlock or Pick the Lock.\n\n**Effect** A spine extends to Strike the triggering creature."
+     },
+     {
+      "name": "Cladis Poison",
+      "desc": "(poison) **Saving Throw** DC 19 Fortitude\n\n**Maximum Duration** 4 hours\n\n**Stage 1** 1d6 poison damage and Drained 1 (1 hour)\n\n**Stage 2** 2d6 poison damage and Drained 2 (1 hour)\n\n**Stage 3** 3d6 poison damage and drained 2 (1 hour)"
+     }
+    ]
+   }
+  },
+  {
+   "id": "pf2e-orc.preset.hazard.poisonous-mold",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Poisonous Mold",
+   "summary": "Simple hazard 2. environmental, fungus. Stealth DC 21.",
+   "cite": "GM Core — Hazards: Poisonous Mold",
+   "tags": [
+    "hazard",
+    "simple"
+   ],
+   "fields": {
+    "level": 2,
+    "complexity": "simple",
+    "rarity": "common",
+    "traits": [
+     "environmental",
+     "fungus"
+    ],
+    "stealth": 11,
+    "stealthNote": "(trained)",
+    "description": "This grotesque fungus releases poisonous spores when a creature comes near.",
+    "disable": "DC 18 Survival (trained) to safely remove the mold",
+    "ac": 18,
+    "saves": {
+     "fortitude": 11,
+     "reflex": 5,
+     "will": 0
+    },
+    "hardness": 0,
+    "hp": {
+     "max": 30,
+     "current": 30,
+     "temp": 0
+    },
+    "immunities": [
+     "critical hits",
+     "precision"
+    ],
+    "weaknesses": [
+     "fire 10"
+    ],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Feed on Decay",
+      "desc": "**Frequency** once per day The mold expands when fed by blood or decay. If at any point a creature takes bleed damage while adjacent to the mold or a dying or dead body is adjacent to the mold, the mold grows to expand into every square adjacent to its current space. This can happen only once per day."
+     },
+     {
+      "name": "Spore Burst ↺",
+      "desc": "(poison) **Frequency** once per day\n\n**Trigger** A creature touches the mold, hits it, or damages it\n\n**Effect** The mold explodes in a burst of spores and mold clusters, dealing 2d6+6 poison damage to creatures within 10 feet of it, with a DC 18 basic Fortitude save."
+     },
+     {
+      "name": "Floating Spores",
+      "desc": "(aura, poison) 5 feet. A creature that enters or starts its turn in the aura takes 2d6 poison damage."
+     }
+    ],
+    "reset": "Unless entirely eradicated (typically with acid or fire), the mold regrows over the course of 2 weeks."
+   }
+  },
+  {
+   "id": "pf2e-orc.preset.hazard.polymorph-trap",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Polymorph Trap",
+   "summary": "Simple hazard 12. magical, trap. Stealth DC 34.",
+   "cite": "GM Core — Hazards: Polymorph Trap",
+   "tags": [
+    "hazard",
+    "simple"
+   ],
+   "fields": {
+    "level": 12,
+    "complexity": "simple",
+    "rarity": "common",
+    "traits": [
+     "magical",
+     "trap"
+    ],
+    "stealth": 24,
+    "stealthNote": "(trained)",
+    "description": "A Druidic glyph tries to transforms a trespasser into an animal.",
+    "disable": "DC 32 Thievery (master) to drain the glyph's power harmlessly, or Dispel Magic (6th rank; counteract DC 30) to counteract the glyph",
+    "ac": 10,
+    "saves": {
+     "fortitude": 0,
+     "reflex": 0,
+     "will": 0
+    },
+    "hardness": 0,
+    "hp": {
+     "max": 0,
+     "current": 0,
+     "temp": 0
+    },
+    "immunities": [],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Cursed Metamorphosis ↺",
+      "desc": "(primal) **Trigger** A creature moves within 30 feet of the glyph without speaking the passphrase in Druidic\n\n**Effect** The creature is targeted by Cursed Metamorphosis (DC 32 Will save)."
+     }
+    ]
+   }
+  },
+  {
+   "id": "pf2e-orc.preset.hazard.quicksand",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Quicksand",
+   "summary": "Complex hazard 3. environmental. Stealth DC 22.",
+   "cite": "GM Core — Hazards: Quicksand",
+   "tags": [
+    "hazard",
+    "complex"
+   ],
+   "fields": {
+    "level": 3,
+    "complexity": "complex",
+    "rarity": "common",
+    "traits": [
+     "environmental"
+    ],
+    "stealth": 12,
+    "stealthNote": "(trained) (or -10 and no minimum proficiency if the surface is disturbed)",
+    "description": "A 15-foot-wide patch of water and sand attempts to submerge creatures that step onto it.",
+    "disable": "DC 18 Survival (trained) to disturb the surface",
+    "ac": 10,
+    "saves": {
+     "fortitude": 0,
+     "reflex": 0,
+     "will": 0
+    },
+    "hardness": 0,
+    "hp": {
+     "max": 0,
+     "current": 0,
+     "temp": 0
+    },
+    "immunities": [],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Submerge ◇",
+      "desc": "**Trigger** A Huge or smaller creature walks onto the quicksand\n\n**Effect** The triggering creature sinks into the quicksand up to its waist. The quicksand rolls initiative if it hasn't already."
+     }
+    ],
+    "routine": "(1 action) On its initiative, the quicksand pulls down each creature within it. A creature that was submerged up to its waist becomes submerged up to its neck, and a creature that was submerged up to its neck is pulled under and has to hold its breath to avoid suffocation. A creature in the quicksand can attempt a DC 20 Athletics check to Swim to either raise itself by one step if it's submerged to its neck or worse, or to move 5 feet if it's submerged only up to its waist. On a critical failure, the creature is pulled down one step. A creature that Swims out of the quicksand escapes the hazard and is prone in a space adjacent to the quicksand patch. Other creatures can Aid the creature, typically by using a rope or similar aid, or attempt to pull the creature out with their own DC 20 Athletics check, with the same results as if the creature attempted the check.",
+    "reset": "The hazard still submerges anyone who walks in, but the surface doesn't become hidden again until it settles over the course of 24 hours."
+   }
+  },
+  {
+   "id": "pf2e-orc.preset.hazard.scythe-blades",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Scythe Blades",
+   "summary": "Simple hazard 4. mechanical, trap. Stealth DC 23.",
+   "cite": "GM Core — Hazards: Scythe Blades",
+   "tags": [
+    "hazard",
+    "simple"
+   ],
+   "fields": {
+    "level": 4,
+    "complexity": "simple",
+    "rarity": "common",
+    "traits": [
+     "mechanical",
+     "trap"
+    ],
+    "stealth": 13,
+    "stealthNote": "(trained)",
+    "description": "Two blades, each hidden in a 15-foot-long ceiling groove, are both connected to a trip wire.",
+    "disable": "DC 21 Thievery (trained) to disable each blade",
+    "ac": 21,
+    "saves": {
+     "fortitude": 12,
+     "reflex": 8,
+     "will": 0
+    },
+    "hardness": 11,
+    "hp": {
+     "max": 44,
+     "current": 44,
+     "temp": 0
+    },
+    "immunities": [
+     "critical hits",
+     "precision"
+    ],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Falling Scythes ↺",
+      "desc": "**Trigger** The trip wire is pulled or severed.\n\n**Effect** Both blades swing down, each one Striking all creatures under the ceiling grooves."
+     }
+    ],
+    "reset": "The trap resets after 15 minutes."
+   }
+  },
+  {
+   "id": "pf2e-orc.preset.hazard.slamming-door",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Slamming Door",
+   "summary": "Simple hazard 1. mechanical, trap. Stealth DC 17.",
+   "cite": "GM Core — Hazards: Slamming Door",
+   "tags": [
+    "hazard",
+    "simple"
+   ],
+   "fields": {
+    "level": 1,
+    "complexity": "simple",
+    "rarity": "common",
+    "traits": [
+     "mechanical",
+     "trap"
+    ],
+    "stealth": 7,
+    "stealthNote": "(trained)",
+    "description": "Pressure-sensitive panels in the floor connect to a stone slab hidden in a hallway's ceiling.",
+    "disable": "DC 15 Thievery (trained) on the floor panels before the slab falls",
+    "ac": 16,
+    "saves": {
+     "fortitude": 10,
+     "reflex": 2,
+     "will": 0
+    },
+    "hardness": 5,
+    "hp": {
+     "max": 20,
+     "current": 20,
+     "temp": 0
+    },
+    "immunities": [
+     "critical hits",
+     "precision"
+    ],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Slam Shut ↺",
+      "desc": "**Trigger** Pressure is placed on any floor tile.\n\n**Effect** The door falls, closing off the hallway. The stone slab deals 3d8 bludgeoning damage to anyone beneath or adjacent to the slab when it drops and pushes them out of its space in a random direction. A creature that succeeds at a DC 17 Reflex save takes no damage and rolls out of the way in a random direction. On a critical success, they can choose the direction.\n\nLifting the fallen slab requires a successful DC 25 Athletics check.\n\nHitting the floor panels triggers the trap. The slab uses the same AC and saves as the trap, but it has Hardness 12, HP 48 (BT 24)."
+     }
+    ]
+   }
+  },
+  {
+   "id": "pf2e-orc.preset.hazard.snowfall",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Snowfall",
+   "summary": "Simple hazard 0. environmental. Stealth DC 16.",
+   "cite": "GM Core — Hazards: Snowfall",
+   "tags": [
+    "hazard",
+    "simple"
+   ],
+   "fields": {
+    "level": 0,
+    "complexity": "simple",
+    "rarity": "common",
+    "traits": [
+     "environmental"
+    ],
+    "stealth": 6,
+    "stealthNote": "(trained)",
+    "description": "Loose snow and ice have built up on a high surface, such as a tree branch or a rooftop. Its grip on the surface is tenuous, and it is likely to fall if the surface moves.",
+    "disable": "DC 19 Survival (trained) to safely dislodge the snow, or deal any amount of fire damage to destroy the hazard without triggering it",
+    "ac": 16,
+    "saves": {
+     "fortitude": 10,
+     "reflex": 8,
+     "will": 0
+    },
+    "hardness": 0,
+    "hp": {
+     "max": 8,
+     "current": 8,
+     "temp": 0
+    },
+    "immunities": [
+     "critical hits",
+     "precision"
+    ],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Snowdrop ↺",
+      "desc": "**Trigger** A creature moves beneath where the snowfall is resting.\n\n**Effect** Ice and snow fall on the triggering creature, dealing 2d6+3 bludgeoning damage (DC 18 basic Reflex save) and soaking their clothing. Until they change into fresh clothing or spend at least an hour in an area of normal or higher temperature, they treat cold environments as one step colder (for example, mild cold as severe cold)."
+     }
+    ]
+   }
+  },
+  {
+   "id": "pf2e-orc.preset.hazard.spear-launcher",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Spear Launcher",
+   "summary": "Simple hazard 2. mechanical, trap. Stealth DC 20.",
+   "cite": "GM Core — Hazards: Spear Launcher",
+   "tags": [
+    "hazard",
+    "simple"
+   ],
+   "fields": {
+    "level": 2,
+    "complexity": "simple",
+    "rarity": "common",
+    "traits": [
+     "mechanical",
+     "trap"
+    ],
+    "stealth": 10,
+    "stealthNote": "(trained)",
+    "description": "A wall socket loaded with a spear connects to a floor tile in one 5-foot square.",
+    "disable": "DC 18 Thievery (trained) on the floor tile or wall socket",
+    "ac": 18,
+    "saves": {
+     "fortitude": 11,
+     "reflex": 3,
+     "will": 0
+    },
+    "hardness": 8,
+    "hp": {
+     "max": 32,
+     "current": 32,
+     "temp": 0
+    },
+    "immunities": [
+     "critical hits",
+     "precision"
+    ],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Spear ↺",
+      "desc": "(attack) **Trigger** Pressure is applied to the floor tile.\n\n**Effect** The trap shoots a spear, making a Strike against the creature or object on the floor tile."
+     }
+    ]
+   }
+  },
+  {
+   "id": "pf2e-orc.preset.hazard.spectral-reflection",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Spectral Reflection",
+   "summary": "Simple hazard 5. haunt. Stealth DC 26.",
+   "cite": "GM Core — Hazards: Spectral Reflection",
+   "tags": [
+    "hazard",
+    "simple"
+   ],
+   "fields": {
+    "level": 5,
+    "complexity": "simple",
+    "rarity": "common",
+    "traits": [
+     "haunt"
+    ],
+    "stealth": 16,
+    "stealthNote": "(expert)",
+    "description": "The reflection in the mirror subtly twists and distorts, its expression taking on an unnerving sneer of malice.",
+    "disable": "DC 23 Religion (trained) to exorcise the spirit, or DC 23 Thievery (trained) to quickly cover the mirror",
+    "ac": 19,
+    "saves": {
+     "fortitude": 15,
+     "reflex": 10,
+     "will": 0
+    },
+    "hardness": 13,
+    "hp": {
+     "max": 50,
+     "current": 50,
+     "temp": 0
+    },
+    "immunities": [
+     "critical hits",
+     "precision"
+    ],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Spectral Impale ↺",
+      "desc": "**Trigger** A living creature approaches within 15 feet of the mirror, and the mirror is lit with dim or brighter light.\n\n**Effect** Shadowy barbs impale the body of the reflected creature as the haunt makes a shadow barbs Strike."
+     },
+     {
+      "name": "Sap Vitality",
+      "desc": "A creature hit by the reflection's shadow barbs must attempt a DC 22 Fortitude save as the haunt tries to draw a portion of its vital essence into the mirror. The target is Drained 1 on a failed saving throw, or Drained 2 on a critical failure."
+     },
+     {
+      "name": "Special",
+      "desc": "Spectral reflections often infuse entire buildings, manifesting in any sufficiently large mirror. The example Hit Points and Hardness given represent a typical mirror reinforced by the haunt; at your discretion, the haunt might appear in reflective surfaces that are harder to destroy. Defeating a manifestation through damage destroys the surface, preventing the haunt from using it again. If this haunt appears in an area with many mirrors, consider giving PCs double or even triple the XP for a typical simple hazard."
+     }
+    ],
+    "reset": "The haunt re-forms after 1 minute, manifesting in any mirror within its infused area (see Special below)."
+   }
+  },
+  {
+   "id": "pf2e-orc.preset.hazard.spinning-blade-pillar",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Spinning Blade Pillar",
+   "summary": "Complex hazard 4. mechanical, trap. Stealth DC 21.",
+   "cite": "GM Core — Hazards: Spinning Blade Pillar",
+   "tags": [
+    "hazard",
+    "complex"
+   ],
+   "fields": {
+    "level": 4,
+    "complexity": "complex",
+    "rarity": "common",
+    "traits": [
+     "mechanical",
+     "trap"
+    ],
+    "stealth": 11,
+    "stealthNote": "(trained) or DC 26 Perception (expert) to notice the control panel",
+    "description": "A metal pole with three razor-sharp spinning blades is hidden in the floor, connected to trigger plates in up to eight floor tiles and a hidden control panel within 30 feet.",
+    "disable": "DC 21 Thievery (trained) twice on the pillar, or DC 19 Thievery (expert) once on the control panel deactivates the whole trap. Breaking the control panel prevents anyone from disabling the trap using the control panel and prevents the trap from deactivating automatically.",
+    "ac": 21,
+    "saves": {
+     "fortitude": 10,
+     "reflex": 12,
+     "will": 0
+    },
+    "hardness": 12,
+    "hp": {
+     "max": 48,
+     "current": 48,
+     "temp": 0
+    },
+    "hpNote": "Panel Hardness: 5, Panel HP: 20 (BT 10)",
+    "immunities": [
+     "critical hits",
+     "precision"
+    ],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Rising Pillar ↺",
+      "desc": "(attack) **Trigger** A creature steps on one of the trapped floor tiles\n\n**Effect** The trap pops up in a grid intersection and makes a spinning blade Strike against one adjacent creature (if any), then rolls initiative."
+     },
+     {
+      "name": "Speed",
+      "desc": "10 feet"
+     }
+    ],
+    "routine": "(3 actions) The trap uses its first action to make a spinning blade Strike against each adjacent creature, its second action to move straight in a random direction (roll 1d4 to determine the direction), and its third to make a spinning blade Strike against each adjacent creature. This trap doesn't take a multiple attack penalty.",
+    "reset": "The trap deactivates and resets after 1 minute."
+   }
+  },
+  {
+   "id": "pf2e-orc.preset.hazard.summoning-rune",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Summoning Rune",
+   "summary": "Complex hazard 1. magical, trap. Stealth DC 17.",
+   "cite": "GM Core — Hazards: Summoning Rune",
+   "tags": [
+    "hazard",
+    "complex"
+   ],
+   "fields": {
+    "level": 1,
+    "complexity": "complex",
+    "rarity": "common",
+    "traits": [
+     "magical",
+     "trap"
+    ],
+    "stealth": 7,
+    "stealthNote": "(trained)",
+    "description": "A cloud of invisible magical sensors in a 10-foot radius surrounds an invisible wall or floor rune the size of the creature to be summoned.",
+    "disable": "DC 15 Acrobatics to approach without triggering the trap followed by DC 17 Thievery (trained) to erase the rune, or Dispel Magic (1st rank; counteract DC 15) to counteract the rune",
+    "ac": 10,
+    "saves": {
+     "fortitude": 0,
+     "reflex": 0,
+     "will": 0
+    },
+    "hardness": 0,
+    "hp": {
+     "max": 0,
+     "current": 0,
+     "temp": 0
+    },
+    "immunities": [],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Summon Monster ↺",
+      "desc": "(arcane, summon) **Trigger** A creature enters the cloud of magical sensors\n\n**Effect** This trap summons a specific 1st-level creature, determined when the trap is created. The creature rolls initiative and remains for 2d6 rounds, after which the spell ends and the creature disappears. The creature also disappears if someone disables the trap before the duration expires. The summoned creature can use 3 actions each round and can use reactions, unlike most summoned creatures."
+     }
+    ],
+    "reset": "The trap resets each day at dawn."
+   }
+  },
+  {
+   "id": "pf2e-orc.preset.hazard.titanic-flytrap",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Titanic Flytrap",
+   "summary": "Simple hazard 4. environmental. Stealth DC 25.",
+   "cite": "GM Core — Hazards: Titanic Flytrap",
+   "tags": [
+    "hazard",
+    "simple"
+   ],
+   "fields": {
+    "level": 4,
+    "complexity": "simple",
+    "rarity": "common",
+    "traits": [
+     "environmental"
+    ],
+    "stealth": 15,
+    "stealthNote": "(trained)",
+    "description": "On the surface, a titanic flytrap appears to be a patch of the more common flytrap plant, but beneath murky waters it hides a far larger set of jaws, reaching 10 feet across, reinforced with woody branches and lined with paralytic hairs.",
+    "disable": "DC 22 Survival (trained) to mislead the flytrap's sense of weight and pressure",
+    "ac": 21,
+    "saves": {
+     "fortitude": 15,
+     "reflex": 8,
+     "will": 0
+    },
+    "hardness": 0,
+    "hp": {
+     "max": 56,
+     "current": 56,
+     "temp": 0
+    },
+    "immunities": [
+     "mental"
+    ],
+    "weaknesses": [],
+    "resistances": [
+     "acid 20",
+     "fire 10"
+    ],
+    "actions": [
+     {
+      "name": "Snap Shut ↺",
+      "desc": "**Trigger** A Small or Medium creature moves into a square that is within reach of the flytrap's hidden jaws\n\n**Effect** The flytrap's jaws snap shut, making a jaws Strike against the triggering creature."
+     },
+     {
+      "name": "Devour",
+      "desc": "The target is trapped by the flytrap's jaws, gaining the grabbed condition until it Escapes. Additionally, it is exposed to the titanic flytrap toxin from the hundreds of tiny hairs that line the inside of its leaves. If the flytrap's jaws Strike was a critical success, the target takes a –2 circumstance penalty to its saving throws against this poison. At the end of each of the target's turns that it remains grabbed, the target takes 3d6 acid damage."
+     },
+     {
+      "name": "Titanic Flytrap Toxin",
+      "desc": "(contact, poison) **Saving Throw** DC 21 Fortitude\n\n**Maximum Duration** 4 rounds\n\n**Stage 1** 2d6 poison damage and Stunned 1 (1 round)\n\n**Stage 2** 3d6 poison damage and Stunned 2 (1 round)\n\n**Stage 3** 4d6 poison damage and paralyzed (1 round)"
+     }
+    ],
+    "reset": "1 hour (or longer, after a large meal)"
+   }
+  },
+  {
+   "id": "pf2e-orc.preset.hazard.vorpal-executioner",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Vorpal Executioner",
+   "summary": "Simple hazard 19. mechanical, trap. Stealth DC 43.",
+   "cite": "GM Core — Hazards: Vorpal Executioner",
+   "tags": [
+    "hazard",
+    "simple"
+   ],
+   "fields": {
+    "level": 19,
+    "complexity": "simple",
+    "rarity": "common",
+    "traits": [
+     "mechanical",
+     "trap"
+    ],
+    "stealth": 33,
+    "stealthNote": "(expert)",
+    "description": "A wickedly sharp saw blade descends and travels along grooves in a complex path throughout the room, attempting to decapitate everyone within.",
+    "disable": "DC 41 Thievery (expert) at four different junctions to jam all the saw blade's possible paths, preventing it from traveling through the room",
+    "ac": 43,
+    "saves": {
+     "fortitude": 32,
+     "reflex": 32,
+     "will": 0
+    },
+    "hardness": 30,
+    "hp": {
+     "max": 120,
+     "current": 120,
+     "temp": 0
+    },
+    "hpNote": "per junction",
+    "immunities": [
+     "critical hits",
+     "precision"
+    ],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Total Decapitation ↺",
+      "desc": "**Trigger** A creature attempts to exit the room.\n\n**Effect** The saw blade travels along its path, making one Strike against each creature in the room, twisting and varying its height for a maximum chance of beheading its targets."
+     },
+     {
+      "name": "Decapitation",
+      "desc": "On a critical hit, a target must succeed at a DC 39 Fortitude save or be decapitated, dying instantly unless it can survive without a head."
+     }
+    ],
+    "reset": "The trap resets over the course of the round and can be triggered again 1 round later."
+   }
+  },
+  {
+   "id": "pf2e-orc.preset.hazard.wheel-of-misery",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Wheel Of Misery",
+   "summary": "Complex hazard 6. magical, mechanical, trap. Stealth DC 26.",
+   "cite": "GM Core — Hazards: Wheel Of Misery",
+   "tags": [
+    "hazard",
+    "complex"
+   ],
+   "fields": {
+    "level": 6,
+    "complexity": "complex",
+    "rarity": "common",
+    "traits": [
+     "magical",
+     "mechanical",
+     "trap"
+    ],
+    "stealth": 16,
+    "stealthNote": "(expert) to detect the magical sensor; noticing the wheel has a DC of 0",
+    "description": "An ornate wheel set into a wall-divided into six segments with colored runes on each-is controlled by a magical sensor that detects any creature within 100 feet in front of it.",
+    "disable": "DC 26 Thievery (expert) on the wheel to stop it from spinning, DC 22 Thievery (master) to erase each rune, or Dispel Magic (4th rank; counteract DC 22) to counteract each rune",
+    "ac": 24,
+    "saves": {
+     "fortitude": 15,
+     "reflex": 13,
+     "will": 0
+    },
+    "hardness": 14,
+    "hp": {
+     "max": 56,
+     "current": 56,
+     "temp": 0
+    },
+    "immunities": [
+     "critical hits",
+     "precision"
+    ],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Wheel Spin ↺",
+      "desc": "**Trigger** A creature enters the sensor's detection area.\n\n**Effect** The wheel begins to spin and rolls initiative."
+     }
+    ],
+    "routine": "(2 actions) On its initiative, the trap uses its first action to spin, then stops. Roll 1d6 to determine which segment is topmost when the wheel stops spinning. The wheel uses its second action to replicate the spell listed for that segment (3rd rank, DC 24, spell attack modifier +14). This spell's target is centered on or otherwise includes the nearest creature in the area. This increases the spell's range to 100 feet if necessary. Any spell cast by this trap is arcane.\n\n**1** Sleep\n\n**2** Paralyze\n\n**3** Lightning Bolt (100-foot line)\n\n**4** Blindness\n\n**5** Caustic Blast\n\n**6** Enfeeble",
+    "reset": "The trap deactivates and resets if 1 minute passes without any creature moving within range of its sensor."
+   }
+  }
+ ]
+}

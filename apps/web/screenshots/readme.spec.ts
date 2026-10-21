@@ -1,6 +1,6 @@
 /**
- * The README screenshots, regenerated from the three deterministic demo
- * campaigns (Skyfire Down, Cold Harbor Relay, Thornwick Crossing): `pnpm screenshots` at the repo root builds the app and runs
+ * The README screenshots, regenerated from the four deterministic demo
+ * campaigns (Skyfire Down, Cold Harbor Relay, Thornwick Crossing, Hollowmere): `pnpm screenshots` at the repo root builds the app and runs
  * every shot; `pnpm --filter @campaign-forge/web screenshots -g <name>`
  * re-runs one (the app must be built). Images go to docs/screenshots/, or to
  * `SCREENSHOTS_DIR`.
@@ -122,6 +122,7 @@ const DEMOS = {
   skyfire: { button: "load-demo", name: "Skyfire Down" },
   cinematic: { button: "load-demo-cinematic", name: "Cold Harbor Relay" },
   dnd5e: { button: "load-demo-5e", name: "Thornwick Crossing" },
+  pf2e: { button: "load-demo-pf2e", name: "Hollowmere" },
 } as const;
 
 async function loadDemo(page: Page, which: keyof typeof DEMOS): Promise<string> {
@@ -585,6 +586,72 @@ test("dnd5e-table", async ({ page }) => {
   for (let i = 0; i < 4; i++) await hp.getByRole("button", { name: "Decrease Goblin 1 HP" }).click();
   await expect(hp.getByRole("spinbutton", { name: "Goblin 1 HP" })).toHaveValue("3");
   await shot(page, "dnd5e-table");
+});
+
+// ---------------------------------------------------------------------------
+// Hollowmere (second edition remaster, ORC core rules)
+// ---------------------------------------------------------------------------
+
+/** A Hollowmere PC's sheet. */
+async function openPf2ePc(page: Page, name: string) {
+  const base = await loadDemo(page, "pf2e");
+  await page.goto(`${base}/atlas`);
+  await page.getByRole("tab", { name: /^PCs/ }).click();
+  await page.getByRole("tabpanel").getByRole("link", { name, exact: true }).click();
+  await expect(page.getByTestId("entity-page")).toBeVisible();
+}
+
+test("pf2e-sheet", async ({ page }) => {
+  // tall enough for Perception, saves and skills under the defense numbers
+  await page.setViewportSize({ width: 1440, height: 1900 });
+  await openPf2ePc(page, "Brunhild Ashdelver");
+  // attribute modifiers and proficiency ranks are stored; every number marked "computed" is derived at render time
+  await expect(page.getByTestId("computed-ac")).toHaveText("17");
+  await expect(page.getByTestId("computed-hpMax")).toHaveText("20");
+  await expect(page.getByTestId("computed-classDc")).toHaveText("17");
+  await expect(page.getByTestId("pool-will")).toHaveText("1d20 + 9");
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await shot(page, "pf2e-sheet");
+});
+
+test("pf2e-roll", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await openPf2ePc(page, "Pip Tallowgrass");
+  // Stealth (trained: level + 2) with fortune against DC 14: beat it by 10 for a critical success
+  const stealth = page.locator('tr[data-skill="stealth"]');
+  await expect(stealth.getByTestId("pool-stealth")).toHaveText("1d20 + 7");
+  await stealth.evaluate((e) => e.scrollIntoView({ block: "center" }));
+  await stealth.getByRole("button", { name: "Roll" }).click();
+  const panel = page.getByTestId("dice-panel");
+  await panel.getByTestId("roll-option-dc").fill("14");
+  await panel.getByTestId("roll-option-advantage").selectOption("fortune");
+  await expect(panel.getByTestId("dicepool")).toContainText("1d20 + 7 (fortune) vs DC 14");
+  // the page's dice are seeded: roll until the shot shows a critical success (the same roll every run)
+  await panel.getByRole("button", { name: "Roll" }).click();
+  for (let i = 0; i < 30 && (await panel.getByTestId("roll-outcome").getAttribute("data-outcome")) !== "critical-success"; i++) await panel.getByRole("button", { name: "Roll again" }).click();
+  await expect(panel.getByTestId("roll-outcome")).toHaveAttribute("data-outcome", "critical-success");
+  await expect(panel.getByTestId("roll-outcome")).toHaveText(/^Critical success/);
+  await expect(panel.locator('[data-dropped="true"]')).toHaveCount(1);
+  await dismissToasts(page);
+  await shot(page, "pf2e-roll");
+});
+
+test("pf2e-encounter", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1250 });
+  const base = await loadDemo(page, "pf2e");
+  // the encounter builder: a severe fight for four level 3 characters, spending GM Core's XP budget on Monster Core creatures
+  await page.goto(`${base}/generate`);
+  await page.getByTestId("procedure-pf2e-orc.proc.encounter").click();
+  await page.getByRole("spinbutton", { name: "Party level" }).fill("3");
+  await page.getByRole("combobox", { name: "Threat" }).selectOption("severe");
+  await expect(page.getByTestId("step-budget")).toContainText("120");
+  await expect(page.getByTestId("step-shape")).toContainText("pf2e-orc.encounter.budget-120");
+  await expect(page.getByTestId("step-g1")).toContainText("pf2e-orc.creature.level-");
+  await expect(page.getByTestId("step-result-budget")).toHaveText("120 XP");
+  await expect(page.getByTestId("step-result-shape")).toHaveText(/^\d+ × party level/);
+  await expect(page.getByTestId("step-result-g1list")).toHaveText(/^\d+ × .+$/);
+  await dismissToasts(page);
+  await shot(page, "pf2e-encounter");
 });
 
 // ---------------------------------------------------------------------------

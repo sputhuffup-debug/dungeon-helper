@@ -17,6 +17,7 @@
     "@campaign-forge/core": "workspace:*",
     "@campaign-forge/module-alien": "workspace:*",
     "@campaign-forge/module-dnd5e-srd": "workspace:*",
+    "@campaign-forge/module-pf2e-orc": "workspace:*",
     "@campaign-forge/module-sdk": "workspace:*"
   },
   "devDependencies": {
