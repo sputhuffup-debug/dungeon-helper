@@ -11,10 +11,22 @@ function bounds(props: WidgetProps): { min?: number; max?: number; step: number 
   return { min, max, step };
 }
 
+/**
+ * What a missing value shows: the schema's default, else 0 kept inside the
+ * bounds. (Not the minimum: an unset "bonus" field from -10 to 20 reads 0,
+ * which is also what computed rules assume for it.)
+ */
+function fallback(props: WidgetProps, min: number | undefined, max: number | undefined): number {
+  const d = props.schema?.default;
+  if (typeof d === "number") return d;
+  const low = Math.max(min ?? 0, 0);
+  return max !== undefined ? Math.min(max, low) : low;
+}
+
 export function NumberField(props: WidgetProps) {
   const { id, value, onChange, readonly, field } = props;
   const { min, max, step } = bounds(props);
-  const n = asNumber(value, min ?? 0);
+  const n = asNumber(value, fallback(props, min, max));
   if (readonly) return <div className="cf-field__readonly cf-mono">{n}</div>;
   return <Stepper id={id} value={n} min={min} max={max} step={step} onChange={onChange} label={field.label ?? labelFromPath(field.path)} />;
 }
@@ -23,7 +35,7 @@ export function NumberField(props: WidgetProps) {
 export function AttributeField(props: WidgetProps) {
   const { id, value, onChange, readonly, field } = props;
   const { min, max, step } = bounds(props);
-  const n = asNumber(value, min ?? 0);
+  const n = asNumber(value, fallback(props, min, max));
   return (
     <div className="cf-attribute">
       {readonly ? (

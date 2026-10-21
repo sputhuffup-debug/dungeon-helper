@@ -203,7 +203,7 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
             / {procedure.id}
           </p>
           <h1 className="app-title">
-            {procedure.name} <PageRef page={procedure.page} />
+            {procedure.name} <PageRef page={procedure.page} cite={procedure.cite} original={procedure.original} />
           </h1>
           {procedure.description && <p className="cf-muted prep-lead">{procedure.description}</p>}
         </div>

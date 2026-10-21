@@ -26,6 +26,7 @@ export { SupplyField, StressField } from "./widgets/pips";
 export { DicePoolField, DicePoolView, asDicePool } from "./widgets/dicepool";
 export { RefField, RefListField } from "./widgets/ref";
 export { ListField, ObjectField, StatBlockField, TableField } from "./widgets/structured";
+export { EntriesField } from "./widgets/entries";
 export { ImageField, ZoneMapField } from "./widgets/media";
 export { ComputedField } from "./widgets/computed";
 export { SchemaValueEditor, schemaType } from "./widgets/SchemaValueEditor";
@@ -34,6 +35,7 @@ export { SchemaValueEditor, schemaType } from "./widgets/SchemaValueEditor";
 export { DieFace, type DieFaceProps } from "./dice/DieFace";
 export { DiceRollPanel, specById, type DiceRollPanelProps } from "./dice/DiceRollPanel";
 export { RollLog, type RollLogEntry, type RollLogProps } from "./dice/RollLog";
+export { toneBadge, showsTotal, resultHeadline, rollOptionFields, type RollOptionField } from "./dice/outcome";
 
 // Trackers
 export { registerTracker, getTracker, hasTracker, trackerKinds } from "./trackers/registry";
@@ -43,12 +45,13 @@ export { TrackerFrame, TrackerLog } from "./trackers/TrackerFrame";
 export { GenericTracker } from "./trackers/GenericTracker";
 export { ClockTracker, clockUnits, clockState, formatElapsed, type ClockUnit, type ClockState } from "./trackers/ClockTracker";
 export { CountdownTracker, countdowns, type Countdown } from "./trackers/CountdownTracker";
-export { InitiativeTracker, initiativeState, drawBest, type Participant, type InitiativeState } from "./trackers/InitiativeTracker";
+export { InitiativeTracker, initiativeState, initiativeModifier, initiativeOrder, drawBest, type Participant, type InitiativeState } from "./trackers/InitiativeTracker";
 export { StressTracker, panicLog, appendPanic, type PanicLogEntry } from "./trackers/StressTracker";
 export { StoryPointsTracker, storyPoints } from "./trackers/StoryPointsTracker";
 export { SupplyTracker } from "./trackers/SupplyTracker";
 export { StealthTracker, stealthState, type HiddenNpc, type StealthState } from "./trackers/StealthTracker";
 export { LifecycleTracker } from "./trackers/LifecycleTracker";
+export { CounterTracker, countersFor, counterPath, type CounterSpec } from "./trackers/CounterTracker";
 
 // Map
 export { ZoneMapEditor, cycleBorder, nextBorderKind, type ZoneMapEditorProps, type MapTool } from "./map/ZoneMapEditor";
@@ -120,9 +123,9 @@ export { Tabs, type TabsProps, type TabItem } from "./primitives/Tabs";
 export { Dialog, Drawer, type DialogProps, type DrawerProps } from "./primitives/Dialog";
 export { Toolbar, ToolbarGroup, ToolbarSpacer, EmptyState, type ToolbarProps, type EmptyStateProps } from "./primitives/Toolbar";
 export { ProvenanceBadge, RollRecordList, type ProvenanceBadgeProps, type ProvenanceKind } from "./primitives/ProvenanceBadge";
-export { PageRef, formatPageRef, type PageRefProps } from "./primitives/PageRef";
+export { PageRef, formatPageRef, formatCitation, type PageRefProps } from "./primitives/PageRef";
 export { Markdown, renderInline } from "./primitives/Markdown";
-export { RuleCardView, RuleCardList, filterRuleCards, type RuleCardViewProps, type RuleCardListProps } from "./primitives/RuleCard";
+export { RuleCardView, RuleCardList, filterRuleCards, rulePreview, type RuleCardViewProps, type RuleCardListProps } from "./primitives/RuleCard";
 export { PlayGuideView, PlayGuideEntryView, PlayGuideTips, playGuidesForMode, filterPlayGuideEntries, type PlayGuideViewProps, type PlayGuideEntryViewProps, type PlayGuideTipsProps } from "./primitives/PlayGuide";
 export { PromptDialog, type PromptDialogProps, type PromptAnswer } from "./primitives/PromptDialog";
 export { useToasts, pushToast, dismissToast, clearToasts, ToastViewport, type Toast, type ToastTone } from "./primitives/Toast";

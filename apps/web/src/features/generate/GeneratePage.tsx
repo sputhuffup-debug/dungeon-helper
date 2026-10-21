@@ -35,7 +35,7 @@ export function GeneratePage() {
               <Link to="/c/$campaignId/generate/$procedureId" params={{ campaignId, procedureId: p.id }} className="prep-proc-card" data-testid={`procedure-${p.id}`}>
                 <span className="prep-proc-card__head">
                   <strong>{p.name}</strong>
-                  <PageRef page={p.page} />
+                  <PageRef page={p.page} cite={p.cite} original={p.original} />
                 </span>
                 {p.description && <span className="cf-muted">{p.description}</span>}
                 <span className="app-row">

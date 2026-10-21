@@ -75,7 +75,7 @@ export function RollRecordList({ rolls }: { rolls: RollRecord[] }) {
             {r.iteration !== undefined ? ` #${r.iteration + 1}` : ""}
           </span>
           <span>
-            {r.rowLabel ?? String(typeof r.result === "string" ? r.result : "")} <PageRef page={r.page} />
+            {r.rowLabel ?? String(typeof r.result === "string" ? r.result : "")} <PageRef page={r.page} cite={r.cite} />
           </span>
           <span className="cf-prov__roll-dice">
             {r.dice} → [{r.raw.join(", ")}]{r.modifier ? ` ${r.modifier > 0 ? "+" : ""}${r.modifier}` : ""} = {r.total}

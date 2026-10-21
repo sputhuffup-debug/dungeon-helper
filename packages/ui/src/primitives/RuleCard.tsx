@@ -32,7 +32,7 @@ export function RuleCardView({ card, onOpenRule, onOpenTable, onOpenField, onOpe
       <header className="cf-rule__header">
         <h3 className="cf-rule__title">{card.title}</h3>
         <div className="cf-rule__meta">
-          <PageRef page={card.page} />
+          <PageRef page={card.page} cite={card.cite} original={card.original} />
           {card.mode?.map((m) => (
             <Badge key={m} tone="accent">
               {m}
@@ -79,6 +79,18 @@ export function filterRuleCards(cards: RuleCard[], query: string, mode?: PlayMod
   });
 }
 
+/** A one-paragraph plain-text preview of a card's Markdown summary (long rule text is cut, the card shows it all). */
+export function rulePreview(summary: string, max = 220): string {
+  const plain = summary
+    .replace(/^\s*\|.*\|\s*$/gm, " ")
+    .replace(/^\s*#{1,6}\s+/gm, "")
+    .replace(/[*_`]/g, "")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/\s+/g, " ")
+    .trim();
+  return plain.length > max ? `${plain.slice(0, max).replace(/\s+\S*$/, "")}…` : plain;
+}
+
 export function RuleCardList({ cards, modes, mode, onOpen, className }: RuleCardListProps) {
   const [query, setQuery] = useState("");
   const [modeFilter, setModeFilter] = useState<string>(mode ?? "");
@@ -107,9 +119,9 @@ export function RuleCardList({ cards, modes, mode, onOpen, className }: RuleCard
               <button type="button" className="cf-rulelist__item" onClick={() => onOpen?.(c)}>
                 <span className="cf-rulelist__item-text">
                   <span className="cf-rulelist__item-title">{c.title}</span>
-                  <span className="cf-rulelist__item-summary">{c.summary}</span>
+                  <span className="cf-rulelist__item-summary">{rulePreview(c.summary)}</span>
                 </span>
-                <PageRef page={c.page} />
+                <PageRef page={c.page} cite={c.cite} original={c.original} />
               </button>
             </li>
           ))}

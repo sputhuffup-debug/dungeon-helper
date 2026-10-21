@@ -1,0 +1,38 @@
+{
+  "$schema": "../../../module-sdk/schema/module-pack-part.schema.json",
+  "format": "campaign-forge-pack-part",
+  "formatVersion": 1,
+  "pack": "example-pack",
+  "name": "rules.part.json",
+  "rules": [
+    {
+      "id": "example-pack.rule.lantern",
+      "title": "Lantern oil",
+      "summary": "Each hour underground burns one hour of oil. When it runs out, every roll has disadvantage.",
+      "page": 12,
+      "links": { "trackers": ["example-pack.tracker.oil"], "fields": ["example-pack.adventurer.oil"] }
+    },
+    {
+      "id": "example-pack.rule.gm-advice",
+      "title": "Keep the dark close",
+      "summary": "Describe only what the lantern shows. This advice is the pack author's own.",
+      "original": true,
+      "mode": ["saga"]
+    }
+  ],
+  "tables": [
+    {
+      "id": "example-pack.weather.today",
+      "name": "Weather",
+      "family": "weather",
+      "cite": "LRD, Weather",
+      "dice": "1d6",
+      "mode": ["saga"],
+      "rows": [
+        { "range": [1, 3], "label": "Clear", "result": { "sky": "clear" } },
+        { "range": [4, 5], "label": "Rain", "result": { "sky": "rain" } },
+        { "range": [6, 6], "label": "Storm", "result": { "sky": "storm" } }
+      ]
+    }
+  ]
+}

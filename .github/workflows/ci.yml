@@ -23,6 +23,8 @@ jobs:
         run: pnpm test
       - name: Table lint
         run: pnpm table-lint
+      - name: Module check (built-in modules and the example data pack)
+        run: pnpm module-check --all --quiet
       - name: Build web app
         run: pnpm --filter @campaign-forge/web build
       - name: End-to-end

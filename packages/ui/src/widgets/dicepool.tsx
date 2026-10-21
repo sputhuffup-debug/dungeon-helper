@@ -7,7 +7,7 @@ export function asDicePool(value: unknown): DicePool | undefined {
   return value as unknown as DicePool;
 }
 
-/** Read-only breakdown of a dice pool. */
+/** Read-only breakdown of a dice pool: its parts, then the die count (or the pool's own label, e.g. "1d20 + 5"). */
 export function DicePoolView({ pool }: { pool: DicePool }) {
   const total = Object.values(pool.dice).reduce((a, b) => a + (b ?? 0), 0);
   const parts = pool.breakdown && pool.breakdown.length > 0 ? pool.breakdown : Object.entries(pool.dice).map(([die, count]) => ({ label: die, die, count }));
@@ -21,7 +21,7 @@ export function DicePoolView({ pool }: { pool: DicePool }) {
             <span>{p.count > 0 ? `+${p.count}` : p.count}</span>
           </span>
         ))}
-      <span className="cf-dicepool__total">= {total}</span>
+      <span className="cf-dicepool__total">= {pool.label ?? total}</span>
     </div>
   );
 }

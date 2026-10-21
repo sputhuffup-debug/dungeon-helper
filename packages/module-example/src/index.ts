@@ -20,6 +20,7 @@ import type {
   RollTable,
   Rng,
   RuleCard,
+  PackSource,
 } from "@campaign-forge/module-sdk";
 import { examplePlayGuide } from "./guide";
 import { exampleSiteGenerator } from "./sitemap";
@@ -1029,3 +1030,15 @@ export const exampleModule: GameModule = {
 };
 
 export default exampleModule;
+
+/**
+ * Lanternlight, the example data pack (`packs/example-pack/`): the fixture for
+ * the pack format. Every file is its own dynamic import, as a built-in pack's
+ * should be, so the app loads it only when a campaign needs it.
+ */
+export const examplePackSource: PackSource = {
+  main: () => import("../packs/example-pack/pack.json", { with: { type: "json" } }).then((m) => m.default as unknown),
+  parts: {
+    "rules.part.json": () => import("../packs/example-pack/rules.part.json", { with: { type: "json" } }).then((m) => m.default as unknown),
+  },
+};

@@ -50,7 +50,7 @@ describe("lintModule", () => {
     const report = lintModule(synthetic, { skipProcedureRuns: true });
     const errors = fmt(report.errors);
     expect(report.ok).toBe(false);
-    expect(errors).toContain("table:example.table.bad-d66: table has no page reference");
+    expect(errors).toContain("table:example.table.bad-d66: table cites no source: give it a page, a cite, or mark it original");
     expect(errors.some((e) => e.startsWith("table:example.table.bad-d66: row 1 [41-47] has d66 bound 47"))).toBe(true);
     expect(errors.some((e) => e.startsWith("table:example.table.bad-d66: row 2 [48-66] has d66 bound 48"))).toBe(true);
     expect(errors).toContain('table:example.table.misfiled: family "weather" does not match the id segment "table"');
@@ -80,6 +80,17 @@ describe("lintModule", () => {
     expect(errors.some((e) => e.includes('chains into unknown procedure "example.proc.missing"'))).toBe(true);
     expect(warnings.some((w) => w.startsWith("rule:example.rule.prose: summary is") && w.includes("limit 600"))).toBe(true);
     expect(warnings.some((w) => w.startsWith("rule:example.rule.prose: summary has 5 sentences"))).toBe(true);
+  });
+
+  it("does not check rule cards for book prose when the source text is openly licensed", () => {
+    const longSummary = "One. Two. Three. Four. " + "x".repeat(620);
+    const open: GameModule = {
+      ...exampleModule,
+      manifest: { ...exampleModule.manifest, license: { spdx: "CC-BY-4.0", name: "Creative Commons Attribution 4.0 International", attribution: "Fixture text under CC BY 4.0." } },
+      rules: [...exampleModule.rules, { id: "example.rule.prose", title: "Prose", summary: longSummary, cite: "Fixture, Prose" }],
+    };
+    const warnings = fmt(lintModule(open, { skipProcedureRuns: true }).warnings);
+    expect(warnings.filter((w) => w.startsWith("rule:example.rule.prose"))).toEqual([]);
   });
 
   it("counts sentences without splitting on page references or decimals", () => {

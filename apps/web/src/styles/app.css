@@ -344,6 +344,60 @@ h3 {
 .app-licence {
   font-size: var(--cf-text-sm);
   color: var(--cf-muted);
+  overflow-wrap: anywhere;
+}
+.app-attribution {
+  margin-top: var(--cf-space-4);
+  font-size: var(--cf-text-sm);
+}
+.app-attribution summary {
+  cursor: pointer;
+}
+.app-refitem .cf-md {
+  max-width: 70ch;
+}
+.app-modules {
+  list-style: none;
+  margin: var(--cf-space-3) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cf-space-3);
+}
+.app-module {
+  padding: var(--cf-space-2) var(--cf-space-3);
+  border: 1px solid var(--cf-border);
+  border-radius: var(--cf-radius);
+}
+.app-module__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cf-space-2);
+}
+.app-module__meta {
+  margin: var(--cf-space-1) 0 0;
+  font-size: var(--cf-text-sm);
+  overflow-wrap: anywhere;
+}
+.app-module-licence p {
+  margin: var(--cf-space-1) 0 0;
+}
+.app-module-licence__name {
+  font-size: var(--cf-text-sm);
+}
+.app-module-licence__attribution {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+.app-module-issues {
+  max-height: 16rem;
+  overflow: auto;
+  overflow-wrap: anywhere;
+  margin-top: var(--cf-space-2);
+}
+.app-modules-dialog {
+  width: min(44rem, calc(100vw - 2rem));
 }
 .app-loading {
   display: flex;

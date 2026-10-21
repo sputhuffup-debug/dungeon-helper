@@ -16,7 +16,7 @@ export function TrackerFrame({ def, actions, children, className }: TrackerFrame
     <section className={cx("cf-tracker", `cf-tracker--${def.kind}`, className)} aria-label={def.name} data-tracker={def.id}>
       <header className="cf-tracker__header">
         <h3 className="cf-tracker__title">
-          {def.name} <PageRef page={def.page} />
+          {def.name} <PageRef page={def.page} cite={def.cite} />
         </h3>
         {actions && <div className="cf-toolbar__group">{actions}</div>}
       </header>

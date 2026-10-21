@@ -61,7 +61,7 @@ export function TalentsField(props: WidgetProps) {
         return (
           <div key={t.id} className="cf-talents__row" data-talent={t.id}>
             <div>
-              <span className="cf-talents__name">{item?.name ?? t.id}</span> <PageRef page={item?.page} />
+              <span className="cf-talents__name">{item?.name ?? t.id}</span> <PageRef page={item?.page} cite={item?.cite} />
               {item?.summary && <span className="cf-talents__summary">{item.summary}</span>}
             </div>
             {readonly ? (

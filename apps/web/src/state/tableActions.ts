@@ -62,6 +62,7 @@ import {
 } from "@campaign-forge/module-sdk";
 import { appendPanic, clockState, clockUnits, type ClockUnit, type PromptAnswer } from "@campaign-forge/ui";
 import * as Y from "yjs";
+import { loadModuleById } from "../modules/registry";
 import type { CampaignContextValue } from "./CampaignProvider";
 
 type Ctx = Pick<CampaignContextValue, "store" | "module">;
@@ -1002,13 +1003,19 @@ export function finishSession(ctx: Ctx, sessionId: Id, input: FinishSessionInput
 // demo campaigns
 // ---------------------------------------------------------------------------
 
-/** Which demo: "campaign" is Skyfire Down (campaign play), "cinematic" the Cold Harbor one-shot. */
-export type DemoKind = "campaign" | "cinematic";
+/** Which demo: "campaign" is Skyfire Down (campaign play), "cinematic" the Cold Harbor one-shot, "dnd5e" the Thornwick Crossing one-shot (SRD 5.1). */
+export type DemoKind = "campaign" | "cinematic" | "dnd5e";
 
 /** Create a demo campaign on this device (records, rich-text bodies, index entry): "Skyfire Down" by default. */
 export async function loadDemoCampaign(seed?: string, kind: DemoKind = "campaign"): Promise<Id> {
   const demos = await import("@campaign-forge/seed-campaign");
-  const { maps, docs } = kind === "cinematic" ? demos.cinematicDemoJSON(seed ?? demos.CINEMATIC_DEMO_SEED) : demos.demoCampaignJSON(seed ?? demos.DEMO_SEED);
+  const { maps, docs } =
+    kind === "dnd5e"
+      ? // the SRD pack loads through the module registry (and its cache), not a second time inside the demo builder
+        await demos.dnd5eDemoJSON(seed ?? demos.DND5E_DEMO_SEED, (await loadModuleById(demos.DND5E_MODULE_ID)).module)
+      : kind === "cinematic"
+        ? demos.cinematicDemoJSON(seed ?? demos.CINEMATIC_DEMO_SEED)
+        : demos.demoCampaignJSON(seed ?? demos.DEMO_SEED);
   const store = CampaignStore.fromJSON(maps);
   const meta = store.meta();
   const registry = new RichTextRegistry();

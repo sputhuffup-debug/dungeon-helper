@@ -1,0 +1,10705 @@
+{
+ "$schema": "../../module-sdk/schema/module-pack-part.schema.json",
+ "format": "campaign-forge-pack-part",
+ "formatVersion": 1,
+ "pack": "dnd5e-srd",
+ "name": "tables.json",
+ "rules": [
+  {
+   "id": "dnd5e-srd.rule.advice.inspiration",
+   "title": "Inspiration (GM note)",
+   "summary": "A simple reward the GM hands out for playing a character's personality, ideals, bonds or flaws well. A character either has inspiration or not; spending it gives advantage on one attack roll, saving throw or ability check. Track it on the sheet or with the Inspiration tracker.",
+   "original": true,
+   "tags": [
+    "gm advice"
+   ],
+   "links": {
+    "trackers": [
+     "dnd5e-srd.tracker.inspiration"
+    ],
+    "rules": [
+     "dnd5e-srd.rule.advantage-and-disadvantage"
+    ]
+   }
+  },
+  {
+   "id": "dnd5e-srd.rule.advice.calling-for-checks",
+   "title": "Calling for checks (GM advice)",
+   "summary": "Ask for a roll only when the result is uncertain and matters. Name the ability and skill, set the DC (10 easy, 15 medium, 20 hard), and decide before the roll what failure costs. The play guide in table mode lists cues for every skill.",
+   "original": true,
+   "tags": [
+    "gm advice"
+   ],
+   "links": {
+    "rules": [
+     "dnd5e-srd.rule.ability-checks",
+     "dnd5e-srd.rule.ability-checks.typical-difficulty-classes",
+     "dnd5e-srd.rule.advantage-and-disadvantage"
+    ]
+   }
+  },
+  {
+   "id": "dnd5e-srd.rule.advice.encounters",
+   "title": "Building encounters (GM advice)",
+   "summary": "The encounter generator is a starting point, not a balance formula: it picks SRD monsters whose challenge rating suits the party's level band and the terrain. Adjust numbers to the party's size and resources, and give every fight a reason, a place that matters and a way out.",
+   "original": true,
+   "tags": [
+    "gm advice"
+   ],
+   "links": {
+    "tables": [
+     "dnd5e-srd.encounter.activity"
+    ]
+   }
+  }
+ ],
+ "tables": [
+  {
+   "id": "dnd5e-srd.encounter.arctic-1",
+   "name": "Arctic encounters (levels 1–4)",
+   "family": "encounter",
+   "original": true,
+   "dice": "1d12",
+   "notes": "Who the party meets. Creatures and numbers are suggestions for the level band; adjust to the party's size and how rested they are.",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Tribal Warrior (2d4), CR 1/8",
+     "result": {
+      "preset": "dnd5e-srd.preset.tribal-warrior",
+      "name": "Tribal Warrior",
+      "cr": "1/8",
+      "xp": 25
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.two-d4",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Giant Owl (1d4+1), CR 1/4",
+     "result": {
+      "preset": "dnd5e-srd.preset.giant-owl",
+      "name": "Giant Owl",
+      "cr": "1/4",
+      "xp": 50
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d4-plus-1",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Giant Goat (1d3), CR 1/2",
+     "result": {
+      "preset": "dnd5e-srd.preset.giant-goat",
+      "name": "Giant Goat",
+      "cr": "1/2",
+      "xp": 100
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Ice Mephit (1d3), CR 1/2",
+     "result": {
+      "preset": "dnd5e-srd.preset.ice-mephit",
+      "name": "Ice Mephit",
+      "cr": "1/2",
+      "xp": 100
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Orc (1d3), CR 1/2",
+     "result": {
+      "preset": "dnd5e-srd.preset.orc",
+      "name": "Orc",
+      "cr": "1/2",
+      "xp": 100
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Scout (1d3), CR 1/2",
+     "result": {
+      "preset": "dnd5e-srd.preset.scout",
+      "name": "Scout",
+      "cr": "1/2",
+      "xp": 100
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Berserker, CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.berserker",
+      "name": "Berserker",
+      "cr": "2",
+      "xp": 450,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Giant Elk, CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.giant-elk",
+      "name": "Giant Elk",
+      "cr": "2",
+      "xp": 450,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Ogre, CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.ogre",
+      "name": "Ogre",
+      "cr": "2",
+      "xp": 450,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Polar Bear, CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.polar-bear",
+      "name": "Polar Bear",
+      "cr": "2",
+      "xp": 450,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "White Dragon Wyrmling, CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.white-dragon-wyrmling",
+      "name": "White Dragon Wyrmling",
+      "cr": "2",
+      "xp": 450,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Winter Wolf, CR 3",
+     "result": {
+      "preset": "dnd5e-srd.preset.winter-wolf",
+      "name": "Winter Wolf",
+      "cr": "3",
+      "xp": 700,
+      "count": {
+       "n": 1
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.encounter.arctic-2",
+   "name": "Arctic encounters (levels 5–10)",
+   "family": "encounter",
+   "original": true,
+   "dice": "1d12",
+   "notes": "Who the party meets. Creatures and numbers are suggestions for the level band; adjust to the party's size and how rested they are.",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Dire Wolf (1d4+1), CR 1",
+     "result": {
+      "preset": "dnd5e-srd.preset.dire-wolf",
+      "name": "Dire Wolf",
+      "cr": "1",
+      "xp": 200
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d4-plus-1",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Berserker (1d3), CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.berserker",
+      "name": "Berserker",
+      "cr": "2",
+      "xp": 450
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Giant Elk (1d3), CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.giant-elk",
+      "name": "Giant Elk",
+      "cr": "2",
+      "xp": 450
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Ogre (1d3), CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.ogre",
+      "name": "Ogre",
+      "cr": "2",
+      "xp": 450
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Polar Bear (1d3), CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.polar-bear",
+      "name": "Polar Bear",
+      "cr": "2",
+      "xp": 450
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Saber-Toothed Tiger (1d3), CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.saber-toothed-tiger",
+      "name": "Saber-Toothed Tiger",
+      "cr": "2",
+      "xp": 450
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Winter Wolf (1d2), CR 3",
+     "result": {
+      "preset": "dnd5e-srd.preset.winter-wolf",
+      "name": "Winter Wolf",
+      "cr": "3",
+      "xp": 700
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Troll, CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.troll",
+      "name": "Troll",
+      "cr": "5",
+      "xp": 1800,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Werebear, Hybrid Form, CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.werebear-hybrid",
+      "name": "Werebear, Hybrid Form",
+      "cr": "5",
+      "xp": 1800,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Mammoth, CR 6",
+     "result": {
+      "preset": "dnd5e-srd.preset.mammoth",
+      "name": "Mammoth",
+      "cr": "6",
+      "xp": 2300,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Young White Dragon, CR 6",
+     "result": {
+      "preset": "dnd5e-srd.preset.young-white-dragon",
+      "name": "Young White Dragon",
+      "cr": "6",
+      "xp": 2300,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Frost Giant, CR 8",
+     "result": {
+      "preset": "dnd5e-srd.preset.frost-giant",
+      "name": "Frost Giant",
+      "cr": "8",
+      "xp": 3900,
+      "count": {
+       "n": 1
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.encounter.arctic-3",
+   "name": "Arctic encounters (levels 11–16)",
+   "family": "encounter",
+   "original": true,
+   "dice": "1d8",
+   "notes": "Who the party meets. Creatures and numbers are suggestions for the level band; adjust to the party's size and how rested they are.",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Troll (1d2), CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.troll",
+      "name": "Troll",
+      "cr": "5",
+      "xp": 1800
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Werebear, Hybrid Form (1d2), CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.werebear-hybrid",
+      "name": "Werebear, Hybrid Form",
+      "cr": "5",
+      "xp": 1800
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Mammoth (1d2), CR 6",
+     "result": {
+      "preset": "dnd5e-srd.preset.mammoth",
+      "name": "Mammoth",
+      "cr": "6",
+      "xp": 2300
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Young White Dragon (1d2), CR 6",
+     "result": {
+      "preset": "dnd5e-srd.preset.young-white-dragon",
+      "name": "Young White Dragon",
+      "cr": "6",
+      "xp": 2300
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Frost Giant, CR 8",
+     "result": {
+      "preset": "dnd5e-srd.preset.frost-giant",
+      "name": "Frost Giant",
+      "cr": "8",
+      "xp": 3900,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Remorhaz, CR 11",
+     "result": {
+      "preset": "dnd5e-srd.preset.remorhaz",
+      "name": "Remorhaz",
+      "cr": "11",
+      "xp": 7200,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Adult White Dragon, CR 13",
+     "result": {
+      "preset": "dnd5e-srd.preset.adult-white-dragon",
+      "name": "Adult White Dragon",
+      "cr": "13",
+      "xp": 10000,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Ice Devil, CR 14",
+     "result": {
+      "preset": "dnd5e-srd.preset.ice-devil",
+      "name": "Ice Devil",
+      "cr": "14",
+      "xp": 11500,
+      "count": {
+       "n": 1
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.encounter.arctic-4",
+   "name": "Arctic encounters (levels 17–20)",
+   "family": "encounter",
+   "original": true,
+   "dice": "1d4",
+   "notes": "Who the party meets. Creatures and numbers are suggestions for the level band; adjust to the party's size and how rested they are.",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Remorhaz (1d2), CR 11",
+     "result": {
+      "preset": "dnd5e-srd.preset.remorhaz",
+      "name": "Remorhaz",
+      "cr": "11",
+      "xp": 7200
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Adult White Dragon, CR 13",
+     "result": {
+      "preset": "dnd5e-srd.preset.adult-white-dragon",
+      "name": "Adult White Dragon",
+      "cr": "13",
+      "xp": 10000,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Ice Devil, CR 14",
+     "result": {
+      "preset": "dnd5e-srd.preset.ice-devil",
+      "name": "Ice Devil",
+      "cr": "14",
+      "xp": 11500,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Ancient White Dragon, CR 20",
+     "result": {
+      "preset": "dnd5e-srd.preset.ancient-white-dragon",
+      "name": "Ancient White Dragon",
+      "cr": "20",
+      "xp": 25000,
+      "count": {
+       "n": 1
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.encounter.coast-1",
+   "name": "Coast and sea encounters (levels 1–4)",
+   "family": "encounter",
+   "original": true,
+   "dice": "1d12",
+   "notes": "Who the party meets. Creatures and numbers are suggestions for the level band; adjust to the party's size and how rested they are.",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Bandit (2d4), CR 1/8",
+     "result": {
+      "preset": "dnd5e-srd.preset.bandit",
+      "name": "Bandit",
+      "cr": "1/8",
+      "xp": 25
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.two-d4",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Merfolk (2d4), CR 1/8",
+     "result": {
+      "preset": "dnd5e-srd.preset.merfolk",
+      "name": "Merfolk",
+      "cr": "1/8",
+      "xp": 25
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.two-d4",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Giant Sea Horse (1d3), CR 1/2",
+     "result": {
+      "preset": "dnd5e-srd.preset.giant-sea-horse",
+      "name": "Giant Sea Horse",
+      "cr": "1/2",
+      "xp": 100
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Reef Shark (1d3), CR 1/2",
+     "result": {
+      "preset": "dnd5e-srd.preset.reef-shark",
+      "name": "Reef Shark",
+      "cr": "1/2",
+      "xp": 100
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Thug (1d3), CR 1/2",
+     "result": {
+      "preset": "dnd5e-srd.preset.thug",
+      "name": "Thug",
+      "cr": "1/2",
+      "xp": 100
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Giant Eagle, CR 1",
+     "result": {
+      "preset": "dnd5e-srd.preset.giant-eagle",
+      "name": "Giant Eagle",
+      "cr": "1",
+      "xp": 200,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Harpy, CR 1",
+     "result": {
+      "preset": "dnd5e-srd.preset.harpy",
+      "name": "Harpy",
+      "cr": "1",
+      "xp": 200,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Swarm of Quippers, CR 1",
+     "result": {
+      "preset": "dnd5e-srd.preset.swarm-of-quippers",
+      "name": "Swarm of Quippers",
+      "cr": "1",
+      "xp": 200,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Bronze Dragon Wyrmling, CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.bronze-dragon-wyrmling",
+      "name": "Bronze Dragon Wyrmling",
+      "cr": "2",
+      "xp": 450,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Merrow, CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.merrow",
+      "name": "Merrow",
+      "cr": "2",
+      "xp": 450,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Plesiosaurus, CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.plesiosaurus",
+      "name": "Plesiosaurus",
+      "cr": "2",
+      "xp": 450,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Killer Whale, CR 3",
+     "result": {
+      "preset": "dnd5e-srd.preset.killer-whale",
+      "name": "Killer Whale",
+      "cr": "3",
+      "xp": 700,
+      "count": {
+       "n": 1
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.encounter.coast-2",
+   "name": "Coast and sea encounters (levels 5–10)",
+   "family": "encounter",
+   "original": true,
+   "dice": "1d12",
+   "notes": "Who the party meets. Creatures and numbers are suggestions for the level band; adjust to the party's size and how rested they are.",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Giant Eagle (1d4+1), CR 1",
+     "result": {
+      "preset": "dnd5e-srd.preset.giant-eagle",
+      "name": "Giant Eagle",
+      "cr": "1",
+      "xp": 200
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d4-plus-1",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Giant Octopus (1d4+1), CR 1",
+     "result": {
+      "preset": "dnd5e-srd.preset.giant-octopus",
+      "name": "Giant Octopus",
+      "cr": "1",
+      "xp": 200
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d4-plus-1",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Harpy (1d4+1), CR 1",
+     "result": {
+      "preset": "dnd5e-srd.preset.harpy",
+      "name": "Harpy",
+      "cr": "1",
+      "xp": 200
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d4-plus-1",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Bandit Captain (1d3), CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.bandit-captain",
+      "name": "Bandit Captain",
+      "cr": "2",
+      "xp": 450
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Bronze Dragon Wyrmling (1d3), CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.bronze-dragon-wyrmling",
+      "name": "Bronze Dragon Wyrmling",
+      "cr": "2",
+      "xp": 450
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Hunter Shark (1d3), CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.hunter-shark",
+      "name": "Hunter Shark",
+      "cr": "2",
+      "xp": 450
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Merrow (1d3), CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.merrow",
+      "name": "Merrow",
+      "cr": "2",
+      "xp": 450
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Plesiosaurus (1d3), CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.plesiosaurus",
+      "name": "Plesiosaurus",
+      "cr": "2",
+      "xp": 450
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Sea Hag (1d3), CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.sea-hag",
+      "name": "Sea Hag",
+      "cr": "2",
+      "xp": 450
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Giant Shark, CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.giant-shark",
+      "name": "Giant Shark",
+      "cr": "5",
+      "xp": 1800,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Water Elemental, CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.water-elemental",
+      "name": "Water Elemental",
+      "cr": "5",
+      "xp": 1800,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Young Bronze Dragon, CR 8",
+     "result": {
+      "preset": "dnd5e-srd.preset.young-bronze-dragon",
+      "name": "Young Bronze Dragon",
+      "cr": "8",
+      "xp": 3900,
+      "count": {
+       "n": 1
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.encounter.coast-3",
+   "name": "Coast and sea encounters (levels 11–16)",
+   "family": "encounter",
+   "original": true,
+   "dice": "1d6",
+   "notes": "Who the party meets. Creatures and numbers are suggestions for the level band; adjust to the party's size and how rested they are.",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Giant Shark (1d2), CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.giant-shark",
+      "name": "Giant Shark",
+      "cr": "5",
+      "xp": 1800
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Water Elemental (1d2), CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.water-elemental",
+      "name": "Water Elemental",
+      "cr": "5",
+      "xp": 1800
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Young Bronze Dragon, CR 8",
+     "result": {
+      "preset": "dnd5e-srd.preset.young-bronze-dragon",
+      "name": "Young Bronze Dragon",
+      "cr": "8",
+      "xp": 3900,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Roc, CR 11",
+     "result": {
+      "preset": "dnd5e-srd.preset.roc",
+      "name": "Roc",
+      "cr": "11",
+      "xp": 7200,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Storm Giant, CR 13",
+     "result": {
+      "preset": "dnd5e-srd.preset.storm-giant",
+      "name": "Storm Giant",
+      "cr": "13",
+      "xp": 10000,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Adult Bronze Dragon, CR 15",
+     "result": {
+      "preset": "dnd5e-srd.preset.adult-bronze-dragon",
+      "name": "Adult Bronze Dragon",
+      "cr": "15",
+      "xp": 13000,
+      "count": {
+       "n": 1
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.encounter.coast-4",
+   "name": "Coast and sea encounters (levels 17–20)",
+   "family": "encounter",
+   "original": true,
+   "dice": "1d6",
+   "notes": "Who the party meets. Creatures and numbers are suggestions for the level band; adjust to the party's size and how rested they are.",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Roc (1d2), CR 11",
+     "result": {
+      "preset": "dnd5e-srd.preset.roc",
+      "name": "Roc",
+      "cr": "11",
+      "xp": 7200
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Storm Giant, CR 13",
+     "result": {
+      "preset": "dnd5e-srd.preset.storm-giant",
+      "name": "Storm Giant",
+      "cr": "13",
+      "xp": 10000,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Adult Bronze Dragon, CR 15",
+     "result": {
+      "preset": "dnd5e-srd.preset.adult-bronze-dragon",
+      "name": "Adult Bronze Dragon",
+      "cr": "15",
+      "xp": 13000,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Dragon Turtle, CR 17",
+     "result": {
+      "preset": "dnd5e-srd.preset.dragon-turtle",
+      "name": "Dragon Turtle",
+      "cr": "17",
+      "xp": 18000,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Ancient Bronze Dragon, CR 22",
+     "result": {
+      "preset": "dnd5e-srd.preset.ancient-bronze-dragon",
+      "name": "Ancient Bronze Dragon",
+      "cr": "22",
+      "xp": 41000,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Kraken, CR 23",
+     "result": {
+      "preset": "dnd5e-srd.preset.kraken",
+      "name": "Kraken",
+      "cr": "23",
+      "xp": 50000,
+      "count": {
+       "n": 1
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.encounter.desert-1",
+   "name": "Desert encounters (levels 1–4)",
+   "family": "encounter",
+   "original": true,
+   "dice": "1d12",
+   "notes": "Who the party meets. Creatures and numbers are suggestions for the level band; adjust to the party's size and how rested they are.",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Bandit (2d4), CR 1/8",
+     "result": {
+      "preset": "dnd5e-srd.preset.bandit",
+      "name": "Bandit",
+      "cr": "1/8",
+      "xp": 25
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.two-d4",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Camel (2d4), CR 1/8",
+     "result": {
+      "preset": "dnd5e-srd.preset.camel",
+      "name": "Camel",
+      "cr": "1/8",
+      "xp": 25
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.two-d4",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Giant Lizard (1d4+1), CR 1/4",
+     "result": {
+      "preset": "dnd5e-srd.preset.giant-lizard",
+      "name": "Giant Lizard",
+      "cr": "1/4",
+      "xp": 50
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d4-plus-1",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Dust Mephit (1d3), CR 1/2",
+     "result": {
+      "preset": "dnd5e-srd.preset.dust-mephit",
+      "name": "Dust Mephit",
+      "cr": "1/2",
+      "xp": 100
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Gnoll (1d3), CR 1/2",
+     "result": {
+      "preset": "dnd5e-srd.preset.gnoll",
+      "name": "Gnoll",
+      "cr": "1/2",
+      "xp": 100
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Brass Dragon Wyrmling, CR 1",
+     "result": {
+      "preset": "dnd5e-srd.preset.brass-dragon-wyrmling",
+      "name": "Brass Dragon Wyrmling",
+      "cr": "1",
+      "xp": 200,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Giant Hyena, CR 1",
+     "result": {
+      "preset": "dnd5e-srd.preset.giant-hyena",
+      "name": "Giant Hyena",
+      "cr": "1",
+      "xp": 200,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Bandit Captain, CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.bandit-captain",
+      "name": "Bandit Captain",
+      "cr": "2",
+      "xp": 450,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Giant Constrictor Snake, CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.giant-constrictor-snake",
+      "name": "Giant Constrictor Snake",
+      "cr": "2",
+      "xp": 450,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Basilisk, CR 3",
+     "result": {
+      "preset": "dnd5e-srd.preset.basilisk",
+      "name": "Basilisk",
+      "cr": "3",
+      "xp": 700,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Giant Scorpion, CR 3",
+     "result": {
+      "preset": "dnd5e-srd.preset.giant-scorpion",
+      "name": "Giant Scorpion",
+      "cr": "3",
+      "xp": 700,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Mummy, CR 3",
+     "result": {
+      "preset": "dnd5e-srd.preset.mummy",
+      "name": "Mummy",
+      "cr": "3",
+      "xp": 700,
+      "count": {
+       "n": 1
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.encounter.desert-2",
+   "name": "Desert encounters (levels 5–10)",
+   "family": "encounter",
+   "original": true,
+   "dice": "1d12",
+   "notes": "Who the party meets. Creatures and numbers are suggestions for the level band; adjust to the party's size and how rested they are.",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Brass Dragon Wyrmling (1d4+1), CR 1",
+     "result": {
+      "preset": "dnd5e-srd.preset.brass-dragon-wyrmling",
+      "name": "Brass Dragon Wyrmling",
+      "cr": "1",
+      "xp": 200
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d4-plus-1",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Giant Hyena (1d4+1), CR 1",
+     "result": {
+      "preset": "dnd5e-srd.preset.giant-hyena",
+      "name": "Giant Hyena",
+      "cr": "1",
+      "xp": 200
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d4-plus-1",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Bandit Captain (1d3), CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.bandit-captain",
+      "name": "Bandit Captain",
+      "cr": "2",
+      "xp": 450
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Giant Constrictor Snake (1d3), CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.giant-constrictor-snake",
+      "name": "Giant Constrictor Snake",
+      "cr": "2",
+      "xp": 450
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Basilisk (1d2), CR 3",
+     "result": {
+      "preset": "dnd5e-srd.preset.basilisk",
+      "name": "Basilisk",
+      "cr": "3",
+      "xp": 700
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Blue Dragon Wyrmling (1d2), CR 3",
+     "result": {
+      "preset": "dnd5e-srd.preset.blue-dragon-wyrmling",
+      "name": "Blue Dragon Wyrmling",
+      "cr": "3",
+      "xp": 700
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Mummy (1d2), CR 3",
+     "result": {
+      "preset": "dnd5e-srd.preset.mummy",
+      "name": "Mummy",
+      "cr": "3",
+      "xp": 700
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Lamia, CR 4",
+     "result": {
+      "preset": "dnd5e-srd.preset.lamia",
+      "name": "Lamia",
+      "cr": "4",
+      "xp": 1100,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Air Elemental, CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.air-elemental",
+      "name": "Air Elemental",
+      "cr": "5",
+      "xp": 1800,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Fire Elemental, CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.fire-elemental",
+      "name": "Fire Elemental",
+      "cr": "5",
+      "xp": 1800,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Medusa, CR 6",
+     "result": {
+      "preset": "dnd5e-srd.preset.medusa",
+      "name": "Medusa",
+      "cr": "6",
+      "xp": 2300,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Young Brass Dragon, CR 6",
+     "result": {
+      "preset": "dnd5e-srd.preset.young-brass-dragon",
+      "name": "Young Brass Dragon",
+      "cr": "6",
+      "xp": 2300,
+      "count": {
+       "n": 1
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.encounter.desert-3",
+   "name": "Desert encounters (levels 11–16)",
+   "family": "encounter",
+   "original": true,
+   "dice": "1d12",
+   "notes": "Who the party meets. Creatures and numbers are suggestions for the level band; adjust to the party's size and how rested they are.",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Lamia (1d3), CR 4",
+     "result": {
+      "preset": "dnd5e-srd.preset.lamia",
+      "name": "Lamia",
+      "cr": "4",
+      "xp": 1100
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Air Elemental (1d2), CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.air-elemental",
+      "name": "Air Elemental",
+      "cr": "5",
+      "xp": 1800
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Fire Elemental (1d2), CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.fire-elemental",
+      "name": "Fire Elemental",
+      "cr": "5",
+      "xp": 1800
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Salamander (1d2), CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.salamander",
+      "name": "Salamander",
+      "cr": "5",
+      "xp": 1800
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Medusa (1d2), CR 6",
+     "result": {
+      "preset": "dnd5e-srd.preset.medusa",
+      "name": "Medusa",
+      "cr": "6",
+      "xp": 2300
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Young Brass Dragon (1d2), CR 6",
+     "result": {
+      "preset": "dnd5e-srd.preset.young-brass-dragon",
+      "name": "Young Brass Dragon",
+      "cr": "6",
+      "xp": 2300
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Djinni, CR 11",
+     "result": {
+      "preset": "dnd5e-srd.preset.djinni",
+      "name": "Djinni",
+      "cr": "11",
+      "xp": 7200,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Efreeti, CR 11",
+     "result": {
+      "preset": "dnd5e-srd.preset.efreeti",
+      "name": "Efreeti",
+      "cr": "11",
+      "xp": 7200,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Gynosphinx, CR 11",
+     "result": {
+      "preset": "dnd5e-srd.preset.gynosphinx",
+      "name": "Gynosphinx",
+      "cr": "11",
+      "xp": 7200,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Adult Brass Dragon, CR 13",
+     "result": {
+      "preset": "dnd5e-srd.preset.adult-brass-dragon",
+      "name": "Adult Brass Dragon",
+      "cr": "13",
+      "xp": 10000,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Mummy Lord, CR 15",
+     "result": {
+      "preset": "dnd5e-srd.preset.mummy-lord",
+      "name": "Mummy Lord",
+      "cr": "15",
+      "xp": 13000,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Purple Worm, CR 15",
+     "result": {
+      "preset": "dnd5e-srd.preset.purple-worm",
+      "name": "Purple Worm",
+      "cr": "15",
+      "xp": 13000,
+      "count": {
+       "n": 1
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.encounter.desert-4",
+   "name": "Desert encounters (levels 17–20)",
+   "family": "encounter",
+   "original": true,
+   "dice": "1d11",
+   "notes": "Who the party meets. Creatures and numbers are suggestions for the level band; adjust to the party's size and how rested they are.",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Young Blue Dragon (1d2), CR 9",
+     "result": {
+      "preset": "dnd5e-srd.preset.young-blue-dragon",
+      "name": "Young Blue Dragon",
+      "cr": "9",
+      "xp": 5000
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Djinni (1d2), CR 11",
+     "result": {
+      "preset": "dnd5e-srd.preset.djinni",
+      "name": "Djinni",
+      "cr": "11",
+      "xp": 7200
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Efreeti (1d2), CR 11",
+     "result": {
+      "preset": "dnd5e-srd.preset.efreeti",
+      "name": "Efreeti",
+      "cr": "11",
+      "xp": 7200
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Gynosphinx (1d2), CR 11",
+     "result": {
+      "preset": "dnd5e-srd.preset.gynosphinx",
+      "name": "Gynosphinx",
+      "cr": "11",
+      "xp": 7200
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Adult Brass Dragon, CR 13",
+     "result": {
+      "preset": "dnd5e-srd.preset.adult-brass-dragon",
+      "name": "Adult Brass Dragon",
+      "cr": "13",
+      "xp": 10000,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Mummy Lord, CR 15",
+     "result": {
+      "preset": "dnd5e-srd.preset.mummy-lord",
+      "name": "Mummy Lord",
+      "cr": "15",
+      "xp": 13000,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Purple Worm, CR 15",
+     "result": {
+      "preset": "dnd5e-srd.preset.purple-worm",
+      "name": "Purple Worm",
+      "cr": "15",
+      "xp": 13000,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Adult Blue Dragon, CR 16",
+     "result": {
+      "preset": "dnd5e-srd.preset.adult-blue-dragon",
+      "name": "Adult Blue Dragon",
+      "cr": "16",
+      "xp": 15000,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Androsphinx, CR 17",
+     "result": {
+      "preset": "dnd5e-srd.preset.androsphinx",
+      "name": "Androsphinx",
+      "cr": "17",
+      "xp": 18000,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Ancient Brass Dragon, CR 20",
+     "result": {
+      "preset": "dnd5e-srd.preset.ancient-brass-dragon",
+      "name": "Ancient Brass Dragon",
+      "cr": "20",
+      "xp": 25000,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Ancient Blue Dragon, CR 23",
+     "result": {
+      "preset": "dnd5e-srd.preset.ancient-blue-dragon",
+      "name": "Ancient Blue Dragon",
+      "cr": "23",
+      "xp": 50000,
+      "count": {
+       "n": 1
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.encounter.forest-1",
+   "name": "Forest encounters (levels 1–4)",
+   "family": "encounter",
+   "original": true,
+   "dice": "1d12",
+   "notes": "Who the party meets. Creatures and numbers are suggestions for the level band; adjust to the party's size and how rested they are.",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Bandit (2d4), CR 1/8",
+     "result": {
+      "preset": "dnd5e-srd.preset.bandit",
+      "name": "Bandit",
+      "cr": "1/8",
+      "xp": 25
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.two-d4",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Boar (1d4+1), CR 1/4",
+     "result": {
+      "preset": "dnd5e-srd.preset.boar",
+      "name": "Boar",
+      "cr": "1/4",
+      "xp": 50
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d4-plus-1",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Goblin (1d4+1), CR 1/4",
+     "result": {
+      "preset": "dnd5e-srd.preset.goblin",
+      "name": "Goblin",
+      "cr": "1/4",
+      "xp": 50
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d4-plus-1",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Black Bear (1d3), CR 1/2",
+     "result": {
+      "preset": "dnd5e-srd.preset.black-bear",
+      "name": "Black Bear",
+      "cr": "1/2",
+      "xp": 100
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Hobgoblin (1d3), CR 1/2",
+     "result": {
+      "preset": "dnd5e-srd.preset.hobgoblin",
+      "name": "Hobgoblin",
+      "cr": "1/2",
+      "xp": 100
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Scout (1d3), CR 1/2",
+     "result": {
+      "preset": "dnd5e-srd.preset.scout",
+      "name": "Scout",
+      "cr": "1/2",
+      "xp": 100
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Bugbear, CR 1",
+     "result": {
+      "preset": "dnd5e-srd.preset.bugbear",
+      "name": "Bugbear",
+      "cr": "1",
+      "xp": 200,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Giant Spider, CR 1",
+     "result": {
+      "preset": "dnd5e-srd.preset.giant-spider",
+      "name": "Giant Spider",
+      "cr": "1",
+      "xp": 200,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Bandit Captain, CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.bandit-captain",
+      "name": "Bandit Captain",
+      "cr": "2",
+      "xp": 450,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Giant Boar, CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.giant-boar",
+      "name": "Giant Boar",
+      "cr": "2",
+      "xp": 450,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Green Hag, CR 3",
+     "result": {
+      "preset": "dnd5e-srd.preset.green-hag",
+      "name": "Green Hag",
+      "cr": "3",
+      "xp": 700,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Werewolf, Hybrid Form, CR 3",
+     "result": {
+      "preset": "dnd5e-srd.preset.werewolf-hybrid",
+      "name": "Werewolf, Hybrid Form",
+      "cr": "3",
+      "xp": 700,
+      "count": {
+       "n": 1
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.encounter.forest-2",
+   "name": "Forest encounters (levels 5–10)",
+   "family": "encounter",
+   "original": true,
+   "dice": "1d12",
+   "notes": "Who the party meets. Creatures and numbers are suggestions for the level band; adjust to the party's size and how rested they are.",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Brown Bear (1d4+1), CR 1",
+     "result": {
+      "preset": "dnd5e-srd.preset.brown-bear",
+      "name": "Brown Bear",
+      "cr": "1",
+      "xp": 200
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d4-plus-1",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Dire Wolf (1d4+1), CR 1",
+     "result": {
+      "preset": "dnd5e-srd.preset.dire-wolf",
+      "name": "Dire Wolf",
+      "cr": "1",
+      "xp": 200
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d4-plus-1",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Tiger (1d4+1), CR 1",
+     "result": {
+      "preset": "dnd5e-srd.preset.tiger",
+      "name": "Tiger",
+      "cr": "1",
+      "xp": 200
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d4-plus-1",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Bandit Captain (1d3), CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.bandit-captain",
+      "name": "Bandit Captain",
+      "cr": "2",
+      "xp": 450
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Druid (1d3), CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.druid",
+      "name": "Druid",
+      "cr": "2",
+      "xp": 450
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Giant Boar (1d3), CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.giant-boar",
+      "name": "Giant Boar",
+      "cr": "2",
+      "xp": 450
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Green Hag (1d2), CR 3",
+     "result": {
+      "preset": "dnd5e-srd.preset.green-hag",
+      "name": "Green Hag",
+      "cr": "3",
+      "xp": 700
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Phase Spider (1d2), CR 3",
+     "result": {
+      "preset": "dnd5e-srd.preset.phase-spider",
+      "name": "Phase Spider",
+      "cr": "3",
+      "xp": 700
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Couatl, CR 4",
+     "result": {
+      "preset": "dnd5e-srd.preset.couatl",
+      "name": "Couatl",
+      "cr": "4",
+      "xp": 1100,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Weretiger, Hybrid Form, CR 4",
+     "result": {
+      "preset": "dnd5e-srd.preset.weretiger-hybrid",
+      "name": "Weretiger, Hybrid Form",
+      "cr": "4",
+      "xp": 1100,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Unicorn, CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.unicorn",
+      "name": "Unicorn",
+      "cr": "5",
+      "xp": 1800,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Young Green Dragon, CR 8",
+     "result": {
+      "preset": "dnd5e-srd.preset.young-green-dragon",
+      "name": "Young Green Dragon",
+      "cr": "8",
+      "xp": 3900,
+      "count": {
+       "n": 1
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.encounter.forest-3",
+   "name": "Forest encounters (levels 11–16)",
+   "family": "encounter",
+   "original": true,
+   "dice": "1d10",
+   "notes": "Who the party meets. Creatures and numbers are suggestions for the level band; adjust to the party's size and how rested they are.",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Couatl (1d3), CR 4",
+     "result": {
+      "preset": "dnd5e-srd.preset.couatl",
+      "name": "Couatl",
+      "cr": "4",
+      "xp": 1100
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Wereboar, Hybrid Form (1d3), CR 4",
+     "result": {
+      "preset": "dnd5e-srd.preset.wereboar-hybrid",
+      "name": "Wereboar, Hybrid Form",
+      "cr": "4",
+      "xp": 1100
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Weretiger, Hybrid Form (1d3), CR 4",
+     "result": {
+      "preset": "dnd5e-srd.preset.weretiger-hybrid",
+      "name": "Weretiger, Hybrid Form",
+      "cr": "4",
+      "xp": 1100
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Shambling Mound (1d2), CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.shambling-mound",
+      "name": "Shambling Mound",
+      "cr": "5",
+      "xp": 1800
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Troll (1d2), CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.troll",
+      "name": "Troll",
+      "cr": "5",
+      "xp": 1800
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Unicorn (1d2), CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.unicorn",
+      "name": "Unicorn",
+      "cr": "5",
+      "xp": 1800
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Werebear, Hybrid Form (1d2), CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.werebear-hybrid",
+      "name": "Werebear, Hybrid Form",
+      "cr": "5",
+      "xp": 1800
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Young Green Dragon, CR 8",
+     "result": {
+      "preset": "dnd5e-srd.preset.young-green-dragon",
+      "name": "Young Green Dragon",
+      "cr": "8",
+      "xp": 3900,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Treant, CR 9",
+     "result": {
+      "preset": "dnd5e-srd.preset.treant",
+      "name": "Treant",
+      "cr": "9",
+      "xp": 5000,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Adult Green Dragon, CR 15",
+     "result": {
+      "preset": "dnd5e-srd.preset.adult-green-dragon",
+      "name": "Adult Green Dragon",
+      "cr": "15",
+      "xp": 13000,
+      "count": {
+       "n": 1
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.encounter.forest-4",
+   "name": "Forest encounters (levels 17–20)",
+   "family": "encounter",
+   "original": true,
+   "dice": "1d4",
+   "notes": "Who the party meets. Creatures and numbers are suggestions for the level band; adjust to the party's size and how rested they are.",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Young Green Dragon (1d3), CR 8",
+     "result": {
+      "preset": "dnd5e-srd.preset.young-green-dragon",
+      "name": "Young Green Dragon",
+      "cr": "8",
+      "xp": 3900
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Treant (1d2), CR 9",
+     "result": {
+      "preset": "dnd5e-srd.preset.treant",
+      "name": "Treant",
+      "cr": "9",
+      "xp": 5000
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Adult Green Dragon, CR 15",
+     "result": {
+      "preset": "dnd5e-srd.preset.adult-green-dragon",
+      "name": "Adult Green Dragon",
+      "cr": "15",
+      "xp": 13000,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Ancient Green Dragon, CR 22",
+     "result": {
+      "preset": "dnd5e-srd.preset.ancient-green-dragon",
+      "name": "Ancient Green Dragon",
+      "cr": "22",
+      "xp": 41000,
+      "count": {
+       "n": 1
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.encounter.grassland-1",
+   "name": "Grassland and hills encounters (levels 1–4)",
+   "family": "encounter",
+   "original": true,
+   "dice": "1d12",
+   "notes": "Who the party meets. Creatures and numbers are suggestions for the level band; adjust to the party's size and how rested they are.",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Bandit (2d4), CR 1/8",
+     "result": {
+      "preset": "dnd5e-srd.preset.bandit",
+      "name": "Bandit",
+      "cr": "1/8",
+      "xp": 25
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.two-d4",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Axe Beak (1d4+1), CR 1/4",
+     "result": {
+      "preset": "dnd5e-srd.preset.axe-beak",
+      "name": "Axe Beak",
+      "cr": "1/4",
+      "xp": 50
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d4-plus-1",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Cockatrice (1d3), CR 1/2",
+     "result": {
+      "preset": "dnd5e-srd.preset.cockatrice",
+      "name": "Cockatrice",
+      "cr": "1/2",
+      "xp": 100
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Gnoll (1d3), CR 1/2",
+     "result": {
+      "preset": "dnd5e-srd.preset.gnoll",
+      "name": "Gnoll",
+      "cr": "1/2",
+      "xp": 100
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Orc (1d3), CR 1/2",
+     "result": {
+      "preset": "dnd5e-srd.preset.orc",
+      "name": "Orc",
+      "cr": "1/2",
+      "xp": 100
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Death Dog, CR 1",
+     "result": {
+      "preset": "dnd5e-srd.preset.death-dog",
+      "name": "Death Dog",
+      "cr": "1",
+      "xp": 200,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Lion, CR 1",
+     "result": {
+      "preset": "dnd5e-srd.preset.lion",
+      "name": "Lion",
+      "cr": "1",
+      "xp": 200,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Berserker, CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.berserker",
+      "name": "Berserker",
+      "cr": "2",
+      "xp": 450,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Griffon, CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.griffon",
+      "name": "Griffon",
+      "cr": "2",
+      "xp": 450,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Pegasus, CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.pegasus",
+      "name": "Pegasus",
+      "cr": "2",
+      "xp": 450,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Knight, CR 3",
+     "result": {
+      "preset": "dnd5e-srd.preset.knight",
+      "name": "Knight",
+      "cr": "3",
+      "xp": 700,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Veteran, CR 3",
+     "result": {
+      "preset": "dnd5e-srd.preset.veteran",
+      "name": "Veteran",
+      "cr": "3",
+      "xp": 700,
+      "count": {
+       "n": 1
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.encounter.grassland-2",
+   "name": "Grassland and hills encounters (levels 5–10)",
+   "family": "encounter",
+   "original": true,
+   "dice": "1d12",
+   "notes": "Who the party meets. Creatures and numbers are suggestions for the level band; adjust to the party's size and how rested they are.",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Copper Dragon Wyrmling (1d4+1), CR 1",
+     "result": {
+      "preset": "dnd5e-srd.preset.copper-dragon-wyrmling",
+      "name": "Copper Dragon Wyrmling",
+      "cr": "1",
+      "xp": 200
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d4-plus-1",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Giant Hyena (1d4+1), CR 1",
+     "result": {
+      "preset": "dnd5e-srd.preset.giant-hyena",
+      "name": "Giant Hyena",
+      "cr": "1",
+      "xp": 200
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d4-plus-1",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Ankheg (1d3), CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.ankheg",
+      "name": "Ankheg",
+      "cr": "2",
+      "xp": 450
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Giant Elk (1d3), CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.giant-elk",
+      "name": "Giant Elk",
+      "cr": "2",
+      "xp": 450
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Ogre (1d3), CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.ogre",
+      "name": "Ogre",
+      "cr": "2",
+      "xp": 450
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Rhinoceros (1d3), CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.rhinoceros",
+      "name": "Rhinoceros",
+      "cr": "2",
+      "xp": 450
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Manticore (1d2), CR 3",
+     "result": {
+      "preset": "dnd5e-srd.preset.manticore",
+      "name": "Manticore",
+      "cr": "3",
+      "xp": 700
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Elephant, CR 4",
+     "result": {
+      "preset": "dnd5e-srd.preset.elephant",
+      "name": "Elephant",
+      "cr": "4",
+      "xp": 1100,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Bulette, CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.bulette",
+      "name": "Bulette",
+      "cr": "5",
+      "xp": 1800,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Hill Giant, CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.hill-giant",
+      "name": "Hill Giant",
+      "cr": "5",
+      "xp": 1800,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Wyvern, CR 6",
+     "result": {
+      "preset": "dnd5e-srd.preset.wyvern",
+      "name": "Wyvern",
+      "cr": "6",
+      "xp": 2300,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Tyrannosaurus Rex, CR 8",
+     "result": {
+      "preset": "dnd5e-srd.preset.tyrannosaurus-rex",
+      "name": "Tyrannosaurus Rex",
+      "cr": "8",
+      "xp": 3900,
+      "count": {
+       "n": 1
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.encounter.grassland-3",
+   "name": "Grassland and hills encounters (levels 11–16)",
+   "family": "encounter",
+   "original": true,
+   "dice": "1d12",
+   "notes": "Who the party meets. Creatures and numbers are suggestions for the level band; adjust to the party's size and how rested they are.",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Elephant (1d3), CR 4",
+     "result": {
+      "preset": "dnd5e-srd.preset.elephant",
+      "name": "Elephant",
+      "cr": "4",
+      "xp": 1100
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Wereboar, Hybrid Form (1d3), CR 4",
+     "result": {
+      "preset": "dnd5e-srd.preset.wereboar-hybrid",
+      "name": "Wereboar, Hybrid Form",
+      "cr": "4",
+      "xp": 1100
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Bulette (1d2), CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.bulette",
+      "name": "Bulette",
+      "cr": "5",
+      "xp": 1800
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Gorgon (1d2), CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.gorgon",
+      "name": "Gorgon",
+      "cr": "5",
+      "xp": 1800
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Hill Giant (1d2), CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.hill-giant",
+      "name": "Hill Giant",
+      "cr": "5",
+      "xp": 1800
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Triceratops (1d2), CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.triceratops",
+      "name": "Triceratops",
+      "cr": "5",
+      "xp": 1800
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Chimera (1d2), CR 6",
+     "result": {
+      "preset": "dnd5e-srd.preset.chimera",
+      "name": "Chimera",
+      "cr": "6",
+      "xp": 2300
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Wyvern (1d2), CR 6",
+     "result": {
+      "preset": "dnd5e-srd.preset.wyvern",
+      "name": "Wyvern",
+      "cr": "6",
+      "xp": 2300
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Young Copper Dragon (1d2), CR 7",
+     "result": {
+      "preset": "dnd5e-srd.preset.young-copper-dragon",
+      "name": "Young Copper Dragon",
+      "cr": "7",
+      "xp": 2900
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Tyrannosaurus Rex, CR 8",
+     "result": {
+      "preset": "dnd5e-srd.preset.tyrannosaurus-rex",
+      "name": "Tyrannosaurus Rex",
+      "cr": "8",
+      "xp": 3900,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Young Gold Dragon, CR 10",
+     "result": {
+      "preset": "dnd5e-srd.preset.young-gold-dragon",
+      "name": "Young Gold Dragon",
+      "cr": "10",
+      "xp": 5900,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Adult Copper Dragon, CR 14",
+     "result": {
+      "preset": "dnd5e-srd.preset.adult-copper-dragon",
+      "name": "Adult Copper Dragon",
+      "cr": "14",
+      "xp": 11500,
+      "count": {
+       "n": 1
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.encounter.grassland-4",
+   "name": "Grassland and hills encounters (levels 17–20)",
+   "family": "encounter",
+   "original": true,
+   "dice": "1d5",
+   "notes": "Who the party meets. Creatures and numbers are suggestions for the level band; adjust to the party's size and how rested they are.",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Young Gold Dragon (1d2), CR 10",
+     "result": {
+      "preset": "dnd5e-srd.preset.young-gold-dragon",
+      "name": "Young Gold Dragon",
+      "cr": "10",
+      "xp": 5900
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Adult Copper Dragon, CR 14",
+     "result": {
+      "preset": "dnd5e-srd.preset.adult-copper-dragon",
+      "name": "Adult Copper Dragon",
+      "cr": "14",
+      "xp": 11500,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Adult Gold Dragon, CR 17",
+     "result": {
+      "preset": "dnd5e-srd.preset.adult-gold-dragon",
+      "name": "Adult Gold Dragon",
+      "cr": "17",
+      "xp": 18000,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Ancient Copper Dragon, CR 21",
+     "result": {
+      "preset": "dnd5e-srd.preset.ancient-copper-dragon",
+      "name": "Ancient Copper Dragon",
+      "cr": "21",
+      "xp": 33000,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Ancient Gold Dragon, CR 24",
+     "result": {
+      "preset": "dnd5e-srd.preset.ancient-gold-dragon",
+      "name": "Ancient Gold Dragon",
+      "cr": "24",
+      "xp": 62000,
+      "count": {
+       "n": 1
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.encounter.mountain-1",
+   "name": "Mountains encounters (levels 1–4)",
+   "family": "encounter",
+   "original": true,
+   "dice": "1d12",
+   "notes": "Who the party meets. Creatures and numbers are suggestions for the level band; adjust to the party's size and how rested they are.",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Kobold (2d4), CR 1/8",
+     "result": {
+      "preset": "dnd5e-srd.preset.kobold",
+      "name": "Kobold",
+      "cr": "1/8",
+      "xp": 25
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.two-d4",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Giant Goat (1d3), CR 1/2",
+     "result": {
+      "preset": "dnd5e-srd.preset.giant-goat",
+      "name": "Giant Goat",
+      "cr": "1/2",
+      "xp": 100
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Orc (1d3), CR 1/2",
+     "result": {
+      "preset": "dnd5e-srd.preset.orc",
+      "name": "Orc",
+      "cr": "1/2",
+      "xp": 100
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Giant Eagle, CR 1",
+     "result": {
+      "preset": "dnd5e-srd.preset.giant-eagle",
+      "name": "Giant Eagle",
+      "cr": "1",
+      "xp": 200,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Harpy, CR 1",
+     "result": {
+      "preset": "dnd5e-srd.preset.harpy",
+      "name": "Harpy",
+      "cr": "1",
+      "xp": 200,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Hippogriff, CR 1",
+     "result": {
+      "preset": "dnd5e-srd.preset.hippogriff",
+      "name": "Hippogriff",
+      "cr": "1",
+      "xp": 200,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Gargoyle, CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.gargoyle",
+      "name": "Gargoyle",
+      "cr": "2",
+      "xp": 450,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Griffon, CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.griffon",
+      "name": "Griffon",
+      "cr": "2",
+      "xp": 450,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Ogre, CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.ogre",
+      "name": "Ogre",
+      "cr": "2",
+      "xp": 450,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Silver Dragon Wyrmling, CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.silver-dragon-wyrmling",
+      "name": "Silver Dragon Wyrmling",
+      "cr": "2",
+      "xp": 450,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Basilisk, CR 3",
+     "result": {
+      "preset": "dnd5e-srd.preset.basilisk",
+      "name": "Basilisk",
+      "cr": "3",
+      "xp": 700,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Manticore, CR 3",
+     "result": {
+      "preset": "dnd5e-srd.preset.manticore",
+      "name": "Manticore",
+      "cr": "3",
+      "xp": 700,
+      "count": {
+       "n": 1
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.encounter.mountain-2",
+   "name": "Mountains encounters (levels 5–10)",
+   "family": "encounter",
+   "original": true,
+   "dice": "1d12",
+   "notes": "Who the party meets. Creatures and numbers are suggestions for the level band; adjust to the party's size and how rested they are.",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Giant Eagle (1d4+1), CR 1",
+     "result": {
+      "preset": "dnd5e-srd.preset.giant-eagle",
+      "name": "Giant Eagle",
+      "cr": "1",
+      "xp": 200
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d4-plus-1",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Hippogriff (1d4+1), CR 1",
+     "result": {
+      "preset": "dnd5e-srd.preset.hippogriff",
+      "name": "Hippogriff",
+      "cr": "1",
+      "xp": 200
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d4-plus-1",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Berserker (1d3), CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.berserker",
+      "name": "Berserker",
+      "cr": "2",
+      "xp": 450
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Griffon (1d3), CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.griffon",
+      "name": "Griffon",
+      "cr": "2",
+      "xp": 450
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Silver Dragon Wyrmling (1d3), CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.silver-dragon-wyrmling",
+      "name": "Silver Dragon Wyrmling",
+      "cr": "2",
+      "xp": 450
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Manticore (1d2), CR 3",
+     "result": {
+      "preset": "dnd5e-srd.preset.manticore",
+      "name": "Manticore",
+      "cr": "3",
+      "xp": 700
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Ettin, CR 4",
+     "result": {
+      "preset": "dnd5e-srd.preset.ettin",
+      "name": "Ettin",
+      "cr": "4",
+      "xp": 1100,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Air Elemental, CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.air-elemental",
+      "name": "Air Elemental",
+      "cr": "5",
+      "xp": 1800,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Earth Elemental, CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.earth-elemental",
+      "name": "Earth Elemental",
+      "cr": "5",
+      "xp": 1800,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Chimera, CR 6",
+     "result": {
+      "preset": "dnd5e-srd.preset.chimera",
+      "name": "Chimera",
+      "cr": "6",
+      "xp": 2300,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Wyvern, CR 6",
+     "result": {
+      "preset": "dnd5e-srd.preset.wyvern",
+      "name": "Wyvern",
+      "cr": "6",
+      "xp": 2300,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Frost Giant, CR 8",
+     "result": {
+      "preset": "dnd5e-srd.preset.frost-giant",
+      "name": "Frost Giant",
+      "cr": "8",
+      "xp": 3900,
+      "count": {
+       "n": 1
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.encounter.mountain-3",
+   "name": "Mountains encounters (levels 11–16)",
+   "family": "encounter",
+   "original": true,
+   "dice": "1d12",
+   "notes": "Who the party meets. Creatures and numbers are suggestions for the level band; adjust to the party's size and how rested they are.",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Ettin (1d3), CR 4",
+     "result": {
+      "preset": "dnd5e-srd.preset.ettin",
+      "name": "Ettin",
+      "cr": "4",
+      "xp": 1100
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Red Dragon Wyrmling (1d3), CR 4",
+     "result": {
+      "preset": "dnd5e-srd.preset.red-dragon-wyrmling",
+      "name": "Red Dragon Wyrmling",
+      "cr": "4",
+      "xp": 1100
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Bulette (1d2), CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.bulette",
+      "name": "Bulette",
+      "cr": "5",
+      "xp": 1800
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Earth Elemental (1d2), CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.earth-elemental",
+      "name": "Earth Elemental",
+      "cr": "5",
+      "xp": 1800
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Troll (1d2), CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.troll",
+      "name": "Troll",
+      "cr": "5",
+      "xp": 1800
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Chimera (1d2), CR 6",
+     "result": {
+      "preset": "dnd5e-srd.preset.chimera",
+      "name": "Chimera",
+      "cr": "6",
+      "xp": 2300
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Stone Giant (1d2), CR 7",
+     "result": {
+      "preset": "dnd5e-srd.preset.stone-giant",
+      "name": "Stone Giant",
+      "cr": "7",
+      "xp": 2900
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Frost Giant, CR 8",
+     "result": {
+      "preset": "dnd5e-srd.preset.frost-giant",
+      "name": "Frost Giant",
+      "cr": "8",
+      "xp": 3900,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Cloud Giant, CR 9",
+     "result": {
+      "preset": "dnd5e-srd.preset.cloud-giant",
+      "name": "Cloud Giant",
+      "cr": "9",
+      "xp": 5000,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Fire Giant, CR 9",
+     "result": {
+      "preset": "dnd5e-srd.preset.fire-giant",
+      "name": "Fire Giant",
+      "cr": "9",
+      "xp": 5000,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Young Red Dragon, CR 10",
+     "result": {
+      "preset": "dnd5e-srd.preset.young-red-dragon",
+      "name": "Young Red Dragon",
+      "cr": "10",
+      "xp": 5900,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Roc, CR 11",
+     "result": {
+      "preset": "dnd5e-srd.preset.roc",
+      "name": "Roc",
+      "cr": "11",
+      "xp": 7200,
+      "count": {
+       "n": 1
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.encounter.mountain-4",
+   "name": "Mountains encounters (levels 17–20)",
+   "family": "encounter",
+   "original": true,
+   "dice": "1d9",
+   "notes": "Who the party meets. Creatures and numbers are suggestions for the level band; adjust to the party's size and how rested they are.",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Cloud Giant (1d2), CR 9",
+     "result": {
+      "preset": "dnd5e-srd.preset.cloud-giant",
+      "name": "Cloud Giant",
+      "cr": "9",
+      "xp": 5000
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Fire Giant (1d2), CR 9",
+     "result": {
+      "preset": "dnd5e-srd.preset.fire-giant",
+      "name": "Fire Giant",
+      "cr": "9",
+      "xp": 5000
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Young Silver Dragon (1d2), CR 9",
+     "result": {
+      "preset": "dnd5e-srd.preset.young-silver-dragon",
+      "name": "Young Silver Dragon",
+      "cr": "9",
+      "xp": 5000
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Young Red Dragon (1d2), CR 10",
+     "result": {
+      "preset": "dnd5e-srd.preset.young-red-dragon",
+      "name": "Young Red Dragon",
+      "cr": "10",
+      "xp": 5900
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Roc (1d2), CR 11",
+     "result": {
+      "preset": "dnd5e-srd.preset.roc",
+      "name": "Roc",
+      "cr": "11",
+      "xp": 7200
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Adult Silver Dragon, CR 16",
+     "result": {
+      "preset": "dnd5e-srd.preset.adult-silver-dragon",
+      "name": "Adult Silver Dragon",
+      "cr": "16",
+      "xp": 15000,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Adult Red Dragon, CR 17",
+     "result": {
+      "preset": "dnd5e-srd.preset.adult-red-dragon",
+      "name": "Adult Red Dragon",
+      "cr": "17",
+      "xp": 18000,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Ancient Silver Dragon, CR 23",
+     "result": {
+      "preset": "dnd5e-srd.preset.ancient-silver-dragon",
+      "name": "Ancient Silver Dragon",
+      "cr": "23",
+      "xp": 50000,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Ancient Red Dragon, CR 24",
+     "result": {
+      "preset": "dnd5e-srd.preset.ancient-red-dragon",
+      "name": "Ancient Red Dragon",
+      "cr": "24",
+      "xp": 62000,
+      "count": {
+       "n": 1
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.encounter.swamp-1",
+   "name": "Swamp encounters (levels 1–4)",
+   "family": "encounter",
+   "original": true,
+   "dice": "1d12",
+   "notes": "Who the party meets. Creatures and numbers are suggestions for the level band; adjust to the party's size and how rested they are.",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Poisonous Snake (2d4), CR 1/8",
+     "result": {
+      "preset": "dnd5e-srd.preset.poisonous-snake",
+      "name": "Poisonous Snake",
+      "cr": "1/8",
+      "xp": 25
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.two-d4",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Constrictor Snake (1d4+1), CR 1/4",
+     "result": {
+      "preset": "dnd5e-srd.preset.constrictor-snake",
+      "name": "Constrictor Snake",
+      "cr": "1/4",
+      "xp": 50
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d4-plus-1",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Giant Lizard (1d4+1), CR 1/4",
+     "result": {
+      "preset": "dnd5e-srd.preset.giant-lizard",
+      "name": "Giant Lizard",
+      "cr": "1/4",
+      "xp": 50
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d4-plus-1",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Giant Poisonous Snake (1d4+1), CR 1/4",
+     "result": {
+      "preset": "dnd5e-srd.preset.giant-poisonous-snake",
+      "name": "Giant Poisonous Snake",
+      "cr": "1/4",
+      "xp": 50
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d4-plus-1",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Zombie (1d4+1), CR 1/4",
+     "result": {
+      "preset": "dnd5e-srd.preset.zombie",
+      "name": "Zombie",
+      "cr": "1/4",
+      "xp": 50
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d4-plus-1",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Lizardfolk (1d3), CR 1/2",
+     "result": {
+      "preset": "dnd5e-srd.preset.lizardfolk",
+      "name": "Lizardfolk",
+      "cr": "1/2",
+      "xp": 100
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Ghoul, CR 1",
+     "result": {
+      "preset": "dnd5e-srd.preset.ghoul",
+      "name": "Ghoul",
+      "cr": "1",
+      "xp": 200,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Black Dragon Wyrmling, CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.black-dragon-wyrmling",
+      "name": "Black Dragon Wyrmling",
+      "cr": "2",
+      "xp": 450,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Giant Constrictor Snake, CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.giant-constrictor-snake",
+      "name": "Giant Constrictor Snake",
+      "cr": "2",
+      "xp": 450,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Ogre Zombie, CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.ogre-zombie",
+      "name": "Ogre Zombie",
+      "cr": "2",
+      "xp": 450,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Wererat, Hybrid Form, CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.wererat-hybrid",
+      "name": "Wererat, Hybrid Form",
+      "cr": "2",
+      "xp": 450,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Green Hag, CR 3",
+     "result": {
+      "preset": "dnd5e-srd.preset.green-hag",
+      "name": "Green Hag",
+      "cr": "3",
+      "xp": 700,
+      "count": {
+       "n": 1
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.encounter.swamp-2",
+   "name": "Swamp encounters (levels 5–10)",
+   "family": "encounter",
+   "original": true,
+   "dice": "1d12",
+   "notes": "Who the party meets. Creatures and numbers are suggestions for the level band; adjust to the party's size and how rested they are.",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Ghoul (1d4+1), CR 1",
+     "result": {
+      "preset": "dnd5e-srd.preset.ghoul",
+      "name": "Ghoul",
+      "cr": "1",
+      "xp": 200
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d4-plus-1",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Giant Toad (1d4+1), CR 1",
+     "result": {
+      "preset": "dnd5e-srd.preset.giant-toad",
+      "name": "Giant Toad",
+      "cr": "1",
+      "xp": 200
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d4-plus-1",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Ghast (1d3), CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.ghast",
+      "name": "Ghast",
+      "cr": "2",
+      "xp": 450
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Giant Constrictor Snake (1d3), CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.giant-constrictor-snake",
+      "name": "Giant Constrictor Snake",
+      "cr": "2",
+      "xp": 450
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Swarm of Poisonous Snakes (1d3), CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.swarm-of-poisonous-snakes",
+      "name": "Swarm of Poisonous Snakes",
+      "cr": "2",
+      "xp": 450
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Wererat, Hybrid Form (1d3), CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.wererat-hybrid",
+      "name": "Wererat, Hybrid Form",
+      "cr": "2",
+      "xp": 450
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Green Hag (1d2), CR 3",
+     "result": {
+      "preset": "dnd5e-srd.preset.green-hag",
+      "name": "Green Hag",
+      "cr": "3",
+      "xp": 700
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Giant Crocodile, CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.giant-crocodile",
+      "name": "Giant Crocodile",
+      "cr": "5",
+      "xp": 1800,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Otyugh, CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.otyugh",
+      "name": "Otyugh",
+      "cr": "5",
+      "xp": 1800,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Shambling Mound, CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.shambling-mound",
+      "name": "Shambling Mound",
+      "cr": "5",
+      "xp": 1800,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Young Black Dragon, CR 7",
+     "result": {
+      "preset": "dnd5e-srd.preset.young-black-dragon",
+      "name": "Young Black Dragon",
+      "cr": "7",
+      "xp": 2900,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Hydra, CR 8",
+     "result": {
+      "preset": "dnd5e-srd.preset.hydra",
+      "name": "Hydra",
+      "cr": "8",
+      "xp": 3900,
+      "count": {
+       "n": 1
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.encounter.swamp-3",
+   "name": "Swamp encounters (levels 11–16)",
+   "family": "encounter",
+   "original": true,
+   "dice": "1d8",
+   "notes": "Who the party meets. Creatures and numbers are suggestions for the level band; adjust to the party's size and how rested they are.",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Giant Crocodile (1d2), CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.giant-crocodile",
+      "name": "Giant Crocodile",
+      "cr": "5",
+      "xp": 1800
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Night Hag (1d2), CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.night-hag",
+      "name": "Night Hag",
+      "cr": "5",
+      "xp": 1800
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Otyugh (1d2), CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.otyugh",
+      "name": "Otyugh",
+      "cr": "5",
+      "xp": 1800
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Shambling Mound (1d2), CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.shambling-mound",
+      "name": "Shambling Mound",
+      "cr": "5",
+      "xp": 1800
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Troll (1d2), CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.troll",
+      "name": "Troll",
+      "cr": "5",
+      "xp": 1800
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Young Black Dragon (1d2), CR 7",
+     "result": {
+      "preset": "dnd5e-srd.preset.young-black-dragon",
+      "name": "Young Black Dragon",
+      "cr": "7",
+      "xp": 2900
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Hydra, CR 8",
+     "result": {
+      "preset": "dnd5e-srd.preset.hydra",
+      "name": "Hydra",
+      "cr": "8",
+      "xp": 3900,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Adult Black Dragon, CR 14",
+     "result": {
+      "preset": "dnd5e-srd.preset.adult-black-dragon",
+      "name": "Adult Black Dragon",
+      "cr": "14",
+      "xp": 11500,
+      "count": {
+       "n": 1
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.encounter.swamp-4",
+   "name": "Swamp encounters (levels 17–20)",
+   "family": "encounter",
+   "original": true,
+   "dice": "1d4",
+   "notes": "Who the party meets. Creatures and numbers are suggestions for the level band; adjust to the party's size and how rested they are.",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Young Black Dragon (1d3), CR 7",
+     "result": {
+      "preset": "dnd5e-srd.preset.young-black-dragon",
+      "name": "Young Black Dragon",
+      "cr": "7",
+      "xp": 2900
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Hydra (1d3), CR 8",
+     "result": {
+      "preset": "dnd5e-srd.preset.hydra",
+      "name": "Hydra",
+      "cr": "8",
+      "xp": 3900
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Adult Black Dragon, CR 14",
+     "result": {
+      "preset": "dnd5e-srd.preset.adult-black-dragon",
+      "name": "Adult Black Dragon",
+      "cr": "14",
+      "xp": 11500,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Ancient Black Dragon, CR 21",
+     "result": {
+      "preset": "dnd5e-srd.preset.ancient-black-dragon",
+      "name": "Ancient Black Dragon",
+      "cr": "21",
+      "xp": 33000,
+      "count": {
+       "n": 1
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.encounter.underground-1",
+   "name": "Underground encounters (levels 1–4)",
+   "family": "encounter",
+   "original": true,
+   "dice": "1d12",
+   "notes": "Who the party meets. Creatures and numbers are suggestions for the level band; adjust to the party's size and how rested they are.",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Giant Rat (2d4), CR 1/8",
+     "result": {
+      "preset": "dnd5e-srd.preset.giant-rat",
+      "name": "Giant Rat",
+      "cr": "1/8",
+      "xp": 25
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.two-d4",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Stirge (2d4), CR 1/8",
+     "result": {
+      "preset": "dnd5e-srd.preset.stirge",
+      "name": "Stirge",
+      "cr": "1/8",
+      "xp": 25
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.two-d4",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Goblin (1d4+1), CR 1/4",
+     "result": {
+      "preset": "dnd5e-srd.preset.goblin",
+      "name": "Goblin",
+      "cr": "1/4",
+      "xp": 50
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d4-plus-1",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Skeleton (1d4+1), CR 1/4",
+     "result": {
+      "preset": "dnd5e-srd.preset.skeleton",
+      "name": "Skeleton",
+      "cr": "1/4",
+      "xp": 50
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d4-plus-1",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Darkmantle (1d3), CR 1/2",
+     "result": {
+      "preset": "dnd5e-srd.preset.darkmantle",
+      "name": "Darkmantle",
+      "cr": "1/2",
+      "xp": 100
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Gray Ooze (1d3), CR 1/2",
+     "result": {
+      "preset": "dnd5e-srd.preset.gray-ooze",
+      "name": "Gray Ooze",
+      "cr": "1/2",
+      "xp": 100
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Bugbear, CR 1",
+     "result": {
+      "preset": "dnd5e-srd.preset.bugbear",
+      "name": "Bugbear",
+      "cr": "1",
+      "xp": 200,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Ghoul, CR 1",
+     "result": {
+      "preset": "dnd5e-srd.preset.ghoul",
+      "name": "Ghoul",
+      "cr": "1",
+      "xp": 200,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Specter, CR 1",
+     "result": {
+      "preset": "dnd5e-srd.preset.specter",
+      "name": "Specter",
+      "cr": "1",
+      "xp": 200,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Gibbering Mouther, CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.gibbering-mouther",
+      "name": "Gibbering Mouther",
+      "cr": "2",
+      "xp": 450,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Ochre Jelly, CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.ochre-jelly",
+      "name": "Ochre Jelly",
+      "cr": "2",
+      "xp": 450,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Wight, CR 3",
+     "result": {
+      "preset": "dnd5e-srd.preset.wight",
+      "name": "Wight",
+      "cr": "3",
+      "xp": 700,
+      "count": {
+       "n": 1
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.encounter.underground-2",
+   "name": "Underground encounters (levels 5–10)",
+   "family": "encounter",
+   "original": true,
+   "dice": "1d12",
+   "notes": "Who the party meets. Creatures and numbers are suggestions for the level band; adjust to the party's size and how rested they are.",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Bugbear (1d4+1), CR 1",
+     "result": {
+      "preset": "dnd5e-srd.preset.bugbear",
+      "name": "Bugbear",
+      "cr": "1",
+      "xp": 200
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d4-plus-1",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Ghoul (1d4+1), CR 1",
+     "result": {
+      "preset": "dnd5e-srd.preset.ghoul",
+      "name": "Ghoul",
+      "cr": "1",
+      "xp": 200
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d4-plus-1",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Specter (1d4+1), CR 1",
+     "result": {
+      "preset": "dnd5e-srd.preset.specter",
+      "name": "Specter",
+      "cr": "1",
+      "xp": 200
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d4-plus-1",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Gibbering Mouther (1d3), CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.gibbering-mouther",
+      "name": "Gibbering Mouther",
+      "cr": "2",
+      "xp": 450
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Mimic (1d3), CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.mimic",
+      "name": "Mimic",
+      "cr": "2",
+      "xp": 450
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Minotaur (1d2), CR 3",
+     "result": {
+      "preset": "dnd5e-srd.preset.minotaur",
+      "name": "Minotaur",
+      "cr": "3",
+      "xp": 700
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Chuul, CR 4",
+     "result": {
+      "preset": "dnd5e-srd.preset.chuul",
+      "name": "Chuul",
+      "cr": "4",
+      "xp": 1100,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Earth Elemental, CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.earth-elemental",
+      "name": "Earth Elemental",
+      "cr": "5",
+      "xp": 1800,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Roper, CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.roper",
+      "name": "Roper",
+      "cr": "5",
+      "xp": 1800,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Wraith, CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.wraith",
+      "name": "Wraith",
+      "cr": "5",
+      "xp": 1800,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Drider, CR 6",
+     "result": {
+      "preset": "dnd5e-srd.preset.drider",
+      "name": "Drider",
+      "cr": "6",
+      "xp": 2300,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Spirit Naga, CR 8",
+     "result": {
+      "preset": "dnd5e-srd.preset.spirit-naga",
+      "name": "Spirit Naga",
+      "cr": "8",
+      "xp": 3900,
+      "count": {
+       "n": 1
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.encounter.underground-3",
+   "name": "Underground encounters (levels 11–16)",
+   "family": "encounter",
+   "original": true,
+   "dice": "1d12",
+   "notes": "Who the party meets. Creatures and numbers are suggestions for the level band; adjust to the party's size and how rested they are.",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Black Pudding (1d3), CR 4",
+     "result": {
+      "preset": "dnd5e-srd.preset.black-pudding",
+      "name": "Black Pudding",
+      "cr": "4",
+      "xp": 1100
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Chuul (1d3), CR 4",
+     "result": {
+      "preset": "dnd5e-srd.preset.chuul",
+      "name": "Chuul",
+      "cr": "4",
+      "xp": 1100
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Earth Elemental (1d2), CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.earth-elemental",
+      "name": "Earth Elemental",
+      "cr": "5",
+      "xp": 1800
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Otyugh (1d2), CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.otyugh",
+      "name": "Otyugh",
+      "cr": "5",
+      "xp": 1800
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Roper (1d2), CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.roper",
+      "name": "Roper",
+      "cr": "5",
+      "xp": 1800
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Vampire Spawn (1d2), CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.vampire-spawn",
+      "name": "Vampire Spawn",
+      "cr": "5",
+      "xp": 1800
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Xorn (1d2), CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.xorn",
+      "name": "Xorn",
+      "cr": "5",
+      "xp": 1800
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Drider (1d2), CR 6",
+     "result": {
+      "preset": "dnd5e-srd.preset.drider",
+      "name": "Drider",
+      "cr": "6",
+      "xp": 2300
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Cloaker, CR 8",
+     "result": {
+      "preset": "dnd5e-srd.preset.cloaker",
+      "name": "Cloaker",
+      "cr": "8",
+      "xp": 3900,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Spirit Naga, CR 8",
+     "result": {
+      "preset": "dnd5e-srd.preset.spirit-naga",
+      "name": "Spirit Naga",
+      "cr": "8",
+      "xp": 3900,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Behir, CR 11",
+     "result": {
+      "preset": "dnd5e-srd.preset.behir",
+      "name": "Behir",
+      "cr": "11",
+      "xp": 7200,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Purple Worm, CR 15",
+     "result": {
+      "preset": "dnd5e-srd.preset.purple-worm",
+      "name": "Purple Worm",
+      "cr": "15",
+      "xp": 13000,
+      "count": {
+       "n": 1
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.encounter.underground-4",
+   "name": "Underground encounters (levels 17–20)",
+   "family": "encounter",
+   "original": true,
+   "dice": "1d4",
+   "notes": "Who the party meets. Creatures and numbers are suggestions for the level band; adjust to the party's size and how rested they are.",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Aboleth (1d2), CR 10",
+     "result": {
+      "preset": "dnd5e-srd.preset.aboleth",
+      "name": "Aboleth",
+      "cr": "10",
+      "xp": 5900
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Behir (1d2), CR 11",
+     "result": {
+      "preset": "dnd5e-srd.preset.behir",
+      "name": "Behir",
+      "cr": "11",
+      "xp": 7200
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Purple Worm, CR 15",
+     "result": {
+      "preset": "dnd5e-srd.preset.purple-worm",
+      "name": "Purple Worm",
+      "cr": "15",
+      "xp": 13000,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Lich, CR 21",
+     "result": {
+      "preset": "dnd5e-srd.preset.lich",
+      "name": "Lich",
+      "cr": "21",
+      "xp": 33000,
+      "count": {
+       "n": 1
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.encounter.urban-1",
+   "name": "Town and city encounters (levels 1–4)",
+   "family": "encounter",
+   "original": true,
+   "dice": "1d12",
+   "notes": "Who the party meets. Creatures and numbers are suggestions for the level band; adjust to the party's size and how rested they are.",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Bandit (2d4), CR 1/8",
+     "result": {
+      "preset": "dnd5e-srd.preset.bandit",
+      "name": "Bandit",
+      "cr": "1/8",
+      "xp": 25
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.two-d4",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Giant Rat (2d4), CR 1/8",
+     "result": {
+      "preset": "dnd5e-srd.preset.giant-rat",
+      "name": "Giant Rat",
+      "cr": "1/8",
+      "xp": 25
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.two-d4",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Mastiff (2d4), CR 1/8",
+     "result": {
+      "preset": "dnd5e-srd.preset.mastiff",
+      "name": "Mastiff",
+      "cr": "1/8",
+      "xp": 25
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.two-d4",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Flying Sword (1d4+1), CR 1/4",
+     "result": {
+      "preset": "dnd5e-srd.preset.flying-sword",
+      "name": "Flying Sword",
+      "cr": "1/4",
+      "xp": 50
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d4-plus-1",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Swarm of Rats (1d4+1), CR 1/4",
+     "result": {
+      "preset": "dnd5e-srd.preset.swarm-of-rats",
+      "name": "Swarm of Rats",
+      "cr": "1/4",
+      "xp": 50
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d4-plus-1",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Zombie (1d4+1), CR 1/4",
+     "result": {
+      "preset": "dnd5e-srd.preset.zombie",
+      "name": "Zombie",
+      "cr": "1/4",
+      "xp": 50
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d4-plus-1",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Animated Armor, CR 1",
+     "result": {
+      "preset": "dnd5e-srd.preset.animated-armor",
+      "name": "Animated Armor",
+      "cr": "1",
+      "xp": 200,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Quasit, CR 1",
+     "result": {
+      "preset": "dnd5e-srd.preset.quasit",
+      "name": "Quasit",
+      "cr": "1",
+      "xp": 200,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Cult Fanatic, CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.cult-fanatic",
+      "name": "Cult Fanatic",
+      "cr": "2",
+      "xp": 450,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Rug of Smothering, CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.rug-of-smothering",
+      "name": "Rug of Smothering",
+      "cr": "2",
+      "xp": 450,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Doppelganger, CR 3",
+     "result": {
+      "preset": "dnd5e-srd.preset.doppelganger",
+      "name": "Doppelganger",
+      "cr": "3",
+      "xp": 700,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Veteran, CR 3",
+     "result": {
+      "preset": "dnd5e-srd.preset.veteran",
+      "name": "Veteran",
+      "cr": "3",
+      "xp": 700,
+      "count": {
+       "n": 1
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.encounter.urban-2",
+   "name": "Town and city encounters (levels 5–10)",
+   "family": "encounter",
+   "original": true,
+   "dice": "1d12",
+   "notes": "Who the party meets. Creatures and numbers are suggestions for the level band; adjust to the party's size and how rested they are.",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Animated Armor (1d4+1), CR 1",
+     "result": {
+      "preset": "dnd5e-srd.preset.animated-armor",
+      "name": "Animated Armor",
+      "cr": "1",
+      "xp": 200
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d4-plus-1",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Quasit (1d4+1), CR 1",
+     "result": {
+      "preset": "dnd5e-srd.preset.quasit",
+      "name": "Quasit",
+      "cr": "1",
+      "xp": 200
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d4-plus-1",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Cult Fanatic (1d3), CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.cult-fanatic",
+      "name": "Cult Fanatic",
+      "cr": "2",
+      "xp": 450
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Priest (1d3), CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.priest",
+      "name": "Priest",
+      "cr": "2",
+      "xp": 450
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Wererat, Hybrid Form (1d3), CR 2",
+     "result": {
+      "preset": "dnd5e-srd.preset.wererat-hybrid",
+      "name": "Wererat, Hybrid Form",
+      "cr": "2",
+      "xp": 450
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Knight (1d2), CR 3",
+     "result": {
+      "preset": "dnd5e-srd.preset.knight",
+      "name": "Knight",
+      "cr": "3",
+      "xp": 700
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Ghost, CR 4",
+     "result": {
+      "preset": "dnd5e-srd.preset.ghost",
+      "name": "Ghost",
+      "cr": "4",
+      "xp": 1100,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Flesh Golem, CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.flesh-golem",
+      "name": "Flesh Golem",
+      "cr": "5",
+      "xp": 1800,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Vampire Spawn, CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.vampire-spawn",
+      "name": "Vampire Spawn",
+      "cr": "5",
+      "xp": 1800,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Invisible Stalker, CR 6",
+     "result": {
+      "preset": "dnd5e-srd.preset.invisible-stalker",
+      "name": "Invisible Stalker",
+      "cr": "6",
+      "xp": 2300,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Oni, CR 7",
+     "result": {
+      "preset": "dnd5e-srd.preset.oni",
+      "name": "Oni",
+      "cr": "7",
+      "xp": 2900,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Assassin, CR 8",
+     "result": {
+      "preset": "dnd5e-srd.preset.assassin",
+      "name": "Assassin",
+      "cr": "8",
+      "xp": 3900,
+      "count": {
+       "n": 1
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.encounter.urban-3",
+   "name": "Town and city encounters (levels 11–16)",
+   "family": "encounter",
+   "original": true,
+   "dice": "1d12",
+   "notes": "Who the party meets. Creatures and numbers are suggestions for the level band; adjust to the party's size and how rested they are.",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Ghost (1d3), CR 4",
+     "result": {
+      "preset": "dnd5e-srd.preset.ghost",
+      "name": "Ghost",
+      "cr": "4",
+      "xp": 1100
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Succubus/Incubus (1d3), CR 4",
+     "result": {
+      "preset": "dnd5e-srd.preset.succubus-incubus",
+      "name": "Succubus/Incubus",
+      "cr": "4",
+      "xp": 1100
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d3",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Gladiator (1d2), CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.gladiator",
+      "name": "Gladiator",
+      "cr": "5",
+      "xp": 1800
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Vampire Spawn (1d2), CR 5",
+     "result": {
+      "preset": "dnd5e-srd.preset.vampire-spawn",
+      "name": "Vampire Spawn",
+      "cr": "5",
+      "xp": 1800
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Invisible Stalker (1d2), CR 6",
+     "result": {
+      "preset": "dnd5e-srd.preset.invisible-stalker",
+      "name": "Invisible Stalker",
+      "cr": "6",
+      "xp": 2300
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Mage (1d2), CR 6",
+     "result": {
+      "preset": "dnd5e-srd.preset.mage",
+      "name": "Mage",
+      "cr": "6",
+      "xp": 2300
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Shield Guardian (1d2), CR 7",
+     "result": {
+      "preset": "dnd5e-srd.preset.shield-guardian",
+      "name": "Shield Guardian",
+      "cr": "7",
+      "xp": 2900
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Assassin, CR 8",
+     "result": {
+      "preset": "dnd5e-srd.preset.assassin",
+      "name": "Assassin",
+      "cr": "8",
+      "xp": 3900,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Clay Golem, CR 9",
+     "result": {
+      "preset": "dnd5e-srd.preset.clay-golem",
+      "name": "Clay Golem",
+      "cr": "9",
+      "xp": 5000,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Stone Golem, CR 10",
+     "result": {
+      "preset": "dnd5e-srd.preset.stone-golem",
+      "name": "Stone Golem",
+      "cr": "10",
+      "xp": 5900,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Rakshasa, CR 13",
+     "result": {
+      "preset": "dnd5e-srd.preset.rakshasa",
+      "name": "Rakshasa",
+      "cr": "13",
+      "xp": 10000,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Vampire, Vampire Form, CR 13",
+     "result": {
+      "preset": "dnd5e-srd.preset.vampire-vampire",
+      "name": "Vampire, Vampire Form",
+      "cr": "13",
+      "xp": 10000,
+      "count": {
+       "n": 1
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.encounter.urban-4",
+   "name": "Town and city encounters (levels 17–20)",
+   "family": "encounter",
+   "original": true,
+   "dice": "1d5",
+   "notes": "Who the party meets. Creatures and numbers are suggestions for the level band; adjust to the party's size and how rested they are.",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Clay Golem (1d2), CR 9",
+     "result": {
+      "preset": "dnd5e-srd.preset.clay-golem",
+      "name": "Clay Golem",
+      "cr": "9",
+      "xp": 5000
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Stone Golem (1d2), CR 10",
+     "result": {
+      "preset": "dnd5e-srd.preset.stone-golem",
+      "name": "Stone Golem",
+      "cr": "10",
+      "xp": 5900
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Archmage (1d2), CR 12",
+     "result": {
+      "preset": "dnd5e-srd.preset.archmage",
+      "name": "Archmage",
+      "cr": "12",
+      "xp": 8400
+     },
+     "roll": [
+      {
+       "table": "dnd5e-srd.count.d2",
+       "as": "count"
+      }
+     ]
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Rakshasa, CR 13",
+     "result": {
+      "preset": "dnd5e-srd.preset.rakshasa",
+      "name": "Rakshasa",
+      "cr": "13",
+      "xp": 10000,
+      "count": {
+       "n": 1
+      }
+     }
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Vampire, Vampire Form, CR 13",
+     "result": {
+      "preset": "dnd5e-srd.preset.vampire-vampire",
+      "name": "Vampire, Vampire Form",
+      "cr": "13",
+      "xp": 10000,
+      "count": {
+       "n": 1
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.count.d2",
+   "name": "Number appearing (1d2)",
+   "family": "count",
+   "original": true,
+   "dice": "1d2",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "1",
+     "result": {
+      "n": 1
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "2",
+     "result": {
+      "n": 2
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.count.d3",
+   "name": "Number appearing (1d3)",
+   "family": "count",
+   "original": true,
+   "dice": "1d3",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "1",
+     "result": {
+      "n": 1
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "2",
+     "result": {
+      "n": 2
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "3",
+     "result": {
+      "n": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.count.d4-plus-1",
+   "name": "Number appearing (1d4+1)",
+   "family": "count",
+   "original": true,
+   "dice": "1d4+1",
+   "rows": [
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "2",
+     "result": {
+      "n": 2
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "3",
+     "result": {
+      "n": 3
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "4",
+     "result": {
+      "n": 4
+     }
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "5",
+     "result": {
+      "n": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.count.two-d4",
+   "name": "Number appearing (2d4)",
+   "family": "count",
+   "original": true,
+   "dice": "2d4",
+   "rows": [
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "2",
+     "result": {
+      "n": 2
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "3",
+     "result": {
+      "n": 3
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "4",
+     "result": {
+      "n": 4
+     }
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "5",
+     "result": {
+      "n": 5
+     }
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "6",
+     "result": {
+      "n": 6
+     }
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "7",
+     "result": {
+      "n": 7
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "8",
+     "result": {
+      "n": 8
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.encounter.activity",
+   "name": "What they are doing",
+   "family": "encounter",
+   "original": true,
+   "dice": "1d10",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Hunting for food, and the party smells like dinner",
+     "result": {
+      "label": "Hunting for food, and the party smells like dinner"
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Resting or asleep, with one sentry dozing",
+     "result": {
+      "label": "Resting or asleep, with one sentry dozing"
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Fighting among themselves over a prize",
+     "result": {
+      "label": "Fighting among themselves over a prize"
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Guarding something they were told to guard",
+     "result": {
+      "label": "Guarding something they were told to guard"
+     }
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Fleeing from something worse",
+     "result": {
+      "label": "Fleeing from something worse"
+     }
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Arguing about which way to go",
+     "result": {
+      "label": "Arguing about which way to go"
+     }
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Setting an ambush on the road ahead",
+     "result": {
+      "label": "Setting an ambush on the road ahead"
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Wounded, and more dangerous for it",
+     "result": {
+      "label": "Wounded, and more dangerous for it"
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Escorting a prisoner",
+     "result": {
+      "label": "Escorting a prisoner"
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Searching the ground for something they lost",
+     "result": {
+      "label": "Searching the ground for something they lost"
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.encounter.twist",
+   "name": "Encounter twist",
+   "family": "encounter",
+   "original": true,
+   "dice": "1d12",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "The weather turns: fog, rain or a sudden gale",
+     "result": {
+      "label": "The weather turns: fog, rain or a sudden gale"
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "A third party arrives halfway through",
+     "result": {
+      "label": "A third party arrives halfway through"
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "One of them wants to defect and will bargain",
+     "result": {
+      "label": "One of them wants to defect and will bargain"
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "The ground is unstable, burning or flooding",
+     "result": {
+      "label": "The ground is unstable, burning or flooding"
+     }
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "They carry a clue to the current quest",
+     "result": {
+      "label": "They carry a clue to the current quest"
+     }
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Their leader is not what it seems",
+     "result": {
+      "label": "Their leader is not what it seems"
+     }
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "They are under a curse or compulsion",
+     "result": {
+      "label": "They are under a curse or compulsion"
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "A captive among them begs for rescue",
+     "result": {
+      "label": "A captive among them begs for rescue"
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "They mistake the party for someone else",
+     "result": {
+      "label": "They mistake the party for someone else"
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Reinforcements are a few rounds away",
+     "result": {
+      "label": "Reinforcements are a few rounds away"
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "They have already been weakened by another fight",
+     "result": {
+      "label": "They have already been weakened by another fight"
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Something valuable will be lost if the fight drags on",
+     "result": {
+      "label": "Something valuable will be lost if the fight drags on"
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.npc.occupation",
+   "name": "NPC occupation",
+   "family": "npc",
+   "original": true,
+   "dice": "1d20",
+   "notes": "Each occupation suggests an SRD stat block in case it comes to a fight.",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Innkeeper",
+     "result": {
+      "occupation": "Innkeeper",
+      "statBlock": "Commoner",
+      "preset": "dnd5e-srd.preset.commoner"
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Town guard",
+     "result": {
+      "occupation": "Town guard",
+      "statBlock": "Guard",
+      "preset": "dnd5e-srd.preset.guard"
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Temple acolyte",
+     "result": {
+      "occupation": "Temple acolyte",
+      "statBlock": "Acolyte",
+      "preset": "dnd5e-srd.preset.acolyte"
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Village priest",
+     "result": {
+      "occupation": "Village priest",
+      "statBlock": "Priest",
+      "preset": "dnd5e-srd.preset.priest"
+     }
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Minor noble",
+     "result": {
+      "occupation": "Minor noble",
+      "statBlock": "Noble",
+      "preset": "dnd5e-srd.preset.noble"
+     }
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Smuggler",
+     "result": {
+      "occupation": "Smuggler",
+      "statBlock": "Bandit",
+      "preset": "dnd5e-srd.preset.bandit"
+     }
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Debt collector",
+     "result": {
+      "occupation": "Debt collector",
+      "statBlock": "Thug",
+      "preset": "dnd5e-srd.preset.thug"
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Informant",
+     "result": {
+      "occupation": "Informant",
+      "statBlock": "Spy",
+      "preset": "dnd5e-srd.preset.spy"
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Retired mercenary",
+     "result": {
+      "occupation": "Retired mercenary",
+      "statBlock": "Veteran",
+      "preset": "dnd5e-srd.preset.veteran"
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Knight errant",
+     "result": {
+      "occupation": "Knight errant",
+      "statBlock": "Knight",
+      "preset": "dnd5e-srd.preset.knight"
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Hedge druid",
+     "result": {
+      "occupation": "Hedge druid",
+      "statBlock": "Druid",
+      "preset": "dnd5e-srd.preset.druid"
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Cult recruiter",
+     "result": {
+      "occupation": "Cult recruiter",
+      "statBlock": "Cult Fanatic",
+      "preset": "dnd5e-srd.preset.cult-fanatic"
+     }
+    },
+    {
+     "range": [
+      13,
+      13
+     ],
+     "label": "Pit fighter",
+     "result": {
+      "occupation": "Pit fighter",
+      "statBlock": "Gladiator",
+      "preset": "dnd5e-srd.preset.gladiator"
+     }
+    },
+    {
+     "range": [
+      14,
+      14
+     ],
+     "label": "Hunter",
+     "result": {
+      "occupation": "Hunter",
+      "statBlock": "Tribal Warrior",
+      "preset": "dnd5e-srd.preset.tribal-warrior"
+     }
+    },
+    {
+     "range": [
+      15,
+      15
+     ],
+     "label": "Forest guide",
+     "result": {
+      "occupation": "Forest guide",
+      "statBlock": "Scout",
+      "preset": "dnd5e-srd.preset.scout"
+     }
+    },
+    {
+     "range": [
+      16,
+      16
+     ],
+     "label": "Blacksmith",
+     "result": {
+      "occupation": "Blacksmith",
+      "statBlock": "Commoner",
+      "preset": "dnd5e-srd.preset.commoner"
+     }
+    },
+    {
+     "range": [
+      17,
+      17
+     ],
+     "label": "Travelling merchant",
+     "result": {
+      "occupation": "Travelling merchant",
+      "statBlock": "Commoner",
+      "preset": "dnd5e-srd.preset.commoner"
+     }
+    },
+    {
+     "range": [
+      18,
+      18
+     ],
+     "label": "Street urchin",
+     "result": {
+      "occupation": "Street urchin",
+      "statBlock": "Commoner",
+      "preset": "dnd5e-srd.preset.commoner"
+     }
+    },
+    {
+     "range": [
+      19,
+      19
+     ],
+     "label": "Ship's mate",
+     "result": {
+      "occupation": "Ship's mate",
+      "statBlock": "Bandit",
+      "preset": "dnd5e-srd.preset.bandit"
+     }
+    },
+    {
+     "range": [
+      20,
+      20
+     ],
+     "label": "Court wizard",
+     "result": {
+      "occupation": "Court wizard",
+      "statBlock": "Mage",
+      "preset": "dnd5e-srd.preset.mage"
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.npc.race",
+   "name": "NPC race",
+   "family": "npc",
+   "original": true,
+   "dice": "1d12",
+   "rows": [
+    {
+     "range": [
+      1,
+      4
+     ],
+     "label": "Human",
+     "result": {
+      "race": "Human"
+     }
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Dwarf",
+     "result": {
+      "race": "Dwarf"
+     }
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Elf",
+     "result": {
+      "race": "Elf"
+     }
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Halfling",
+     "result": {
+      "race": "Halfling"
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Gnome",
+     "result": {
+      "race": "Gnome"
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Half-Elf",
+     "result": {
+      "race": "Half-Elf"
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Half-Orc",
+     "result": {
+      "race": "Half-Orc"
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Dragonborn",
+     "result": {
+      "race": "Dragonborn"
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Tiefling",
+     "result": {
+      "race": "Tiefling"
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.npc.first-name",
+   "name": "First name",
+   "family": "npc",
+   "original": true,
+   "dice": "1d20",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Abel",
+     "result": {
+      "name": "Abel"
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Brannoc",
+     "result": {
+      "name": "Brannoc"
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Corra",
+     "result": {
+      "name": "Corra"
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Dagny",
+     "result": {
+      "name": "Dagny"
+     }
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Edric",
+     "result": {
+      "name": "Edric"
+     }
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Fenna",
+     "result": {
+      "name": "Fenna"
+     }
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Gorrim",
+     "result": {
+      "name": "Gorrim"
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Hesta",
+     "result": {
+      "name": "Hesta"
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Ilvar",
+     "result": {
+      "name": "Ilvar"
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Jorun",
+     "result": {
+      "name": "Jorun"
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Kessa",
+     "result": {
+      "name": "Kessa"
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Lorcan",
+     "result": {
+      "name": "Lorcan"
+     }
+    },
+    {
+     "range": [
+      13,
+      13
+     ],
+     "label": "Maelis",
+     "result": {
+      "name": "Maelis"
+     }
+    },
+    {
+     "range": [
+      14,
+      14
+     ],
+     "label": "Nedda",
+     "result": {
+      "name": "Nedda"
+     }
+    },
+    {
+     "range": [
+      15,
+      15
+     ],
+     "label": "Orrin",
+     "result": {
+      "name": "Orrin"
+     }
+    },
+    {
+     "range": [
+      16,
+      16
+     ],
+     "label": "Pell",
+     "result": {
+      "name": "Pell"
+     }
+    },
+    {
+     "range": [
+      17,
+      17
+     ],
+     "label": "Quilla",
+     "result": {
+      "name": "Quilla"
+     }
+    },
+    {
+     "range": [
+      18,
+      18
+     ],
+     "label": "Roswin",
+     "result": {
+      "name": "Roswin"
+     }
+    },
+    {
+     "range": [
+      19,
+      19
+     ],
+     "label": "Sabeth",
+     "result": {
+      "name": "Sabeth"
+     }
+    },
+    {
+     "range": [
+      20,
+      20
+     ],
+     "label": "Tamsin",
+     "result": {
+      "name": "Tamsin"
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.npc.family-name",
+   "name": "Family name",
+   "family": "npc",
+   "original": true,
+   "dice": "1d20",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Ashby",
+     "result": {
+      "name": "Ashby"
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Brightwater",
+     "result": {
+      "name": "Brightwater"
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Coldhollow",
+     "result": {
+      "name": "Coldhollow"
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Dunmore",
+     "result": {
+      "name": "Dunmore"
+     }
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Emberlake",
+     "result": {
+      "name": "Emberlake"
+     }
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Fallow",
+     "result": {
+      "name": "Fallow"
+     }
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Greyhame",
+     "result": {
+      "name": "Greyhame"
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Hollins",
+     "result": {
+      "name": "Hollins"
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Ironside",
+     "result": {
+      "name": "Ironside"
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Juniper",
+     "result": {
+      "name": "Juniper"
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Kettle",
+     "result": {
+      "name": "Kettle"
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Longbarrow",
+     "result": {
+      "name": "Longbarrow"
+     }
+    },
+    {
+     "range": [
+      13,
+      13
+     ],
+     "label": "Marsh",
+     "result": {
+      "name": "Marsh"
+     }
+    },
+    {
+     "range": [
+      14,
+      14
+     ],
+     "label": "Nettlefield",
+     "result": {
+      "name": "Nettlefield"
+     }
+    },
+    {
+     "range": [
+      15,
+      15
+     ],
+     "label": "Oakes",
+     "result": {
+      "name": "Oakes"
+     }
+    },
+    {
+     "range": [
+      16,
+      16
+     ],
+     "label": "Pike",
+     "result": {
+      "name": "Pike"
+     }
+    },
+    {
+     "range": [
+      17,
+      17
+     ],
+     "label": "Quarry",
+     "result": {
+      "name": "Quarry"
+     }
+    },
+    {
+     "range": [
+      18,
+      18
+     ],
+     "label": "Rook",
+     "result": {
+      "name": "Rook"
+     }
+    },
+    {
+     "range": [
+      19,
+      19
+     ],
+     "label": "Stillwell",
+     "result": {
+      "name": "Stillwell"
+     }
+    },
+    {
+     "range": [
+      20,
+      20
+     ],
+     "label": "Thorne",
+     "result": {
+      "name": "Thorne"
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.npc.quirk",
+   "name": "NPC quirk",
+   "family": "npc",
+   "original": true,
+   "dice": "1d20",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Hums while thinking, always the same tune",
+     "result": {
+      "text": "Hums while thinking, always the same tune"
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Collects buttons and asks for yours",
+     "result": {
+      "text": "Collects buttons and asks for yours"
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Never sits with their back to a door",
+     "result": {
+      "text": "Never sits with their back to a door"
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Speaks of themselves in the third person",
+     "result": {
+      "text": "Speaks of themselves in the third person"
+     }
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Laughs at the wrong moments",
+     "result": {
+      "text": "Laughs at the wrong moments"
+     }
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Counts coins twice, then once more",
+     "result": {
+      "text": "Counts coins twice, then once more"
+     }
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Smells strongly of a herb nobody can name",
+     "result": {
+      "text": "Smells strongly of a herb nobody can name"
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Answers questions with questions",
+     "result": {
+      "text": "Answers questions with questions"
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Has a pet that goes everywhere with them",
+     "result": {
+      "text": "Has a pet that goes everywhere with them"
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Constantly sketches the people they meet",
+     "result": {
+      "text": "Constantly sketches the people they meet"
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Mispronounces one common word, proudly",
+     "result": {
+      "text": "Mispronounces one common word, proudly"
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Keeps a list of everyone who has wronged them",
+     "result": {
+      "text": "Keeps a list of everyone who has wronged them"
+     }
+    },
+    {
+     "range": [
+      13,
+      13
+     ],
+     "label": "Superstitious about the number seven",
+     "result": {
+      "text": "Superstitious about the number seven"
+     }
+    },
+    {
+     "range": [
+      14,
+      14
+     ],
+     "label": "Overly formal, even with friends",
+     "result": {
+      "text": "Overly formal, even with friends"
+     }
+    },
+    {
+     "range": [
+      15,
+      15
+     ],
+     "label": "Eats while talking, every time",
+     "result": {
+      "text": "Eats while talking, every time"
+     }
+    },
+    {
+     "range": [
+      16,
+      16
+     ],
+     "label": "Quotes a grandparent's sayings",
+     "result": {
+      "text": "Quotes a grandparent's sayings"
+     }
+    },
+    {
+     "range": [
+      17,
+      17
+     ],
+     "label": "Wears far too much jewellery",
+     "result": {
+      "text": "Wears far too much jewellery"
+     }
+    },
+    {
+     "range": [
+      18,
+      18
+     ],
+     "label": "Whispers when saying anything important",
+     "result": {
+      "text": "Whispers when saying anything important"
+     }
+    },
+    {
+     "range": [
+      19,
+      19
+     ],
+     "label": "Cannot resist a wager",
+     "result": {
+      "text": "Cannot resist a wager"
+     }
+    },
+    {
+     "range": [
+      20,
+      20
+     ],
+     "label": "Polishes a battered old ring when nervous",
+     "result": {
+      "text": "Polishes a battered old ring when nervous"
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.npc.motivation",
+   "name": "What they want",
+   "family": "npc",
+   "original": true,
+   "dice": "1d12",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Money to pay off a dangerous debt",
+     "result": {
+      "text": "Money to pay off a dangerous debt"
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Revenge on someone the party may know",
+     "result": {
+      "text": "Revenge on someone the party may know"
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "To protect a younger sibling",
+     "result": {
+      "text": "To protect a younger sibling"
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Respect from people who laughed at them",
+     "result": {
+      "text": "Respect from people who laughed at them"
+     }
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "To leave town and never come back",
+     "result": {
+      "text": "To leave town and never come back"
+     }
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "A cure for a sick friend",
+     "result": {
+      "text": "A cure for a sick friend"
+     }
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "To prove a rumour true",
+     "result": {
+      "text": "To prove a rumour true"
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "The deed to a piece of land",
+     "result": {
+      "text": "The deed to a piece of land"
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Forgiveness for an old mistake",
+     "result": {
+      "text": "Forgiveness for an old mistake"
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "To be left alone",
+     "result": {
+      "text": "To be left alone"
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Power over a rival",
+     "result": {
+      "text": "Power over a rival"
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "To find someone who went missing",
+     "result": {
+      "text": "To find someone who went missing"
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.npc.secret",
+   "name": "Their secret",
+   "family": "npc",
+   "original": true,
+   "dice": "1d12",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Works for the people the party is hunting",
+     "result": {
+      "text": "Works for the people the party is hunting"
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Is not who they claim to be",
+     "result": {
+      "text": "Is not who they claim to be"
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Saw the crime and said nothing",
+     "result": {
+      "text": "Saw the crime and said nothing"
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Owes money to a dangerous faction",
+     "result": {
+      "text": "Owes money to a dangerous faction"
+     }
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Has a magic item they cannot control",
+     "result": {
+      "text": "Has a magic item they cannot control"
+     }
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Is in love with someone forbidden to them",
+     "result": {
+      "text": "Is in love with someone forbidden to them"
+     }
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Buried something valuable nearby",
+     "result": {
+      "text": "Buried something valuable nearby"
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Is being blackmailed",
+     "result": {
+      "text": "Is being blackmailed"
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Once served the villain",
+     "result": {
+      "text": "Once served the villain"
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Knows a hidden way in",
+     "result": {
+      "text": "Knows a hidden way in"
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Has a price on their head elsewhere",
+     "result": {
+      "text": "Has a price on their head elsewhere"
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Has no secret, and is suspected anyway",
+     "result": {
+      "text": "Has no secret, and is suspected anyway"
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.npc.voice",
+   "name": "Voice and manner",
+   "family": "npc",
+   "original": true,
+   "dice": "1d10",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Slow and careful, every word weighed",
+     "result": {
+      "text": "Slow and careful, every word weighed"
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Loud, cheerful, too close",
+     "result": {
+      "text": "Loud, cheerful, too close"
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Clipped and impatient",
+     "result": {
+      "text": "Clipped and impatient"
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Soft-spoken; you lean in to hear",
+     "result": {
+      "text": "Soft-spoken; you lean in to hear"
+     }
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Theatrical, with big gestures",
+     "result": {
+      "text": "Theatrical, with big gestures"
+     }
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Nervous, trails off mid-sentence",
+     "result": {
+      "text": "Nervous, trails off mid-sentence"
+     }
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Deadpan; impossible to tell if joking",
+     "result": {
+      "text": "Deadpan; impossible to tell if joking"
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Sing-song, with a strong regional accent",
+     "result": {
+      "text": "Sing-song, with a strong regional accent"
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Gravelly, punctuated by coughs",
+     "result": {
+      "text": "Gravelly, punctuated by coughs"
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Warm and motherly, calls everyone 'dear'",
+     "result": {
+      "text": "Warm and motherly, calls everyone 'dear'"
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.settlement.name-start",
+   "name": "Settlement name (start)",
+   "family": "settlement",
+   "original": true,
+   "dice": "1d20",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Ash",
+     "result": {
+      "name": "Ash"
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Bram",
+     "result": {
+      "name": "Bram"
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Cold",
+     "result": {
+      "name": "Cold"
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Dun",
+     "result": {
+      "name": "Dun"
+     }
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Elder",
+     "result": {
+      "name": "Elder"
+     }
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Fair",
+     "result": {
+      "name": "Fair"
+     }
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Glen",
+     "result": {
+      "name": "Glen"
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Hollow",
+     "result": {
+      "name": "Hollow"
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Iron",
+     "result": {
+      "name": "Iron"
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Kings",
+     "result": {
+      "name": "Kings"
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Long",
+     "result": {
+      "name": "Long"
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Mill",
+     "result": {
+      "name": "Mill"
+     }
+    },
+    {
+     "range": [
+      13,
+      13
+     ],
+     "label": "North",
+     "result": {
+      "name": "North"
+     }
+    },
+    {
+     "range": [
+      14,
+      14
+     ],
+     "label": "Oak",
+     "result": {
+      "name": "Oak"
+     }
+    },
+    {
+     "range": [
+      15,
+      15
+     ],
+     "label": "Raven",
+     "result": {
+      "name": "Raven"
+     }
+    },
+    {
+     "range": [
+      16,
+      16
+     ],
+     "label": "Salt",
+     "result": {
+      "name": "Salt"
+     }
+    },
+    {
+     "range": [
+      17,
+      17
+     ],
+     "label": "Stone",
+     "result": {
+      "name": "Stone"
+     }
+    },
+    {
+     "range": [
+      18,
+      18
+     ],
+     "label": "Thorn",
+     "result": {
+      "name": "Thorn"
+     }
+    },
+    {
+     "range": [
+      19,
+      19
+     ],
+     "label": "West",
+     "result": {
+      "name": "West"
+     }
+    },
+    {
+     "range": [
+      20,
+      20
+     ],
+     "label": "Wil",
+     "result": {
+      "name": "Wil"
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.settlement.name-end",
+   "name": "Settlement name (end)",
+   "family": "settlement",
+   "original": true,
+   "dice": "1d20",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "bridge",
+     "result": {
+      "name": "bridge"
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "brook",
+     "result": {
+      "name": "brook"
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "bury",
+     "result": {
+      "name": "bury"
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "by",
+     "result": {
+      "name": "by"
+     }
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "cross",
+     "result": {
+      "name": "cross"
+     }
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "dale",
+     "result": {
+      "name": "dale"
+     }
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "field",
+     "result": {
+      "name": "field"
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "ford",
+     "result": {
+      "name": "ford"
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "gate",
+     "result": {
+      "name": "gate"
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "haven",
+     "result": {
+      "name": "haven"
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "holm",
+     "result": {
+      "name": "holm"
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "hurst",
+     "result": {
+      "name": "hurst"
+     }
+    },
+    {
+     "range": [
+      13,
+      13
+     ],
+     "label": "mere",
+     "result": {
+      "name": "mere"
+     }
+    },
+    {
+     "range": [
+      14,
+      14
+     ],
+     "label": "moor",
+     "result": {
+      "name": "moor"
+     }
+    },
+    {
+     "range": [
+      15,
+      15
+     ],
+     "label": "stead",
+     "result": {
+      "name": "stead"
+     }
+    },
+    {
+     "range": [
+      16,
+      16
+     ],
+     "label": "thorpe",
+     "result": {
+      "name": "thorpe"
+     }
+    },
+    {
+     "range": [
+      17,
+      17
+     ],
+     "label": "ton",
+     "result": {
+      "name": "ton"
+     }
+    },
+    {
+     "range": [
+      18,
+      18
+     ],
+     "label": "wick",
+     "result": {
+      "name": "wick"
+     }
+    },
+    {
+     "range": [
+      19,
+      19
+     ],
+     "label": "wood",
+     "result": {
+      "name": "wood"
+     }
+    },
+    {
+     "range": [
+      20,
+      20
+     ],
+     "label": "worth",
+     "result": {
+      "name": "worth"
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.settlement.size",
+   "name": "Settlement size",
+   "family": "settlement",
+   "original": true,
+   "dice": "1d6",
+   "rows": [
+    {
+     "range": [
+      1,
+      2
+     ],
+     "label": "Hamlet",
+     "result": {
+      "size": "hamlet",
+      "population": "a few dozen"
+     }
+    },
+    {
+     "range": [
+      3,
+      4
+     ],
+     "label": "Village",
+     "result": {
+      "size": "village",
+      "population": "a few hundred"
+     }
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Town",
+     "result": {
+      "size": "town",
+      "population": "a few thousand"
+     }
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "City",
+     "result": {
+      "size": "city",
+      "population": "tens of thousands"
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.settlement.feature",
+   "name": "Notable feature",
+   "family": "settlement",
+   "original": true,
+   "dice": "1d12",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "A bridge older than anyone remembers",
+     "result": {
+      "text": "A bridge older than anyone remembers"
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "A market that never closes",
+     "result": {
+      "text": "A market that never closes"
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "A temple with a cracked bell",
+     "result": {
+      "text": "A temple with a cracked bell"
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Walls half-built and abandoned",
+     "result": {
+      "text": "Walls half-built and abandoned"
+     }
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "A tower nobody enters",
+     "result": {
+      "text": "A tower nobody enters"
+     }
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "A famous brewery",
+     "result": {
+      "text": "A famous brewery"
+     }
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Hot springs",
+     "result": {
+      "text": "Hot springs"
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "A great tree at the centre of the square",
+     "result": {
+      "text": "A great tree at the centre of the square"
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "An overgrown battlefield nearby",
+     "result": {
+      "text": "An overgrown battlefield nearby"
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "A ferry run by one stubborn family",
+     "result": {
+      "text": "A ferry run by one stubborn family"
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Statues of a forgotten hero",
+     "result": {
+      "text": "Statues of a forgotten hero"
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "A mine that just reopened",
+     "result": {
+      "text": "A mine that just reopened"
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.settlement.trouble",
+   "name": "Local trouble",
+   "family": "settlement",
+   "original": true,
+   "dice": "1d12",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Livestock vanish at night",
+     "result": {
+      "text": "Livestock vanish at night"
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "The well has gone bad",
+     "result": {
+      "text": "The well has gone bad"
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Two families are close to open feud",
+     "result": {
+      "text": "Two families are close to open feud"
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "A tax collector demands double",
+     "result": {
+      "text": "A tax collector demands double"
+     }
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Strangers have taken over the old mill",
+     "result": {
+      "text": "Strangers have taken over the old mill"
+     }
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Children report a voice in the woods",
+     "result": {
+      "text": "Children report a voice in the woods"
+     }
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "A sickness spreads from the docks",
+     "result": {
+      "text": "A sickness spreads from the docks"
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "The lord's heir is missing",
+     "result": {
+      "text": "The lord's heir is missing"
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "A bandit gang demands tribute",
+     "result": {
+      "text": "A bandit gang demands tribute"
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Graves are found opened",
+     "result": {
+      "text": "Graves are found opened"
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "The harvest is failing for no clear reason",
+     "result": {
+      "text": "The harvest is failing for no clear reason"
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "A wizard's experiment has escaped",
+     "result": {
+      "text": "A wizard's experiment has escaped"
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.tavern.name-first",
+   "name": "Tavern name (first word)",
+   "family": "tavern",
+   "original": true,
+   "dice": "1d20",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Silver",
+     "result": {
+      "name": "Silver"
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Rusty",
+     "result": {
+      "name": "Rusty"
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Prancing",
+     "result": {
+      "name": "Prancing"
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Sleeping",
+     "result": {
+      "name": "Sleeping"
+     }
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Golden",
+     "result": {
+      "name": "Golden"
+     }
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Drunken",
+     "result": {
+      "name": "Drunken"
+     }
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Laughing",
+     "result": {
+      "name": "Laughing"
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Crooked",
+     "result": {
+      "name": "Crooked"
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Wandering",
+     "result": {
+      "name": "Wandering"
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Bold",
+     "result": {
+      "name": "Bold"
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Black",
+     "result": {
+      "name": "Black"
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Lucky",
+     "result": {
+      "name": "Lucky"
+     }
+    },
+    {
+     "range": [
+      13,
+      13
+     ],
+     "label": "Weary",
+     "result": {
+      "name": "Weary"
+     }
+    },
+    {
+     "range": [
+      14,
+      14
+     ],
+     "label": "Merry",
+     "result": {
+      "name": "Merry"
+     }
+    },
+    {
+     "range": [
+      15,
+      15
+     ],
+     "label": "Jolly",
+     "result": {
+      "name": "Jolly"
+     }
+    },
+    {
+     "range": [
+      16,
+      16
+     ],
+     "label": "Gilded",
+     "result": {
+      "name": "Gilded"
+     }
+    },
+    {
+     "range": [
+      17,
+      17
+     ],
+     "label": "Copper",
+     "result": {
+      "name": "Copper"
+     }
+    },
+    {
+     "range": [
+      18,
+      18
+     ],
+     "label": "Hungry",
+     "result": {
+      "name": "Hungry"
+     }
+    },
+    {
+     "range": [
+      19,
+      19
+     ],
+     "label": "Red",
+     "result": {
+      "name": "Red"
+     }
+    },
+    {
+     "range": [
+      20,
+      20
+     ],
+     "label": "Singing",
+     "result": {
+      "name": "Singing"
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.tavern.name-second",
+   "name": "Tavern name (second word)",
+   "family": "tavern",
+   "original": true,
+   "dice": "1d20",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Stag",
+     "result": {
+      "name": "Stag"
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Kettle",
+     "result": {
+      "name": "Kettle"
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Badger",
+     "result": {
+      "name": "Badger"
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Anchor",
+     "result": {
+      "name": "Anchor"
+     }
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Goose",
+     "result": {
+      "name": "Goose"
+     }
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Lantern",
+     "result": {
+      "name": "Lantern"
+     }
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Barrel",
+     "result": {
+      "name": "Barrel"
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Dragon",
+     "result": {
+      "name": "Dragon"
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Fiddler",
+     "result": {
+      "name": "Fiddler"
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Mule",
+     "result": {
+      "name": "Mule"
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Crown",
+     "result": {
+      "name": "Crown"
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Boar",
+     "result": {
+      "name": "Boar"
+     }
+    },
+    {
+     "range": [
+      13,
+      13
+     ],
+     "label": "Harp",
+     "result": {
+      "name": "Harp"
+     }
+    },
+    {
+     "range": [
+      14,
+      14
+     ],
+     "label": "Wheel",
+     "result": {
+      "name": "Wheel"
+     }
+    },
+    {
+     "range": [
+      15,
+      15
+     ],
+     "label": "Owl",
+     "result": {
+      "name": "Owl"
+     }
+    },
+    {
+     "range": [
+      16,
+      16
+     ],
+     "label": "Tankard",
+     "result": {
+      "name": "Tankard"
+     }
+    },
+    {
+     "range": [
+      17,
+      17
+     ],
+     "label": "Fox",
+     "result": {
+      "name": "Fox"
+     }
+    },
+    {
+     "range": [
+      18,
+      18
+     ],
+     "label": "Shield",
+     "result": {
+      "name": "Shield"
+     }
+    },
+    {
+     "range": [
+      19,
+      19
+     ],
+     "label": "Pony",
+     "result": {
+      "name": "Pony"
+     }
+    },
+    {
+     "range": [
+      20,
+      20
+     ],
+     "label": "Hound",
+     "result": {
+      "name": "Hound"
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.tavern.special",
+   "name": "House speciality",
+   "family": "tavern",
+   "original": true,
+   "dice": "1d10",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Peppered mutton stew, ruinously spicy",
+     "result": {
+      "text": "Peppered mutton stew, ruinously spicy"
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Dark ale brewed with honey",
+     "result": {
+      "text": "Dark ale brewed with honey"
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Fish pies, fresh every morning",
+     "result": {
+      "text": "Fish pies, fresh every morning"
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "A cider that is mostly rumour",
+     "result": {
+      "text": "A cider that is mostly rumour"
+     }
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Roast fowl with burnt-sugar glaze",
+     "result": {
+      "text": "Roast fowl with burnt-sugar glaze"
+     }
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Hard cheese from the owner's own goats",
+     "result": {
+      "text": "Hard cheese from the owner's own goats"
+     }
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Mulled wine and card games",
+     "result": {
+      "text": "Mulled wine and card games"
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Bard nights: anyone may sing, everyone must listen",
+     "result": {
+      "text": "Bard nights: anyone may sing, everyone must listen"
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "A secret back room for private talk",
+     "result": {
+      "text": "A secret back room for private talk"
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "The cheapest beds in the region, with good reason",
+     "result": {
+      "text": "The cheapest beds in the region, with good reason"
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.treasure.trinket",
+   "name": "Trinket",
+   "family": "treasure",
+   "original": true,
+   "dice": "1d20",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "A brass key with no teeth",
+     "result": {
+      "text": "A brass key with no teeth"
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "A tin soldier painted in unfamiliar colours",
+     "result": {
+      "text": "A tin soldier painted in unfamiliar colours"
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "A pressed flower inside a folded letter",
+     "result": {
+      "text": "A pressed flower inside a folded letter"
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "A wooden whistle that makes no sound",
+     "result": {
+      "text": "A wooden whistle that makes no sound"
+     }
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "A glass marble with a tiny bubble trapped inside",
+     "result": {
+      "text": "A glass marble with a tiny bubble trapped inside"
+     }
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "A child's drawing of a dragon",
+     "result": {
+      "text": "A child's drawing of a dragon"
+     }
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "A ring of braided horsehair",
+     "result": {
+      "text": "A ring of braided horsehair"
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "A die with two sixes and no one",
+     "result": {
+      "text": "A die with two sixes and no one"
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "A thimble engraved with initials",
+     "result": {
+      "text": "A thimble engraved with initials"
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "A shard of a mirror that fogs when you breathe near it",
+     "result": {
+      "text": "A shard of a mirror that fogs when you breathe near it"
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "A pouch of seeds labelled 'do not plant'",
+     "result": {
+      "text": "A pouch of seeds labelled 'do not plant'"
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "A map of a town that does not exist",
+     "result": {
+      "text": "A map of a town that does not exist"
+     }
+    },
+    {
+     "range": [
+      13,
+      13
+     ],
+     "label": "A tooth set in silver",
+     "result": {
+      "text": "A tooth set in silver"
+     }
+    },
+    {
+     "range": [
+      14,
+      14
+     ],
+     "label": "A small bell with the clapper removed",
+     "result": {
+      "text": "A small bell with the clapper removed"
+     }
+    },
+    {
+     "range": [
+      15,
+      15
+     ],
+     "label": "A playing card with the face scratched out",
+     "result": {
+      "text": "A playing card with the face scratched out"
+     }
+    },
+    {
+     "range": [
+      16,
+      16
+     ],
+     "label": "A carved bone fish",
+     "result": {
+      "text": "A carved bone fish"
+     }
+    },
+    {
+     "range": [
+      17,
+      17
+     ],
+     "label": "A lock of grey hair tied with ribbon",
+     "result": {
+      "text": "A lock of grey hair tied with ribbon"
+     }
+    },
+    {
+     "range": [
+      18,
+      18
+     ],
+     "label": "A wax seal with an unknown crest",
+     "result": {
+      "text": "A wax seal with an unknown crest"
+     }
+    },
+    {
+     "range": [
+      19,
+      19
+     ],
+     "label": "A spoon bent into a perfect circle",
+     "result": {
+      "text": "A spoon bent into a perfect circle"
+     }
+    },
+    {
+     "range": [
+      20,
+      20
+     ],
+     "label": "A smooth black stone that is always warm",
+     "result": {
+      "text": "A smooth black stone that is always warm"
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.travel.weather",
+   "name": "Weather on the road",
+   "family": "travel",
+   "original": true,
+   "dice": "1d12",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Clear and bright",
+     "result": {
+      "text": "Clear and bright"
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Clear and bitterly cold",
+     "result": {
+      "text": "Clear and bitterly cold"
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Overcast and still",
+     "result": {
+      "text": "Overcast and still"
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Light rain all day",
+     "result": {
+      "text": "Light rain all day"
+     }
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Heavy rain; roads turn to mud",
+     "result": {
+      "text": "Heavy rain; roads turn to mud"
+     }
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Thick fog until midday",
+     "result": {
+      "text": "Thick fog until midday"
+     }
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Strong wind from the hills",
+     "result": {
+      "text": "Strong wind from the hills"
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Thunderstorm in the afternoon",
+     "result": {
+      "text": "Thunderstorm in the afternoon"
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Hot and humid",
+     "result": {
+      "text": "Hot and humid"
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Sleet or snow, depending on the season",
+     "result": {
+      "text": "Sleet or snow, depending on the season"
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "A sudden hailstorm",
+     "result": {
+      "text": "A sudden hailstorm"
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Perfect travelling weather; something feels wrong",
+     "result": {
+      "text": "Perfect travelling weather; something feels wrong"
+     }
+    }
+   ]
+  }
+ ],
+ "procedures": [
+  {
+   "id": "dnd5e-srd.proc.encounter",
+   "name": "Random encounter",
+   "description": "Picks SRD monsters for the terrain and the party's level band, what they are doing and an optional twist. Accept to add the encounter and every creature (from its SRD stat block) to the campaign.",
+   "original": true,
+   "inputs": {
+    "type": "object",
+    "properties": {
+     "partyLevel": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 20,
+      "default": 3,
+      "title": "Party level"
+     },
+     "terrain": {
+      "type": "string",
+      "enum": [
+       "arctic",
+       "coast",
+       "desert",
+       "forest",
+       "grassland",
+       "mountain",
+       "swamp",
+       "underground",
+       "urban"
+      ],
+      "default": "forest",
+      "title": "Terrain"
+     }
+    }
+   },
+   "steps": [
+    {
+     "id": "foe",
+     "title": "Who",
+     "table": {
+      "cat": [
+       "dnd5e-srd.encounter.",
+       {
+        "var": [
+         "inputs.terrain",
+         "forest"
+        ]
+       },
+       "-",
+       {
+        "if": [
+         {
+          "<=": [
+           {
+            "var": [
+             "inputs.partyLevel",
+             3
+            ]
+           },
+           4
+          ]
+         },
+         1,
+         {
+          "<=": [
+           {
+            "var": [
+             "inputs.partyLevel",
+             3
+            ]
+           },
+           10
+          ]
+         },
+         2,
+         {
+          "<=": [
+           {
+            "var": [
+             "inputs.partyLevel",
+             3
+            ]
+           },
+           16
+          ]
+         },
+         3,
+         4
+        ]
+       }
+      ]
+     }
+    },
+    {
+     "id": "group",
+     "title": "How many",
+     "reads": [
+      "foe"
+     ],
+     "repeat": {
+      "var": [
+       "results.foe.count.n",
+       1
+      ]
+     },
+     "value": {
+      "var": "results.foe"
+     }
+    },
+    {
+     "id": "activity",
+     "title": "Doing what",
+     "table": "dnd5e-srd.encounter.activity"
+    },
+    {
+     "id": "twist",
+     "title": "Twist",
+     "optional": true,
+     "table": "dnd5e-srd.encounter.twist"
+    }
+   ],
+   "produce": {
+    "entities": [
+     {
+      "tempId": "encounter",
+      "type": "dnd5e-srd.encounter",
+      "name": {
+       "cat": [
+        {
+         "var": [
+          "results.foe.count.n",
+          1
+         ]
+        },
+        " × ",
+        {
+         "var": "results.foe.name"
+        }
+       ]
+      },
+      "summary": {
+       "var": "results.activity.label"
+      },
+      "tags": [
+       "random encounter"
+      ],
+      "fields": {
+       "environment": {
+        "var": "inputs.terrain"
+       },
+       "partyLevel": {
+        "var": "inputs.partyLevel"
+       },
+       "creatures": {
+        "cat": [
+         {
+          "var": [
+           "results.foe.count.n",
+           1
+          ]
+         },
+         " × ",
+         {
+          "var": "results.foe.name"
+         },
+         " (CR ",
+         {
+          "var": "results.foe.cr"
+         },
+         ", ",
+         {
+          "var": "results.foe.xp"
+         },
+         " XP each)"
+        ]
+       },
+       "activity": {
+        "var": "results.activity.label"
+       },
+       "twist": {
+        "var": [
+         "results.twist.label",
+         ""
+        ]
+       },
+       "xpTotal": {
+        "*": [
+         {
+          "var": [
+           "results.foe.count.n",
+           1
+          ]
+         },
+         {
+          "var": [
+           "results.foe.xp",
+           0
+          ]
+         }
+        ]
+       },
+       "status": "planned"
+      }
+     },
+     {
+      "tempId": "creature",
+      "type": "dnd5e-srd.monster",
+      "each": {
+       "var": "results.group"
+      },
+      "preset": {
+       "var": "item.preset"
+      },
+      "name": {
+       "cat": [
+        {
+         "var": "item.name"
+        },
+        " ",
+        {
+         "+": [
+          {
+           "var": "index"
+          },
+          1
+         ]
+        }
+       ]
+      },
+      "links": [
+       {
+        "type": "appears_in",
+        "to": "encounter"
+       }
+      ]
+     }
+    ]
+   },
+   "chains": [
+    {
+     "procedure": "dnd5e-srd.proc.encounter",
+     "label": "Roll another encounter here",
+     "inputs": {
+      "partyLevel": {
+       "var": "inputs.partyLevel"
+      },
+      "terrain": {
+       "var": "inputs.terrain"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.proc.npc",
+   "name": "NPC",
+   "description": "A name, an occupation (with an SRD stat block to use if it comes to a fight), a quirk, a voice, what they want and what they hide.",
+   "original": true,
+   "steps": [
+    {
+     "id": "first",
+     "title": "First name",
+     "table": "dnd5e-srd.npc.first-name"
+    },
+    {
+     "id": "family",
+     "title": "Family name",
+     "table": "dnd5e-srd.npc.family-name"
+    },
+    {
+     "id": "race",
+     "title": "Race",
+     "table": "dnd5e-srd.npc.race"
+    },
+    {
+     "id": "occupation",
+     "title": "Occupation",
+     "table": "dnd5e-srd.npc.occupation"
+    },
+    {
+     "id": "quirk",
+     "title": "Quirk",
+     "table": "dnd5e-srd.npc.quirk"
+    },
+    {
+     "id": "voice",
+     "title": "Voice",
+     "table": "dnd5e-srd.npc.voice"
+    },
+    {
+     "id": "motivation",
+     "title": "Wants",
+     "table": "dnd5e-srd.npc.motivation"
+    },
+    {
+     "id": "secret",
+     "title": "Secret",
+     "table": "dnd5e-srd.npc.secret"
+    }
+   ],
+   "produce": {
+    "entities": [
+     {
+      "tempId": "npc",
+      "type": "dnd5e-srd.npc",
+      "name": {
+       "cat": [
+        {
+         "var": "results.first.name"
+        },
+        " ",
+        {
+         "var": "results.family.name"
+        }
+       ]
+      },
+      "summary": {
+       "cat": [
+        {
+         "var": "results.race.race"
+        },
+        " ",
+        {
+         "var": "results.occupation.occupation"
+        }
+       ]
+      },
+      "fields": {
+       "occupation": {
+        "var": "results.occupation.occupation"
+       },
+       "race": {
+        "var": "results.race.race"
+       },
+       "quirk": {
+        "var": "results.quirk.text"
+       },
+       "voice": {
+        "var": "results.voice.text"
+       },
+       "motivation": {
+        "var": "results.motivation.text"
+       },
+       "secret": {
+        "var": "results.secret.text"
+       },
+       "statBlock": {
+        "var": "results.occupation.statBlock"
+       },
+       "attitude": "indifferent"
+      }
+     }
+    ]
+   },
+   "chains": [
+    {
+     "procedure": "dnd5e-srd.proc.npc",
+     "label": "Another NPC"
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.proc.settlement",
+   "name": "Settlement and tavern",
+   "description": "A settlement with a name, a notable feature and a local trouble (as a quest rumour), its tavern and the innkeeper.",
+   "original": true,
+   "steps": [
+    {
+     "id": "start",
+     "title": "Name",
+     "table": "dnd5e-srd.settlement.name-start"
+    },
+    {
+     "id": "end",
+     "title": "Name ending",
+     "table": "dnd5e-srd.settlement.name-end"
+    },
+    {
+     "id": "size",
+     "title": "Size",
+     "table": "dnd5e-srd.settlement.size"
+    },
+    {
+     "id": "feature",
+     "title": "Notable feature",
+     "table": "dnd5e-srd.settlement.feature"
+    },
+    {
+     "id": "trouble",
+     "title": "Local trouble",
+     "table": "dnd5e-srd.settlement.trouble"
+    },
+    {
+     "id": "tavernA",
+     "title": "Tavern name",
+     "table": "dnd5e-srd.tavern.name-first"
+    },
+    {
+     "id": "tavernB",
+     "title": "Tavern name",
+     "table": "dnd5e-srd.tavern.name-second"
+    },
+    {
+     "id": "special",
+     "title": "House speciality",
+     "table": "dnd5e-srd.tavern.special"
+    },
+    {
+     "id": "keeperFirst",
+     "title": "Innkeeper",
+     "table": "dnd5e-srd.npc.first-name"
+    },
+    {
+     "id": "keeperFamily",
+     "title": "Innkeeper's family",
+     "table": "dnd5e-srd.npc.family-name"
+    },
+    {
+     "id": "keeperQuirk",
+     "title": "Innkeeper's quirk",
+     "table": "dnd5e-srd.npc.quirk"
+    }
+   ],
+   "produce": {
+    "entities": [
+     {
+      "tempId": "settlement",
+      "type": "dnd5e-srd.location",
+      "subtype": "settlement",
+      "name": {
+       "cat": [
+        {
+         "var": "results.start.name"
+        },
+        {
+         "var": "results.end.name"
+        }
+       ]
+      },
+      "summary": {
+       "cat": [
+        "A ",
+        {
+         "var": "results.size.size"
+        },
+        ". ",
+        {
+         "var": "results.feature.text"
+        },
+        "."
+       ]
+      },
+      "fields": {
+       "size": {
+        "var": "results.size.size"
+       },
+       "population": {
+        "var": "results.size.population"
+       },
+       "environment": "grassland",
+       "danger": "low",
+       "features": [
+        {
+         "var": "results.feature.text"
+        }
+       ],
+       "secrets": {
+        "cat": [
+         "Trouble: ",
+         {
+          "var": "results.trouble.text"
+         }
+        ]
+       }
+      }
+     },
+     {
+      "tempId": "tavern",
+      "type": "dnd5e-srd.location",
+      "subtype": "building",
+      "name": {
+       "cat": [
+        "The ",
+        {
+         "var": "results.tavernA.name"
+        },
+        " ",
+        {
+         "var": "results.tavernB.name"
+        }
+       ]
+      },
+      "summary": {
+       "var": "results.special.text"
+      },
+      "within": "settlement",
+      "fields": {
+       "description": {
+        "cat": [
+         "The tavern of ",
+         {
+          "var": "results.start.name"
+         },
+         {
+          "var": "results.end.name"
+         },
+         ". Known for: ",
+         {
+          "var": "results.special.text"
+         },
+         "."
+        ]
+       },
+       "danger": "safe"
+      }
+     },
+     {
+      "tempId": "innkeeper",
+      "type": "dnd5e-srd.npc",
+      "name": {
+       "cat": [
+        {
+         "var": "results.keeperFirst.name"
+        },
+        " ",
+        {
+         "var": "results.keeperFamily.name"
+        }
+       ]
+      },
+      "summary": "Innkeeper",
+      "within": "tavern",
+      "fields": {
+       "occupation": "Innkeeper",
+       "quirk": {
+        "var": "results.keeperQuirk.text"
+       },
+       "statBlock": "Commoner",
+       "attitude": "friendly"
+      },
+      "links": [
+       {
+        "type": "found_at",
+        "to": "tavern"
+       },
+       {
+        "type": "knows",
+        "to": "rumour",
+        "note": "hears every rumour at the bar"
+       }
+      ]
+     },
+     {
+      "tempId": "rumour",
+      "type": "dnd5e-srd.quest",
+      "name": {
+       "var": "results.trouble.text"
+      },
+      "summary": "A local trouble, heard at the tavern",
+      "within": "settlement",
+      "fields": {
+       "hook": {
+        "cat": [
+         "In ",
+         {
+          "var": "results.start.name"
+         },
+         {
+          "var": "results.end.name"
+         },
+         ": ",
+         {
+          "var": "results.trouble.text"
+         },
+         "."
+        ]
+       },
+       "status": "rumour"
+      }
+     }
+    ]
+   },
+   "chains": [
+    {
+     "procedure": "dnd5e-srd.proc.encounter",
+     "label": "An encounter on the road here",
+     "inputs": {
+      "terrain": "grassland"
+     }
+    }
+   ]
+  }
+ ]
+}

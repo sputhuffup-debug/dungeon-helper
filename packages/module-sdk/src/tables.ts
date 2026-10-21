@@ -110,5 +110,9 @@ export function rollTable(table: RollTable, rng: Rng, registry: TableRegistry, o
   if (nested.length > 0) record.nested = nested;
   const page = row.page ?? table.page;
   if (page !== undefined) record.page = page;
+  else {
+    const cite = row.cite ?? table.cite;
+    if (cite !== undefined) record.cite = cite;
+  }
   return record;
 }

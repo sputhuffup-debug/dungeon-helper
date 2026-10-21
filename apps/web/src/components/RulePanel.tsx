@@ -67,7 +67,7 @@ export function TableView({ table }: { table: RollTable }) {
     <div className="app-tableview">
       <p className="app-row">
         <Badge tone="accent">{table.dice}</Badge>
-        <PageRef page={table.page} />
+        <PageRef page={table.page} cite={table.cite} original={table.original} />
         {table.unverified && <Badge tone="warning">unverified</Badge>}
         {table.notes && <span className="cf-muted">{table.notes}</span>}
       </p>

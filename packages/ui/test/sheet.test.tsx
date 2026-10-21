@@ -85,7 +85,7 @@ describe("SheetRenderer", () => {
     expect(screen.getByTestId("pool-sneak")).toHaveTextContent("4"); // wits 2 + sneak 2
     expect(screen.queryByTestId("pool-endure")).toBeNull(); // hardcore-only skill
     fireEvent.click(within(screen.getByText("Fight").closest("tr")!).getByRole("button", { name: "Roll" }));
-    expect(onRoll).toHaveBeenCalledWith("fight", expect.objectContaining({ attribute: 3, skill: 1 }));
+    expect(onRoll).toHaveBeenCalledWith("fight", expect.objectContaining({ attribute: 3, skill: 1 }), "Fight");
   });
 
   it("rule buttons call onOpenRule and errors render under fields", () => {
@@ -186,6 +186,37 @@ describe("widget registry", () => {
     registerWidget("sparkle", ({ value }) => <span data-testid="sparkle">✦{String(value)}</span>);
     render(<SheetRenderer def={def} mode="standard" fields={heroFields()} onChange={() => {}} />);
     expect(screen.getByTestId("sparkle")).toHaveTextContent("✦1");
+  });
+});
+
+describe("number widgets with no stored value", () => {
+  const field = (path: string): SheetField => ({ path, label: path, widget: "number" });
+  const props = (path: string, schema: Record<string, unknown>): WidgetProps => ({
+    id: `w-${path}`,
+    field: field(path),
+    path,
+    value: undefined,
+    onChange: () => {},
+    schema: schema as WidgetProps["schema"],
+    fields: {},
+    computed: {},
+    readonly: false,
+    referenceLists: {},
+  });
+  it("show the schema default, else 0 inside the bounds, never just the minimum", () => {
+    const NumberWidget = getWidget("number")!;
+    render(
+      <>
+        <NumberWidget {...props("bonus", { type: "integer", minimum: -10, maximum: 20 })} />
+        <NumberWidget {...props("speed", { type: "integer", minimum: 0, maximum: 200, default: 30 })} />
+        <NumberWidget {...props("size", { type: "integer", minimum: 2, maximum: 6 })} />
+        <NumberWidget {...props("debt", { type: "integer", minimum: -9, maximum: -1 })} />
+      </>,
+    );
+    expect(screen.getByRole("spinbutton", { name: "bonus" })).toHaveValue(0);
+    expect(screen.getByRole("spinbutton", { name: "speed" })).toHaveValue(30);
+    expect(screen.getByRole("spinbutton", { name: "size" })).toHaveValue(2);
+    expect(screen.getByRole("spinbutton", { name: "debt" })).toHaveValue(-1);
   });
 });
 

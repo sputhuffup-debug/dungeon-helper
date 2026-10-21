@@ -121,7 +121,7 @@ export function NewEntityPage() {
                           <strong>{p.name}</strong>
                           {p.summary && <span className="cf-muted"> {p.summary}</span>}
                         </span>
-                        <PageRef page={p.page} />
+                        <PageRef page={p.page} cite={p.cite} original={p.original} />
                         {p.unverified && <Badge tone="warning">unverified</Badge>}
                       </label>
                     ))}

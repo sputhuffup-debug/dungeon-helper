@@ -24,7 +24,7 @@ import {
 } from "@campaign-forge/core";
 import type { RollResult } from "@campaign-forge/module-sdk";
 import { useMemo, useState } from "react";
-import { Badge, Button, Card, Dialog, DieFace, HealthBar, PageRef, Stepper, initiativeState, pushToast, specById } from "../../components/ui";
+import { Badge, Button, Card, Dialog, DieFace, HealthBar, PageRef, Stepper, initiativeOrder, initiativeState, pushToast, specById } from "../../components/ui";
 import { errorMessage } from "../../lib/format";
 import {
   adjustDamage,
@@ -80,13 +80,13 @@ export function useTargetRanges(sessionId: Id, map: SiteMap | undefined, from: I
 // the current initiative card
 // ---------------------------------------------------------------------------
 
-/** The participant whose initiative card is up (lowest card not yet acted), if the module has an initiative tracker. */
+/** The participant whose turn it is (lowest card, or highest rolled total, not yet acted), if the module has an initiative tracker. */
 export function useInitiativeCurrent(sessionId: Id): { entityId: Id; name: string; round: number; card: number } | undefined {
   const def = useModeTrackers().find((t) => t.kind === "initiative");
   const ts = useSessionTrackerState(sessionId);
   if (!def) return undefined;
   const init = initiativeState(ts?.state[def.id]);
-  const current = [...init.participants].sort((a, b) => (a.card ?? 99) - (b.card ?? 99)).find((p) => !p.acted && p.card !== null);
+  const current = initiativeOrder(init.participants, def.config?.method === "roll").find((p) => !p.acted && p.card !== null);
   return current?.entityId ? { entityId: current.entityId, name: current.name, round: init.round, card: current.card! } : undefined;
 }
 

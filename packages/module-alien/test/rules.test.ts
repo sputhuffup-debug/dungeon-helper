@@ -19,6 +19,8 @@ describe("rule cards", () => {
       expect(ids.has(r.id), `duplicate ${r.id}`).toBe(false);
       ids.add(r.id);
       const page = r.page;
+      // The Alien book is cited by page: no section citations here.
+      if (page === undefined) throw new Error(`${r.id} has no page`);
       if (typeof page === "number") expect(page).toBeGreaterThan(0);
       else {
         expect(page[0]).toBeGreaterThan(0);

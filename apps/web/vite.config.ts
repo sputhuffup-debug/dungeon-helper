@@ -26,6 +26,10 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,svg,woff2}"],
+        // Every chunk is precached for offline play, built-in data packs included: each JSON file of a
+        // pack (`PackSource`) becomes its own lazy chunk, so a large pack (a whole SRD) is split into
+        // part files that each stay well under this limit (aim for 2 MB a part). A chunk over it would
+        // silently miss the precache and fail offline. Imported packs live in IndexedDB, not here.
         maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
         navigateFallback: "/index.html",
       },

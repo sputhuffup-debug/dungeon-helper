@@ -14,6 +14,7 @@ import {
   docIdsOf,
   exportBundle,
   exportJSON,
+  getInstalledPack,
   importBundle,
   openPersistence,
   presetToEntity,
@@ -39,7 +40,8 @@ import * as Y from "yjs";
 import { defaultCampaignDate } from "../lib/calendar";
 import { downloadFile, slug } from "../lib/download";
 import { imageDimensions } from "../lib/image";
-import { loadModuleById } from "../modules/registry";
+import { installPack } from "../modules/importPack";
+import { loadModuleById, moduleEntry, whenImportedModulesLoaded } from "../modules/registry";
 import type { CampaignContextValue } from "./CampaignProvider";
 import { checklistEvent } from "./tableActions";
 
@@ -97,11 +99,23 @@ export async function deleteCampaign(id: Id): Promise<void> {
   await unregisterCampaign(id);
 }
 
-/** Import a bundle (zip bytes) as a new campaign with fresh ids. Returns the new id. */
-export async function importCampaignBundle(bytes: Uint8Array): Promise<Id> {
+/**
+ * Import a bundle (zip bytes) as a new campaign with fresh ids. When the
+ * bundle carries its module's data pack and this device does not have that
+ * module, the pack is validated and installed first (`installedPack` names it).
+ */
+export async function importCampaignBundle(bytes: Uint8Array): Promise<{ id: Id; installedPack?: string }> {
   const imported = await importBundle(bytes, { onConflict: "new-id" });
   const store = imported.store;
   const meta = store.meta();
+  let installedPack: string | undefined;
+  await whenImportedModulesLoaded();
+  if (imported.pack !== undefined && !moduleEntry(meta.moduleId)) {
+    const packId = (imported.pack as { manifest?: { id?: unknown } } | null)?.manifest?.id;
+    if (packId !== meta.moduleId) throw new Error(`the bundle's data pack is "${String(packId)}", but the campaign uses "${meta.moduleId}"`);
+    const { entry } = await installPack([{ name: "module/pack.json", data: imported.pack }]);
+    installedPack = `${entry.name} ${entry.version}`;
+  }
   const registry = new RichTextRegistry();
   const persistence = openPersistence(store, { name: campaignDbName(meta.id), registry });
   await persistence.whenSynced;
@@ -114,7 +128,7 @@ export async function importCampaignBundle(bytes: Uint8Array): Promise<Id> {
   registry.closeAll();
   store.destroy();
   await assets.close();
-  return meta.id;
+  return installedPack ? { id: meta.id, installedPack } : { id: meta.id };
 }
 
 /** Merge a bundle's records (with new ids) into the open campaign. Meta is left alone. */
@@ -148,7 +162,10 @@ export function mergeMaps(store: CampaignStore, maps: CampaignMaps): number {
 }
 
 export async function exportCampaignBundle(ctx: CampaignContextValue): Promise<void> {
-  const bytes = await exportBundle(ctx.store, ctx.registry, ctx.assets, { id: ctx.module.manifest.id, version: ctx.module.manifest.version });
+  const { id, version } = ctx.module.manifest;
+  // An imported data pack travels with the campaign, so the bundle opens on a device without it.
+  const pack = moduleEntry(id)?.source === "imported" ? await getInstalledPack(id) : undefined;
+  const bytes = await exportBundle(ctx.store, ctx.registry, ctx.assets, { id, version, ...(pack !== undefined ? { pack } : {}) });
   downloadFile(bytes, `${slug(ctx.store.meta().name)}.cfbundle.zip`, "application/zip");
 }
 

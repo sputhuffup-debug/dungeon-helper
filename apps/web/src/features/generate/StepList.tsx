@@ -116,7 +116,7 @@ function RollLine({ roll }: { roll: RollRecord }) {
         {roll.modifier ? ` ${roll.modifier > 0 ? "+" : "−"}${Math.abs(roll.modifier)}` : ""} = <strong>{roll.total}</strong>
       </span>
       <span className="prep-roll__row">{roll.rowLabel ?? summarizeValue(roll.result, 80)}</span>
-      <PageRef page={roll.page} />
+      <PageRef page={roll.page} cite={roll.cite} />
       {roll.nested && roll.nested.length > 0 && (
         <div className="prep-roll__nested">
           <RollRecordList rolls={roll.nested} />

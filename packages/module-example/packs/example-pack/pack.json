@@ -1,0 +1,508 @@
+{
+  "$schema": "../../../module-sdk/schema/module-pack.schema.json",
+  "format": "campaign-forge-pack",
+  "formatVersion": 1,
+  "manifest": {
+    "id": "example-pack",
+    "version": "0.1.0",
+    "name": "Lanternlight (example pack)",
+    "ruleset": "Lanternlight",
+    "edition": "Fixture",
+    "publisher": "Campaign Forge",
+    "licenseNotice": "Fictional fixture content written for Campaign Forge's tests. It exercises every feature of the data pack format.",
+    "requiredCore": "0.1.0",
+    "modes": [
+      { "id": "delve", "name": "Delve", "description": "Short trips into the dark with a lantern." },
+      { "id": "saga", "name": "Saga", "description": "A long campaign between villages.", "cite": "LRD, Ways to play" }
+    ],
+    "defaultMode": "delve",
+    "dataStatus": "verified",
+    "sourceBook": { "title": "Lanternlight Reference Document", "year": 2026, "pageNote": "Cited by section.", "url": "https://example.org/lanternlight" },
+    "license": {
+      "spdx": "CC-BY-4.0",
+      "name": "Creative Commons Attribution 4.0 International",
+      "url": "https://creativecommons.org/licenses/by/4.0/",
+      "attribution": "This work includes material from the Lanternlight Reference Document by the Campaign Forge contributors, available under the Creative Commons Attribution 4.0 International licence."
+    },
+    "citationStyle": "section",
+    "authors": ["Campaign Forge contributors"]
+  },
+  "dice": {
+    "engine": "d20",
+    "abilityModifier": true,
+    "proficiency": { "var": "computed.proficiencyBonus" },
+    "critOn": 20,
+    "fumbleOn": 1,
+    "labels": { "success": "Success", "failure": "Failure" }
+  },
+  "parts": ["rules.part.json"],
+  "entityTypes": [
+    {
+      "id": "example-pack.adventurer",
+      "kind": "character",
+      "name": "Adventurer",
+      "plural": "Adventurers",
+      "icon": "shield",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "level": { "type": "integer", "minimum": 1, "maximum": 20, "default": 1 },
+          "abilities": {
+            "type": "object",
+            "properties": {
+              "might": { "type": "integer", "minimum": 1, "maximum": 30, "default": 10 },
+              "grace": { "type": "integer", "minimum": 1, "maximum": 30, "default": 10 },
+              "wits": { "type": "integer", "minimum": 1, "maximum": 30, "default": 10 }
+            },
+            "required": ["might", "grace", "wits"],
+            "additionalProperties": false
+          },
+          "skills": {
+            "type": "object",
+            "properties": {
+              "climb": { "type": "integer", "minimum": 0, "maximum": 2, "default": 0 },
+              "sneak": { "type": "integer", "minimum": 0, "maximum": 2, "default": 0 },
+              "lore": { "type": "integer", "minimum": 0, "maximum": 2, "default": 0 }
+            },
+            "additionalProperties": false
+          },
+          "background": { "type": "string", "enum": ["miner", "scribe", "wanderer"] },
+          "damage": { "type": "integer", "minimum": 0, "default": 0 },
+          "oil": { "type": "integer", "minimum": 0, "maximum": 6, "default": 6, "description": "Hours of lantern oil left." },
+          "isPC": { "type": "boolean", "default": false },
+          "notes": { "type": "string" }
+        },
+        "required": ["abilities"],
+        "additionalProperties": false
+      },
+      "computed": {
+        "proficiencyBonus": { "+": [2, { "floor": { "/": [{ "-": [{ "var": ["fields.level", 1] }, 1] }, 4] } }] },
+        "mightMod": { "floor": { "/": [{ "-": [{ "var": ["fields.abilities.might", 10] }, 10] }, 2] } },
+        "maxHp": { "max": [1, { "+": [{ "*": [{ "var": ["fields.level", 1] }, 6] }, { "var": "computed.mightMod" }] }] },
+        "hpLeft": { "max": [0, { "-": [{ "var": "computed.maxHp" }, { "var": ["fields.damage", 0] }] }] }
+      },
+      "sheet": {
+        "sections": [
+          {
+            "id": "abilities",
+            "title": "Abilities",
+            "columns": 3,
+            "fields": [
+              { "path": "abilities.might", "label": "Might", "widget": "attribute", "rule": "example-pack.rule.checks" },
+              { "path": "abilities.grace", "label": "Grace", "widget": "attribute" },
+              { "path": "abilities.wits", "label": "Wits", "widget": "attribute" }
+            ]
+          },
+          {
+            "id": "skills",
+            "title": "Skills",
+            "fields": [
+              { "path": "skills.*", "label": "Skills", "widget": "skills", "config": { "ref": "example-pack.skills", "attributesPath": "abilities", "max": 2 } },
+              { "path": "proficiencyBonus", "label": "Proficiency bonus", "widget": "computed" }
+            ]
+          },
+          {
+            "id": "vitals",
+            "title": "Vitals",
+            "columns": 2,
+            "fields": [
+              { "path": "level", "label": "Level", "widget": "number" },
+              { "path": "background", "label": "Background", "widget": "select", "options": { "ref": "example-pack.backgrounds" } },
+              { "path": "damage", "label": "Damage taken", "widget": "number" },
+              { "path": "maxHp", "label": "Max HP", "widget": "computed" },
+              { "path": "hpLeft", "label": "HP left", "widget": "computed" },
+              { "path": "oil", "label": "Lantern oil", "widget": "number", "rule": "example-pack.rule.lantern" },
+              { "path": "isPC", "label": "Player character", "widget": "checkbox" }
+            ]
+          },
+          { "id": "notes", "title": "Notes", "collapsed": true, "fields": [{ "path": "notes", "widget": "textarea", "mode": ["delve", "saga"] }] }
+        ],
+        "summary": ["level", "hpLeft"]
+      },
+      "defaultVisibility": { "notes": "gm" },
+      "playerEditable": ["notes"]
+    },
+    {
+      "id": "example-pack.site",
+      "kind": "location",
+      "name": "Site",
+      "plural": "Sites",
+      "icon": "map",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "kind": { "type": "string", "enum": ["ruin", "mine", "shrine", "village"] },
+          "danger": { "type": "string", "enum": ["calm", "tense", "perilous", "deadly"], "default": "calm" },
+          "coins": { "type": "integer", "minimum": 0, "default": 0 },
+          "loot": { "type": "array", "items": { "type": "string" }, "default": [] },
+          "omens": { "type": "array", "items": { "type": "string" }, "default": [] }
+        },
+        "additionalProperties": false
+      },
+      "sheet": {
+        "sections": [
+          {
+            "id": "overview",
+            "title": "Overview",
+            "fields": [
+              { "path": "kind", "widget": "select", "options": ["ruin", "mine", "shrine", "village"] },
+              { "path": "danger", "widget": "select", "options": ["calm", "tense", "perilous", "deadly"] },
+              { "path": "coins", "widget": "number" },
+              { "path": "loot", "widget": "tags" },
+              { "path": "omens", "widget": "tags", "mode": ["saga"] }
+            ]
+          }
+        ],
+        "summary": ["kind", "danger"]
+      },
+      "subtypes": [
+        { "id": "ruin", "name": "Ruin" },
+        { "id": "village", "name": "Village" }
+      ]
+    },
+    {
+      "id": "example-pack.monster",
+      "kind": "creature",
+      "name": "Monster",
+      "plural": "Monsters",
+      "icon": "bug",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "defense": { "type": "integer", "minimum": 1, "maximum": 30, "default": 12 },
+          "hp": { "type": "integer", "minimum": 1, "default": 7 },
+          "attack": { "type": "integer", "minimum": -5, "maximum": 15, "default": 3 },
+          "lair": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "sheet": {
+        "sections": [
+          {
+            "id": "stats",
+            "title": "Stats",
+            "columns": 3,
+            "fields": [
+              { "path": "defense", "label": "Defense", "widget": "number" },
+              { "path": "hp", "label": "HP", "widget": "number" },
+              { "path": "attack", "label": "Attack bonus", "widget": "number" },
+              { "path": "lair", "label": "Lair", "widget": "text" }
+            ]
+          }
+        ],
+        "summary": ["defense", "hp"]
+      },
+      "defaultVisibility": { "lair": "gm" }
+    }
+  ],
+  "relationshipTypes": [
+    { "id": "example-pack.haunts", "forward": "haunts", "reverse": "haunted by", "fromKinds": ["creature"], "toKinds": ["location"] }
+  ],
+  "referenceLists": [
+    {
+      "id": "example-pack.skills",
+      "name": "Skills",
+      "cite": "LRD, Skills",
+      "itemSchema": { "type": "object", "properties": { "attribute": { "type": "string", "enum": ["might", "grace", "wits"] } }, "required": ["id", "name", "attribute"] },
+      "items": [
+        { "id": "climb", "name": "Climb", "attribute": "might", "summary": "Scale walls and ropes." },
+        { "id": "sneak", "name": "Sneak", "attribute": "grace", "summary": "Move unseen." },
+        { "id": "lore", "name": "Lore", "attribute": "wits", "summary": "Know old things.", "cite": "LRD, Skills: Lore" }
+      ]
+    },
+    {
+      "id": "example-pack.backgrounds",
+      "name": "Backgrounds",
+      "original": true,
+      "items": [
+        { "id": "miner", "name": "Miner", "summary": "Knows tunnels." },
+        { "id": "scribe", "name": "Scribe", "summary": "Reads old script." },
+        { "id": "wanderer", "name": "Wanderer", "summary": "Knows the roads.", "mode": ["saga"] }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "id": "example-pack.preset.keeper",
+      "entityType": "example-pack.adventurer",
+      "name": "Lantern keeper",
+      "summary": "An old guide who knows every tunnel.",
+      "original": true,
+      "tags": ["npc"],
+      "fields": { "level": 3, "abilities": { "might": 12, "grace": 10, "wits": 14 }, "skills": { "lore": 2, "climb": 1 }, "background": "miner", "damage": 0, "oil": 6 }
+    },
+    {
+      "id": "example-pack.preset.gloomling",
+      "entityType": "example-pack.monster",
+      "name": "Gloomling",
+      "summary": "A small thing that hates light.",
+      "cite": "LRD, Monsters: Gloomling",
+      "fields": { "defense": 11, "hp": 5, "attack": 2, "lair": "Under the stairs" }
+    },
+    {
+      "id": "example-pack.preset.old-mine",
+      "entityType": "example-pack.site",
+      "subtype": "ruin",
+      "name": "Old mine",
+      "cite": "LRD, Sites",
+      "fields": { "kind": "mine", "danger": "tense", "coins": 30, "loot": ["pickaxe"] }
+    }
+  ],
+  "tables": [
+    {
+      "id": "example-pack.site.kind",
+      "name": "Site kind",
+      "family": "site",
+      "cite": "LRD, Sites: Kind",
+      "dice": "1d6",
+      "rows": [
+        { "range": [1, 2], "label": "Ruin", "result": { "kind": "ruin", "label": "Ruin" } },
+        { "range": [3, 4], "label": "Mine", "result": { "kind": "mine", "label": "Mine" } },
+        { "range": [5, 5], "label": "Shrine", "result": { "kind": "shrine", "label": "Shrine" } },
+        { "range": [6, 6], "label": "Village", "result": { "kind": "village", "label": "Village" }, "cite": "LRD, Sites: Villages" }
+      ]
+    },
+    {
+      "id": "example-pack.site.danger",
+      "name": "Danger",
+      "family": "site",
+      "cite": "LRD, Sites: Danger",
+      "dice": "2d6",
+      "notes": "Roll once per site; ruins are worse.",
+      "modifiers": [
+        { "when": { "==": [{ "var": "kind.kind" }, "ruin"] }, "add": 2, "label": "ruin" },
+        { "when": { "var": "lucky" }, "add": { "if": [{ "var": "lucky" }, -1, 0] }, "label": "lucky" }
+      ],
+      "rows": [
+        { "range": [-99, 5], "label": "Calm", "result": { "level": "calm" } },
+        { "range": [6, 8], "label": "Tense", "result": { "level": "tense" } },
+        { "range": [9, 10], "label": "Perilous", "result": { "level": "perilous" } },
+        { "range": [11, 99], "label": "Deadly", "result": { "level": "deadly" }, "gmDecides": true }
+      ]
+    },
+    {
+      "id": "example-pack.encounter.who",
+      "name": "Who is there",
+      "family": "encounter",
+      "cite": "LRD, Encounters",
+      "dice": "1d6",
+      "rows": [
+        { "range": [1, 2], "label": "Nobody", "result": { "who": "nobody", "label": "Nobody" } },
+        { "range": [3, 4], "label": "Gloomling", "result": { "who": "monster", "label": "Gloomling" }, "roll": [{ "table": "example-pack.encounter.rumor", "as": "rumor" }] },
+        { "range": [5, 6], "label": "Gloomling pack", "result": { "who": "monster", "label": "Gloomling pack" }, "roll": [{ "table": "example-pack.encounter.rumor", "as": "rumors", "times": "1d2" }] }
+      ]
+    },
+    {
+      "id": "example-pack.encounter.rumor",
+      "name": "What they mutter",
+      "family": "encounter",
+      "original": true,
+      "dice": "d66",
+      "rows": [
+        { "range": [11, 16], "label": "Light", "result": "They fear the light" },
+        { "range": [21, 26], "label": "Gold", "result": "There is gold below" },
+        { "range": [31, 36], "label": "Keeper", "result": "The keeper is lost" },
+        { "range": [41, 46], "label": "Door", "result": "A door that was not there yesterday" },
+        { "range": [51, 56], "label": "Water", "result": "The lower halls are flooding" },
+        { "range": [61, 66], "label": "Song", "result": "Something sings in the deep" }
+      ]
+    },
+    {
+      "id": "example-pack.loot.common",
+      "name": "Common loot",
+      "family": "loot",
+      "cite": "LRD, Treasure",
+      "dice": "1d4",
+      "rows": [
+        { "range": [1, 1], "label": "Rope", "result": { "item": "rope" } },
+        { "range": [2, 2], "label": "Oil flask", "result": { "item": "oil flask" } },
+        { "range": [3, 3], "label": "Chalk", "result": { "item": "chalk" } },
+        { "range": [4, 4], "label": "Bread", "result": { "item": "bread" } }
+      ]
+    },
+    {
+      "id": "example-pack.loot.rare",
+      "name": "Rare loot",
+      "family": "loot",
+      "cite": "LRD, Treasure",
+      "dice": "1d4",
+      "rows": [
+        { "range": [1, 2], "label": "Silver lamp", "result": { "item": "silver lamp" } },
+        { "range": [3, 3], "label": "Map fragment", "result": { "item": "map fragment" } },
+        { "range": [4, 4], "label": "Star stone", "result": { "item": "star stone" } }
+      ]
+    }
+  ],
+  "procedures": [
+    {
+      "id": "example-pack.proc.delve",
+      "name": "Delve",
+      "description": "Roll up a site, its danger, who is there and what is left behind.",
+      "cite": "LRD, Delving",
+      "mode": ["delve", "saga"],
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "depth": { "type": "integer", "minimum": 0, "maximum": 3, "default": 1, "title": "Depth" },
+          "lucky": { "type": "boolean", "default": false, "title": "Lucky delve" }
+        }
+      },
+      "steps": [
+        { "id": "kind", "title": "Site kind", "table": "example-pack.site.kind" },
+        {
+          "id": "danger",
+          "title": "Danger",
+          "table": "example-pack.site.danger",
+          "reads": ["kind"],
+          "modifier": { "var": "inputs.depth" },
+          "derive": { "hostile": { "!=": [{ "var": "result.level" }, "calm"] } }
+        },
+        {
+          "id": "encounters",
+          "title": "Who is there",
+          "table": "example-pack.encounter.who",
+          "reads": ["danger"],
+          "skipIf": { "==": [{ "var": "results.danger.level" }, "calm"] },
+          "repeat": { "if": [{ "var": "results.danger.hostile" }, 2, 1] }
+        },
+        {
+          "id": "loot",
+          "title": "Loot",
+          "table": { "if": [{ "var": "inputs.lucky" }, "example-pack.loot.rare", "example-pack.loot.common"] },
+          "repeat": "1d3"
+        },
+        { "id": "coins", "title": "Coins", "roll": "2d6", "value": { "*": [{ "var": "roll" }, { "+": [1, { "var": "inputs.depth" }] }] } },
+        { "id": "omen", "title": "Omens", "optional": true, "reads": ["kind"], "repeat": 2, "roll": "1d6", "value": { "cat": ["Lantern sign ", { "var": "roll" }, " over the ", { "var": "results.kind.kind" }] } }
+      ],
+      "produce": {
+        "entities": [
+          {
+            "tempId": "site",
+            "type": "example-pack.site",
+            "name": { "cat": ["The ", { "var": "results.kind.label" }, " at depth ", { "var": "inputs.depth" }] },
+            "summary": { "if": [{ "var": "results.danger.hostile" }, "Something waits here.", "Quiet, for now."] },
+            "tags": ["delve"],
+            "fields": {
+              "kind": { "var": "results.kind.kind" },
+              "danger": { "var": "results.danger.level" },
+              "coins": { "var": "results.coins" },
+              "loot": { "map": [{ "var": "results.loot" }, { "var": "item" }] },
+              "omens": { "var": "results.omen" }
+            }
+          },
+          {
+            "tempId": "foe",
+            "type": "example-pack.monster",
+            "preset": "example-pack.preset.gloomling",
+            "each": { "var": "results.encounters" },
+            "when": { "==": [{ "var": "item.who" }, "monster"] },
+            "name": { "cat": [{ "var": "item.label" }, " ", { "+": [{ "var": "index" }, 1] }] },
+            "summary": { "var": "item.rumor" },
+            "within": "site",
+            "fields": { "hp": { "if": [{ "==": [{ "var": "item.label" }, "Gloomling pack"] }, 12, 5] }, "lair": "Somewhere below" },
+            "links": [
+              { "type": "found_at", "to": "site" },
+              { "type": "example-pack.haunts", "to": "site", "note": { "cat": ["seen on delve ", { "var": "inputs.depth" }] } }
+            ]
+          },
+          {
+            "tempId": "keeper",
+            "type": "example-pack.adventurer",
+            "when": { "var": "results.danger.hostile" },
+            "name": "A lost lantern keeper",
+            "fields": { "level": 2, "abilities.might": 10, "abilities.grace": 12, "abilities.wits": 13, "skills.lore": 1, "background": "miner" }
+          }
+        ],
+        "relationships": [
+          { "type": "knows", "from": "keeper", "to": "site", "note": "Came here looking for gold.", "when": { "var": "results.danger.hostile" } }
+        ]
+      },
+      "chains": [{ "procedure": "example-pack.proc.delve", "label": "Delve deeper", "inputs": { "depth": { "min": [3, { "+": [{ "var": "inputs.depth" }, 1] }] } } }]
+    }
+  ],
+  "templates": [
+    {
+      "id": "example-pack.template.delve",
+      "kind": "adventure",
+      "name": "One night's delve",
+      "original": true,
+      "scaffold": {
+        "title": "One Night's Delve",
+        "premise": "The lanterns hold six hours of oil.",
+        "acts": [
+          { "number": 1, "goal": "Go down", "scenes": [{ "purpose": "The entrance", "mandatory": true }] },
+          { "number": 2, "goal": "Come back up", "scenes": [{ "purpose": "The way out" }] }
+        ]
+      }
+    },
+    {
+      "id": "example-pack.template.session-checklist",
+      "kind": "checklist",
+      "appliesTo": "session",
+      "name": "Lanternlight session checklist",
+      "cite": "LRD, Running the game",
+      "scaffold": {
+        "title": "Lanternlight",
+        "items": [
+          { "id": "example-pack.prep.oil", "phase": "prep", "text": "Count lantern oil", "guidance": "Every adventurer starts with what they ended with." },
+          { "id": "example-pack.wrap.oil", "phase": "wrap", "text": "Burn an hour of oil", "autoWhen": "summary-saved" },
+          { "id": "example-pack.wrap.saga", "phase": "wrap", "text": "Move the saga clock", "mode": ["saga"] }
+        ]
+      }
+    }
+  ],
+  "rules": [
+    {
+      "id": "example-pack.rule.checks",
+      "title": "Ability checks",
+      "summary": "Roll a d20, add the ability modifier and, when you are proficient, the proficiency bonus. Meet the DC to succeed.",
+      "cite": "LRD, Ability checks",
+      "tags": ["dice"],
+      "links": { "fields": ["example-pack.adventurer.abilities.might", "example-pack.adventurer.proficiencyBonus"], "rules": ["example-pack.rule.advantage"] }
+    },
+    {
+      "id": "example-pack.rule.advantage",
+      "title": "Advantage",
+      "summary": "Roll two d20s and keep the higher; with disadvantage keep the lower.",
+      "cite": "LRD, Advantage and disadvantage",
+      "links": { "rules": ["example-pack.rule.checks"], "tables": ["example-pack.site.danger"] }
+    }
+  ],
+  "trackers": [
+    { "id": "example-pack.tracker.oil", "name": "Lantern oil", "kind": "counter", "scope": "character", "binds": ["example-pack.adventurer.oil"], "rules": ["example-pack.rule.lantern"], "config": { "max": 6 } },
+    { "id": "example-pack.tracker.dark", "name": "Until dark", "kind": "countdown", "scope": "session", "cite": "LRD, Darkness", "config": { "unit": "hours", "default": 6 } },
+    { "id": "example-pack.tracker.initiative", "name": "Turn order", "kind": "initiative", "scope": "encounter", "mode": ["delve"], "config": { "cards": 10 } }
+  ],
+  "playGuides": [
+    {
+      "id": "example-pack.guide",
+      "title": "Calling for rolls",
+      "original": true,
+      "intro": "Roll when failure would be interesting.",
+      "tips": [{ "text": "Say the DC out loud before the roll." }],
+      "groups": [
+        { "id": "might", "label": "Might", "summary": "Strength and grit." },
+        { "id": "wits", "label": "Wits", "summary": "Knowing and noticing." }
+      ],
+      "entries": [
+        { "id": "climb", "label": "Climb", "group": "might", "kind": "skill", "roll": "climb", "callFor": ["the way on is up a crumbling wall"], "success": "They reach the ledge.", "failure": "They reach it, but drop the lantern." },
+        { "id": "lore", "label": "Lore", "group": "wits", "kind": "skill", "roll": "lore", "callFor": ["old carvings", "a strange sigil"], "cite": "LRD, Skills: Lore" },
+        { "id": "might", "label": "Might", "group": "might", "kind": "attribute", "roll": "attr:might", "callFor": ["forcing a stuck door"] }
+      ]
+    }
+  ],
+  "calendar": {
+    "id": "example-pack.calendar",
+    "name": "Lantern reckoning",
+    "defaultYear": 412,
+    "months": [
+      { "name": "Ember", "days": 28 },
+      { "name": "Ash", "days": 28 },
+      { "name": "Wick", "days": 28 },
+      { "name": "Glow", "days": 28 }
+    ],
+    "weekdays": ["Flint", "Spark", "Flame", "Smoke"],
+    "format": "{year}-{month:02}-{day:02}"
+  },
+  "styleNotes": ["Dim, close, hopeful."]
+}

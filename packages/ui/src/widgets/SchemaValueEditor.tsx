@@ -81,6 +81,9 @@ export function SchemaValueEditor({ schema, value, onChange, readonly, label, id
     );
   }
   const str = value === undefined || value === null ? "" : String(value);
-  if (readonly) return <span>{str || "—"}</span>;
+  if (readonly) return <span style={{ whiteSpace: "pre-wrap" }}>{str || "—"}</span>;
+  // Long text (a schema allowing more than 200 characters, or markdown) gets a text area, as the sheet's own default widget does.
+  const long = schema?.format === "markdown" || (typeof schema?.maxLength === "number" && schema.maxLength > 200);
+  if (long) return <textarea id={id} className="cf-textarea" rows={Math.min(8, Math.max(2, Math.ceil(str.length / 80)))} aria-label={label} value={str} onChange={(e) => onChange(e.target.value === "" ? undefined : e.target.value)} />;
   return <input id={id} className="cf-input" type="text" aria-label={label} value={str} onChange={(e) => onChange(e.target.value === "" ? undefined : e.target.value)} />;
 }

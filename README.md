@@ -1,8 +1,8 @@
 # Campaign Forge
 
-A Game Master's workspace for designing, organizing and running tabletop RPG campaigns. Every game system is a plugin; version 1 ships one module, the **Alien RPG, Evolved Edition** (Free League, 2025).
+A Game Master's workspace for designing, organizing and running tabletop RPG campaigns. Every game system is a plugin ("module"). Two are built in: the **Alien RPG, Evolved Edition** (Free League, 2025) and **5th Edition SRD 5.1 (fantasy d20)**, built on the openly licensed System Reference Document 5.1. Other systems plug in as TypeScript packages or as JSON data packs a GM imports in the app.
 
-Campaign Forge is a companion to the rulebook, not a replacement. The module encodes structure, tables and mechanics as data and cites the page; it does not reproduce the book's prose or art. The Alien data has been checked against the printed Evolved Edition core rules; `docs/verification/` records what was corrected, and the few entries the book does not supply remain flagged `unverified`.
+For Alien, Campaign Forge is a companion to the rulebook, not a replacement. The module encodes structure, tables and mechanics as data and cites the page; it does not reproduce the book's prose or art. The Alien data has been checked against the printed Evolved Edition core rules; `docs/verification/` records what was corrected, and the few entries the book does not supply remain flagged `unverified`.
 
 ## What it does (v1)
 
@@ -20,11 +20,13 @@ Campaign Forge is a companion to the rulebook, not a replacement. The module enc
 - **Printed booklets.** A black-and-white GM booklet (Letter or A4) with a title page, cast cards, locations and puzzles, the site map and each act's scenes with boxed read-aloud text, plus cut-out agenda cards for the players.
 - **Wide-format printing.** Site maps print on 24" or 36" rolls as vector PDFs at 1 inch per metre (28mm miniatures), 28mm true scale or an overview scale, with a title block, scale bar and optional 1 m grid squares.
 - **Maps from images.** Imported images with rectangular zone overlays and open/blocked/door borders.
-- **Rules reference.** Paraphrased rule cards with page references, filtered by play mode (Cinematic or Campaign).
+- **Rules reference.** Rule cards filtered by play mode: paraphrases with page references for Alien, the SRD's own text cited by section for the fifth edition module.
+- **Multi-system modules.** Every game system is a module: a TypeScript package, or a declarative JSON data pack (no code) that the SDK turns into one. GMs import packs in the app (*Game modules…* on the campaign list); a pack is validated before it is stored, never runs as code, shows its licence and attribution, and travels inside campaign bundles. Packs pick one of four built-in dice engines: d20 (advantage, disadvantage, DC), dice pool, 2d6 bands and d100 roll-under. `pnpm create-module` scaffolds a pack or a TypeScript module and `pnpm module-check` validates one or `--all`; the author guide is [docs/modules](docs/modules/README.md).
+- **Fifth edition (SRD 5.1).** A built-in data pack with the whole SRD 5.1: 334 monster stat blocks as presets, 319 spells, magic items, equipment, classes and races as reference lists, rule cards cited by section, and dice tables. Character sheets derive ability modifiers, proficiency bonus, saves, skills (with expertise), passive scores, initiative and spellcasting numbers; d20 rolls from a sheet or the table take advantage, disadvantage and a DC. Initiative, hit point, death save, spell slot and other trackers, plus original encounter, NPC, settlement and tavern generators and a one-shot template. Not affiliated with Wizards of the Coast; see the licence note below.
 
 ## Screenshots
 
-Two demo campaigns load from the campaign list: *Skyfire Down* (campaign play, with an infection under way) and *Cold Harbor Relay*, a cinematic one-shot built with the guided builder, with a generated site map, duct levels and live map state ready for session 1.
+Three demo campaigns load from the campaign list: *Skyfire Down* (Alien campaign play, with an infection under way), *Cold Harbor Relay*, an Alien cinematic one-shot built with the guided builder, with a generated site map, duct levels and live map state ready for session 1, and *Thornwick Crossing*, a fifth edition one-shot on the SRD 5.1 module with four level 3 characters, SRD monsters and a goblin ambush ready for table mode.
 
 **Campaign home**: next session, adventures and open hooks.
 
@@ -102,18 +104,38 @@ Two demo campaigns load from the campaign list: *Skyfire Down* (campaign play, w
 
 ![Rules reference](docs/screenshots/rules.png)
 
+**Game modules**: the built-in Alien and SRD 5.1 modules beside a data pack imported on this device, each with its licence and attribution.
+
+![Game modules dialog](docs/screenshots/game-modules.png)
+
+**Fifth edition sheet**: a level 3 wizard from *Thornwick Crossing*; the scores and proficiencies are written down, and the modifiers, proficiency bonus, initiative, hit dice and save bonuses are computed.
+
+![Fifth edition character sheet](docs/screenshots/dnd5e-sheet.png)
+
+**d20 rolls**: a Stealth check with expertise rolled from the sheet with advantage against a DC, showing the bonus breakdown, the dropped die, the total and the outcome.
+
+![d20 skill roll with advantage](docs/screenshots/dnd5e-roll.png)
+
+**Fifth edition table**: the opening ambush with rolled initiative, highest first, and hit points for the party and the goblins in the scene.
+
+![Fifth edition table mode](docs/screenshots/dnd5e-table.png)
+
 ## Repository layout
 
 ```
 packages/module-sdk     the GameModule contract and runtime (dice, tables, procedures, conformance)
 packages/core           game-agnostic domain model, Yjs store, persistence, visibility, search, bundles
 packages/module-alien   the Alien RPG module: data, procedures, templates, rule cards
-packages/module-example a tiny fixture module the core and UI are tested against
+packages/module-dnd5e-srd the 5th Edition SRD 5.1 module, a built-in JSON data pack
+packages/module-example a tiny fixture module (and fixture data pack) the core and UI are tested against
 packages/ui             schema-driven sheet renderer, widgets, trackers, map editor and site map renderer
 apps/web                the React 19 + Vite PWA
 tools/table-lint        dice coverage, page refs, data-status report, spot-check sheets
-tools/seed-campaign     builds the demo campaign
-docs/                   architecture seed, shared specifications, verification notes, screenshots
+tools/seed-campaign     builds the demo campaigns
+tools/module-check      validates a module or data pack (pnpm module-check --all)
+tools/create-module     scaffolds a new module or data pack
+tools/docs-check        README screenshots are present, used and small enough
+docs/                   architecture seed, module author guide, verification notes, screenshots
 ```
 
 ## Getting started
@@ -130,5 +152,11 @@ pnpm screenshots  # builds the app and regenerates every README screenshot from 
 Re-run one screenshot by name once the app is built: `pnpm --filter @campaign-forge/web screenshots -g creature-turn`. Images go to `docs/screenshots/` (or `SCREENSHOTS_DIR`).
 
 ## Licensing note
+
+The 5th Edition SRD 5.1 module (`packages/module-dnd5e-srd`) includes material from the SRD 5.1 under the Creative Commons Attribution 4.0 International licence; its attribution, shown in the app wherever the module's licence appears:
+
+> This work includes material taken from the System Reference Document 5.1 ("SRD 5.1") by Wizards of the Coast LLC and available at https://dnd.wizards.com/resources/systems-reference-document. The SRD 5.1 is licensed under the Creative Commons Attribution 4.0 International License available at https://creativecommons.org/licenses/by/4.0/legalcode.
+
+The module is compatible with fifth edition rules and is not affiliated with, endorsed, sponsored or approved by Wizards of the Coast LLC. Its JSON structure derives from 5e-bits/5e-database (MIT); see the module's [NOTICE](packages/module-dnd5e-srd/NOTICE). The *Thornwick Crossing* demo is original content.
 
 Alien is the property of 20th Century Studios, licensed to Free League Publishing. This project contains structure and short paraphrased reference data intended for owners of the rulebook. It is not affiliated with or endorsed by either company. Review `docs/architecture-seed.md` (section "Risks, open questions, and licensing") before any public release.

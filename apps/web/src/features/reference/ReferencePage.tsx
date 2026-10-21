@@ -1,20 +1,25 @@
 /** Reference browser: reference lists, presets (add to campaign) and roll tables. */
-import type { EntityPreset, ReferenceItem } from "@campaign-forge/module-sdk";
+import type { EntityPreset, ReferenceItem, ReferenceList } from "@campaign-forge/module-sdk";
 import { useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { TableDialog } from "../../components/RulePanel";
-import { Badge, Button, PageRef, Tabs, pushToast } from "../../components/ui";
+import { Badge, Button, Dialog, Markdown, PageRef, Tabs, pushToast } from "../../components/ui";
 import { humanize } from "../../lib/format";
 import { createEntityFromPreset } from "../../state/actions";
 import { useCampaign } from "../../state/hooks";
 import { formatValue } from "../entities/NewEntityPage";
+import { ModuleAttribution } from "../modules/ModuleLicense";
 
 export function ReferencePage() {
   const ctx = useCampaign();
   return (
     <div className="app-page">
       <h1 className="app-title">Reference</h1>
-      {ctx.module.manifest.dataStatus !== "verified" && <p className="app-note app-note--warning">Module data is {ctx.module.manifest.dataStatus}: unverified against the rulebook.</p>}
+      {ctx.module.manifest.dataStatus !== "verified" && (
+        <p className="app-note app-note--warning">
+          Module data is {ctx.module.manifest.dataStatus === "partially-verified" ? "partially verified" : "unverified"} against {ctx.module.manifest.sourceBook?.title ?? "the rulebook"}.
+        </p>
+      )}
       <Tabs
         tabs={[
           { id: "lists", label: "Lists", content: <ListsTab /> },
@@ -22,8 +27,25 @@ export function ReferencePage() {
           { id: "tables", label: `Tables (${ctx.module.module.tables.length})`, content: <TablesTab /> },
         ]}
       />
+      <ModuleAttribution license={ctx.module.manifest.license} />
     </div>
   );
+}
+
+const ITEM_META = new Set(["id", "name", "page", "cite", "mode", "summary"]);
+
+/** Columns of a reference list: its own `columns`, else the first five data keys. */
+export function listColumns(list: ReferenceList | undefined): string[] {
+  if (!list) return [];
+  if (list.columns && list.columns.length > 0) return list.columns;
+  const keys = new Set<string>();
+  for (const i of list.items) for (const k of Object.keys(i)) if (!ITEM_META.has(k)) keys.add(k);
+  return [...keys].slice(0, 5);
+}
+
+/** Text an item matches a filter on: its name, summary and the shown columns. */
+function itemText(item: ReferenceItem, columns: string[]): string {
+  return [item.name, item.summary ?? "", ...columns.map((c) => formatValue(item[c]))].join(" ").toLowerCase();
 }
 
 function ListsTab() {
@@ -31,13 +53,11 @@ function ListsTab() {
   const lists = ctx.module.module.referenceLists;
   const [listId, setListId] = useState(lists[0]?.id ?? "");
   const [q, setQ] = useState("");
+  const [open, setOpen] = useState<ReferenceItem | undefined>();
   const list = lists.find((l) => l.id === listId);
-  const items = (list?.items ?? []).filter((i) => !q.trim() || i.name.toLowerCase().includes(q.trim().toLowerCase()) || (i.summary ?? "").toLowerCase().includes(q.trim().toLowerCase()));
-  const columns = useMemo(() => {
-    const keys = new Set<string>();
-    for (const i of list?.items ?? []) for (const k of Object.keys(i)) if (!["id", "name", "page", "mode", "summary"].includes(k)) keys.add(k);
-    return [...keys].slice(0, 5);
-  }, [list]);
+  const columns = useMemo(() => listColumns(list), [list]);
+  const needle = q.trim().toLowerCase();
+  const items = (list?.items ?? []).filter((i) => !needle || itemText(i, columns).includes(needle));
   return (
     <div className="app-stack">
       <div className="app-filters">
@@ -49,11 +69,11 @@ function ListsTab() {
           ))}
         </select>
         <input className="cf-input" type="search" placeholder="Filter" aria-label="Filter items" value={q} onChange={(e) => setQ(e.target.value)} />
-        {list && <PageRef page={list.page} />}
+        {list && <PageRef page={list.page} cite={list.cite} original={list.original} />}
         {list?.unverified && <Badge tone="warning">unverified</Badge>}
       </div>
       <div className="app-scroll-x">
-        <table className="cf-table">
+        <table className="cf-table" data-testid="reference-items">
           <thead>
             <tr>
               <th>Name</th>
@@ -61,14 +81,16 @@ function ListsTab() {
               {columns.map((c) => (
                 <th key={c}>{humanize(c)}</th>
               ))}
-              <th>Page</th>
+              <th>Source</th>
             </tr>
           </thead>
           <tbody>
             {items.map((i: ReferenceItem) => (
               <tr key={i.id}>
                 <td>
-                  <strong>{i.name}</strong>
+                  <button type="button" className="app-linkbtn" onClick={() => setOpen(i)}>
+                    <strong>{i.name}</strong>
+                  </button>
                   {i.mode?.map((m) => (
                     <Badge key={m} tone="accent">
                       {m}
@@ -80,13 +102,48 @@ function ListsTab() {
                   <td key={c}>{formatValue(i[c])}</td>
                 ))}
                 <td>
-                  <PageRef page={i.page} />
+                  <PageRef page={i.page} cite={i.cite} />
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+      <Dialog open={!!open} onClose={() => setOpen(undefined)} title={open?.name}>
+        {open && list && <ReferenceItemView item={open} list={list} />}
+      </Dialog>
+    </div>
+  );
+}
+
+/** Every field of a reference item; long text renders as Markdown (spell and item descriptions, class tables). */
+export function ReferenceItemView({ item, list }: { item: ReferenceItem; list: ReferenceList }) {
+  const rows = Object.entries(item).filter(([k, v]) => !ITEM_META.has(k) && v !== undefined && v !== null && v !== "");
+  const isLong = (v: unknown) => typeof v === "string" && (v.length > 90 || v.includes("\n") || v.trim().startsWith("|"));
+  return (
+    <div className="app-stack app-refitem" data-testid="reference-item">
+      {item.summary && <p className="cf-muted">{item.summary}</p>}
+      <dl className="app-dl">
+        {rows
+          .filter(([, v]) => !isLong(v))
+          .map(([k, v]) => (
+            <div key={k} className="app-dl__row">
+              <dt>{humanize(k)}</dt>
+              <dd>{typeof v === "boolean" ? (v ? "Yes" : "No") : formatValue(v)}</dd>
+            </div>
+          ))}
+      </dl>
+      {rows
+        .filter(([, v]) => isLong(v))
+        .map(([k, v]) => (
+          <section key={k}>
+            {k !== "description" && <h4 className="app-subtitle">{humanize(k)}</h4>}
+            <Markdown text={String(v)} />
+          </section>
+        ))}
+      <p>
+        <PageRef page={item.page ?? list.page} cite={item.cite ?? list.cite} original={list.original} />
+      </p>
     </div>
   );
 }
@@ -98,7 +155,9 @@ function PresetsTab() {
   const [type, setType] = useState("");
   const types = ctx.module.module.entityTypes.filter((t) => ctx.module.presetsFor(t.id).length > 0);
   const presets = ctx.module.module.presets.filter(
-    (p) => (!type || p.entityType === type) && (!q.trim() || p.name.toLowerCase().includes(q.trim().toLowerCase()) || (p.tags ?? []).some((t) => t.includes(q.trim().toLowerCase()))),
+    (p) =>
+      (!type || p.entityType === type) &&
+      (!q.trim() || p.name.toLowerCase().includes(q.trim().toLowerCase()) || (p.summary ?? "").toLowerCase().includes(q.trim().toLowerCase()) || (p.tags ?? []).some((t) => t.includes(q.trim().toLowerCase()))),
   );
   const add = (p: EntityPreset) => {
     const e = createEntityFromPreset(ctx, p);
@@ -125,7 +184,7 @@ function PresetsTab() {
               <th>Preset</th>
               <th>Type</th>
               <th>Summary</th>
-              <th>Page</th>
+              <th>Source</th>
               <th />
             </tr>
           </thead>
@@ -138,7 +197,7 @@ function PresetsTab() {
                 <td className="cf-muted">{ctx.module.entityType(p.entityType)?.name ?? p.entityType}</td>
                 <td className="cf-muted">{p.summary ?? ""}</td>
                 <td>
-                  <PageRef page={p.page} />
+                  <PageRef page={p.page} cite={p.cite} original={p.original} />
                 </td>
                 <td>
                   <Button size="sm" onClick={() => add(p)}>
@@ -180,7 +239,7 @@ function TablesTab() {
                   {t.name}
                 </button>
                 <Badge>{t.dice}</Badge>
-                <PageRef page={t.page} />
+                <PageRef page={t.page} cite={t.cite} original={t.original} />
                 {t.unverified && <Badge tone="warning">unverified</Badge>}
               </li>
             ))}
