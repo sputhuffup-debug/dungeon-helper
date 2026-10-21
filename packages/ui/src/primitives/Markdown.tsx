@@ -2,8 +2,9 @@ import type { ReactNode } from "react";
 import { cx } from "../sheet/paths";
 
 /**
- * A tiny Markdown renderer for rule summaries: paragraphs, bold, italic,
- * inline code, links, bullet and numbered lists. No HTML passthrough.
+ * A tiny Markdown renderer for rule summaries: paragraphs, headings, bold,
+ * italic, inline code, links, bullet and numbered lists and pipe tables. No
+ * HTML passthrough.
  */
 export function Markdown({ text, className }: { text: string; className?: string }) {
   return <div className={cx("cf-md", className)}>{renderBlocks(text)}</div>;
@@ -30,8 +31,52 @@ function renderBlocks(text: string): ReactNode[] {
     }
   };
 
-  for (const raw of lines) {
-    const line = raw.trimEnd();
+  const cells = (l: string) =>
+    l
+      .trim()
+      .replace(/^\|/, "")
+      .replace(/\|$/, "")
+      .split("|")
+      .map((c) => c.trim());
+  const isSeparator = (l: string | undefined) => !!l && /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$/.test(l);
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = (lines[i] ?? "").trimEnd();
+    // A pipe table: a header row, a separator row, then body rows.
+    if (line.trim().startsWith("|") && isSeparator(lines[i + 1])) {
+      flushPara();
+      flushList();
+      const head = cells(line);
+      const body: string[][] = [];
+      let j = i + 2;
+      for (; j < lines.length && (lines[j] ?? "").trim().startsWith("|"); j++) body.push(cells(lines[j] ?? ""));
+      out.push(
+        <div key={key++} className="cf-md__table-wrap">
+          <table className="cf-md__table">
+            <thead>
+              <tr>
+                {head.map((c, k) => (
+                  <th key={k} scope="col">
+                    {renderInline(c)}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {body.map((row, r) => (
+                <tr key={r}>
+                  {head.map((_, k) => (
+                    <td key={k}>{renderInline(row[k] ?? "")}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>,
+      );
+      i = j - 1;
+      continue;
+    }
     const bullet = /^\s*[-*•]\s+(.*)$/.exec(line);
     const numbered = /^\s*\d+[.)]\s+(.*)$/.exec(line);
     if (bullet || numbered) {
@@ -65,7 +110,7 @@ function renderBlocks(text: string): ReactNode[] {
   return out;
 }
 
-const INLINE = /(\*\*[^*]+\*\*|__[^_]+__|`[^`]+`|\[[^\]]+\]\([^)]+\)|\*[^*\s][^*]*\*|_[^_\s][^_]*_)/g;
+const INLINE = /(\*\*\*[^*]+\*\*\*|\*\*[^*]+\*\*|__[^_]+__|`[^`]+`|\[[^\]]+\]\([^)]+\)|\*[^*\s][^*]*\*|_[^_\s][^_]*_)/g;
 
 export function renderInline(text: string): ReactNode[] {
   const parts: ReactNode[] = [];
@@ -75,7 +120,8 @@ export function renderInline(text: string): ReactNode[] {
     const idx = m.index ?? 0;
     if (idx > last) parts.push(text.slice(last, idx));
     const tok = m[0];
-    if (tok.startsWith("**") || tok.startsWith("__")) parts.push(<strong key={key++}>{renderInline(tok.slice(2, -2))}</strong>);
+    if (tok.startsWith("***")) parts.push(<strong key={key++}><em>{renderInline(tok.slice(3, -3))}</em></strong>);
+    else if (tok.startsWith("**") || tok.startsWith("__")) parts.push(<strong key={key++}>{renderInline(tok.slice(2, -2))}</strong>);
     else if (tok.startsWith("`")) parts.push(<code key={key++}>{tok.slice(1, -1)}</code>);
     else if (tok.startsWith("[")) {
       const lm = /^\[([^\]]+)\]\(([^)]+)\)$/.exec(tok);

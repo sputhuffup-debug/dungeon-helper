@@ -23,7 +23,7 @@ export function SheetTab({ entity, def }: { entity: Entity; def: EntityTypeDef |
   const resolveEntityName = useCallback((id: string) => ctx.store.get("entities", id)?.name, [ctx.store]);
   const onOpenRule = useCallback((id: string) => setRule(id), []);
   const onPickEntity = useCallback((field: SheetField) => setPicking(field), []);
-  const onRoll = useCallback((skillId: string, input: Record<string, unknown>) => setRoll({ label: skillId, input }), []);
+  const onRoll = useCallback((skillId: string, input: Record<string, unknown>, label?: string) => setRoll({ label: label ?? skillId, input }), []);
 
   const onChange = useCallback(
     (next: Record<string, unknown>) => {

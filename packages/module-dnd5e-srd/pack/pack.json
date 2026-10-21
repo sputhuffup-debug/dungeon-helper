@@ -1,0 +1,8155 @@
+{
+ "$schema": "../../module-sdk/schema/module-pack.schema.json",
+ "format": "campaign-forge-pack",
+ "formatVersion": 1,
+ "manifest": {
+  "id": "dnd5e-srd",
+  "version": "0.1.0",
+  "name": "5th Edition SRD 5.1 (fantasy d20)",
+  "ruleset": "SRD 5.1",
+  "edition": "System Reference Document 5.1",
+  "publisher": "Wizards of the Coast LLC (SRD 5.1, CC-BY-4.0)",
+  "authors": [
+   "Campaign Forge contributors (conversion and GM tools)"
+  ],
+  "licenseNotice": "SRD 5.1 content under CC-BY-4.0 (see attribution). JSON structure derived from 5e-bits/5e-database (MIT). Tables, generators, templates and play advice marked Original were written for Campaign Forge. Compatible with fifth edition rules; not affiliated with or endorsed by Wizards of the Coast.",
+  "requiredCore": "0.1.0",
+  "modes": [
+   {
+    "id": "campaign",
+    "name": "Campaign",
+    "description": "Long-running play: characters level up over many sessions, with factions, quests and a living world between adventures."
+   },
+   {
+    "id": "one-shot",
+    "name": "One-shot",
+    "description": "A single session: ready-made characters, one adventure in three acts, and a clear ending tonight."
+   }
+  ],
+  "defaultMode": "campaign",
+  "dataStatus": "partially-verified",
+  "sourceBook": {
+   "title": "System Reference Document 5.1",
+   "pageNote": "Cited by SRD section; the SRD's own text is used as written.",
+   "url": "https://dnd.wizards.com/resources/systems-reference-document"
+  },
+  "citationStyle": "section",
+  "license": {
+   "spdx": "CC-BY-4.0",
+   "name": "Creative Commons Attribution 4.0 International",
+   "url": "https://creativecommons.org/licenses/by/4.0/",
+   "attribution": "This work includes material taken from the System Reference Document 5.1 (\"SRD 5.1\") by Wizards of the Coast LLC and available at https://dnd.wizards.com/resources/systems-reference-document. The SRD 5.1 is licensed under the Creative Commons Attribution 4.0 International License available at https://creativecommons.org/licenses/by/4.0/legalcode."
+  }
+ },
+ "dice": {
+  "engine": "d20",
+  "abilityModifier": true,
+  "proficiency": {
+   "var": [
+    "computed.proficiencyBonus",
+    0
+   ]
+  },
+  "bonus": {
+   "var": [
+    {
+     "cat": [
+      "fields.bonuses.",
+      {
+       "var": [
+        "skillId",
+        "none"
+       ]
+      }
+     ]
+    },
+    0
+   ]
+  },
+  "critOn": 20,
+  "fumbleOn": 1,
+  "freeDice": [
+   4,
+   6,
+   8,
+   10,
+   12,
+   100
+  ],
+  "labels": {
+   "success": "Success",
+   "failure": "Failure"
+  }
+ },
+ "parts": [
+  "srd-basics.json",
+  "srd-rules.json",
+  "srd-character.json",
+  "srd-spells.json",
+  "srd-equipment.json",
+  "srd-monsters-1.json",
+  "srd-monsters-2.json",
+  "tables.json"
+ ],
+ "entityTypes": [
+  {
+   "id": "dnd5e-srd.character",
+   "kind": "character",
+   "name": "Player character",
+   "plural": "Player characters",
+   "icon": "shield",
+   "schema": {
+    "type": "object",
+    "properties": {
+     "isPC": {
+      "type": "boolean",
+      "default": true
+     },
+     "player": {
+      "type": "string",
+      "maxLength": 120
+     },
+     "class": {
+      "type": "string",
+      "enum": [
+       "barbarian",
+       "bard",
+       "cleric",
+       "druid",
+       "fighter",
+       "monk",
+       "paladin",
+       "ranger",
+       "rogue",
+       "sorcerer",
+       "warlock",
+       "wizard"
+      ]
+     },
+     "subclass": {
+      "type": "string",
+      "maxLength": 120
+     },
+     "level": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 20,
+      "default": 1
+     },
+     "race": {
+      "type": "string",
+      "maxLength": 120
+     },
+     "subrace": {
+      "type": "string",
+      "maxLength": 120
+     },
+     "background": {
+      "type": "string",
+      "maxLength": 120
+     },
+     "alignment": {
+      "type": "string",
+      "enum": [
+       "lawful-good",
+       "neutral-good",
+       "chaotic-good",
+       "lawful-neutral",
+       "neutral",
+       "chaotic-neutral",
+       "lawful-evil",
+       "neutral-evil",
+       "chaotic-evil"
+      ]
+     },
+     "xp": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10000000,
+      "default": 0
+     },
+     "abilities": {
+      "type": "object",
+      "properties": {
+       "strength": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 30,
+        "default": 10
+       },
+       "dexterity": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 30,
+        "default": 10
+       },
+       "constitution": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 30,
+        "default": 10
+       },
+       "intelligence": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 30,
+        "default": 10
+       },
+       "wisdom": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 30,
+        "default": 10
+       },
+       "charisma": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 30,
+        "default": 10
+       }
+      },
+      "required": [
+       "strength",
+       "dexterity",
+       "constitution",
+       "intelligence",
+       "wisdom",
+       "charisma"
+      ],
+      "additionalProperties": false
+     },
+     "saves": {
+      "type": "object",
+      "properties": {
+       "strength-save": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 1,
+        "default": 0
+       },
+       "dexterity-save": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 1,
+        "default": 0
+       },
+       "constitution-save": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 1,
+        "default": 0
+       },
+       "intelligence-save": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 1,
+        "default": 0
+       },
+       "wisdom-save": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 1,
+        "default": 0
+       },
+       "charisma-save": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 1,
+        "default": 0
+       }
+      },
+      "additionalProperties": false,
+      "default": {}
+     },
+     "skills": {
+      "type": "object",
+      "properties": {
+       "acrobatics": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2,
+        "default": 0
+       },
+       "animal-handling": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2,
+        "default": 0
+       },
+       "arcana": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2,
+        "default": 0
+       },
+       "athletics": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2,
+        "default": 0
+       },
+       "deception": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2,
+        "default": 0
+       },
+       "history": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2,
+        "default": 0
+       },
+       "insight": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2,
+        "default": 0
+       },
+       "intimidation": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2,
+        "default": 0
+       },
+       "investigation": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2,
+        "default": 0
+       },
+       "medicine": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2,
+        "default": 0
+       },
+       "nature": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2,
+        "default": 0
+       },
+       "perception": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2,
+        "default": 0
+       },
+       "performance": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2,
+        "default": 0
+       },
+       "persuasion": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2,
+        "default": 0
+       },
+       "religion": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2,
+        "default": 0
+       },
+       "sleight-of-hand": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2,
+        "default": 0
+       },
+       "stealth": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2,
+        "default": 0
+       },
+       "survival": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2,
+        "default": 0
+       }
+      },
+      "additionalProperties": false,
+      "default": {}
+     },
+     "bonuses": {
+      "type": "object",
+      "description": "Flat bonuses on top of ability modifier and proficiency, per skill or save (a magic item, a feature).",
+      "properties": {
+       "acrobatics": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Acrobatics"
+       },
+       "animal-handling": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Animal Handling"
+       },
+       "arcana": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Arcana"
+       },
+       "athletics": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Athletics"
+       },
+       "deception": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Deception"
+       },
+       "history": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "History"
+       },
+       "insight": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Insight"
+       },
+       "intimidation": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Intimidation"
+       },
+       "investigation": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Investigation"
+       },
+       "medicine": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Medicine"
+       },
+       "nature": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Nature"
+       },
+       "perception": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Perception"
+       },
+       "performance": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Performance"
+       },
+       "persuasion": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Persuasion"
+       },
+       "religion": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Religion"
+       },
+       "sleight-of-hand": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Sleight of Hand"
+       },
+       "stealth": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Stealth"
+       },
+       "survival": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Survival"
+       },
+       "strength-save": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Strength save"
+       },
+       "dexterity-save": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Dexterity save"
+       },
+       "constitution-save": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Constitution save"
+       },
+       "intelligence-save": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Intelligence save"
+       },
+       "wisdom-save": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Wisdom save"
+       },
+       "charisma-save": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Charisma save"
+       }
+      },
+      "additionalProperties": false,
+      "default": {}
+     },
+     "ac": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 40,
+      "default": 10
+     },
+     "initiativeBonus": {
+      "type": "integer",
+      "minimum": -10,
+      "maximum": 20,
+      "default": 0
+     },
+     "speed": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 200,
+      "default": 30
+     },
+     "hp": {
+      "type": "object",
+      "properties": {
+       "max": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 2000,
+        "default": 8
+       },
+       "current": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2000,
+        "default": 8
+       },
+       "temp": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 500,
+        "default": 0
+       }
+      },
+      "required": [
+       "max",
+       "current"
+      ],
+      "additionalProperties": false
+     },
+     "hitDiceSpent": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 20,
+      "default": 0
+     },
+     "deathSaves": {
+      "type": "object",
+      "properties": {
+       "successes": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 3,
+        "default": 0
+       },
+       "failures": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 3,
+        "default": 0
+       }
+      },
+      "additionalProperties": false,
+      "default": {
+       "successes": 0,
+       "failures": 0
+      }
+     },
+     "exhaustion": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 6,
+      "default": 0
+     },
+     "inspiration": {
+      "type": "boolean",
+      "default": false
+     },
+     "spellcastingAbility": {
+      "type": "string",
+      "enum": [
+       "strength",
+       "dexterity",
+       "constitution",
+       "intelligence",
+       "wisdom",
+       "charisma"
+      ],
+      "description": "Leave empty to use the class's spellcasting ability."
+     },
+     "spellSlotsUsed": {
+      "type": "object",
+      "properties": {
+       "level1": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9,
+        "default": 0,
+        "title": "1st level used"
+       },
+       "level2": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9,
+        "default": 0,
+        "title": "2nd level used"
+       },
+       "level3": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9,
+        "default": 0,
+        "title": "3rd level used"
+       },
+       "level4": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9,
+        "default": 0,
+        "title": "4th level used"
+       },
+       "level5": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9,
+        "default": 0,
+        "title": "5th level used"
+       },
+       "level6": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9,
+        "default": 0,
+        "title": "6th level used"
+       },
+       "level7": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9,
+        "default": 0,
+        "title": "7th level used"
+       },
+       "level8": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9,
+        "default": 0,
+        "title": "8th level used"
+       },
+       "level9": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9,
+        "default": 0,
+        "title": "9th level used"
+       }
+      },
+      "additionalProperties": false,
+      "default": {}
+     },
+     "spells": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "default": [],
+      "description": "Spells known or prepared (names from the Spells list)."
+     },
+     "attacks": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "name": {
+         "type": "string",
+         "maxLength": 80
+        },
+        "bonus": {
+         "type": "string",
+         "maxLength": 20
+        },
+        "damage": {
+         "type": "string",
+         "maxLength": 80
+        },
+        "notes": {
+         "type": "string",
+         "maxLength": 200
+        }
+       },
+       "required": [
+        "name"
+       ]
+      },
+      "default": []
+     },
+     "features": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "name": {
+         "type": "string"
+        },
+        "desc": {
+         "type": "string",
+         "maxLength": 20000
+        }
+       },
+       "required": [
+        "name"
+       ]
+      },
+      "default": []
+     },
+     "proficiencies": {
+      "type": "string",
+      "maxLength": 4000
+     },
+     "languages": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "default": []
+     },
+     "equipment": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "name": {
+         "type": "string",
+         "maxLength": 120
+        },
+        "quantity": {
+         "type": "integer",
+         "minimum": 0,
+         "maximum": 9999,
+         "default": 1
+        },
+        "weight": {
+         "type": "number",
+         "minimum": 0
+        },
+        "notes": {
+         "type": "string",
+         "maxLength": 200
+        }
+       },
+       "required": [
+        "name"
+       ]
+      },
+      "default": []
+     },
+     "coins": {
+      "type": "object",
+      "properties": {
+       "cp": {
+        "type": "integer",
+        "minimum": 0
+       },
+       "sp": {
+        "type": "integer",
+        "minimum": 0
+       },
+       "ep": {
+        "type": "integer",
+        "minimum": 0
+       },
+       "gp": {
+        "type": "integer",
+        "minimum": 0
+       },
+       "pp": {
+        "type": "integer",
+        "minimum": 0
+       }
+      },
+      "additionalProperties": false,
+      "default": {
+       "cp": 0,
+       "sp": 0,
+       "ep": 0,
+       "gp": 0,
+       "pp": 0
+      }
+     },
+     "personality": {
+      "type": "object",
+      "properties": {
+       "traits": {
+        "type": "string",
+        "maxLength": 2000
+       },
+       "ideals": {
+        "type": "string",
+        "maxLength": 2000
+       },
+       "bonds": {
+        "type": "string",
+        "maxLength": 2000
+       },
+       "flaws": {
+        "type": "string",
+        "maxLength": 2000
+       }
+      },
+      "additionalProperties": false,
+      "default": {}
+     },
+     "appearance": {
+      "type": "string",
+      "maxLength": 4000
+     },
+     "backstory": {
+      "type": "string",
+      "maxLength": 20000
+     },
+     "notes": {
+      "type": "string",
+      "maxLength": 20000
+     }
+    },
+    "required": [
+     "abilities",
+     "level",
+     "hp"
+    ],
+    "additionalProperties": false
+   },
+   "computed": {
+    "strengthMod": {
+     "floor": {
+      "/": [
+       {
+        "-": [
+         {
+          "var": [
+           "fields.abilities.strength",
+           10
+          ]
+         },
+         10
+        ]
+       },
+       2
+      ]
+     }
+    },
+    "dexterityMod": {
+     "floor": {
+      "/": [
+       {
+        "-": [
+         {
+          "var": [
+           "fields.abilities.dexterity",
+           10
+          ]
+         },
+         10
+        ]
+       },
+       2
+      ]
+     }
+    },
+    "constitutionMod": {
+     "floor": {
+      "/": [
+       {
+        "-": [
+         {
+          "var": [
+           "fields.abilities.constitution",
+           10
+          ]
+         },
+         10
+        ]
+       },
+       2
+      ]
+     }
+    },
+    "intelligenceMod": {
+     "floor": {
+      "/": [
+       {
+        "-": [
+         {
+          "var": [
+           "fields.abilities.intelligence",
+           10
+          ]
+         },
+         10
+        ]
+       },
+       2
+      ]
+     }
+    },
+    "wisdomMod": {
+     "floor": {
+      "/": [
+       {
+        "-": [
+         {
+          "var": [
+           "fields.abilities.wisdom",
+           10
+          ]
+         },
+         10
+        ]
+       },
+       2
+      ]
+     }
+    },
+    "charismaMod": {
+     "floor": {
+      "/": [
+       {
+        "-": [
+         {
+          "var": [
+           "fields.abilities.charisma",
+           10
+          ]
+         },
+         10
+        ]
+       },
+       2
+      ]
+     }
+    },
+    "proficiencyBonus": {
+     "+": [
+      2,
+      {
+       "floor": {
+        "/": [
+         {
+          "-": [
+           {
+            "var": [
+             "fields.level",
+             1
+            ]
+           },
+           1
+          ]
+         },
+         4
+        ]
+       }
+      }
+     ]
+    },
+    "strengthSave": {
+     "+": [
+      {
+       "var": "computed.strengthMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.saves.strength-save",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.strength-save",
+        0
+       ]
+      }
+     ]
+    },
+    "dexteritySave": {
+     "+": [
+      {
+       "var": "computed.dexterityMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.saves.dexterity-save",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.dexterity-save",
+        0
+       ]
+      }
+     ]
+    },
+    "constitutionSave": {
+     "+": [
+      {
+       "var": "computed.constitutionMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.saves.constitution-save",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.constitution-save",
+        0
+       ]
+      }
+     ]
+    },
+    "intelligenceSave": {
+     "+": [
+      {
+       "var": "computed.intelligenceMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.saves.intelligence-save",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.intelligence-save",
+        0
+       ]
+      }
+     ]
+    },
+    "wisdomSave": {
+     "+": [
+      {
+       "var": "computed.wisdomMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.saves.wisdom-save",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.wisdom-save",
+        0
+       ]
+      }
+     ]
+    },
+    "charismaSave": {
+     "+": [
+      {
+       "var": "computed.charismaMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.saves.charisma-save",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.charisma-save",
+        0
+       ]
+      }
+     ]
+    },
+    "acrobaticsBonus": {
+     "+": [
+      {
+       "var": "computed.dexterityMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.skills.acrobatics",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.acrobatics",
+        0
+       ]
+      }
+     ]
+    },
+    "animalHandlingBonus": {
+     "+": [
+      {
+       "var": "computed.wisdomMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.skills.animal-handling",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.animal-handling",
+        0
+       ]
+      }
+     ]
+    },
+    "arcanaBonus": {
+     "+": [
+      {
+       "var": "computed.intelligenceMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.skills.arcana",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.arcana",
+        0
+       ]
+      }
+     ]
+    },
+    "athleticsBonus": {
+     "+": [
+      {
+       "var": "computed.strengthMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.skills.athletics",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.athletics",
+        0
+       ]
+      }
+     ]
+    },
+    "deceptionBonus": {
+     "+": [
+      {
+       "var": "computed.charismaMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.skills.deception",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.deception",
+        0
+       ]
+      }
+     ]
+    },
+    "historyBonus": {
+     "+": [
+      {
+       "var": "computed.intelligenceMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.skills.history",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.history",
+        0
+       ]
+      }
+     ]
+    },
+    "insightBonus": {
+     "+": [
+      {
+       "var": "computed.wisdomMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.skills.insight",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.insight",
+        0
+       ]
+      }
+     ]
+    },
+    "intimidationBonus": {
+     "+": [
+      {
+       "var": "computed.charismaMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.skills.intimidation",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.intimidation",
+        0
+       ]
+      }
+     ]
+    },
+    "investigationBonus": {
+     "+": [
+      {
+       "var": "computed.intelligenceMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.skills.investigation",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.investigation",
+        0
+       ]
+      }
+     ]
+    },
+    "medicineBonus": {
+     "+": [
+      {
+       "var": "computed.wisdomMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.skills.medicine",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.medicine",
+        0
+       ]
+      }
+     ]
+    },
+    "natureBonus": {
+     "+": [
+      {
+       "var": "computed.intelligenceMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.skills.nature",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.nature",
+        0
+       ]
+      }
+     ]
+    },
+    "perceptionBonus": {
+     "+": [
+      {
+       "var": "computed.wisdomMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.skills.perception",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.perception",
+        0
+       ]
+      }
+     ]
+    },
+    "performanceBonus": {
+     "+": [
+      {
+       "var": "computed.charismaMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.skills.performance",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.performance",
+        0
+       ]
+      }
+     ]
+    },
+    "persuasionBonus": {
+     "+": [
+      {
+       "var": "computed.charismaMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.skills.persuasion",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.persuasion",
+        0
+       ]
+      }
+     ]
+    },
+    "religionBonus": {
+     "+": [
+      {
+       "var": "computed.intelligenceMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.skills.religion",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.religion",
+        0
+       ]
+      }
+     ]
+    },
+    "sleightOfHandBonus": {
+     "+": [
+      {
+       "var": "computed.dexterityMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.skills.sleight-of-hand",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.sleight-of-hand",
+        0
+       ]
+      }
+     ]
+    },
+    "stealthBonus": {
+     "+": [
+      {
+       "var": "computed.dexterityMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.skills.stealth",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.stealth",
+        0
+       ]
+      }
+     ]
+    },
+    "survivalBonus": {
+     "+": [
+      {
+       "var": "computed.wisdomMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.skills.survival",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.survival",
+        0
+       ]
+      }
+     ]
+    },
+    "passivePerception": {
+     "+": [
+      10,
+      {
+       "var": "computed.perceptionBonus"
+      }
+     ]
+    },
+    "passiveInvestigation": {
+     "+": [
+      10,
+      {
+       "var": "computed.investigationBonus"
+      }
+     ]
+    },
+    "passiveInsight": {
+     "+": [
+      10,
+      {
+       "var": "computed.insightBonus"
+      }
+     ]
+    },
+    "initiative": {
+     "+": [
+      {
+       "var": "computed.dexterityMod"
+      },
+      {
+       "var": [
+        "fields.initiativeBonus",
+        0
+       ]
+      }
+     ]
+    },
+    "hitDieFaces": {
+     "if": [
+      {
+       "in": [
+        {
+         "var": [
+          "fields.class",
+          ""
+         ]
+        },
+        [
+         "barbarian"
+        ]
+       ]
+      },
+      12,
+      {
+       "in": [
+        {
+         "var": [
+          "fields.class",
+          ""
+         ]
+        },
+        [
+         "bard",
+         "cleric",
+         "druid",
+         "monk",
+         "rogue",
+         "warlock"
+        ]
+       ]
+      },
+      8,
+      {
+       "in": [
+        {
+         "var": [
+          "fields.class",
+          ""
+         ]
+        },
+        [
+         "fighter",
+         "paladin",
+         "ranger"
+        ]
+       ]
+      },
+      10,
+      {
+       "in": [
+        {
+         "var": [
+          "fields.class",
+          ""
+         ]
+        },
+        [
+         "sorcerer",
+         "wizard"
+        ]
+       ]
+      },
+      6,
+      0
+     ]
+    },
+    "hitDie": {
+     "if": [
+      {
+       ">": [
+        {
+         "var": "computed.hitDieFaces"
+        },
+        0
+       ]
+      },
+      {
+       "cat": [
+        "d",
+        {
+         "var": "computed.hitDieFaces"
+        }
+       ]
+      },
+      "—"
+     ]
+    },
+    "hitDiceLeft": {
+     "max": [
+      0,
+      {
+       "-": [
+        {
+         "var": [
+          "fields.level",
+          1
+         ]
+        },
+        {
+         "var": [
+          "fields.hitDiceSpent",
+          0
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    "suggestedHpMax": {
+     "if": [
+      {
+       ">": [
+        {
+         "var": "computed.hitDieFaces"
+        },
+        0
+       ]
+      },
+      {
+       "max": [
+        1,
+        {
+         "+": [
+          {
+           "var": "computed.hitDieFaces"
+          },
+          {
+           "var": "computed.constitutionMod"
+          },
+          {
+           "*": [
+            {
+             "-": [
+              {
+               "var": [
+                "fields.level",
+                1
+               ]
+              },
+              1
+             ]
+            },
+            {
+             "+": [
+              {
+               "floor": {
+                "/": [
+                 {
+                  "var": "computed.hitDieFaces"
+                 },
+                 2
+                ]
+               }
+              },
+              1,
+              {
+               "var": "computed.constitutionMod"
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      null
+     ]
+    },
+    "nextLevelXp": {
+     "if": [
+      {
+       "<": [
+        {
+         "var": [
+          "fields.level",
+          1
+         ]
+        },
+        20
+       ]
+      },
+      {
+       "lookup": [
+        [
+         0,
+         300,
+         900,
+         2700,
+         6500,
+         14000,
+         23000,
+         34000,
+         48000,
+         64000,
+         85000,
+         100000,
+         120000,
+         140000,
+         165000,
+         195000,
+         225000,
+         265000,
+         305000,
+         355000
+        ],
+        {
+         "max": [
+          1,
+          {
+           "min": [
+            19,
+            {
+             "var": [
+              "fields.level",
+              1
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        null
+       ]
+      },
+      null
+     ]
+    },
+    "carryingCapacity": {
+     "*": [
+      {
+       "var": [
+        "fields.abilities.strength",
+        10
+       ]
+      },
+      15
+     ]
+    },
+    "spellAbility": {
+     "if": [
+      {
+       "var": [
+        "fields.spellcastingAbility",
+        ""
+       ]
+      },
+      {
+       "var": "fields.spellcastingAbility"
+      },
+      {
+       "if": [
+        {
+         "in": [
+          {
+           "var": [
+            "fields.class",
+            ""
+           ]
+          },
+          [
+           "bard",
+           "paladin",
+           "sorcerer",
+           "warlock"
+          ]
+         ]
+        },
+        "charisma",
+        {
+         "in": [
+          {
+           "var": [
+            "fields.class",
+            ""
+           ]
+          },
+          [
+           "cleric",
+           "druid",
+           "ranger"
+          ]
+         ]
+        },
+        "wisdom",
+        {
+         "in": [
+          {
+           "var": [
+            "fields.class",
+            ""
+           ]
+          },
+          [
+           "wizard"
+          ]
+         ]
+        },
+        "intelligence",
+        ""
+       ]
+      }
+     ]
+    },
+    "spellcastingMod": {
+     "if": [
+      {
+       "var": "computed.spellAbility"
+      },
+      {
+       "var": [
+        {
+         "cat": [
+          "computed.",
+          {
+           "var": "computed.spellAbility"
+          },
+          "Mod"
+         ]
+        },
+        0
+       ]
+      },
+      null
+     ]
+    },
+    "spellSaveDc": {
+     "if": [
+      {
+       "var": "computed.spellAbility"
+      },
+      {
+       "+": [
+        8,
+        {
+         "var": "computed.proficiencyBonus"
+        },
+        {
+         "var": [
+          "computed.spellcastingMod",
+          0
+         ]
+        }
+       ]
+      },
+      null
+     ]
+    },
+    "spellAttack": {
+     "if": [
+      {
+       "var": "computed.spellAbility"
+      },
+      {
+       "if": [
+        {
+         ">=": [
+          {
+           "+": [
+            {
+             "var": "computed.proficiencyBonus"
+            },
+            {
+             "var": [
+              "computed.spellcastingMod",
+              0
+             ]
+            }
+           ]
+          },
+          0
+         ]
+        },
+        {
+         "cat": [
+          "+",
+          {
+           "+": [
+            {
+             "var": "computed.proficiencyBonus"
+            },
+            {
+             "var": [
+              "computed.spellcastingMod",
+              0
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "cat": [
+          {
+           "+": [
+            {
+             "var": "computed.proficiencyBonus"
+            },
+            {
+             "var": [
+              "computed.spellcastingMod",
+              0
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      null
+     ]
+    },
+    "slotMax1": {
+     "if": [
+      {
+       "in": [
+        {
+         "var": [
+          "fields.class",
+          ""
+         ]
+        },
+        [
+         "bard",
+         "cleric",
+         "druid",
+         "sorcerer",
+         "wizard"
+        ]
+       ]
+      },
+      {
+       "lookup": [
+        [
+         2,
+         3,
+         4,
+         4,
+         4,
+         4,
+         4,
+         4,
+         4,
+         4,
+         4,
+         4,
+         4,
+         4,
+         4,
+         4,
+         4,
+         4,
+         4,
+         4
+        ],
+        {
+         "max": [
+          0,
+          {
+           "min": [
+            19,
+            {
+             "-": [
+              {
+               "var": [
+                "fields.level",
+                1
+               ]
+              },
+              1
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      {
+       "in": [
+        {
+         "var": [
+          "fields.class",
+          ""
+         ]
+        },
+        [
+         "paladin",
+         "ranger"
+        ]
+       ]
+      },
+      {
+       "lookup": [
+        [
+         0,
+         2,
+         3,
+         3,
+         4,
+         4,
+         4,
+         4,
+         4,
+         4,
+         4,
+         4,
+         4,
+         4,
+         4,
+         4,
+         4,
+         4,
+         4,
+         4
+        ],
+        {
+         "max": [
+          0,
+          {
+           "min": [
+            19,
+            {
+             "-": [
+              {
+               "var": [
+                "fields.level",
+                1
+               ]
+              },
+              1
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      {
+       "in": [
+        {
+         "var": [
+          "fields.class",
+          ""
+         ]
+        },
+        [
+         "warlock"
+        ]
+       ]
+      },
+      {
+       "lookup": [
+        [
+         1,
+         2,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0
+        ],
+        {
+         "max": [
+          0,
+          {
+           "min": [
+            19,
+            {
+             "-": [
+              {
+               "var": [
+                "fields.level",
+                1
+               ]
+              },
+              1
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      0
+     ]
+    },
+    "slotMax2": {
+     "if": [
+      {
+       "in": [
+        {
+         "var": [
+          "fields.class",
+          ""
+         ]
+        },
+        [
+         "bard",
+         "cleric",
+         "druid",
+         "sorcerer",
+         "wizard"
+        ]
+       ]
+      },
+      {
+       "lookup": [
+        [
+         0,
+         0,
+         2,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3
+        ],
+        {
+         "max": [
+          0,
+          {
+           "min": [
+            19,
+            {
+             "-": [
+              {
+               "var": [
+                "fields.level",
+                1
+               ]
+              },
+              1
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      {
+       "in": [
+        {
+         "var": [
+          "fields.class",
+          ""
+         ]
+        },
+        [
+         "paladin",
+         "ranger"
+        ]
+       ]
+      },
+      {
+       "lookup": [
+        [
+         0,
+         0,
+         0,
+         0,
+         2,
+         2,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3
+        ],
+        {
+         "max": [
+          0,
+          {
+           "min": [
+            19,
+            {
+             "-": [
+              {
+               "var": [
+                "fields.level",
+                1
+               ]
+              },
+              1
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      {
+       "in": [
+        {
+         "var": [
+          "fields.class",
+          ""
+         ]
+        },
+        [
+         "warlock"
+        ]
+       ]
+      },
+      {
+       "lookup": [
+        [
+         0,
+         0,
+         2,
+         2,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0
+        ],
+        {
+         "max": [
+          0,
+          {
+           "min": [
+            19,
+            {
+             "-": [
+              {
+               "var": [
+                "fields.level",
+                1
+               ]
+              },
+              1
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      0
+     ]
+    },
+    "slotMax3": {
+     "if": [
+      {
+       "in": [
+        {
+         "var": [
+          "fields.class",
+          ""
+         ]
+        },
+        [
+         "bard",
+         "cleric",
+         "druid",
+         "sorcerer",
+         "wizard"
+        ]
+       ]
+      },
+      {
+       "lookup": [
+        [
+         0,
+         0,
+         0,
+         0,
+         2,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3
+        ],
+        {
+         "max": [
+          0,
+          {
+           "min": [
+            19,
+            {
+             "-": [
+              {
+               "var": [
+                "fields.level",
+                1
+               ]
+              },
+              1
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      {
+       "in": [
+        {
+         "var": [
+          "fields.class",
+          ""
+         ]
+        },
+        [
+         "paladin",
+         "ranger"
+        ]
+       ]
+      },
+      {
+       "lookup": [
+        [
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         2,
+         2,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3
+        ],
+        {
+         "max": [
+          0,
+          {
+           "min": [
+            19,
+            {
+             "-": [
+              {
+               "var": [
+                "fields.level",
+                1
+               ]
+              },
+              1
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      {
+       "in": [
+        {
+         "var": [
+          "fields.class",
+          ""
+         ]
+        },
+        [
+         "warlock"
+        ]
+       ]
+      },
+      {
+       "lookup": [
+        [
+         0,
+         0,
+         0,
+         0,
+         2,
+         2,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0
+        ],
+        {
+         "max": [
+          0,
+          {
+           "min": [
+            19,
+            {
+             "-": [
+              {
+               "var": [
+                "fields.level",
+                1
+               ]
+              },
+              1
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      0
+     ]
+    },
+    "slotMax4": {
+     "if": [
+      {
+       "in": [
+        {
+         "var": [
+          "fields.class",
+          ""
+         ]
+        },
+        [
+         "bard",
+         "cleric",
+         "druid",
+         "sorcerer",
+         "wizard"
+        ]
+       ]
+      },
+      {
+       "lookup": [
+        [
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         1,
+         2,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3
+        ],
+        {
+         "max": [
+          0,
+          {
+           "min": [
+            19,
+            {
+             "-": [
+              {
+               "var": [
+                "fields.level",
+                1
+               ]
+              },
+              1
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      {
+       "in": [
+        {
+         "var": [
+          "fields.class",
+          ""
+         ]
+        },
+        [
+         "paladin",
+         "ranger"
+        ]
+       ]
+      },
+      {
+       "lookup": [
+        [
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         1,
+         1,
+         2,
+         2,
+         3,
+         3,
+         3,
+         3
+        ],
+        {
+         "max": [
+          0,
+          {
+           "min": [
+            19,
+            {
+             "-": [
+              {
+               "var": [
+                "fields.level",
+                1
+               ]
+              },
+              1
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      {
+       "in": [
+        {
+         "var": [
+          "fields.class",
+          ""
+         ]
+        },
+        [
+         "warlock"
+        ]
+       ]
+      },
+      {
+       "lookup": [
+        [
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         2,
+         2,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0
+        ],
+        {
+         "max": [
+          0,
+          {
+           "min": [
+            19,
+            {
+             "-": [
+              {
+               "var": [
+                "fields.level",
+                1
+               ]
+              },
+              1
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      0
+     ]
+    },
+    "slotMax5": {
+     "if": [
+      {
+       "in": [
+        {
+         "var": [
+          "fields.class",
+          ""
+         ]
+        },
+        [
+         "bard",
+         "cleric",
+         "druid",
+         "sorcerer",
+         "wizard"
+        ]
+       ]
+      },
+      {
+       "lookup": [
+        [
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         1,
+         2,
+         2,
+         2,
+         2,
+         2,
+         2,
+         2,
+         2,
+         3,
+         3,
+         3
+        ],
+        {
+         "max": [
+          0,
+          {
+           "min": [
+            19,
+            {
+             "-": [
+              {
+               "var": [
+                "fields.level",
+                1
+               ]
+              },
+              1
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      {
+       "in": [
+        {
+         "var": [
+          "fields.class",
+          ""
+         ]
+        },
+        [
+         "paladin",
+         "ranger"
+        ]
+       ]
+      },
+      {
+       "lookup": [
+        [
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         1,
+         1,
+         2,
+         2
+        ],
+        {
+         "max": [
+          0,
+          {
+           "min": [
+            19,
+            {
+             "-": [
+              {
+               "var": [
+                "fields.level",
+                1
+               ]
+              },
+              1
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      {
+       "in": [
+        {
+         "var": [
+          "fields.class",
+          ""
+         ]
+        },
+        [
+         "warlock"
+        ]
+       ]
+      },
+      {
+       "lookup": [
+        [
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         2,
+         2,
+         3,
+         3,
+         3,
+         3,
+         3,
+         3,
+         4,
+         4,
+         4,
+         4
+        ],
+        {
+         "max": [
+          0,
+          {
+           "min": [
+            19,
+            {
+             "-": [
+              {
+               "var": [
+                "fields.level",
+                1
+               ]
+              },
+              1
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      0
+     ]
+    },
+    "slotMax6": {
+     "if": [
+      {
+       "in": [
+        {
+         "var": [
+          "fields.class",
+          ""
+         ]
+        },
+        [
+         "bard",
+         "cleric",
+         "druid",
+         "sorcerer",
+         "wizard"
+        ]
+       ]
+      },
+      {
+       "lookup": [
+        [
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1,
+         2,
+         2
+        ],
+        {
+         "max": [
+          0,
+          {
+           "min": [
+            19,
+            {
+             "-": [
+              {
+               "var": [
+                "fields.level",
+                1
+               ]
+              },
+              1
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      0
+     ]
+    },
+    "slotMax7": {
+     "if": [
+      {
+       "in": [
+        {
+         "var": [
+          "fields.class",
+          ""
+         ]
+        },
+        [
+         "bard",
+         "cleric",
+         "druid",
+         "sorcerer",
+         "wizard"
+        ]
+       ]
+      },
+      {
+       "lookup": [
+        [
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1,
+         2
+        ],
+        {
+         "max": [
+          0,
+          {
+           "min": [
+            19,
+            {
+             "-": [
+              {
+               "var": [
+                "fields.level",
+                1
+               ]
+              },
+              1
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      0
+     ]
+    },
+    "slotMax8": {
+     "if": [
+      {
+       "in": [
+        {
+         "var": [
+          "fields.class",
+          ""
+         ]
+        },
+        [
+         "bard",
+         "cleric",
+         "druid",
+         "sorcerer",
+         "wizard"
+        ]
+       ]
+      },
+      {
+       "lookup": [
+        [
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         1,
+         1,
+         1,
+         1,
+         1,
+         1
+        ],
+        {
+         "max": [
+          0,
+          {
+           "min": [
+            19,
+            {
+             "-": [
+              {
+               "var": [
+                "fields.level",
+                1
+               ]
+              },
+              1
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      0
+     ]
+    },
+    "slotMax9": {
+     "if": [
+      {
+       "in": [
+        {
+         "var": [
+          "fields.class",
+          ""
+         ]
+        },
+        [
+         "bard",
+         "cleric",
+         "druid",
+         "sorcerer",
+         "wizard"
+        ]
+       ]
+      },
+      {
+       "lookup": [
+        [
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         0,
+         1,
+         1,
+         1,
+         1
+        ],
+        {
+         "max": [
+          0,
+          {
+           "min": [
+            19,
+            {
+             "-": [
+              {
+               "var": [
+                "fields.level",
+                1
+               ]
+              },
+              1
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        0
+       ]
+      },
+      0
+     ]
+    },
+    "spellSlots": {
+     "cat": [
+      {
+       "if": [
+        {
+         ">": [
+          {
+           "var": [
+            "computed.slotMax1",
+            0
+           ]
+          },
+          0
+         ]
+        },
+        {
+         "cat": [
+          "1st",
+          ": ",
+          {
+           "var": "computed.slotMax1"
+          },
+          "  "
+         ]
+        },
+        ""
+       ]
+      },
+      {
+       "if": [
+        {
+         ">": [
+          {
+           "var": [
+            "computed.slotMax2",
+            0
+           ]
+          },
+          0
+         ]
+        },
+        {
+         "cat": [
+          "2nd",
+          ": ",
+          {
+           "var": "computed.slotMax2"
+          },
+          "  "
+         ]
+        },
+        ""
+       ]
+      },
+      {
+       "if": [
+        {
+         ">": [
+          {
+           "var": [
+            "computed.slotMax3",
+            0
+           ]
+          },
+          0
+         ]
+        },
+        {
+         "cat": [
+          "3rd",
+          ": ",
+          {
+           "var": "computed.slotMax3"
+          },
+          "  "
+         ]
+        },
+        ""
+       ]
+      },
+      {
+       "if": [
+        {
+         ">": [
+          {
+           "var": [
+            "computed.slotMax4",
+            0
+           ]
+          },
+          0
+         ]
+        },
+        {
+         "cat": [
+          "4th",
+          ": ",
+          {
+           "var": "computed.slotMax4"
+          },
+          "  "
+         ]
+        },
+        ""
+       ]
+      },
+      {
+       "if": [
+        {
+         ">": [
+          {
+           "var": [
+            "computed.slotMax5",
+            0
+           ]
+          },
+          0
+         ]
+        },
+        {
+         "cat": [
+          "5th",
+          ": ",
+          {
+           "var": "computed.slotMax5"
+          },
+          "  "
+         ]
+        },
+        ""
+       ]
+      },
+      {
+       "if": [
+        {
+         ">": [
+          {
+           "var": [
+            "computed.slotMax6",
+            0
+           ]
+          },
+          0
+         ]
+        },
+        {
+         "cat": [
+          "6th",
+          ": ",
+          {
+           "var": "computed.slotMax6"
+          },
+          "  "
+         ]
+        },
+        ""
+       ]
+      },
+      {
+       "if": [
+        {
+         ">": [
+          {
+           "var": [
+            "computed.slotMax7",
+            0
+           ]
+          },
+          0
+         ]
+        },
+        {
+         "cat": [
+          "7th",
+          ": ",
+          {
+           "var": "computed.slotMax7"
+          },
+          "  "
+         ]
+        },
+        ""
+       ]
+      },
+      {
+       "if": [
+        {
+         ">": [
+          {
+           "var": [
+            "computed.slotMax8",
+            0
+           ]
+          },
+          0
+         ]
+        },
+        {
+         "cat": [
+          "8th",
+          ": ",
+          {
+           "var": "computed.slotMax8"
+          },
+          "  "
+         ]
+        },
+        ""
+       ]
+      },
+      {
+       "if": [
+        {
+         ">": [
+          {
+           "var": [
+            "computed.slotMax9",
+            0
+           ]
+          },
+          0
+         ]
+        },
+        {
+         "cat": [
+          "9th",
+          ": ",
+          {
+           "var": "computed.slotMax9"
+          },
+          "  "
+         ]
+        },
+        ""
+       ]
+      }
+     ]
+    }
+   },
+   "sheet": {
+    "sections": [
+     {
+      "id": "identity",
+      "title": "Character",
+      "columns": 3,
+      "fields": [
+       {
+        "path": "class",
+        "label": "Class",
+        "widget": "select",
+        "options": {
+         "ref": "dnd5e-srd.classes"
+        }
+       },
+       {
+        "path": "level",
+        "label": "Level",
+        "widget": "number"
+       },
+       {
+        "path": "subclass",
+        "label": "Subclass",
+        "widget": "text"
+       },
+       {
+        "path": "race",
+        "label": "Race",
+        "widget": "text"
+       },
+       {
+        "path": "subrace",
+        "label": "Subrace",
+        "widget": "text"
+       },
+       {
+        "path": "background",
+        "label": "Background",
+        "widget": "text"
+       },
+       {
+        "path": "alignment",
+        "label": "Alignment",
+        "widget": "select",
+        "options": {
+         "ref": "dnd5e-srd.alignments"
+        }
+       },
+       {
+        "path": "xp",
+        "label": "Experience points",
+        "widget": "number"
+       },
+       {
+        "path": "nextLevelXp",
+        "label": "XP for next level",
+        "widget": "computed"
+       },
+       {
+        "path": "proficiencyBonus",
+        "label": "Proficiency bonus",
+        "widget": "computed",
+        "rule": "dnd5e-srd.rule.proficiency-bonus"
+       },
+       {
+        "path": "player",
+        "label": "Player",
+        "widget": "text"
+       },
+       {
+        "path": "isPC",
+        "label": "Player character",
+        "widget": "checkbox"
+       }
+      ]
+     },
+     {
+      "id": "abilities",
+      "title": "Ability scores",
+      "columns": 6,
+      "fields": [
+       {
+        "path": "abilities.strength",
+        "label": "Strength",
+        "widget": "attribute",
+        "rule": "dnd5e-srd.rule.ability-scores-and-modifiers"
+       },
+       {
+        "path": "abilities.dexterity",
+        "label": "Dexterity",
+        "widget": "attribute",
+        "rule": "dnd5e-srd.rule.ability-scores-and-modifiers"
+       },
+       {
+        "path": "abilities.constitution",
+        "label": "Constitution",
+        "widget": "attribute",
+        "rule": "dnd5e-srd.rule.ability-scores-and-modifiers"
+       },
+       {
+        "path": "abilities.intelligence",
+        "label": "Intelligence",
+        "widget": "attribute",
+        "rule": "dnd5e-srd.rule.ability-scores-and-modifiers"
+       },
+       {
+        "path": "abilities.wisdom",
+        "label": "Wisdom",
+        "widget": "attribute",
+        "rule": "dnd5e-srd.rule.ability-scores-and-modifiers"
+       },
+       {
+        "path": "abilities.charisma",
+        "label": "Charisma",
+        "widget": "attribute",
+        "rule": "dnd5e-srd.rule.ability-scores-and-modifiers"
+       },
+       {
+        "path": "strengthMod",
+        "label": "STR modifier",
+        "widget": "computed"
+       },
+       {
+        "path": "dexterityMod",
+        "label": "DEX modifier",
+        "widget": "computed"
+       },
+       {
+        "path": "constitutionMod",
+        "label": "CON modifier",
+        "widget": "computed"
+       },
+       {
+        "path": "intelligenceMod",
+        "label": "INT modifier",
+        "widget": "computed"
+       },
+       {
+        "path": "wisdomMod",
+        "label": "WIS modifier",
+        "widget": "computed"
+       },
+       {
+        "path": "charismaMod",
+        "label": "CHA modifier",
+        "widget": "computed"
+       }
+      ]
+     },
+     {
+      "id": "combat",
+      "title": "Combat",
+      "columns": 4,
+      "fields": [
+       {
+        "path": "ac",
+        "label": "Armor Class",
+        "widget": "number"
+       },
+       {
+        "path": "initiative",
+        "label": "Initiative",
+        "widget": "computed",
+        "rule": "dnd5e-srd.rule.the-order-of-combat.initiative"
+       },
+       {
+        "path": "speed",
+        "label": "Speed (ft.)",
+        "widget": "number"
+       },
+       {
+        "path": "initiativeBonus",
+        "label": "Initiative bonus",
+        "widget": "number"
+       },
+       {
+        "path": "hp.max",
+        "label": "Hit point maximum",
+        "widget": "number",
+        "rule": "dnd5e-srd.rule.damage-and-healing.hit-points"
+       },
+       {
+        "path": "hp.current",
+        "label": "Current hit points",
+        "widget": "number"
+       },
+       {
+        "path": "hp.temp",
+        "label": "Temporary hit points",
+        "widget": "number",
+        "rule": "dnd5e-srd.rule.damage-and-healing.temporary-hit-points"
+       },
+       {
+        "path": "suggestedHpMax",
+        "label": "HP max (fixed values)",
+        "widget": "computed"
+       },
+       {
+        "path": "hitDie",
+        "label": "Hit die",
+        "widget": "computed"
+       },
+       {
+        "path": "hitDiceLeft",
+        "label": "Hit dice left",
+        "widget": "computed",
+        "rule": "dnd5e-srd.rule.resting.short-rest"
+       },
+       {
+        "path": "hitDiceSpent",
+        "label": "Hit dice spent",
+        "widget": "number"
+       },
+       {
+        "path": "exhaustion",
+        "label": "Exhaustion level",
+        "widget": "number",
+        "rule": "dnd5e-srd.rule.conditions.exhaustion"
+       },
+       {
+        "path": "deathSaves.successes",
+        "label": "Death save successes",
+        "widget": "number",
+        "rule": "dnd5e-srd.rule.damage-and-healing.dropping-to-0-hit-points"
+       },
+       {
+        "path": "deathSaves.failures",
+        "label": "Death save failures",
+        "widget": "number"
+       },
+       {
+        "path": "inspiration",
+        "label": "Inspiration",
+        "widget": "checkbox",
+        "rule": "dnd5e-srd.rule.advice.inspiration"
+       }
+      ]
+     },
+     {
+      "id": "saves",
+      "title": "Saving throws",
+      "fields": [
+       {
+        "path": "saves.*",
+        "label": "Saving throws",
+        "widget": "skills",
+        "rule": "dnd5e-srd.rule.saving-throws",
+        "config": {
+         "ref": "dnd5e-srd.saving-throws",
+         "attributesPath": "abilities",
+         "levels": [
+          {
+           "value": 0,
+           "label": "—"
+          },
+          {
+           "value": 1,
+           "label": "Proficient"
+          }
+         ],
+         "labels": {
+          "skill": "Save",
+          "attribute": "Ability",
+          "attributeValue": "Score",
+          "value": "Proficiency",
+          "pool": "Roll"
+         }
+        }
+       }
+      ]
+     },
+     {
+      "id": "skills",
+      "title": "Skills",
+      "fields": [
+       {
+        "path": "skills.*",
+        "label": "Skills",
+        "widget": "skills",
+        "rule": "dnd5e-srd.rule.ability-checks.skills",
+        "config": {
+         "ref": "dnd5e-srd.skills",
+         "attributesPath": "abilities",
+         "levels": [
+          {
+           "value": 0,
+           "label": "—"
+          },
+          {
+           "value": 1,
+           "label": "Proficient"
+          },
+          {
+           "value": 2,
+           "label": "Expertise"
+          }
+         ],
+         "labels": {
+          "skill": "Skill",
+          "attribute": "Ability",
+          "attributeValue": "Score",
+          "value": "Proficiency",
+          "pool": "Roll"
+         }
+        }
+       },
+       {
+        "path": "passivePerception",
+        "label": "Passive Wisdom (Perception)",
+        "widget": "computed",
+        "rule": "dnd5e-srd.rule.ability-checks.passive-checks"
+       },
+       {
+        "path": "passiveInvestigation",
+        "label": "Passive Intelligence (Investigation)",
+        "widget": "computed"
+       },
+       {
+        "path": "passiveInsight",
+        "label": "Passive Wisdom (Insight)",
+        "widget": "computed"
+       }
+      ]
+     },
+     {
+      "id": "attacks",
+      "title": "Attacks",
+      "fields": [
+       {
+        "path": "attacks",
+        "label": "Attacks",
+        "widget": "table",
+        "config": {
+         "columns": [
+          "name",
+          {
+           "key": "bonus",
+           "label": "Attack bonus"
+          },
+          "damage",
+          "notes"
+         ]
+        }
+       }
+      ]
+     },
+     {
+      "id": "spellcasting",
+      "title": "Spellcasting",
+      "columns": 4,
+      "fields": [
+       {
+        "path": "spellcastingAbility",
+        "label": "Spellcasting ability (override)",
+        "widget": "select",
+        "options": {
+         "ref": "dnd5e-srd.ability-scores"
+        }
+       },
+       {
+        "path": "spellAbility",
+        "label": "Spellcasting ability",
+        "widget": "computed"
+       },
+       {
+        "path": "spellSaveDc",
+        "label": "Spell save DC",
+        "widget": "computed",
+        "rule": "dnd5e-srd.rule.casting-a-spell.spell-saving-throws"
+       },
+       {
+        "path": "spellAttack",
+        "label": "Spell attack bonus",
+        "widget": "computed",
+        "rule": "dnd5e-srd.rule.casting-a-spell.spell-attack-rolls"
+       },
+       {
+        "path": "spellSlots",
+        "label": "Spell slots",
+        "widget": "computed",
+        "span": 12,
+        "rule": "dnd5e-srd.rule.what-is-a-spell.spell-slots"
+       },
+       {
+        "path": "spellSlotsUsed",
+        "label": "Slots used",
+        "widget": "object",
+        "span": 12
+       },
+       {
+        "path": "spells",
+        "label": "Spells known / prepared",
+        "widget": "tags",
+        "span": 12
+       }
+      ]
+     },
+     {
+      "id": "features",
+      "title": "Features and proficiencies",
+      "fields": [
+       {
+        "path": "features",
+        "label": "Features and traits",
+        "widget": "entries"
+       },
+       {
+        "path": "proficiencies",
+        "label": "Armor, weapon and tool proficiencies",
+        "widget": "textarea"
+       },
+       {
+        "path": "languages",
+        "label": "Languages",
+        "widget": "tags"
+       }
+      ]
+     },
+     {
+      "id": "equipment",
+      "title": "Equipment",
+      "fields": [
+       {
+        "path": "equipment",
+        "label": "Equipment",
+        "widget": "table",
+        "config": {
+         "columns": [
+          "name",
+          "quantity",
+          {
+           "key": "weight",
+           "label": "Weight (lb.)"
+          },
+          "notes"
+         ]
+        }
+       },
+       {
+        "path": "coins",
+        "label": "Coins",
+        "widget": "object"
+       },
+       {
+        "path": "carryingCapacity",
+        "label": "Carrying capacity (lb.)",
+        "widget": "computed",
+        "rule": "dnd5e-srd.rule.using-each-ability.strength"
+       }
+      ]
+     },
+     {
+      "id": "personality",
+      "title": "Personality and story",
+      "collapsed": true,
+      "fields": [
+       {
+        "path": "personality",
+        "label": "Traits, ideals, bonds, flaws",
+        "widget": "object"
+       },
+       {
+        "path": "appearance",
+        "label": "Appearance",
+        "widget": "textarea"
+       },
+       {
+        "path": "backstory",
+        "label": "Backstory",
+        "widget": "textarea"
+       }
+      ]
+     },
+     {
+      "id": "bonuses",
+      "title": "Other bonuses",
+      "collapsed": true,
+      "fields": [
+       {
+        "path": "bonuses",
+        "label": "Flat bonuses by skill and save",
+        "widget": "object"
+       }
+      ]
+     },
+     {
+      "id": "notes",
+      "title": "GM notes",
+      "collapsed": true,
+      "fields": [
+       {
+        "path": "notes",
+        "label": "Notes",
+        "widget": "textarea"
+       }
+      ]
+     }
+    ],
+    "summary": [
+     "class",
+     "level",
+     "ac",
+     "hp.current",
+     "passivePerception"
+    ]
+   },
+   "defaultVisibility": {
+    "notes": "gm"
+   },
+   "playerEditable": [
+    "hp.current",
+    "hp.temp",
+    "deathSaves.successes",
+    "deathSaves.failures",
+    "spellSlotsUsed",
+    "equipment",
+    "coins",
+    "notes"
+   ]
+  },
+  {
+   "id": "dnd5e-srd.monster",
+   "kind": "creature",
+   "name": "Monster",
+   "plural": "Monsters",
+   "icon": "bug",
+   "schema": {
+    "type": "object",
+    "properties": {
+     "size": {
+      "type": "string",
+      "enum": [
+       "Tiny",
+       "Small",
+       "Medium",
+       "Large",
+       "Huge",
+       "Gargantuan"
+      ],
+      "default": "Medium"
+     },
+     "creatureType": {
+      "type": "string",
+      "maxLength": 80
+     },
+     "creatureSubtype": {
+      "type": "string",
+      "maxLength": 80
+     },
+     "alignment": {
+      "type": "string",
+      "maxLength": 80
+     },
+     "ac": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 40,
+      "default": 10
+     },
+     "acNote": {
+      "type": "string",
+      "maxLength": 200
+     },
+     "hp": {
+      "type": "object",
+      "properties": {
+       "max": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 2000,
+        "default": 8
+       },
+       "current": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2000,
+        "default": 8
+       },
+       "temp": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 500,
+        "default": 0
+       }
+      },
+      "required": [
+       "max",
+       "current"
+      ],
+      "additionalProperties": false
+     },
+     "hitDice": {
+      "type": "string",
+      "maxLength": 40
+     },
+     "speed": {
+      "type": "string",
+      "maxLength": 200
+     },
+     "initiativeBonus": {
+      "type": "integer",
+      "minimum": -10,
+      "maximum": 20,
+      "default": 0
+     },
+     "abilities": {
+      "type": "object",
+      "properties": {
+       "strength": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 30,
+        "default": 10
+       },
+       "dexterity": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 30,
+        "default": 10
+       },
+       "constitution": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 30,
+        "default": 10
+       },
+       "intelligence": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 30,
+        "default": 10
+       },
+       "wisdom": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 30,
+        "default": 10
+       },
+       "charisma": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 30,
+        "default": 10
+       }
+      },
+      "required": [
+       "strength",
+       "dexterity",
+       "constitution",
+       "intelligence",
+       "wisdom",
+       "charisma"
+      ],
+      "additionalProperties": false
+     },
+     "saves": {
+      "type": "object",
+      "properties": {
+       "strength-save": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 1,
+        "default": 0
+       },
+       "dexterity-save": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 1,
+        "default": 0
+       },
+       "constitution-save": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 1,
+        "default": 0
+       },
+       "intelligence-save": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 1,
+        "default": 0
+       },
+       "wisdom-save": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 1,
+        "default": 0
+       },
+       "charisma-save": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 1,
+        "default": 0
+       }
+      },
+      "additionalProperties": false,
+      "default": {}
+     },
+     "skills": {
+      "type": "object",
+      "properties": {
+       "acrobatics": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2,
+        "default": 0
+       },
+       "animal-handling": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2,
+        "default": 0
+       },
+       "arcana": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2,
+        "default": 0
+       },
+       "athletics": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2,
+        "default": 0
+       },
+       "deception": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2,
+        "default": 0
+       },
+       "history": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2,
+        "default": 0
+       },
+       "insight": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2,
+        "default": 0
+       },
+       "intimidation": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2,
+        "default": 0
+       },
+       "investigation": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2,
+        "default": 0
+       },
+       "medicine": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2,
+        "default": 0
+       },
+       "nature": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2,
+        "default": 0
+       },
+       "perception": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2,
+        "default": 0
+       },
+       "performance": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2,
+        "default": 0
+       },
+       "persuasion": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2,
+        "default": 0
+       },
+       "religion": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2,
+        "default": 0
+       },
+       "sleight-of-hand": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2,
+        "default": 0
+       },
+       "stealth": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2,
+        "default": 0
+       },
+       "survival": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2,
+        "default": 0
+       }
+      },
+      "additionalProperties": false,
+      "default": {}
+     },
+     "bonuses": {
+      "type": "object",
+      "description": "Flat bonuses on top of ability modifier and proficiency, per skill or save (a magic item, a feature).",
+      "properties": {
+       "acrobatics": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Acrobatics"
+       },
+       "animal-handling": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Animal Handling"
+       },
+       "arcana": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Arcana"
+       },
+       "athletics": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Athletics"
+       },
+       "deception": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Deception"
+       },
+       "history": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "History"
+       },
+       "insight": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Insight"
+       },
+       "intimidation": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Intimidation"
+       },
+       "investigation": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Investigation"
+       },
+       "medicine": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Medicine"
+       },
+       "nature": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Nature"
+       },
+       "perception": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Perception"
+       },
+       "performance": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Performance"
+       },
+       "persuasion": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Persuasion"
+       },
+       "religion": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Religion"
+       },
+       "sleight-of-hand": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Sleight of Hand"
+       },
+       "stealth": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Stealth"
+       },
+       "survival": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Survival"
+       },
+       "strength-save": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Strength save"
+       },
+       "dexterity-save": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Dexterity save"
+       },
+       "constitution-save": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Constitution save"
+       },
+       "intelligence-save": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Intelligence save"
+       },
+       "wisdom-save": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Wisdom save"
+       },
+       "charisma-save": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20,
+        "title": "Charisma save"
+       }
+      },
+      "additionalProperties": false,
+      "default": {}
+     },
+     "damageVulnerabilities": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "default": []
+     },
+     "damageResistances": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "default": []
+     },
+     "damageImmunities": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "default": []
+     },
+     "conditionImmunities": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "default": []
+     },
+     "senses": {
+      "type": "string",
+      "maxLength": 400
+     },
+     "languages": {
+      "type": "string",
+      "maxLength": 400
+     },
+     "cr": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 30,
+      "default": 0
+     },
+     "xp": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1000000,
+      "default": 0
+     },
+     "traits": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "name": {
+         "type": "string"
+        },
+        "desc": {
+         "type": "string",
+         "maxLength": 20000
+        }
+       },
+       "required": [
+        "name"
+       ]
+      },
+      "default": []
+     },
+     "actions": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "name": {
+         "type": "string"
+        },
+        "desc": {
+         "type": "string",
+         "maxLength": 20000
+        }
+       },
+       "required": [
+        "name"
+       ]
+      },
+      "default": []
+     },
+     "reactions": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "name": {
+         "type": "string"
+        },
+        "desc": {
+         "type": "string",
+         "maxLength": 20000
+        }
+       },
+       "required": [
+        "name"
+       ]
+      },
+      "default": []
+     },
+     "legendaryActions": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "name": {
+         "type": "string"
+        },
+        "desc": {
+         "type": "string",
+         "maxLength": 20000
+        }
+       },
+       "required": [
+        "name"
+       ]
+      },
+      "default": []
+     },
+     "description": {
+      "type": "string",
+      "maxLength": 20000
+     },
+     "notes": {
+      "type": "string",
+      "maxLength": 20000
+     }
+    },
+    "required": [
+     "abilities",
+     "hp"
+    ],
+    "additionalProperties": false
+   },
+   "computed": {
+    "strengthMod": {
+     "floor": {
+      "/": [
+       {
+        "-": [
+         {
+          "var": [
+           "fields.abilities.strength",
+           10
+          ]
+         },
+         10
+        ]
+       },
+       2
+      ]
+     }
+    },
+    "dexterityMod": {
+     "floor": {
+      "/": [
+       {
+        "-": [
+         {
+          "var": [
+           "fields.abilities.dexterity",
+           10
+          ]
+         },
+         10
+        ]
+       },
+       2
+      ]
+     }
+    },
+    "constitutionMod": {
+     "floor": {
+      "/": [
+       {
+        "-": [
+         {
+          "var": [
+           "fields.abilities.constitution",
+           10
+          ]
+         },
+         10
+        ]
+       },
+       2
+      ]
+     }
+    },
+    "intelligenceMod": {
+     "floor": {
+      "/": [
+       {
+        "-": [
+         {
+          "var": [
+           "fields.abilities.intelligence",
+           10
+          ]
+         },
+         10
+        ]
+       },
+       2
+      ]
+     }
+    },
+    "wisdomMod": {
+     "floor": {
+      "/": [
+       {
+        "-": [
+         {
+          "var": [
+           "fields.abilities.wisdom",
+           10
+          ]
+         },
+         10
+        ]
+       },
+       2
+      ]
+     }
+    },
+    "charismaMod": {
+     "floor": {
+      "/": [
+       {
+        "-": [
+         {
+          "var": [
+           "fields.abilities.charisma",
+           10
+          ]
+         },
+         10
+        ]
+       },
+       2
+      ]
+     }
+    },
+    "proficiencyBonus": {
+     "+": [
+      2,
+      {
+       "floor": {
+        "/": [
+         {
+          "-": [
+           {
+            "max": [
+             {
+              "var": [
+               "fields.cr",
+               0
+              ]
+             },
+             1
+            ]
+           },
+           1
+          ]
+         },
+         4
+        ]
+       }
+      }
+     ]
+    },
+    "strengthSave": {
+     "+": [
+      {
+       "var": "computed.strengthMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.saves.strength-save",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.strength-save",
+        0
+       ]
+      }
+     ]
+    },
+    "dexteritySave": {
+     "+": [
+      {
+       "var": "computed.dexterityMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.saves.dexterity-save",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.dexterity-save",
+        0
+       ]
+      }
+     ]
+    },
+    "constitutionSave": {
+     "+": [
+      {
+       "var": "computed.constitutionMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.saves.constitution-save",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.constitution-save",
+        0
+       ]
+      }
+     ]
+    },
+    "intelligenceSave": {
+     "+": [
+      {
+       "var": "computed.intelligenceMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.saves.intelligence-save",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.intelligence-save",
+        0
+       ]
+      }
+     ]
+    },
+    "wisdomSave": {
+     "+": [
+      {
+       "var": "computed.wisdomMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.saves.wisdom-save",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.wisdom-save",
+        0
+       ]
+      }
+     ]
+    },
+    "charismaSave": {
+     "+": [
+      {
+       "var": "computed.charismaMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.saves.charisma-save",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.charisma-save",
+        0
+       ]
+      }
+     ]
+    },
+    "acrobaticsBonus": {
+     "+": [
+      {
+       "var": "computed.dexterityMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.skills.acrobatics",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.acrobatics",
+        0
+       ]
+      }
+     ]
+    },
+    "animalHandlingBonus": {
+     "+": [
+      {
+       "var": "computed.wisdomMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.skills.animal-handling",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.animal-handling",
+        0
+       ]
+      }
+     ]
+    },
+    "arcanaBonus": {
+     "+": [
+      {
+       "var": "computed.intelligenceMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.skills.arcana",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.arcana",
+        0
+       ]
+      }
+     ]
+    },
+    "athleticsBonus": {
+     "+": [
+      {
+       "var": "computed.strengthMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.skills.athletics",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.athletics",
+        0
+       ]
+      }
+     ]
+    },
+    "deceptionBonus": {
+     "+": [
+      {
+       "var": "computed.charismaMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.skills.deception",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.deception",
+        0
+       ]
+      }
+     ]
+    },
+    "historyBonus": {
+     "+": [
+      {
+       "var": "computed.intelligenceMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.skills.history",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.history",
+        0
+       ]
+      }
+     ]
+    },
+    "insightBonus": {
+     "+": [
+      {
+       "var": "computed.wisdomMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.skills.insight",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.insight",
+        0
+       ]
+      }
+     ]
+    },
+    "intimidationBonus": {
+     "+": [
+      {
+       "var": "computed.charismaMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.skills.intimidation",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.intimidation",
+        0
+       ]
+      }
+     ]
+    },
+    "investigationBonus": {
+     "+": [
+      {
+       "var": "computed.intelligenceMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.skills.investigation",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.investigation",
+        0
+       ]
+      }
+     ]
+    },
+    "medicineBonus": {
+     "+": [
+      {
+       "var": "computed.wisdomMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.skills.medicine",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.medicine",
+        0
+       ]
+      }
+     ]
+    },
+    "natureBonus": {
+     "+": [
+      {
+       "var": "computed.intelligenceMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.skills.nature",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.nature",
+        0
+       ]
+      }
+     ]
+    },
+    "perceptionBonus": {
+     "+": [
+      {
+       "var": "computed.wisdomMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.skills.perception",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.perception",
+        0
+       ]
+      }
+     ]
+    },
+    "performanceBonus": {
+     "+": [
+      {
+       "var": "computed.charismaMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.skills.performance",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.performance",
+        0
+       ]
+      }
+     ]
+    },
+    "persuasionBonus": {
+     "+": [
+      {
+       "var": "computed.charismaMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.skills.persuasion",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.persuasion",
+        0
+       ]
+      }
+     ]
+    },
+    "religionBonus": {
+     "+": [
+      {
+       "var": "computed.intelligenceMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.skills.religion",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.religion",
+        0
+       ]
+      }
+     ]
+    },
+    "sleightOfHandBonus": {
+     "+": [
+      {
+       "var": "computed.dexterityMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.skills.sleight-of-hand",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.sleight-of-hand",
+        0
+       ]
+      }
+     ]
+    },
+    "stealthBonus": {
+     "+": [
+      {
+       "var": "computed.dexterityMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.skills.stealth",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.stealth",
+        0
+       ]
+      }
+     ]
+    },
+    "survivalBonus": {
+     "+": [
+      {
+       "var": "computed.wisdomMod"
+      },
+      {
+       "floor": {
+        "*": [
+         {
+          "var": [
+           "computed.proficiencyBonus",
+           0
+          ]
+         },
+         {
+          "var": [
+           "fields.skills.survival",
+           0
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "var": [
+        "fields.bonuses.survival",
+        0
+       ]
+      }
+     ]
+    },
+    "passivePerception": {
+     "+": [
+      10,
+      {
+       "var": "computed.perceptionBonus"
+      }
+     ]
+    },
+    "passiveInvestigation": {
+     "+": [
+      10,
+      {
+       "var": "computed.investigationBonus"
+      }
+     ]
+    },
+    "passiveInsight": {
+     "+": [
+      10,
+      {
+       "var": "computed.insightBonus"
+      }
+     ]
+    },
+    "initiative": {
+     "+": [
+      {
+       "var": "computed.dexterityMod"
+      },
+      {
+       "var": [
+        "fields.initiativeBonus",
+        0
+       ]
+      }
+     ]
+    },
+    "crLabel": {
+     "if": [
+      {
+       "==": [
+        {
+         "var": [
+          "fields.cr",
+          0
+         ]
+        },
+        0.125
+       ]
+      },
+      "1/8",
+      {
+       "==": [
+        {
+         "var": [
+          "fields.cr",
+          0
+         ]
+        },
+        0.25
+       ]
+      },
+      "1/4",
+      {
+       "==": [
+        {
+         "var": [
+          "fields.cr",
+          0
+         ]
+        },
+        0.5
+       ]
+      },
+      "1/2",
+      {
+       "cat": [
+        {
+         "var": [
+          "fields.cr",
+          0
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   },
+   "sheet": {
+    "sections": [
+     {
+      "id": "statblock",
+      "title": "Stat block",
+      "columns": 4,
+      "fields": [
+       {
+        "path": "size",
+        "label": "Size",
+        "widget": "select",
+        "options": [
+         "Tiny",
+         "Small",
+         "Medium",
+         "Large",
+         "Huge",
+         "Gargantuan"
+        ]
+       },
+       {
+        "path": "creatureType",
+        "label": "Type",
+        "widget": "text"
+       },
+       {
+        "path": "creatureSubtype",
+        "label": "Subtype",
+        "widget": "text"
+       },
+       {
+        "path": "alignment",
+        "label": "Alignment",
+        "widget": "text"
+       },
+       {
+        "path": "ac",
+        "label": "Armor Class",
+        "widget": "number"
+       },
+       {
+        "path": "acNote",
+        "label": "Armor",
+        "widget": "text"
+       },
+       {
+        "path": "hp.max",
+        "label": "Hit points",
+        "widget": "number",
+        "rule": "dnd5e-srd.rule.damage-and-healing.hit-points"
+       },
+       {
+        "path": "hitDice",
+        "label": "Hit dice",
+        "widget": "text"
+       },
+       {
+        "path": "hp.current",
+        "label": "Current hit points",
+        "widget": "number"
+       },
+       {
+        "path": "hp.temp",
+        "label": "Temporary hit points",
+        "widget": "number"
+       },
+       {
+        "path": "speed",
+        "label": "Speed",
+        "widget": "text",
+        "span": 6
+       },
+       {
+        "path": "cr",
+        "label": "Challenge rating",
+        "widget": "number"
+       },
+       {
+        "path": "crLabel",
+        "label": "Challenge",
+        "widget": "computed"
+       },
+       {
+        "path": "xp",
+        "label": "XP",
+        "widget": "number"
+       },
+       {
+        "path": "proficiencyBonus",
+        "label": "Proficiency bonus",
+        "widget": "computed",
+        "rule": "dnd5e-srd.rule.proficiency-bonus"
+       },
+       {
+        "path": "initiative",
+        "label": "Initiative",
+        "widget": "computed"
+       },
+       {
+        "path": "passivePerception",
+        "label": "Passive Perception",
+        "widget": "computed",
+        "rule": "dnd5e-srd.rule.ability-checks.passive-checks"
+       }
+      ]
+     },
+     {
+      "id": "abilities",
+      "title": "Ability scores",
+      "columns": 6,
+      "fields": [
+       {
+        "path": "abilities.strength",
+        "label": "Strength",
+        "widget": "attribute",
+        "rule": "dnd5e-srd.rule.ability-scores-and-modifiers"
+       },
+       {
+        "path": "abilities.dexterity",
+        "label": "Dexterity",
+        "widget": "attribute",
+        "rule": "dnd5e-srd.rule.ability-scores-and-modifiers"
+       },
+       {
+        "path": "abilities.constitution",
+        "label": "Constitution",
+        "widget": "attribute",
+        "rule": "dnd5e-srd.rule.ability-scores-and-modifiers"
+       },
+       {
+        "path": "abilities.intelligence",
+        "label": "Intelligence",
+        "widget": "attribute",
+        "rule": "dnd5e-srd.rule.ability-scores-and-modifiers"
+       },
+       {
+        "path": "abilities.wisdom",
+        "label": "Wisdom",
+        "widget": "attribute",
+        "rule": "dnd5e-srd.rule.ability-scores-and-modifiers"
+       },
+       {
+        "path": "abilities.charisma",
+        "label": "Charisma",
+        "widget": "attribute",
+        "rule": "dnd5e-srd.rule.ability-scores-and-modifiers"
+       },
+       {
+        "path": "strengthMod",
+        "label": "STR modifier",
+        "widget": "computed"
+       },
+       {
+        "path": "dexterityMod",
+        "label": "DEX modifier",
+        "widget": "computed"
+       },
+       {
+        "path": "constitutionMod",
+        "label": "CON modifier",
+        "widget": "computed"
+       },
+       {
+        "path": "intelligenceMod",
+        "label": "INT modifier",
+        "widget": "computed"
+       },
+       {
+        "path": "wisdomMod",
+        "label": "WIS modifier",
+        "widget": "computed"
+       },
+       {
+        "path": "charismaMod",
+        "label": "CHA modifier",
+        "widget": "computed"
+       }
+      ]
+     },
+     {
+      "id": "saves",
+      "title": "Saving throws",
+      "fields": [
+       {
+        "path": "saves.*",
+        "label": "Saving throws",
+        "widget": "skills",
+        "rule": "dnd5e-srd.rule.saving-throws",
+        "config": {
+         "ref": "dnd5e-srd.saving-throws",
+         "attributesPath": "abilities",
+         "levels": [
+          {
+           "value": 0,
+           "label": "—"
+          },
+          {
+           "value": 1,
+           "label": "Proficient"
+          }
+         ],
+         "labels": {
+          "skill": "Save",
+          "attribute": "Ability",
+          "attributeValue": "Score",
+          "value": "Proficiency",
+          "pool": "Roll"
+         },
+         "hideZero": true
+        }
+       }
+      ]
+     },
+     {
+      "id": "skills",
+      "title": "Skills",
+      "fields": [
+       {
+        "path": "skills.*",
+        "label": "Skills",
+        "widget": "skills",
+        "rule": "dnd5e-srd.rule.ability-checks.skills",
+        "config": {
+         "ref": "dnd5e-srd.skills",
+         "attributesPath": "abilities",
+         "levels": [
+          {
+           "value": 0,
+           "label": "—"
+          },
+          {
+           "value": 1,
+           "label": "Proficient"
+          },
+          {
+           "value": 2,
+           "label": "Expertise"
+          }
+         ],
+         "labels": {
+          "skill": "Skill",
+          "attribute": "Ability",
+          "attributeValue": "Score",
+          "value": "Proficiency",
+          "pool": "Roll"
+         },
+         "hideZero": true
+        }
+       }
+      ]
+     },
+     {
+      "id": "defenses",
+      "title": "Defenses, senses and languages",
+      "columns": 2,
+      "fields": [
+       {
+        "path": "damageVulnerabilities",
+        "label": "Damage vulnerabilities",
+        "widget": "tags"
+       },
+       {
+        "path": "damageResistances",
+        "label": "Damage resistances",
+        "widget": "tags"
+       },
+       {
+        "path": "damageImmunities",
+        "label": "Damage immunities",
+        "widget": "tags"
+       },
+       {
+        "path": "conditionImmunities",
+        "label": "Condition immunities",
+        "widget": "tags"
+       },
+       {
+        "path": "senses",
+        "label": "Senses",
+        "widget": "text"
+       },
+       {
+        "path": "languages",
+        "label": "Languages",
+        "widget": "text"
+       }
+      ]
+     },
+     {
+      "id": "traits",
+      "title": "Traits",
+      "fields": [
+       {
+        "path": "traits",
+        "label": "Traits",
+        "widget": "entries"
+       }
+      ]
+     },
+     {
+      "id": "actions",
+      "title": "Actions",
+      "fields": [
+       {
+        "path": "actions",
+        "label": "Actions",
+        "widget": "entries",
+        "rule": "dnd5e-srd.rule.actions-in-combat"
+       },
+       {
+        "path": "reactions",
+        "label": "Reactions",
+        "widget": "entries"
+       },
+       {
+        "path": "legendaryActions",
+        "label": "Legendary actions",
+        "widget": "entries"
+       }
+      ]
+     },
+     {
+      "id": "description",
+      "title": "Description",
+      "collapsed": true,
+      "fields": [
+       {
+        "path": "description",
+        "label": "Description",
+        "widget": "textarea"
+       }
+      ]
+     },
+     {
+      "id": "bonuses",
+      "title": "Other bonuses",
+      "collapsed": true,
+      "fields": [
+       {
+        "path": "initiativeBonus",
+        "label": "Initiative bonus",
+        "widget": "number"
+       },
+       {
+        "path": "bonuses",
+        "label": "Flat bonuses by skill and save",
+        "widget": "object"
+       }
+      ]
+     },
+     {
+      "id": "notes",
+      "title": "GM notes",
+      "collapsed": true,
+      "fields": [
+       {
+        "path": "notes",
+        "label": "Notes",
+        "widget": "textarea"
+       }
+      ]
+     }
+    ],
+    "summary": [
+     "crLabel",
+     "ac",
+     "hp.current",
+     "passivePerception"
+    ]
+   },
+   "defaultVisibility": {
+    "notes": "gm",
+    "description": "gm"
+   }
+  },
+  {
+   "id": "dnd5e-srd.npc",
+   "kind": "character",
+   "name": "NPC",
+   "plural": "NPCs",
+   "icon": "user",
+   "schema": {
+    "type": "object",
+    "properties": {
+     "occupation": {
+      "type": "string",
+      "maxLength": 120
+     },
+     "race": {
+      "type": "string",
+      "maxLength": 80
+     },
+     "alignment": {
+      "type": "string",
+      "enum": [
+       "lawful-good",
+       "neutral-good",
+       "chaotic-good",
+       "lawful-neutral",
+       "neutral",
+       "chaotic-neutral",
+       "lawful-evil",
+       "neutral-evil",
+       "chaotic-evil"
+      ]
+     },
+     "attitude": {
+      "type": "string",
+      "enum": [
+       "hostile",
+       "unfriendly",
+       "indifferent",
+       "friendly",
+       "helpful"
+      ],
+      "default": "indifferent"
+     },
+     "appearance": {
+      "type": "string",
+      "maxLength": 2000
+     },
+     "quirk": {
+      "type": "string",
+      "maxLength": 400
+     },
+     "voice": {
+      "type": "string",
+      "maxLength": 400
+     },
+     "motivation": {
+      "type": "string",
+      "maxLength": 400
+     },
+     "secret": {
+      "type": "string",
+      "maxLength": 400
+     },
+     "statBlock": {
+      "type": "string",
+      "maxLength": 120,
+      "description": "The SRD stat block to use if it comes to a fight (e.g. Guard, Noble, Priest)."
+     },
+     "notes": {
+      "type": "string",
+      "maxLength": 20000
+     }
+    },
+    "additionalProperties": false
+   },
+   "sheet": {
+    "sections": [
+     {
+      "id": "who",
+      "title": "Who they are",
+      "columns": 2,
+      "fields": [
+       {
+        "path": "occupation",
+        "label": "Occupation",
+        "widget": "text"
+       },
+       {
+        "path": "race",
+        "label": "Race",
+        "widget": "text"
+       },
+       {
+        "path": "alignment",
+        "label": "Alignment",
+        "widget": "select",
+        "options": {
+         "ref": "dnd5e-srd.alignments"
+        }
+       },
+       {
+        "path": "attitude",
+        "label": "Attitude toward the party",
+        "widget": "select",
+        "options": [
+         "hostile",
+         "unfriendly",
+         "indifferent",
+         "friendly",
+         "helpful"
+        ]
+       },
+       {
+        "path": "statBlock",
+        "label": "Stat block",
+        "widget": "text"
+       }
+      ]
+     },
+     {
+      "id": "roleplay",
+      "title": "Playing them",
+      "columns": 2,
+      "fields": [
+       {
+        "path": "appearance",
+        "label": "Appearance",
+        "widget": "textarea"
+       },
+       {
+        "path": "quirk",
+        "label": "Quirk",
+        "widget": "textarea"
+       },
+       {
+        "path": "voice",
+        "label": "Voice and manner",
+        "widget": "textarea"
+       },
+       {
+        "path": "motivation",
+        "label": "What they want",
+        "widget": "textarea"
+       },
+       {
+        "path": "secret",
+        "label": "Secret",
+        "widget": "textarea"
+       }
+      ]
+     },
+     {
+      "id": "notes",
+      "title": "GM notes",
+      "collapsed": true,
+      "fields": [
+       {
+        "path": "notes",
+        "label": "Notes",
+        "widget": "textarea"
+       }
+      ]
+     }
+    ],
+    "summary": [
+     "occupation",
+     "attitude"
+    ]
+   },
+   "defaultVisibility": {
+    "secret": "gm",
+    "notes": "gm",
+    "statBlock": "gm"
+   }
+  },
+  {
+   "id": "dnd5e-srd.location",
+   "kind": "location",
+   "name": "Location",
+   "plural": "Locations",
+   "icon": "map",
+   "schema": {
+    "type": "object",
+    "properties": {
+     "environment": {
+      "type": "string",
+      "enum": [
+       "arctic",
+       "coast",
+       "desert",
+       "forest",
+       "grassland",
+       "hills",
+       "mountain",
+       "swamp",
+       "underground",
+       "urban",
+       "planar"
+      ]
+     },
+     "size": {
+      "type": "string",
+      "enum": [
+       "hamlet",
+       "village",
+       "town",
+       "city",
+       "metropolis"
+      ]
+     },
+     "population": {
+      "type": "string",
+      "maxLength": 120
+     },
+     "ruler": {
+      "type": "string",
+      "maxLength": 200
+     },
+     "danger": {
+      "type": "string",
+      "enum": [
+       "safe",
+       "low",
+       "moderate",
+       "high",
+       "deadly"
+      ],
+      "default": "low"
+     },
+     "features": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "default": []
+     },
+     "description": {
+      "type": "string",
+      "maxLength": 20000
+     },
+     "secrets": {
+      "type": "string",
+      "maxLength": 20000
+     }
+    },
+    "additionalProperties": false
+   },
+   "sheet": {
+    "sections": [
+     {
+      "id": "overview",
+      "title": "Overview",
+      "columns": 2,
+      "fields": [
+       {
+        "path": "environment",
+        "label": "Environment",
+        "widget": "select",
+        "options": [
+         "arctic",
+         "coast",
+         "desert",
+         "forest",
+         "grassland",
+         "hills",
+         "mountain",
+         "swamp",
+         "underground",
+         "urban",
+         "planar"
+        ]
+       },
+       {
+        "path": "danger",
+        "label": "Danger",
+        "widget": "select",
+        "options": [
+         "safe",
+         "low",
+         "moderate",
+         "high",
+         "deadly"
+        ]
+       },
+       {
+        "path": "features",
+        "label": "Notable features",
+        "widget": "tags",
+        "span": 12
+       },
+       {
+        "path": "description",
+        "label": "Description",
+        "widget": "textarea",
+        "span": 12
+       }
+      ]
+     },
+     {
+      "id": "secrets",
+      "title": "Secrets",
+      "fields": [
+       {
+        "path": "secrets",
+        "label": "Secrets",
+        "widget": "textarea"
+       }
+      ]
+     }
+    ],
+    "summary": [
+     "environment",
+     "danger"
+    ]
+   },
+   "subtypes": [
+    {
+     "id": "settlement",
+     "name": "Settlement",
+     "sheet": {
+      "sections": [
+       {
+        "id": "settlement",
+        "title": "Settlement",
+        "columns": 3,
+        "fields": [
+         {
+          "path": "size",
+          "label": "Size",
+          "widget": "select",
+          "options": [
+           "hamlet",
+           "village",
+           "town",
+           "city",
+           "metropolis"
+          ]
+         },
+         {
+          "path": "population",
+          "label": "Population",
+          "widget": "text"
+         },
+         {
+          "path": "ruler",
+          "label": "Who is in charge",
+          "widget": "text"
+         }
+        ]
+       }
+      ]
+     }
+    },
+    {
+     "id": "dungeon",
+     "name": "Dungeon or lair"
+    },
+    {
+     "id": "wilderness",
+     "name": "Wilderness"
+    },
+    {
+     "id": "building",
+     "name": "Building"
+    },
+    {
+     "id": "plane",
+     "name": "Plane"
+    }
+   ],
+   "defaultVisibility": {
+    "secrets": "gm"
+   }
+  },
+  {
+   "id": "dnd5e-srd.faction",
+   "kind": "faction",
+   "name": "Faction",
+   "plural": "Factions",
+   "icon": "flag",
+   "schema": {
+    "type": "object",
+    "properties": {
+     "goal": {
+      "type": "string",
+      "maxLength": 400
+     },
+     "leader": {
+      "type": "string",
+      "maxLength": 200
+     },
+     "alignment": {
+      "type": "string",
+      "enum": [
+       "lawful-good",
+       "neutral-good",
+       "chaotic-good",
+       "lawful-neutral",
+       "neutral",
+       "chaotic-neutral",
+       "lawful-evil",
+       "neutral-evil",
+       "chaotic-evil"
+      ]
+     },
+     "resources": {
+      "type": "string",
+      "maxLength": 1000
+     },
+     "standing": {
+      "type": "integer",
+      "minimum": -3,
+      "maximum": 3,
+      "default": 0,
+      "description": "The party's standing: -3 sworn enemies, 0 unknown, +3 trusted allies."
+     },
+     "methods": {
+      "type": "string",
+      "maxLength": 1000
+     },
+     "secrets": {
+      "type": "string",
+      "maxLength": 20000
+     }
+    },
+    "additionalProperties": false
+   },
+   "sheet": {
+    "sections": [
+     {
+      "id": "overview",
+      "title": "Overview",
+      "columns": 2,
+      "fields": [
+       {
+        "path": "goal",
+        "label": "What they want",
+        "widget": "textarea",
+        "span": 12
+       },
+       {
+        "path": "leader",
+        "label": "Leader",
+        "widget": "text"
+       },
+       {
+        "path": "alignment",
+        "label": "Alignment",
+        "widget": "select",
+        "options": {
+         "ref": "dnd5e-srd.alignments"
+        }
+       },
+       {
+        "path": "standing",
+        "label": "Party standing (-3 to +3)",
+        "widget": "attribute"
+       },
+       {
+        "path": "resources",
+        "label": "Resources",
+        "widget": "textarea"
+       },
+       {
+        "path": "methods",
+        "label": "Methods",
+        "widget": "textarea"
+       }
+      ]
+     },
+     {
+      "id": "secrets",
+      "title": "Secrets",
+      "fields": [
+       {
+        "path": "secrets",
+        "label": "Secrets",
+        "widget": "textarea"
+       }
+      ]
+     }
+    ],
+    "summary": [
+     "goal",
+     "standing"
+    ]
+   },
+   "defaultVisibility": {
+    "secrets": "gm"
+   }
+  },
+  {
+   "id": "dnd5e-srd.item",
+   "kind": "item",
+   "name": "Item",
+   "plural": "Items",
+   "icon": "box",
+   "schema": {
+    "type": "object",
+    "properties": {
+     "category": {
+      "type": "string",
+      "maxLength": 80
+     },
+     "rarity": {
+      "type": "string",
+      "enum": [
+       "mundane",
+       "common",
+       "uncommon",
+       "rare",
+       "very rare",
+       "legendary",
+       "artifact"
+      ],
+      "default": "mundane"
+     },
+     "attunement": {
+      "type": "boolean",
+      "default": false
+     },
+     "attunedTo": {
+      "type": "string",
+      "maxLength": 120
+     },
+     "value": {
+      "type": "string",
+      "maxLength": 80
+     },
+     "weight": {
+      "type": "number",
+      "minimum": 0
+     },
+     "charges": {
+      "type": "object",
+      "properties": {
+       "current": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 100,
+        "default": 0
+       },
+       "max": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 100,
+        "default": 0
+       }
+      },
+      "additionalProperties": false
+     },
+     "description": {
+      "type": "string",
+      "maxLength": 20000
+     },
+     "notes": {
+      "type": "string",
+      "maxLength": 20000
+     }
+    },
+    "additionalProperties": false
+   },
+   "sheet": {
+    "sections": [
+     {
+      "id": "item",
+      "title": "Item",
+      "columns": 3,
+      "fields": [
+       {
+        "path": "category",
+        "label": "Category",
+        "widget": "text"
+       },
+       {
+        "path": "rarity",
+        "label": "Rarity",
+        "widget": "select",
+        "options": [
+         "mundane",
+         "common",
+         "uncommon",
+         "rare",
+         "very rare",
+         "legendary",
+         "artifact"
+        ]
+       },
+       {
+        "path": "attunement",
+        "label": "Requires attunement",
+        "widget": "checkbox"
+       },
+       {
+        "path": "attunedTo",
+        "label": "Attuned to",
+        "widget": "text"
+       },
+       {
+        "path": "value",
+        "label": "Value",
+        "widget": "text"
+       },
+       {
+        "path": "weight",
+        "label": "Weight (lb.)",
+        "widget": "number"
+       },
+       {
+        "path": "charges.current",
+        "label": "Charges",
+        "widget": "number"
+       },
+       {
+        "path": "charges.max",
+        "label": "Max charges",
+        "widget": "number"
+       },
+       {
+        "path": "description",
+        "label": "Description",
+        "widget": "textarea",
+        "span": 12
+       }
+      ]
+     },
+     {
+      "id": "notes",
+      "title": "GM notes",
+      "collapsed": true,
+      "fields": [
+       {
+        "path": "notes",
+        "label": "Notes",
+        "widget": "textarea"
+       }
+      ]
+     }
+    ],
+    "summary": [
+     "rarity",
+     "category"
+    ]
+   },
+   "defaultVisibility": {
+    "notes": "gm"
+   }
+  },
+  {
+   "id": "dnd5e-srd.encounter",
+   "kind": "encounter",
+   "name": "Encounter",
+   "plural": "Encounters",
+   "icon": "swords",
+   "schema": {
+    "type": "object",
+    "properties": {
+     "environment": {
+      "type": "string",
+      "enum": [
+       "arctic",
+       "coast",
+       "desert",
+       "forest",
+       "grassland",
+       "hills",
+       "mountain",
+       "swamp",
+       "underground",
+       "urban",
+       "planar"
+      ]
+     },
+     "partyLevel": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 20,
+      "default": 1
+     },
+     "creatures": {
+      "type": "string",
+      "maxLength": 1000
+     },
+     "activity": {
+      "type": "string",
+      "maxLength": 400
+     },
+     "twist": {
+      "type": "string",
+      "maxLength": 400
+     },
+     "tactics": {
+      "type": "string",
+      "maxLength": 2000
+     },
+     "treasure": {
+      "type": "string",
+      "maxLength": 2000
+     },
+     "xpTotal": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10000000,
+      "default": 0
+     },
+     "status": {
+      "type": "string",
+      "enum": [
+       "planned",
+       "running",
+       "done",
+       "skipped"
+      ],
+      "default": "planned"
+     },
+     "notes": {
+      "type": "string",
+      "maxLength": 20000
+     }
+    },
+    "additionalProperties": false
+   },
+   "sheet": {
+    "sections": [
+     {
+      "id": "encounter",
+      "title": "Encounter",
+      "columns": 3,
+      "fields": [
+       {
+        "path": "environment",
+        "label": "Environment",
+        "widget": "select",
+        "options": [
+         "arctic",
+         "coast",
+         "desert",
+         "forest",
+         "grassland",
+         "hills",
+         "mountain",
+         "swamp",
+         "underground",
+         "urban",
+         "planar"
+        ]
+       },
+       {
+        "path": "partyLevel",
+        "label": "Party level",
+        "widget": "number"
+       },
+       {
+        "path": "status",
+        "label": "Status",
+        "widget": "select",
+        "options": [
+         "planned",
+         "running",
+         "done",
+         "skipped"
+        ]
+       },
+       {
+        "path": "creatures",
+        "label": "Creatures",
+        "widget": "textarea",
+        "span": 12
+       },
+       {
+        "path": "activity",
+        "label": "What they are doing",
+        "widget": "text",
+        "span": 6
+       },
+       {
+        "path": "twist",
+        "label": "Twist",
+        "widget": "text",
+        "span": 6
+       },
+       {
+        "path": "xpTotal",
+        "label": "XP (total)",
+        "widget": "number"
+       },
+       {
+        "path": "tactics",
+        "label": "Tactics",
+        "widget": "textarea",
+        "span": 12
+       },
+       {
+        "path": "treasure",
+        "label": "Treasure",
+        "widget": "textarea",
+        "span": 12
+       }
+      ]
+     },
+     {
+      "id": "notes",
+      "title": "GM notes",
+      "collapsed": true,
+      "fields": [
+       {
+        "path": "notes",
+        "label": "Notes",
+        "widget": "textarea"
+       }
+      ]
+     }
+    ],
+    "summary": [
+     "creatures",
+     "status"
+    ]
+   },
+   "defaultVisibility": {
+    "tactics": "gm",
+    "notes": "gm",
+    "treasure": "gm"
+   }
+  },
+  {
+   "id": "dnd5e-srd.quest",
+   "kind": "job",
+   "name": "Quest",
+   "plural": "Quests",
+   "icon": "briefcase",
+   "schema": {
+    "type": "object",
+    "properties": {
+     "hook": {
+      "type": "string",
+      "maxLength": 1000
+     },
+     "patron": {
+      "type": "string",
+      "maxLength": 200
+     },
+     "objective": {
+      "type": "string",
+      "maxLength": 1000
+     },
+     "reward": {
+      "type": "string",
+      "maxLength": 400
+     },
+     "deadline": {
+      "type": "string",
+      "maxLength": 200
+     },
+     "status": {
+      "type": "string",
+      "enum": [
+       "rumour",
+       "offered",
+       "active",
+       "completed",
+       "failed"
+      ],
+      "default": "rumour"
+     },
+     "complications": {
+      "type": "string",
+      "maxLength": 20000
+     }
+    },
+    "additionalProperties": false
+   },
+   "sheet": {
+    "sections": [
+     {
+      "id": "quest",
+      "title": "Quest",
+      "columns": 2,
+      "fields": [
+       {
+        "path": "hook",
+        "label": "Hook",
+        "widget": "textarea",
+        "span": 12
+       },
+       {
+        "path": "patron",
+        "label": "Patron",
+        "widget": "text"
+       },
+       {
+        "path": "status",
+        "label": "Status",
+        "widget": "select",
+        "options": [
+         "rumour",
+         "offered",
+         "active",
+         "completed",
+         "failed"
+        ]
+       },
+       {
+        "path": "objective",
+        "label": "Objective",
+        "widget": "textarea"
+       },
+       {
+        "path": "reward",
+        "label": "Reward",
+        "widget": "text"
+       },
+       {
+        "path": "deadline",
+        "label": "Deadline",
+        "widget": "text"
+       },
+       {
+        "path": "complications",
+        "label": "Complications",
+        "widget": "textarea",
+        "span": 12
+       }
+      ]
+     }
+    ],
+    "summary": [
+     "status",
+     "patron"
+    ]
+   },
+   "defaultVisibility": {
+    "complications": "gm"
+   }
+  }
+ ],
+ "relationshipTypes": [
+  {
+   "id": "dnd5e-srd.rival-of",
+   "forward": "rival of",
+   "reverse": "rival of",
+   "symmetric": true,
+   "fromKinds": [
+    "character",
+    "faction",
+    "creature"
+   ],
+   "toKinds": [
+    "character",
+    "faction",
+    "creature"
+   ]
+  },
+  {
+   "id": "dnd5e-srd.serves",
+   "forward": "serves",
+   "reverse": "served by",
+   "fromKinds": [
+    "character",
+    "creature"
+   ],
+   "toKinds": [
+    "character",
+    "faction",
+    "creature"
+   ]
+  },
+  {
+   "id": "dnd5e-srd.lairs-in",
+   "forward": "lairs in",
+   "reverse": "lair of",
+   "fromKinds": [
+    "creature"
+   ],
+   "toKinds": [
+    "location"
+   ]
+  }
+ ],
+ "trackers": [
+  {
+   "id": "dnd5e-srd.tracker.initiative",
+   "name": "Initiative",
+   "kind": "initiative",
+   "scope": "encounter",
+   "cite": "SRD 5.1 — Combat: The Order of Combat, Initiative",
+   "rules": [
+    "dnd5e-srd.rule.the-order-of-combat.initiative",
+    "dnd5e-srd.rule.the-order-of-combat.surprise"
+   ],
+   "config": {
+    "method": "roll",
+    "dice": "1d20",
+    "modifier": {
+     "var": [
+      "computed.initiative",
+      0
+     ]
+    },
+    "order": "desc",
+    "label": "Roll initiative"
+   }
+  },
+  {
+   "id": "dnd5e-srd.tracker.hp",
+   "name": "Hit points",
+   "kind": "counter",
+   "scope": "encounter",
+   "cite": "SRD 5.1 — Combat: Damage and Healing, Hit Points",
+   "binds": [
+    "hp.current"
+   ],
+   "rules": [
+    "dnd5e-srd.rule.damage-and-healing.hit-points",
+    "dnd5e-srd.rule.damage-and-healing.dropping-to-0-hit-points"
+   ],
+   "config": {
+    "label": "HP",
+    "min": 0,
+    "max": {
+     "var": "fields.hp.max"
+    },
+    "style": "stepper"
+   }
+  },
+  {
+   "id": "dnd5e-srd.tracker.temp-hp",
+   "name": "Temporary hit points",
+   "kind": "counter",
+   "scope": "encounter",
+   "cite": "SRD 5.1 — Combat: Damage and Healing, Temporary Hit Points",
+   "binds": [
+    "hp.temp"
+   ],
+   "rules": [
+    "dnd5e-srd.rule.damage-and-healing.temporary-hit-points"
+   ],
+   "config": {
+    "label": "Temp HP",
+    "min": 0,
+    "style": "stepper"
+   }
+  },
+  {
+   "id": "dnd5e-srd.tracker.death-saves",
+   "name": "Death saving throws",
+   "kind": "counter",
+   "scope": "character",
+   "cite": "SRD 5.1 — Combat: Damage and Healing, Dropping to 0 Hit Points",
+   "binds": [
+    "dnd5e-srd.character.deathSaves.successes",
+    "dnd5e-srd.character.deathSaves.failures"
+   ],
+   "rules": [
+    "dnd5e-srd.rule.damage-and-healing.dropping-to-0-hit-points"
+   ],
+   "config": {
+    "max": 3,
+    "labels": {
+     "dnd5e-srd.character.deathSaves.successes": "Successes",
+     "dnd5e-srd.character.deathSaves.failures": "Failures"
+    }
+   }
+  },
+  {
+   "id": "dnd5e-srd.tracker.exhaustion",
+   "name": "Exhaustion",
+   "kind": "counter",
+   "scope": "character",
+   "cite": "SRD 5.1 — Conditions: Exhaustion",
+   "binds": [
+    "dnd5e-srd.character.exhaustion"
+   ],
+   "rules": [
+    "dnd5e-srd.rule.conditions.exhaustion"
+   ],
+   "config": {
+    "label": "Level",
+    "max": 6
+   }
+  },
+  {
+   "id": "dnd5e-srd.tracker.spell-slots",
+   "name": "Spell slots used",
+   "kind": "counter",
+   "scope": "character",
+   "cite": "SRD 5.1 — Spellcasting: What Is a Spell?, Spell Slots",
+   "binds": [
+    "dnd5e-srd.character.spellSlotsUsed.level1",
+    "dnd5e-srd.character.spellSlotsUsed.level2",
+    "dnd5e-srd.character.spellSlotsUsed.level3",
+    "dnd5e-srd.character.spellSlotsUsed.level4",
+    "dnd5e-srd.character.spellSlotsUsed.level5",
+    "dnd5e-srd.character.spellSlotsUsed.level6",
+    "dnd5e-srd.character.spellSlotsUsed.level7",
+    "dnd5e-srd.character.spellSlotsUsed.level8",
+    "dnd5e-srd.character.spellSlotsUsed.level9"
+   ],
+   "rules": [
+    "dnd5e-srd.rule.what-is-a-spell.spell-slots",
+    "dnd5e-srd.rule.resting.long-rest"
+   ],
+   "config": {
+    "labels": {
+     "dnd5e-srd.character.spellSlotsUsed.level1": "1st",
+     "dnd5e-srd.character.spellSlotsUsed.level2": "2nd",
+     "dnd5e-srd.character.spellSlotsUsed.level3": "3rd",
+     "dnd5e-srd.character.spellSlotsUsed.level4": "4th",
+     "dnd5e-srd.character.spellSlotsUsed.level5": "5th",
+     "dnd5e-srd.character.spellSlotsUsed.level6": "6th",
+     "dnd5e-srd.character.spellSlotsUsed.level7": "7th",
+     "dnd5e-srd.character.spellSlotsUsed.level8": "8th",
+     "dnd5e-srd.character.spellSlotsUsed.level9": "9th"
+    },
+    "maxes": {
+     "dnd5e-srd.character.spellSlotsUsed.level1": {
+      "var": [
+       "computed.slotMax1",
+       0
+      ]
+     },
+     "dnd5e-srd.character.spellSlotsUsed.level2": {
+      "var": [
+       "computed.slotMax2",
+       0
+      ]
+     },
+     "dnd5e-srd.character.spellSlotsUsed.level3": {
+      "var": [
+       "computed.slotMax3",
+       0
+      ]
+     },
+     "dnd5e-srd.character.spellSlotsUsed.level4": {
+      "var": [
+       "computed.slotMax4",
+       0
+      ]
+     },
+     "dnd5e-srd.character.spellSlotsUsed.level5": {
+      "var": [
+       "computed.slotMax5",
+       0
+      ]
+     },
+     "dnd5e-srd.character.spellSlotsUsed.level6": {
+      "var": [
+       "computed.slotMax6",
+       0
+      ]
+     },
+     "dnd5e-srd.character.spellSlotsUsed.level7": {
+      "var": [
+       "computed.slotMax7",
+       0
+      ]
+     },
+     "dnd5e-srd.character.spellSlotsUsed.level8": {
+      "var": [
+       "computed.slotMax8",
+       0
+      ]
+     },
+     "dnd5e-srd.character.spellSlotsUsed.level9": {
+      "var": [
+       "computed.slotMax9",
+       0
+      ]
+     }
+    },
+    "hideWhenNoMax": true
+   }
+  },
+  {
+   "id": "dnd5e-srd.tracker.hit-dice",
+   "name": "Hit dice spent",
+   "kind": "counter",
+   "scope": "character",
+   "cite": "SRD 5.1 — Adventuring: Resting, Short Rest",
+   "binds": [
+    "dnd5e-srd.character.hitDiceSpent"
+   ],
+   "rules": [
+    "dnd5e-srd.rule.resting.short-rest",
+    "dnd5e-srd.rule.resting.long-rest"
+   ],
+   "config": {
+    "label": "Spent",
+    "max": {
+     "var": [
+      "fields.level",
+      1
+     ]
+    }
+   }
+  },
+  {
+   "id": "dnd5e-srd.tracker.inspiration",
+   "name": "Inspiration",
+   "kind": "counter",
+   "scope": "character",
+   "binds": [
+    "dnd5e-srd.character.inspiration"
+   ],
+   "rules": [
+    "dnd5e-srd.rule.advice.inspiration"
+   ],
+   "config": {
+    "label": "Inspired"
+   }
+  },
+  {
+   "id": "dnd5e-srd.tracker.clock",
+   "name": "Time",
+   "kind": "clock",
+   "scope": "session",
+   "cite": "SRD 5.1 — Adventuring: Time",
+   "rules": [
+    "dnd5e-srd.rule.time"
+   ],
+   "config": {
+    "units": [
+     {
+      "id": "round",
+      "name": "Round",
+      "duration": "6 seconds",
+      "minutes": 0.1
+     },
+     {
+      "id": "minute",
+      "name": "Minute",
+      "duration": "10 rounds",
+      "minutes": 1,
+      "per": 10
+     },
+     {
+      "id": "hour",
+      "name": "Hour",
+      "duration": "60 minutes",
+      "minutes": 60,
+      "per": 60
+     }
+    ],
+    "calendar": "dnd5e-srd.calendar"
+   }
+  },
+  {
+   "id": "dnd5e-srd.tracker.countdown",
+   "name": "Countdown",
+   "kind": "countdown",
+   "scope": "scene",
+   "config": {
+    "unit": "rounds",
+    "default": 10
+   }
+  }
+ ],
+ "playGuides": [
+  {
+   "id": "dnd5e-srd.guide.checks",
+   "title": "Calling for ability checks",
+   "original": true,
+   "intro": "Call for a roll only when the outcome is uncertain and both success and failure are interesting. Say the ability (and skill) and the DC (or at least 'easy', 'hard') before the dice land.",
+   "tips": [
+    {
+     "text": "No roll when there is no time pressure and no cost to retrying: the character simply succeeds, given enough time."
+    },
+    {
+     "text": "Failure moves the story too. Let them succeed at a cost, learn something partial, or lose time, rather than ending the scene."
+    },
+    {
+     "text": "Use passive scores (10 + bonus) for things the characters notice without trying, so players are not asked to roll Perception every room."
+    },
+    {
+     "text": "Advantage and disadvantage are your quickest dial: give advantage for a good plan or help, disadvantage for bad footing or darkness."
+    },
+    {
+     "text": "Group checks keep a party moving together: if at least half succeed, the group succeeds."
+    },
+    {
+     "text": "Skills are a lens on an ability. When a different ability fits the fiction better, pair them: Strength (Intimidation) for a show of force."
+    }
+   ],
+   "groups": [
+    {
+     "id": "strength",
+     "label": "Strength",
+     "summary": "Raw force: lifting, shoving, breaking, holding on."
+    },
+    {
+     "id": "dexterity",
+     "label": "Dexterity",
+     "summary": "Balance, nimble hands, quick reactions."
+    },
+    {
+     "id": "constitution",
+     "label": "Constitution",
+     "summary": "Endurance: pushing on, holding breath, keeping food down."
+    },
+    {
+     "id": "intelligence",
+     "label": "Intelligence",
+     "summary": "Recall, reasoning and deduction."
+    },
+    {
+     "id": "wisdom",
+     "label": "Wisdom",
+     "summary": "Awareness, intuition and judgment."
+    },
+    {
+     "id": "charisma",
+     "label": "Charisma",
+     "summary": "Presence: persuading, deceiving, performing, intimidating."
+    }
+   ],
+   "entries": [
+    {
+     "id": "strength",
+     "label": "Strength check",
+     "group": "strength",
+     "kind": "attribute",
+     "roll": "attr:strength",
+     "summary": "Raw force: lifting, shoving, breaking, holding on.",
+     "callFor": [
+      "a door is barred and time is short",
+      "someone tries to wrestle an object away",
+      "the bridge ropes snap and a hero has to hold the weight"
+     ],
+     "success": "The obstacle gives way, loudly. Ask what they do with the opening.",
+     "failure": "It holds, and the effort costs something: noise, time, or a dropped torch.",
+     "examples": [
+      "Make a Strength check to force the portcullis up."
+     ]
+    },
+    {
+     "id": "dexterity",
+     "label": "Dexterity check",
+     "group": "dexterity",
+     "kind": "attribute",
+     "roll": "attr:dexterity",
+     "summary": "Balance, nimble hands, quick reactions.",
+     "callFor": [
+      "a ledge is narrow and the wind is up",
+      "a hand slips into a pocket in a crowd",
+      "a falling chandelier gives a heartbeat of warning"
+     ],
+     "success": "Smooth and quiet; they are where they wanted to be.",
+     "failure": "They make it, but not cleanly: a stumble, a scrape, or someone noticed.",
+     "examples": [
+      "Roll Dexterity to catch the vial before it shatters."
+     ]
+    },
+    {
+     "id": "constitution",
+     "label": "Constitution check",
+     "group": "constitution",
+     "kind": "attribute",
+     "roll": "attr:constitution",
+     "summary": "Endurance: pushing on, holding breath, keeping food down.",
+     "callFor": [
+      "a forced march goes past nightfall",
+      "the swamp air is foul",
+      "a drinking contest decides who gets the map"
+     ],
+     "success": "They keep going; the cost lands on someone or something else.",
+     "failure": "They pay in time, a level of exhaustion if the rules call for it, or a lost advantage.",
+     "examples": [
+      "Constitution check: can you keep pace through the night?"
+     ]
+    },
+    {
+     "id": "intelligence",
+     "label": "Intelligence check",
+     "group": "intelligence",
+     "kind": "attribute",
+     "roll": "attr:intelligence",
+     "summary": "Recall, reasoning and deduction.",
+     "callFor": [
+      "a clue only makes sense with the right knowledge",
+      "a mechanism has a logic to it",
+      "two accounts of the same night disagree"
+     ],
+     "success": "Give a real, specific fact or connection, not a vague hint.",
+     "failure": "They still learn something, but it is incomplete or comes with a wrong assumption.",
+     "examples": [
+      "Make an Intelligence (Investigation) check to work out how the lock resets."
+     ]
+    },
+    {
+     "id": "wisdom",
+     "label": "Wisdom check",
+     "group": "wisdom",
+     "kind": "attribute",
+     "roll": "attr:wisdom",
+     "summary": "Awareness, intuition and judgment.",
+     "callFor": [
+      "something is watching from the dark",
+      "a merchant's smile does not reach the eyes",
+      "the trail goes cold"
+     ],
+     "success": "Tell them what they notice and what it probably means.",
+     "failure": "They notice it too late, or read it wrong; the world acts first.",
+     "examples": [
+      "Wisdom (Perception): what do you see in the treeline?"
+     ]
+    },
+    {
+     "id": "charisma",
+     "label": "Charisma check",
+     "group": "charisma",
+     "kind": "attribute",
+     "roll": "attr:charisma",
+     "summary": "Presence: persuading, deceiving, performing, intimidating.",
+     "callFor": [
+      "a guard can be talked past",
+      "a crowd needs to be turned",
+      "a noble has to believe a lie"
+     ],
+     "success": "The other side moves, within reason: they agree, hesitate, or reveal something.",
+     "failure": "They refuse, raise the price, or remember the face. Never a dead end: offer another way.",
+     "examples": [
+      "Roll Charisma (Persuasion) to get the captain to delay the hanging."
+     ]
+    },
+    {
+     "id": "acrobatics",
+     "label": "Acrobatics",
+     "group": "dexterity",
+     "kind": "skill",
+     "roll": "acrobatics",
+     "summary": "Staying upright and moving with flair.",
+     "callFor": [
+      "ice, rigging or a rolling deck",
+      "a tumble past a foe",
+      "landing from a fall without fuss"
+     ],
+     "success": "They land on their feet with options open.",
+     "failure": "They go down or lose their footing; the next roll may be harder."
+    },
+    {
+     "id": "animal-handling",
+     "label": "Animal Handling",
+     "group": "wisdom",
+     "kind": "skill",
+     "roll": "animal-handling",
+     "summary": "Calming, reading and guiding animals.",
+     "callFor": [
+      "a panicked horse at the cliff edge",
+      "a guard dog that has not decided yet",
+      "a mount pushed past its limits"
+     ],
+     "success": "The animal settles and cooperates for now.",
+     "failure": "It bolts, bites or makes noise; the scene gets messier."
+    },
+    {
+     "id": "arcana",
+     "label": "Arcana",
+     "group": "intelligence",
+     "kind": "skill",
+     "roll": "arcana",
+     "summary": "Spells, magic items, planes and old sigils.",
+     "callFor": [
+      "a glowing circle on the floor",
+      "a magic item's purpose",
+      "a wizard's notes in shorthand"
+     ],
+     "success": "Name the effect or the school, and one way to deal with it.",
+     "failure": "They know what it is, not how it ends, or they trigger it while studying it."
+    },
+    {
+     "id": "athletics",
+     "label": "Athletics",
+     "group": "strength",
+     "kind": "skill",
+     "roll": "athletics",
+     "summary": "Climbing, jumping, swimming, grappling.",
+     "callFor": [
+      "a sheer wall with a deadline",
+      "a river in flood",
+      "holding a foe down"
+     ],
+     "success": "They get there fast and fresh.",
+     "failure": "They get there late or tired, or drop something on the way."
+    },
+    {
+     "id": "deception",
+     "label": "Deception",
+     "group": "charisma",
+     "kind": "skill",
+     "roll": "deception",
+     "summary": "Lies, disguises and misdirection.",
+     "callFor": [
+      "a forged letter at the gate",
+      "bluffing a hand of cards",
+      "pretending to belong"
+     ],
+     "success": "The lie holds, for now. Decide what would break it.",
+     "failure": "Doubt creeps in: questions, a follow-up, a watcher sent after them."
+    },
+    {
+     "id": "history",
+     "label": "History",
+     "group": "intelligence",
+     "kind": "skill",
+     "roll": "history",
+     "summary": "Past events, wars, families and ruins.",
+     "callFor": [
+      "a ruined keep's coat of arms",
+      "an old treaty",
+      "a legend that may be true"
+     ],
+     "success": "Give a true and useful piece of the past.",
+     "failure": "They recall the popular version, which is wrong in one important way."
+    },
+    {
+     "id": "insight",
+     "label": "Insight",
+     "group": "wisdom",
+     "kind": "skill",
+     "roll": "insight",
+     "summary": "Reading intentions and lies.",
+     "callFor": [
+      "a too-generous offer",
+      "a nervous witness",
+      "an ally acting strangely"
+     ],
+     "success": "Tell them what the other person wants or fears.",
+     "failure": "They read the mood but not the reason; they may trust the wrong person."
+    },
+    {
+     "id": "intimidation",
+     "label": "Intimidation",
+     "group": "charisma",
+     "kind": "skill",
+     "roll": "intimidation",
+     "summary": "Threats, menace and pressure.",
+     "callFor": [
+      "a thug needs to back down",
+      "an informant is holding out",
+      "a standoff before blades are drawn"
+     ],
+     "success": "They yield, now. Fear has a memory, though.",
+     "failure": "They call the bluff, get angry, or go for help."
+    },
+    {
+     "id": "investigation",
+     "label": "Investigation",
+     "group": "intelligence",
+     "kind": "skill",
+     "roll": "investigation",
+     "summary": "Searching for clues and making deductions.",
+     "callFor": [
+      "a ransacked room",
+      "a trap's trigger",
+      "a ledger with numbers that do not add up"
+     ],
+     "success": "They find the clue and what it points to.",
+     "failure": "They find it, but it takes time, makes noise, or springs something."
+    },
+    {
+     "id": "medicine",
+     "label": "Medicine",
+     "group": "wisdom",
+     "kind": "skill",
+     "roll": "medicine",
+     "summary": "Stabilizing the dying and diagnosing illness.",
+     "callFor": [
+      "a friend at 0 hit points without a healer's kit",
+      "a strange sickness in the village",
+      "how long the body has been dead"
+     ],
+     "success": "Stabilized, diagnosed, dated: give them a hard fact.",
+     "failure": "Time passes without progress; the patient's state is unclear."
+    },
+    {
+     "id": "nature",
+     "label": "Nature",
+     "group": "intelligence",
+     "kind": "skill",
+     "roll": "nature",
+     "summary": "Terrain, plants, weather and beasts.",
+     "callFor": [
+      "which berries are safe",
+      "a storm on the horizon",
+      "tracks of something big"
+     ],
+     "success": "They know what it is and what it means for them.",
+     "failure": "They know the common case; this one is different."
+    },
+    {
+     "id": "perception",
+     "label": "Perception",
+     "group": "wisdom",
+     "kind": "skill",
+     "roll": "perception",
+     "summary": "Spotting, hearing and sensing.",
+     "callFor": [
+      "an ambush on the road",
+      "a whisper in the next room",
+      "a secret door"
+     ],
+     "success": "They see it first. Hand them the initiative of the moment.",
+     "failure": "They miss it, or see it as it happens. Use passive Perception to avoid asking too often."
+    },
+    {
+     "id": "performance",
+     "label": "Performance",
+     "group": "charisma",
+     "kind": "skill",
+     "roll": "performance",
+     "summary": "Music, acting, storytelling.",
+     "callFor": [
+      "earning a meal at the inn",
+      "distracting a crowd",
+      "a festival contest"
+     ],
+     "success": "The audience is theirs: coin, attention, or a new admirer.",
+     "failure": "Polite silence, a heckler, or a rival who now wants to compete."
+    },
+    {
+     "id": "persuasion",
+     "label": "Persuasion",
+     "group": "charisma",
+     "kind": "skill",
+     "roll": "persuasion",
+     "summary": "Honest appeals, tact and good will.",
+     "callFor": [
+      "asking a favour",
+      "negotiating a reward",
+      "calming an angry mob"
+     ],
+     "success": "They get what they asked for, or a fair counter-offer.",
+     "failure": "No, not yet: a condition, a price, or a task first."
+    },
+    {
+     "id": "religion",
+     "label": "Religion",
+     "group": "intelligence",
+     "kind": "skill",
+     "roll": "religion",
+     "summary": "Gods, rites, holy symbols and cults.",
+     "callFor": [
+      "an unfamiliar altar",
+      "a cult's hand sign",
+      "an undead's weakness"
+     ],
+     "success": "Name the faith, its customs, or what the rite is for.",
+     "failure": "They know the faith but miss that this is a heresy of it."
+    },
+    {
+     "id": "sleight-of-hand",
+     "label": "Sleight of Hand",
+     "group": "dexterity",
+     "kind": "skill",
+     "roll": "sleight-of-hand",
+     "summary": "Palming, pickpocketing, planting.",
+     "callFor": [
+      "lifting a key from a belt",
+      "hiding a dagger at the feast",
+      "swapping a gem for paste"
+     ],
+     "success": "Done, and nobody saw.",
+     "failure": "Done, but someone saw; or not done, and nobody saw yet."
+    },
+    {
+     "id": "stealth",
+     "label": "Stealth",
+     "group": "dexterity",
+     "kind": "skill",
+     "roll": "stealth",
+     "summary": "Moving unseen and unheard.",
+     "callFor": [
+      "slipping past sentries",
+      "following someone through a market",
+      "an ambush of their own"
+     ],
+     "success": "They are where they want to be and unnoticed.",
+     "failure": "They are spotted at the worst moment, or must pick: retreat or go loud."
+    },
+    {
+     "id": "survival",
+     "label": "Survival",
+     "group": "wisdom",
+     "kind": "skill",
+     "roll": "survival",
+     "summary": "Tracking, foraging, navigating, enduring.",
+     "callFor": [
+      "the trail splits",
+      "food is running out",
+      "a blizzard closes in"
+     ],
+     "success": "They find the way, the food, or the shelter.",
+     "failure": "They lose time or supplies, or arrive somewhere unexpected."
+    }
+   ]
+  }
+ ],
+ "templates": [
+  {
+   "id": "dnd5e-srd.template.one-shot",
+   "kind": "adventure",
+   "name": "One-shot in three acts",
+   "description": "A single evening: a hook that starts in motion, a middle that complicates it, and a finale with a clear win or loss.",
+   "mode": [
+    "one-shot"
+   ],
+   "original": true,
+   "scaffold": {
+    "title": "One-shot",
+    "premise": "Who needs help, what goes wrong if nobody acts, and why tonight?",
+    "playerIntro": "Start mid-scene: the characters already know each other and already have a reason to act.",
+    "gmSituation": "Write the villain's plan in three steps; each act the party fails to stop one, the next one happens.",
+    "acts": [
+     {
+      "number": 1,
+      "title": "The hook",
+      "goal": "Get the party moving within ten minutes of play.",
+      "pacing": "One short scene of trouble, then a choice of two ways forward.",
+      "scenes": [
+       {
+        "purpose": "Open on trouble: an attack, a theft, a plea for help.",
+        "mandatory": true
+       },
+       {
+        "purpose": "A quick social scene to learn what is at stake and who to trust."
+       }
+      ]
+     },
+     {
+      "number": 2,
+      "title": "Complications",
+      "goal": "The obvious plan meets the villain's first step.",
+      "pacing": "Alternate an exploration scene with one combat; keep each under an hour.",
+      "scenes": [
+       {
+        "purpose": "A place to explore with a hazard or a trap and a clue to the finale.",
+        "mandatory": true
+       },
+       {
+        "purpose": "A fight against the villain's minions; let the terrain matter."
+       }
+      ]
+     },
+     {
+      "number": 3,
+      "title": "Finale",
+      "goal": "Face the villain where it matters, with the clock almost out.",
+      "pacing": "One big encounter with a goal besides killing everything.",
+      "scenes": [
+       {
+        "purpose": "The showdown, and a minute of epilogue for each character.",
+        "mandatory": true
+       }
+      ]
+     }
+    ],
+    "epilogue": "Tell each player one thing their character changed."
+   }
+  },
+  {
+   "id": "dnd5e-srd.template.lair",
+   "kind": "adventure",
+   "name": "Into the lair",
+   "description": "A location-based adventure: rumours lead to a lair, the lair pushes back, and the aftermath sets up the next session.",
+   "mode": [
+    "campaign",
+    "one-shot"
+   ],
+   "original": true,
+   "scaffold": {
+    "title": "Into the lair",
+    "premise": "Something has made its home nearby, and the people next door are paying for it.",
+    "acts": [
+     {
+      "number": 1,
+      "title": "Rumours",
+      "goal": "Learn where the lair is and one thing about its master.",
+      "scenes": [
+       {
+        "purpose": "Witnesses disagree about what they saw.",
+        "mandatory": true
+       },
+       {
+        "purpose": "The road there: a wilderness encounter (use the encounter generator)."
+       }
+      ]
+     },
+     {
+      "number": 2,
+      "title": "The lair",
+      "goal": "Get past the guardians, the hazard and the puzzle to the heart of the lair.",
+      "scenes": [
+       {
+        "purpose": "Entrance: a guardian or a trap that rewards caution.",
+        "mandatory": true
+       },
+       {
+        "purpose": "A setback or a twist: an unexpected ally, prisoner or rival."
+       },
+       {
+        "purpose": "The master of the lair, on its own ground.",
+        "mandatory": true
+       }
+      ]
+     },
+     {
+      "number": 3,
+      "title": "Aftermath",
+      "goal": "Treasure, consequences and a new rumour.",
+      "scenes": [
+       {
+        "purpose": "Return to the people who suffered; something has changed while they were away."
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "dnd5e-srd.template.scene.social",
+   "kind": "scene",
+   "name": "Social encounter",
+   "original": true,
+   "scaffold": {
+    "purpose": "Someone has what the party needs and wants something in return.",
+    "body": "- What do they want?\n- What will they never agree to?\n- What happens if the talk fails?\n- Which checks fit: Insight, Persuasion, Deception, Intimidation."
+   }
+  },
+  {
+   "id": "dnd5e-srd.template.scene.combat",
+   "kind": "scene",
+   "name": "Combat encounter",
+   "original": true,
+   "scaffold": {
+    "purpose": "A fight with a reason and a way to end other than death.",
+    "body": "- Why are they fighting here, now?\n- Terrain: one feature that offers cover, one that is dangerous.\n- When do the foes flee or surrender?\n- What is the reward for winning, and the cost of losing?"
+   }
+  },
+  {
+   "id": "dnd5e-srd.template.session-checklist",
+   "kind": "checklist",
+   "appliesTo": "session",
+   "name": "Fifth edition session checklist",
+   "original": true,
+   "scaffold": {
+    "title": "Fifth edition",
+    "items": [
+     {
+      "id": "dnd5e-srd.prep.levels",
+      "phase": "prep",
+      "text": "Check each character's level, hit points and spell slots",
+      "guidance": "Note who levelled up last time and who ended the session hurt or out of spells."
+     },
+     {
+      "id": "dnd5e-srd.prep.monsters",
+      "phase": "prep",
+      "text": "Pick monsters for tonight's likely fights",
+      "guidance": "Add them from the Reference → Presets list, or roll the encounter generator; check their CR against the party's level."
+     },
+     {
+      "id": "dnd5e-srd.prep.names",
+      "phase": "prep",
+      "text": "Have three names and one quirk ready",
+      "guidance": "Roll the NPC generator once or twice so improvised characters do not all sound alike."
+     },
+     {
+      "id": "dnd5e-srd.play.initiative",
+      "phase": "play",
+      "text": "Roll initiative for every fight",
+      "guidance": "The Initiative tracker rolls d20 plus each sheet's initiative and sorts highest first."
+     },
+     {
+      "id": "dnd5e-srd.play.inspiration",
+      "phase": "play",
+      "text": "Award inspiration for great roleplay"
+     },
+     {
+      "id": "dnd5e-srd.wrap.rest",
+      "phase": "wrap",
+      "text": "Note rests taken and resources left",
+      "guidance": "Hit dice spent, spell slots used and exhaustion carry into the next session unless they rested."
+     },
+     {
+      "id": "dnd5e-srd.wrap.xp",
+      "phase": "wrap",
+      "text": "Award experience or a milestone",
+      "autoWhen": "awards-given"
+     },
+     {
+      "id": "dnd5e-srd.wrap.loot",
+      "phase": "wrap",
+      "text": "Record treasure and who carries it"
+     }
+    ]
+   }
+  },
+  {
+   "id": "dnd5e-srd.template.session-zero",
+   "kind": "checklist",
+   "appliesTo": "session-zero",
+   "name": "Session zero",
+   "description": "Settle expectations before the first session; answers go into campaign settings.",
+   "original": true,
+   "scaffold": {
+    "title": "Session zero",
+    "items": [
+     {
+      "id": "tone",
+      "text": "What tone are we going for?",
+      "kind": "choice",
+      "options": [
+       "heroic",
+       "gritty",
+       "lighthearted",
+       "horror"
+      ],
+      "writesTo": "settings.tone"
+     },
+     {
+      "id": "limits",
+      "text": "Which topics are off the table, and which should fade to black?",
+      "kind": "text",
+      "writesTo": "settings.contentLimits"
+     },
+     {
+      "id": "start-level",
+      "text": "Starting level and how characters advance (experience or milestones)?",
+      "kind": "text",
+      "writesTo": "settings.advancement"
+     },
+     {
+      "id": "options",
+      "text": "Which character options are allowed (SRD races and classes only, or more)?",
+      "kind": "text",
+      "writesTo": "settings.characterOptions"
+     },
+     {
+      "id": "house-rules",
+      "text": "Any house rules (critical hits, resting, encumbrance)?",
+      "kind": "text",
+      "writesTo": "settings.houseRules"
+     },
+     {
+      "id": "party-tie",
+      "text": "Why does this party stick together?",
+      "kind": "text",
+      "writesTo": "settings.partyTie"
+     },
+     {
+      "id": "home",
+      "text": "Where does the campaign start?",
+      "kind": "entity",
+      "writesTo": "settings.startingLocation"
+     }
+    ]
+   }
+  }
+ ],
+ "calendar": {
+  "id": "dnd5e-srd.calendar",
+  "name": "Common reckoning",
+  "defaultYear": 1000,
+  "months": [
+   {
+    "name": "Deepwinter",
+    "days": 30
+   },
+   {
+    "name": "Thawing",
+    "days": 30
+   },
+   {
+    "name": "Seedtime",
+    "days": 30
+   },
+   {
+    "name": "Rains",
+    "days": 30
+   },
+   {
+    "name": "Blossom",
+    "days": 30
+   },
+   {
+    "name": "Highsun",
+    "days": 30
+   },
+   {
+    "name": "Midsummer",
+    "days": 30
+   },
+   {
+    "name": "Harvest",
+    "days": 30
+   },
+   {
+    "name": "Leaffall",
+    "days": 30
+   },
+   {
+    "name": "Mists",
+    "days": 30
+   },
+   {
+    "name": "Frost",
+    "days": 30
+   },
+   {
+    "name": "Longnight",
+    "days": 30
+   }
+  ],
+  "weekdays": [
+   "Moonday",
+   "Tidesday",
+   "Windsday",
+   "Thunderday",
+   "Fireday",
+   "Starday",
+   "Sunday"
+  ],
+  "format": "{year}-{month:02}-{day:02}"
+ },
+ "styleNotes": [
+  "Heroic fantasy: describe the world vividly, let the dice decide what is uncertain, and keep the spotlight moving between players.",
+  "SRD rules text is quoted as written; GM advice, tables and generators marked Original are Campaign Forge's own."
+ ]
+}

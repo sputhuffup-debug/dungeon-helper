@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { resolveLinkName, TableDialog } from "../../components/RulePanel";
 import { Dialog, Drawer, RuleCardList, RuleCardView } from "../../components/ui";
 import { useCampaign, useMeta } from "../../state/hooks";
+import { ModuleAttribution } from "../modules/ModuleLicense";
 
 export function RulesPage() {
   const ctx = useCampaign();
@@ -39,7 +40,10 @@ export function RulesPage() {
         </div>
       </header>
       <p className="cf-muted">
-        Short paraphrases with page references to {ctx.module.manifest.sourceBook?.title ?? "the rulebook"}. {ctx.module.manifest.sourceBook?.pageNote ?? ""}
+        {ctx.module.manifest.citationStyle === "section"
+          ? `Rule cards from ${ctx.module.manifest.sourceBook?.title ?? "the source"}, cited by section; cards marked Original are the module's own advice.`
+          : `Short paraphrases with page references to ${ctx.module.manifest.sourceBook?.title ?? "the rulebook"}.`}{" "}
+        {ctx.module.manifest.sourceBook?.pageNote ?? ""}
       </p>
       <RuleCardList cards={cards} modes={ctx.module.manifest.modes} mode={meta.mode} onOpen={(c: RuleCard) => openRule(c.id)} />
       <Drawer open={!!open} onClose={() => openRule(undefined)} title={open?.title ?? "Rule"}>
@@ -53,6 +57,7 @@ export function RulesPage() {
           />
         )}
       </Drawer>
+      <ModuleAttribution license={ctx.module.manifest.license} />
       <TableDialog tableId={tableId} onClose={() => setTableId(undefined)} />
       <Dialog open={!!field} onClose={() => setField(undefined)} title="Sheet field">
         {field && <FieldInfo fieldRef={field} />}

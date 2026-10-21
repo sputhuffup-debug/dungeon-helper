@@ -44,7 +44,7 @@ The app's registry (`apps/web/src/modules/registry.ts`) lists every built-in mod
 
 ## Shipping a data pack as a built-in module
 
-A pack that ships with the app (rather than being imported by a GM) lives in a package as JSON files, loaded through a `PackSource` so each file is its own lazily loaded chunk. This is how a large pack such as the D&D 5e SRD 5.1 is meant to ship. The steps for `packages/module-dnd5e-srd`:
+A pack that ships with the app (rather than being imported by a GM) lives in a package as JSON files, loaded through a `PackSource` so each file is its own lazily loaded chunk. This is how `packages/module-dnd5e-srd` (the 5th Edition SRD 5.1, the whole SRD as a pack) ships; its files are the worked example of each step below, and its README explains how its JSON is generated from the SRD data by a script in the package.
 
 1. **The package.** `packages/module-dnd5e-srd/package.json`:
    ```json
@@ -63,7 +63,7 @@ A pack that ships with the app (rather than being imported by a GM) lives in a p
    ```
    and a `tsconfig.json` like `packages/module-example/tsconfig.json`.
 
-2. **The pack, split into parts.** `packages/module-dnd5e-srd/pack/pack.json` holds the manifest (id `dnd5e-srd`, `citationStyle: "section"`, the CC-BY-4.0 `license` with the SRD's attribution), the `dice` (`{ "engine": "d20", "proficiency": { "var": "computed.proficiencyBonus" } }`), the entity types and the rule cards, and lists its parts: `"parts": ["monsters.json", "spells.json", "equipment.json", "tables.json"]`. Each part (`"format": "campaign-forge-pack-part"`, `"pack": "dnd5e-srd"`, `"name": "monsters.json"`) carries presets, reference lists or tables. Keep every file under about 2 MB: each becomes one precached chunk, and the PWA precache skips files over `maximumFileSizeToCacheInBytes` (8 MB, `apps/web/vite.config.ts`). SRD text is openly licensed, so rule cards may use it as written; cite each by section (`"cite": "SRD 5.1, Conditions: Prone"`).
+2. **The pack, split into parts.** `packages/module-dnd5e-srd/pack/pack.json` holds the manifest (id `dnd5e-srd`, `citationStyle: "section"`, the CC-BY-4.0 `license` with the SRD's attribution), the `dice` (`{ "engine": "d20", "proficiency": { "var": "computed.proficiencyBonus" } }`), the entity types and the rule cards, and lists its parts (`"parts": ["srd-basics.json", "srd-rules.json", ..., "tables.json"]`). Each part (`"format": "campaign-forge-pack-part"`, `"pack": "dnd5e-srd"`, `"name": "srd-spells.json"`) carries presets, reference lists, rule cards or tables. Keep every file under about 2 MB and, built, under Vite's 500 kB chunk warning (the SRD's monsters are split over two files): each becomes one precached chunk, and the PWA precache skips files over `maximumFileSizeToCacheInBytes` (8 MB, `apps/web/vite.config.ts`). SRD text is openly licensed, so rule cards may use it as written; cite each by section (`"cite": "SRD 5.1 — Conditions: Prone"`).
 
 3. **The source.** `packages/module-dnd5e-srd/src/index.ts`:
    ```ts
@@ -71,13 +71,12 @@ A pack that ships with the app (rather than being imported by a GM) lives in a p
 
    const json = (load: () => Promise<{ default: unknown }>) => () => load().then((m) => m.default);
 
-   /** D&D 5e SRD 5.1 as a data pack: one lazy chunk per file. */
+   /** The SRD 5.1 as a data pack: one lazy chunk per file. */
    export const dnd5eSrdSource: PackSource = {
      main: json(() => import("../pack/pack.json", { with: { type: "json" } })),
      parts: {
-       "monsters.json": json(() => import("../pack/monsters.json", { with: { type: "json" } })),
-       "spells.json": json(() => import("../pack/spells.json", { with: { type: "json" } })),
-       "equipment.json": json(() => import("../pack/equipment.json", { with: { type: "json" } })),
+       "srd-spells.json": json(() => import("../pack/srd-spells.json", { with: { type: "json" } })),
+       // ... one entry per part file
        "tables.json": json(() => import("../pack/tables.json", { with: { type: "json" } })),
      },
    };
@@ -100,15 +99,15 @@ A pack that ships with the app (rather than being imported by a GM) lives in a p
    ```ts
    builtinPack(
      {
-       id: "dnd5e-srd", name: "D&D 5e (SRD 5.1)", version: "0.1.0",
-       modes: [/* copied from pack.json */], defaultMode: "standard", dataStatus: "verified",
-       ruleset: "Dungeons & Dragons 5th Edition", publisher: "Wizards of the Coast (SRD 5.1)",
+       id: "dnd5e-srd", name: "5th Edition SRD 5.1 (fantasy d20)", version: "0.1.0",
+       modes: [/* copied from pack.json */], defaultMode: "campaign", dataStatus: "partially-verified",
+       ruleset: "SRD 5.1", publisher: "Wizards of the Coast LLC (SRD 5.1, CC-BY-4.0)",
        license: { spdx: "CC-BY-4.0", name: "Creative Commons Attribution 4.0 International", url: "https://creativecommons.org/licenses/by/4.0/", attribution: "/* the SRD attribution, as in pack.json */" },
      },
      () => import("@campaign-forge/module-dnd5e-srd").then((m) => m.dnd5eSrdSource),
    ),
    ```
-   The registry test checks the static fields against the pack's manifest; the licence shows in the module list and the New campaign dialog before the pack is downloaded.
+   The registry test checks the static fields (licence, ruleset and publisher included) against the pack's manifest; the licence shows in the module list and the New campaign dialog before the pack is downloaded.
 
 6. **The tools.** Add `"dnd5e-srd": async () => ({ source: (await import("@campaign-forge/module-dnd5e-srd")).dnd5eSrdSource })` to `BUILTIN_TARGETS` in `tools/module-check/src/check.ts` and `"@campaign-forge/module-dnd5e-srd": "workspace:*"` to that package's dependencies; add `"dnd5e-srd"` to `RESERVED_IDS` in `tools/create-module/src/scaffold.ts`. `pnpm module-check --all` (and CI) then covers it.
 

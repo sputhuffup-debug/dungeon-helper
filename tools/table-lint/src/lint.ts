@@ -247,6 +247,15 @@ function fromSdk(issue: ConformanceIssue): Issue {
   return { severity: issue.severity, where: issue.where, message: issue.message, source: "sdk" };
 }
 
+/** SPDX ids of licences that allow the source text to be used as written (with attribution). */
+const OPEN_TEXT_LICENSES = /^(CC-BY(-SA)?-\d|CC0-)/i;
+
+/** Whether the module's source text is openly licensed (`manifest.license.spdx`), so rule cards may quote it. */
+export function hasOpenLicense(module: GameModule): boolean {
+  const spdx = module.manifest?.license?.spdx;
+  return typeof spdx === "string" && OPEN_TEXT_LICENSES.test(spdx.trim());
+}
+
 /** Run the sdk conformance suite plus the tool-level checks. `ok` is true when there are no errors. */
 export function lintModule(module: GameModule, opts: LintOptions = {}): LintReport {
   const { maxSummaryChars = 600, maxSummarySentences = 3, ...checkOpts } = opts;
@@ -255,7 +264,8 @@ export function lintModule(module: GameModule, opts: LintOptions = {}): LintRepo
   const moduleId = module.manifest?.id ?? "";
 
   for (const t of module.tables) checkTable(t, moduleId, c);
-  for (const r of module.rules) checkRule(r, { maxSummaryChars, maxSummarySentences }, c);
+  // Openly licensed text (e.g. an SRD under CC-BY-4.0) may be used as written, so its rule cards are not checked for book prose.
+  if (!hasOpenLicense(module)) for (const r of module.rules) checkRule(r, { maxSummaryChars, maxSummarySentences }, c);
   const presetIds = new Set(module.presets.map((p) => p.id));
   for (const p of module.presets) checkPreset(p, module, presetIds, c);
   checkWithinCycles(module.presets, c);

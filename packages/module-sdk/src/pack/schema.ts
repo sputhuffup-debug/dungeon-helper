@@ -119,7 +119,7 @@ const freeObject: JsonSchema = { type: "object" };
 
 export const SHEET_WIDGETS = [
   "text", "textarea", "richtext", "number", "checkbox", "select", "multiselect", "tags", "attribute", "skill", "skills", "talents", "conditions",
-  "gear", "dicepool", "supply", "stress", "computed", "ref", "reflist", "statblock", "table", "list", "object", "image", "zonemap",
+  "gear", "dicepool", "supply", "stress", "computed", "ref", "reflist", "statblock", "table", "list", "entries", "object", "image", "zonemap",
 ] as const satisfies readonly SheetWidget[];
 const CORE_KINDS = ["character", "creature", "location", "faction", "item", "vehicle", "clue", "job", "encounter"] as const satisfies readonly CoreEntityKind[];
 const VISIBILITY = ["gm", "players", "some_players", "revealed"] as const satisfies readonly VisibilityLevel[];
@@ -182,6 +182,7 @@ const definitions: Record<string, JsonSchema> = {
       fumbleOn: int({ minimum: 1, maximum: 19 }),
       critSucceeds: bool,
       fumbleFails: bool,
+      freeDice: { type: "array", items: { type: "integer", minimum: 2, maximum: 100 }, maxItems: 10 },
       labels: object<NonNullable<D20EngineConfig["labels"]>>()({ success: text, failure: text }, []),
     },
     ["engine"],
@@ -310,7 +311,7 @@ const definitions: Record<string, JsonSchema> = {
     description: "Any other properties are the item's own data (e.g. the attribute a skill uses).",
   },
   referenceList: object<ReferenceList>()(
-    { id: ref("id"), name: text, page: ref("page"), cite: ref("cite"), original: bool, itemSchema: schemaSlot, items: list(ref("referenceItem")), unverified: bool },
+    { id: ref("id"), name: text, page: ref("page"), cite: ref("cite"), original: bool, itemSchema: schemaSlot, items: list(ref("referenceItem")), unverified: bool, columns: list(str()) },
     ["id", "name", "items"],
   ),
   preset: object<EntityPreset>()(
@@ -459,6 +460,7 @@ const definitions: Record<string, JsonSchema> = {
       tempId: text,
       type: ref("id"),
       subtype: ref("id"),
+      preset: logic,
       name: logic,
       summary: logic,
       tags: list(str()),

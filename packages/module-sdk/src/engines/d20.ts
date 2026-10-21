@@ -28,7 +28,8 @@ export function createD20Engine(config: D20EngineConfig): DiceSystem {
   const fumbleOn = config.fumbleOn ?? 1;
   const useAbility = config.abilityModifier !== false;
   const labels = { success: "Success", failure: "Failure", ...config.labels };
-  const specs = [{ id: "d20", name: "d20", faces: 20 }];
+  for (const f of config.freeDice ?? []) assertInteger(f, "freeDice", 2, 100);
+  const specs = [{ id: "d20", name: "d20", faces: 20 }, ...[...new Set(config.freeDice ?? [])].filter((f) => f !== 20).map((f) => ({ id: `d${f}`, name: `d${f}`, faces: f }))];
 
   const finish = (pool: DicePool, dice: RolledDie[], pushes: number): RollResult => {
     const kept = dice.find((d) => !d.dropped) ?? dice[0];

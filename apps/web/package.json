@@ -15,6 +15,7 @@
   "dependencies": {
     "@campaign-forge/core": "workspace:*",
     "@campaign-forge/module-alien": "workspace:*",
+    "@campaign-forge/module-dnd5e-srd": "workspace:*",
     "@campaign-forge/module-example": "workspace:*",
     "@campaign-forge/module-sdk": "workspace:*",
     "@campaign-forge/seed-campaign": "workspace:*",

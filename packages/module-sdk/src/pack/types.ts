@@ -75,6 +75,13 @@ export interface PackProducedEntity {
   tempId: string;
   type: string;
   subtype?: string;
+  /**
+   * Start from a preset: its id, or JSONLogic yielding one. The preset's
+   * fields come first and `fields` override them; its name, summary and tags
+   * are used when the entity's own evaluate to nothing. The preset must be of
+   * the entity's `type`.
+   */
+  preset?: JsonLogicRule;
   name: JsonLogicRule;
   summary?: JsonLogicRule;
   tags?: string[];

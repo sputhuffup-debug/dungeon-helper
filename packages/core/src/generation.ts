@@ -51,7 +51,7 @@ export function acceptGeneratedGraph(store: CampaignStore, graph: GeneratedGraph
         name: p.name,
         fields: clone(p.fields),
         tags: [...new Set(tags)],
-        provenance: { generatorRun: run.id },
+        provenance: p.preset !== undefined ? { generatorRun: run.id, preset: p.preset } : { generatorRun: run.id },
       };
       if (p.summary !== undefined) input.summary = p.summary;
       const subtype = p.subtype ?? (typeof p.fields.subtype === "string" ? p.fields.subtype : undefined);

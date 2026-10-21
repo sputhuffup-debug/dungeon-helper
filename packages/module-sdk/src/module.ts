@@ -344,6 +344,11 @@ function checkProcedureRuns(proc: Procedure, module: GameModule, options: CheckM
         if (tempIds.has(e.tempId)) c.error(where, `duplicate produced tempId "${e.tempId}" for seed "${seed}"`);
         tempIds.add(e.tempId);
         if (!module.entityTypes.some((t) => t.id === e.type)) c.error(where, `produced entity of unknown type "${e.type}" for seed "${seed}"`);
+        if (e.preset !== undefined) {
+          const preset = module.presets.find((p) => p.id === e.preset);
+          if (!preset) c.error(where, `produced entity from unknown preset "${e.preset}" for seed "${seed}"`);
+          else if (preset.entityType !== e.type) c.error(where, `produced ${e.type} from preset "${e.preset}" of type ${preset.entityType} for seed "${seed}"`);
+        }
       }
       for (const r of graph.produced.relationships) {
         if (!tempIds.has(r.from) || !tempIds.has(r.to)) c.error(where, `relationship "${r.type}" references unknown tempId for seed "${seed}"`);

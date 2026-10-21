@@ -301,7 +301,7 @@ function semanticChecks(doc: PackCollections & Record<string, unknown>, packId: 
     const produce = (p.produce ?? {}) as Record<string, unknown>;
     asList(produce.entities).forEach((e, j) => {
       const pe = (...rest: Array<string | number>) => at("produce", "entities", j, ...rest);
-      for (const k of ["name", "summary", "when", "each"]) checkLogicAt(e[k], pe(k), w);
+      for (const k of ["preset", "name", "summary", "when", "each"]) checkLogicAt(e[k], pe(k), w);
       for (const [path, rule] of Object.entries((e.fields as Record<string, unknown> | undefined) ?? {})) {
         if (PATH_SEGMENT_FORBIDDEN.test(path)) w.error(pe("fields", path), "field path uses a reserved name");
         checkLogicAt(rule, pe("fields", path), w);

@@ -1,17 +1,21 @@
 import { useState } from "react";
-import { getPath } from "@campaign-forge/module-sdk";
+import { evaluateLogic, getPath, rollDice, type JsonLogicRule } from "@campaign-forge/module-sdk";
 import { Badge } from "../primitives/Badge";
 import { Button, IconButton } from "../primitives/Button";
 import { asNumber, cx, isRecord, newId } from "../sheet/paths";
 import { TrackerFrame } from "./TrackerFrame";
-import { randomInt, stateRecord, type TrackerProps } from "./types";
+import { randomInt, stateRecord, type TrackerEntity, type TrackerProps } from "./types";
 
 export interface Participant {
   id: string;
   name: string;
   entityId?: string;
-  /** Initiative card 1..10 (lower acts first). */
+  /** Initiative card 1..10 (lower acts first), or the rolled total in roll mode (higher acts first). */
   card: number | null;
+  /** Roll mode: how the total was made, e.g. "14 + 2". */
+  detail?: string;
+  /** Roll mode: the participant's initiative modifier (breaks ties). */
+  mod?: number;
   /** Extra cards drawn beyond the first; the best is kept. */
   extraDraws: number;
   acted: boolean;
@@ -34,6 +38,8 @@ export function initiativeState(state: unknown): InitiativeState {
       card: typeof p.card === "number" ? p.card : null,
       extraDraws: asNumber(p.extraDraws, 0),
       acted: p.acted === true,
+      ...(typeof p.detail === "string" ? { detail: p.detail } : {}),
+      ...(typeof p.mod === "number" ? { mod: p.mod } : {}),
     })),
   };
 }
@@ -55,16 +61,43 @@ export function drawBest(deck: number[], count: number, rng: TrackerProps["rng"]
   return { card: best, deck: remaining.sort((a, b) => a - b) };
 }
 
-/** Participants with initiative cards 1-10; draw, reorder, mark acted, next round. */
+/** A participant's initiative modifier in roll mode: `config.modifier` (a number or JSONLogic over `{ fields, computed }`). */
+export function initiativeModifier(rule: unknown, entity: TrackerEntity | undefined): number {
+  if (rule === undefined || rule === null || !entity) return 0;
+  if (typeof rule === "number") return rule;
+  try {
+    const v = Number(evaluateLogic(rule as JsonLogicRule, { fields: entity.fields, computed: entity.computed ?? {} }));
+    return Number.isFinite(v) ? v : 0;
+  } catch {
+    return 0;
+  }
+}
+
+/** Order participants: cards ascending, or rolled totals descending (ties: higher modifier, then name). */
+export function initiativeOrder(participants: Participant[], rolled: boolean): Participant[] {
+  if (!rolled) return [...participants].sort((a, b) => (a.card ?? 99) - (b.card ?? 99));
+  return [...participants].sort((a, b) => (b.card ?? -999) - (a.card ?? -999) || (b.mod ?? 0) - (a.mod ?? 0) || a.name.localeCompare(b.name));
+}
+
+/**
+ * Turn order. By default participants draw initiative cards 1-10 (lowest
+ * acts first). With `config.method: "roll"` each rolls `config.dice` (default
+ * "1d20") plus `config.modifier` (a number or JSONLogic over the entity's
+ * `{ fields, computed }`) and the highest acts first; the GM can also type a
+ * total a player rolled. Draw or roll, reorder, mark acted, next round.
+ */
 export function InitiativeTracker({ def, state, onChange, entities = [], rng, onLog, readonly, className }: TrackerProps) {
   const init = initiativeState(state);
+  const rolled = def.config?.method === "roll";
+  const rollDiceExpr = typeof def.config?.dice === "string" ? def.config.dice : "1d20";
   const deckSize = typeof def.config?.cards === "number" ? def.config.cards : 10;
   const drawsField = typeof def.config?.drawsField === "string" ? def.config.drawsField : undefined;
+  const drawLabel = typeof def.config?.label === "string" ? def.config.label : rolled ? "Roll initiative" : "Draw cards";
   const [pick, setPick] = useState("");
   const [customName, setCustomName] = useState("");
   const commit = (next: Partial<InitiativeState>) => onChange({ ...stateRecord(state), ...init, ...next });
 
-  const sorted = [...init.participants].sort((a, b) => (a.card ?? 99) - (b.card ?? 99));
+  const sorted = initiativeOrder(init.participants, rolled);
   const current = sorted.find((p) => !p.acted && p.card !== null);
 
   const addParticipant = () => {
@@ -84,7 +117,19 @@ export function InitiativeTracker({ def, state, onChange, entities = [], rng, on
     setCustomName("");
   };
 
+  const rollAll = (onlyMissing: boolean) => {
+    const participants = init.participants.map((p) => {
+      if (onlyMissing && p.card !== null) return p;
+      const mod = initiativeModifier(def.config?.modifier, entities.find((e) => e.id === p.entityId));
+      const natural = rng ? rollDice(rollDiceExpr, rng).total : randomInt(rng, 1, 20);
+      return { ...p, card: natural + mod, mod, detail: `${natural} ${mod < 0 ? "−" : "+"} ${Math.abs(mod)}` };
+    });
+    commit({ participants });
+    onLog?.(`Initiative rolled: ${initiativeOrder(participants, true).map((p) => `${p.name} ${p.card ?? "–"}`).join(", ")}`);
+  };
+
   const draw = (onlyMissing: boolean) => {
+    if (rolled) return rollAll(onlyMissing);
     let deck = Array.from({ length: deckSize }, (_, i) => i + 1);
     if (onlyMissing) deck = deck.filter((c) => !init.participants.some((p) => p.card === c));
     const participants = init.participants.map((p) => {
@@ -97,7 +142,15 @@ export function InitiativeTracker({ def, state, onChange, entities = [], rng, on
     onLog?.(`Initiative drawn: ${[...participants].sort((a, b) => (a.card ?? 99) - (b.card ?? 99)).map((p) => `${p.name} ${p.card ?? "–"}`).join(", ")}`);
   };
 
-  const update = (id: string, patch: Partial<Participant>) => commit({ participants: init.participants.map((p) => (p.id === id ? { ...p, ...patch } : p)) });
+  const update = (id: string, patch: Partial<Participant>) =>
+    commit({
+      participants: init.participants.map((p) => {
+        if (p.id !== id) return p;
+        const next: Record<string, unknown> = { ...p, ...patch };
+        for (const k of Object.keys(next)) if (next[k] === undefined) delete next[k];
+        return next as unknown as Participant;
+      }),
+    });
   const remove = (id: string) => commit({ participants: init.participants.filter((p) => p.id !== id) });
   const move = (id: string, dir: -1 | 1) => {
     // Reordering swaps cards so the sorted order follows the GM's choice.
@@ -123,7 +176,7 @@ export function InitiativeTracker({ def, state, onChange, entities = [], rng, on
           {!readonly && (
             <>
               <Button size="sm" onClick={() => draw(false)} disabled={init.participants.length === 0}>
-                Draw cards
+                {drawLabel}
               </Button>
               <Button size="sm" variant="primary" onClick={nextRound}>
                 Next round
@@ -141,10 +194,30 @@ export function InitiativeTracker({ def, state, onChange, entities = [], rng, on
           data-participant={p.id}
           aria-current={current?.id === p.id ? "step" : undefined}
         >
-          <span className={cx("cf-initiative__card", p.card === null && "cf-initiative__card--empty")} data-testid={`card-${p.id}`}>
-            {p.card ?? "–"}
+          {rolled && !readonly ? (
+            <input
+              className={cx("cf-input", "cf-initiative__card", "cf-initiative__card--score", p.card === null && "cf-initiative__card--empty")}
+              type="number"
+              inputMode="numeric"
+              aria-label={`${p.name} initiative`}
+              data-testid={`card-${p.id}`}
+              value={p.card ?? ""}
+              placeholder="–"
+              onChange={(e) => {
+                const raw = e.target.value.trim();
+                const n = Number(raw);
+                update(p.id, raw === "" || !Number.isFinite(n) ? { card: null, detail: undefined } : { card: Math.round(n), detail: "entered" });
+              }}
+            />
+          ) : (
+            <span className={cx("cf-initiative__card", rolled && "cf-initiative__card--score", p.card === null && "cf-initiative__card--empty")} data-testid={`card-${p.id}`}>
+              {p.card ?? "–"}
+            </span>
+          )}
+          <span className="cf-tracker__name">
+            {p.name}
+            {rolled && p.detail && p.detail !== "entered" && <span className="cf-muted"> ({p.detail})</span>}
           </span>
-          <span className="cf-tracker__name">{p.name}</span>
           {p.extraDraws > 0 && <Badge>+{p.extraDraws} draw</Badge>}
           {!readonly && (
             <>
@@ -176,7 +249,7 @@ export function InitiativeTracker({ def, state, onChange, entities = [], rng, on
             Add
           </Button>
           <Button size="sm" variant="ghost" onClick={() => draw(true)} disabled={!init.participants.some((p) => p.card === null)}>
-            Draw missing
+            {rolled ? "Roll missing" : "Draw missing"}
           </Button>
         </div>
       )}

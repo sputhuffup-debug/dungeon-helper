@@ -410,6 +410,11 @@ export interface ProducedEntity {
   fields: Record<string, unknown>;
   /** Suggested parent (e.g. a colony within a planet) as a tempId. */
   within?: string;
+  /**
+   * The preset this entity was started from (its fields are already merged
+   * into `fields`); recorded in the entity's provenance on acceptance.
+   */
+  preset?: string;
 }
 
 export interface ProducedRelationship {
@@ -486,6 +491,7 @@ export type SheetWidget =
   | "statblock"
   | "table"
   | "list"
+  | "entries"
   | "object"
   | "image"
   | "zonemap";
@@ -569,6 +575,11 @@ export interface ReferenceList {
   itemSchema?: JsonSchema;
   items: ReferenceItem[];
   unverified?: boolean;
+  /**
+   * Item keys the reference browser shows as columns, in order (default: the
+   * first five keys found). Every key is still shown when an item is opened.
+   */
+  columns?: string[];
 }
 
 export interface ReferenceItem {

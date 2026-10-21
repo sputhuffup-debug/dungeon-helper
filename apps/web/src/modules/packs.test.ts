@@ -44,7 +44,7 @@ describe("imported data packs", () => {
     const result = await importPackFiles(lanternFiles());
     expect(result.entry).toMatchObject({ id: "lantern", source: "imported", format: "pack", version: "1.0.0" });
     expect(result.entry.license?.spdx).toBe("CC-BY-4.0");
-    expect(listModules({ dev: false }).map((m) => m.id)).toEqual(["alien", "lantern"]);
+    expect(listModules({ dev: false }).map((m) => m.id)).toEqual(["alien", "dnd5e-srd", "lantern"]);
     const stored = (await getInstalledPack("lantern")) as { parts?: unknown; rules: unknown[] };
     expect(stored.parts).toBeUndefined(); // stored merged
     const loaded = await loadModuleById("lantern");

@@ -344,6 +344,17 @@ h3 {
 .app-licence {
   font-size: var(--cf-text-sm);
   color: var(--cf-muted);
+  overflow-wrap: anywhere;
+}
+.app-attribution {
+  margin-top: var(--cf-space-4);
+  font-size: var(--cf-text-sm);
+}
+.app-attribution summary {
+  cursor: pointer;
+}
+.app-refitem .cf-md {
+  max-width: 70ch;
 }
 .app-modules {
   list-style: none;

@@ -85,7 +85,7 @@ describe("SheetRenderer", () => {
     expect(screen.getByTestId("pool-sneak")).toHaveTextContent("4"); // wits 2 + sneak 2
     expect(screen.queryByTestId("pool-endure")).toBeNull(); // hardcore-only skill
     fireEvent.click(within(screen.getByText("Fight").closest("tr")!).getByRole("button", { name: "Roll" }));
-    expect(onRoll).toHaveBeenCalledWith("fight", expect.objectContaining({ attribute: 3, skill: 1 }));
+    expect(onRoll).toHaveBeenCalledWith("fight", expect.objectContaining({ attribute: 3, skill: 1 }), "Fight");
   });
 
   it("rule buttons call onOpenRule and errors render under fields", () => {

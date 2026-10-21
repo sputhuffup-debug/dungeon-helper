@@ -2,6 +2,7 @@ import { SelectField, MultiSelectField, TagsField } from "./choice";
 import { ComputedField } from "./computed";
 import { ConditionsField } from "./conditions";
 import { DicePoolField } from "./dicepool";
+import { EntriesField } from "./entries";
 import { GearField } from "./gear";
 import { ImageField, ZoneMapField } from "./media";
 import { AttributeField, CheckboxField, NumberField } from "./number";
@@ -38,6 +39,7 @@ export function registerDefaultWidgets(): void {
   registerWidget("statblock", StatBlockField);
   registerWidget("table", TableField);
   registerWidget("list", ListField);
+  registerWidget("entries", EntriesField);
   registerWidget("object", ObjectField);
   registerWidget("image", ImageField);
   registerWidget("zonemap", ZoneMapField);

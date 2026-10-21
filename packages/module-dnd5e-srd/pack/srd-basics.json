@@ -1,0 +1,854 @@
+{
+ "$schema": "../../module-sdk/schema/module-pack-part.schema.json",
+ "format": "campaign-forge-pack-part",
+ "formatVersion": 1,
+ "pack": "dnd5e-srd",
+ "name": "srd-basics.json",
+ "referenceLists": [
+  {
+   "id": "dnd5e-srd.ability-scores",
+   "name": "Ability scores",
+   "cite": "SRD 5.1 — Using Ability Scores",
+   "columns": [
+    "abbreviation",
+    "skills"
+   ],
+   "items": [
+    {
+     "id": "strength",
+     "name": "Strength",
+     "abbreviation": "STR",
+     "skills": "Athletics",
+     "description": "Strength measures bodily power, athletic training, and the extent to which you can exert raw physical force.\n\nA Strength check can model any attempt to lift, push, pull, or break something, to force your body through a space, or to otherwise apply brute force to a situation. The Athletics skill reflects aptitude in certain kinds of Strength checks."
+    },
+    {
+     "id": "dexterity",
+     "name": "Dexterity",
+     "abbreviation": "DEX",
+     "skills": "Acrobatics, Sleight of Hand, Stealth",
+     "description": "Dexterity measures agility, reflexes, and balance.\n\nA Dexterity check can model any attempt to move nimbly, quickly, or quietly, or to keep from falling on tricky footing. The Acrobatics, Sleight of Hand, and Stealth skills reflect aptitude in certain kinds of Dexterity checks."
+    },
+    {
+     "id": "constitution",
+     "name": "Constitution",
+     "abbreviation": "CON",
+     "skills": "—",
+     "description": "Constitution measures health, stamina, and vital force.\n\nConstitution checks are uncommon, and no skills apply to Constitution checks, because the endurance this ability represents is largely passive rather than involving a specific effort on the part of a character or monster."
+    },
+    {
+     "id": "intelligence",
+     "name": "Intelligence",
+     "abbreviation": "INT",
+     "skills": "Arcana, History, Investigation, Nature, Religion",
+     "description": "Intelligence measures mental acuity, accuracy of recall, and the ability to reason.\n\nAn Intelligence check comes into play when you need to draw on logic, education, memory, or deductive reasoning. The Arcana, History, Investigation, Nature, and Religion skills reflect aptitude in certain kinds of Intelligence checks."
+    },
+    {
+     "id": "wisdom",
+     "name": "Wisdom",
+     "abbreviation": "WIS",
+     "skills": "Animal Handling, Insight, Medicine, Perception, Survival",
+     "description": "Wisdom reflects how attuned you are to the world around you and represents perceptiveness and intuition.\n\nA Wisdom check might reflect an effort to read body language, understand someone's feelings, notice things about the environment, or care for an injured person. The Animal Handling, Insight, Medicine, Perception, and Survival skills reflect aptitude in certain kinds of Wisdom checks."
+    },
+    {
+     "id": "charisma",
+     "name": "Charisma",
+     "abbreviation": "CHA",
+     "skills": "Deception, Intimidation, Performance, Persuasion",
+     "description": "Charisma measures your ability to interact effectively with others. It includes such factors as confidence and eloquence, and it can represent a charming or commanding personality.\n\nA Charisma check might arise when you try to influence or entertain others, when you try to make an impression or tell a convincing lie, or when you are navigating a tricky social situation. The Deception, Intimidation, Performance, and Persuasion skills reflect aptitude in certain kinds of Charisma checks."
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.skills",
+   "name": "Skills",
+   "cite": "SRD 5.1 — Using Ability Scores: Skills",
+   "columns": [
+    "ability"
+   ],
+   "itemSchema": {
+    "type": "object",
+    "properties": {
+     "attribute": {
+      "type": "string",
+      "enum": [
+       "strength",
+       "dexterity",
+       "constitution",
+       "intelligence",
+       "wisdom",
+       "charisma"
+      ]
+     }
+    },
+    "required": [
+     "id",
+     "name",
+     "attribute"
+    ]
+   },
+   "items": [
+    {
+     "id": "acrobatics",
+     "name": "Acrobatics",
+     "attribute": "dexterity",
+     "ability": "Dexterity",
+     "description": "Your Dexterity (Acrobatics) check covers your attempt to stay on your feet in a tricky situation, such as when you're trying to run across a sheet of ice, balance on a tightrope, or stay upright on a rocking ship's deck. The GM might also call for a Dexterity (Acrobatics) check to see if you can perform acrobatic stunts, including dives, rolls, somersaults, and flips."
+    },
+    {
+     "id": "animal-handling",
+     "name": "Animal Handling",
+     "attribute": "wisdom",
+     "ability": "Wisdom",
+     "description": "When there is any question whether you can calm down a domesticated animal, keep a mount from getting spooked, or intuit an animal's intentions, the GM might call for a Wisdom (Animal Handling) check. You also make a Wisdom (Animal Handling) check to control your mount when you attempt a risky maneuver."
+    },
+    {
+     "id": "arcana",
+     "name": "Arcana",
+     "attribute": "intelligence",
+     "ability": "Intelligence",
+     "description": "Your Intelligence (Arcana) check measures your ability to recall lore about spells, magic items, eldritch symbols, magical traditions, the planes of existence, and the inhabitants of those planes."
+    },
+    {
+     "id": "athletics",
+     "name": "Athletics",
+     "attribute": "strength",
+     "ability": "Strength",
+     "description": "Your Strength (Athletics) check covers difficult situations you encounter while climbing, jumping, or swimming."
+    },
+    {
+     "id": "deception",
+     "name": "Deception",
+     "attribute": "charisma",
+     "ability": "Charisma",
+     "description": "Your Charisma (Deception) check determines whether you can convincingly hide the truth, either verbally or through your actions. This deception can encompass everything from misleading others through ambiguity to telling outright lies. Typical situations include trying to fast- talk a guard, con a merchant, earn money through gambling, pass yourself off in a disguise, dull someone's suspicions with false assurances, or maintain a straight face while telling a blatant lie."
+    },
+    {
+     "id": "history",
+     "name": "History",
+     "attribute": "intelligence",
+     "ability": "Intelligence",
+     "description": "Your Intelligence (History) check measures your ability to recall lore about historical events, legendary people, ancient kingdoms, past disputes, recent wars, and lost civilizations."
+    },
+    {
+     "id": "insight",
+     "name": "Insight",
+     "attribute": "wisdom",
+     "ability": "Wisdom",
+     "description": "Your Wisdom (Insight) check decides whether you can determine the true intentions of a creature, such as when searching out a lie or predicting someone's next move. Doing so involves gleaning clues from body language, speech habits, and changes in mannerisms."
+    },
+    {
+     "id": "intimidation",
+     "name": "Intimidation",
+     "attribute": "charisma",
+     "ability": "Charisma",
+     "description": "When you attempt to influence someone through overt threats, hostile actions, and physical violence, the GM might ask you to make a Charisma (Intimidation) check. Examples include trying to pry information out of a prisoner, convincing street thugs to back down from a confrontation, or using the edge of a broken bottle to convince a sneering vizier to reconsider a decision."
+    },
+    {
+     "id": "investigation",
+     "name": "Investigation",
+     "attribute": "intelligence",
+     "ability": "Intelligence",
+     "description": "When you look around for clues and make deductions based on those clues, you make an Intelligence (Investigation) check. You might deduce the location of a hidden object, discern from the appearance of a wound what kind of weapon dealt it, or determine the weakest point in a tunnel that could cause it to collapse. Poring through ancient scrolls in search of a hidden fragment of knowledge might also call for an Intelligence (Investigation) check."
+    },
+    {
+     "id": "medicine",
+     "name": "Medicine",
+     "attribute": "wisdom",
+     "ability": "Wisdom",
+     "description": "A Wisdom (Medicine) check lets you try to stabilize a dying companion or diagnose an illness."
+    },
+    {
+     "id": "nature",
+     "name": "Nature",
+     "attribute": "intelligence",
+     "ability": "Intelligence",
+     "description": "Your Intelligence (Nature) check measures your ability to recall lore about terrain, plants and animals, the weather, and natural cycles."
+    },
+    {
+     "id": "perception",
+     "name": "Perception",
+     "attribute": "wisdom",
+     "ability": "Wisdom",
+     "description": "Your Wisdom (Perception) check lets you spot, hear, or otherwise detect the presence of something. It measures your general awareness of your surroundings and the keenness of your senses. For example, you might try to hear a conversation through a closed door, eavesdrop under an open window, or hear monsters moving stealthily in the forest. Or you might try to spot things that are obscured or easy to miss, whether they are orcs lying in ambush on a road, thugs hiding in the shadows of an alley, or candlelight under a closed secret door."
+    },
+    {
+     "id": "performance",
+     "name": "Performance",
+     "attribute": "charisma",
+     "ability": "Charisma",
+     "description": "Your Charisma (Performance) check determines how well you can delight an audience with music, dance, acting, storytelling, or some other form of entertainment."
+    },
+    {
+     "id": "persuasion",
+     "name": "Persuasion",
+     "attribute": "charisma",
+     "ability": "Charisma",
+     "description": "When you attempt to influence someone or a group of people with tact, social graces, or good nature, the GM might ask you to make a Charisma (Persuasion) check. Typically, you use persuasion when acting in good faith, to foster friendships, make cordial requests, or exhibit proper etiquette. Examples of persuading others include convincing a chamberlain to let your party see the king, negotiating peace between warring tribes, or inspiring a crowd of townsfolk."
+    },
+    {
+     "id": "religion",
+     "name": "Religion",
+     "attribute": "intelligence",
+     "ability": "Intelligence",
+     "description": "Your Intelligence (Religion) check measures your ability to recall lore about deities, rites and prayers, religious hierarchies, holy symbols, and the practices of secret cults."
+    },
+    {
+     "id": "sleight-of-hand",
+     "name": "Sleight of Hand",
+     "attribute": "dexterity",
+     "ability": "Dexterity",
+     "description": "Whenever you attempt an act of legerdemain or manual trickery, such as planting something on someone else or concealing an object on your person, make a Dexterity (Sleight of Hand) check. The GM might also call for a Dexterity (Sleight of Hand) check to determine whether you can lift a coin purse off another person or slip something out of another person's pocket."
+    },
+    {
+     "id": "stealth",
+     "name": "Stealth",
+     "attribute": "dexterity",
+     "ability": "Dexterity",
+     "description": "Make a Dexterity (Stealth) check when you attempt to conceal yourself from enemies, slink past guards, slip away without being noticed, or sneak up on someone without being seen or heard."
+    },
+    {
+     "id": "survival",
+     "name": "Survival",
+     "attribute": "wisdom",
+     "ability": "Wisdom",
+     "description": "The GM might ask you to make a Wisdom (Survival) check to follow tracks, hunt wild game, guide your group through frozen wastelands, identify signs that owlbears live nearby, predict the weather, or avoid quicksand and other natural hazards."
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.saving-throws",
+   "name": "Saving throws",
+   "cite": "SRD 5.1 — Using Ability Scores: Saving Throws",
+   "columns": [
+    "ability"
+   ],
+   "itemSchema": {
+    "type": "object",
+    "properties": {
+     "attribute": {
+      "type": "string",
+      "enum": [
+       "strength",
+       "dexterity",
+       "constitution",
+       "intelligence",
+       "wisdom",
+       "charisma"
+      ]
+     }
+    },
+    "required": [
+     "id",
+     "name",
+     "attribute"
+    ]
+   },
+   "items": [
+    {
+     "id": "strength-save",
+     "name": "Strength save",
+     "attribute": "strength",
+     "ability": "Strength"
+    },
+    {
+     "id": "dexterity-save",
+     "name": "Dexterity save",
+     "attribute": "dexterity",
+     "ability": "Dexterity"
+    },
+    {
+     "id": "constitution-save",
+     "name": "Constitution save",
+     "attribute": "constitution",
+     "ability": "Constitution"
+    },
+    {
+     "id": "intelligence-save",
+     "name": "Intelligence save",
+     "attribute": "intelligence",
+     "ability": "Intelligence"
+    },
+    {
+     "id": "wisdom-save",
+     "name": "Wisdom save",
+     "attribute": "wisdom",
+     "ability": "Wisdom"
+    },
+    {
+     "id": "charisma-save",
+     "name": "Charisma save",
+     "attribute": "charisma",
+     "ability": "Charisma"
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.alignments",
+   "name": "Alignments",
+   "cite": "SRD 5.1 — Alignment",
+   "columns": [
+    "abbreviation"
+   ],
+   "items": [
+    {
+     "id": "lawful-good",
+     "name": "Lawful Good",
+     "abbreviation": "LG",
+     "description": "Lawful good (LG) creatures can be counted on to do the right thing as expected by society. Gold dragons, paladins, and most dwarves are lawful good."
+    },
+    {
+     "id": "neutral-good",
+     "name": "Neutral Good",
+     "abbreviation": "NG",
+     "description": "Neutral good (NG) folk do the best they can to help others according to their needs. Many celestials, some cloud giants, and most gnomes are neutral good."
+    },
+    {
+     "id": "chaotic-good",
+     "name": "Chaotic Good",
+     "abbreviation": "CG",
+     "description": "Chaotic good (CG) creatures act as their conscience directs, with little regard for what others expect. Copper dragons, many elves, and unicorns are chaotic good."
+    },
+    {
+     "id": "lawful-neutral",
+     "name": "Lawful Neutral",
+     "abbreviation": "LN",
+     "description": "Lawful neutral (LN) individuals act in accordance with law, tradition, or personal codes. Many monks and some wizards are lawful neutral."
+    },
+    {
+     "id": "neutral",
+     "name": "Neutral",
+     "abbreviation": "N",
+     "description": "Neutral (N) is the alignment of those who prefer to steer clear of moral questions and don't take sides, doing what seems best at the time. Lizardfolk, most druids, and many humans are neutral."
+    },
+    {
+     "id": "chaotic-neutral",
+     "name": "Chaotic Neutral",
+     "abbreviation": "CN",
+     "description": "Chaotic neutral (CN) creatures follow their whims, holding their personal freedom above all else. Many barbarians and rogues, and some bards, are chaotic neutral."
+    },
+    {
+     "id": "lawful-evil",
+     "name": "Lawful Evil",
+     "abbreviation": "LE",
+     "description": "Lawful evil (LE) creatures methodically take what they want, within the limits of a code of tradition, loyalty, or order. Devils, blue dragons, and hobgoblins are lawful evil."
+    },
+    {
+     "id": "neutral-evil",
+     "name": "Neutral Evil",
+     "abbreviation": "NE",
+     "description": "Neutral evil (NE) is the alignment of those who do whatever they can get away with, without compassion or qualms. Many drow, some cloud giants, and goblins are neutral evil."
+    },
+    {
+     "id": "chaotic-evil",
+     "name": "Chaotic Evil",
+     "abbreviation": "CE",
+     "description": "Chaotic evil (CE) creatures act with arbitrary violence, spurred by their greed, hatred, or bloodlust. Demons, red dragons, and orcs are chaotic evil."
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.conditions",
+   "name": "Conditions",
+   "cite": "SRD 5.1 — Conditions",
+   "items": [
+    {
+     "id": "blinded",
+     "name": "Blinded",
+     "description": "- A blinded creature can't see and automatically fails any ability check that requires sight.\n- Attack rolls against the creature have advantage, and the creature's attack rolls have disadvantage."
+    },
+    {
+     "id": "charmed",
+     "name": "Charmed",
+     "description": "- A charmed creature can't attack the charmer or target the charmer with harmful abilities or magical effects.\n- The charmer has advantage on any ability check to interact socially with the creature."
+    },
+    {
+     "id": "deafened",
+     "name": "Deafened",
+     "description": "- A deafened creature can't hear and automatically fails any ability check that requires hearing."
+    },
+    {
+     "id": "frightened",
+     "name": "Frightened",
+     "description": "- A frightened creature has disadvantage on ability checks and attack rolls while the source of its fear is within line of sight.\n- The creature can't willingly move closer to the source of its fear."
+    },
+    {
+     "id": "grappled",
+     "name": "Grappled",
+     "description": "- A grappled creature's speed becomes 0, and it can't benefit from any bonus to its speed.\n- The condition ends if the grappler is incapacitated (see the condition).\n- The condition also ends if an effect removes the grappled creature from the reach of the grappler or grappling effect, such as when a creature is hurled away by the thunderwave spell."
+    },
+    {
+     "id": "incapacitated",
+     "name": "Incapacitated",
+     "description": "- An incapacitated creature can't take actions or reactions."
+    },
+    {
+     "id": "invisible",
+     "name": "Invisible",
+     "description": "- An invisible creature is impossible to see without the aid of magic or a special sense. For the purpose of hiding, the creature is heavily obscured. The creature's location can be detected by any noise it makes or any tracks it leaves.\n- Attack rolls against the creature have disadvantage, and the creature's attack rolls have advantage."
+    },
+    {
+     "id": "paralyzed",
+     "name": "Paralyzed",
+     "description": "- A paralyzed creature is incapacitated (see the condition) and can't move or speak.\n- The creature automatically fails Strength and Dexterity saving throws.\n- Attack rolls against the creature have advantage.\n- Any attack that hits the creature is a critical hit if the attacker is within 5 feet of the creature."
+    },
+    {
+     "id": "petrified",
+     "name": "Petrified",
+     "description": "- A petrified creature is transformed, along with any nonmagical object it is wearing or carrying, into a solid inanimate substance (usually stone). Its weight increases by a factor of ten, and it ceases aging.\n- The creature is incapacitated (see the condition), can't move or speak, and is unaware of its surroundings.\n- Attack rolls against the creature have advantage.\n- The creature automatically fails Strength and Dexterity saving throws.\n- The creature has resistance to all damage.\n- The creature is immune to poison and disease, although a poison or disease already in its system is suspended, not neutralized."
+    },
+    {
+     "id": "poisoned",
+     "name": "Poisoned",
+     "description": "- A poisoned creature has disadvantage on attack rolls and ability checks."
+    },
+    {
+     "id": "prone",
+     "name": "Prone",
+     "description": "- A prone creature's only movement option is to crawl, unless it stands up and thereby ends the condition.\n- The creature has disadvantage on attack rolls.\n- An attack roll against the creature has advantage if the attacker is within 5 feet of the creature. Otherwise, the attack roll has disadvantage."
+    },
+    {
+     "id": "restrained",
+     "name": "Restrained",
+     "description": "- A restrained creature's speed becomes 0, and it can't benefit from any bonus to its speed.\n- Attack rolls against the creature have advantage, and the creature's attack rolls have disadvantage.\n- The creature has disadvantage on Dexterity saving throws."
+    },
+    {
+     "id": "stunned",
+     "name": "Stunned",
+     "description": "- A stunned creature is incapacitated (see the condition), can't move, and can speak only falteringly.\n- The creature automatically fails Strength and Dexterity saving throws.\n- Attack rolls against the creature have advantage."
+    },
+    {
+     "id": "unconscious",
+     "name": "Unconscious",
+     "description": "- An unconscious creature is incapacitated (see the condition), can't move or speak, and is unaware of its surroundings.\n- The creature drops whatever it's holding and falls prone.\n- The creature automatically fails Strength and Dexterity saving throws.\n- Attack rolls against the creature have advantage.\n- Any attack that hits the creature is a critical hit if the attacker is within 5 feet of the creature."
+    },
+    {
+     "id": "exhaustion",
+     "name": "Exhaustion",
+     "description": "Some special abilities and environmental hazards, such as starvation and the long-term effects of freezing or scorching temperatures, can lead to a special condition called exhaustion. Exhaustion is measured in six levels. An effect can give a creature one or more levels of exhaustion, as specified in the effect's description.\n\n1 - Disadvantage on ability checks\n\n2 - Speed halved\n\n3 - Disadvantage on attack rolls and saving throws\n\n4 - Hit point maximum halved\n\n5 - Speed reduced to 0\n\n6 - Death\n\nIf an already exhausted creature suffers another effect that causes exhaustion, its current level of exhaustion increases by the amount specified in the effect's description.\n\nA creature suffers the effect of its current level of exhaustion as well as all lower levels. For example, a creature suffering level 2 exhaustion has its speed halved and has disadvantage on ability checks.\n\nAn effect that removes exhaustion reduces its level as specified in the effect's description, with all exhaustion effects ending if a creature's exhaustion level is reduced below 1.\n\nFinishing a long rest reduces a creature's exhaustion level by 1, provided that the creature has also ingested some food and drink."
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.damage-types",
+   "name": "Damage types",
+   "cite": "SRD 5.1 — Combat: Damage Types",
+   "items": [
+    {
+     "id": "acid",
+     "name": "Acid",
+     "description": "The corrosive spray of a black dragon's breath and the dissolving enzymes secreted by a black pudding deal acid damage."
+    },
+    {
+     "id": "bludgeoning",
+     "name": "Bludgeoning",
+     "description": "Blunt force attacks, falling, constriction, and the like deal bludgeoning damage."
+    },
+    {
+     "id": "cold",
+     "name": "Cold",
+     "description": "The infernal chill radiating from an ice devil's spear and the frigid blast of a white dragon's breath deal cold damage."
+    },
+    {
+     "id": "fire",
+     "name": "Fire",
+     "description": "Red dragons breathe fire, and many spells conjure flames to deal fire damage."
+    },
+    {
+     "id": "force",
+     "name": "Force",
+     "description": "Force is pure magical energy focused into a damaging form. Most effects that deal force damage are spells, including magic missile and spiritual weapon."
+    },
+    {
+     "id": "lightning",
+     "name": "Lightning",
+     "description": "A lightning bolt spell and a blue dragon's breath deal lightning damage."
+    },
+    {
+     "id": "necrotic",
+     "name": "Necrotic",
+     "description": "Necrotic damage, dealt by certain undead and a spell such as chill touch, withers matter and even the soul."
+    },
+    {
+     "id": "piercing",
+     "name": "Piercing",
+     "description": "Puncturing and impaling attacks, including spears and monsters' bites, deal piercing damage."
+    },
+    {
+     "id": "poison",
+     "name": "Poison",
+     "description": "Venomous stings and the toxic gas of a green dragon's breath deal poison damage."
+    },
+    {
+     "id": "psychic",
+     "name": "Psychic",
+     "description": "Mental abilities such as a psionic blast deal psychic damage."
+    },
+    {
+     "id": "radiant",
+     "name": "Radiant",
+     "description": "Radiant damage, dealt by a cleric's flame strike spell or an angel's smiting weapon, sears the flesh like fire and overloads the spirit with power."
+    },
+    {
+     "id": "slashing",
+     "name": "Slashing",
+     "description": "Swords, axes, and monsters' claws deal slashing damage."
+    },
+    {
+     "id": "thunder",
+     "name": "Thunder",
+     "description": "A concussive burst of sound, such as the effect of the thunderwave spell, deals thunder damage."
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.languages",
+   "name": "Languages",
+   "cite": "SRD 5.1 — Languages",
+   "columns": [
+    "type",
+    "typicalSpeakers",
+    "script"
+   ],
+   "items": [
+    {
+     "id": "common",
+     "name": "Common",
+     "type": "Standard",
+     "typicalSpeakers": "Humans",
+     "script": "Common"
+    },
+    {
+     "id": "dwarvish",
+     "name": "Dwarvish",
+     "type": "Standard",
+     "typicalSpeakers": "Dwarves",
+     "script": "Dwarvish"
+    },
+    {
+     "id": "elvish",
+     "name": "Elvish",
+     "type": "Standard",
+     "typicalSpeakers": "Elves",
+     "script": "Elvish"
+    },
+    {
+     "id": "giant",
+     "name": "Giant",
+     "type": "Standard",
+     "typicalSpeakers": "Ogres, Giants",
+     "script": "Dwarvish"
+    },
+    {
+     "id": "gnomish",
+     "name": "Gnomish",
+     "type": "Standard",
+     "typicalSpeakers": "Gnomes",
+     "script": "Dwarvish"
+    },
+    {
+     "id": "goblin",
+     "name": "Goblin",
+     "type": "Standard",
+     "typicalSpeakers": "Goblinoids",
+     "script": "Dwarvish"
+    },
+    {
+     "id": "halfling",
+     "name": "Halfling",
+     "type": "Standard",
+     "typicalSpeakers": "Halflings",
+     "script": "Common"
+    },
+    {
+     "id": "orc",
+     "name": "Orc",
+     "type": "Standard",
+     "typicalSpeakers": "Orcs",
+     "script": "Dwarvish"
+    },
+    {
+     "id": "abyssal",
+     "name": "Abyssal",
+     "type": "Exotic",
+     "typicalSpeakers": "Demons",
+     "script": "Infernal"
+    },
+    {
+     "id": "celestial",
+     "name": "Celestial",
+     "type": "Exotic",
+     "typicalSpeakers": "Celestials",
+     "script": "Celestial"
+    },
+    {
+     "id": "draconic",
+     "name": "Draconic",
+     "type": "Exotic",
+     "typicalSpeakers": "Dragons, Dragonborn",
+     "script": "Draconic"
+    },
+    {
+     "id": "deep-speech",
+     "name": "Deep Speech",
+     "type": "Exotic",
+     "typicalSpeakers": "Aboleths, Cloakers",
+     "script": "—"
+    },
+    {
+     "id": "infernal",
+     "name": "Infernal",
+     "type": "Exotic",
+     "typicalSpeakers": "Devils",
+     "script": "Infernal"
+    },
+    {
+     "id": "primordial",
+     "name": "Primordial",
+     "type": "Exotic",
+     "typicalSpeakers": "Elementals",
+     "script": "Dwarvish"
+    },
+    {
+     "id": "sylvan",
+     "name": "Sylvan",
+     "type": "Exotic",
+     "typicalSpeakers": "Fey creatures",
+     "script": "Elvish"
+    },
+    {
+     "id": "undercommon",
+     "name": "Undercommon",
+     "type": "Exotic",
+     "typicalSpeakers": "Underdark traders",
+     "script": "Elvish"
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.magic-schools",
+   "name": "Schools of magic",
+   "cite": "SRD 5.1 — Spellcasting: The Schools of Magic",
+   "items": [
+    {
+     "id": "abjuration",
+     "name": "Abjuration",
+     "description": "Abjuration spells are protective in nature, though some of them have aggressive uses. They create magical barriers, negate harmful effects, harm trespassers, or banish creatures to other planes of existence."
+    },
+    {
+     "id": "conjuration",
+     "name": "Conjuration",
+     "description": "Conjuration spells involve the transportation of objects and creatures from one location to another. Some spells summon creatures or objects to the caster's side, whereas others allow the caster to teleport to another location. Some conjurations create objects or effects out of nothing."
+    },
+    {
+     "id": "divination",
+     "name": "Divination",
+     "description": "Divination spells reveal information, whether in the form of secrets long forgotten, glimpses of the future, the locations of hidden things, the truth behind illusions, or visions of distant people or places."
+    },
+    {
+     "id": "enchantment",
+     "name": "Enchantment",
+     "description": "Enchantment spells affect the minds of others, influencing or controlling their behavior. Such spells can make enemies see the caster as a friend, force creatures to take a course of action, or even control another creature like a puppet."
+    },
+    {
+     "id": "evocation",
+     "name": "Evocation",
+     "description": "Evocation spells manipulate magical energy to produce a desired effect. Some call up blasts of fire or lightning. Others channel positive energy to heal wounds."
+    },
+    {
+     "id": "illusion",
+     "name": "Illusion",
+     "description": "Illusion spells deceive the senses or minds of others. They cause people to see things that are not there, to miss things that are there, to hear phantom noises, or to remember things that never happened. Some illusions create phantom images that any creature can see, but the most insidious illusions plant an image directly in the mind of a creature."
+    },
+    {
+     "id": "necromancy",
+     "name": "Necromancy",
+     "description": "Necromancy spells manipulate the energies of life and death. Such spells can grant an extra reserve of life force, drain the life energy from another creature, create the undead, or even bring the dead back to life."
+    },
+    {
+     "id": "transmutation",
+     "name": "Transmutation",
+     "description": "Transmutation spells change the properties of a creature, object, or environment. They might turn an enemy into a harmless creature, bolster the strength of an ally, make an object move at the caster's command, or enhance a creature's innate healing abilities to rapidly recover from injury."
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.weapon-properties",
+   "name": "Weapon properties",
+   "cite": "SRD 5.1 — Equipment: Weapon Properties",
+   "items": [
+    {
+     "id": "ammunition",
+     "name": "Ammunition",
+     "description": "You can use a weapon that has the ammunition property to make a ranged attack only if you have ammunition to fire from the weapon. Each time you attack with the weapon, you expend one piece of ammunition. Drawing the ammunition from a quiver, case, or other container is part of the attack (you need a free hand to load a one-handed weapon).\n\nAt the end of the battle, you can recover half your expended ammunition by taking a minute to search the battlefield. If you use a weapon that has the ammunition property to make a melee attack, you treat the weapon as an improvised weapon (see \"Improvised Weapons\" later in the section). A sling must be loaded to deal any damage when used in this way."
+    },
+    {
+     "id": "finesse",
+     "name": "Finesse",
+     "description": "When making an attack with a finesse weapon, you use your choice of your Strength or Dexterity modifier for the attack and damage rolls. You must use the same modifier for both rolls."
+    },
+    {
+     "id": "heavy",
+     "name": "Heavy",
+     "description": "Small creatures have disadvantage on attack rolls with heavy weapons. A heavy weapon's size and bulk make it too large for a Small creature to use effectively."
+    },
+    {
+     "id": "light",
+     "name": "Light",
+     "description": "A light weapon is small and easy to handle, making it ideal for use when fighting with two weapons."
+    },
+    {
+     "id": "loading",
+     "name": "Loading",
+     "description": "Because of the time required to load this weapon, you can fire only one piece of ammunition from it when you use an action, bonus action, or reaction to fire it, regardless of the number of attacks you can normally make."
+    },
+    {
+     "id": "reach",
+     "name": "Reach",
+     "description": "This weapon adds 5 feet to your reach when you attack with it, as well as when determining your reach for opportunity attacks with it."
+    },
+    {
+     "id": "special",
+     "name": "Special",
+     "description": "A weapon with the special property has unusual rules governing its use, explained in the weapon's description (see \"Special Weapons\" later in this section)."
+    },
+    {
+     "id": "thrown",
+     "name": "Thrown",
+     "description": "If a weapon has the thrown property, you can throw the weapon to make a ranged attack. If the weapon is a melee weapon, you use the same ability modifier for that attack roll and damage roll that you would use for a melee attack with the weapon. For example, if you throw a handaxe, you use your Strength, but if you throw a dagger, you can use either your Strength or your Dexterity, since the dagger has the finesse property."
+    },
+    {
+     "id": "two-handed",
+     "name": "Two-Handed",
+     "description": "This weapon requires two hands when you attack with it."
+    },
+    {
+     "id": "versatile",
+     "name": "Versatile",
+     "description": "This weapon can be used with one or two hands. A damage value in parentheses appears with the property--the damage when the weapon is used with two hands to make a melee attack."
+    },
+    {
+     "id": "monk",
+     "name": "Monk",
+     "description": "Monks gain several benefits while unarmed or wielding only monk weapons while they aren't wearing armor or wielding shields."
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.sizes",
+   "name": "Sizes",
+   "cite": "SRD 5.1 — Combat: Creature Size",
+   "columns": [
+    "space"
+   ],
+   "items": [
+    {
+     "id": "tiny",
+     "name": "Tiny",
+     "space": "2½ by 2½ ft."
+    },
+    {
+     "id": "small",
+     "name": "Small",
+     "space": "5 by 5 ft."
+    },
+    {
+     "id": "medium",
+     "name": "Medium",
+     "space": "5 by 5 ft."
+    },
+    {
+     "id": "large",
+     "name": "Large",
+     "space": "10 by 10 ft."
+    },
+    {
+     "id": "huge",
+     "name": "Huge",
+     "space": "15 by 15 ft."
+    },
+    {
+     "id": "gargantuan",
+     "name": "Gargantuan",
+     "space": "20 by 20 ft. or larger"
+    }
+   ]
+  },
+  {
+   "id": "dnd5e-srd.creature-types",
+   "name": "Creature types",
+   "cite": "SRD 5.1 — Monsters",
+   "items": [
+    {
+     "id": "aberration",
+     "name": "Aberration",
+     "creatures": 5
+    },
+    {
+     "id": "beast",
+     "name": "Beast",
+     "creatures": 87
+    },
+    {
+     "id": "celestial",
+     "name": "Celestial",
+     "creatures": 6
+    },
+    {
+     "id": "construct",
+     "name": "Construct",
+     "creatures": 9
+    },
+    {
+     "id": "dragon",
+     "name": "Dragon",
+     "creatures": 43
+    },
+    {
+     "id": "elemental",
+     "name": "Elemental",
+     "creatures": 16
+    },
+    {
+     "id": "fey",
+     "name": "Fey",
+     "creatures": 6
+    },
+    {
+     "id": "fiend",
+     "name": "Fiend",
+     "creatures": 23
+    },
+    {
+     "id": "giant",
+     "name": "Giant",
+     "creatures": 10
+    },
+    {
+     "id": "humanoid",
+     "name": "Humanoid",
+     "creatures": 50
+    },
+    {
+     "id": "monstrosity",
+     "name": "Monstrosity",
+     "creatures": 39
+    },
+    {
+     "id": "ooze",
+     "name": "Ooze",
+     "creatures": 4
+    },
+    {
+     "id": "plant",
+     "name": "Plant",
+     "creatures": 6
+    },
+    {
+     "id": "undead",
+     "name": "Undead",
+     "creatures": 20
+    }
+   ]
+  }
+ ]
+}

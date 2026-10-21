@@ -15,6 +15,7 @@ import { evaluateLogic, evaluateNumber, setPath } from "../logic";
 import { checkModule, type CheckModuleOptions, type ConformanceIssue } from "../module";
 import type {
   CalendarDef,
+  EntityPreset,
   GameModule,
   JsonLogicRule,
   Procedure,
@@ -90,7 +91,14 @@ function stepFromPack(step: PackProcedureStep): ProcedureStep {
   return out;
 }
 
-function produceFromPack(produce: PackProduce): Procedure["produce"] {
+/** Presets a procedure's `produce` may start entities from, by id. */
+export type PresetLookup = (id: string) => EntityPreset | undefined;
+
+function clonePlain<T>(v: T): T {
+  return v === undefined ? v : (JSON.parse(JSON.stringify(v)) as T);
+}
+
+function produceFromPack(produce: PackProduce, presets: PresetLookup = () => undefined): Procedure["produce"] {
   return (ctx) => {
     const base = procedureData(ctx);
     const entities: ProducedEntity[] = [];
@@ -103,18 +111,28 @@ function produceFromPack(produce: PackProduce): Procedure["produce"] {
         if (def.when !== undefined && !truthy(evaluateLogic(def.when, data))) return;
         const sub = (s: string) => (many ? s.split("{index}").join(String(index)) : s);
         const tempId = many ? `${def.tempId}-${index}` : def.tempId;
-        let fields: Record<string, unknown> = {};
+        let preset: EntityPreset | undefined;
+        if (def.preset !== undefined) {
+          const presetId = text(evaluateLogic(def.preset, data));
+          if (presetId) {
+            preset = presets(presetId);
+            if (!preset) throw new Error(`produce "${def.tempId}": unknown preset "${presetId}"`);
+            if (preset.entityType !== def.type) throw new Error(`produce "${def.tempId}": preset "${presetId}" is a ${preset.entityType}, not a ${def.type}`);
+          }
+        }
+        let fields: Record<string, unknown> = preset ? clonePlain(preset.fields) : {};
         for (const [path, rule] of Object.entries(def.fields ?? {})) {
           const v = evaluateLogic(rule, data);
           if (v !== undefined && v !== null) fields = setPath(fields, path, v);
         }
-        const entity: ProducedEntity = { tempId, type: def.type, name: text(evaluateLogic(def.name, data)) || def.tempId, fields };
-        if (def.subtype !== undefined) entity.subtype = def.subtype;
-        if (def.summary !== undefined) {
-          const summary = text(evaluateLogic(def.summary, data));
-          if (summary) entity.summary = summary;
-        }
-        if (def.tags !== undefined) entity.tags = [...def.tags];
+        const entity: ProducedEntity = { tempId, type: def.type, name: text(evaluateLogic(def.name, data)) || preset?.name || def.tempId, fields };
+        const subtype = def.subtype ?? preset?.subtype;
+        if (subtype !== undefined) entity.subtype = subtype;
+        const summary = def.summary !== undefined ? text(evaluateLogic(def.summary, data)) : "";
+        if (summary) entity.summary = summary;
+        else if (preset?.summary) entity.summary = preset.summary;
+        if (def.tags !== undefined || preset?.tags !== undefined) entity.tags = [...new Set([...(preset?.tags ?? []), ...(def.tags ?? [])])];
+        if (preset) entity.preset = preset.id;
         if (def.within !== undefined) entity.within = sub(def.within);
         entities.push(entity);
         for (const l of def.links ?? []) {
@@ -158,8 +176,8 @@ function text(v: unknown): string {
 }
 
 /** A pack procedure as a contract procedure. */
-export function procedureFromPack(proc: PackProcedure): Procedure {
-  const out: Procedure = { id: proc.id, name: proc.name, steps: proc.steps.map(stepFromPack), produce: produceFromPack(proc.produce) };
+export function procedureFromPack(proc: PackProcedure, presets?: PresetLookup): Procedure {
+  const out: Procedure = { id: proc.id, name: proc.name, steps: proc.steps.map(stepFromPack), produce: produceFromPack(proc.produce, presets) };
   if (proc.description !== undefined) out.description = proc.description;
   if (proc.page !== undefined) out.page = proc.page;
   if (proc.cite !== undefined) out.cite = proc.cite;
@@ -195,6 +213,8 @@ export function defaultPackCalendar(packId: string): CalendarDef {
  */
 export function packToModule(input: ModulePack): GameModule {
   const pack = JSON.parse(JSON.stringify(input)) as ModulePack;
+  const presetIndex = new Map((pack.presets ?? []).map((p) => [p.id, p]));
+  const presets: PresetLookup = (id) => presetIndex.get(id);
   const module: GameModule = {
     manifest: { ...pack.manifest },
     dice: createDiceEngine(pack.dice),
@@ -203,7 +223,7 @@ export function packToModule(input: ModulePack): GameModule {
     referenceLists: pack.referenceLists ?? [],
     presets: pack.presets ?? [],
     tables: pack.tables ?? [],
-    procedures: (pack.procedures ?? []).map(procedureFromPack),
+    procedures: (pack.procedures ?? []).map((p) => procedureFromPack(p, presets)),
     templates: pack.templates ?? [],
     rules: pack.rules ?? [],
     trackers: pack.trackers ?? [],

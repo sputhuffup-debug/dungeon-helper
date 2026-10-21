@@ -263,7 +263,7 @@ function CreateCampaignDialog({ open, onClose, onCreated }: { open: boolean; onC
           ))}
         </fieldset>
         {modeDef && entry?.dataStatus !== "verified" && (
-          <p className="app-note app-note--warning">Module data is {entry?.dataStatus}: unverified against the rulebook.</p>
+          <p className="app-note app-note--warning">{entry?.dataStatus === "partially-verified" ? "Module data is partially verified against its source: spot-checked, not checked line by line." : "Module data is unverified against the rulebook."}</p>
         )}
         <label className="app-label">
           GM name

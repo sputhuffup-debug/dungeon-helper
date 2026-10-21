@@ -66,7 +66,7 @@ Only `format`, `formatVersion`, `manifest` and `dice` are required; every collec
 
 ## Ids
 
-- `manifest.id` is lower case letters, digits and hyphens (`^[a-z][a-z0-9-]{1,47}$`). It may not be the id of a module built into the app (`alien`, `example`, `example-pack`).
+- `manifest.id` is lower case letters, digits and hyphens (`^[a-z][a-z0-9-]{1,47}$`). It may not be the id of a module built into the app (`alien`, `example`, `example-pack`, `dnd5e-srd`).
 - **Every other id starts with the pack id and a dot**: `sky-pirates.pirate`, `sky-pirates.weather.today`, `sky-pirates.rule.nerve`. This keeps a pack from colliding with or shadowing anything else. Session checklist item ids follow the same rule (`sky-pirates.prep.recap`).
 - Tables follow `<pack id>.<family>.<name>` and should declare the same `family` (table-lint checks it).
 - Procedure step ids, sheet section ids, reference item ids and play mode ids are local; they need not be prefixed.
@@ -93,15 +93,21 @@ Each collection uses the contract's own shape from `packages/module-sdk/src/type
 |---|---|---|
 | `entityTypes` | `EntityTypeDef` | `schema` is a JSON Schema (safe subset), `sheet` the layout, `computed` JSONLogic. See [sheets](sheets.md). |
 | `relationshipTypes` | `RelationshipTypeDef` | Ids may not repeat the core types. |
-| `referenceLists` | `ReferenceList` | Items carry `id`, `name` and any data of their own (e.g. `attribute` for a skill). `itemSchema` validates them. |
+| `referenceLists` | `ReferenceList` | Items carry `id`, `name` and any data of their own (e.g. `attribute` for a skill). `itemSchema` validates them; `columns` picks the item keys the reference browser shows as columns (default: the first five). Opening an item shows every key; long text renders as Markdown (paragraphs, lists, pipe tables). |
 | `presets` | `EntityPreset` | `fields` are validated against the entity type's schema. |
 | `tables` | `RollTable` | See [tables and procedures](tables-procedures.md). |
 | `procedures` | pack procedure | Declarative steps and `produce`; see [tables and procedures](tables-procedures.md). |
 | `templates` | `Template` | `adventure`, `act`, `scene`, `session`, `campaign` or `checklist`; session checklists need `appliesTo: "session"` and a `phase` per item. |
 | `rules` | `RuleCard` | Markdown summary; must cite a `page`, a `cite`, or be `original`. |
-| `trackers` | `TrackerDef` | Kinds the app draws: `clock`, `countdown`, `initiative`, `stress`, `story-points`, `supply`, `stealth`; anything else gets a generic editor. |
+| `trackers` | `TrackerDef` | Kinds the app draws: `clock`, `countdown`, `initiative`, `counter`, `stress`, `story-points`, `supply`, `stealth`; anything else gets a generic editor. See [Trackers](#trackers). |
 | `playGuides` | `PlayGuideDef` | Roll ids are a skill id or `attr:<attribute id>`. |
 | `calendar` | `CalendarDef` | Its id is prefixed too. |
+
+## Trackers
+
+- `counter`: numbers on each entity's sheet, edited at the table (hit points, death saves, exhaustion, spell slots used, inspiration). Each of `binds` is a counter; a bind `"type.path"` applies to entities of that type, a plain `"path"` to every entity with that field (with `scope: "encounter"` that includes the creatures in the scene). `config`: `min` (default 0), `max` (a number or JSONLogic over `{ fields, computed }`, e.g. `{ "var": "fields.hp.max" }`), `maxes` and `labels` per bind, `label` for a single bind, `style` (`pips`, the default up to a max of 10, or `stepper`), `hideWhenNoMax` (skip counters whose max is 0, e.g. spell levels a character cannot cast). Boolean fields show a checkbox.
+- `initiative`: cards 1-10 drawn lowest first (default), or with `config.method: "roll"` a roll of `config.dice` (default `1d20`) plus `config.modifier` (a number or JSONLogic over `{ fields, computed }`, e.g. `{ "var": ["computed.initiative", 0] }`), highest first, ties to the higher modifier; the GM can type a total a player rolled. `config.label` names the roll button.
+- `clock`: `config.units` (`{ id, name, duration?, minutes?, per? }`), smallest first; `per` rolls the smaller unit over.
 
 ## What a pack cannot do (yet)
 

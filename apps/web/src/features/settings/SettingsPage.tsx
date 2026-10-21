@@ -182,7 +182,9 @@ export function SettingsPage() {
           {manifest.license && <ModuleLicenseView license={manifest.license} testId="module-attribution" />}
           {manifest.dataStatus !== "verified" && (
             <p className="app-note app-note--warning" data-testid="data-status">
-              Data {manifest.dataStatus}: unverified against the rulebook. Rows and stat lines may differ from the printed book.
+              {manifest.dataStatus === "partially-verified"
+                ? `Data partially verified against ${manifest.sourceBook?.title ?? "the rulebook"}: spot-checked, not checked line by line. Rows and stat lines may differ from the source.`
+                : "Data unverified against the rulebook. Rows and stat lines may differ from the printed book."}
             </p>
           )}
           {manifest.sourceBook && (

@@ -33,6 +33,7 @@ d20 + ability modifier + proficiency × skill + bonus + modifier, against an opt
 | `bonus` | `0` | JSONLogic. A flat bonus on every roll. |
 | `critOn` / `fumbleOn` | `20` / `1` | Natural results flagged as `critical` / `fumble`. |
 | `critSucceeds` / `fumbleFails` | `false` | Let the natural result decide against a DC (otherwise it is only flagged). |
+| `freeDice` | none | Other dice the table's free roll offers, by faces (e.g. `[4, 6, 8, 10, 12]` for damage); summed. |
 | `labels` | `Success` / `Failure` | Outcome labels. |
 
 Roll panel options: **Roll** (normal, advantage: two d20 keep the higher, disadvantage: keep the lower; the other die is shown struck through), **DC**, **Modifier**. Without a DC the result has a total and no outcome. `successes` is 1 on a pass, else 0.

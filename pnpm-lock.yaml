@@ -29,6 +29,9 @@ importers:
       '@campaign-forge/module-alien':
         specifier: workspace:*
         version: link:../../packages/module-alien
+      '@campaign-forge/module-dnd5e-srd':
+        specifier: workspace:*
+        version: link:../../packages/module-dnd5e-srd
       '@campaign-forge/module-example':
         specifier: workspace:*
         version: link:../../packages/module-example
@@ -168,6 +171,22 @@ importers:
         specifier: ^4.0.5
         version: 4.1.12(@types/node@22.20.5)(jsdom@30.1.3)(vite@8.3.4(@types/node@22.20.5)(terser@5.51.2))
 
+  packages/module-dnd5e-srd:
+    dependencies:
+      '@campaign-forge/module-sdk':
+        specifier: workspace:*
+        version: link:../module-sdk
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.0
+        version: 22.20.5
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^4.0.5
+        version: 4.1.12(@types/node@22.20.5)(jsdom@30.1.3)(vite@8.3.4(@types/node@22.20.5)(terser@5.51.2))
+
   packages/module-example:
     dependencies:
       '@campaign-forge/module-sdk':
@@ -273,6 +292,9 @@ importers:
       '@campaign-forge/module-alien':
         specifier: workspace:*
         version: link:../../packages/module-alien
+      '@campaign-forge/module-dnd5e-srd':
+        specifier: workspace:*
+        version: link:../../packages/module-dnd5e-srd
       '@campaign-forge/module-example':
         specifier: workspace:*
         version: link:../../packages/module-example

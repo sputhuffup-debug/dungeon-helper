@@ -5,7 +5,7 @@
  * logs its seed, so the log can reproduce it.
  */
 import { getPath, type Entity, type Id, type TrackerState } from "@campaign-forge/core";
-import { computeFields, createRng, poolValue, type DicePool, type EntityTypeDef, type LoadedModule, type PlayModeId, type RollResult } from "@campaign-forge/module-sdk";
+import { computeFields, createRng, poolValue, type DicePool, type EntityTypeDef, type LoadedModule, type PlayModeId, type RollResult, type SheetField } from "@campaign-forge/module-sdk";
 import { useMemo, useRef, useState } from "react";
 import { Badge, Button, Card, DiceRollPanel, DieFace, RollLog, Stepper, humanize, pushToast, resolveBindPath, showsTotal, specById, toneBadge, type RollLogEntry } from "../../components/ui";
 import { errorMessage } from "../../lib/format";
@@ -21,40 +21,61 @@ interface SkillOption {
   id: string;
   label: string;
   attribute?: string;
+  /** Where the rating is stored (the skills widget's object, e.g. `skills` or `saves`). */
+  path: string;
+  /** The widget's label, to group the options (e.g. "Skills", "Saving throws"). */
+  group: string;
 }
 
-/** The skills widget of a character type carries the skill list, attribute bindings and the stress path. */
+/** Every skills widget of a type, in sheet order (a d20 sheet has one for skills and one for saving throws). */
+function skillsFields(def: EntityTypeDef | undefined): SheetField[] {
+  const out: SheetField[] = [];
+  for (const s of def?.sheet.sections ?? []) for (const f of s.fields) if (f.widget === "skills") out.push(f);
+  return out;
+}
+
+/** The first skills widget carries the attribute bindings and the stress path. */
 function skillsField(def: EntityTypeDef | undefined) {
-  for (const s of def?.sheet.sections ?? []) for (const f of s.fields) if (f.widget === "skills") return f;
-  return undefined;
+  return skillsFields(def)[0];
 }
 
-/** Where the skills widget stores skill ratings (`skills.*` means the object at `skills`). */
-function skillsPathOf(def: EntityTypeDef | undefined): string {
-  return (skillsField(def)?.path ?? "skills").replace(/\.\*$/, "");
+/** Where a skills widget stores ratings (`skills.*` means the object at `skills`). */
+function storagePath(field: SheetField | undefined): string {
+  return (field?.path ?? "skills").replace(/\.\*$/, "");
 }
 
 /**
- * The skills a character type rolls: the skills widget's `config.skills`
- * bindings, else the items of its reference list (`options.ref` or
- * `config.ref`, as the sheet's skills widget reads them). With a mode, items
- * limited to other modes are left out.
+ * The skills a character type rolls, from every skills widget on its sheet:
+ * each widget's `config.skills` bindings, else the items of its reference
+ * list (`options.ref` or `config.ref`, as the sheet's skills widget reads
+ * them). With a mode, items limited to other modes are left out. Skill ids
+ * should be unique across a type's widgets; the first one wins.
  */
 export function skillOptions(module: LoadedModule, def: EntityTypeDef | undefined, mode?: PlayModeId): SkillOption[] {
-  const field = skillsField(def);
-  const cfg = field?.config ?? {};
-  const refId = typeof field?.options === "object" && field.options && "ref" in field.options ? field.options.ref : typeof cfg.ref === "string" ? cfg.ref : undefined;
-  const refList = refId ? module.referenceList(refId) : undefined;
-  const raw: unknown[] = Array.isArray(cfg.skills) ? cfg.skills : (refList?.items ?? []);
-  const inMode = (s: Record<string, unknown>) => !mode || !Array.isArray(s.mode) || s.mode.length === 0 || s.mode.includes(mode);
-  return raw
-    .filter(isRecordLike)
-    .filter(inMode)
-    .map((s) => {
+  const out: SkillOption[] = [];
+  const seen = new Set<string>();
+  for (const field of skillsFields(def)) {
+    const cfg = field.config ?? {};
+    const refId = typeof field.options === "object" && field.options && "ref" in field.options ? field.options.ref : typeof cfg.ref === "string" ? cfg.ref : undefined;
+    const refList = refId ? module.referenceList(refId) : undefined;
+    const raw: unknown[] = Array.isArray(cfg.skills) ? cfg.skills : (refList?.items ?? []);
+    const inMode = (s: Record<string, unknown>) => !mode || !Array.isArray(s.mode) || s.mode.length === 0 || s.mode.includes(mode);
+    const path = storagePath(field);
+    const group = field.label ?? refList?.name ?? "Skills";
+    for (const s of raw.filter(isRecordLike).filter(inMode)) {
       const id = String(s.id);
+      if (seen.has(id)) continue;
+      seen.add(id);
       const ref = refList?.items.find((i) => i.id === id);
-      return { id, label: ref?.name ?? humanize(id), ...(typeof s.attribute === "string" ? { attribute: s.attribute } : {}) };
-    });
+      out.push({ id, label: ref?.name ?? humanize(id), path, group, ...(typeof s.attribute === "string" ? { attribute: s.attribute } : {}) });
+    }
+  }
+  return out;
+}
+
+/** Entities that can roll at the table: characters and creatures whose sheet has a skills widget. */
+export function canRollSkills(module: LoadedModule, entity: Entity): boolean {
+  return skillsFields(module.entityType(entity.type)).length > 0;
 }
 
 /** Where the entity's stress lives: the skills widget's `stressPath`, else the stress tracker's bind. */
@@ -101,7 +122,7 @@ export function skillInput(module: LoadedModule, entity: Entity, choice: string)
     label: skill?.label ?? humanize(choice),
     input: {
       attribute: attributeId ? num(getPath(entity.fields, `${attrPath}.${attributeId}`)) : 0,
-      skill: num(getPath(entity.fields, `${skillsPathOf(def)}.${choice}`)),
+      skill: num(getPath(entity.fields, `${skill?.path ?? storagePath(skillsField(def))}.${choice}`)),
       skillId: choice,
       ...(attributeId ? { attributeId } : {}),
       stress,
@@ -193,21 +214,32 @@ function useStoryPointUse(entity: Entity | undefined) {
   return { pool, use, points: poolValue(pool, fresh.fields) };
 }
 
-export function SkillRoll({ sessionId, pcs }: { sessionId: Id; pcs: Entity[] }) {
+/**
+ * Pick who rolls (a PC, or a creature or NPC in the current scene whose sheet
+ * has a skills widget) and what (a skill, a save, or an attribute alone).
+ */
+export function SkillRoll({ sessionId, pcs, others = [] }: { sessionId: Id; pcs: Entity[]; others?: Entity[] }) {
   const ctx = useCampaign();
   const { mode } = useMeta();
   const [pcId, setPcId] = useState("");
   const [choice, setChoice] = useState("");
   const [picked, setPicked] = useState<{ key: string; label: string; input: Record<string, unknown> } | undefined>();
-  const pc = pcs.find((p) => p.id === pcId);
+  const rollers = useMemo(() => others.filter((e) => canRollSkills(ctx.module, e)), [others, ctx.module]);
+  const everyone = useMemo(() => [...pcs, ...rollers], [pcs, rollers]);
+  const pc = everyone.find((p) => p.id === pcId);
   const def = pc ? ctx.module.entityType(pc.type) : undefined;
   const skills = skillOptions(ctx.module, def, mode);
+  const groups = [...new Set(skills.map((s) => s.group))];
   const attrs = pc ? attributeIds(ctx.module, pc) : [];
 
   const pick = (nextPc: string, nextChoice: string) => {
     setPcId(nextPc);
+    const nextDef = everyone.find((p) => p.id === nextPc);
+    // Keep the skill when the new roller has it too.
+    const keep = nextDef && (nextChoice.startsWith("attr:") ? attributeIds(ctx.module, nextDef).includes(nextChoice.slice(5)) : skillOptions(ctx.module, ctx.module.entityType(nextDef.type), mode).some((s) => s.id === nextChoice));
+    if (!keep) nextChoice = "";
     setChoice(nextChoice);
-    const entity = pcs.find((p) => p.id === nextPc);
+    const entity = everyone.find((p) => p.id === nextPc);
     if (!entity || !nextChoice) return setPicked(undefined);
     const built = skillInput(ctx.module, entity, nextChoice);
     setPicked({ key: `${nextPc}:${nextChoice}:${Date.now()}`, ...built });
@@ -218,24 +250,45 @@ export function SkillRoll({ sessionId, pcs }: { sessionId: Id; pcs: Entity[] }) 
       <div className="app-row">
         <select className="cf-select" aria-label="Character" value={pcId} onChange={(e) => pick(e.target.value, choice)}>
           <option value="">Character…</option>
-          {pcs.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
-          ))}
+          {rollers.length > 0 ? (
+            <>
+              <optgroup label="Player characters">
+                {pcs.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label="In the scene">
+                {rollers.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </optgroup>
+            </>
+          ) : (
+            pcs.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))
+          )}
         </select>
         <select className="cf-select" aria-label="Skill" value={choice} onChange={(e) => pick(pcId, e.target.value)} disabled={!pc}>
           <option value="">Skill…</option>
-          {skills.length > 0 && (
-            <optgroup label="Skills">
-              {skills.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.label}
-                  {s.attribute ? ` (${humanize(s.attribute)})` : ""}
-                </option>
-              ))}
+          {groups.map((g) => (
+            <optgroup key={g} label={g}>
+              {skills
+                .filter((s) => s.group === g)
+                .map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.label}
+                    {s.attribute && !s.label.toLowerCase().includes(s.attribute.toLowerCase()) ? ` (${humanize(s.attribute)})` : ""}
+                  </option>
+                ))}
             </optgroup>
-          )}
+          ))}
           {attrs.length > 0 && (
             <optgroup label="Attribute only">
               {attrs.map((a) => (
@@ -332,7 +385,7 @@ export function DicePanel({ sessionId, pcs, others = [] }: { sessionId: Id; pcs:
   const specials = useSpecialAttacks();
   return (
     <div className="app-stack" data-testid="dice-tab">
-      <SkillRoll sessionId={sessionId} pcs={pcs} />
+      <SkillRoll sessionId={sessionId} pcs={pcs} others={others} />
       {specials.length > 0 && <SpecialAttackCard sessionId={sessionId} pcs={pcs} others={others} />}
       <FreeRoll sessionId={sessionId} />
       <Card title="Roll log">

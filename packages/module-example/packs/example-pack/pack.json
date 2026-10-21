@@ -393,6 +393,7 @@
           {
             "tempId": "foe",
             "type": "example-pack.monster",
+            "preset": "example-pack.preset.gloomling",
             "each": { "var": "results.encounters" },
             "when": { "==": [{ "var": "item.who" }, "monster"] },
             "name": { "cat": [{ "var": "item.label" }, " ", { "+": [{ "var": "index" }, 1] }] },

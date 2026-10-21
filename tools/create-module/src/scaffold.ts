@@ -25,7 +25,7 @@ import {
 export const ENGINES: readonly DiceEngineId[] = ["d20", "pool", "2d6", "d100"];
 
 /** Ids of modules built into the app; a new module may not take one. */
-export const RESERVED_IDS = ["alien", "example", "example-pack"];
+export const RESERVED_IDS = ["alien", "example", "example-pack", "dnd5e-srd"];
 
 export interface ScaffoldOptions {
   /** Display name, e.g. "Sky Pirates". */

@@ -115,6 +115,29 @@ const BUILTIN: ModuleEntry[] = [
     },
     () => import("@campaign-forge/module-example").then((m) => m.examplePackSource),
   ),
+  builtinPack(
+    {
+      id: "dnd5e-srd",
+      name: "5th Edition SRD 5.1 (fantasy d20)",
+      version: "0.1.0",
+      modes: [
+        { id: "campaign", name: "Campaign", description: "Long-running play: characters level up over many sessions, with factions, quests and a living world between adventures." },
+        { id: "one-shot", name: "One-shot", description: "A single session: ready-made characters, one adventure in three acts, and a clear ending tonight." },
+      ],
+      defaultMode: "campaign",
+      dataStatus: "partially-verified",
+      ruleset: "SRD 5.1",
+      publisher: "Wizards of the Coast LLC (SRD 5.1, CC-BY-4.0)",
+      license: {
+        spdx: "CC-BY-4.0",
+        name: "Creative Commons Attribution 4.0 International",
+        url: "https://creativecommons.org/licenses/by/4.0/",
+        attribution:
+          'This work includes material taken from the System Reference Document 5.1 ("SRD 5.1") by Wizards of the Coast LLC and available at https://dnd.wizards.com/resources/systems-reference-document. The SRD 5.1 is licensed under the Creative Commons Attribution 4.0 International License available at https://creativecommons.org/licenses/by/4.0/legalcode.',
+      },
+    },
+    () => import("@campaign-forge/module-dnd5e-srd").then((m) => m.dnd5eSrdSource),
+  ),
 ];
 
 const BUILTIN_IDS = new Set(BUILTIN.map((e) => e.id));

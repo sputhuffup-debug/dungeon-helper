@@ -3,8 +3,8 @@ import { clearModuleCache, listModules, loadModuleById, moduleEntry } from "./re
 
 describe("module registry", () => {
   it("hides dev-only modules unless the dev flag is on", () => {
-    expect(listModules({ dev: false }).map((m) => m.id)).toEqual(["alien"]);
-    expect(listModules({ dev: true }).map((m) => m.id)).toEqual(["alien", "example", "example-pack"]);
+    expect(listModules({ dev: false }).map((m) => m.id)).toEqual(["alien", "dnd5e-srd"]);
+    expect(listModules({ dev: true }).map((m) => m.id)).toEqual(["alien", "example", "example-pack", "dnd5e-srd"]);
     expect(moduleEntry("example-pack")).toMatchObject({ source: "builtin", format: "pack", dev: true });
     expect(moduleEntry("example")?.dev).toBe(true);
   });
@@ -25,12 +25,24 @@ describe("module registry", () => {
       const { manifest } = await loadModuleById(entry.id);
       const { id, name, version, modes, defaultMode, dataStatus } = manifest;
       expect({ id: entry.id, name: entry.name, version: entry.version, modes: entry.modes, defaultMode: entry.defaultMode, dataStatus: entry.dataStatus }).toEqual({ id, name, version, modes, defaultMode, dataStatus });
+      // The licence shown before a pack is downloaded must be the one it ships with.
+      if (entry.license) expect(entry.license).toEqual(manifest.license);
+      if (entry.ruleset) expect(entry.ruleset).toBe(manifest.ruleset);
+      if (entry.publisher) expect(entry.publisher).toBe(manifest.publisher);
     }
   }, 30_000);
 
   it("rejects an unknown module id", async () => {
     await expect(loadModuleById("nope")).rejects.toThrow(/Unknown module/);
   });
+
+  it("loads the SRD 5.1 pack with its attribution", async () => {
+    const srd = await loadModuleById("dnd5e-srd");
+    expect(srd.report.ok).toBe(true);
+    expect(srd.manifest.license?.spdx).toBe("CC-BY-4.0");
+    expect(srd.manifest.license?.attribution).toContain("System Reference Document 5.1");
+    expect(srd.module.presets.length).toBe(334);
+  }, 60_000);
 
   it("loads the Alien module through the conformance check", async () => {
     const alien = await loadModuleById("alien");

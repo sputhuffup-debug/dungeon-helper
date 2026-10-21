@@ -81,6 +81,26 @@ describe("example data pack", () => {
     }
   });
 
+  it("starts produced entities from a preset, with the entity's own fields on top", () => {
+    const m = loadPack(mainFile(), { parts: parts(), skipProcedureRuns: true }).module!;
+    const proc = m.procedures[0]!;
+    const foes = ["a", "b", "c", "d", "e", "f", "g", "h"].flatMap((seed) => runProcedure(proc, m, { seed, inputs: { depth: 3, lucky: false } }).produced.entities.filter((e) => e.tempId.startsWith("foe")));
+    expect(foes.length).toBeGreaterThan(0);
+    for (const f of foes) {
+      expect(f.preset).toBe("example-pack.preset.gloomling");
+      // defense and attack from the preset; hp and lair from the produce fields
+      expect(f.fields).toMatchObject({ defense: 11, attack: 2, lair: "Somewhere below" });
+    }
+    // an unknown preset fails the run, and the conformance suite reports it
+    const bad = clone(mainFile()) as { procedures: Array<{ produce: { entities: Array<Record<string, unknown>> } }> };
+    bad.procedures[0]!.produce.entities[1]!.preset = "example-pack.preset.nope";
+    const res = loadPack(bad, { parts: parts(), seeds: 20 });
+    expect(res.issues.some((i) => i.severity === "error" && /unknown preset "example-pack.preset.nope"/.test(i.message))).toBe(true);
+    // a preset of another entity type is refused
+    bad.procedures[0]!.produce.entities[1]!.preset = "example-pack.preset.keeper";
+    expect(loadPack(bad, { parts: parts(), seeds: 20 }).issues.some((i) => /is a example-pack.adventurer, not a example-pack.monster/.test(i.message))).toBe(true);
+  });
+
   it("chooses a table with JSONLogic and offers chains with computed inputs", () => {
     const m = loadPack(mainFile(), { parts: parts(), skipProcedureRuns: true }).module!;
     const proc = m.procedures[0]!;

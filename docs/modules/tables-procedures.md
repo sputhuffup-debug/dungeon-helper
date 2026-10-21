@@ -75,11 +75,12 @@ Exactly one of `table`, `roll`/`value` per step. Results are stored under the st
 
 ### `produce`
 
-`entities[]`: `{ tempId, type, subtype?, name, summary?, tags?, fields?, within?, when?, each?, links? }`
+`entities[]`: `{ tempId, type, subtype?, preset?, name, summary?, tags?, fields?, within?, when?, each?, links? }`
 
 - `name`, `summary` and each value in `fields` are JSONLogic (literals are fine). `fields` keys are dotted paths, so nested objects are set key by key.
 - `when` produces the entity only when true; `each` produces one per item of a list, with `item` and `index` in the context and `-<index>` added to the `tempId`. In `within` and `links[].to`, `{index}` stands for the current index.
 - `links`: relationships from this entity (`type`, `to`, `note?`), emitted with it.
+- `preset`: start the entity from a preset of the same `type` (an id, or JSONLogic yielding one, e.g. `{ "var": "item.preset" }` for a monster rolled on a table): its fields come first and `fields` override them; its name, summary and tags fill in when the entity's own evaluate to nothing, and the accepted entity records the preset in its provenance. An unknown preset fails the run (and `module-check`).
 
 `relationships[]`: `{ type, from, to, note?, when? }` between tempIds. A relationship (or `within`) pointing at an entity that a `when` left out is dropped with it.
 

@@ -42,6 +42,11 @@ export interface D20EngineConfig {
   critSucceeds?: boolean;
   /** A natural fumble fails whatever the DC (default false: flagged only). */
   fumbleFails?: boolean;
+  /**
+   * Other dice the table's free roll offers next to the d20, by faces (e.g.
+   * [4, 6, 8, 10, 12] for damage). Free rolls are summed. Default none.
+   */
+  freeDice?: number[];
   labels?: { success?: string; failure?: string };
 }
 

@@ -50,7 +50,7 @@ A field: `{ path, label?, widget?, rule?, mode?, readonly?, span?, options?, ent
 | `attribute` | a big number with steppers | as `number` |
 | `checkbox` | booleans | `text` |
 | `select`, `multiselect`, `tags` | enums, lists of strings | `ref` (reference list) |
-| `skills` | an object of skill ratings | `ref` (reference list whose items have `attribute`), `attributesPath` (default `attributes`), `min`, `max`, or an inline `skills` list |
+| `skills` | an object of skill ratings | `ref` (reference list whose items have `attribute`), `attributesPath` (default `attributes`), `min`, `max`, or an inline `skills` list; `levels` (named ratings shown as a select, e.g. `[{ "value": 0, "label": "—" }, { "value": 1, "label": "Proficient" }, { "value": 2, "label": "Expertise" }]`), `labels` (column headings: `skill`, `attribute`, `attributeValue`, `value`, `pool`), `hideZero` (list only rated skills, with a "Show all" toggle) |
 | `talents` | a list of `{ id, count }` picked from a reference list | `ref`, `maxStack` |
 | `conditions`, `gear` | conditions; a gear list with weights | `limitComputed`, `qty` |
 | `supply`, `stress` | pips | `supplyMax`, `warnAt` |
@@ -58,6 +58,7 @@ A field: `{ path, label?, widget?, rule?, mode?, readonly?, span?, options?, ent
 | `dicepool` | a pool shown as a breakdown | `computed` |
 | `ref`, `reflist` | links to other entities | `entityTypes` on the field |
 | `list`, `object`, `table`, `statblock` | nested data, edited by schema | `columns`, `keys`, `valueWidget` |
+| `entries` | a list of named texts (traits, actions, features), read like a stat block ("**Name.** text", Markdown) with an Edit toggle | `nameKey` (default `name`), `textKey` (default `desc`) |
 | `image`, `zonemap` | an image asset; a zone map | |
 
 ### The skills widget and rolling
@@ -67,5 +68,7 @@ The skills widget is what makes a character rollable. Each row shows the skill, 
 - `config.ref`: a reference list whose items carry `attribute` (the attribute id the skill uses);
 - `config.attributesPath`: where the attributes object lives (`abilities` for a d20 game);
 - the roll input includes `fields` and `computed`, so the engine config can read e.g. `computed.proficiencyBonus`.
+
+A sheet may have several skills widgets, each with its own storage path and list: a d20 sheet keeps skills at `skills.*` and saving throws at `saves.*` (a list of "Strength save"... items whose `attribute` is the ability). Table mode's skill roller offers every widget's items, grouped by the widget's label, so skill ids must be unique across a type's widgets. It also offers the creatures and NPCs in the current scene whose sheet has a skills widget. The roll button passes the row's name to the app, so the roll is titled "Stealth", not "stealth".
 
 For a 2d6 game without skills, put the stats in `attributes` and roll "attribute only".

@@ -31,3 +31,14 @@ export function ModuleLicenseView({ license, testId }: { license: ModuleLicense;
     </div>
   );
 }
+
+/** The loaded module's licence, folded away at the foot of pages that show its content (rules, reference). */
+export function ModuleAttribution({ license }: { license: ModuleLicense | undefined }) {
+  if (!license) return null;
+  return (
+    <details className="app-attribution" data-testid="page-attribution">
+      <summary className="cf-muted">Licence and attribution</summary>
+      <ModuleLicenseView license={license} />
+    </details>
+  );
+}

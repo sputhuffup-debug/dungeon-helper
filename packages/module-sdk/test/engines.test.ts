@@ -28,6 +28,16 @@ describe("dice engines", () => {
   describe("d20", () => {
     const d20 = createDiceEngine({ engine: "d20", proficiency: { var: "computed.proficiencyBonus" } });
 
+    it("offers extra free-roll dice and sums them", () => {
+      expect(d20.dice.map((d) => d.id)).toEqual(["d20"]);
+      const withDamage = createDiceEngine({ engine: "d20", freeDice: [6, 8, 20] });
+      expect(withDamage.dice.map((d) => d.id)).toEqual(["d20", "d6", "d8"]);
+      const r = withDamage.roll({ dice: { d6: 2, d8: 1 } }, createRng("free"));
+      expect(r.dice.map((d) => d.die)).toEqual(["d6", "d6", "d8"]);
+      expect(r.total).toBe(r.dice.reduce((a, d) => a + d.value, 0));
+      expect(() => createDiceEngine({ engine: "d20", freeDice: [1] })).toThrow(/freeDice/);
+    });
+
     it("computes the ability modifier from the score", () => {
       expect([1, 8, 9, 10, 11, 12, 15, 20, 30].map(abilityModifier)).toEqual([-5, -1, -1, 0, 0, 1, 2, 5, 10]);
     });

@@ -1713,6 +1713,65 @@
   outline: 2px solid var(--cf-accent);
 }
 
+/* Markdown pipe tables (rule text, spell and item descriptions) */
+.cf-md__table-wrap {
+  overflow-x: auto;
+  margin: var(--cf-space-2) 0;
+}
+.cf-md__table {
+  border-collapse: collapse;
+  font-size: var(--cf-text-sm);
+}
+.cf-md__table th,
+.cf-md__table td {
+  border: 1px solid var(--cf-border);
+  padding: 2px var(--cf-space-2);
+  text-align: left;
+  vertical-align: top;
+}
+.cf-md__table th {
+  background: var(--cf-elevated);
+}
+/* entries widget: named paragraphs, as in a stat block */
+.cf-entries {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cf-space-2);
+}
+.cf-entries__item p {
+  margin: 0 0 var(--cf-space-1);
+}
+
+/* counter tracker: numbers on a sheet (hit points, death saves, spell slots) */
+.cf-counter__items {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cf-space-3);
+}
+.cf-counter {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--cf-space-1);
+}
+.cf-counter .cf-stepper__value {
+  width: 4.5em;
+}
+.cf-counter__label {
+  font-size: var(--cf-text-sm);
+  color: var(--cf-muted);
+}
+/* rolled initiative shows a total, not a card */
+.cf-initiative__card--score {
+  border-radius: 999px;
+  flex: none;
+  width: 64px;
+  min-width: 44px;
+  text-align: center;
+  height: 44px;
+  padding: 0 var(--cf-space-1);
+}
+
 .cf-generic__editor {
   font-family: var(--cf-font-mono);
   font-size: var(--cf-text-xs);

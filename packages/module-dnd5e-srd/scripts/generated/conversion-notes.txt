@@ -1,0 +1,12 @@
+Black Bear: added perception +3 from the stat block (missing in the source's proficiency list)
+Blink Dog: passive Perception derived as 13; the source lists 10
+Brass Dragon Wyrmling: source XP 100 corrected to 200 for CR 1
+Deep Gnome (Svirfneblin): source XP 50 corrected to 100 for CR 1/2
+Dretch: source XP 25 corrected to 50 for CR 1/4
+Half-Red Dragon Veteran: added athletics +5 from the stat block (missing in the source's proficiency list)
+Half-Red Dragon Veteran: added perception +2 from the stat block (missing in the source's proficiency list)
+Riding Horse: source XP 25 corrected to 50 for CR 1/4
+Spider: passive Perception derived as 10; the source lists 12
+Swarm of Ravens: added perception +5 from the stat block (missing in the source's proficiency list)
+table dnd5e-srd.magic-item.robe-of-useful-items-patch: skipped (no row for 45)
+table dnd5e-srd.magic-item.wand-of-wonder-effect: skipped (no row for 16)

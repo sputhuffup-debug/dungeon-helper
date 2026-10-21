@@ -95,6 +95,6 @@ describe("a data pack's sheet", () => {
     expect(screen.getByTestId("pool-lore")).toHaveTextContent("1d20 + 5"); // wits −1, expertise +6
     expect(screen.getByTestId("pool-sneak")).toHaveTextContent("1d20 + 1");
     fireEvent.click(within(screen.getByText("Climb").closest("tr")!).getByRole("button", { name: "Roll" }));
-    expect(onRoll).toHaveBeenCalledWith("climb", expect.objectContaining({ attribute: 16, skill: 1, attributeId: "might", computed: expect.objectContaining({ proficiencyBonus: 3 }) }));
+    expect(onRoll).toHaveBeenCalledWith("climb", expect.objectContaining({ attribute: 16, skill: 1, attributeId: "might", computed: expect.objectContaining({ proficiencyBonus: 3 }) }), "Climb");
   });
 });

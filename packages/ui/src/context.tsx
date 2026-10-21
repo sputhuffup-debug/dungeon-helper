@@ -7,8 +7,8 @@ export interface SheetContextValue {
   mode?: PlayModeId;
   /** Table mode: bigger touch targets and type. */
   tableMode: boolean;
-  /** A skill row's roll button. `input` is what the module's `buildPool` expects. */
-  onRoll?: (skillId: string, input: Record<string, unknown>) => void;
+  /** A skill row's roll button. `input` is what the module's `buildPool` expects; `label` is the row's name. */
+  onRoll?: (skillId: string, input: Record<string, unknown>, label?: string) => void;
   onOpenRule?: (ruleId: string) => void;
   /** A ref widget's "pick" button. The app opens its entity picker and writes the id back. */
   onPickEntity?: (field: SheetField, current: unknown) => void;

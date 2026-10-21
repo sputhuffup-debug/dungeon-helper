@@ -345,6 +345,15 @@
         "fumbleFails": {
           "type": "boolean"
         },
+        "freeDice": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 2,
+            "maximum": 100
+          },
+          "maxItems": 10
+        },
         "labels": {
           "type": "object",
           "properties": {
@@ -885,6 +894,7 @@
             "statblock",
             "table",
             "list",
+            "entries",
             "object",
             "image",
             "zonemap"
@@ -1223,6 +1233,12 @@
         },
         "unverified": {
           "type": "boolean"
+        },
+        "columns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "required": [
@@ -1792,6 +1808,9 @@
         },
         "subtype": {
           "$ref": "#/definitions/id"
+        },
+        "preset": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
         },
         "name": {
           "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."

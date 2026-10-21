@@ -29,7 +29,10 @@ export function HomePage() {
   const shownAdventures = activeAdventures.length ? activeAdventures : adventures.filter((a) => a.status === "planned").slice(0, 3);
   const hooks = adventures.flatMap((a) => a.hooksOut.map((h, i) => ({ key: `${a.id}:${i}`, text: h, adventure: a })));
 
-  const characterType = ctx.module.module.entityTypes.find((t) => t.kind === "character");
+  // "NPC from preset" opens the first character (else creature) type that has presets: some modules keep NPC stat blocks on a creature type.
+  const types = ctx.module.module.entityTypes;
+  const withPresets = (kind: string) => types.find((t) => t.kind === kind && ctx.module.presetsFor(t.id).length > 0);
+  const characterType = withPresets("character") ?? withPresets("creature") ?? types.find((t) => t.kind === "character");
   const locationType = ctx.module.module.entityTypes.find((t) => t.kind === "location");
   const jobType = ctx.module.module.entityTypes.find((t) => t.kind === "job");
 

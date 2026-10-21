@@ -82,6 +82,17 @@ describe("lintModule", () => {
     expect(warnings.some((w) => w.startsWith("rule:example.rule.prose: summary has 5 sentences"))).toBe(true);
   });
 
+  it("does not check rule cards for book prose when the source text is openly licensed", () => {
+    const longSummary = "One. Two. Three. Four. " + "x".repeat(620);
+    const open: GameModule = {
+      ...exampleModule,
+      manifest: { ...exampleModule.manifest, license: { spdx: "CC-BY-4.0", name: "Creative Commons Attribution 4.0 International", attribution: "Fixture text under CC BY 4.0." } },
+      rules: [...exampleModule.rules, { id: "example.rule.prose", title: "Prose", summary: longSummary, cite: "Fixture, Prose" }],
+    };
+    const warnings = fmt(lintModule(open, { skipProcedureRuns: true }).warnings);
+    expect(warnings.filter((w) => w.startsWith("rule:example.rule.prose"))).toEqual([]);
+  });
+
   it("counts sentences without splitting on page references or decimals", () => {
     expect(countSentences("Roll 2d6 (p. 44). Add 1.5 per point, e.g. for armor. Done!")).toBe(3);
     expect(countSentences("")).toBe(0);
