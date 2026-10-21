@@ -39,3 +39,4 @@ Two rules from the project's `CLAUDE.md` apply to every module:
 - `unverified: true` on a table, row, preset or reference list marks entries you could not check.
 - table-lint warns about rule card summaries that look like copied prose (long, many sentences, long quotes), unless `license.spdx` is an open text licence (`CC-BY-*`, `CC-BY-SA-*`, `CC0-*`, `LicenseRef-ORC`), where quoting the source is expected. For anything else, paraphrase.
 - Never commit a rulebook PDF, its extracted text or a purchase watermark.
+- A [supplement](supplements.md) for content you have no right to distribute (notes from a book you own, a setting guide's options) stays private: keep it on your device, out of repositories and shared bundles, and say so in its `licenseNotice`.

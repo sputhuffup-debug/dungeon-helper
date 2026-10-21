@@ -102,6 +102,21 @@ export interface ModuleManifest {
   citationStyle?: "page" | "section";
   /** Authors or maintainers of the module, shown in the module list. */
   authors?: string[];
+  /**
+   * Supplements merged into this module when it loaded, in the order they were
+   * applied (set by `applySupplements`; a module never declares it itself).
+   * Content a supplement added has ids that start with "<supplement id>.".
+   */
+  supplements?: AppliedSupplement[];
+}
+
+/** A supplement applied to a loaded module: what generation provenance and the app show about it. */
+export interface AppliedSupplement {
+  id: string;
+  name: string;
+  version: string;
+  licenseNotice: string;
+  license?: ModuleLicense;
 }
 
 // ---------------------------------------------------------------------------
@@ -435,6 +450,8 @@ export interface ProducedRelationship {
 export interface GeneratedGraph {
   procedure: string;
   moduleVersion: string;
+  /** Supplements merged into the module when it ran (id and version), when there were any. */
+  supplements?: Array<{ id: string; version: string }>;
   seed: string;
   inputs: Record<string, unknown>;
   results: Record<string, unknown>;
@@ -599,6 +616,10 @@ export interface ReferenceItem {
   cite?: CiteRef;
   mode?: PlayModeId[];
   summary?: string;
+  /** A ruleset or edition label shown next to the item (e.g. "2024"), for lists that mix editions. */
+  edition?: string;
+  /** Set by the loader on items a supplement added: the supplement's name. */
+  source?: string;
   [key: string]: unknown;
 }
 

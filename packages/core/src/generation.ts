@@ -31,6 +31,7 @@ export function acceptGeneratedGraph(store: CampaignStore, graph: GeneratedGraph
       procedure: graph.procedure,
       moduleId: opts.moduleId,
       moduleVersion: graph.moduleVersion,
+      ...(graph.supplements && graph.supplements.length > 0 ? { supplements: clone(graph.supplements) } : {}),
       seed: graph.seed,
       inputs: clone(graph.inputs),
       rolls: clone(graph.rolls),

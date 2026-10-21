@@ -4,7 +4,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { checkTarget, formatCheckIssue } from "@campaign-forge/module-check";
 import { afterAll, describe, expect, it } from "vitest";
-import { camelCase, ENGINES, idProblems, scaffoldPack, scaffoldTsModule, slugify } from "../src";
+import { camelCase, ENGINES, idProblems, scaffoldPack, scaffoldSupplement, scaffoldTsModule, slugify, supplementIdProblems } from "../src";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
 const pkgDir = resolve(here, "..");
@@ -73,5 +73,34 @@ describe("create-module", () => {
     expect(JSON.parse(readFileSync(join(tmp, "ts-moon", "tsconfig.json"), "utf8")).extends).toBe("../../../../tsconfig.base.json");
     expect(cli("X", "--engine", "d12").status).toBe(2);
     expect(cli("--engine", "d20").status).toBe(2);
+  });
+});
+
+describe("create-module --supplement", () => {
+  for (const base of ["dnd5e-srd", "pf2e-orc", "example-pack", "alien"]) {
+    it(`writes a starter supplement for ${base} that passes module-check against it`, async () => {
+      const dir = join(tmp, `supplement-${base}`);
+      write(dir, { "supplement.json": `${JSON.stringify(scaffoldSupplement({ name: "Harbour Homebrew", base, year: 2026 }), null, 2)}\n` });
+      const report = await checkTarget(join(dir, "supplement.json"), { seeds: 10, determinismSeeds: 2 });
+      expect(report.issues.map(formatCheckIssue)).toEqual([]);
+      expect(report).toMatchObject({ ok: true, kind: "supplement", moduleId: "harbour-homebrew" });
+    });
+  }
+
+  it("refuses ids that clash, and runs from the command line", () => {
+    expect(supplementIdProblems("dnd5e-srd", "dnd5e-srd")).toEqual(['"dnd5e-srd" is the id of a module built into the app', "a supplement's id cannot be the id of the module it extends"]);
+    expect(() => scaffoldSupplement({ name: "Alien", base: "dnd5e-srd" })).toThrow(/built into the app/);
+    const s = scaffoldSupplement({ name: "Harbour Homebrew", base: "dnd5e-srd" });
+    expect(Object.keys(s.referenceItems ?? {})).toEqual(["dnd5e-srd.backgrounds"]);
+    expect(Object.keys(scaffoldSupplement({ name: "X Y", base: "dnd5e-srd", list: "dnd5e-srd.feats" }).referenceItems ?? {})).toEqual(["dnd5e-srd.feats"]);
+    expect(scaffoldSupplement({ name: "X Y", base: "some-game" }).referenceItems).toBeUndefined();
+    const out = join(tmp, "cli-supplement");
+    const run = (...args: string[]) =>
+      spawnSync(process.execPath, ["--experimental-strip-types", "--no-warnings", "--import", "./register.mjs", "src/cli.ts", ...args], { cwd: pkgDir, encoding: "utf8", env: { ...process.env, INIT_CWD: pkgDir } });
+    const ok = run("Harbour Homebrew", "--supplement", "dnd5e-srd", "--out", out);
+    expect(ok.status, ok.stderr).toBe(0);
+    expect(existsSync(join(out, "supplement.json"))).toBe(true);
+    expect(ok.stdout).toMatch(/Import data pack or supplement/);
+    expect(run("Harbour Homebrew", "--supplement", "dnd5e-srd", "--engine", "d20").status).toBe(2);
   });
 });

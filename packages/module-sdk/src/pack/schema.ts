@@ -61,6 +61,7 @@ import type {
 import type {
   ModulePack,
   ModulePackPart,
+  ModuleSupplement,
   PackCollections,
   PackManifest,
   PackProcedure,
@@ -68,8 +69,9 @@ import type {
   PackProduce,
   PackProducedEntity,
   PackProducedRelationship,
+  SupplementManifest,
 } from "./types";
-import { PACK_FORMAT, PACK_FORMAT_VERSION, PACK_PART_FORMAT } from "./types";
+import { PACK_FORMAT, PACK_FORMAT_VERSION, PACK_PART_FORMAT, SUPPLEMENT_FORMAT, SUPPLEMENT_FORMAT_VERSION } from "./types";
 
 // ---------------------------------------------------------------------------
 // Typed builders
@@ -170,6 +172,24 @@ const definitions: Record<string, JsonSchema> = {
       authors: list(text),
     },
     ["id", "version", "name", "ruleset", "licenseNotice", "requiredCore", "modes", "defaultMode", "dataStatus", "license"],
+  ),
+
+  supplementManifest: object<SupplementManifest>()(
+    {
+      id: str({ pattern: PACK_ID_PATTERN }),
+      name: text,
+      version: str({ pattern: "^\\d+\\.\\d+\\.\\d+" }),
+      extends: object<SupplementManifest["extends"]>()(
+        { module: str({ pattern: PACK_ID_PATTERN, description: "The id of the module the supplement adds to." }), version: str({ minLength: 1, maxLength: 100, description: "A semver range of base module versions, e.g. \"^0.1.0\"." }) },
+        ["module"],
+      ),
+      licenseNotice: str({ minLength: 1, maxLength: 2000 }),
+      license: ref("license"),
+      authors: list(text),
+      description: str({ maxLength: 2000 }),
+      dataStatus: { enum: ["unverified", "partially-verified", "verified"] },
+    },
+    ["id", "name", "version", "extends", "licenseNotice"],
   ),
 
   // Dice engines
@@ -321,7 +341,16 @@ const definitions: Record<string, JsonSchema> = {
   referenceItem: {
     type: "object",
     required: ["id", "name"],
-    properties: { id: ref("id"), name: text, page: ref("page"), cite: ref("cite"), mode: ref("modes"), summary: str() },
+    properties: {
+      id: ref("id"),
+      name: text,
+      page: ref("page"),
+      cite: ref("cite"),
+      mode: ref("modes"),
+      summary: str(),
+      edition: str({ maxLength: 40, description: "A ruleset or edition label shown next to the item, e.g. \"2024\"." }),
+      source: str({ maxLength: 200, description: "Set by the loader on items a supplement added (the supplement's name)." }),
+    },
     description: "Any other properties are the item's own data (e.g. the attribute a skill uses).",
   },
   referenceList: object<ReferenceList>()(
@@ -561,6 +590,32 @@ export const MODULE_PACK_PART_SCHEMA: JsonSchema = {
       ...collections,
     },
     ["format", "formatVersion", "pack", "name"],
+  ),
+  definitions,
+};
+
+/** JSON Schema of a supplement: additive data for an existing module. */
+export const MODULE_SUPPLEMENT_SCHEMA: JsonSchema = {
+  $schema: "http://json-schema.org/draft-07/schema#",
+  $id: `${SCHEMA_BASE_URL}/module-supplement.schema.json`,
+  title: "Campaign Forge module supplement",
+  description: "Additive data for an existing module: reference items for its lists, new lists, presets, tables, generators, templates, rule cards, play guides. See docs/modules/supplements.md.",
+  ...object<ModuleSupplement>()(
+    {
+      $schema: str(),
+      format: { const: SUPPLEMENT_FORMAT },
+      formatVersion: { const: SUPPLEMENT_FORMAT_VERSION },
+      manifest: ref("supplementManifest"),
+      referenceItems: { type: "object", additionalProperties: list(ref("referenceItem")), description: "Items to add to the base module's reference lists, keyed by list id." },
+      referenceLists: collections.referenceLists,
+      presets: collections.presets,
+      tables: collections.tables,
+      procedures: collections.procedures,
+      templates: collections.templates,
+      rules: collections.rules,
+      playGuides: collections.playGuides,
+    },
+    ["format", "formatVersion", "manifest"],
   ),
   definitions,
 };

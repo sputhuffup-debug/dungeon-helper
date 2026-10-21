@@ -111,20 +111,8 @@
      },
      "class": {
       "type": "string",
-      "enum": [
-       "barbarian",
-       "bard",
-       "cleric",
-       "druid",
-       "fighter",
-       "monk",
-       "paladin",
-       "ranger",
-       "rogue",
-       "sorcerer",
-       "warlock",
-       "wizard"
-      ]
+      "maxLength": 120,
+      "description": "A class id from the Classes list (barbarian, bard, cleric, druid, fighter, monk, paladin, ranger, rogue, sorcerer, warlock, wizard, or one a supplement adds)."
      },
      "subclass": {
       "type": "string",
@@ -3702,22 +3690,46 @@
        {
         "path": "subclass",
         "label": "Subclass",
-        "widget": "text"
+        "widget": "text",
+        "options": {
+         "ref": "dnd5e-srd.subclasses"
+        },
+        "config": {
+         "optionsFilter": {
+          "field": "class",
+          "key": "class"
+         }
+        }
        },
        {
         "path": "race",
         "label": "Race",
-        "widget": "text"
+        "widget": "text",
+        "options": {
+         "ref": "dnd5e-srd.races"
+        }
        },
        {
         "path": "subrace",
         "label": "Subrace",
-        "widget": "text"
+        "widget": "text",
+        "options": {
+         "ref": "dnd5e-srd.subraces"
+        },
+        "config": {
+         "optionsFilter": {
+          "field": "race",
+          "key": "race"
+         }
+        }
        },
        {
         "path": "background",
         "label": "Background",
-        "widget": "text"
+        "widget": "text",
+        "options": {
+         "ref": "dnd5e-srd.backgrounds"
+        }
        },
        {
         "path": "alignment",
@@ -6216,7 +6228,10 @@
        {
         "path": "race",
         "label": "Race",
-        "widget": "text"
+        "widget": "text",
+        "options": {
+         "ref": "dnd5e-srd.races"
+        }
        },
        {
         "path": "alignment",

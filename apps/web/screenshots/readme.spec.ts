@@ -516,6 +516,20 @@ test("game-modules", async ({ page }) => {
   await shot(page, "game-modules");
 });
 
+test("supplements", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/");
+  await page.getByTestId("open-modules").click();
+  const modules = page.getByRole("dialog", { name: "Game modules" });
+  const supplement = fileURLToPath(new URL("../../../packages/module-dnd5e-srd/supplements/thornwick-homebrew.supplement.json", import.meta.url));
+  await modules.getByTestId("pack-file-input").setInputFiles({ name: "thornwick-homebrew.supplement.json", mimeType: "application/json", buffer: readFileSync(supplement) });
+  const row = modules.getByTestId("module-dnd5e-srd").getByTestId("supplement-thornwick-homebrew");
+  await expect(row).toContainText("Supplement");
+  await expect(row).toContainText("adds 10 list items, 1 preset, 1 table, 1 rule card");
+  await dismissToasts(page);
+  await shot(page, "supplements");
+});
+
 /** Toasts repeat what the page shows and time out on their own: dismiss them so a shot does not depend on the timing. */
 async function dismissToasts(page: Page) {
   // (programmatic: under a modal dialog the toasts are inert to the pointer)

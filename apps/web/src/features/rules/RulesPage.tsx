@@ -1,5 +1,5 @@
 /** Rules reference: searchable rule cards filtered by mode and tag; a card opens with links to tables and fields. */
-import type { RuleCard } from "@campaign-forge/module-sdk";
+import { supplementOf, type RuleCard } from "@campaign-forge/module-sdk";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { resolveLinkName, TableDialog } from "../../components/RulePanel";
@@ -45,7 +45,7 @@ export function RulesPage() {
           : `Short paraphrases with page references to ${ctx.module.manifest.sourceBook?.title ?? "the rulebook"}.`}{" "}
         {ctx.module.manifest.sourceBook?.pageNote ?? ""}
       </p>
-      <RuleCardList cards={cards} modes={ctx.module.manifest.modes} mode={meta.mode} onOpen={(c: RuleCard) => openRule(c.id)} />
+      <RuleCardList cards={cards} modes={ctx.module.manifest.modes} mode={meta.mode} onOpen={(c: RuleCard) => openRule(c.id)} sourceOf={(id) => supplementOf(ctx.module.manifest, id)?.name} />
       <Drawer open={!!open} onClose={() => openRule(undefined)} title={open?.title ?? "Rule"}>
         {open && (
           <RuleCardView
@@ -54,6 +54,7 @@ export function RulesPage() {
             onOpenTable={setTableId}
             onOpenField={setField}
             resolveName={(kind, id) => resolveLinkName(ctx.module, kind, id)}
+            sourceOf={(id) => supplementOf(ctx.module.manifest, id)?.name}
           />
         )}
       </Drawer>

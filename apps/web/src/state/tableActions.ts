@@ -62,7 +62,8 @@ import {
 } from "@campaign-forge/module-sdk";
 import { appendPanic, clockState, clockUnits, type ClockUnit, type PromptAnswer } from "@campaign-forge/ui";
 import * as Y from "yjs";
-import { loadModuleById } from "../modules/registry";
+import { installSupplement } from "../modules/importPack";
+import { loadModuleById, supplementMeta, whenImportedModulesLoaded } from "../modules/registry";
 import type { CampaignContextValue } from "./CampaignProvider";
 
 type Ctx = Pick<CampaignContextValue, "store" | "module">;
@@ -1003,6 +1004,13 @@ export function finishSession(ctx: Ctx, sessionId: Id, input: FinishSessionInput
 // demo campaigns
 // ---------------------------------------------------------------------------
 
+/** Install a supplement the app ships (a demo's) unless one with its id is already installed; never replaces it. */
+async function ensureSupplement(id: string, fileName: string, load: () => Promise<unknown>): Promise<void> {
+  await whenImportedModulesLoaded();
+  if (supplementMeta(id)) return;
+  await installSupplement({ name: fileName, data: await load() });
+}
+
 /**
  * Which demo: "campaign" is Skyfire Down (campaign play), "cinematic" the Cold Harbor one-shot, "dnd5e" the
  * Thornwick Crossing one-shot (SRD 5.1), "pf2e" the Hollowmere one-shot (ORC core rules, second edition remaster).
@@ -1012,6 +1020,8 @@ export type DemoKind = "campaign" | "cinematic" | "dnd5e" | "pf2e";
 /** Create a demo campaign on this device (records, rich-text bodies, index entry): "Skyfire Down" by default. */
 export async function loadDemoCampaign(seed?: string, kind: DemoKind = "campaign"): Promise<Id> {
   const demos = await import("@campaign-forge/seed-campaign");
+  // Thornwick Crossing uses an (original) supplement: install it on this device first, unless some version already is.
+  if (kind === "dnd5e") await ensureSupplement(demos.DND5E_DEMO_SUPPLEMENT_ID, "thornwick-homebrew.supplement.json", demos.thornwickHomebrewSupplement);
   const { maps, docs } =
     kind === "dnd5e"
       ? // the SRD pack loads through the module registry (and its cache), not a second time inside the demo builder

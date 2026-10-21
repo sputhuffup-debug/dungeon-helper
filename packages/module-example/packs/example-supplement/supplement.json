@@ -1,0 +1,78 @@
+{
+  "$schema": "../../../module-sdk/schema/module-supplement.schema.json",
+  "format": "campaign-forge-supplement",
+  "formatVersion": 1,
+  "manifest": {
+    "id": "deep-roads",
+    "name": "Deep Roads (example supplement)",
+    "version": "0.1.0",
+    "extends": { "module": "example-pack", "version": "^0.1.0" },
+    "licenseNotice": "Fixture for Campaign Forge tests. Private: for personal use only.",
+    "authors": ["Campaign Forge contributors"],
+    "description": "More of everything for the Lanternlight example pack: a skill, a background, a list of its own, a monster, a table, a generator, a rule card and a play guide.",
+    "dataStatus": "verified"
+  },
+  "referenceItems": {
+    "example-pack.backgrounds": [
+      { "id": "deep-roads.tunnel-cartographer", "name": "Tunnel cartographer", "summary": "Draws the maps everyone else gets lost with.", "edition": "Deep Roads" }
+    ],
+    "example-pack.skills": [
+      { "id": "deep-roads.echo", "name": "Echo", "attribute": "wits", "summary": "Read a cave by its sound." }
+    ]
+  },
+  "referenceLists": [
+    {
+      "id": "deep-roads.waystones",
+      "name": "Waystones",
+      "original": true,
+      "columns": ["depth"],
+      "items": [
+        { "id": "grey", "name": "Grey waystone", "depth": 1, "summary": "Marks a safe camp." },
+        { "id": "red", "name": "Red waystone", "depth": 3, "summary": "Marks a flooded hall." }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "id": "deep-roads.preset.blind-eel",
+      "entityType": "example-pack.monster",
+      "name": "Blind eel",
+      "summary": "Lives in the flooded halls; hunts by vibration.",
+      "original": true,
+      "tags": ["water"],
+      "fields": { "defense": 11, "hp": 9, "attack": 4, "lair": "Flooded halls" }
+    }
+  ],
+  "tables": [
+    {
+      "id": "deep-roads.waystone.found",
+      "name": "Waystone found",
+      "family": "waystone",
+      "cite": "Deep Roads notes, Waystones",
+      "dice": "1d6",
+      "rows": [
+        { "range": [1, 4], "label": "Grey", "result": { "stone": "grey" } },
+        { "range": [5, 6], "label": "Red", "result": { "stone": "red" } }
+      ]
+    }
+  ],
+  "procedures": [
+    {
+      "id": "deep-roads.proc.waystone",
+      "name": "Find a waystone",
+      "original": true,
+      "steps": [
+        { "id": "stone", "title": "Which stone", "table": "deep-roads.waystone.found" },
+        { "id": "rumor", "title": "What the last travellers said", "table": "example-pack.encounter.rumor" }
+      ],
+      "produce": {
+        "entities": [
+          { "tempId": "camp", "type": "example-pack.site", "name": { "cat": ["Waystone camp (", { "var": "stone.stone" }, ")"] }, "summary": { "var": "rumor" } }
+        ]
+      }
+    }
+  ],
+  "rules": [
+    { "id": "deep-roads.rule.echo", "title": "Echo", "summary": "Roll Wits + Echo to learn the shape of a cave you cannot see.", "original": true, "tags": ["skills"] }
+  ]
+}

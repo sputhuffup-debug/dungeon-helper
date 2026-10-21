@@ -15,7 +15,14 @@ import { dirname, resolve } from "node:path";
 import { exportBundle } from "@campaign-forge/core";
 import { buildDemoCampaign, DEMO_SEED } from "./build";
 import { buildCinematicDemo, CINEMATIC_DEMO_SEED } from "./cinematic";
-import { buildDnd5eDemo, DND5E_DEMO_SEED } from "./dnd5e";
+import { buildDnd5eDemo, DND5E_DEMO_SEED, DND5E_DEMO_SUPPLEMENT_ID, thornwickHomebrewSupplement } from "./dnd5e";
+
+/** The demo supplement's JSON with its name and version, for the bundle. */
+async function supplementInfo(): Promise<{ name: string; version: string; data: unknown }> {
+  const data = await thornwickHomebrewSupplement();
+  const m = (data as { manifest: { name: string; version: string } }).manifest;
+  return { name: m.name, version: m.version, data };
+}
 import { buildPf2eDemo, PF2E_DEMO_SEED } from "./pf2e";
 
 interface Args {
@@ -113,7 +120,9 @@ async function main(): Promise<number> {
   }
 
   if (args.out) {
-    const bytes = await exportBundle(store, registry, undefined, { id: meta.moduleId, version: meta.moduleVersion });
+    // the fifth edition demo's supplement travels with it, as the app's export does
+    const supplements = dnd5e ? [{ id: DND5E_DEMO_SUPPLEMENT_ID, ...(await supplementInfo()) }] : [];
+    const bytes = await exportBundle(store, registry, undefined, { id: meta.moduleId, version: meta.moduleVersion, ...(supplements.length > 0 ? { supplements } : {}) });
     console.log(`Wrote bundle (${bytes.byteLength} bytes) to ${write(args.out, bytes)}`);
   }
   if (args.json) {

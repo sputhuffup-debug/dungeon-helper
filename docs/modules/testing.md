@@ -1,7 +1,7 @@
 # Testing with module-check
 
 ```sh
-pnpm module-check <target...> [--all] [--seeds N] [--determinism-seeds N] [--quiet] [--json]
+pnpm module-check <target...> [--all] [--base <target>] [--seeds N] [--determinism-seeds N] [--quiet] [--json]
 ```
 
 A target is:
@@ -10,7 +10,8 @@ A target is:
 - a pack's main file (`my-pack/pack.json`); its `parts` are read from the same folder;
 - a folder with a `pack.json`;
 - a TypeScript module package folder (`packages/module-my-game`, read through its `package.json` `main`);
-- a `.ts` file exporting a `GameModule` or a `PackSource`.
+- a `.ts` file exporting a `GameModule` or a `PackSource`;
+- a [supplement](supplements.md)'s JSON file, checked against the module it extends (a built-in id; `--base <pack.json|folder|.ts>` for any other). `--all` also checks the repository's supplements (`deep-roads`, `thornwick-homebrew`), which can be named by id too.
 
 Relative paths resolve against the folder you ran `pnpm` in. The exit code is 0 when no target has errors, 1 when one has, 2 for a usage error, so it fits CI as is.
 
@@ -45,6 +46,12 @@ Each line has the severity, the stage, a JSON path into the pack file (with the 
 pnpm create-module "Moon Hunters" --engine d100                # moon-hunters-pack/pack.json
 pnpm create-module "Moon Hunters" --engine pool --ts           # packages/module-moon-hunters/
 pnpm create-module "Moon Hunters" --engine 2d6 --out packs/moon --author "Sam"
+```
+
+A supplement for an existing module:
+
+```sh
+pnpm create-module "Harbour Homebrew" --supplement dnd5e-srd [--list dnd5e-srd.feats]   # harbour-homebrew-supplement/supplement.json
 ```
 
 Engines: `d20`, `pool`, `2d6`, `d100`. The starter has a character sheet set up for the engine (attributes, skills with a skills widget, computed values), a place type, two tables, a generator, a rule card and a session checklist item, and passes `module-check` with no errors. `--id` sets the module id (default: the name in lower case with hyphens), `--force` overwrites existing files.

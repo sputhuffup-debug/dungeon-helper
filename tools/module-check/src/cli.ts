@@ -1,18 +1,20 @@
 /**
  * module-check CLI.
  *
- *   pnpm module-check <target...> [--all] [--seeds N] [--determinism-seeds N] [--quiet] [--json]
+ *   pnpm module-check <target...> [--all] [--base <target>] [--seeds N] [--determinism-seeds N] [--quiet] [--json]
  *
  * A target is a built-in module id (alien, example, example-pack, dnd5e-srd, pf2e-orc), a pack's
  * main JSON file, a folder with a pack.json, a TypeScript module package
- * folder, or a .ts file. Relative paths resolve against the folder pnpm was
+ * folder, a .ts file, or a supplement's JSON file (checked against the module
+ * it extends; `--base` names that module when it is not built in). Relative paths resolve against the folder pnpm was
  * started in. Exit code 1 when any target has errors, 2 for usage errors.
  */
-import { BUILTIN_TARGETS, checkTarget, formatReport, type ModuleCheckReport } from "./check";
+import { BUILTIN_SUPPLEMENT_TARGETS, BUILTIN_TARGETS, checkTarget, formatReport, type ModuleCheckReport } from "./check";
 
 interface Args {
   targets: string[];
   all: boolean;
+  base?: string;
   seeds: number;
   determinismSeeds: number;
   quiet: boolean;
@@ -20,11 +22,13 @@ interface Args {
   help: boolean;
 }
 
-const USAGE = `usage: module-check <target...> [--all] [--seeds N] [--determinism-seeds N] [--quiet] [--json]
+const USAGE = `usage: module-check <target...> [--all] [--base <target>] [--seeds N] [--determinism-seeds N] [--quiet] [--json]
 
   target               a built-in module id (${Object.keys(BUILTIN_TARGETS).join(", ")}), a pack's main .json file,
-                       a folder with pack.json, a TypeScript module package folder, or a .ts file
-  --all                check every built-in module
+                       a folder with pack.json, a TypeScript module package folder, a .ts file,
+                       or a supplement's .json file (checked against the module it extends)
+  --all                check every built-in module and the repository's supplements (${Object.keys(BUILTIN_SUPPLEMENT_TARGETS).join(", ")})
+  --base               for a supplement whose module is not built in: that module's pack file, folder or .ts file
   --seeds              seeds per procedure for the conformance run (default 100)
   --determinism-seeds  seeds per procedure for the determinism check (default 20)
   --quiet              print errors only
@@ -44,6 +48,9 @@ function parseArgs(argv: string[]): Args {
         break;
       case "--all":
         args.all = true;
+        break;
+      case "--base":
+        args.base = next();
         break;
       case "--seeds":
         args.seeds = Number(next());
@@ -69,7 +76,7 @@ function parseArgs(argv: string[]): Args {
   for (const [k, v] of [["--seeds", args.seeds], ["--determinism-seeds", args.determinismSeeds]] as const) {
     if (!Number.isInteger(v) || v < 1) throw new Error(`${k} must be a positive integer`);
   }
-  if (args.all) args.targets.push(...Object.keys(BUILTIN_TARGETS).filter((t) => !args.targets.includes(t)));
+  if (args.all) args.targets.push(...[...Object.keys(BUILTIN_TARGETS), ...Object.keys(BUILTIN_SUPPLEMENT_TARGETS)].filter((t) => !args.targets.includes(t)));
   if (!args.help && args.targets.length === 0) throw new Error("no target given");
   return args;
 }
@@ -93,7 +100,7 @@ async function main(): Promise<number> {
   let failed = false;
   for (const target of args.targets) {
     try {
-      const report = await checkTarget(target, { cwd, seeds: args.seeds, determinismSeeds: args.determinismSeeds });
+      const report = await checkTarget(target, { cwd, seeds: args.seeds, determinismSeeds: args.determinismSeeds, ...(args.base ? { base: args.base } : {}) });
       reports.push(report);
       if (!report.ok) failed = true;
       if (!args.json) console.log(formatReport(report, { quiet: args.quiet }));

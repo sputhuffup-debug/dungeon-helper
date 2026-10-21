@@ -2,7 +2,10 @@
  * create-module CLI.
  *
  *   pnpm create-module <name> --engine d20|pool|2d6|d100 [--ts] [--id id] [--out dir] [--author name] [--force]
+ *   pnpm create-module <name> --supplement <base module id> [--list <list id>] [--id id] [--out dir] [--author name] [--force]
  *
+ * With --supplement it writes a supplement for an existing module,
+ * `<out>/supplement.json` (default out: `./<id>-supplement`).
  * Without --ts it writes a data pack, `<out>/pack.json` (default out:
  * `./<id>-pack`), ready to check with `pnpm module-check` and to import in
  * the app. With --ts it writes a TypeScript module package (default out:
@@ -12,13 +15,17 @@
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import type { DiceEngineId } from "@campaign-forge/module-sdk";
-import { ENGINES, scaffoldPack, scaffoldTsModule, slugify } from "./scaffold";
+import { ENGINES, scaffoldPack, scaffoldSupplement, scaffoldTsModule, slugify, SUPPLEMENT_STARTER_LISTS } from "./scaffold";
 
 const USAGE = `usage: create-module <name> --engine ${ENGINES.join("|")} [--ts] [--id id] [--out dir] [--author name] [--force]
+       create-module <name> --supplement <base module id> [--list <list id>] [--id id] [--out dir] [--author name] [--force]
 
-  name       the game's display name, e.g. "Sky Pirates"
-  --engine   built-in dice engine: d20 (d20 + modifiers vs DC), pool (d6 pools), 2d6 (PbtA bands), d100 (roll-under percentile)
-  --ts       write a TypeScript module package instead of a data pack
+  name         the game's (or the supplement's) display name, e.g. "Sky Pirates"
+  --engine     built-in dice engine: d20 (d20 + modifiers vs DC), pool (d6 pools), 2d6 (PbtA bands), d100 (roll-under percentile)
+  --ts         write a TypeScript module package instead of a data pack
+  --supplement write a supplement that adds to an existing module instead (e.g. dnd5e-srd)
+  --list       for --supplement: the base module's reference list to add a starter item to
+               (default for ${Object.entries(SUPPLEMENT_STARTER_LISTS).map(([m, l]) => `${m}: ${l}`).join(", ")})
   --id       module id (default: the name as lower-case-with-hyphens)
   --out      folder to write to (pack: ./<id>-pack, TypeScript: packages/module-<id>)
   --author   author name for the manifest and licence line
@@ -28,6 +35,8 @@ interface Args {
   name?: string;
   engine?: DiceEngineId;
   ts: boolean;
+  supplement?: string;
+  list?: string;
   id?: string;
   out?: string;
   author?: string;
@@ -56,6 +65,12 @@ function parseArgs(argv: string[]): Args {
       case "--ts":
         args.ts = true;
         break;
+      case "--supplement":
+        args.supplement = next();
+        break;
+      case "--list":
+        args.list = next();
+        break;
       case "--id":
         args.id = next();
         break;
@@ -79,7 +94,8 @@ function parseArgs(argv: string[]): Args {
     }
   }
   if (!args.help && !args.name) throw new Error("a module name is required");
-  if (!args.help && !args.engine) throw new Error("--engine is required");
+  if (!args.help && args.supplement !== undefined && (args.engine || args.ts)) throw new Error("--supplement does not take --engine or --ts (a supplement uses its module's dice)");
+  if (!args.help && !args.engine && args.supplement === undefined) throw new Error("--engine is required (or --supplement <module id>)");
   return args;
 }
 
@@ -109,11 +125,15 @@ function main(): number {
   }
   const cwd = process.env.INIT_CWD ?? process.cwd();
   const id = args.id ?? slugify(args.name!);
-  const opts = { name: args.name!, engine: args.engine!, id, ...(args.author ? { author: args.author } : {}), year: new Date().getFullYear() };
+  const opts = { name: args.name!, engine: args.engine ?? "d20", id, ...(args.author ? { author: args.author } : {}), year: new Date().getFullYear() };
   let files: Record<string, string>;
   let out: string;
   try {
-    if (args.ts) {
+    if (args.supplement !== undefined) {
+      out = resolve(cwd, args.out ?? `${id}-supplement`);
+      const sup = scaffoldSupplement({ name: args.name!, base: args.supplement, id, ...(args.list ? { list: args.list } : {}), ...(args.author ? { author: args.author } : {}), year: opts.year });
+      files = { "supplement.json": `${JSON.stringify(sup, null, 2)}\n` };
+    } else if (args.ts) {
       const root = repoRoot(cwd);
       out = resolve(cwd, args.out ?? (root ? join(root, "packages", `module-${id}`) : `module-${id}`));
       const base = root && existsSync(join(root, "tsconfig.base.json")) ? relative(out, join(root, "tsconfig.base.json")).split("\\").join("/") : undefined;
@@ -139,7 +159,12 @@ function main(): number {
   }
   const shown = relative(cwd, out) || ".";
   console.log("");
-  if (args.ts) {
+  if (args.supplement !== undefined) {
+    console.log("Next:");
+    console.log(`  pnpm module-check ${join(shown, "supplement.json")}`);
+    console.log("  then import it in the app: campaign list → Game modules… → Import data pack or supplement…");
+    console.log("  (a supplement with content you have no right to share stays private: see docs/modules/supplements.md)");
+  } else if (args.ts) {
     console.log("Next:");
     console.log("  pnpm install                      # link the new package");
     console.log(`  pnpm module-check ${shown}`);

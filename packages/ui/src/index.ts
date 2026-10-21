@@ -14,7 +14,7 @@ export { valuePathOf, labelFromPath, humanize, newId, cx } from "./sheet/paths";
 // Widgets
 export { registerWidget, getWidget, hasWidget, widgetKinds } from "./widgets/registry";
 export { registerDefaultWidgets } from "./widgets/defaults";
-export { type WidgetProps, type WidgetComponent, type Option, resolveOptions, referenceItems } from "./widgets/types";
+export { type WidgetProps, type WidgetComponent, type Option, resolveOptions, referenceItems, filterOptions, looseKey } from "./widgets/types";
 export { TextField, TextAreaField } from "./widgets/text";
 export { NumberField, AttributeField, CheckboxField } from "./widgets/number";
 export { SelectField, MultiSelectField, TagsField } from "./widgets/choice";
@@ -114,7 +114,7 @@ export { textWidth, ellipsize, wrapText, winAnsiBytes, MAP_FONT } from "./map/te
 
 // Primitives
 export { Button, IconButton, type ButtonProps, type IconButtonProps, type ButtonVariant, type ButtonSize } from "./primitives/Button";
-export { Badge, type BadgeProps, type BadgeTone } from "./primitives/Badge";
+export { Badge, SourceBadge, type BadgeProps, type BadgeTone } from "./primitives/Badge";
 export { Card, type CardProps } from "./primitives/Card";
 export { Pips, type PipsProps } from "./primitives/Pips";
 export { HealthBar, type HealthBarProps } from "./primitives/HealthBar";

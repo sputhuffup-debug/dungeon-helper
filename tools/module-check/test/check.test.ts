@@ -101,3 +101,44 @@ describe("module-check", () => {
     expect((JSON.parse(json.stdout) as Array<{ ok: boolean }>)[0]!.ok).toBe(true);
   });
 });
+
+describe("module-check on supplements", () => {
+  const supplementFile = join(root, "packages/module-example/packs/example-supplement/supplement.json");
+  function supplementCopy(name: string, edit: (s: Record<string, any>) => void): string {
+    const s = JSON.parse(readFileSync(supplementFile, "utf8")) as Record<string, any>;
+    edit(s);
+    const file = join(tmp, `${name}.supplement.json`);
+    writeFileSync(file, JSON.stringify(s, null, 2));
+    return file;
+  }
+
+  it("checks a supplement against the module it extends, by file and by its repository id", async () => {
+    for (const target of [supplementFile, "deep-roads"]) {
+      const r = await checkTarget(target, { seeds: 10, determinismSeeds: 3 });
+      expect(r.issues.map(formatCheckIssue)).toEqual([]);
+      expect(r).toMatchObject({ ok: true, kind: "supplement", moduleId: "deep-roads", base: "example-pack 0.1.0", stages: ["pack", "conformance", "lint", "determinism"] });
+    }
+    expect(formatReport(await checkTarget(supplementFile, { seeds: 5, determinismSeeds: 2 }))).toMatch(/^module-check: Deep Roads \(example supplement\) \(deep-roads 0\.1\.0\), supplement for example-pack 0\.1\.0/);
+  });
+
+  it("reports a missing list, a lint problem and an unknown base module", async () => {
+    const bad = await checkTarget(
+      supplementCopy("bad", (s) => {
+        s.referenceItems["example-pack.monsters"] = [{ id: "deep-roads.x", name: "X" }];
+      }),
+      { seeds: 5 },
+    );
+    expect(bad.ok).toBe(false);
+    expect(bad.issues.map(formatCheckIssue)[0]).toMatch(/^error   \[pack\] \$\.referenceItems\["example-pack\.monsters"\]: "example-pack" has no reference list/);
+    const lint = await checkTarget(supplementCopy("lint", (s) => (s.tables[0].family = "camp")), { seeds: 5 });
+    expect(lint.issues.map(formatCheckIssue)).toEqual(['error   [lint] $.tables[0] (deep-roads.waystone.found): family "camp" does not match the id segment "waystone"']);
+    const orphan = await checkTarget(supplementCopy("orphan", (s) => (s.manifest.extends.module = "sky-pirates")), { seeds: 5 });
+    expect(orphan.issues.map((i) => i.message)).toEqual([expect.stringMatching(/the base module "sky-pirates" is not built in .* pass its pack or module with --base <target>/)]);
+    // --base points at the module's pack
+    const withBase = await checkTarget(
+      supplementCopy("based", (s) => (s.manifest.extends.module = "example-pack")),
+      { seeds: 5, determinismSeeds: 2, base: join(packDir, "pack.json") },
+    );
+    expect(withBase.ok).toBe(true);
+  });
+});

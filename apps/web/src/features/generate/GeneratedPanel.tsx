@@ -23,6 +23,7 @@ export function GeneratedPanel({ entity }: { entity: Entity }) {
       subtitle={
         <>
           {procedure?.name ?? run.procedure} <PageRef page={procedure?.page} /> · seed <span className="cf-mono">{run.seed}</span> · {formatDateTime(run.created)} · module {run.moduleId} {run.moduleVersion}
+          {run.supplements && run.supplements.length > 0 ? ` + ${run.supplements.map((s) => `${s.id} ${s.version}`).join(", ")}` : ""}
         </>
       }
       actions={

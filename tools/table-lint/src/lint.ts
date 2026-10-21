@@ -128,7 +128,7 @@ export function countSentences(text: string): number {
     .filter((s) => s.length > 0).length;
 }
 
-function checkTable(table: RollTable, moduleId: string, c: Issues): void {
+function checkTable(table: RollTable, moduleId: string, c: Issues, supplementIds: string[] = []): void {
   const where = `table:${table.id}`;
   // Rule 2: every table cites its source, by page or by section, unless the module author wrote it.
   if (table.page === undefined && table.cite === undefined && table.original !== true) c.error(where, "table cites no source: give it a page, a cite, or mark it original");
@@ -137,7 +137,8 @@ function checkTable(table: RollTable, moduleId: string, c: Issues): void {
   if (segments.length < 3 || segments.some((s) => s.length === 0)) {
     c.error(where, `table id does not follow "<moduleId>.<family>.<name>"`);
   } else {
-    if (segments[0] !== moduleId) c.error(where, `table id does not start with the module id "${moduleId}"`);
+    // A supplement's tables start with the supplement's id instead (they were merged into the module).
+    if (segments[0] !== moduleId && !supplementIds.includes(segments[0]!)) c.error(where, `table id does not start with the module id "${moduleId}"`);
     const idFamily = segments[1];
     if (table.family === undefined) c.warn(where, `table declares no family (id suggests "${idFamily}")`);
     else if (table.family !== idFamily) c.error(where, `family "${table.family}" does not match the id segment "${idFamily}"`);
@@ -267,9 +268,17 @@ export function lintModule(module: GameModule, opts: LintOptions = {}): LintRepo
   const c = new Issues();
   const moduleId = module.manifest?.id ?? "";
 
-  for (const t of module.tables) checkTable(t, moduleId, c);
+  const supplements = module.manifest?.supplements ?? [];
+  const supplementIds = supplements.map((s) => s.id);
+  for (const t of module.tables) checkTable(t, moduleId, c, supplementIds);
   // Openly licensed text (e.g. an SRD under CC-BY-4.0) may be used as written, so its rule cards are not checked for book prose.
-  if (!hasOpenLicense(module)) for (const r of module.rules) checkRule(r, { maxSummaryChars, maxSummarySentences }, c);
+  // A supplement's cards follow the supplement's own licence.
+  const open = hasOpenLicense(module);
+  for (const r of module.rules) {
+    const from = supplements.find((s) => r.id.startsWith(`${s.id}.`));
+    const isOpen = from ? typeof from.license?.spdx === "string" && OPEN_TEXT_LICENSES.test(from.license.spdx.trim()) : open;
+    if (!isOpen) checkRule(r, { maxSummaryChars, maxSummarySentences }, c);
+  }
   const presetIds = new Set(module.presets.map((p) => p.id));
   for (const p of module.presets) checkPreset(p, module, presetIds, c);
   checkWithinCycles(module.presets, c);

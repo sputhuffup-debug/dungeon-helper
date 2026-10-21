@@ -15,7 +15,7 @@ import Ajv, { type ErrorObject, type ValidateFunction } from "ajv";
 import { createDiceEngine } from "../engines";
 import { logicIssues } from "../logic";
 import type { JsonLogicRule } from "../types";
-import { MODULE_PACK_PART_SCHEMA, MODULE_PACK_SCHEMA } from "./schema";
+import { MODULE_PACK_PART_SCHEMA, MODULE_PACK_SCHEMA, MODULE_SUPPLEMENT_SCHEMA } from "./schema";
 import { PACK_COLLECTIONS, PACK_FORMAT, PACK_PART_FORMAT, type ModulePack, type ModulePackPart, type PackCollections } from "./types";
 
 export type PackIssueSource = "json" | "limits" | "schema" | "pack" | "conformance" | "lint" | "determinism";
@@ -83,6 +83,13 @@ function pointerSegments(pointer: string): Array<string | number> {
 
 /** The id of the collection item a path points into (e.g. tables[3] -> its id). */
 function itemAt(doc: unknown, segments: ReadonlyArray<string | number>): string | undefined {
+  // a supplement's items for a base list: referenceItems[<list id>][i]
+  if (segments[0] === "referenceItems" && typeof segments[1] === "string" && typeof segments[2] === "number") {
+    const lists = (doc as { referenceItems?: Record<string, unknown> } | undefined)?.referenceItems;
+    const items = lists?.[segments[1]];
+    const item = Array.isArray(items) ? (items[segments[2]] as Record<string, unknown> | undefined) : undefined;
+    return typeof item?.id === "string" ? item.id : undefined;
+  }
   const [collection, index] = segments;
   if (typeof collection !== "string" || typeof index !== "number" || !(PACK_COLLECTIONS as readonly string[]).includes(collection)) return undefined;
   const list = (doc as Record<string, unknown> | undefined)?.[collection];
@@ -161,7 +168,15 @@ function schemaValidators(): { pack: ValidateFunction; part: ValidateFunction } 
   return validators;
 }
 
-function schemaIssues(doc: unknown, errors: ErrorObject[] | null | undefined): PackIssue[] {
+let supplementValidator: ValidateFunction | undefined;
+/** The compiled supplement schema (see `supplement.ts`). */
+export function supplementSchemaValidator(): ValidateFunction {
+  if (!supplementValidator) supplementValidator = new Ajv({ allErrors: true, strict: false }).compile(MODULE_SUPPLEMENT_SCHEMA);
+  return supplementValidator;
+}
+
+/** Schema errors as pack issues (shared with the supplement validator). */
+export function schemaIssues(doc: unknown, errors: ErrorObject[] | null | undefined): PackIssue[] {
   const out: PackIssue[] = [];
   const seen = new Set<string>();
   for (const e of errors ?? []) {
@@ -225,7 +240,7 @@ export function unsafeSchemaIssues(schema: unknown): Array<{ segments: Array<str
 
 const PATH_SEGMENT_FORBIDDEN = /(^|\.)(__proto__|constructor|prototype)(\.|$)/;
 
-interface Walker {
+export interface Walker {
   error(segments: Array<string | number>, message: string): void;
   warn(segments: Array<string | number>, message: string): void;
 }
@@ -244,8 +259,8 @@ function asList(v: unknown): Array<Record<string, unknown>> {
   return Array.isArray(v) ? (v.filter((x) => x && typeof x === "object") as Array<Record<string, unknown>>) : [];
 }
 
-/** Namespacing, JSONLogic and embedded-schema checks over the collections of a pack or part. */
-function semanticChecks(doc: PackCollections & Record<string, unknown>, packId: string, w: Walker): void {
+/** Namespacing, JSONLogic and embedded-schema checks over the collections of a pack, a part or a supplement. */
+export function semanticChecks(doc: PackCollections & Record<string, unknown>, packId: string, w: Walker): void {
   const prefix = `${packId}.`;
   const ns = (id: unknown, segments: Array<string | number>, what: string) => {
     if (typeof id === "string" && !id.startsWith(prefix)) w.error(segments, `${what} id "${id}" must start with "${prefix}" (ids are namespaced by the pack id)`);
@@ -319,7 +334,7 @@ function semanticChecks(doc: PackCollections & Record<string, unknown>, packId: 
   });
 }
 
-function walkerFor(issues: PackIssue[], doc: unknown, source: PackIssueSource = "pack"): Walker {
+export function walkerFor(issues: PackIssue[], doc: unknown, source: PackIssueSource = "pack"): Walker {
   const push = (severity: PackIssue["severity"], segments: Array<string | number>, message: string) => {
     const issue: PackIssue = { severity, path: jsonPath(segments), message, source };
     const item = itemAt(doc, segments);
@@ -329,7 +344,8 @@ function walkerFor(issues: PackIssue[], doc: unknown, source: PackIssueSource = 
   return { error: (s, m) => push("error", s, m), warn: (s, m) => push("warning", s, m) };
 }
 
-function finish<T>(issues: PackIssue[], value: T): PackValidation<T> {
+/** ok when no issue is an error; the value only when ok. */
+export function finishValidation<T>(issues: PackIssue[], value: T): PackValidation<T> {
   const ok = !issues.some((i) => i.severity === "error");
   return ok ? { ok, issues, value } : { ok, issues };
 }
@@ -360,7 +376,7 @@ export function validatePack(input: unknown): PackValidation<ModulePack> {
     w.error(["dice"], (e as Error).message);
   }
   if (!p.manifest.modes.some((m) => m.id === p.manifest.defaultMode)) w.error(["manifest", "defaultMode"], `"${p.manifest.defaultMode}" is not one of the declared modes`);
-  return finish(issues, p);
+  return finishValidation(issues, p);
 }
 
 /** Validate one part of a split pack. */
@@ -376,7 +392,7 @@ export function validatePackPart(input: unknown, expectedPack?: string): PackVal
   if (expectedPack !== undefined && p.pack !== expectedPack) return { ok: false, issues: [{ severity: "error", path: "$.pack", message: `part belongs to pack "${p.pack}", not "${expectedPack}"`, source: "pack" }] };
   const issues: PackIssue[] = [];
   semanticChecks(p as unknown as PackCollections & Record<string, unknown>, p.pack, walkerFor(issues, p));
-  return finish(issues, p);
+  return finishValidation(issues, p);
 }
 
 /**

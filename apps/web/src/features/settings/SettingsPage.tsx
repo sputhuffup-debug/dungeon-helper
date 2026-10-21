@@ -10,7 +10,7 @@ import { deleteCampaign, exportCampaignBundle, exportCampaignJSON, importBundleI
 import { useCampaign, useList, useMeta } from "../../state/hooks";
 import { pushToast } from "../../components/ui";
 import { ChecklistSettings } from "./ChecklistSettings";
-import { moduleEntry } from "../../modules/registry";
+import { moduleEntry, supplementMeta, supplementProblems } from "../../modules/registry";
 import { ModuleLicenseView, safeHttpUrl } from "../modules/ModuleLicense";
 
 export function SettingsPage() {
@@ -156,8 +156,10 @@ export function SettingsPage() {
                 const file = e.target.files?.[0];
                 if (!file) return;
                 void run("Import", async () => {
-                  const { records } = await importBundleIntoCampaign(ctx, new Uint8Array(await file.arrayBuffer()));
+                  const { records, installedSupplements, skippedSupplements } = await importBundleIntoCampaign(ctx, new Uint8Array(await file.arrayBuffer()));
                   pushToast(`Imported ${records} records`, { tone: "success" });
+                  if (installedSupplements) pushToast(`Installed from the bundle: ${installedSupplements.join(", ")}. Reopen the campaign to use them.`, { tone: "success", timeout: 8000 });
+                  if (skippedSupplements) pushToast(`Supplements not installed: ${skippedSupplements.join("; ")}`, { tone: "warning", timeout: 10000 });
                 }).finally(() => {
                   if (fileRef.current) fileRef.current.value = "";
                 });
@@ -221,6 +223,8 @@ export function SettingsPage() {
         </div>
       </Card>
 
+      <SupplementsCard />
+
       <Card title="Danger zone">
         <Button variant="danger" onClick={() => setConfirmDelete(true)}>
           Delete campaign
@@ -262,5 +266,48 @@ export function SettingsPage() {
         <p>Everything stored for this campaign on this device is removed. Export a bundle first if you want a backup.</p>
       </ConfirmDialog>
     </div>
+  );
+}
+
+/** The supplements merged into this campaign's module, and any installed one that was left out. */
+function SupplementsCard() {
+  const ctx = useCampaign();
+  const manifest = ctx.module.manifest;
+  const active = manifest.supplements ?? [];
+  const left = supplementProblems(manifest.id);
+  return (
+    <Card title="Supplements" subtitle={active.length > 0 ? `${active.length} active for ${manifest.name}` : undefined}>
+      <div className="app-stack" data-testid="supplements-info">
+        {active.length === 0 && left.length === 0 && <p className="cf-muted">No supplements extend this module on this device.</p>}
+        {active.length > 0 && (
+          <ul className="app-modules">
+            {active.map((s) => {
+              const meta = supplementMeta(s.id);
+              return (
+                <li key={s.id} className="app-module app-module--supplement" data-testid={`active-supplement-${s.id}`}>
+                  <div className="app-module__head">
+                    <strong>{s.name}</strong>
+                    <span className="cf-mono cf-muted">{s.version}</span>
+                    <Badge>Supplement</Badge>
+                  </div>
+                  {meta?.description && <p className="app-module__meta">{meta.description}</p>}
+                  <p className="app-module__notice">{s.licenseNotice}</p>
+                  {s.license && <ModuleLicenseView license={s.license} testId={`supplement-attribution-${s.id}`} />}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        {left.map((p) => (
+          <p key={p.id} className="app-note app-note--warning" data-testid={`supplement-left-out-${p.id}`}>
+            {supplementMeta(p.id)?.name ?? p.id} is installed but was left out: {p.issues[0]?.message ?? "it did not fit the module"}
+          </p>
+        ))}
+        <p className="cf-muted">
+          Installed supplements apply to every campaign that uses {manifest.name} on this device, and travel with an exported bundle. Add or remove them under Game modules on the campaign list.
+          Generated content records the supplements that were active.
+        </p>
+      </div>
+    </Card>
   );
 }

@@ -129,6 +129,8 @@ export function runProcedure(
     produced: { entities: [...produced.entities], relationships: [...produced.relationships] },
     skipped,
   };
+  const supplements = module.manifest.supplements;
+  if (supplements && supplements.length > 0) graph.supplements = supplements.map((s) => ({ id: s.id, version: s.version }));
   const display = stepDisplays(procedure, ctx);
   if (display) graph.display = display;
   return graph;

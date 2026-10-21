@@ -314,6 +314,77 @@
       ],
       "additionalProperties": false
     },
+    "supplementManifest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{1,47}$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+"
+        },
+        "extends": {
+          "type": "object",
+          "properties": {
+            "module": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{1,47}$",
+              "description": "The id of the module the supplement adds to."
+            },
+            "version": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100,
+              "description": "A semver range of base module versions, e.g. \"^0.1.0\"."
+            }
+          },
+          "required": [
+            "module"
+          ],
+          "additionalProperties": false
+        },
+        "licenseNotice": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "license": {
+          "$ref": "#/definitions/license"
+        },
+        "authors": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "dataStatus": {
+          "enum": [
+            "unverified",
+            "partially-verified",
+            "verified"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "version",
+        "extends",
+        "licenseNotice"
+      ],
+      "additionalProperties": false
+    },
     "d20": {
       "type": "object",
       "properties": {
@@ -1288,6 +1359,16 @@
         },
         "summary": {
           "type": "string"
+        },
+        "edition": {
+          "type": "string",
+          "maxLength": 40,
+          "description": "A ruleset or edition label shown next to the item, e.g. \"2024\"."
+        },
+        "source": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "Set by the loader on items a supplement added (the supplement's name)."
         }
       },
       "description": "Any other properties are the item's own data (e.g. the attribute a skill uses)."

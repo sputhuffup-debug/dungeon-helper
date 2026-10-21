@@ -6,6 +6,9 @@
  */
 import {
   CONTRACT_VERSION,
+  SUPPLEMENT_FORMAT,
+  SUPPLEMENT_FORMAT_VERSION,
+  type ModuleSupplement,
   PACK_FORMAT,
   PACK_FORMAT_VERSION,
   PACK_ID_PATTERN,
@@ -504,4 +507,110 @@ describe("${o.name}", () => {
     "src/index.ts": index,
     "test/module.test.ts": test,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Supplements
+// ---------------------------------------------------------------------------
+
+/** For the built-in modules: a list a starter supplement adds one item to (`--list` picks another). */
+export const SUPPLEMENT_STARTER_LISTS: Record<string, string> = {
+  "dnd5e-srd": "dnd5e-srd.backgrounds",
+  "pf2e-orc": "pf2e-orc.backgrounds",
+  "example-pack": "example-pack.backgrounds",
+};
+
+export interface ScaffoldSupplementOptions {
+  /** Display name, e.g. "Harbour Homebrew". */
+  name: string;
+  /** The module it extends, e.g. "dnd5e-srd". */
+  base: string;
+  /** Supplement id (default: the name, slugified). */
+  id?: string;
+  /** A semver range of base versions (default "*": any). */
+  baseVersion?: string;
+  /** A reference list of the base module to add a starter item to (default: SUPPLEMENT_STARTER_LISTS[base], if any). */
+  list?: string;
+  author?: string;
+  year?: number;
+}
+
+/** Problems with a supplement id, or an empty list. */
+export function supplementIdProblems(id: string, base: string): string[] {
+  const out: string[] = [];
+  if (!new RegExp(PACK_ID_PATTERN).test(id)) out.push(`"${id}" is not a valid supplement id: lower-case letters, digits and hyphens, starting with a letter, 2-48 characters`);
+  if (RESERVED_IDS.includes(id)) out.push(`"${id}" is the id of a module built into the app`);
+  if (id === base) out.push(`a supplement's id cannot be the id of the module it extends`);
+  if (!new RegExp(PACK_ID_PATTERN).test(base)) out.push(`"${base}" is not a module id`);
+  return out;
+}
+
+/**
+ * A starter supplement for `base`: one item for one of the module's lists
+ * (when a list is known), a new list of its own, a rule card and a table, all
+ * original and namespaced. It passes `pnpm module-check` against the base as
+ * written.
+ */
+export function scaffoldSupplement(opts: ScaffoldSupplementOptions): ModuleSupplement {
+  const id = opts.id ?? slugify(opts.name);
+  const problems = supplementIdProblems(id, opts.base);
+  if (problems.length > 0) throw new Error(problems.join("; "));
+  const author = opts.author ?? "The supplement's author";
+  const year = opts.year ?? 2026;
+  const list = opts.list ?? SUPPLEMENT_STARTER_LISTS[opts.base];
+  const supplement: ModuleSupplement = {
+    $schema: "https://campaign-forge.dev/schema/module-supplement.schema.json",
+    format: SUPPLEMENT_FORMAT,
+    formatVersion: SUPPLEMENT_FORMAT_VERSION,
+    manifest: {
+      id,
+      name: opts.name,
+      version: "0.1.0",
+      extends: { module: opts.base, version: opts.baseVersion ?? "*" },
+      licenseNotice: `${opts.name} © ${year} ${author}. Private: for personal use only.`,
+      authors: [author],
+      description: `House options for ${opts.base}.`,
+      dataStatus: "unverified",
+    },
+  };
+  if (list) {
+    supplement.referenceItems = {
+      [list]: [
+        {
+          id: `${id}.starter-item`,
+          name: "Starter item",
+          summary: "Replace this with your own entry, in your own words.",
+          description: "Every key besides id and name is the item's own data; the reference browser shows them all, and long text renders as Markdown.",
+        },
+      ],
+    };
+  }
+  supplement.referenceLists = [
+    {
+      id: `${id}.house-notes`,
+      name: "House notes",
+      original: true,
+      columns: ["topic"],
+      items: [{ id: "first", name: "First note", topic: "Setting", summary: "A list of your own: anything the module does not already have." }],
+    },
+  ];
+  supplement.rules = [
+    { id: `${id}.rule.house`, title: "A house rule", summary: "Say what changes at your table, in one short paragraph.", original: true, tags: ["homebrew"] },
+  ];
+  supplement.tables = [
+    {
+      id: `${id}.rumour.tavern`,
+      name: "Tavern rumours",
+      family: "rumour",
+      original: true,
+      dice: "1d4",
+      rows: [
+        { range: [1, 1], label: "A stranger paid in old coin.", result: { rumour: "A stranger paid in old coin." } },
+        { range: [2, 2], label: "The well water tastes of iron.", result: { rumour: "The well water tastes of iron." } },
+        { range: [3, 3], label: "Someone saw lights on the hill.", result: { rumour: "Someone saw lights on the hill." } },
+        { range: [4, 4], label: "The miller is selling up.", result: { rumour: "The miller is selling up." } },
+      ],
+    },
+  ];
+  return supplement;
 }

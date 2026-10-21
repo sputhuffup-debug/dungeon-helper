@@ -38,14 +38,14 @@ A field: `{ path, label?, widget?, rule?, mode?, readonly?, span?, options?, ent
 
 - `path` is dotted (`abilities.might`); `skills.*` means the object at `skills`; `gear[].name` an item of a list.
 - `rule` links a rule card id (a "?" button opens it).
-- `options` for selects: a list (must match the schema `enum`) or `{ "ref": "<reference list id>" }`.
+- `options` for selects: a list (must match the schema `enum`) or `{ "ref": "<reference list id>" }`. On a `text` field, `options` turns it into free text with suggestions: as you type it offers the list's item names (items a supplement added included, labelled with their source and edition), and any other text is still accepted. `config.optionsFilter: { "field": "<sibling path>", "key": "<item key>" }` narrows the suggestions to items whose `key` matches the sibling field's value (case, punctuation and an id's `<namespace>.` prefix are ignored; with the sibling empty, or nothing matching, every item is offered). The fifth edition PC sheet uses it for subclasses (`{ "field": "class", "key": "class" }`) and subraces.
 - `mode` limits the field (or section) to play modes.
 
 ## Widgets
 
 | Widget | For | `config` |
 |---|---|---|
-| `text`, `textarea`, `richtext` | strings | `placeholder`, `rows`, `maxLength` |
+| `text`, `textarea`, `richtext` | strings | `placeholder`, `rows`, `maxLength`; `text` with `options`: `optionsFilter` |
 | `number`, `skill` | numbers | `min`, `max`, `step` (else the schema's `minimum`/`maximum`) |
 | `attribute` | a big number with steppers | as `number` |
 | `checkbox` | booleans | `text` |

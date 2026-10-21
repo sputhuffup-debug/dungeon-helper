@@ -23,7 +23,7 @@ export function SelectField({ id, value, onChange, readonly, invalid, field, sch
       {!current && str !== "" && <option value={str}>{str}</option>}
       {options.map((o) => (
         <option key={o.value} value={o.value}>
-          {o.label}
+          {o.item?.source ? `${o.label} (${o.item.source})` : o.label}
         </option>
       ))}
     </select>
