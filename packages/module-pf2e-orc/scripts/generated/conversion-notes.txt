@@ -1,0 +1,208 @@
+# Conversion notes for pf2e-orc
+
+## Entries kept (ORC licence, remastered, from Player Core, Player Core 2, GM Core or Monster Core)
+actions: 166
+adventure-specific-actions: 20
+ancestries: 16
+ancestry-features: 10
+backgrounds: 63
+bestiary-ability-glossary-srd: 44
+bestiary-family-ability-glossary: 60
+class-features: 341
+classes: 16
+conditions: 43
+equipment: 1266
+familiar-abilities: 55
+feats: 1817
+hazards: 32
+heritages: 106
+pathfinder-bestiary: 0
+pathfinder-monster-core: 492
+season-of-ghosts-bestiary: 0
+spells: 663
+the-dead-gods-hand-bestiary: 0
+vehicles: 23
+
+## Entries excluded by publication
+Folders never read (setting or adventure material, or no licence data): deities, journals, rollable-tables, iconics, paizo-pregens, criticaldeck.
+actions: 325 × ORC, but not from Player Core, Player Core 2, GM Core or Monster Core
+actions: 92 × licence OGL (not ORC)
+adventure-specific-actions: 45 × ORC, but not from Player Core, Player Core 2, GM Core or Monster Core
+adventure-specific-actions: 143 × licence OGL (not ORC)
+ancestries: 18 × ORC, but not from Player Core, Player Core 2, GM Core or Monster Core
+ancestries: 17 × licence OGL (not ORC)
+ancestry-features: 19 × ORC, but not from Player Core, Player Core 2, GM Core or Monster Core
+ancestry-features: 26 × licence OGL (not ORC)
+backgrounds: 189 × ORC, but not from Player Core, Player Core 2, GM Core or Monster Core
+backgrounds: 288 × licence OGL (not ORC)
+bestiary-ability-glossary-srd: 3 × ORC, but not from Player Core, Player Core 2, GM Core or Monster Core
+bestiary-ability-glossary-srd: 8 × licence OGL (not ORC)
+bestiary-family-ability-glossary: 244 × ORC, but not from Player Core, Player Core 2, GM Core or Monster Core
+bestiary-family-ability-glossary: 183 × licence OGL (not ORC)
+class-features: 444 × ORC, but not from Player Core, Player Core 2, GM Core or Monster Core
+class-features: 96 × licence OGL (not ORC)
+classes: 12 × ORC, but not from Player Core, Player Core 2, GM Core or Monster Core
+classes: 1 × licence OGL (not ORC)
+equipment: 2951 × ORC, but not from Player Core, Player Core 2, GM Core or Monster Core
+equipment: 1733 × licence OGL (not ORC)
+equipment: 1 × not remastered
+familiar-abilities: 28 × ORC, but not from Player Core, Player Core 2, GM Core or Monster Core
+familiar-abilities: 34 × licence OGL (not ORC)
+feats: 2864 × ORC, but not from Player Core, Player Core 2, GM Core or Monster Core
+feats: 1680 × licence OGL (not ORC)
+feats: 5 × not remastered
+hazards: 3 × ORC, but not from Player Core, Player Core 2, GM Core or Monster Core
+hazards: 18 × licence OGL (not ORC)
+heritages: 114 × ORC, but not from Player Core, Player Core 2, GM Core or Monster Core
+heritages: 114 × licence OGL (not ORC)
+pathfinder-bestiary: 1 × a Player Core spell's summoned creature in an older bestiary folder (its statistics are in the spell)
+pathfinder-bestiary: 164 × licence OGL (not ORC)
+season-of-ghosts-bestiary: 3 × Monster Core-tagged copy inside an adventure bestiary (adventure material)
+season-of-ghosts-bestiary: 89 × ORC, but not from Player Core, Player Core 2, GM Core or Monster Core
+season-of-ghosts-bestiary: 4 × licence OGL (not ORC)
+spells: 824 × ORC, but not from Player Core, Player Core 2, GM Core or Monster Core
+spells: 531 × licence OGL (not ORC)
+the-dead-gods-hand-bestiary: 2 × Monster Core-tagged copy inside an adventure bestiary (adventure material)
+the-dead-gods-hand-bestiary: 38 × ORC, but not from Player Core, Player Core 2, GM Core or Monster Core
+vehicles: 63 × ORC, but not from Player Core, Player Core 2, GM Core or Monster Core
+vehicles: 14 × licence OGL (not ORC)
+total excluded: 13431
+
+## Reserved Material (denylist of 305 terms)
+Entries dropped:
+- equipment: Blackaxe (name is Reserved Material: Blackaxe)
+- equipment: Bounty's Light (unique: a named character or artifact of the setting)
+- equipment: Bronze brazier with Asmodean artwork (name is Reserved Material: Asmodean)
+- equipment: Divine art piece created by Shelyn (name is Reserved Material: Shelyn)
+- equipment: Eternal Eruption of Barrowsiege (name is Reserved Material: Barrowsiege)
+- equipment: Eternal Eruption of Blackpeak (name is Reserved Material: Blackpeak)
+- equipment: Eternal Eruption of Droskar's Crag (name is Reserved Material: Droskar)
+- equipment: Eternal Eruption of Mhar Massif (name is Reserved Material: Mhar Massif)
+- equipment: Eternal Eruption of Pale Mountain (name is Reserved Material: Pale Mountain)
+- equipment: Eternal Eruption of Sakalayo (name is Reserved Material: Sakalayo)
+- equipment: Forgefather's Seal (name is Reserved Material: Forgefather)
+- equipment: Frozen Lava of Barrowsiege (name is Reserved Material: Barrowsiege)
+- equipment: Frozen Lava of Blackpeak (name is Reserved Material: Blackpeak)
+- equipment: Frozen Lava of Droskar's Crag (name is Reserved Material: Droskar)
+- equipment: Frozen Lava of Mhar Massif (name is Reserved Material: Mhar Massif)
+- equipment: Frozen Lava of Pale Mountain (name is Reserved Material: Pale Mountain)
+- equipment: Frozen Lava of Sakalayo (name is Reserved Material: Sakalayo)
+- equipment: Leather flagon with Caydenite symbol (name is Reserved Material: Caydenite)
+- equipment: Mirror of Sorshen (name is Reserved Material: Sorshen)
+- equipment: Serithtial (name is Reserved Material: Serithtial)
+- equipment: Shot of the First Vault (name is Reserved Material: First Vault)
+- equipment: Tankard owned by Cayden Cailean (name is Reserved Material: Cayden Cailean)
+- equipment: Tengu Feather Fan (unique: a named character or artifact of the setting)
+- feats: Boneyard's Call (name is Reserved Material: Boneyard)
+- feats: First World Adept (name is Reserved Material: First World)
+- feats: First World Magic (name is Reserved Material: First World)
+- pathfinder-monster-core: Grim Reaper (unique: a named character or artifact of the setting)
+- pathfinder-monster-core: Treerazer (name is Reserved Material: Treerazer)
+Sentences, list items or table rows removed, by term:
+- Abadar: 4
+- Absalom: 5
+- Achaekek: 2
+- Alabaster Academy: 1
+- Alseta: 1
+- Apocalypse Riders: 4
+- Apollyon: 1
+- Arcanamirium: 1
+- Asmodeus: 12
+- Avernus: 1
+- Avistan: 5
+- Azlanti: 2
+- Besmara: 1
+- Bleaching: 8
+- Calistria: 4
+- Cayden Cailean: 2
+- Cheliax: 1
+- Convergence: 14
+- Desna: 6
+- Diomazul: 1
+- Dis: 1
+- Dominion of the Black: 9
+- Dominion: 5
+- Droskar: 11
+- Earthfall: 1
+- Eldest: 7
+- Elucredassa: 1
+- Erastil: 5
+- Farseer Tower: 1
+- Garundi: 2
+- Geb: 1
+- Gogunta: 1
+- Gorum: 2
+- Gozreh: 2
+- Gozren: 1
+- Haagenti: 3
+- Hei Feng: 1
+- Horseman: 2
+- Horsemen: 1
+- Iblydos: 1
+- Inner Sea: 1
+- Iomedae: 3
+- Irori: 6
+- Irrisen: 1
+- Jalmeri: 1
+- Jistka: 1
+- Katapesh: 1
+- Kwanlai: 1
+- Lamashtu: 3
+- Magdh: 2
+- Monad: 2
+- Nessus: 2
+- Nethys: 1
+- Nivi Rhombodazzle: 4
+- Norgorber: 1
+- Occularium: 1
+- Old Mother: 1
+- PFS: 1
+- Paizo: 1
+- Pathfinder: 12
+- Pazuzu: 1
+- Pharasma: 35
+- Port Peril: 1
+- Rage of Elements: 5
+- Ravithra: 3
+- Red Mantis: 1
+- Rifts: 1
+- Rovagug: 2
+- Runelord: 7
+- Sable Company: 1
+- Sarenrae: 2
+- Sekamina: 6
+- Shelyn: 4
+- Shuyookhs: 5
+- Skinsaw: 1
+- Stygia: 1
+- Supell: 1
+- Thuvia: 1
+- Tian Xia: 6
+- Tian: 1
+- Torag: 7
+- Treerazer: 2
+- Urgathoa: 2
+- Witchmarket: 1
+- Ydersius: 13
+- Zon-Kuthon: 1
+Rewritten to a generic phrase, by term:
+- Abaddon: 15
+- Axis: 12
+- Boneyard: 37
+- Creation's Forge: 2
+- Darklands: 67
+- First World: 23
+- Golarion: 38
+- Inner Sphere: 1
+- Maelstrom: 7
+- Netherworld: 17
+- Outer Rifts: 42
+- Outer Sphere: 9
+- River of Souls: 17
+- Universe: 41
+
+## Text conversion
+- Foundry usage note removed: 19
+- damage formula scaling with level, written as text: 44
+- link without a label to an entry by id: dropped: 6
+- parenthesized formula with @actor/@item removed: 1

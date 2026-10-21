@@ -66,7 +66,7 @@ Only `format`, `formatVersion`, `manifest` and `dice` are required; every collec
 
 ## Ids
 
-- `manifest.id` is lower case letters, digits and hyphens (`^[a-z][a-z0-9-]{1,47}$`). It may not be the id of a module built into the app (`alien`, `example`, `example-pack`, `dnd5e-srd`).
+- `manifest.id` is lower case letters, digits and hyphens (`^[a-z][a-z0-9-]{1,47}$`). It may not be the id of a module built into the app (`alien`, `example`, `example-pack`, `dnd5e-srd`, `pf2e-orc`).
 - **Every other id starts with the pack id and a dot**: `sky-pirates.pirate`, `sky-pirates.weather.today`, `sky-pirates.rule.nerve`. This keeps a pack from colliding with or shadowing anything else. Session checklist item ids follow the same rule (`sky-pirates.prep.recap`).
 - Tables follow `<pack id>.<family>.<name>` and should declare the same `family` (table-lint checks it).
 - Procedure step ids, sheet section ids, reference item ids and play mode ids are local; they need not be prefixed.

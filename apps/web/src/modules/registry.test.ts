@@ -3,8 +3,8 @@ import { clearModuleCache, listModules, loadModuleById, moduleEntry } from "./re
 
 describe("module registry", () => {
   it("hides dev-only modules unless the dev flag is on", () => {
-    expect(listModules({ dev: false }).map((m) => m.id)).toEqual(["alien", "dnd5e-srd"]);
-    expect(listModules({ dev: true }).map((m) => m.id)).toEqual(["alien", "example", "example-pack", "dnd5e-srd"]);
+    expect(listModules({ dev: false }).map((m) => m.id)).toEqual(["alien", "dnd5e-srd", "pf2e-orc"]);
+    expect(listModules({ dev: true }).map((m) => m.id)).toEqual(["alien", "example", "example-pack", "dnd5e-srd", "pf2e-orc"]);
     expect(moduleEntry("example-pack")).toMatchObject({ source: "builtin", format: "pack", dev: true });
     expect(moduleEntry("example")?.dev).toBe(true);
   });
@@ -42,6 +42,16 @@ describe("module registry", () => {
     expect(srd.manifest.license?.spdx).toBe("CC-BY-4.0");
     expect(srd.manifest.license?.attribution).toContain("System Reference Document 5.1");
     expect(srd.module.presets.length).toBe(334);
+  }, 60_000);
+
+  it("loads the ORC core rules pack with its ORC notice and attribution", async () => {
+    const orc = await loadModuleById("pf2e-orc");
+    expect(orc.report.ok).toBe(true);
+    expect(orc.manifest.license).toMatchObject({ spdx: "LicenseRef-ORC", name: "ORC License" });
+    expect(orc.manifest.license?.attribution).toContain("This product is licensed under the ORC License located at the Library of Congress at TX 9-307-067");
+    expect(orc.manifest.license?.attribution).toContain("Not affiliated with or endorsed by Paizo Inc.");
+    expect(orc.module.presets.filter((p) => p.entityType === "pf2e-orc.creature").length).toBe(490);
+    expect(moduleEntry("pf2e-orc")).toMatchObject({ source: "builtin", format: "pack", name: "Fantasy d20 Remaster (ORC)" });
   }, 60_000);
 
   it("loads the Alien module through the conformance check", async () => {

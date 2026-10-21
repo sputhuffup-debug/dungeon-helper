@@ -46,6 +46,12 @@ describe("module-check", () => {
     expect(r.issues.filter((i) => i.severity === "error")).toEqual([]);
   });
 
+  it("checks the ORC core rules pack (pf2e-orc) by id, part files and all", async () => {
+    const r = await checkTarget("pf2e-orc", { seeds: 10, determinismSeeds: 2 });
+    expect(r.issues.map(formatCheckIssue)).toEqual([]);
+    expect(r).toMatchObject({ ok: true, kind: "pack", moduleId: "pf2e-orc", stages: ["pack", "conformance", "lint", "determinism"] });
+  }, 60_000);
+
   it("stops at pack errors with JSON paths", async () => {
     const file = badCopy("schema", (p) => {
       p.tables[1].rows[0].range = [1];

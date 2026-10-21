@@ -6,7 +6,7 @@ pnpm module-check <target...> [--all] [--seeds N] [--determinism-seeds N] [--qui
 
 A target is:
 
-- a built-in module id: `alien`, `example`, `example-pack`, `dnd5e-srd` (`--all` checks every one);
+- a built-in module id: `alien`, `example`, `example-pack`, `dnd5e-srd`, `pf2e-orc` (`--all` checks every one);
 - a pack's main file (`my-pack/pack.json`); its `parts` are read from the same folder;
 - a folder with a `pack.json`;
 - a TypeScript module package folder (`packages/module-my-game`, read through its `package.json` `main`);

@@ -1,0 +1,38 @@
+{
+ "ancestryHp": {
+  "catfolk": 8,
+  "dwarf": 10,
+  "elf": 6,
+  "gnome": 8,
+  "goblin": 6,
+  "halfling": 6,
+  "hobgoblin": 8,
+  "human": 8,
+  "kholo": 8,
+  "kobold": 6,
+  "leshy": 8,
+  "lizardfolk": 8,
+  "orc": 10,
+  "ratfolk": 6,
+  "tengu": 6,
+  "tripkee": 6
+ },
+ "classHp": {
+  "alchemist": 8,
+  "barbarian": 12,
+  "bard": 8,
+  "champion": 10,
+  "cleric": 8,
+  "druid": 8,
+  "fighter": 10,
+  "investigator": 8,
+  "monk": 10,
+  "oracle": 8,
+  "ranger": 10,
+  "rogue": 8,
+  "sorcerer": 6,
+  "swashbuckler": 10,
+  "witch": 6,
+  "wizard": 6
+ }
+}

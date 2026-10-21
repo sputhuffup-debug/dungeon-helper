@@ -79,6 +79,7 @@ export const BUILTIN_TARGETS: Record<string, () => Promise<{ module?: GameModule
   example: async () => ({ module: (await import("@campaign-forge/module-example")).exampleModule }),
   "example-pack": async () => ({ source: (await import("@campaign-forge/module-example")).examplePackSource }),
   "dnd5e-srd": async () => ({ source: (await import("@campaign-forge/module-dnd5e-srd")).dnd5eSrdSource }),
+  "pf2e-orc": async () => ({ source: (await import("@campaign-forge/module-pf2e-orc")).pf2eOrcSource }),
 };
 
 function fromPackIssue(i: PackIssue, stage: CheckStage): CheckIssue {
