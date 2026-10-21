@@ -14,14 +14,20 @@
  *
  * Targets: a built-in module id, a pack's main JSON file (its parts are read
  * from the same folder), a folder holding `pack.json`, a TypeScript module
- * package folder, or a TypeScript file exporting a GameModule or PackSource.
+ * package folder, a TypeScript file exporting a GameModule or PackSource, or
+ * a supplement's JSON file. A supplement is checked against the module it
+ * extends (a built-in id, or `base` for one that is not built in): schema and
+ * namespacing, the lists and entity types it adds to, then conformance, lint
+ * and determinism over the merged module, reporting its own content only.
  */
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { basename, dirname, join, resolve } from "node:path";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import {
   checkDeterminism,
+  checkSupplement,
   conformanceToPackIssues,
+  conformanceToSupplementIssues,
   mergePackParts,
   packFromSource,
   packToModule,
@@ -29,6 +35,7 @@ import {
   PACK_FORMAT,
   PACK_PART_FORMAT,
   PackLoadError,
+  SUPPLEMENT_FORMAT,
   type ConformanceIssue,
   type GameModule,
   type ModulePack,
@@ -53,7 +60,9 @@ export interface CheckIssue {
 
 export interface ModuleCheckReport {
   target: string;
-  kind: "pack" | "ts";
+  kind: "pack" | "ts" | "supplement";
+  /** For a supplement: the module it was checked against ("id version"). */
+  base?: string;
   moduleId?: string;
   name?: string;
   version?: string;
@@ -71,6 +80,8 @@ export interface ModuleCheckOptions {
   determinismSeeds?: number;
   /** Directory relative targets resolve against (default the process cwd). */
   cwd?: string;
+  /** For a supplement whose module is not built in: that module's target (a pack file, folder or .ts file). */
+  base?: string;
 }
 
 /** Built-in modules by id. */
@@ -80,6 +91,12 @@ export const BUILTIN_TARGETS: Record<string, () => Promise<{ module?: GameModule
   "example-pack": async () => ({ source: (await import("@campaign-forge/module-example")).examplePackSource }),
   "dnd5e-srd": async () => ({ source: (await import("@campaign-forge/module-dnd5e-srd")).dnd5eSrdSource }),
   "pf2e-orc": async () => ({ source: (await import("@campaign-forge/module-pf2e-orc")).pf2eOrcSource }),
+};
+
+/** Supplements in this repository, checked with `--all` (by id -> file). */
+export const BUILTIN_SUPPLEMENT_TARGETS: Record<string, string> = {
+  "deep-roads": fileURLToPath(new URL("../../../packages/module-example/packs/example-supplement/supplement.json", import.meta.url)),
+  "thornwick-homebrew": fileURLToPath(new URL("../../../packages/module-dnd5e-srd/supplements/thornwick-homebrew.supplement.json", import.meta.url)),
 };
 
 function fromPackIssue(i: PackIssue, stage: CheckStage): CheckIssue {
@@ -119,13 +136,17 @@ export function readPackFiles(file: string): { main: unknown; parts: Array<{ nam
 }
 
 interface Resolved {
-  kind: "pack" | "ts";
+  kind: "pack" | "ts" | "supplement";
   module?: GameModule;
   pack?: ModulePack;
   issues: CheckIssue[];
+  /** A supplement's JSON, checked against its base module in `checkTarget`. */
+  supplementData?: unknown;
 }
 
 async function resolveTarget(target: string, cwd: string): Promise<Resolved> {
+  const builtinSupplement = BUILTIN_SUPPLEMENT_TARGETS[target];
+  if (builtinSupplement && !existsSync(resolve(cwd, target))) return resolveTarget(builtinSupplement, cwd);
   const builtin = BUILTIN_TARGETS[target];
   if (builtin && !existsSync(resolve(cwd, target))) {
     const got = await builtin();
@@ -152,7 +173,8 @@ function fromPackFile(file: string): Resolved {
   const read = readPackFiles(file);
   const format = (read.main as { format?: unknown } | null)?.format;
   if (format === PACK_PART_FORMAT) throw new Error(`${basename(file)} is a part of a split pack; check the pack's main file`);
-  if (format !== PACK_FORMAT) throw new Error(`${basename(file)} is not a data pack ("format" must be "${PACK_FORMAT}")`);
+  if (format === SUPPLEMENT_FORMAT) return { kind: "supplement", issues: [], supplementData: read.main };
+  if (format !== PACK_FORMAT) throw new Error(`${basename(file)} is not a data pack or a supplement ("format" must be "${PACK_FORMAT}" or "${SUPPLEMENT_FORMAT}")`);
   const merged = mergePackParts(read.main, read.parts);
   const issues = merged.issues.map((i) => fromPackIssue(i, "pack"));
   for (const name of read.missing) {
@@ -183,11 +205,59 @@ async function fromTsFile(file: string): Promise<Resolved> {
   throw new Error(`${basename(file)} exports no GameModule (an object with manifest, dice, tables, entityTypes) and no PackSource`);
 }
 
+const STAGE_OF: Record<PackIssue["source"], CheckStage> = { json: "pack", limits: "pack", schema: "pack", pack: "pack", conformance: "conformance", lint: "lint", determinism: "determinism" };
+
+/** A supplement: validated on its own, then against its base module (conformance, lint and determinism on the merge). */
+async function checkSupplementTarget(target: string, data: unknown, options: ModuleCheckOptions, started: number): Promise<ModuleCheckReport> {
+  const cwd = options.cwd ?? process.cwd();
+  const m = (data as { manifest?: { id?: unknown; name?: unknown; version?: unknown; extends?: { module?: unknown } } } | null)?.manifest;
+  const baseId = typeof m?.extends?.module === "string" ? m.extends.module : undefined;
+  const baseTarget = options.base ?? baseId;
+  const report: ModuleCheckReport = { target, kind: "supplement", ok: false, issues: [], stages: ["pack"], ms: 0 };
+  if (typeof m?.id === "string") report.moduleId = m.id;
+  if (typeof m?.name === "string") report.name = m.name;
+  if (typeof m?.version === "string") report.version = m.version;
+  const finish = () => {
+    report.ok = !report.issues.some((i) => i.severity === "error");
+    report.ms = Date.now() - started;
+    return report;
+  };
+  if (!baseTarget || (!options.base && !BUILTIN_TARGETS[baseTarget])) {
+    report.issues.push({
+      severity: "error",
+      stage: "pack",
+      where: "$.manifest.extends.module",
+      message: baseId
+        ? `the base module "${baseId}" is not built in (built-in ids: ${Object.keys(BUILTIN_TARGETS).join(", ")}); pass its pack or module with --base <target>`
+        : "the supplement names no module it extends (manifest.extends.module)",
+    });
+    return finish();
+  }
+  const base = await resolveTarget(baseTarget, cwd);
+  if (!base.module || base.issues.some((i) => i.severity === "error")) {
+    report.issues.push({ severity: "error", stage: "pack", where: "$.manifest.extends", message: `the base module ${baseTarget} does not load: ${base.issues.find((i) => i.severity === "error")?.message ?? "no module"}` });
+    return finish();
+  }
+  report.base = `${base.module.manifest.id} ${base.module.manifest.version}`;
+  const res = checkSupplement(data, base.module, { seeds: options.seeds ?? 100, determinismSeeds: options.determinismSeeds ?? 20 });
+  for (const i of res.issues) report.issues.push(fromPackIssue(i, STAGE_OF[i.source] ?? "pack"));
+  if (res.supplement && res.module) {
+    report.stages.push("conformance", "lint");
+    const hasProcedures = (res.supplement.procedures ?? []).length > 0;
+    const lint = lintModule(res.module, { seeds: options.seeds ?? 100, skipProcedureRuns: !hasProcedures });
+    const own = conformanceToSupplementIssues(res.supplement, lint.errors.concat(lint.warnings).filter((i) => i.source !== "sdk"), "lint");
+    for (const i of own) report.issues.push(fromPackIssue(i, "lint"));
+    if (hasProcedures) report.stages.push("determinism");
+  }
+  return finish();
+}
+
 /** Check one target. Throws only for targets it cannot find or read; everything else is in the report. */
 export async function checkTarget(target: string, options: ModuleCheckOptions = {}): Promise<ModuleCheckReport> {
   const started = Date.now();
   const cwd = options.cwd ?? process.cwd();
   const resolved = await resolveTarget(target, cwd);
+  if (resolved.kind === "supplement") return checkSupplementTarget(target, resolved.supplementData, options, started);
   const issues = [...resolved.issues];
   const stages: CheckStage[] = resolved.kind === "pack" ? ["pack"] : [];
   const module = resolved.module;
@@ -226,12 +296,14 @@ export function formatCheckIssue(i: CheckIssue): string {
 export function formatReport(r: ModuleCheckReport, opts: { quiet?: boolean } = {}): string {
   const lines: string[] = [];
   const title = r.name ? `${r.name} (${r.moduleId} ${r.version})` : r.target;
-  lines.push(`module-check: ${title}, ${r.kind === "pack" ? "data pack" : "TypeScript module"}, ${r.ms} ms`);
+  const kind = r.kind === "pack" ? "data pack" : r.kind === "supplement" ? `supplement${r.base ? ` for ${r.base}` : ""}` : "TypeScript module";
+  lines.push(`module-check: ${title}, ${kind}, ${r.ms} ms`);
   const errors = r.issues.filter((i) => i.severity === "error");
   const warnings = r.issues.filter((i) => i.severity === "warning");
   for (const i of errors) lines.push(`  ${formatCheckIssue(i)}`);
   if (!opts.quiet) for (const i of warnings) lines.push(`  ${formatCheckIssue(i)}`);
-  const skipped = (["pack", "conformance", "lint", "determinism"] as const).filter((s) => !r.stages.includes(s) && !(s === "pack" && r.kind === "ts"));
+  // a supplement without generators has nothing to run twice
+  const skipped = (["pack", "conformance", "lint", "determinism"] as const).filter((s) => !r.stages.includes(s) && !(s === "pack" && r.kind === "ts") && !(s === "determinism" && r.kind === "supplement" && r.ok));
   if (skipped.length > 0) lines.push(`  (not run: ${skipped.join(", ")}; fix the errors above first)`);
   lines.push(r.ok ? `  OK: no errors, ${warnings.length} warning(s)` : `  FAILED: ${errors.length} error(s), ${warnings.length} warning(s)`);
   return lines.join("\n");

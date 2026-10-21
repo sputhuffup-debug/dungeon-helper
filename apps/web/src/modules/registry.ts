@@ -12,11 +12,26 @@
  * - data packs the GM imported on this device (`source: "imported"`), read
  *   from IndexedDB (core `packStore`) and validated again on every load.
  *
+ * Supplements the GM imported (additive data for one module) are applied
+ * when that module loads: every installed supplement that extends it, checked
+ * against it again, merged in supplement id order (SDK `applySupplements`).
+ * One that no longer fits is left out and reported (`supplementProblems`);
+ * the module still loads.
+ *
  * The static manifests of built-in entries copy fields from each module's own
  * manifest; `registry.test.ts` fails if they drift.
  */
-import { deleteInstalledPack, getInstalledPack, listInstalledPacks, type InstalledPackMeta } from "@campaign-forge/core";
-import type { GameModule, LoadedModule, ModuleLicense, ModuleManifest, PackSource } from "@campaign-forge/module-sdk";
+import {
+  deleteInstalledPack,
+  deleteInstalledSupplement,
+  getInstalledPack,
+  getInstalledSupplement,
+  listInstalledPacks,
+  listInstalledSupplements,
+  type InstalledPackMeta,
+  type InstalledSupplementMeta,
+} from "@campaign-forge/core";
+import type { GameModule, LoadedModule, ModuleLicense, ModuleManifest, ModuleSupplement, PackIssue, PackSource } from "@campaign-forge/module-sdk";
 import { pf2eOrcManifest } from "@campaign-forge/module-pf2e-orc/manifest";
 
 /** What the app knows about a module before loading it. */
@@ -151,6 +166,7 @@ const BUILTIN_IDS = new Set(BUILTIN.map((e) => e.id));
 // ---------------------------------------------------------------------------
 
 let imported: ModuleEntry[] = [];
+let supplements: InstalledSupplementMeta[] = [];
 let importedLoaded: Promise<void> | undefined;
 const listeners = new Set<() => void>();
 
@@ -180,19 +196,27 @@ function importedEntry(meta: InstalledPackMeta): ModuleEntry {
   return entry;
 }
 
-/** Re-read the imported packs from IndexedDB and tell subscribers. */
+/** Re-read the imported packs and supplements from IndexedDB and tell subscribers. */
 export function refreshImportedModules(): Promise<void> {
-  const p = listInstalledPacks()
-    .then((metas) => {
-      // A stored pack can never shadow a built-in module.
-      imported = metas.filter((m) => !BUILTIN_IDS.has(m.id)).map(importedEntry);
-    })
-    .catch(() => {
-      imported = [];
-    })
-    .then(() => {
-      for (const l of [...listeners]) l();
-    });
+  const p = Promise.all([
+    listInstalledPacks()
+      .then((metas) => {
+        // A stored pack can never shadow a built-in module.
+        imported = metas.filter((m) => !BUILTIN_IDS.has(m.id)).map(importedEntry);
+      })
+      .catch(() => {
+        imported = [];
+      }),
+    listInstalledSupplements()
+      .then((metas) => {
+        supplements = metas;
+      })
+      .catch(() => {
+        supplements = [];
+      }),
+  ]).then(() => {
+    for (const l of [...listeners]) l();
+  });
   importedLoaded = p;
   return p;
 }
@@ -249,6 +273,56 @@ export function moduleEntry(id: string): ModuleEntry | undefined {
   return BUILTIN.find((e) => e.id === id) ?? imported.find((e) => e.id === id);
 }
 
+// ---------------------------------------------------------------------------
+// Supplements
+// ---------------------------------------------------------------------------
+
+/** Imported supplements, by name. */
+export function listSupplements(): InstalledSupplementMeta[] {
+  return [...supplements];
+}
+
+/** Imported supplements that extend a module, in the order they are applied (by id). */
+export function supplementsFor(moduleId: string): InstalledSupplementMeta[] {
+  return supplements.filter((s) => s.extends.module === moduleId).sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+}
+
+export function supplementMeta(id: string): InstalledSupplementMeta | undefined {
+  return supplements.find((s) => s.id === id);
+}
+
+/** Supplements left out the last time a module loaded, with the reason (module id -> supplement id -> problems). */
+const problems = new Map<string, Map<string, PackIssue[]>>();
+
+/** Why installed supplements were left out of a module when it last loaded. */
+export function supplementProblems(moduleId: string): Array<{ id: string; issues: PackIssue[] }> {
+  return [...(problems.get(moduleId)?.entries() ?? [])].map(([id, issues]) => ({ id, issues }));
+}
+
+/** The module with every installed supplement that still fits it merged in; the others are recorded in `supplementProblems`. */
+async function withSupplements(base: GameModule): Promise<GameModule> {
+  const id = base.manifest.id;
+  const metas = supplementsFor(id);
+  const left = new Map<string, PackIssue[]>();
+  problems.set(id, left);
+  if (metas.length === 0) return base;
+  const sdk = await import("@campaign-forge/module-sdk");
+  const ok: ModuleSupplement[] = [];
+  for (const meta of metas) {
+    const data = await getInstalledSupplement(meta.id).catch(() => undefined);
+    if (data === undefined) {
+      left.set(meta.id, [{ severity: "error", path: "$", message: "the stored supplement could not be read", source: "json" }]);
+      continue;
+    }
+    // Stored supplements were checked on import; they are checked again here (the module may have changed since).
+    const v = sdk.validateSupplement(data);
+    const issues = v.ok && v.value ? sdk.checkSupplementAgainst(v.value, base) : v.issues;
+    if (!v.ok || !v.value || issues.some((i) => i.severity === "error")) left.set(meta.id, issues.filter((i) => i.severity === "error"));
+    else ok.push(v.value);
+  }
+  return sdk.applySupplements(base, ok);
+}
+
 const cache = new Map<string, Promise<LoadedModule>>();
 
 export class UnknownModuleError extends Error {
@@ -269,13 +343,26 @@ export class UnknownModuleError extends Error {
 export function loadModuleById(id: string): Promise<LoadedModule> {
   const cached = cache.get(id);
   if (cached) return cached;
-  const p = (moduleEntry(id) ? Promise.resolve() : whenImportedModulesLoaded())
+  // Imported packs and supplements are read first: a built-in module needs the supplements that extend it.
+  const p = whenImportedModulesLoaded()
     .then(() => {
       const entry = moduleEntry(id);
       if (!entry) throw new UnknownModuleError(id);
       return Promise.all([entry.load(), import("@campaign-forge/module-sdk")]);
     })
-    .then(([mod, sdk]) => sdk.loadModule(mod, { skipProcedureRuns: true }))
+    .then(async ([base, sdk]) => {
+      const mod = await withSupplements(base);
+      if (mod === base) return sdk.loadModule(base, { skipProcedureRuns: true });
+      try {
+        return sdk.loadModule(mod, { skipProcedureRuns: true });
+      } catch (e) {
+        // Supplements were checked one by one; if together they still break the module, load it without them.
+        const left = problems.get(id) ?? new Map<string, PackIssue[]>();
+        for (const s of mod.manifest.supplements ?? []) left.set(s.id, [{ severity: "error", path: "$", message: `left out: with it the module failed its checks (${(e as Error).message.split("\n")[0]})`, source: "conformance" }]);
+        problems.set(id, left);
+        return sdk.loadModule(base, { skipProcedureRuns: true });
+      }
+    })
     .catch((err: unknown) => {
       cache.delete(id);
       throw err;
@@ -294,6 +381,14 @@ export async function removeImportedModule(id: string): Promise<void> {
   if (BUILTIN_IDS.has(id)) throw new Error(`"${id}" is built in and cannot be removed`);
   await deleteInstalledPack(id);
   forgetModule(id);
+  await refreshImportedModules();
+}
+
+/** Remove an imported supplement from this device; the module it extends loads without it from now on. */
+export async function removeSupplement(id: string): Promise<void> {
+  const meta = supplementMeta(id);
+  await deleteInstalledSupplement(id);
+  if (meta) forgetModule(meta.extends.module);
   await refreshImportedModules();
 }
 

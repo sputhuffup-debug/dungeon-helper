@@ -22,6 +22,7 @@ For Alien, Campaign Forge is a companion to the rulebook, not a replacement. The
 - **Maps from images.** Imported images with rectangular zone overlays and open/blocked/door borders.
 - **Rules reference.** Rule cards filtered by play mode: paraphrases with page references for Alien, the source's own text cited by section for the fifth edition and ORC modules.
 - **Multi-system modules.** Every game system is a module: a TypeScript package, or a declarative JSON data pack (no code) that the SDK turns into one. GMs import packs in the app (*Game modules…* on the campaign list); a pack is validated before it is stored, never runs as code, shows its licence and attribution, and travels inside campaign bundles. Packs pick one of four built-in dice engines: d20 (advantage, disadvantage, DC, optional four degrees of success with natural 20/1 shifts, situational modifier choices), dice pool, 2d6 bands and d100 roll-under. `pnpm create-module` scaffolds a pack or a TypeScript module and `pnpm module-check` validates one or `--all`; the author guide is [docs/modules](docs/modules/README.md).
+- **Supplements.** Extra options for a module you already have (backgrounds, subclasses, races, feats, spells, presets, tables, rule cards) as one JSON file of additive data, imported under *Game modules…*. A supplement is checked against the module it extends, merged in when that module loads, listed under it with its notice, marked with a source badge wherever its entries appear, recorded in generator provenance and carried in campaign bundles. Sheet fields suggest list items as you type (the fifth edition sheet's race, subrace, background and subclass), supplement items included, and still take any text. `pnpm create-module --supplement <module>` scaffolds one; [docs/modules/supplements.md](docs/modules/supplements.md) covers the format and keeping private supplements private.
 - **Fifth edition (SRD 5.1).** A built-in data pack with the whole SRD 5.1: 334 monster stat blocks as presets, 319 spells, magic items, equipment, classes and races as reference lists, rule cards cited by section, and dice tables. Character sheets derive ability modifiers, proficiency bonus, saves, skills (with expertise), passive scores, initiative and spellcasting numbers; d20 rolls from a sheet or the table take advantage, disadvantage and a DC. Initiative, hit point, death save, spell slot and other trackers, plus original encounter, NPC, settlement and tavern generators and a one-shot template. Not affiliated with Wizards of the Coast; see the licence note below.
 - **Second edition remaster (ORC core rules).** A built-in data pack with the ORC-licensed content of Player Core, Player Core 2, GM Core and Monster Core and none of the setting's names: 490 Monster Core stat blocks and 32 hazards as presets; ancestries, heritages, backgrounds, classes, 1,814 feats, 663 spells and 1,243 items as reference lists; every condition and action as a rule card cited by section. Character sheets derive Perception, saves and skills from proficiency ranks (level + 2/4/6/8), class DC, AC, Hit Points, spell DC and Bulk; rolls read four degrees of success (DC ± 10, natural 20 and 1 shift one step) with fortune, misfortune and the multiple attack penalty in the roll panel. An encounter builder spends GM Core's XP budgets on Monster Core creatures; trackers for initiative, Hit Points, dying/wounded/doomed, Hero and Focus Points and valued conditions. Not affiliated with Paizo; see the licence note below.
 
@@ -109,6 +110,10 @@ Four demo campaigns load from the campaign list: *Skyfire Down* (Alien campaign 
 
 ![Game modules dialog](docs/screenshots/game-modules.png)
 
+**Supplements**: an original homebrew supplement imported for the SRD 5.1 module, listed under it with what it adds, its notice and its licence.
+
+![A supplement listed under the module it extends](docs/screenshots/supplements.png)
+
 **Fifth edition sheet**: a level 3 wizard from *Thornwick Crossing*; the scores and proficiencies are written down, and the modifiers, proficiency bonus, initiative, hit dice and save bonuses are computed.
 
 ![Fifth edition character sheet](docs/screenshots/dnd5e-sheet.png)
@@ -146,8 +151,8 @@ packages/ui             schema-driven sheet renderer, widgets, trackers, map edi
 apps/web                the React 19 + Vite PWA
 tools/table-lint        dice coverage, page refs, data-status report, spot-check sheets
 tools/seed-campaign     builds the demo campaigns
-tools/module-check      validates a module or data pack (pnpm module-check --all)
-tools/create-module     scaffolds a new module or data pack
+tools/module-check      validates a module, data pack or supplement (pnpm module-check --all)
+tools/create-module     scaffolds a new module, data pack or supplement
 tools/docs-check        README screenshots are present, used and small enough
 docs/                   architecture seed, module author guide, verification notes, screenshots
 ```

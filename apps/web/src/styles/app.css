@@ -380,6 +380,21 @@ h3 {
   font-size: var(--cf-text-sm);
   overflow-wrap: anywhere;
 }
+.app-modules--supplements {
+  margin-top: var(--cf-space-2);
+  padding-left: var(--cf-space-3);
+  border-left: 2px solid var(--cf-accent-soft);
+  gap: var(--cf-space-2);
+}
+.app-module--supplement {
+  background: var(--cf-surface);
+}
+.app-module__notice {
+  margin: var(--cf-space-1) 0 0;
+  font-size: var(--cf-text-sm);
+  font-style: italic;
+  overflow-wrap: anywhere;
+}
 .app-module-licence p {
   margin: var(--cf-space-1) 0 0;
 }

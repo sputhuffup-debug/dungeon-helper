@@ -41,8 +41,10 @@ export function CampaignListPage() {
     setBusy(true);
     try {
       const { importCampaignBundle } = await actions();
-      const { id, installedPack } = await importCampaignBundle(new Uint8Array(await file.arrayBuffer()));
+      const { id, installedPack, installedSupplements, skippedSupplements } = await importCampaignBundle(new Uint8Array(await file.arrayBuffer()));
       pushToast(installedPack ? `Campaign imported with its game module ${installedPack}` : "Campaign imported", { tone: "success" });
+      if (installedSupplements) pushToast(`Installed from the bundle: ${installedSupplements.join(", ")}`, { tone: "success" });
+      if (skippedSupplements) pushToast(`Supplements not installed: ${skippedSupplements.join("; ")}`, { tone: "warning", timeout: 10000 });
       await navigate({ to: "/c/$campaignId/home", params: { campaignId: id } });
     } catch (e) {
       pushToast(`Import failed: ${errorMessage(e)}`, { tone: "danger", timeout: 8000 });

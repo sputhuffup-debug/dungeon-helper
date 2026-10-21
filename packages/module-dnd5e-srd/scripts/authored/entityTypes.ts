@@ -186,7 +186,9 @@ export function characterType(classes: ReferenceList, spellSlots: Record<string,
     properties: {
       isPC: { type: "boolean", default: true },
       player: text(120),
-      class: { type: "string", enum: [...CLASSES] },
+      // Any class id from the Classes list: the SRD's twelve, or one a supplement adds. Hit dice, spellcasting
+      // and slots are computed for the SRD classes; others leave those to the GM.
+      class: { type: "string", maxLength: 120, description: `A class id from the Classes list (${CLASSES.join(", ")}, or one a supplement adds).` },
       subclass: text(120),
       level: int(1, 20, 1),
       race: text(120),
@@ -249,10 +251,11 @@ export function characterType(classes: ReferenceList, spellSlots: Record<string,
           fields: [
             { path: "class", label: "Class", widget: "select", options: { ref: LIST.classes } },
             { path: "level", label: "Level", widget: "number" },
-            { path: "subclass", label: "Subclass", widget: "text" },
-            { path: "race", label: "Race", widget: "text" },
-            { path: "subrace", label: "Subrace", widget: "text" },
-            { path: "background", label: "Background", widget: "text" },
+            // Free text with suggestions from the reference lists (supplement items included); subclasses follow the class, subraces the race.
+            { path: "subclass", label: "Subclass", widget: "text", options: { ref: LIST.subclasses }, config: { optionsFilter: { field: "class", key: "class" } } },
+            { path: "race", label: "Race", widget: "text", options: { ref: LIST.races } },
+            { path: "subrace", label: "Subrace", widget: "text", options: { ref: LIST.subraces }, config: { optionsFilter: { field: "race", key: "race" } } },
+            { path: "background", label: "Background", widget: "text", options: { ref: LIST.backgrounds } },
             { path: "alignment", label: "Alignment", widget: "select", options: { ref: LIST.alignments } },
             { path: "xp", label: "Experience points", widget: "number" },
             { path: "nextLevelXp", label: "XP for next level", widget: "computed" },
@@ -502,7 +505,7 @@ export function npcType(): EntityTypeDef {
           columns: 2,
           fields: [
             { path: "occupation", label: "Occupation", widget: "text" },
-            { path: "race", label: "Race", widget: "text" },
+            { path: "race", label: "Race", widget: "text", options: { ref: LIST.races } },
             { path: "alignment", label: "Alignment", widget: "select", options: { ref: LIST.alignments } },
             select("attitude", "Attitude toward the party", ["hostile", "unfriendly", "indifferent", "friendly", "helpful"]),
             { path: "statBlock", label: "Stat block", widget: "text" },

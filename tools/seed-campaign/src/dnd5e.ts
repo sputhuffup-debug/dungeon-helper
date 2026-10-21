@@ -10,7 +10,8 @@
  * encounters; a faction, a quest, NPCs (one rolled with the pack's NPC
  * generator); an adventure from the pack's one-shot template; and a planned
  * session whose first scene is a fight, so table mode opens with the
- * monsters on the hit point tracker.
+ * monsters on the hit point tracker; and a supplement (the original "Thornwick
+ * Homebrew", installed with the demo) whose background one PC has.
  *
  * Original content in our own words (not a published adventure). Stat blocks
  * come from the SRD presets unchanged except for names. Deterministic: the
@@ -23,8 +24,10 @@
  * Browser-safe: no `node:` imports.
  */
 import {
+  checkSupplement,
   createRng,
   createTableRegistry,
+  formatPackIssue,
   defaultFieldsFor,
   loadModule,
   moduleFromPackSource,
@@ -58,17 +61,32 @@ import {
   type Session,
   type Visibility,
 } from "@campaign-forge/core";
-import { dnd5eSrdSource } from "@campaign-forge/module-dnd5e-srd";
+import { dnd5eSrdSource, THORNWICK_SUPPLEMENT_ID, thornwickHomebrewSupplement } from "@campaign-forge/module-dnd5e-srd";
 
 export const DND5E_DEMO_SEED = "thornwick";
 export const DND5E_DEMO_NAME = "Thornwick Crossing";
 export const DND5E_ADVENTURE_TITLE = "The Bell of Thornwick";
 export const DND5E_MODULE_ID = "dnd5e-srd";
+/** The original supplement the demo uses (a PC's background comes from it); the web app installs it with the demo. */
+export const DND5E_DEMO_SUPPLEMENT_ID = THORNWICK_SUPPLEMENT_ID;
+export { thornwickHomebrewSupplement };
+
+/** The SRD 5.1 module with the demo's supplement applied, as the app loads it once the supplement is installed. */
+export async function dnd5eDemoModule(): Promise<GameModule> {
+  const base = await moduleFromPackSource(dnd5eSrdSource);
+  const res = checkSupplement(await thornwickHomebrewSupplement(), base);
+  if (!res.ok || !res.module) throw new Error(`5e demo: the ${THORNWICK_SUPPLEMENT_ID} supplement does not fit:\n${res.issues.map(formatPackIssue).join("\n")}`);
+  return res.module;
+}
 
 export interface BuildDnd5eDemoOptions {
   seed?: string;
   name?: string;
-  /** The SRD 5.1 module, if the caller already loaded it (the web app does); otherwise the pack source is loaded. */
+  /**
+   * The SRD 5.1 module with the Thornwick Homebrew supplement applied, if the
+   * caller already loaded it (the web app does, after installing the
+   * supplement); otherwise the pack source is loaded and the supplement applied.
+   */
   module?: GameModule;
 }
 
@@ -169,14 +187,15 @@ const PARTY: PcSpec[] = [
   },
   {
     name: "Wren Talliver",
-    summary: "Halfling rogue (Thief) who grew up poling the Thornwick ferry.",
+    summary: "Halfling rogue (Thief) who grew up building and poling the Thornwick ferry.",
     fields: {
       class: "rogue",
       subclass: "Thief",
       level: 3,
       race: "Halfling",
       subrace: "Lightfoot",
-      background: "Ferry hand",
+      // from the Thornwick Homebrew supplement the demo installs
+      background: "Ferrywright",
       alignment: "chaotic-good",
       xp: 950,
       abilities: { strength: 8, dexterity: 17, constitution: 12, intelligence: 13, wisdom: 10, charisma: 15 },
@@ -194,6 +213,7 @@ const PARTY: PcSpec[] = [
         { name: "Cunning Action", desc: "Dash, Disengage or Hide as a bonus action." },
         { name: "Fast Hands", desc: "Use an object, pick a lock or disarm a trap as a bonus action." },
         { name: "Lucky", desc: "Reroll a natural 1 on an attack, check or save." },
+        { name: "Right of Passage", desc: "Ferry folk, bargees and bridge keepers carry the party for free or a favour, and share what they saw on the water." },
       ],
       proficiencies: "Light armor; simple weapons, hand crossbows, longswords, rapiers, shortswords; thieves' tools; water vehicles.",
       languages: ["Common", "Halfling", "Thieves' cant"],
@@ -319,9 +339,10 @@ const PARTY: PcSpec[] = [
 export async function buildDnd5eDemo(opts: BuildDnd5eDemoOptions = {}): Promise<Dnd5eDemoCampaign> {
   const seed = opts.seed ?? DND5E_DEMO_SEED;
   const name = opts.name ?? DND5E_DEMO_NAME;
-  const game = opts.module ?? (await moduleFromPackSource(dnd5eSrdSource));
+  const game = opts.module ?? (await dnd5eDemoModule());
   const mod = loadModule(game, { skipProcedureRuns: true });
   if (mod.manifest.id !== DND5E_MODULE_ID) throw new Error(`5e demo: expected the ${DND5E_MODULE_ID} module, got "${mod.manifest.id}"`);
+  if (!mod.manifest.supplements?.some((s) => s.id === DND5E_DEMO_SUPPLEMENT_ID)) throw new Error(`5e demo: the module needs the ${DND5E_DEMO_SUPPLEMENT_ID} supplement applied`);
   const rng = createRng(`seed-campaign/dnd5e/${seed}`);
   const registry = new RichTextRegistry();
   const cal = game.calendar;

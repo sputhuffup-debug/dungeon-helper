@@ -1,9 +1,9 @@
 /** Reference browser: reference lists, presets (add to campaign) and roll tables. */
-import type { EntityPreset, ReferenceItem, ReferenceList } from "@campaign-forge/module-sdk";
+import { supplementOf, type EntityPreset, type ReferenceItem, type ReferenceList } from "@campaign-forge/module-sdk";
 import { useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { TableDialog } from "../../components/RulePanel";
-import { Badge, Button, Dialog, Markdown, PageRef, Tabs, pushToast } from "../../components/ui";
+import { Badge, Button, Dialog, Markdown, PageRef, SourceBadge, Tabs, pushToast } from "../../components/ui";
 import { humanize } from "../../lib/format";
 import { createEntityFromPreset } from "../../state/actions";
 import { useCampaign } from "../../state/hooks";
@@ -32,7 +32,7 @@ export function ReferencePage() {
   );
 }
 
-const ITEM_META = new Set(["id", "name", "page", "cite", "mode", "summary"]);
+const ITEM_META = new Set(["id", "name", "page", "cite", "mode", "summary", "source", "edition"]);
 
 /** Columns of a reference list: its own `columns`, else the first five data keys. */
 export function listColumns(list: ReferenceList | undefined): string[] {
@@ -91,6 +91,7 @@ function ListsTab() {
                   <button type="button" className="app-linkbtn" onClick={() => setOpen(i)}>
                     <strong>{i.name}</strong>
                   </button>
+                  <SourceBadge source={i.source} edition={i.edition} />
                   {i.mode?.map((m) => (
                     <Badge key={m} tone="accent">
                       {m}
@@ -122,6 +123,11 @@ export function ReferenceItemView({ item, list }: { item: ReferenceItem; list: R
   const isLong = (v: unknown) => typeof v === "string" && (v.length > 90 || v.includes("\n") || v.trim().startsWith("|"));
   return (
     <div className="app-stack app-refitem" data-testid="reference-item">
+      {(item.source || item.edition) && (
+        <p className="app-row">
+          <SourceBadge source={item.source} edition={item.edition} />
+        </p>
+      )}
       {item.summary && <p className="cf-muted">{item.summary}</p>}
       <dl className="app-dl">
         {rows
@@ -192,7 +198,7 @@ function PresetsTab() {
             {presets.map((p) => (
               <tr key={p.id}>
                 <td>
-                  <strong>{p.name}</strong> {p.unverified && <Badge tone="warning">unverified</Badge>}
+                  <strong>{p.name}</strong> <SourceBadge source={supplementOf(ctx.module.manifest, p.id)?.name} /> {p.unverified && <Badge tone="warning">unverified</Badge>}
                 </td>
                 <td className="cf-muted">{ctx.module.entityType(p.entityType)?.name ?? p.entityType}</td>
                 <td className="cf-muted">{p.summary ?? ""}</td>
@@ -239,6 +245,7 @@ function TablesTab() {
                   {t.name}
                 </button>
                 <Badge>{t.dice}</Badge>
+                <SourceBadge source={supplementOf(ctx.module.manifest, t.id)?.name} />
                 <PageRef page={t.page} cite={t.cite} original={t.original} />
                 {t.unverified && <Badge tone="warning">unverified</Badge>}
               </li>

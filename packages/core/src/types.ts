@@ -268,6 +268,8 @@ export interface GeneratorRun extends BaseRecord {
   procedure: string;
   moduleId: string;
   moduleVersion: string;
+  /** Supplements merged into the module when it ran (they change what it can roll), when there were any. */
+  supplements?: Array<{ id: string; version: string }>;
   seed: string;
   inputs: Record<string, unknown>;
   stepSeeds?: Record<string, string>;
@@ -455,6 +457,8 @@ export interface BundleManifest {
   exportedAt: string;
   moduleId: string;
   moduleVersion: string;
+  /** Supplements active for the module when the campaign was exported (each embedded in the bundle). */
+  supplements?: Array<{ id: string; name: string; version: string }>;
   campaignId: Id;
   campaignName: string;
 }

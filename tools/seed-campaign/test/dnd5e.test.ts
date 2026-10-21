@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { computeFields, CORE_RELATIONSHIP_TYPES, loadModule, moduleFromPackSource, validateEntityFields, type GameModule } from "@campaign-forge/module-sdk";
 import { applyImportedDocs, exportBundle, extractRefs, importBundle, RichTextRegistry, type CampaignMaps, type Entity } from "@campaign-forge/core";
 import { dnd5eSrdSource } from "@campaign-forge/module-dnd5e-srd";
-import { buildDnd5eDemo, dnd5eDemoJSON, DND5E_ADVENTURE_TITLE, DND5E_DEMO_NAME, DND5E_DEMO_SEED, DND5E_MODULE_ID } from "../src";
+import { buildDnd5eDemo, dnd5eDemoJSON, dnd5eDemoModule, DND5E_ADVENTURE_TITLE, DND5E_DEMO_NAME, DND5E_DEMO_SEED, DND5E_DEMO_SUPPLEMENT_ID, DND5E_MODULE_ID } from "../src";
 
 /** The seed-dependent shape of a build: everything except ids and timestamps. */
 function signature(maps: CampaignMaps, docs: Record<string, string>) {
@@ -25,8 +25,8 @@ function signature(maps: CampaignMaps, docs: Record<string, string>) {
 const byType = (maps: CampaignMaps, type: string): Entity[] => Object.values(maps.entities).filter((e) => e.type === `${DND5E_MODULE_ID}.${type}`);
 
 describe("buildDnd5eDemo", async () => {
-  // load the pack once; every build below reuses it
-  const game: GameModule = await moduleFromPackSource(dnd5eSrdSource);
+  // load the pack (with the demo's supplement) once; every build below reuses it
+  const game: GameModule = await dnd5eDemoModule();
   const mod = loadModule(game, { skipProcedureRuns: true });
   const demo = await buildDnd5eDemo({ module: game });
   const { store, maps, docs, ids } = demo;
@@ -42,6 +42,15 @@ describe("buildDnd5eDemo", async () => {
   it("loads the pack itself when no module is passed", async () => {
     const own = await buildDnd5eDemo();
     expect(signature(own.maps, own.docs)).toEqual(signature(maps, docs));
+  });
+
+  it("uses the Thornwick Homebrew supplement: a PC has its background, and the module refuses to build without it", async () => {
+    expect(game.manifest.supplements?.map((s) => s.id)).toEqual([DND5E_DEMO_SUPPLEMENT_ID]);
+    const ferrywright = mod.referenceItem(`${DND5E_MODULE_ID}.backgrounds`, `${DND5E_DEMO_SUPPLEMENT_ID}.ferrywright`);
+    expect(ferrywright?.source).toBe("Thornwick Homebrew");
+    const wren = byType(maps, "character").find((p) => p.name === "Wren Talliver")!;
+    expect(wren.fields["background"]).toBe(ferrywright?.name);
+    await expect(buildDnd5eDemo({ module: await moduleFromPackSource(dnd5eSrdSource) })).rejects.toThrow(/needs the thornwick-homebrew supplement/);
   });
 
   it("is a one-shot campaign with the SRD 5.1 module and its calendar", () => {

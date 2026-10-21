@@ -60,6 +60,42 @@ export function resolveOptions(field: SheetField, schema: JsonSchema | undefined
   return [];
 }
 
+/** Text compared loosely: case, punctuation and an id's "<namespace>." prefix do not matter ("rogue" = "Rogue" = "x.rogue"). */
+export function looseKey(v: unknown): string {
+  if (typeof v !== "string" && typeof v !== "number") return "";
+  const s = String(v).trim().toLowerCase();
+  const tail = /^[a-z0-9-]+\.([^.]+)$/.test(s) ? s.slice(s.lastIndexOf(".") + 1) : s;
+  return tail.replace(/[^a-z0-9]+/g, "");
+}
+
+/**
+ * `config.optionsFilter: { field, key }`: keep the reference options whose
+ * item `key` matches the sibling `field`'s value (e.g. subclasses of the
+ * chosen class). With the sibling empty, or nothing matching, every option is
+ * kept, so the list never goes blank on an unusual value.
+ */
+export function filterOptions(options: Option[], field: SheetField, fields: Record<string, unknown>): Option[] {
+  const f = field.config?.optionsFilter;
+  if (!isRecord(f) || typeof f.field !== "string" || typeof f.key !== "string") return options;
+  const want = looseKey(getSibling(fields, f.field));
+  if (!want) return options;
+  const key = f.key;
+  const kept = options.filter((o) => {
+    const v = o.item?.[key];
+    return Array.isArray(v) ? v.some((x) => looseKey(x) === want) : looseKey(v) === want;
+  });
+  return kept.length > 0 ? kept : options;
+}
+
+function getSibling(fields: Record<string, unknown>, path: string): unknown {
+  let cur: unknown = fields;
+  for (const k of path.split(".")) {
+    if (!isRecord(cur)) return undefined;
+    cur = cur[k];
+  }
+  return cur;
+}
+
 export function configNumber(field: SheetField, key: string, fallback?: number): number | undefined {
   const v = field.config?.[key];
   return typeof v === "number" ? v : fallback;

@@ -23,3 +23,12 @@ export const dnd5eSrdSource: PackSource = {
     "tables.json": json(() => import("../pack/tables.json", { with: { type: "json" } })),
   },
 };
+
+/**
+ * "Thornwick Homebrew": an original fixture supplement for this module (a
+ * people, a background, two subclasses, a feat, a table, a house rule). The
+ * Thornwick Crossing demo installs it; tests and the docs use it as the worked
+ * example of the supplement format. Loaded lazily, like the pack's own files.
+ */
+export const THORNWICK_SUPPLEMENT_ID = "thornwick-homebrew";
+export const thornwickHomebrewSupplement = json(() => import("../supplements/thornwick-homebrew.supplement.json", { with: { type: "json" } }));

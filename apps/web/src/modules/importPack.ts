@@ -1,12 +1,14 @@
 /**
- * Importing a data pack the GM picked: parse (with a size cap), validate
- * (limits, schema, namespacing, JSONLogic, conformance with a few procedure
- * runs, determinism), then store it in IndexedDB and refresh the registry.
- * Nothing in a pack runs as code; see the SDK's `pack/validate.ts`.
+ * Importing a data pack or a supplement the GM picked: parse (with a size
+ * cap), validate (limits, schema, namespacing, JSONLogic, conformance with a
+ * few procedure runs, determinism; a supplement also against the module it
+ * extends), then store it in IndexedDB and refresh the registry. Nothing in a
+ * pack or supplement runs as code; see the SDK's `pack/validate.ts` and
+ * `pack/supplement.ts`.
  */
-import { putInstalledPack, type InstalledPackMeta } from "@campaign-forge/core";
-import type { PackIssue } from "@campaign-forge/module-sdk";
-import { forgetModule, isBuiltinModuleId, moduleEntry, refreshImportedModules, type ModuleEntry } from "./registry";
+import { getInstalledSupplement, putInstalledPack, putInstalledSupplement, type InstalledPackMeta, type InstalledSupplementMeta } from "@campaign-forge/core";
+import type { ModuleSupplement, PackIssue } from "@campaign-forge/module-sdk";
+import { forgetModule, isBuiltinModuleId, moduleEntry, refreshImportedModules, supplementMeta, supplementsFor, whenImportedModulesLoaded, type ModuleEntry } from "./registry";
 
 export interface PackFile {
   name: string;
@@ -85,8 +87,89 @@ export async function installPack(files: ReadonlyArray<{ name: string; data: unk
   return out;
 }
 
-/** Parse the picked files (each capped in size) and install them. */
+export interface SupplementImportResult {
+  supplement: InstalledSupplementMeta;
+  /** The module it extends. */
+  base: ModuleEntry;
+  warnings: PackIssue[];
+  /** The version this import replaced, when the supplement was already imported. */
+  replaced?: string;
+}
+
+/** Load and validate the stored supplements a module already has (except `skip`), to check a new one alongside them. */
+async function installedFor(moduleId: string, skip: string): Promise<ModuleSupplement[]> {
+  const sdk = await import("@campaign-forge/module-sdk");
+  const out: ModuleSupplement[] = [];
+  for (const meta of supplementsFor(moduleId)) {
+    if (meta.id === skip) continue;
+    const v = sdk.validateSupplement(await getInstalledSupplement(meta.id));
+    if (v.ok && v.value) out.push(v.value);
+  }
+  return out;
+}
+
+/**
+ * Validate a supplement against the module it extends (with the module's
+ * other supplements applied) and store it. The module reloads with it the
+ * next time a campaign opens.
+ */
+export async function installSupplement(file: { name: string; data: unknown }): Promise<SupplementImportResult> {
+  const sdk = await import("@campaign-forge/module-sdk");
+  await whenImportedModulesLoaded();
+  const rawId = (file.data as { manifest?: { id?: unknown } } | null)?.manifest?.id;
+  if (typeof rawId === "string" && (isBuiltinModuleId(rawId) || moduleEntry(rawId))) fail(`The supplement id "${rawId}" is the id of a game module. Give the supplement its own id.`);
+  const v = sdk.validateSupplement(file.data);
+  if (!v.ok || !v.value) return fail("The supplement did not pass validation.", v.issues.map((i) => ({ ...i, file: file.name })));
+  const m = v.value.manifest;
+  const base = moduleEntry(m.extends.module);
+  if (!base) fail(`This supplement extends "${m.extends.module}", which is not on this device. Import that module first, then the supplement.`);
+  const baseModule = await base!.load();
+  const res = sdk.checkSupplement(v.value, baseModule, { alongside: await installedFor(base!.id, m.id), seeds: 10, determinismSeeds: 5 });
+  if (!res.ok || !res.supplement) fail(`The supplement does not fit ${base!.name} ${baseModule.manifest.version}.`, res.issues.map((i) => ({ ...i, file: file.name })));
+  const json = JSON.stringify(res.supplement);
+  const meta: InstalledSupplementMeta = {
+    id: m.id,
+    name: m.name,
+    version: m.version,
+    extends: { ...m.extends },
+    licenseNotice: m.licenseNotice,
+    counts: sdk.supplementCounts(res.supplement!),
+    importedAt: new Date().toISOString(),
+    files: [file.name],
+    bytes: json.length,
+  };
+  if (m.license) meta.license = m.license;
+  if (m.authors) meta.authors = m.authors;
+  if (m.description) meta.description = m.description;
+  const previous = supplementMeta(m.id);
+  await putInstalledSupplement(meta, JSON.parse(json) as unknown);
+  forgetModule(base!.id);
+  if (previous && previous.extends.module !== base!.id) forgetModule(previous.extends.module);
+  await refreshImportedModules();
+  const out: SupplementImportResult = { supplement: meta, base: base!, warnings: res.issues.filter((i) => i.severity === "warning") };
+  if (previous) out.replaced = previous.version;
+  return out;
+}
+
+const formatOf = (d: unknown) => (d && typeof d === "object" ? (d as { format?: unknown }).format : undefined);
+
+/** Parse the picked files (each capped in size) and install them: a data pack (main file plus parts) or one supplement. */
+export async function importFiles(files: ReadonlyArray<PackFile>): Promise<PackImportResult | SupplementImportResult> {
+  return installParsed(await parseFiles(files));
+}
+
+/** Parse and install a data pack (its main file plus parts). */
 export async function importPackFiles(files: ReadonlyArray<PackFile>): Promise<PackImportResult> {
+  return installPack(await parseFiles(files));
+}
+
+/** Parse and install one supplement file. */
+export async function importSupplementFile(file: PackFile): Promise<SupplementImportResult> {
+  const [parsed] = await parseFiles([file]);
+  return installSupplement(parsed!);
+}
+
+async function parseFiles(files: ReadonlyArray<PackFile>): Promise<Array<{ name: string; data: unknown }>> {
   if (files.length === 0) fail("No file chosen.");
   const sdk = await import("@campaign-forge/module-sdk");
   if (files.length > sdk.PACK_LIMITS.maxParts + 1) fail(`Too many files (${files.length}); a pack has at most ${sdk.PACK_LIMITS.maxParts} parts.`);
@@ -97,7 +180,22 @@ export async function importPackFiles(files: ReadonlyArray<PackFile>): Promise<P
       return fail((e as Error).message);
     }
   });
+  return parsed;
+}
+
+async function installParsed(parsed: Array<{ name: string; data: unknown }>): Promise<PackImportResult | SupplementImportResult> {
+  const sdk = await import("@campaign-forge/module-sdk");
+  const supplements = parsed.filter((f) => formatOf(f.data) === sdk.SUPPLEMENT_FORMAT);
+  if (supplements.length > 0) {
+    if (parsed.length > 1) fail("Choose one supplement at a time, on its own (a supplement is a single file).");
+    return installSupplement(supplements[0]!);
+  }
   return installPack(parsed);
+}
+
+/** Whether an import result is a supplement's. */
+export function isSupplementResult(r: PackImportResult | SupplementImportResult): r is SupplementImportResult {
+  return "supplement" in r;
 }
 
 /** Read browser File objects as text, refusing oversized ones before reading them. */

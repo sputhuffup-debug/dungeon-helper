@@ -15,6 +15,8 @@ import {
   exportBundle,
   exportJSON,
   getInstalledPack,
+  getInstalledSupplement,
+  type BundleModule,
   importBundle,
   openPersistence,
   presetToEntity,
@@ -40,8 +42,8 @@ import * as Y from "yjs";
 import { defaultCampaignDate } from "../lib/calendar";
 import { downloadFile, slug } from "../lib/download";
 import { imageDimensions } from "../lib/image";
-import { installPack } from "../modules/importPack";
-import { loadModuleById, moduleEntry, whenImportedModulesLoaded } from "../modules/registry";
+import { installPack, installSupplement, PackImportError } from "../modules/importPack";
+import { loadModuleById, moduleEntry, supplementMeta, whenImportedModulesLoaded } from "../modules/registry";
 import type { CampaignContextValue } from "./CampaignProvider";
 import { checklistEvent } from "./tableActions";
 
@@ -99,12 +101,53 @@ export async function deleteCampaign(id: Id): Promise<void> {
   await unregisterCampaign(id);
 }
 
+export interface BundleImportResult {
+  id: Id;
+  /** The data pack installed from the bundle ("name version"), when the device did not have it. */
+  installedPack?: string;
+  /** Supplements installed from the bundle ("name version"). */
+  installedSupplements?: string[];
+  /** Supplements in the bundle that were not installed, with the reason (already here, or they did not fit). */
+  skippedSupplements?: string[];
+}
+
+/**
+ * Install the supplements a bundle carries that this device does not have.
+ * One already installed is never replaced (whatever its version); one that
+ * does not validate is skipped with its reason, and the campaign still imports.
+ */
+async function installBundleSupplements(supplements: ReadonlyArray<{ file: string; data: unknown }>): Promise<Pick<BundleImportResult, "installedSupplements" | "skippedSupplements">> {
+  const installed: string[] = [];
+  const skipped: string[] = [];
+  for (const s of supplements) {
+    const m = (s.data as { manifest?: { id?: unknown; name?: unknown; version?: unknown } } | null)?.manifest;
+    const label = `${typeof m?.name === "string" ? m.name : s.file}${typeof m?.version === "string" ? ` ${m.version}` : ""}`;
+    const have = typeof m?.id === "string" ? supplementMeta(m.id) : undefined;
+    if (have) {
+      skipped.push(`${label}: already installed${have.version !== m?.version ? ` (${have.version} kept)` : ""}`);
+      continue;
+    }
+    try {
+      const res = await installSupplement({ name: s.file, data: s.data });
+      installed.push(`${res.supplement.name} ${res.supplement.version}`);
+    } catch (e) {
+      const detail = e instanceof PackImportError && e.issues[0] ? ` (${e.issues[0].path}: ${e.issues[0].message})` : "";
+      skipped.push(`${label}: ${(e as Error).message}${detail}`);
+    }
+  }
+  const out: Pick<BundleImportResult, "installedSupplements" | "skippedSupplements"> = {};
+  if (installed.length > 0) out.installedSupplements = installed;
+  if (skipped.length > 0) out.skippedSupplements = skipped;
+  return out;
+}
+
 /**
  * Import a bundle (zip bytes) as a new campaign with fresh ids. When the
  * bundle carries its module's data pack and this device does not have that
- * module, the pack is validated and installed first (`installedPack` names it).
+ * module, the pack is validated and installed first (`installedPack` names it);
+ * then the supplements it carries that this device lacks.
  */
-export async function importCampaignBundle(bytes: Uint8Array): Promise<{ id: Id; installedPack?: string }> {
+export async function importCampaignBundle(bytes: Uint8Array): Promise<BundleImportResult> {
   const imported = await importBundle(bytes, { onConflict: "new-id" });
   const store = imported.store;
   const meta = store.meta();
@@ -116,6 +159,7 @@ export async function importCampaignBundle(bytes: Uint8Array): Promise<{ id: Id;
     const { entry } = await installPack([{ name: "module/pack.json", data: imported.pack }]);
     installedPack = `${entry.name} ${entry.version}`;
   }
+  const supplements = await installBundleSupplements(imported.supplements);
   const registry = new RichTextRegistry();
   const persistence = openPersistence(store, { name: campaignDbName(meta.id), registry });
   await persistence.whenSynced;
@@ -128,19 +172,21 @@ export async function importCampaignBundle(bytes: Uint8Array): Promise<{ id: Id;
   registry.closeAll();
   store.destroy();
   await assets.close();
-  return installedPack ? { id: meta.id, installedPack } : { id: meta.id };
+  return { id: meta.id, ...(installedPack ? { installedPack } : {}), ...supplements };
 }
 
 /** Merge a bundle's records (with new ids) into the open campaign. Meta is left alone. */
-export async function importBundleIntoCampaign(ctx: CampaignContextValue, bytes: Uint8Array): Promise<{ records: number }> {
+export async function importBundleIntoCampaign(ctx: CampaignContextValue, bytes: Uint8Array): Promise<{ records: number } & Pick<BundleImportResult, "installedSupplements" | "skippedSupplements">> {
   const imported = await importBundle(bytes, { onConflict: "new-id" });
+  await whenImportedModulesLoaded();
+  const supplements = await installBundleSupplements(imported.supplements);
   const maps = imported.store.toJSON();
   const count = mergeMaps(ctx.store, maps);
   await applyImportedDocs(ctx.registry, imported.docs);
   await applyImportedAssets(ctx.assets, imported.assets);
   ctx.refIndex.indexAll(ctx.store);
   imported.store.destroy();
-  return { records: count };
+  return { records: count, ...supplements };
 }
 
 /** Insert every record of `maps` (except meta) keeping the ids they carry. */
@@ -162,11 +208,22 @@ export function mergeMaps(store: CampaignStore, maps: CampaignMaps): number {
 }
 
 export async function exportCampaignBundle(ctx: CampaignContextValue): Promise<void> {
+  const bytes = await campaignBundleBytes(ctx);
+  downloadFile(bytes, `${slug(ctx.store.meta().name)}.cfbundle.zip`, "application/zip");
+}
+
+/** The campaign as bundle bytes, with its imported data pack and active supplements embedded. */
+export async function campaignBundleBytes(ctx: Pick<CampaignContextValue, "store" | "registry" | "assets" | "module">): Promise<Uint8Array> {
   const { id, version } = ctx.module.manifest;
   // An imported data pack travels with the campaign, so the bundle opens on a device without it.
   const pack = moduleEntry(id)?.source === "imported" ? await getInstalledPack(id) : undefined;
-  const bytes = await exportBundle(ctx.store, ctx.registry, ctx.assets, { id, version, ...(pack !== undefined ? { pack } : {}) });
-  downloadFile(bytes, `${slug(ctx.store.meta().name)}.cfbundle.zip`, "application/zip");
+  // So do the supplements active for the module (installed if missing on import, never overwriting).
+  const supplements: NonNullable<BundleModule["supplements"]> = [];
+  for (const s of ctx.module.manifest.supplements ?? []) {
+    const data = await getInstalledSupplement(s.id);
+    if (data !== undefined) supplements.push({ id: s.id, name: s.name, version: s.version, data });
+  }
+  return exportBundle(ctx.store, ctx.registry, ctx.assets, { id, version, ...(pack !== undefined ? { pack } : {}), ...(supplements.length > 0 ? { supplements } : {}) });
 }
 
 export function exportCampaignJSON(ctx: Pick<CampaignContextValue, "store">): void {

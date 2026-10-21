@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import type { PlayMode, PlayModeId, RuleCard } from "@campaign-forge/module-sdk";
 import { cx } from "../sheet/paths";
-import { Badge } from "./Badge";
+import { Badge, SourceBadge } from "./Badge";
 import { Button } from "./Button";
 import { Markdown } from "./Markdown";
 import { PageRef } from "./PageRef";
@@ -15,10 +15,12 @@ export interface RuleCardViewProps {
   onOpenTracker?: (trackerId: string) => void;
   /** Resolve a linked id to a display name; falls back to the id. */
   resolveName?: (kind: "rule" | "table" | "field" | "tracker", id: string) => string | undefined;
+  /** The supplement a card comes from (by id), for a source badge. */
+  sourceOf?: (id: string) => string | undefined;
   className?: string;
 }
 
-export function RuleCardView({ card, onOpenRule, onOpenTable, onOpenField, onOpenTracker, resolveName, className }: RuleCardViewProps) {
+export function RuleCardView({ card, onOpenRule, onOpenTable, onOpenField, onOpenTracker, resolveName, sourceOf, className }: RuleCardViewProps) {
   const links = card.links ?? {};
   const allGroups: Array<{ kind: "rule" | "table" | "field" | "tracker"; ids: string[]; handler?: (id: string) => void }> = [
     { kind: "rule", ids: links.rules ?? [], handler: onOpenRule },
@@ -33,6 +35,7 @@ export function RuleCardView({ card, onOpenRule, onOpenTable, onOpenField, onOpe
         <h3 className="cf-rule__title">{card.title}</h3>
         <div className="cf-rule__meta">
           <PageRef page={card.page} cite={card.cite} original={card.original} />
+          <SourceBadge source={sourceOf?.(card.id)} />
           {card.mode?.map((m) => (
             <Badge key={m} tone="accent">
               {m}
@@ -67,6 +70,8 @@ export interface RuleCardListProps {
   /** Initial mode filter. */
   mode?: PlayModeId;
   onOpen?: (card: RuleCard) => void;
+  /** The supplement a card comes from (by id), for a source badge. */
+  sourceOf?: (id: string) => string | undefined;
   className?: string;
 }
 
@@ -91,7 +96,7 @@ export function rulePreview(summary: string, max = 220): string {
   return plain.length > max ? `${plain.slice(0, max).replace(/\s+\S*$/, "")}…` : plain;
 }
 
-export function RuleCardList({ cards, modes, mode, onOpen, className }: RuleCardListProps) {
+export function RuleCardList({ cards, modes, mode, onOpen, sourceOf, className }: RuleCardListProps) {
   const [query, setQuery] = useState("");
   const [modeFilter, setModeFilter] = useState<string>(mode ?? "");
   const shown = useMemo(() => filterRuleCards(cards, query, modeFilter || undefined), [cards, query, modeFilter]);
@@ -121,6 +126,7 @@ export function RuleCardList({ cards, modes, mode, onOpen, className }: RuleCard
                   <span className="cf-rulelist__item-title">{c.title}</span>
                   <span className="cf-rulelist__item-summary">{rulePreview(c.summary)}</span>
                 </span>
+                <SourceBadge source={sourceOf?.(c.id)} />
                 <PageRef page={c.page} cite={c.cite} original={c.original} />
               </button>
             </li>

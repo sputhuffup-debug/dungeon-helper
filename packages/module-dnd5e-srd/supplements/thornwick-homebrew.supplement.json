@@ -1,0 +1,156 @@
+{
+  "$schema": "../../module-sdk/schema/module-supplement.schema.json",
+  "format": "campaign-forge-supplement",
+  "formatVersion": 1,
+  "manifest": {
+    "id": "thornwick-homebrew",
+    "name": "Thornwick Homebrew",
+    "version": "0.1.0",
+    "extends": { "module": "dnd5e-srd", "version": "^0.1.0" },
+    "licenseNotice": "Original homebrew for the Thornwick Crossing demo, written for Campaign Forge. Free to use and adapt.",
+    "license": {
+      "spdx": "CC-BY-4.0",
+      "name": "Creative Commons Attribution 4.0 International",
+      "url": "https://creativecommons.org/licenses/by/4.0/",
+      "attribution": "Thornwick Homebrew by the Campaign Forge contributors, available under the Creative Commons Attribution 4.0 International licence."
+    },
+    "authors": ["Campaign Forge contributors"],
+    "description": "River-country options for the Thornwick Crossing demo: a people, a background, two subclasses, a feat, a rumour table and a house rule.",
+    "dataStatus": "verified"
+  },
+  "referenceItems": {
+    "dnd5e-srd.races": [
+      {
+        "id": "thornwick-homebrew.mossborn",
+        "name": "Mossborn",
+        "summary": "Small, patient folk who grow from riverbank moss and wake when the floods recede.",
+        "abilityBonuses": "Wisdom +2, Constitution +1",
+        "size": "Small",
+        "speed": "25 ft.",
+        "traits": "Rootsense, Soak It Up, Slow to Rouse",
+        "languages": "Common, one language of your choice",
+        "description": "Mossborn are found where rivers flood and drain each year. They remember the banks they grew on, keep long and careful grudges against anyone who poisons water, and are rarely in a hurry.\n\n**Size.** Mossborn stand about 3 feet tall. Your size is Small.\n\n**Speed.** Your base walking speed is 25 feet."
+      }
+    ],
+    "dnd5e-srd.racial-traits": [
+      {
+        "id": "thornwick-homebrew.rootsense",
+        "name": "Rootsense",
+        "races": "Mossborn",
+        "description": "While you touch soil or a living plant, you know whether any creature has walked within 30 feet of you in the last hour, but not what it was."
+      },
+      {
+        "id": "thornwick-homebrew.soak-it-up",
+        "name": "Soak It Up",
+        "races": "Mossborn",
+        "description": "You can hold your breath for 10 minutes, and you have advantage on saving throws against being poisoned."
+      },
+      {
+        "id": "thornwick-homebrew.slow-to-rouse",
+        "name": "Slow to Rouse",
+        "races": "Mossborn",
+        "description": "You have disadvantage on initiative rolls made while you are asleep, but magic cannot frighten you while you stand in shallow water."
+      }
+    ],
+    "dnd5e-srd.backgrounds": [
+      {
+        "id": "thornwick-homebrew.ferrywright",
+        "name": "Ferrywright",
+        "summary": "You built, mended and poled the flat ferries that keep a river town connected.",
+        "skills": "Athletics, Insight",
+        "languages": "One of your choice",
+        "equipment": "Carpenter's tools, a coil of hempen rope (50 feet), a ferry token from your home crossing, common clothes, 10 gp",
+        "feature": "Right of Passage",
+        "description": "Every crossing has a ferrywright: the one who knows which planks are rotten, which passengers pay late and which river spirits like a coin in the water.\n\n**Right of Passage.** Ferry folk, bargees and bridge keepers give you and your companions passage for free or for a favour, and they tell you what they have seen on the water."
+      }
+    ],
+    "dnd5e-srd.subclasses": [
+      {
+        "id": "thornwick-homebrew.lantern-thief",
+        "name": "Lantern Thief",
+        "class": "Rogue",
+        "flavor": "Roguish Archetype",
+        "description": "Lantern thieves work by their own light: a hooded lamp that shows them what they want and hides them from everyone else.",
+        "features": "3: Hooded Flame; 9: Moth's Path; 13: Steal the Light; 17: Last Lamp Lit"
+      },
+      {
+        "id": "thornwick-homebrew.bridgewarden",
+        "name": "Bridgewarden",
+        "class": "Fighter",
+        "flavor": "Martial Archetype",
+        "description": "Bridgewardens hold narrow places: fords, gates, ferry ramps. Nothing gets past them that they have not agreed to.",
+        "features": "3: Hold the Span; 7: Toll of Iron; 10: Unmoved; 15: None Shall Cross; 18: The Last Plank"
+      }
+    ],
+    "dnd5e-srd.class-features": [
+      {
+        "id": "thornwick-homebrew.hooded-flame",
+        "name": "Hooded Flame",
+        "class": "Rogue",
+        "subclass": "Lantern Thief",
+        "level": 3,
+        "description": "As a bonus action you can open or shade a lantern you hold. While it is open, you have advantage on Investigation checks within its light, and creatures in its bright light have disadvantage on Perception checks to notice you."
+      },
+      {
+        "id": "thornwick-homebrew.hold-the-span",
+        "name": "Hold the Span",
+        "class": "Fighter",
+        "subclass": "Bridgewarden",
+        "level": 3,
+        "description": "When a creature you can see moves within 5 feet of you, you can use your reaction to reduce its speed to 0 until the end of its turn."
+      }
+    ],
+    "dnd5e-srd.feats": [
+      {
+        "id": "thornwick-homebrew.ferry-legs",
+        "name": "Ferry Legs",
+        "prerequisite": "None",
+        "description": "You have spent years on moving decks. You gain the following benefits:\n- You have advantage on checks and saving throws against being knocked prone or pushed.\n- Difficult terrain caused by water or a moving surface costs you no extra movement."
+      }
+    ]
+  },
+  "presets": [
+    {
+      "id": "thornwick-homebrew.ferry-warden",
+      "entityType": "dnd5e-srd.npc",
+      "name": "Ferry warden",
+      "summary": "Keeps the crossing's rope, tolls and gossip.",
+      "original": true,
+      "tags": ["river", "thornwick"],
+      "fields": {
+        "occupation": "Ferry warden",
+        "race": "Mossborn",
+        "attitude": "indifferent",
+        "quirk": "Counts passengers twice, out loud.",
+        "motivation": "Keep the crossing open, whatever the weather.",
+        "statBlock": "Commoner"
+      }
+    }
+  ],
+  "tables": [
+    {
+      "id": "thornwick-homebrew.rumour.ferry",
+      "name": "Ferry rumours",
+      "family": "rumour",
+      "original": true,
+      "dice": "1d6",
+      "rows": [
+        { "range": [1, 1], "label": "The old ford bell rings by itself on moonless nights.", "result": { "rumour": "The old ford bell rings by itself on moonless nights." } },
+        { "range": [2, 2], "label": "Someone has been cutting the ferry rope a strand at a time.", "result": { "rumour": "Someone has been cutting the ferry rope a strand at a time." } },
+        { "range": [3, 3], "label": "A mossborn woke early this spring and will not say why.", "result": { "rumour": "A mossborn woke early this spring and will not say why." } },
+        { "range": [4, 4], "label": "The toll-house keeper pays in coins nobody has seen before.", "result": { "rumour": "The toll-house keeper pays in coins nobody has seen before." } },
+        { "range": [5, 5], "label": "Goblins upstream have built a raft big enough for a cart.", "result": { "rumour": "Goblins upstream have built a raft big enough for a cart." } },
+        { "range": [6, 6], "label": "The river is lower than it has been in forty years.", "result": { "rumour": "The river is lower than it has been in forty years." } }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "id": "thornwick-homebrew.rule.crossing",
+      "title": "Crossing in flood",
+      "summary": "House rule: a ferry crossing in flood takes 10 minutes. The pilot makes a DC 12 Strength (Athletics) check; on a failure the ferry lands 1d4 × 100 feet downstream and everyone aboard makes a DC 10 Dexterity save or falls prone.",
+      "original": true,
+      "tags": ["travel", "homebrew"]
+    }
+  ]
+}

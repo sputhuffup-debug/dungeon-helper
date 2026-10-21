@@ -6,12 +6,13 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import Ajv from "ajv";
 import { describe, expect, it } from "vitest";
-import { MODULE_PACK_PART_SCHEMA, MODULE_PACK_SCHEMA } from "../src";
+import { MODULE_PACK_PART_SCHEMA, MODULE_PACK_SCHEMA, MODULE_SUPPLEMENT_SCHEMA } from "../src";
 import { oneOfValues, schemaObject } from "../src/pack/schema";
 
 const files = [
   { file: new URL("../schema/module-pack.schema.json", import.meta.url), schema: MODULE_PACK_SCHEMA },
   { file: new URL("../schema/module-pack-part.schema.json", import.meta.url), schema: MODULE_PACK_PART_SCHEMA },
+  { file: new URL("../schema/module-supplement.schema.json", import.meta.url), schema: MODULE_SUPPLEMENT_SCHEMA },
 ];
 const render = (schema: unknown) => `${JSON.stringify(schema, null, 2)}\n`;
 

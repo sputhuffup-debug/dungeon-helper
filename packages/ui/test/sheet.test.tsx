@@ -268,3 +268,65 @@ describe("cast-aware widgets", () => {
     expect(screen.getByRole("textbox", { name: "Sign-offs: Ada" })).toBeInTheDocument();
   });
 });
+
+describe("text fields with suggestions", () => {
+  // a supplement-style list: some items carry a source and an edition
+  const lists: Record<string, ReferenceList> = {
+    "x.classes": { id: "x.classes", name: "Classes", items: [{ id: "rogue", name: "Rogue" }, { id: "house.tinker", name: "Tinker", source: "House rules" }] },
+    "x.paths": {
+      id: "x.paths",
+      name: "Paths",
+      items: [
+        { id: "thief", name: "Thief", class: "Rogue" },
+        { id: "house.lamplighter", name: "Lamplighter", class: "Rogue", source: "House rules", edition: "2024" },
+        { id: "house.gearwright", name: "Gearwright", class: "Tinker", source: "House rules" },
+        { id: "spy", name: "Spy", class: "Rogue", mode: ["intrigue"] },
+      ],
+    },
+  };
+  const def = {
+    id: "x.hero",
+    kind: "character" as const,
+    name: "Hero",
+    plural: "Heroes",
+    schema: { type: "object", properties: { class: { type: "string" }, path: { type: "string" }, nickname: { type: "string" } } },
+    sheet: {
+      sections: [
+        {
+          id: "s",
+          title: "S",
+          fields: [
+            { path: "class", label: "Class", widget: "select" as const, options: { ref: "x.classes" } },
+            { path: "path", label: "Path", widget: "text" as const, options: { ref: "x.paths" }, config: { optionsFilter: { field: "class", key: "class" } } },
+            { path: "nickname", label: "Nickname", widget: "text" as const },
+          ],
+        },
+      ],
+    },
+  };
+  const options = (container: HTMLElement, path: string) => [...container.querySelectorAll<HTMLOptionElement>(`[data-testid="options-${path}"] option`)].map((o) => [o.value, o.getAttribute("label") ?? ""]);
+
+  it("offers the list's item names (filtered by mode and by the sibling field) and still takes free text", () => {
+    const onChange = vi.fn();
+    const { container, rerender } = render(<SheetRenderer def={def} mode="standard" fields={{ class: "rogue" }} onChange={onChange} referenceLists={lists} />);
+    const input = screen.getByRole("combobox", { name: "Path" });
+    expect(input).toHaveAttribute("list", expect.stringMatching(/-options$/));
+    // the class id "rogue" matches the items' "Rogue"; the intrigue-only item is left out in standard mode
+    expect(options(container, "path")).toEqual([
+      ["Thief", ""],
+      ["Lamplighter", "2024 · House rules"],
+    ]);
+    fireEvent.change(input, { target: { value: "Something of my own" } });
+    expect(onChange).toHaveBeenCalledWith({ class: "rogue", path: "Something of my own" });
+    // a supplement's class id ("house.tinker") matches its items' "Tinker"
+    rerender(<SheetRenderer def={def} mode="standard" fields={{ class: "house.tinker" }} onChange={onChange} referenceLists={lists} />);
+    expect(options(container, "path").map(([v]) => v)).toEqual(["Gearwright"]);
+    // no class yet, or one nothing matches: every option
+    rerender(<SheetRenderer def={def} mode="intrigue" fields={{ class: "bard" }} onChange={onChange} referenceLists={lists} />);
+    expect(options(container, "path").map(([v]) => v)).toEqual(["Thief", "Lamplighter", "Gearwright", "Spy"]);
+    // the select names the supplement an option comes from; a plain text field has no list
+    expect(within(screen.getByRole("combobox", { name: "Class" })).getAllByRole("option").map((o) => o.textContent)).toEqual(["—", "bard", "Rogue", "Tinker (House rules)"]);
+    expect(screen.getByRole("textbox", { name: "Nickname" })).not.toHaveAttribute("list");
+    expect(container.querySelector('[data-testid="options-nickname"]')).toBeNull();
+  });
+});

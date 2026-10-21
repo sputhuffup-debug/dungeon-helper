@@ -25,6 +25,14 @@ const graph: GeneratedGraph = {
 };
 
 describe("acceptGeneratedGraph", () => {
+  it("records the supplements a run used, when there were any", () => {
+    const store = newStore();
+    const { run } = acceptGeneratedGraph(store, { ...graph, supplements: [{ id: "extras", version: "0.2.0" }] }, { moduleId: "example" });
+    expect(store.get("generatorRuns", run.id)?.supplements).toEqual([{ id: "extras", version: "0.2.0" }]);
+    const plain = acceptGeneratedGraph(store, graph, { moduleId: "example" });
+    expect(store.get("generatorRuns", plain.run.id)?.supplements).toBeUndefined();
+  });
+
   it("maps tempIds, records the run, applies within and opts.within", () => {
     const store = newStore();
     const planet = store.createEntity({ type: "example.place", name: "Planet" });

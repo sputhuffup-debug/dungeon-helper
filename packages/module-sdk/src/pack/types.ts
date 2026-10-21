@@ -21,6 +21,7 @@ import type {
   PageRef,
   PlayGuideDef,
   PlayModeId,
+  ReferenceItem,
   ReferenceList,
   RelationshipTypeDef,
   RollTable,
@@ -33,8 +34,8 @@ export const PACK_FORMAT = "campaign-forge-pack" as const;
 export const PACK_PART_FORMAT = "campaign-forge-pack-part" as const;
 export const PACK_FORMAT_VERSION = 1 as const;
 
-/** The manifest of a pack: the contract's manifest with the licence required. */
-export interface PackManifest extends Omit<ModuleManifest, "license"> {
+/** The manifest of a pack: the contract's manifest with the licence required (and no applied supplements: the loader sets those). */
+export interface PackManifest extends Omit<ModuleManifest, "license" | "supplements"> {
   license: ModuleLicense;
 }
 
@@ -177,4 +178,58 @@ export interface ModulePackPart extends PackCollections {
   pack: string;
   /** This part's name, as the pack's `parts` lists it. */
   name: string;
+}
+
+// ---------------------------------------------------------------------------
+// Supplements: additive data for an existing module
+// ---------------------------------------------------------------------------
+
+export const SUPPLEMENT_FORMAT = "campaign-forge-supplement" as const;
+export const SUPPLEMENT_FORMAT_VERSION = 1 as const;
+
+/** The manifest of a supplement: what it extends, and its own notice. */
+export interface SupplementManifest {
+  /** Lower case letters, digits and hyphens; every id the supplement adds starts with it and a dot. */
+  id: string;
+  name: string;
+  /** Semver. Generator runs record it next to the module version. */
+  version: string;
+  /** The module it adds to, and optionally the module versions it fits (a semver range such as "^0.1.0"). */
+  extends: { module: string; version?: string };
+  /** Short notice shown with the supplement (free text, e.g. "Private, for personal use only"). */
+  licenseNotice: string;
+  /** A licence and the attribution it requires, when the content has one. */
+  license?: ModuleLicense;
+  authors?: string[];
+  /** One or two sentences: what the supplement adds. */
+  description?: string;
+  /** Whether the data was checked against its source (default "unverified"). */
+  dataStatus?: ModuleManifest["dataStatus"];
+}
+
+/** The collections a supplement can add whole (new ids only, namespaced by the supplement id). */
+export interface SupplementCollections {
+  referenceLists?: ReferenceList[];
+  presets?: EntityPreset[];
+  tables?: RollTable[];
+  procedures?: PackProcedure[];
+  templates?: Template[];
+  rules?: RuleCard[];
+  playGuides?: PlayGuideDef[];
+}
+
+export const SUPPLEMENT_COLLECTIONS = ["referenceLists", "presets", "tables", "procedures", "templates", "rules", "playGuides"] as const satisfies ReadonlyArray<keyof SupplementCollections>;
+
+/**
+ * A supplement: additive data for one existing module (a built-in module, a
+ * TypeScript module or a data pack). It never overrides or removes the base
+ * module's content and carries no code; every expression is JSONLogic.
+ */
+export interface ModuleSupplement extends SupplementCollections {
+  $schema?: string;
+  format: typeof SUPPLEMENT_FORMAT;
+  formatVersion: typeof SUPPLEMENT_FORMAT_VERSION;
+  manifest: SupplementManifest;
+  /** Items added to the base module's own reference lists, by list id (e.g. "dnd5e-srd.backgrounds"). */
+  referenceItems?: Record<string, ReferenceItem[]>;
 }
