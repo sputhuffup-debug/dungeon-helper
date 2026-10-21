@@ -20,7 +20,7 @@ Every result has `successes` (pool systems: dice showing a success; the others: 
 
 ## `d20`
 
-d20 + ability modifier + proficiency × skill + bonus + modifier, against an optional DC.
+d20 + ability modifier + proficiency × skill + bonus + modifier, against an optional DC, read as two degrees (success, failure) or four (with critical success and critical failure).
 
 ```json
 { "engine": "d20", "proficiency": { "var": "computed.proficiencyBonus" } }
@@ -28,15 +28,37 @@ d20 + ability modifier + proficiency × skill + bonus + modifier, against an opt
 
 | Option | Default | |
 |---|---|---|
-| `abilityModifier` | `true` | `attribute` is a score; add `floor((score - 10) / 2)`. `false` adds `attribute` as is. |
+| `abilityModifier` | `true` | `attribute` is a score; add `floor((score - 10) / 2)`. `false` adds `attribute` as is (a game that writes modifiers down). |
 | `proficiency` | `0` | JSONLogic. Multiplied by `skill` (0, 0.5, 1, 2) and rounded down. |
+| `proficiencyMode` | `multiply` | `add`: the `proficiency` rule's value is added as is; the rule reads `skill` itself (e.g. a rank-based bonus, see below). |
 | `bonus` | `0` | JSONLogic. A flat bonus on every roll. |
 | `critOn` / `fumbleOn` | `20` / `1` | Natural results flagged as `critical` / `fumble`. |
 | `critSucceeds` / `fumbleFails` | `false` | Let the natural result decide against a DC (otherwise it is only flagged). |
+| `critMargin` | none | Four degrees of success: a total at or above DC + margin is a **critical success**, at or below DC − margin a **critical failure**, success and failure in between. |
+| `naturalShift` | `false` | A natural `critOn`+ improves the degree one step, a natural `fumbleOn`- worsens it one step (with two degrees: a natural crit passes, a natural fumble fails). |
+| `advantageNames` | `normal` / `advantage` / `disadvantage` | What the roll panel calls the roll modes, e.g. `{ "advantage": "fortune", "disadvantage": "misfortune" }`. The mechanics are unchanged. |
+| `modifierChoices` | none | Up to four selects of situational modifiers (`{ id, title, choices: [{ label, value }] }`, first choice the default), e.g. a multiple attack penalty. The chosen value is added to the roll and shown in the breakdown. |
 | `freeDice` | none | Other dice the table's free roll offers, by faces (e.g. `[4, 6, 8, 10, 12]` for damage); summed. |
-| `labels` | `Success` / `Failure` | Outcome labels. |
+| `labels` | `Success` / `Failure` / `Critical success` / `Critical failure` | Outcome labels. |
 
-Roll panel options: **Roll** (normal, advantage: two d20 keep the higher, disadvantage: keep the lower; the other die is shown struck through), **DC**, **Modifier**. Without a DC the result has a total and no outcome. `successes` is 1 on a pass, else 0.
+Roll panel options: **Roll** (normal, advantage: two d20 keep the higher, disadvantage: keep the lower; the other die is shown struck through), **DC**, **Modifier**, and one select per `modifierChoices` group. Without a DC the result has a total and no outcome. With two degrees `successes` is 1 on a pass, else 0; with four degrees it is 2 for a critical success, 1 for a success, 0 otherwise, and the outcome id is `critical-success`, `success`, `failure` or `critical-failure`.
+
+A game with four degrees, attribute modifiers written down, and proficiency by rank (untrained 0; trained, expert, master, legendary = level + 2, 4, 6, 8), a multiple attack penalty and fortune / misfortune:
+
+```json
+{
+  "engine": "d20",
+  "abilityModifier": false,
+  "proficiencyMode": "add",
+  "proficiency": { "if": [{ ">": [{ "var": "skill" }, 0] }, { "+": [{ "var": ["fields.level", 1] }, { "*": [2, { "var": "skill" }] }] }, 0] },
+  "critMargin": 10,
+  "naturalShift": true,
+  "advantageNames": { "advantage": "fortune", "disadvantage": "misfortune" },
+  "modifierChoices": [{ "id": "map", "title": "Attack", "choices": [{ "label": "1st attack", "value": 0 }, { "label": "2nd attack (−5)", "value": -5 }, { "label": "3rd attack (−10)", "value": -10 }] }]
+}
+```
+
+`packages/module-pf2e-orc` uses this setup.
 
 ## `pool`
 

@@ -94,6 +94,142 @@ describe("dice engines", () => {
       expect(r.total).toBe(r.dice[0]!.value + r.dice[1]!.value);
       expect(r.outcome).toBeUndefined();
     });
+
+    it("keeps two degrees and the default roll modes unless configured", () => {
+      const opts = d20.rollOptions!.properties as Record<string, { enum?: string[] }>;
+      expect(opts.advantage!.enum).toEqual(["normal", "advantage", "disadvantage"]);
+      expect(Object.keys(opts)).toEqual(["advantage", "dc", "modifier"]);
+      for (const r of rollMany(d20, { attribute: 10, dc: 11 }, 200)) expect(["success", "failure"]).toContain(r.outcome!.id);
+    });
+
+    describe("four degrees of success (critMargin, naturalShift)", () => {
+      const four = createDiceEngine({ engine: "d20", abilityModifier: false, critMargin: 10, naturalShift: true });
+      /** Roll with a fixed natural result: find a seed that gives it. */
+      const rollNatural = (natural: number, modifier: number, dc: number): RollResult => {
+        const pool = four.buildPool({ attribute: modifier, dc });
+        for (let i = 0; i < 2000; i++) {
+          const r = four.roll(pool, createRng(`nat-${i}`));
+          if (r.dice[0]!.value === natural) return r;
+        }
+        throw new Error(`no seed rolls a natural ${natural}`);
+      };
+      const degree = (natural: number, modifier: number, dc: number) => rollNatural(natural, modifier, dc).outcome!.id;
+
+      it("reads totals against DC + 10 and DC − 10", () => {
+        expect(degree(10, 10, 10)).toBe("critical-success"); // 20 = DC + 10
+        expect(degree(9, 10, 10)).toBe("success"); // 19
+        expect(degree(5, 5, 10)).toBe("success"); // 10 = DC
+        expect(degree(4, 5, 10)).toBe("failure"); // 9
+        expect(degree(5, -4, 10)).toBe("failure"); // 1, DC − 9
+        expect(degree(4, -4, 10)).toBe("critical-failure"); // 0 = DC − 10
+      });
+
+      it("a natural 20 improves the degree one step and a natural 1 worsens it", () => {
+        expect(degree(20, 0, 25)).toBe("success"); // 20 vs 25: failure → success
+        expect(degree(20, 0, 31)).toBe("failure"); // 20 vs 31: critical failure → failure
+        expect(degree(20, 0, 15)).toBe("critical-success"); // success → critical success
+        expect(degree(20, 20, 10)).toBe("critical-success"); // already the best
+        expect(degree(1, 20, 10)).toBe("success"); // 21 vs 10: critical success → success
+        expect(degree(1, 10, 10)).toBe("failure"); // 11 vs 10: success → failure
+        expect(degree(1, 0, 10)).toBe("critical-failure"); // already the worst
+        const shifted = rollNatural(20, 0, 25).outcome!;
+        expect(shifted.label).toBe("Success (natural 20)");
+        expect(rollNatural(10, 10, 10).outcome).toEqual({ id: "critical-success", label: "Critical success", tone: "critical" });
+        expect(rollNatural(4, -4, 10).outcome).toMatchObject({ label: "Critical failure", tone: "fumble" });
+      });
+
+      it("counts degrees as successes (2, 1, 0, 0) and matches a direct reading for every total", () => {
+        for (const r of rollMany(four, { attribute: 7, dc: 18 }, 400)) {
+          const natural = r.dice[0]!.value;
+          let step = r.total! >= 28 ? 3 : r.total! >= 18 ? 2 : r.total! <= 8 ? 0 : 1;
+          if (natural === 20) step = Math.min(3, step + 1);
+          if (natural === 1) step = Math.max(0, step - 1);
+          expect(r.outcome!.id).toBe(["critical-failure", "failure", "success", "critical-success"][step]);
+          expect(r.successes).toBe([0, 0, 1, 2][step]);
+        }
+      });
+
+      it("without naturalShift the natural result is only flagged", () => {
+        const plain = createDiceEngine({ engine: "d20", abilityModifier: false, critMargin: 10 });
+        const pool = plain.buildPool({ attribute: 0, dc: 25 });
+        for (let i = 0; i < 400; i++) {
+          const r = plain.roll(pool, createRng(`p-${i}`));
+          expect(r.outcome!.id).toBe(r.total! <= 15 ? "critical-failure" : "failure");
+        }
+      });
+
+      it("takes its own labels", () => {
+        const named = createDiceEngine({ engine: "d20", abilityModifier: false, critMargin: 10, labels: { criticalSuccess: "Crit!", criticalFailure: "Botch" } });
+        const rolls = [...rollMany(named, { attribute: 0, dc: 5 }, 200), ...rollMany(named, { attribute: 0, dc: 15 }, 200)];
+        const labels = new Set(rolls.map((r) => r.outcome!.label));
+        expect(labels).toEqual(new Set(["Crit!", "Success", "Failure", "Botch"]));
+      });
+
+      it("rejects a bad margin", () => {
+        expect(() => createDiceEngine({ engine: "d20", critMargin: 0 })).toThrow(/critMargin/);
+      });
+    });
+
+    it("names the roll modes (fortune / misfortune) without changing how they roll", () => {
+      const named = createDiceEngine({ engine: "d20", advantageNames: { advantage: "fortune", disadvantage: "misfortune" } });
+      expect((named.rollOptions!.properties as Record<string, { enum?: string[] }>).advantage!.enum).toEqual(["normal", "fortune", "misfortune"]);
+      const pool = named.buildPool({ attribute: 10, advantage: "fortune" });
+      expect(pool.label).toBe("1d20 + 0 (fortune)");
+      for (let i = 0; i < 50; i++) {
+        const r = named.roll(pool, createRng(`f-${i}`));
+        expect(r.dice).toHaveLength(2);
+        expect(r.total).toBe(Math.max(r.dice[0]!.value, r.dice[1]!.value));
+        const m = named.roll(named.buildPool({ attribute: 10, advantage: "misfortune" }), createRng(`f-${i}`));
+        expect(m.total).toBe(Math.min(m.dice[0]!.value, m.dice[1]!.value));
+      }
+      // the standard names still work
+      expect(named.buildPool({ attribute: 10, advantage: "advantage" }).dice).toEqual({ d20: 2 });
+      expect(() => createDiceEngine({ engine: "d20", advantageNames: { advantage: "normal" } })).toThrow(/advantageNames/);
+    });
+
+    it("offers situational modifier choices (a multiple attack penalty)", () => {
+      const map = createDiceEngine({
+        engine: "d20",
+        abilityModifier: false,
+        modifierChoices: [
+          {
+            id: "map",
+            title: "Attack",
+            choices: [
+              { label: "1st attack", value: 0 },
+              { label: "2nd attack (−5)", value: -5 },
+              { label: "3rd attack (−10)", value: -10 },
+              { label: "2nd attack, agile (−4)", value: -4 },
+              { label: "3rd attack, agile (−8)", value: -8 },
+            ],
+          },
+        ],
+      });
+      const opt = (map.rollOptions!.properties as Record<string, { enum?: string[]; default?: string; title?: string }>).map!;
+      expect(opt).toMatchObject({ title: "Attack", default: "1st attack" });
+      expect(opt.enum).toHaveLength(5);
+      expect(map.buildPool({ attribute: 9 }).modifier).toBe(9);
+      expect(map.buildPool({ attribute: 9, map: "2nd attack (−5)" }).modifier).toBe(4);
+      const agile = map.buildPool({ attribute: 9, map: "3rd attack, agile (−8)", modifier: 1 });
+      expect(agile.modifier).toBe(2);
+      expect(agile.breakdown?.map((b) => [b.label, b.count])).toEqual([["Ability", 9], ["3rd attack, agile (−8)", -8], ["Modifier", 1]]);
+      expect(() => createDiceEngine({ engine: "d20", modifierChoices: [{ id: "dc", title: "x", choices: [{ label: "a", value: 0 }, { label: "b", value: 1 }] }] })).toThrow(/modifierChoices/);
+      expect(() => createDiceEngine({ engine: "d20", modifierChoices: [{ id: "x", title: "x", choices: [{ label: "a", value: 0 }] }] })).toThrow(/2 to 12/);
+    });
+
+    it("adds a rank-based proficiency as is with proficiencyMode add", () => {
+      // untrained 0; trained/expert/master/legendary = level + 2/4/6/8
+      const ranked = createDiceEngine({
+        engine: "d20",
+        abilityModifier: false,
+        proficiencyMode: "add",
+        proficiency: { if: [{ ">": [{ var: "skill" }, 0] }, { "+": [{ var: ["fields.level", 1] }, { "*": [2, { var: "skill" }] }] }, 0] },
+      });
+      const at = (level: number, rank: number) => ranked.buildPool({ attribute: 3, skill: rank, fields: { level } }).modifier;
+      expect([at(1, 0), at(1, 1), at(5, 2), at(10, 3), at(20, 4)]).toEqual([3, 6, 12, 19, 31]);
+      expect(ranked.buildPool({ attribute: 3, skill: 2, fields: { level: 5 }, attributeId: "dexterity" }).breakdown?.map((b) => b.label)).toEqual(["Dexterity", "Proficiency"]);
+      expect(() => createDiceEngine({ engine: "d20", proficiencyMode: "double" as never })).toThrow(/proficiencyMode/);
+    });
   });
 
   describe("pool", () => {
