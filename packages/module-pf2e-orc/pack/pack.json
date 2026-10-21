@@ -193,6 +193,7 @@
   "core-creatures-4.json",
   "core-creatures-5.json",
   "core-hazards.json",
+  "encounters.json",
   "tables.json"
  ],
  "entityTypes": [

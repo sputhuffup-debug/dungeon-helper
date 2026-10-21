@@ -5,5 +5,7 @@ export { buildCinematicDemo, cinematicDemoJSON, CINEMATIC_DEMO_SEED, CINEMATIC_D
 export type { BuildCinematicDemoOptions, CinematicDemoCampaign } from "./cinematic";
 export { buildDnd5eDemo, dnd5eDemoJSON, DND5E_DEMO_SEED, DND5E_DEMO_NAME, DND5E_ADVENTURE_TITLE, DND5E_MODULE_ID } from "./dnd5e";
 export type { BuildDnd5eDemoOptions, Dnd5eDemoCampaign } from "./dnd5e";
+export { buildPf2eDemo, pf2eDemoJSON, PF2E_DEMO_SEED, PF2E_DEMO_NAME, PF2E_ADVENTURE_TITLE, PF2E_MODULE_ID, PF2E_PARTY } from "./pf2e";
+export type { BuildPf2eDemoOptions, Pf2eDemoCampaign } from "./pf2e";
 export { startInfection } from "./infection";
 export type { StartInfectionInput } from "./infection";

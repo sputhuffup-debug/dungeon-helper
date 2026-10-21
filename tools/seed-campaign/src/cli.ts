@@ -1,10 +1,11 @@
 /**
  * seed-campaign CLI: build a demo campaign and write it out. `--demo campaign`
  * (default) is "Skyfire Down"; `--demo cinematic` is the "Cold Harbor" one-shot;
- * `--demo dnd5e` is "Thornwick Crossing", the fifth edition (SRD 5.1) one-shot.
+ * `--demo dnd5e` is "Thornwick Crossing", the fifth edition (SRD 5.1) one-shot;
+ * `--demo pf2e` is "Hollowmere", the remaster (ORC core rules) one-shot.
  *
  *   node --experimental-strip-types --no-warnings --import ./register.mjs src/cli.ts \
- *     --out demo.cfbundle.zip [--demo campaign|cinematic|dnd5e] [--seed s] [--name "Skyfire Down"] [--json demo.json]
+ *     --out demo.cfbundle.zip [--demo campaign|cinematic|dnd5e|pf2e] [--seed s] [--name "Skyfire Down"] [--json demo.json]
  *
  * `--out` writes a Campaign Forge bundle (exportBundle); `--json` writes
  * `{ maps, docs }` (the same shape as demoCampaignJSON). At least one is needed.
@@ -15,17 +16,18 @@ import { exportBundle } from "@campaign-forge/core";
 import { buildDemoCampaign, DEMO_SEED } from "./build";
 import { buildCinematicDemo, CINEMATIC_DEMO_SEED } from "./cinematic";
 import { buildDnd5eDemo, DND5E_DEMO_SEED } from "./dnd5e";
+import { buildPf2eDemo, PF2E_DEMO_SEED } from "./pf2e";
 
 interface Args {
   out?: string;
   json?: string;
   seed?: string;
-  demo: "campaign" | "cinematic" | "dnd5e";
+  demo: "campaign" | "cinematic" | "dnd5e" | "pf2e";
   name?: string;
   help: boolean;
 }
 
-const USAGE = "usage: seed-campaign --out demo.cfbundle.zip [--json demo.json] [--demo campaign|cinematic|dnd5e] [--seed s] [--name \"Skyfire Down\"]";
+const USAGE = "usage: seed-campaign --out demo.cfbundle.zip [--json demo.json] [--demo campaign|cinematic|dnd5e|pf2e] [--seed s] [--name \"Skyfire Down\"]";
 
 function parseArgs(argv: string[]): Args {
   const args: Args = { demo: "campaign", help: false };
@@ -42,7 +44,7 @@ function parseArgs(argv: string[]): Args {
     else if (a === "--seed") args.seed = next();
     else if (a === "--demo") {
       const d = next();
-      if (d !== "campaign" && d !== "cinematic" && d !== "dnd5e") throw new Error(`--demo must be campaign, cinematic or dnd5e, not "${d}"`);
+      if (d !== "campaign" && d !== "cinematic" && d !== "dnd5e" && d !== "pf2e") throw new Error(`--demo must be campaign, cinematic, dnd5e or pf2e, not "${d}"`);
       args.demo = d;
     }
     else if (a === "--name") args.name = next();
@@ -78,11 +80,12 @@ async function main(): Promise<number> {
     return 2;
   }
 
-  const seed = args.seed ?? (args.demo === "cinematic" ? CINEMATIC_DEMO_SEED : args.demo === "dnd5e" ? DND5E_DEMO_SEED : DEMO_SEED);
+  const seed = args.seed ?? (args.demo === "cinematic" ? CINEMATIC_DEMO_SEED : args.demo === "dnd5e" ? DND5E_DEMO_SEED : args.demo === "pf2e" ? PF2E_DEMO_SEED : DEMO_SEED);
   const opts = { seed, ...(args.name ? { name: args.name } : {}) };
   const cinematic = args.demo === "cinematic" ? buildCinematicDemo(opts) : undefined;
   const dnd5e = args.demo === "dnd5e" ? await buildDnd5eDemo(opts) : undefined;
-  const demo = cinematic ?? dnd5e ?? buildDemoCampaign(opts);
+  const pf2e = args.demo === "pf2e" ? await buildPf2eDemo(opts) : undefined;
+  const demo = cinematic ?? dnd5e ?? pf2e ?? buildDemoCampaign(opts);
   const { store, registry, maps, docs } = demo;
   const meta = store.meta();
   const entities = Object.values(maps.entities);
@@ -97,7 +100,7 @@ async function main(): Promise<number> {
   console.log(`  adventures ${Object.keys(maps.adventures).length}, acts ${Object.keys(maps.acts).length}, scenes ${Object.keys(maps.scenes).length}, handouts ${Object.keys(maps.handouts).length}`);
   console.log(`  sessions ${Object.keys(maps.sessions).length}, timeline events ${Object.keys(maps.timeline).length}, notes ${Object.keys(maps.notes).length}, rich-text docs ${Object.keys(docs).length}`);
   const pcs = entities.filter((e) => e.fields["isPC"] === true).map((e) => `${e.name} (${String(e.fields["career"] ?? e.fields["class"])})`);
-  console.log(`  ${dnd5e ? "party" : "crew"}: ${pcs.join(", ")}`);
+  console.log(`  ${dnd5e || pf2e ? "party" : "crew"}: ${pcs.join(", ")}`);
   const job = entities.find((e) => e.type === "alien.job");
   if (job) console.log(`  job: ${job.name} [${job.summary ?? ""}]`);
   if (cinematic) {

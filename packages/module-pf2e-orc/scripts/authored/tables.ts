@@ -42,8 +42,8 @@ const describe = (g: Group) => `${g.n} × ${g.offset === 0 ? "party level" : `pa
  * eight creatures, no two groups at the same level. Favours shapes a GM
  * would build (a boss and minions, a pair, a pack), deterministic order.
  */
-export function shapesFor(budget: number): Group[][] {
-  const offsets = [4, 3, 2, 1, 0, -1, -2, -3, -4];
+export function shapesFor(budget: number, lowest = -4, highest = 4): Group[][] {
+  const offsets = [4, 3, 2, 1, 0, -1, -2, -3, -4].filter((o) => o >= lowest && o <= highest);
   const out: Group[][] = [];
   const total = (gs: Group[]) => gs.reduce((s, g) => s + xpOf(g), 0);
   const count = (gs: Group[]) => gs.reduce((s, g) => s + g.n, 0);
@@ -62,13 +62,27 @@ export function shapesFor(budget: number): Group[][] {
   return out.sort((x, y) => score(x) - score(y) || JSON.stringify(x).localeCompare(JSON.stringify(y))).slice(0, 12);
 }
 
-function shapeTables(): RollTable[] {
-  return budgets().map((b) => {
-    const shapes = shapesFor(b);
-    if (shapes.length === 0) throw new Error(`no creature combination spends ${b} XP`);
+/**
+ * Party levels near the ends of Monster Core's range (creatures run from
+ * level −1 to 21) get their own shapes, so every creature a shape asks for
+ * exists and the budget is spent exactly.
+ */
+export const LEVEL_BANDS: Array<{ suffix: string; lowest: number; highest: number; levels: string }> = [
+  { suffix: "", lowest: -4, highest: 4, levels: "party levels 3–17" },
+  { suffix: "-l1", lowest: LEVEL_MIN - 1, highest: 4, levels: "party level 1" },
+  { suffix: "-l2", lowest: LEVEL_MIN - 2, highest: 4, levels: "party level 2" },
+  { suffix: "-l18", lowest: -4, highest: LEVEL_MAX - 18, levels: "party level 18" },
+  { suffix: "-l19", lowest: -4, highest: LEVEL_MAX - 19, levels: "party level 19" },
+  { suffix: "-l20", lowest: -4, highest: LEVEL_MAX - 20, levels: "party level 20" },
+];
+
+export function shapeTables(): RollTable[] {
+  return LEVEL_BANDS.flatMap((band) => budgets().map((b) => {
+    const shapes = shapesFor(b, band.lowest, band.highest);
+    if (shapes.length === 0) throw new Error(`no creature combination spends ${b} XP for ${band.levels}`);
     return {
-      id: id(`encounter.budget-${b}`),
-      name: `Encounter shape (${b} XP)`,
+      id: id(`encounter.budget-${b}${band.suffix}`),
+      name: `Encounter shape (${b} XP${band.suffix ? `, ${band.levels}` : ""})`,
       family: "encounter",
       cite: BUILDING_ENCOUNTERS,
       dice: `1d${shapes.length}`,
@@ -79,7 +93,7 @@ function shapeTables(): RollTable[] {
         result: Object.fromEntries(gs.flatMap((g, k) => [[`o${k + 1}`, g.offset], [`n${k + 1}`, g.n]])) as Record<string, number>,
       })),
     };
-  });
+  }));
 }
 
 /** One table per creature level: every Monster Core creature of that level. */
@@ -156,7 +170,6 @@ export function originalTables(presets: EntityPreset[]): RollTable[] {
   for (const [, block] of OCCUPATIONS) if (!names.has(block)) throw new Error(`occupation stat block ${block} is not a Monster Core creature`);
   const presetOf = new Map(presets.map((p) => [p.name, p.id]));
   return [
-    ...shapeTables(),
     ...creatureTables(presets),
     simple("encounter.activity", "What they are doing", [
       "Feeding, and in no mood to share",
@@ -409,7 +422,7 @@ export function procedures(): PackProcedure[] {
       id: id("proc.encounter"),
       name: "Encounter builder",
       description:
-        "Spends the XP budget for a threat and a party (GM Core's encounter-building numbers) on Monster Core creatures: picks a combination of creature levels that adds up to the budget, then a creature for each group. Accept to add the encounter and every creature (from its stat block). Creature levels run from −1 to 21, so at the lowest and highest party levels a shape can cost a little more or less than its budget; the encounter shows the budget and the XP actually spent.",
+        "Spends the XP budget for a threat and a party (GM Core's encounter-building numbers) on Monster Core creatures: picks a combination of creature levels that adds up to the budget, then a creature for each group. Accept to add the encounter and every creature (from its stat block). Creature levels run from −1 to 21; at party levels 1, 2 and 18–20 the shapes use only levels that exist, so the budget is still spent exactly.",
       cite: BUILDING_ENCOUNTERS,
       inputs: {
         type: "object",
@@ -421,7 +434,12 @@ export function procedures(): PackProcedure[] {
       },
       steps: [
         { id: "budget", title: "XP budget", value: budgetRule },
-        { id: "shape", title: "Creature levels", reads: ["budget"], table: cat(id("encounter.budget-"), v("results.budget", 80)) },
+        {
+          id: "shape",
+          title: "Creature levels",
+          reads: ["budget"],
+          table: cat(id("encounter.budget-"), v("results.budget", 80), ifs({ "<=": [v("inputs.partyLevel", 1), 2] }, cat("-l", v("inputs.partyLevel", 1)), { ">=": [v("inputs.partyLevel", 1), 18] }, cat("-l", v("inputs.partyLevel", 1)), "")),
+        },
         ...groupSteps(1),
         ...groupSteps(2),
         ...groupSteps(3),

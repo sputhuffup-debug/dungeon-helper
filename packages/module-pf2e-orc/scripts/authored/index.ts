@@ -12,9 +12,12 @@ import { CREATURE, PACK } from "../ids.ts";
 import { characterType, creatureType, encounterType, factionType, hazardType, itemType, locationType, npcType, questType } from "./entityTypes.ts";
 import { playGuide } from "./guides.ts";
 import { dice, manifest } from "./manifest.ts";
-import { originalTables, procedures } from "./tables.ts";
+import { originalTables, procedures, shapeTables } from "./tables.ts";
 import { adviceRules, basicLists, calendar, relationshipTypes, templates } from "./templates.ts";
 import { trackers } from "./trackers.ts";
+
+/** The authored part files, joined after the converted ones. */
+export const AUTHORED_PARTS = ["encounters.json", "tables.json"] as const;
 
 export interface GeneratedData {
   presets: EntityPreset[];
@@ -33,7 +36,7 @@ export function buildAuthored(data: GeneratedData): Record<string, unknown> {
     formatVersion: 1,
     manifest,
     dice,
-    parts: [...data.parts, "tables.json"],
+    parts: [...data.parts, ...AUTHORED_PARTS],
     entityTypes: [characterType(data.ancestryHp, data.classHp), creatureType(), hazardType(), npcType(), locationType(), factionType(), itemType(), encounterType(), questType()],
     relationshipTypes,
     referenceLists: basicLists,
@@ -56,5 +59,13 @@ export function buildAuthored(data: GeneratedData): Record<string, unknown> {
     tables: originalTables(creatures),
     procedures: procedures(),
   };
-  return { "pack.json": pack, "tables.json": tablesPart };
+  const encountersPart = {
+    $schema: "../../module-sdk/schema/module-pack-part.schema.json",
+    format: "campaign-forge-pack-part",
+    formatVersion: 1,
+    pack: PACK,
+    name: "encounters.json",
+    tables: shapeTables(),
+  };
+  return { "pack.json": pack, "encounters.json": encountersPart, "tables.json": tablesPart };
 }

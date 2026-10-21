@@ -35,6 +35,7 @@ export const pf2eOrcSource: PackSource = {
     "core-creatures-4.json": json(() => import("../pack/core-creatures-4.json", { with: { type: "json" } })),
     "core-creatures-5.json": json(() => import("../pack/core-creatures-5.json", { with: { type: "json" } })),
     "core-hazards.json": json(() => import("../pack/core-hazards.json", { with: { type: "json" } })),
+    "encounters.json": json(() => import("../pack/encounters.json", { with: { type: "json" } })),
     "tables.json": json(() => import("../pack/tables.json", { with: { type: "json" } })),
   },
 };

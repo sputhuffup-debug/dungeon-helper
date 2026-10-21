@@ -64,7 +64,8 @@ The build fails if any term (or any Foundry markup) is left in a part file, and 
 | File | Built from | |
 |---|---|---|
 | `pack/pack.json` | `scripts/authored/` | manifest, dice, entity types, basic lists, trackers, play guide, templates, calendar |
-| `pack/tables.json` | `scripts/authored/tables.ts`, `templates.ts` | encounter shapes and creature tables, original tables, generators, rules summaries and advice cards |
+| `pack/encounters.json` | `scripts/authored/tables.ts` | encounter shapes for every XP budget (and for party levels 1, 2 and 18–20, where Monster Core runs out of lower or higher creatures) |
+| `pack/tables.json` | `scripts/authored/tables.ts`, `templates.ts` | creature tables by level, original tables, generators, rules summaries and advice cards |
 | `pack/core-*.json` | the source | reference lists, rule cards, creature and hazard presets, split into 19 files |
 | `src/index.ts` | `scripts/build-pack.ts` | one lazy import per file |
 
@@ -89,5 +90,5 @@ The converter reads the source as data only (`JSON.parse`, typed accessors); not
 - **Universal monster abilities** in stat blocks point to the Monster abilities list ("See the universal monster ability Grab") instead of repeating it in every creature.
 - **Level-scaled damage**: 44 formulas that scale with level are written as text ("(1d8 per 2 levels)"); a few complex ones read "level-based".
 - **Not modelled**: condition penalties on rolls (the conditions tracker records the values; the GM applies them with the roll panel's modifier), weapon Strikes from the sheet (written down as a table), archetype dedication limits, multiclass spellcasting.
-- **Encounter builder**: creature levels run from −1 to 21, so at party levels 1–3 and 18–20 a shape can cost a little more or less than its budget (the encounter shows both numbers); creatures are picked by level only, not by environment.
+- **Encounter builder**: creatures are picked by level only, not by environment or theme; Monster Core has few creatures at the highest levels (one at level 21), so top-level encounters repeat them.
 - **Legal review**: the Reserved Material list is the converter's best effort from the text; the owner should review it before release, complete Monster Core's attribution line, and decide how to designate Campaign Forge's own additions (see NOTICE).

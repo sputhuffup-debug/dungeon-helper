@@ -17,7 +17,7 @@ import {
 } from "@campaign-forge/module-sdk";
 import { beforeAll, describe, expect, it } from "vitest";
 import { ATTRIBUTION_LINES, ORC_NOTICE, TRADEMARK_NOTICE } from "../scripts/authored/manifest.ts";
-import { RESERVED, RESERVED_TERMS, termPattern } from "../scripts/source/reserved.ts";
+import { anyReservedPattern, RESERVED } from "../scripts/source/reserved.ts";
 import { pf2eOrcSource } from "../src";
 
 const PACK_DIR = join(__dirname, "../pack");
@@ -95,6 +95,8 @@ describe("Fantasy d20 Remaster (ORC) data pack", () => {
   });
 
   it("keeps every pack file small, and free of images, Foundry markup and Reserved Material", () => {
+    // the combined pattern matches whole words only
+    expect("Golarion's skies, Golarionish, Absalom.".match(anyReservedPattern("g"))).toEqual(["Golarion", "Absalom"]);
     const files = readdirSync(PACK_DIR);
     expect(files.length).toBeLessThanOrEqual(64);
     for (const f of files) {
@@ -106,7 +108,7 @@ describe("Fantasy d20 Remaster (ORC) data pack", () => {
       const data = JSON.parse(raw) as Record<string, unknown>;
       delete data.manifest;
       const text = JSON.stringify(data);
-      for (const term of RESERVED_TERMS) expect(termPattern(term, "").test(text), `${f} contains "${term}"`).toBe(false);
+      expect(text.match(anyReservedPattern("g")) ?? [], `${f} contains Reserved Material`).toEqual([]);
     }
   });
 
@@ -245,7 +247,7 @@ describe("Fantasy d20 Remaster (ORC) data pack", () => {
     const budget = (threat: string, size: number) => ({ trivial: 40, low: 60, moderate: 80, severe: 120, extreme: 160 })[threat]! + (size - 4) * ({ trivial: 10, low: 20, moderate: 20, severe: 30, extreme: 40 })[threat]!;
     for (const threat of ["trivial", "low", "moderate", "severe", "extreme"]) {
       for (const partySize of [2, 4, 6]) {
-        for (const partyLevel of [5, 9, 14]) {
+        for (const partyLevel of [1, 2, 3, 9, 17, 18, 19, 20]) {
           const graph = runProcedure(proc, module, { seed: `enc-${threat}-${partySize}-${partyLevel}`, inputs: { partyLevel, partySize, threat } });
           const encounter = graph.produced.entities.find((e) => e.type === "pf2e-orc.encounter")!;
           const creatures = graph.produced.entities.filter((e) => e.type === "pf2e-orc.creature");

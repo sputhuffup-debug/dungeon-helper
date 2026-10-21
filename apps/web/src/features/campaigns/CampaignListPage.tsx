@@ -92,6 +92,9 @@ export function CampaignListPage() {
         <Button onClick={() => void onLoadDemo("dnd5e")} disabled={busy} data-testid="load-demo-5e" title="Thornwick Crossing: a fifth edition one-shot with the SRD 5.1 module, four level 3 characters and a goblin ambush">
           Load 5e demo
         </Button>
+        <Button onClick={() => void onLoadDemo("pf2e")} disabled={busy} data-testid="load-demo-pf2e" title="Hollowmere: a second edition remaster one-shot with the ORC core rules, four level 1 characters and kobold oil thieves">
+          Load PF2e demo
+        </Button>
         <input ref={fileRef} type="file" accept=".zip,application/zip" hidden aria-label="Import bundle file" onChange={(e) => void onImport(e.target.files?.[0])} />
       </div>
       {error && <p className="cf-field__error">{error}</p>}

@@ -15,7 +15,7 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { buildAuthored, type GeneratedData } from "./authored/index.ts";
+import { AUTHORED_PARTS, buildAuthored, type GeneratedData } from "./authored/index.ts";
 import { convertSource, type Part } from "./convert.ts";
 import { PACK } from "./ids.ts";
 
@@ -39,7 +39,7 @@ function partFile(p: Part) {
 
 /** src/index.ts: one lazy import per part (a bundler gives each its own chunk). */
 export function sourceIndex(parts: string[]): string {
-  const lines = [...parts, "tables.json"].map((p) => `    "${p}": json(() => import("../pack/${p}", { with: { type: "json" } })),`);
+  const lines = [...parts, ...AUTHORED_PARTS].map((p) => `    "${p}": json(() => import("../pack/${p}", { with: { type: "json" } })),`);
   return `/**
  * Fantasy d20 Remaster (ORC) as a built-in Campaign Forge data pack.
  *
@@ -120,10 +120,10 @@ function main(argv: string[]): void {
     write(join(GENERATED, "hp.json"), { ancestryHp: out.generated.ancestryHp, classHp: out.generated.classHp });
     write(join(GENERATED, "counts.json"), out.counts);
     writeFileSync(join(GENERATED, "conversion-notes.txt"), `${out.notes.join("\n")}\n`);
-    writeFileSync(SRC_INDEX, sourceIndex(names));
     console.log(JSON.stringify(out.counts, null, 1));
   }
   const parts = convertedParts();
+  writeFileSync(SRC_INDEX, sourceIndex(parts));
   const hp = JSON.parse(readFileSync(join(GENERATED, "hp.json"), "utf8")) as Record<string, unknown>;
   const authored = buildAuthored(generatedData(readPart, hp, parts));
   for (const [name, data] of Object.entries(authored)) sizes[name] = write(join(PACK_DIR, name), data);

@@ -94,6 +94,12 @@ export function termPattern(term: string, flags = "g"): RegExp {
 /** Every term that should never appear in the output, for the tests. */
 export const RESERVED_TERMS: string[] = RESERVED.map((x) => x.term);
 
+/** One whole-word pattern matching any reserved term (longest first), for scanning whole files quickly. */
+export function anyReservedPattern(flags = "g"): RegExp {
+  const terms = [...RESERVED_TERMS].sort((x, y) => y.length - x.length).map(escape);
+  return new RegExp(`(?<![\\p{L}\\p{N}])(?:${terms.join("|")})(?![\\p{L}\\p{N}])`, `u${flags}`);
+}
+
 /** The first reserved term in `s`, if any. */
 export function findReserved(s: string): ReservedTerm | undefined {
   return RESERVED.find((x) => termPattern(x.term, "").test(s));

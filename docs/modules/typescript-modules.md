@@ -111,7 +111,7 @@ A pack that ships with the app (rather than being imported by a GM) lives in a p
 
 6. **The tools.** Add `"dnd5e-srd": async () => ({ source: (await import("@campaign-forge/module-dnd5e-srd")).dnd5eSrdSource })` to `BUILTIN_TARGETS` in `tools/module-check/src/check.ts` and `"@campaign-forge/module-dnd5e-srd": "workspace:*"` to that package's dependencies; add `"dnd5e-srd"` to `RESERVED_IDS` in `tools/create-module/src/scaffold.ts`. `pnpm module-check --all` (and CI) then covers it.
 
-`packages/module-pf2e-orc` (the ORC core rules for the second edition remaster) follows the same steps with two refinements for a pack too large to list by hand: its converter writes `src/index.ts` (one lazy import per part, 21 files) and `src/manifest.ts` (the static manifest fields, imported by `registry.ts` instead of copying its long ORC attribution), and `test/authored.test.ts` fails when either is out of date. Its converter is also the worked example of shipping ORC content without the publisher's Reserved Material (see [licensing](licensing.md)).
+`packages/module-pf2e-orc` (the ORC core rules for the second edition remaster) follows the same steps with two refinements for a pack too large to list by hand: its converter writes `src/index.ts` (one lazy import per part, 22 files) and `src/manifest.ts` (the static manifest fields, imported by `registry.ts` instead of copying its long ORC attribution), and `test/authored.test.ts` fails when either is out of date. Its converter is also the worked example of shipping ORC content without the publisher's Reserved Material (see [licensing](licensing.md)).
 
 7. **Publish.** Per `CLAUDE.md`, a user-facing module ships with a README screenshot built from a demo campaign.
 
