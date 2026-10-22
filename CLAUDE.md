@@ -28,14 +28,17 @@ A Game Master's workspace for tabletop RPG campaigns. Every game system is a plu
 6. Packages export from `src/index.ts` (no build step; consumers import TS directly via workspace links).
 
 ## Publishing a feature
-Every user-facing feature ships with a README screenshot in the same PR:
+Every user-facing feature ships with a screenshot in the same PR:
 1. Add a named shot for it to `apps/web/screenshots/readme.spec.ts`, built from a demo campaign (add what the shot needs to the demos in `tools/seed-campaign` so it stays reproducible).
 2. Run `pnpm screenshots` (or one shot with `-g "<name>"`) and look at the image before committing.
-3. Add the image to the README's Screenshots section with a one-line caption, and update the "What it does" list.
-4. `pnpm test` fails if the README points at a missing image or an image is unused.
+3. Put the image with a one-line caption on the right page, and add the feature to that page's "What it does"/"What it adds" list:
+   - a feature of the app itself (any game system): `docs/features/app.md`;
+   - a feature of one game module: that module's page (`docs/features/alien.md`, `dnd5e.md`, `orc.md`; a new module gets its own page, linked from the README's Game systems table);
+   - the README stays short: only headline features get a line or an image there.
+4. `pnpm test` fails if a page points at a missing image or file, an image is unused, or the README doesn't link a feature page.
 Shots never show the rulebook's text or its purchase watermark; demos use original content.
 
 ## Commands
 - `pnpm install`, `pnpm typecheck`, `pnpm test`, `pnpm dev` (web app), `pnpm table-lint`.
 - `pnpm module-check <id|pack.json|folder> [--all]` checks modules and data packs; `pnpm create-module <name> --engine d20|pool|2d6|d100 [--ts]` scaffolds one.
-- `pnpm screenshots` rebuilds the web app and regenerates every README screenshot in `docs/screenshots/`.
+- `pnpm screenshots` rebuilds the web app and regenerates every screenshot in `docs/screenshots/` (shown in the README and `docs/features/`).
