@@ -16,6 +16,7 @@ import {
   exportJSON,
   getInstalledPack,
   getInstalledSupplement,
+  type BundleManifest,
   type BundleModule,
   importBundle,
   openPersistence,
@@ -43,7 +44,7 @@ import { defaultCampaignDate } from "../lib/calendar";
 import { downloadFile, slug } from "../lib/download";
 import { imageDimensions } from "../lib/image";
 import { installPack, installSupplement, PackImportError } from "../modules/importPack";
-import { loadModuleById, moduleEntry, supplementMeta, whenImportedModulesLoaded } from "../modules/registry";
+import { builtinSupplement, isBuiltinSupplementEnabled, isBuiltinSupplementId, loadModuleById, moduleEntry, setBuiltinSupplementEnabled, supplementMeta, whenImportedModulesLoaded } from "../modules/registry";
 import type { CampaignContextValue } from "./CampaignProvider";
 import { checklistEvent } from "./tableActions";
 
@@ -109,6 +110,39 @@ export interface BundleImportResult {
   installedSupplements?: string[];
   /** Supplements in the bundle that were not installed, with the reason (already here, or they did not fit). */
   skippedSupplements?: string[];
+  /** Built-in supplements the bundle names that were switched on for it ("name version"). */
+  enabledSupplements?: string[];
+}
+
+/**
+ * Switch on the built-in supplements a bundle was exported with (it names
+ * them; it does not carry them). One this app does not ship is reported as
+ * skipped; one already on stays on.
+ */
+function enableBundleBuiltins(manifest: BundleManifest): Pick<BundleImportResult, "enabledSupplements" | "skippedSupplements"> {
+  const enabled: string[] = [];
+  const skipped: string[] = [];
+  for (const s of manifest.builtinSupplements ?? []) {
+    const entry = builtinSupplement(s.id);
+    if (!entry) {
+      skipped.push(`${s.name} ${s.version}: built into the app that exported it, not into this one`);
+      continue;
+    }
+    if (!isBuiltinSupplementEnabled(s.id)) {
+      setBuiltinSupplementEnabled(s.id, true);
+      enabled.push(`${entry.name} ${entry.version}`);
+    }
+  }
+  const out: Pick<BundleImportResult, "enabledSupplements" | "skippedSupplements"> = {};
+  if (enabled.length > 0) out.enabledSupplements = enabled;
+  if (skipped.length > 0) out.skippedSupplements = skipped;
+  return out;
+}
+
+/** Both lists of what happened to a bundle's supplements, joined. */
+function joinSupplementResults(a: Pick<BundleImportResult, "installedSupplements" | "skippedSupplements">, b: Pick<BundleImportResult, "enabledSupplements" | "skippedSupplements">): Pick<BundleImportResult, "installedSupplements" | "skippedSupplements" | "enabledSupplements"> {
+  const skipped = [...(a.skippedSupplements ?? []), ...(b.skippedSupplements ?? [])];
+  return { ...(a.installedSupplements ? { installedSupplements: a.installedSupplements } : {}), ...(b.enabledSupplements ? { enabledSupplements: b.enabledSupplements } : {}), ...(skipped.length > 0 ? { skippedSupplements: skipped } : {}) };
 }
 
 /**
@@ -122,6 +156,10 @@ async function installBundleSupplements(supplements: ReadonlyArray<{ file: strin
   for (const s of supplements) {
     const m = (s.data as { manifest?: { id?: unknown; name?: unknown; version?: unknown } } | null)?.manifest;
     const label = `${typeof m?.name === "string" ? m.name : s.file}${typeof m?.version === "string" ? ` ${m.version}` : ""}`;
+    if (typeof m?.id === "string" && isBuiltinSupplementId(m.id)) {
+      skipped.push(`${label}: built into this app (switch it on under Game modules)`);
+      continue;
+    }
     const have = typeof m?.id === "string" ? supplementMeta(m.id) : undefined;
     if (have) {
       skipped.push(`${label}: already installed${have.version !== m?.version ? ` (${have.version} kept)` : ""}`);
@@ -159,7 +197,7 @@ export async function importCampaignBundle(bytes: Uint8Array): Promise<BundleImp
     const { entry } = await installPack([{ name: "module/pack.json", data: imported.pack }]);
     installedPack = `${entry.name} ${entry.version}`;
   }
-  const supplements = await installBundleSupplements(imported.supplements);
+  const supplements = joinSupplementResults(await installBundleSupplements(imported.supplements), enableBundleBuiltins(imported.manifest));
   const registry = new RichTextRegistry();
   const persistence = openPersistence(store, { name: campaignDbName(meta.id), registry });
   await persistence.whenSynced;
@@ -176,10 +214,10 @@ export async function importCampaignBundle(bytes: Uint8Array): Promise<BundleImp
 }
 
 /** Merge a bundle's records (with new ids) into the open campaign. Meta is left alone. */
-export async function importBundleIntoCampaign(ctx: CampaignContextValue, bytes: Uint8Array): Promise<{ records: number } & Pick<BundleImportResult, "installedSupplements" | "skippedSupplements">> {
+export async function importBundleIntoCampaign(ctx: CampaignContextValue, bytes: Uint8Array): Promise<{ records: number } & Pick<BundleImportResult, "installedSupplements" | "skippedSupplements" | "enabledSupplements">> {
   const imported = await importBundle(bytes, { onConflict: "new-id" });
   await whenImportedModulesLoaded();
-  const supplements = await installBundleSupplements(imported.supplements);
+  const supplements = joinSupplementResults(await installBundleSupplements(imported.supplements), enableBundleBuiltins(imported.manifest));
   const maps = imported.store.toJSON();
   const count = mergeMaps(ctx.store, maps);
   await applyImportedDocs(ctx.registry, imported.docs);
@@ -212,18 +250,30 @@ export async function exportCampaignBundle(ctx: CampaignContextValue): Promise<v
   downloadFile(bytes, `${slug(ctx.store.meta().name)}.cfbundle.zip`, "application/zip");
 }
 
-/** The campaign as bundle bytes, with its imported data pack and active supplements embedded. */
+/** The campaign as bundle bytes, with its imported data pack and active imported supplements embedded (built-in ones named). */
 export async function campaignBundleBytes(ctx: Pick<CampaignContextValue, "store" | "registry" | "assets" | "module">): Promise<Uint8Array> {
   const { id, version } = ctx.module.manifest;
   // An imported data pack travels with the campaign, so the bundle opens on a device without it.
   const pack = moduleEntry(id)?.source === "imported" ? await getInstalledPack(id) : undefined;
   // So do the supplements active for the module (installed if missing on import, never overwriting).
+  // Built-in supplements are not embedded (every copy of the app ships them): the bundle names them.
   const supplements: NonNullable<BundleModule["supplements"]> = [];
+  const builtinSupplements: NonNullable<BundleModule["builtinSupplements"]> = [];
   for (const s of ctx.module.manifest.supplements ?? []) {
+    if (isBuiltinSupplementId(s.id)) {
+      builtinSupplements.push({ id: s.id, name: s.name, version: s.version });
+      continue;
+    }
     const data = await getInstalledSupplement(s.id);
     if (data !== undefined) supplements.push({ id: s.id, name: s.name, version: s.version, data });
   }
-  return exportBundle(ctx.store, ctx.registry, ctx.assets, { id, version, ...(pack !== undefined ? { pack } : {}), ...(supplements.length > 0 ? { supplements } : {}) });
+  return exportBundle(ctx.store, ctx.registry, ctx.assets, {
+    id,
+    version,
+    ...(pack !== undefined ? { pack } : {}),
+    ...(supplements.length > 0 ? { supplements } : {}),
+    ...(builtinSupplements.length > 0 ? { builtinSupplements } : {}),
+  });
 }
 
 export function exportCampaignJSON(ctx: Pick<CampaignContextValue, "store">): void {

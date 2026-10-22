@@ -122,4 +122,16 @@ describe("bundles with embedded supplements", () => {
     expect(plain.manifest.supplements).toBeUndefined();
     await expect(exportBundle(store, new RichTextRegistry(), undefined, { id: "zeta", version: "1.0.0", supplements: [{ id: "../evil", name: "x", version: "1", data: {} }] })).rejects.toThrow(/cannot be a file name/);
   });
+
+  it("names built-in supplements in the manifest without embedding them", async () => {
+    const store = newStore("Built in");
+    const bytes = await exportBundle(store, new RichTextRegistry(), undefined, { id: "zeta", version: "1.0.0", builtinSupplements: [{ id: "zeta-books", name: "Zeta books", version: "0.1.0" }] });
+    const files = unzipSync(bytes);
+    expect(Object.keys(files).filter((f) => f.startsWith("module/"))).toEqual([]);
+    expect(strFromU8(files["README.md"]!)).toContain("- Built-in supplement (not embedded; switched on when imported): Zeta books (zeta-books 0.1.0)");
+    const imported = await importBundle(bytes);
+    expect(imported.manifest.builtinSupplements).toEqual([{ id: "zeta-books", name: "Zeta books", version: "0.1.0" }]);
+    expect(imported.manifest.supplements).toBeUndefined();
+    expect(imported.supplements).toEqual([]);
+  });
 });

@@ -121,6 +121,27 @@ describe("module-check on supplements", () => {
     expect(formatReport(await checkTarget(supplementFile, { seeds: 5, determinismSeeds: 2 }))).toMatch(/^module-check: Deep Roads \(example supplement\) \(deep-roads 0\.1\.0\), supplement for example-pack 0\.1\.0/);
   });
 
+  it("joins a split supplement with the parts next to it, and names a missing part", async () => {
+    const whole = JSON.parse(readFileSync(supplementFile, "utf8")) as Record<string, any>;
+    const { rules, ...main } = whole;
+    const dir = join(tmp, "split-supplement");
+    cpSync(join(supplementFile, ".."), dir, { recursive: true });
+    writeFileSync(join(dir, "supplement.json"), JSON.stringify({ ...main, parts: ["rules.json"] }));
+    writeFileSync(join(dir, "rules.json"), JSON.stringify({ format: "campaign-forge-supplement-part", formatVersion: 1, supplement: "deep-roads", name: "rules.json", rules }));
+    const r = await checkTarget(join(dir, "supplement.json"), { seeds: 5, determinismSeeds: 2 });
+    expect(r.issues.map(formatCheckIssue)).toEqual([]);
+    expect(r.ok).toBe(true);
+    rmSync(join(dir, "rules.json"));
+    const missing = await checkTarget(join(dir, "supplement.json"), { seeds: 5 });
+    expect(missing.issues.map(formatCheckIssue)).toEqual(['error   [pack] $.parts: part "rules.json" is missing (no file rules.json next to supplement.json)']);
+  });
+
+  it("checks the built-in supplement for pf2e-orc by its id (split into parts)", async () => {
+    const r = await checkTarget("pf2e-orc-books", { seeds: 5, determinismSeeds: 2 });
+    expect(r.issues.filter((i) => i.severity === "error").map(formatCheckIssue)).toEqual([]);
+    expect(r).toMatchObject({ ok: true, kind: "supplement", moduleId: "pf2e-orc-books", base: "pf2e-orc 0.1.0" });
+  }, 120_000);
+
   it("reports a missing list, a lint problem and an unknown base module", async () => {
     const bad = await checkTarget(
       supplementCopy("bad", (s) => {

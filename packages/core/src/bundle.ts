@@ -30,13 +30,16 @@ export const BUNDLE_SUPPLEMENTS_DIR = "module/supplements/";
 /**
  * The module a bundle is exported with. `pack` is the module's data pack JSON,
  * embedded so the campaign opens on another device; `supplements` are the
- * supplements active for it (their JSON), embedded the same way.
+ * supplements active for it (their JSON), embedded the same way;
+ * `builtinSupplements` are active supplements built into the app, recorded by
+ * id only.
  */
 export interface BundleModule {
   id: string;
   version: string;
   pack?: unknown;
   supplements?: Array<{ id: string; name: string; version: string; data: unknown }>;
+  builtinSupplements?: Array<{ id: string; name: string; version: string }>;
 }
 
 export interface ImportedBundle {
@@ -84,7 +87,7 @@ export function exportJSON(store: CampaignStore): string {
   return JSON.stringify(store.toJSON(), null, 2);
 }
 
-export function buildManifest(store: CampaignStore, module: { id: string; version: string; supplements?: BundleModule["supplements"] }): BundleManifest {
+export function buildManifest(store: CampaignStore, module: { id: string; version: string; supplements?: BundleModule["supplements"]; builtinSupplements?: BundleModule["builtinSupplements"] }): BundleManifest {
   const meta = store.meta();
   const manifest: BundleManifest = {
     format: BUNDLE_FORMAT,
@@ -96,6 +99,7 @@ export function buildManifest(store: CampaignStore, module: { id: string; versio
     campaignName: meta.name,
   };
   if (module.supplements && module.supplements.length > 0) manifest.supplements = module.supplements.map((s) => ({ id: s.id, name: s.name, version: s.version }));
+  if (module.builtinSupplements && module.builtinSupplements.length > 0) manifest.builtinSupplements = module.builtinSupplements.map((s) => ({ id: s.id, name: s.name, version: s.version }));
   return manifest;
 }
 
@@ -113,6 +117,7 @@ function readme(manifest: BundleManifest): string {
     `- Campaign id: ${manifest.campaignId}`,
     `- Module: ${manifest.moduleId} ${manifest.moduleVersion}`,
     ...(manifest.supplements ?? []).map((s) => `- Supplement: ${s.name} (${s.id} ${s.version})`),
+    ...(manifest.builtinSupplements ?? []).map((s) => `- Built-in supplement (not embedded; switched on when imported): ${s.name} (${s.id} ${s.version})`),
     "",
     `Re-importing needs module \`${manifest.moduleId}\` version ${manifest.moduleVersion} or newer (older data runs the module's migrations).`,
     "",

@@ -18,6 +18,14 @@
  * One that no longer fits is left out and reported (`supplementProblems`);
  * the module still loads.
  *
+ * Built-in supplements ship with the app as JSON in a repo package (split
+ * into parts, each its own lazy chunk, like a built-in pack). Each is optional
+ * per device: an on/off switch in Game modules (stored in this browser's
+ * localStorage; `defaultEnabled` when never set). When on, it is loaded,
+ * checked and merged like an imported one. A bundle never embeds a built-in
+ * supplement: it records its id (`builtinSupplements` in the bundle
+ * manifest), and importing the bundle switches it on where the app has it.
+ *
  * The static manifests of built-in entries copy fields from each module's own
  * manifest; `registry.test.ts` fails if they drift.
  */
@@ -31,8 +39,9 @@ import {
   type InstalledPackMeta,
   type InstalledSupplementMeta,
 } from "@campaign-forge/core";
-import type { GameModule, LoadedModule, ModuleLicense, ModuleManifest, ModuleSupplement, PackIssue, PackSource } from "@campaign-forge/module-sdk";
+import type { GameModule, LoadedModule, ModuleLicense, ModuleManifest, ModuleSupplement, PackIssue, PackSource, SupplementManifest, SupplementSource } from "@campaign-forge/module-sdk";
 import { pf2eOrcManifest } from "@campaign-forge/module-pf2e-orc/manifest";
+import { pf2eOrcBooksManifest } from "@campaign-forge/module-pf2e-orc/supplement-manifest";
 
 /** What the app knows about a module before loading it. */
 export type StaticManifest = Pick<ModuleManifest, "id" | "name" | "version" | "modes" | "defaultMode" | "dataStatus">;
@@ -160,6 +169,100 @@ const BUILTIN: ModuleEntry[] = [
 ];
 
 const BUILTIN_IDS = new Set(BUILTIN.map((e) => e.id));
+
+// ---------------------------------------------------------------------------
+// Built-in supplements (optional per device)
+// ---------------------------------------------------------------------------
+
+/** What the app knows about a built-in supplement before loading it, and where its files come from. */
+export interface BuiltinSupplementEntry extends Pick<SupplementManifest, "id" | "name" | "version" | "extends" | "licenseNotice" | "license" | "authors" | "description" | "dataStatus"> {
+  source: "builtin";
+  /** Entries it adds, per collection. */
+  counts: Record<string, number>;
+  /** Bytes of its JSON files. */
+  bytes: number;
+  /** Whether it is on on a device where the GM never switched it. */
+  defaultEnabled: boolean;
+  load: () => Promise<SupplementSource>;
+}
+
+const BUILTIN_SUPPLEMENTS: BuiltinSupplementEntry[] = [
+  // More remaster ORC books for pf2e-orc (about 9 MB of JSON): off by default, so the module loads only
+  // its core books unless the GM wants the rest. Its static metadata is generated next to it.
+  {
+    ...pf2eOrcBooksManifest,
+    source: "builtin",
+    defaultEnabled: false,
+    load: () => import("@campaign-forge/module-pf2e-orc/supplement").then((m) => m.pf2eOrcBooksSource),
+  },
+];
+
+const ENABLED_KEY = "cf-builtin-supplements";
+/** Switches made this page load when localStorage cannot be written (a private window). */
+const sessionEnabled = new Map<string, boolean>();
+
+function readEnabled(): Record<string, boolean> {
+  try {
+    const v = JSON.parse(localStorage.getItem(ENABLED_KEY) ?? "{}") as unknown;
+    return v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, boolean>) : {};
+  } catch {
+    return {};
+  }
+}
+
+/** Every supplement built into the app. */
+export function listBuiltinSupplements(): BuiltinSupplementEntry[] {
+  return [...BUILTIN_SUPPLEMENTS];
+}
+
+export function builtinSupplement(id: string): BuiltinSupplementEntry | undefined {
+  return BUILTIN_SUPPLEMENTS.find((s) => s.id === id);
+}
+
+/** Whether `id` is a supplement built into the app (an imported supplement may not use it). */
+export function isBuiltinSupplementId(id: string): boolean {
+  return BUILTIN_SUPPLEMENTS.some((s) => s.id === id);
+}
+
+/** Built-in supplements that extend a module, by id. */
+export function builtinSupplementsFor(moduleId: string): BuiltinSupplementEntry[] {
+  return BUILTIN_SUPPLEMENTS.filter((s) => s.extends.module === moduleId).sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+}
+
+/** Whether a built-in supplement is switched on on this device. */
+export function isBuiltinSupplementEnabled(id: string): boolean {
+  const entry = builtinSupplement(id);
+  if (!entry) return false;
+  const session = sessionEnabled.get(id);
+  if (session !== undefined) return session;
+  const v = readEnabled()[id];
+  return typeof v === "boolean" ? v : entry.defaultEnabled;
+}
+
+/**
+ * Switch a built-in supplement on or off on this device. The module it
+ * extends loads with (or without) it the next time a campaign opens it.
+ */
+export function setBuiltinSupplementEnabled(id: string, on: boolean): void {
+  const entry = builtinSupplement(id);
+  if (!entry) throw new Error(`"${id}" is not a built-in supplement`);
+  const all = readEnabled();
+  all[id] = on;
+  try {
+    localStorage.setItem(ENABLED_KEY, JSON.stringify(all));
+    sessionEnabled.delete(id);
+  } catch {
+    // private mode: the switch lasts for this page only
+    sessionEnabled.set(id, on);
+  }
+  forgetModule(entry.extends.module);
+  for (const l of [...listeners]) l();
+}
+
+/** Built-in supplements switched on for a module, by id. */
+export function enabledBuiltinSupplementsFor(moduleId: string): BuiltinSupplementEntry[] {
+  return builtinSupplementsFor(moduleId).filter((s) => isBuiltinSupplementEnabled(s.id));
+}
 
 // ---------------------------------------------------------------------------
 // Imported packs (IndexedDB), kept in memory once read
@@ -291,6 +394,14 @@ export function supplementMeta(id: string): InstalledSupplementMeta | undefined 
   return supplements.find((s) => s.id === id);
 }
 
+/** Name and description of a supplement, imported or built in. */
+export function describeSupplement(id: string): { name: string; description?: string; source: "builtin" | "imported" } | undefined {
+  const b = builtinSupplement(id);
+  if (b) return { name: b.name, source: "builtin", ...(b.description ? { description: b.description } : {}) };
+  const m = supplementMeta(id);
+  return m ? { name: m.name, source: "imported", ...(m.description ? { description: m.description } : {}) } : undefined;
+}
+
 /** Supplements left out the last time a module loaded, with the reason (module id -> supplement id -> problems). */
 const problems = new Map<string, Map<string, PackIssue[]>>();
 
@@ -303,11 +414,25 @@ export function supplementProblems(moduleId: string): Array<{ id: string; issues
 async function withSupplements(base: GameModule): Promise<GameModule> {
   const id = base.manifest.id;
   const metas = supplementsFor(id);
+  const builtins = enabledBuiltinSupplementsFor(id);
   const left = new Map<string, PackIssue[]>();
   problems.set(id, left);
-  if (metas.length === 0) return base;
+  if (metas.length === 0 && builtins.length === 0) return base;
   const sdk = await import("@campaign-forge/module-sdk");
   const ok: ModuleSupplement[] = [];
+  for (const b of builtins) {
+    // Its files are lazy chunks: joined and validated here, then checked against the module like any other.
+    let s: ModuleSupplement;
+    try {
+      s = await sdk.supplementFromSource(await b.load());
+    } catch (e) {
+      left.set(b.id, [{ severity: "error", path: "$", message: `could not be loaded (${(e as Error).message.split("\n")[0]})`, source: "json" }]);
+      continue;
+    }
+    const issues = sdk.checkSupplementAgainst(s, base);
+    if (issues.some((i) => i.severity === "error")) left.set(b.id, issues.filter((i) => i.severity === "error"));
+    else ok.push(s);
+  }
   for (const meta of metas) {
     const data = await getInstalledSupplement(meta.id).catch(() => undefined);
     if (data === undefined) {

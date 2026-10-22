@@ -90,6 +90,7 @@ describe("create-module --supplement", () => {
   it("refuses ids that clash, and runs from the command line", () => {
     expect(supplementIdProblems("dnd5e-srd", "dnd5e-srd")).toEqual(['"dnd5e-srd" is the id of a module built into the app', "a supplement's id cannot be the id of the module it extends"]);
     expect(() => scaffoldSupplement({ name: "Alien", base: "dnd5e-srd" })).toThrow(/built into the app/);
+    expect(supplementIdProblems("pf2e-orc-books", "pf2e-orc")).toEqual(['"pf2e-orc-books" is the id of a supplement built into the app']);
     const s = scaffoldSupplement({ name: "Harbour Homebrew", base: "dnd5e-srd" });
     expect(Object.keys(s.referenceItems ?? {})).toEqual(["dnd5e-srd.backgrounds"]);
     expect(Object.keys(scaffoldSupplement({ name: "X Y", base: "dnd5e-srd", list: "dnd5e-srd.feats" }).referenceItems ?? {})).toEqual(["dnd5e-srd.feats"]);

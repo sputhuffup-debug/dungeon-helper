@@ -698,6 +698,29 @@ test("pf2e-encounter", async ({ page }) => {
   await shot(page, "pf2e-encounter");
 });
 
+test("pf2e-supplement", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1150 });
+  // the built-in supplement "Remaster ORC books", switched on for this device under Game modules
+  await page.goto("/");
+  await page.getByTestId("open-modules").click();
+  const modules = page.getByRole("dialog", { name: "Game modules" });
+  const toggle = modules.getByTestId("module-pf2e-orc").getByTestId("toggle-supplement-pf2e-orc-books");
+  await toggle.check();
+  await expect(toggle).toBeChecked();
+  await modules.getByRole("button", { name: "Close" }).click();
+  // Hollowmere's reference browser: the supplement's ancestries next to the core books', each with its source badge
+  const base = await loadDemo(page, "pf2e");
+  await page.goto(`${base}/reference`);
+  await page.getByRole("combobox", { name: "Reference list" }).selectOption("pf2e-orc.ancestries");
+  const centaur = page.getByTestId("reference-items").getByRole("row").filter({ hasText: "Centaur" });
+  await expect(centaur.getByTestId("source-badge")).toHaveText("Remaster ORC books");
+  await expect(page.getByTestId("reference-items").getByTestId("source-badge")).toHaveCount(8);
+  // the end of the list: the last core ancestries, then the supplement's eight
+  await page.getByTestId("reference-items").getByRole("row").last().evaluate((e) => e.scrollIntoView({ block: "end" }));
+  await dismissToasts(page);
+  await shot(page, "pf2e-supplement");
+});
+
 // ---------------------------------------------------------------------------
 // helpers for SVG shots
 // ---------------------------------------------------------------------------

@@ -15,7 +15,8 @@
  * Targets: a built-in module id, a pack's main JSON file (its parts are read
  * from the same folder), a folder holding `pack.json`, a TypeScript module
  * package folder, a TypeScript file exporting a GameModule or PackSource, or
- * a supplement's JSON file. A supplement is checked against the module it
+ * a supplement's JSON file (its parts, when it is split, are read from the
+ * same folder). A supplement is checked against the module it
  * extends (a built-in id, or `base` for one that is not built in): schema and
  * namespacing, the lists and entity types it adds to, then conformance, lint
  * and determinism over the merged module, reporting its own content only.
@@ -29,6 +30,7 @@ import {
   conformanceToPackIssues,
   conformanceToSupplementIssues,
   mergePackParts,
+  mergeSupplementParts,
   packFromSource,
   packToModule,
   parsePackJson,
@@ -36,6 +38,7 @@ import {
   PACK_PART_FORMAT,
   PackLoadError,
   SUPPLEMENT_FORMAT,
+  SUPPLEMENT_PART_FORMAT,
   type ConformanceIssue,
   type GameModule,
   type ModulePack,
@@ -97,6 +100,7 @@ export const BUILTIN_TARGETS: Record<string, () => Promise<{ module?: GameModule
 export const BUILTIN_SUPPLEMENT_TARGETS: Record<string, string> = {
   "deep-roads": fileURLToPath(new URL("../../../packages/module-example/packs/example-supplement/supplement.json", import.meta.url)),
   "thornwick-homebrew": fileURLToPath(new URL("../../../packages/module-dnd5e-srd/supplements/thornwick-homebrew.supplement.json", import.meta.url)),
+  "pf2e-orc-books": fileURLToPath(new URL("../../../packages/module-pf2e-orc/supplements/remaster-orc-books/supplement.json", import.meta.url)),
 };
 
 function fromPackIssue(i: PackIssue, stage: CheckStage): CheckIssue {
@@ -173,7 +177,18 @@ function fromPackFile(file: string): Resolved {
   const read = readPackFiles(file);
   const format = (read.main as { format?: unknown } | null)?.format;
   if (format === PACK_PART_FORMAT) throw new Error(`${basename(file)} is a part of a split pack; check the pack's main file`);
-  if (format === SUPPLEMENT_FORMAT) return { kind: "supplement", issues: [], supplementData: read.main };
+  if (format === SUPPLEMENT_PART_FORMAT) throw new Error(`${basename(file)} is a part of a split supplement; check the supplement's main file`);
+  if (format === SUPPLEMENT_FORMAT) {
+    // A split supplement is joined with its parts first; the joined supplement is what gets checked.
+    const joined = mergeSupplementParts(read.main, read.parts);
+    const issues = joined.issues.map((i) => fromPackIssue(i, "pack"));
+    for (const name of read.missing) {
+      const i = issues.find((x) => x.message === `part "${name}" is missing`);
+      if (i) i.message += ` (no file ${name} next to ${basename(file)})`;
+    }
+    if (!joined.ok || !joined.value) return { kind: "supplement", issues };
+    return { kind: "supplement", issues, supplementData: joined.value };
+  }
   if (format !== PACK_FORMAT) throw new Error(`${basename(file)} is not a data pack or a supplement ("format" must be "${PACK_FORMAT}" or "${SUPPLEMENT_FORMAT}")`);
   const merged = mergePackParts(read.main, read.parts);
   const issues = merged.issues.map((i) => fromPackIssue(i, "pack"));
@@ -257,6 +272,7 @@ export async function checkTarget(target: string, options: ModuleCheckOptions = 
   const started = Date.now();
   const cwd = options.cwd ?? process.cwd();
   const resolved = await resolveTarget(target, cwd);
+  if (resolved.kind === "supplement" && resolved.supplementData === undefined) return { target, kind: "supplement", ok: false, issues: resolved.issues, stages: ["pack"], ms: Date.now() - started };
   if (resolved.kind === "supplement") return checkSupplementTarget(target, resolved.supplementData, options, started);
   const issues = [...resolved.issues];
   const stages: CheckStage[] = resolved.kind === "pack" ? ["pack"] : [];

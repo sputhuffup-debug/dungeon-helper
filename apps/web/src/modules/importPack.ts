@@ -8,7 +8,7 @@
  */
 import { getInstalledSupplement, putInstalledPack, putInstalledSupplement, type InstalledPackMeta, type InstalledSupplementMeta } from "@campaign-forge/core";
 import type { ModuleSupplement, PackIssue } from "@campaign-forge/module-sdk";
-import { forgetModule, isBuiltinModuleId, moduleEntry, refreshImportedModules, supplementMeta, supplementsFor, whenImportedModulesLoaded, type ModuleEntry } from "./registry";
+import { forgetModule, isBuiltinModuleId, isBuiltinSupplementId, moduleEntry, refreshImportedModules, supplementMeta, supplementsFor, whenImportedModulesLoaded, type ModuleEntry } from "./registry";
 
 export interface PackFile {
   name: string;
@@ -109,16 +109,20 @@ async function installedFor(moduleId: string, skip: string): Promise<ModuleSuppl
 }
 
 /**
- * Validate a supplement against the module it extends (with the module's
- * other supplements applied) and store it. The module reloads with it the
- * next time a campaign opens.
+ * Validate a supplement (its main file, plus its parts when it is split)
+ * against the module it extends (with the module's other imported
+ * supplements applied) and store it, joined into one document. The module
+ * reloads with it the next time a campaign opens.
  */
-export async function installSupplement(file: { name: string; data: unknown }): Promise<SupplementImportResult> {
+export async function installSupplement(file: { name: string; data: unknown }, parts: ReadonlyArray<{ name: string; data: unknown }> = []): Promise<SupplementImportResult> {
   const sdk = await import("@campaign-forge/module-sdk");
   await whenImportedModulesLoaded();
   const rawId = (file.data as { manifest?: { id?: unknown } } | null)?.manifest?.id;
   if (typeof rawId === "string" && (isBuiltinModuleId(rawId) || moduleEntry(rawId))) fail(`The supplement id "${rawId}" is the id of a game module. Give the supplement its own id.`);
-  const v = sdk.validateSupplement(file.data);
+  if (typeof rawId === "string" && isBuiltinSupplementId(rawId)) fail(`The supplement id "${rawId}" is the id of a supplement built into the app (switch it on under Game modules). Give the supplement its own id.`);
+  const joined = sdk.mergeSupplementParts(file.data, parts);
+  if (!joined.ok || !joined.value) return fail("The supplement's files do not fit together.", joined.issues.map((i) => ({ ...i, file: i.file ?? file.name })));
+  const v = sdk.validateSupplement(joined.value);
   if (!v.ok || !v.value) return fail("The supplement did not pass validation.", v.issues.map((i) => ({ ...i, file: file.name })));
   const m = v.value.manifest;
   const base = moduleEntry(m.extends.module);
@@ -135,7 +139,7 @@ export async function installSupplement(file: { name: string; data: unknown }): 
     licenseNotice: m.licenseNotice,
     counts: sdk.supplementCounts(res.supplement!),
     importedAt: new Date().toISOString(),
-    files: [file.name],
+    files: [file.name, ...parts.map((p) => p.name)],
     bytes: json.length,
   };
   if (m.license) meta.license = m.license;
@@ -186,10 +190,13 @@ async function parseFiles(files: ReadonlyArray<PackFile>): Promise<Array<{ name:
 async function installParsed(parsed: Array<{ name: string; data: unknown }>): Promise<PackImportResult | SupplementImportResult> {
   const sdk = await import("@campaign-forge/module-sdk");
   const supplements = parsed.filter((f) => formatOf(f.data) === sdk.SUPPLEMENT_FORMAT);
+  const supplementParts = parsed.filter((f) => formatOf(f.data) === sdk.SUPPLEMENT_PART_FORMAT);
   if (supplements.length > 0) {
-    if (parsed.length > 1) fail("Choose one supplement at a time, on its own (a supplement is a single file).");
-    return installSupplement(supplements[0]!);
+    if (supplements.length > 1) fail(`Choose one supplement at a time (${supplements.map((s) => s.name).join(", ")} are all supplement main files).`);
+    if (supplements.length + supplementParts.length < parsed.length) fail("Choose a supplement on its own: its main file, plus its part files when it is split.");
+    return installSupplement(supplements[0]!, supplementParts);
   }
+  if (supplementParts.length > 0) fail("These are parts of a split supplement. Choose the supplement's main file together with its parts.");
   return installPack(parsed);
 }
 
