@@ -68,6 +68,15 @@
       "items": {
         "$ref": "#/definitions/playGuide"
       }
+    },
+    "parts": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]*\\.json$"
+      },
+      "uniqueItems": true,
+      "description": "Part files that complete a split supplement, relative to this file."
     }
   },
   "required": [

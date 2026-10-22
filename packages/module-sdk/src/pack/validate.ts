@@ -15,7 +15,7 @@ import Ajv, { type ErrorObject, type ValidateFunction } from "ajv";
 import { createDiceEngine } from "../engines";
 import { logicIssues } from "../logic";
 import type { JsonLogicRule } from "../types";
-import { MODULE_PACK_PART_SCHEMA, MODULE_PACK_SCHEMA, MODULE_SUPPLEMENT_SCHEMA } from "./schema";
+import { MODULE_PACK_PART_SCHEMA, MODULE_PACK_SCHEMA, MODULE_SUPPLEMENT_PART_SCHEMA, MODULE_SUPPLEMENT_SCHEMA } from "./schema";
 import { PACK_COLLECTIONS, PACK_FORMAT, PACK_PART_FORMAT, type ModulePack, type ModulePackPart, type PackCollections } from "./types";
 
 export type PackIssueSource = "json" | "limits" | "schema" | "pack" | "conformance" | "lint" | "determinism";
@@ -173,6 +173,13 @@ let supplementValidator: ValidateFunction | undefined;
 export function supplementSchemaValidator(): ValidateFunction {
   if (!supplementValidator) supplementValidator = new Ajv({ allErrors: true, strict: false }).compile(MODULE_SUPPLEMENT_SCHEMA);
   return supplementValidator;
+}
+
+let supplementPartValidator: ValidateFunction | undefined;
+/** The compiled schema of a split supplement's part file. */
+export function supplementPartSchemaValidator(): ValidateFunction {
+  if (!supplementPartValidator) supplementPartValidator = new Ajv({ allErrors: true, strict: false }).compile(MODULE_SUPPLEMENT_PART_SCHEMA);
+  return supplementPartValidator;
 }
 
 /** Schema errors as pack issues (shared with the supplement validator). */

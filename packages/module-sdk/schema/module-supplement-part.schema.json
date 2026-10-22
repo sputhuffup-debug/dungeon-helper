@@ -1,0 +1,2149 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://campaign-forge.dev/schema/module-supplement-part.schema.json",
+  "title": "Campaign Forge module supplement part",
+  "description": "More additive data for a split supplement; the supplement's `parts` lists it by `name`. See docs/modules/supplements.md.",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "format": {
+      "const": "campaign-forge-supplement-part"
+    },
+    "formatVersion": {
+      "const": 1
+    },
+    "supplement": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{1,47}$"
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]*\\.json$"
+    },
+    "referenceItems": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/referenceItem"
+        }
+      },
+      "description": "Items to add to the base module's reference lists, keyed by list id."
+    },
+    "referenceLists": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/referenceList"
+      }
+    },
+    "presets": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/preset"
+      }
+    },
+    "tables": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/table"
+      }
+    },
+    "procedures": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/procedure"
+      }
+    },
+    "templates": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/template"
+      }
+    },
+    "rules": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/ruleCard"
+      }
+    },
+    "playGuides": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/playGuide"
+      }
+    }
+  },
+  "required": [
+    "format",
+    "formatVersion",
+    "supplement",
+    "name"
+  ],
+  "additionalProperties": false,
+  "definitions": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]*$"
+    },
+    "page": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 1
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "minItems": 2,
+          "maxItems": 2
+        }
+      ],
+      "description": "A page, or an inclusive [first, last] range."
+    },
+    "cite": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "A section citation, e.g. \"SRD 5.1, Conditions\"."
+    },
+    "modes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/id"
+      }
+    },
+    "tone": {
+      "type": "string",
+      "enum": [
+        "critical",
+        "success",
+        "partial",
+        "failure",
+        "fumble",
+        "neutral"
+      ]
+    },
+    "playMode": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string"
+        },
+        "page": {
+          "$ref": "#/definitions/page"
+        },
+        "cite": {
+          "$ref": "#/definitions/cite"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "license": {
+      "type": "object",
+      "properties": {
+        "spdx": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^https?://",
+          "maxLength": 2000
+        },
+        "attribution": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "name",
+        "attribution"
+      ],
+      "additionalProperties": false
+    },
+    "sourceBook": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "year": {
+          "type": "integer"
+        },
+        "pageNote": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^https?://",
+          "maxLength": 2000
+        }
+      },
+      "required": [
+        "title"
+      ],
+      "additionalProperties": false
+    },
+    "manifest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{1,47}$"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ruleset": {
+          "type": "string",
+          "minLength": 1
+        },
+        "edition": {
+          "type": "string"
+        },
+        "publisher": {
+          "type": "string"
+        },
+        "licenseNotice": {
+          "type": "string",
+          "minLength": 1
+        },
+        "requiredCore": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+"
+        },
+        "modes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/playMode"
+          },
+          "minItems": 1
+        },
+        "defaultMode": {
+          "$ref": "#/definitions/id"
+        },
+        "dataStatus": {
+          "enum": [
+            "unverified",
+            "partially-verified",
+            "verified"
+          ]
+        },
+        "sourceBook": {
+          "$ref": "#/definitions/sourceBook"
+        },
+        "license": {
+          "$ref": "#/definitions/license"
+        },
+        "citationStyle": {
+          "enum": [
+            "page",
+            "section"
+          ]
+        },
+        "authors": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "required": [
+        "id",
+        "version",
+        "name",
+        "ruleset",
+        "licenseNotice",
+        "requiredCore",
+        "modes",
+        "defaultMode",
+        "dataStatus",
+        "license"
+      ],
+      "additionalProperties": false
+    },
+    "supplementManifest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{1,47}$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+"
+        },
+        "extends": {
+          "type": "object",
+          "properties": {
+            "module": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{1,47}$",
+              "description": "The id of the module the supplement adds to."
+            },
+            "version": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100,
+              "description": "A semver range of base module versions, e.g. \"^0.1.0\"."
+            }
+          },
+          "required": [
+            "module"
+          ],
+          "additionalProperties": false
+        },
+        "licenseNotice": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "license": {
+          "$ref": "#/definitions/license"
+        },
+        "authors": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "dataStatus": {
+          "enum": [
+            "unverified",
+            "partially-verified",
+            "verified"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "version",
+        "extends",
+        "licenseNotice"
+      ],
+      "additionalProperties": false
+    },
+    "d20": {
+      "type": "object",
+      "properties": {
+        "engine": {
+          "const": "d20"
+        },
+        "abilityModifier": {
+          "type": "boolean"
+        },
+        "proficiency": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "proficiencyMode": {
+          "enum": [
+            "multiply",
+            "add"
+          ]
+        },
+        "bonus": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "critOn": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 20
+        },
+        "fumbleOn": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 19
+        },
+        "critSucceeds": {
+          "type": "boolean"
+        },
+        "fumbleFails": {
+          "type": "boolean"
+        },
+        "critMargin": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 40
+        },
+        "naturalShift": {
+          "type": "boolean"
+        },
+        "advantageNames": {
+          "type": "object",
+          "properties": {
+            "normal": {
+              "type": "string",
+              "minLength": 1
+            },
+            "advantage": {
+              "type": "string",
+              "minLength": 1
+            },
+            "disadvantage": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "modifierChoices": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/d20ModifierChoice"
+          },
+          "maxItems": 4
+        },
+        "freeDice": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 2,
+            "maximum": 100
+          },
+          "maxItems": 10
+        },
+        "labels": {
+          "type": "object",
+          "properties": {
+            "success": {
+              "type": "string",
+              "minLength": 1
+            },
+            "failure": {
+              "type": "string",
+              "minLength": 1
+            },
+            "criticalSuccess": {
+              "type": "string",
+              "minLength": 1
+            },
+            "criticalFailure": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "engine"
+      ],
+      "additionalProperties": false
+    },
+    "d20ModifierChoice": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z][a-zA-Z0-9-]{0,39}$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "choices": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string",
+                "minLength": 1
+              },
+              "value": {
+                "type": "integer",
+                "minimum": -50,
+                "maximum": 50
+              }
+            },
+            "required": [
+              "label",
+              "value"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 2,
+          "maxItems": 12
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "choices"
+      ],
+      "additionalProperties": false
+    },
+    "poolDie": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "faces": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 1000
+        },
+        "success": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "bane": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "count": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "color": {
+          "type": "string",
+          "pattern": "^(#[0-9A-Fa-f]{3,8}|[a-z]{3,20})$"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "pool": {
+      "type": "object",
+      "properties": {
+        "engine": {
+          "const": "pool"
+        },
+        "dice": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/poolDie"
+          },
+          "minItems": 1,
+          "maxItems": 8
+        },
+        "minDice": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "push": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "max": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 10
+                },
+                "lockBanes": {
+                  "type": "boolean"
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "labels": {
+          "type": "object",
+          "properties": {
+            "success": {
+              "type": "string",
+              "minLength": 1
+            },
+            "failure": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "engine"
+      ],
+      "additionalProperties": false
+    },
+    "band": {
+      "type": "object",
+      "properties": {
+        "min": {
+          "type": "integer"
+        },
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tone": {
+          "$ref": "#/definitions/tone"
+        }
+      },
+      "required": [
+        "min",
+        "id",
+        "label"
+      ],
+      "additionalProperties": false
+    },
+    "2d6": {
+      "type": "object",
+      "properties": {
+        "engine": {
+          "const": "2d6"
+        },
+        "stat": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "bands": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/band"
+          },
+          "minItems": 1,
+          "maxItems": 12
+        }
+      },
+      "required": [
+        "engine"
+      ],
+      "additionalProperties": false
+    },
+    "degree": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fraction": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "tone": {
+          "$ref": "#/definitions/tone"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "fraction"
+      ],
+      "additionalProperties": false
+    },
+    "d100": {
+      "type": "object",
+      "properties": {
+        "engine": {
+          "const": "d100"
+        },
+        "target": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "degrees": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/degree"
+          },
+          "minItems": 1,
+          "maxItems": 8
+        },
+        "criticalAt": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "fumbleAt": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 101
+        },
+        "fumbleLowTarget": {
+          "type": "object",
+          "properties": {
+            "below": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 101
+            },
+            "at": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 101
+            }
+          },
+          "required": [
+            "below",
+            "at"
+          ],
+          "additionalProperties": false
+        },
+        "tensDice": {
+          "type": "boolean"
+        },
+        "push": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "max": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 10
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "labels": {
+          "type": "object",
+          "properties": {
+            "failure": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "engine"
+      ],
+      "additionalProperties": false
+    },
+    "dice": {
+      "type": "object",
+      "required": [
+        "engine"
+      ],
+      "properties": {
+        "engine": {
+          "enum": [
+            "d20",
+            "pool",
+            "2d6",
+            "d100"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "engine": {
+                "const": "d20"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/definitions/d20"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "engine": {
+                "const": "pool"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/definitions/pool"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "engine": {
+                "const": "2d6"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/definitions/2d6"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "engine": {
+                "const": "d100"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/definitions/d100"
+          }
+        }
+      ]
+    },
+    "tableModifier": {
+      "type": "object",
+      "properties": {
+        "when": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "add": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "label": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "add"
+      ],
+      "additionalProperties": false
+    },
+    "nestedRoll": {
+      "type": "object",
+      "properties": {
+        "table": {
+          "$ref": "#/definitions/id"
+        },
+        "as": {
+          "type": "string",
+          "minLength": 1
+        },
+        "times": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "required": [
+        "table",
+        "as"
+      ],
+      "additionalProperties": false
+    },
+    "tableRow": {
+      "type": "object",
+      "properties": {
+        "range": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "label": {
+          "type": "string"
+        },
+        "result": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object"
+            }
+          ]
+        },
+        "gmDecides": {
+          "type": "boolean"
+        },
+        "roll": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/nestedRoll"
+          }
+        },
+        "page": {
+          "$ref": "#/definitions/page"
+        },
+        "cite": {
+          "$ref": "#/definitions/cite"
+        },
+        "unverified": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "range",
+        "result"
+      ],
+      "additionalProperties": false
+    },
+    "table": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "page": {
+          "$ref": "#/definitions/page"
+        },
+        "cite": {
+          "$ref": "#/definitions/cite"
+        },
+        "original": {
+          "type": "boolean"
+        },
+        "dice": {
+          "type": "string",
+          "minLength": 1
+        },
+        "modifiers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/tableModifier"
+          }
+        },
+        "rows": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/tableRow"
+          },
+          "minItems": 1
+        },
+        "mode": {
+          "$ref": "#/definitions/modes"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "notes": {
+          "type": "string"
+        },
+        "unverified": {
+          "type": "boolean"
+        },
+        "family": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "dice",
+        "rows"
+      ],
+      "additionalProperties": false
+    },
+    "sheetField": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "type": "string"
+        },
+        "widget": {
+          "type": "string",
+          "enum": [
+            "text",
+            "textarea",
+            "richtext",
+            "number",
+            "checkbox",
+            "select",
+            "multiselect",
+            "tags",
+            "attribute",
+            "skill",
+            "skills",
+            "talents",
+            "conditions",
+            "gear",
+            "dicepool",
+            "supply",
+            "stress",
+            "computed",
+            "ref",
+            "reflist",
+            "statblock",
+            "table",
+            "list",
+            "entries",
+            "object",
+            "image",
+            "zonemap"
+          ]
+        },
+        "rule": {
+          "type": "string"
+        },
+        "mode": {
+          "$ref": "#/definitions/modes"
+        },
+        "readonly": {
+          "type": "boolean"
+        },
+        "span": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 12
+        },
+        "options": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "ref": {
+                  "$ref": "#/definitions/id"
+                }
+              },
+              "required": [
+                "ref"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "entityTypes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          }
+        },
+        "config": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "additionalProperties": false
+    },
+    "sheetSection": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mode": {
+          "$ref": "#/definitions/modes"
+        },
+        "columns": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 12
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/sheetField"
+          }
+        },
+        "collapsed": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "fields"
+      ],
+      "additionalProperties": false
+    },
+    "sheet": {
+      "type": "object",
+      "properties": {
+        "sections": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/sheetSection"
+          }
+        },
+        "summary": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "sections"
+      ],
+      "additionalProperties": false
+    },
+    "subtype": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sheet": {
+          "$ref": "#/definitions/sheet"
+        },
+        "schema": {
+          "type": "object",
+          "description": "A JSON Schema (draft-07, safe subset: no remote $ref, no pattern/patternProperties, no $data)."
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "entityType": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "character",
+            "creature",
+            "location",
+            "faction",
+            "item",
+            "vehicle",
+            "clue",
+            "job",
+            "encounter"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "plural": {
+          "type": "string",
+          "minLength": 1
+        },
+        "icon": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "schema": {
+          "type": "object",
+          "description": "A JSON Schema (draft-07, safe subset: no remote $ref, no pattern/patternProperties, no $data)."
+        },
+        "sheet": {
+          "$ref": "#/definitions/sheet"
+        },
+        "computed": {
+          "type": "object",
+          "additionalProperties": {
+            "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+          }
+        },
+        "defaultVisibility": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "enum": [
+              "gm",
+              "players",
+              "some_players",
+              "revealed"
+            ]
+          }
+        },
+        "mode": {
+          "$ref": "#/definitions/modes"
+        },
+        "playerEditable": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "subtypes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/subtype"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "name",
+        "plural",
+        "schema",
+        "sheet"
+      ],
+      "additionalProperties": false
+    },
+    "relationshipType": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "forward": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reverse": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fromKinds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "character",
+              "creature",
+              "location",
+              "faction",
+              "item",
+              "vehicle",
+              "clue",
+              "job",
+              "encounter"
+            ]
+          }
+        },
+        "toKinds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "character",
+              "creature",
+              "location",
+              "faction",
+              "item",
+              "vehicle",
+              "clue",
+              "job",
+              "encounter"
+            ]
+          }
+        },
+        "symmetric": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "forward",
+        "reverse"
+      ],
+      "additionalProperties": false
+    },
+    "referenceItem": {
+      "type": "object",
+      "required": [
+        "id",
+        "name"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "page": {
+          "$ref": "#/definitions/page"
+        },
+        "cite": {
+          "$ref": "#/definitions/cite"
+        },
+        "mode": {
+          "$ref": "#/definitions/modes"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "edition": {
+          "type": "string",
+          "maxLength": 40,
+          "description": "A ruleset or edition label shown next to the item, e.g. \"2024\"."
+        },
+        "source": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "Set by the loader on items a supplement added (the supplement's name)."
+        }
+      },
+      "description": "Any other properties are the item's own data (e.g. the attribute a skill uses)."
+    },
+    "referenceList": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "page": {
+          "$ref": "#/definitions/page"
+        },
+        "cite": {
+          "$ref": "#/definitions/cite"
+        },
+        "original": {
+          "type": "boolean"
+        },
+        "itemSchema": {
+          "type": "object",
+          "description": "A JSON Schema (draft-07, safe subset: no remote $ref, no pattern/patternProperties, no $data)."
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/referenceItem"
+          }
+        },
+        "unverified": {
+          "type": "boolean"
+        },
+        "columns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "items"
+      ],
+      "additionalProperties": false
+    },
+    "preset": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "entityType": {
+          "$ref": "#/definitions/id"
+        },
+        "subtype": {
+          "$ref": "#/definitions/id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "summary": {
+          "type": "string"
+        },
+        "page": {
+          "$ref": "#/definitions/page"
+        },
+        "cite": {
+          "$ref": "#/definitions/cite"
+        },
+        "original": {
+          "type": "boolean"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "fields": {
+          "type": "object"
+        },
+        "unverified": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "entityType",
+        "name",
+        "fields"
+      ],
+      "additionalProperties": false
+    },
+    "template": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "campaign",
+            "adventure",
+            "act",
+            "scene",
+            "session",
+            "checklist"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string"
+        },
+        "mode": {
+          "$ref": "#/definitions/modes"
+        },
+        "page": {
+          "$ref": "#/definitions/page"
+        },
+        "cite": {
+          "$ref": "#/definitions/cite"
+        },
+        "original": {
+          "type": "boolean"
+        },
+        "appliesTo": {
+          "enum": [
+            "session",
+            "session-zero"
+          ]
+        },
+        "scaffold": {
+          "type": "object",
+          "description": "Adventure, act, scene or checklist scaffold (see the pack format reference)."
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "name",
+        "scaffold"
+      ],
+      "additionalProperties": false,
+      "if": {
+        "properties": {
+          "appliesTo": {
+            "const": "session"
+          }
+        },
+        "required": [
+          "appliesTo"
+        ]
+      },
+      "then": {
+        "properties": {
+          "scaffold": {
+            "type": "object",
+            "required": [
+              "items"
+            ],
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "text",
+                    "phase"
+                  ],
+                  "properties": {
+                    "phase": {
+                      "type": "string",
+                      "enum": [
+                        "prep",
+                        "play",
+                        "wrap"
+                      ]
+                    },
+                    "autoWhen": {
+                      "type": "string",
+                      "enum": [
+                        "scenes-planned",
+                        "log-written",
+                        "revealed",
+                        "prompts-answered",
+                        "summary-saved",
+                        "loose-ends-carried",
+                        "timeline-confirmed",
+                        "next-session-planned",
+                        "awards-given"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "ruleCard": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "page": {
+          "$ref": "#/definitions/page"
+        },
+        "cite": {
+          "$ref": "#/definitions/cite"
+        },
+        "original": {
+          "type": "boolean"
+        },
+        "mode": {
+          "$ref": "#/definitions/modes"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "links": {
+          "type": "object",
+          "properties": {
+            "tables": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/id"
+              }
+            },
+            "fields": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "rules": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/id"
+              }
+            },
+            "trackers": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/id"
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "summary"
+      ],
+      "additionalProperties": false
+    },
+    "tracker": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scope": {
+          "type": "string",
+          "enum": [
+            "character",
+            "session",
+            "scene",
+            "encounter",
+            "campaign"
+          ]
+        },
+        "mode": {
+          "$ref": "#/definitions/modes"
+        },
+        "page": {
+          "$ref": "#/definitions/page"
+        },
+        "cite": {
+          "$ref": "#/definitions/cite"
+        },
+        "binds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          }
+        },
+        "config": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "kind",
+        "scope"
+      ],
+      "additionalProperties": false
+    },
+    "calendar": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "defaultYear": {
+          "type": "integer"
+        },
+        "months": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "days": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 1000
+              }
+            },
+            "required": [
+              "name",
+              "days"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1,
+          "maxItems": 100
+        },
+        "weekdays": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "format": {
+          "type": "string",
+          "maxLength": 100
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "defaultYear",
+        "months"
+      ],
+      "additionalProperties": false
+    },
+    "playGuideGroup": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "summary": {
+          "type": "string"
+        },
+        "page": {
+          "$ref": "#/definitions/page"
+        }
+      },
+      "required": [
+        "id",
+        "label"
+      ],
+      "additionalProperties": false
+    },
+    "playGuideEntry": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "group": {
+          "$ref": "#/definitions/id"
+        },
+        "kind": {
+          "enum": [
+            "attribute",
+            "skill"
+          ]
+        },
+        "roll": {
+          "type": "string",
+          "minLength": 1
+        },
+        "summary": {
+          "type": "string"
+        },
+        "callFor": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "success": {
+          "type": "string"
+        },
+        "failure": {
+          "type": "string"
+        },
+        "push": {
+          "type": "string"
+        },
+        "examples": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "page": {
+          "$ref": "#/definitions/page"
+        },
+        "cite": {
+          "$ref": "#/definitions/cite"
+        },
+        "mode": {
+          "$ref": "#/definitions/modes"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "kind",
+        "callFor"
+      ],
+      "additionalProperties": false
+    },
+    "playGuide": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "original": {
+          "type": "boolean"
+        },
+        "intro": {
+          "type": "string"
+        },
+        "tips": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "minLength": 1
+              },
+              "page": {
+                "$ref": "#/definitions/page"
+              }
+            },
+            "required": [
+              "text"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "groups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/playGuideGroup"
+          }
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/playGuideEntry"
+          }
+        },
+        "mode": {
+          "$ref": "#/definitions/modes"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "groups",
+        "entries"
+      ],
+      "additionalProperties": false
+    },
+    "procedureStep": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "title": {
+          "type": "string"
+        },
+        "page": {
+          "$ref": "#/definitions/page"
+        },
+        "cite": {
+          "$ref": "#/definitions/cite"
+        },
+        "table": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "roll": {
+          "type": "string",
+          "minLength": 1
+        },
+        "value": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "reads": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          }
+        },
+        "skipIf": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "repeat": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "optional": {
+          "type": "boolean"
+        },
+        "modifier": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "derive": {
+          "type": "object",
+          "additionalProperties": {
+            "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+          }
+        },
+        "display": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "additionalProperties": false
+    },
+    "producedEntity": {
+      "type": "object",
+      "properties": {
+        "tempId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "$ref": "#/definitions/id"
+        },
+        "subtype": {
+          "$ref": "#/definitions/id"
+        },
+        "preset": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "name": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "summary": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "fields": {
+          "type": "object",
+          "additionalProperties": {
+            "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+          }
+        },
+        "within": {
+          "type": "string",
+          "minLength": 1
+        },
+        "when": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "each": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "links": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "$ref": "#/definitions/id"
+              },
+              "to": {
+                "type": "string",
+                "minLength": 1
+              },
+              "note": {
+                "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+              }
+            },
+            "required": [
+              "type",
+              "to"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "tempId",
+        "type",
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "producedRelationship": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/id"
+        },
+        "from": {
+          "type": "string",
+          "minLength": 1
+        },
+        "to": {
+          "type": "string",
+          "minLength": 1
+        },
+        "note": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "when": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        }
+      },
+      "required": [
+        "type",
+        "from",
+        "to"
+      ],
+      "additionalProperties": false
+    },
+    "produce": {
+      "type": "object",
+      "properties": {
+        "entities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/producedEntity"
+          }
+        },
+        "relationships": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/producedRelationship"
+          }
+        }
+      },
+      "required": [
+        "entities"
+      ],
+      "additionalProperties": false
+    },
+    "procedure": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string"
+        },
+        "page": {
+          "$ref": "#/definitions/page"
+        },
+        "cite": {
+          "$ref": "#/definitions/cite"
+        },
+        "original": {
+          "type": "boolean"
+        },
+        "mode": {
+          "$ref": "#/definitions/modes"
+        },
+        "inputs": {
+          "type": "object",
+          "description": "A JSON Schema (draft-07, safe subset: no remote $ref, no pattern/patternProperties, no $data)."
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/procedureStep"
+          },
+          "minItems": 1
+        },
+        "produce": {
+          "$ref": "#/definitions/produce"
+        },
+        "chains": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "procedure": {
+                "$ref": "#/definitions/id"
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1
+              },
+              "inputs": {
+                "type": "object",
+                "additionalProperties": {
+                  "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+                }
+              }
+            },
+            "required": [
+              "procedure",
+              "label"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "steps",
+        "produce"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

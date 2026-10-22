@@ -14,10 +14,13 @@ import {
   formatPackIssue,
   isValidVersionRange,
   loadPack,
+  mergeSupplementParts,
+  MODULE_SUPPLEMENT_PART_SCHEMA,
   PACK_LIMITS,
   runProcedure,
   satisfiesVersionRange,
   supplementCounts,
+  supplementFromSource,
   supplementOf,
   validateSupplement,
   type GameModule,
@@ -212,6 +215,53 @@ describe("applying supplements", () => {
     const res = checkSupplement(fixture(), base, { alongside: [other], seeds: 5 });
     expect(res.ok).toBe(true);
     expect(res.module!.manifest.supplements?.map((s) => s.id)).toEqual(["aa-extra", "deep-roads"]);
+  });
+});
+
+describe("split supplements", () => {
+  /** The fixture split in two: its list items and presets in one part, its rule card in another. */
+  function split(): { main: Record<string, any>; parts: Array<{ name: string; data: Record<string, any> }> } {
+    const whole = fixture();
+    const { referenceItems, presets, rules, ...main } = whole;
+    const part = (name: string, body: Record<string, unknown>) => ({ name, data: { format: "campaign-forge-supplement-part", formatVersion: 1, supplement: "deep-roads", name, ...body } });
+    const a = part("a.json", { referenceItems: { "example-pack.backgrounds": referenceItems["example-pack.backgrounds"] }, presets });
+    const b = part("b.json", { referenceItems: { "example-pack.skills": referenceItems["example-pack.skills"] }, rules });
+    return { main: { ...main, parts: ["a.json", "b.json"] }, parts: [b, a] };
+  }
+
+  it("joins the parts in the order the main file lists them, into the same supplement as one file", async () => {
+    const { main, parts } = split();
+    const merged = mergeSupplementParts(main, parts);
+    expect(merged.ok, JSON.stringify(merged.issues)).toBe(true);
+    const one = validateSupplement(fixture()).value!;
+    const joined = validateSupplement(merged.value).value!;
+    expect(joined.parts).toBeUndefined();
+    expect(supplementCounts(joined)).toEqual(supplementCounts(one));
+    expect(Object.keys(joined.referenceItems!)).toEqual(["example-pack.backgrounds", "example-pack.skills"]);
+    expect(joined.rules).toEqual(one.rules);
+    // the published part schema accepts a part
+    const ajv = new Ajv({ allErrors: true, strict: false });
+    expect(ajv.validate(MODULE_SUPPLEMENT_PART_SCHEMA, parts[0]!.data), JSON.stringify(ajv.errors)).toBe(true);
+    // a source loads its files lazily and validates the joined supplement
+    const fromSource = await supplementFromSource({ main: async () => main, parts: Object.fromEntries(parts.map((p) => [p.name, async () => p.data])) });
+    expect(supplementCounts(fromSource)).toEqual(supplementCounts(one));
+    expect(checkSupplement(fromSource, base, { seeds: 5 }).ok).toBe(true);
+  });
+
+  it("names missing, unlisted and foreign parts, and refuses a main file checked without its parts", async () => {
+    const { main, parts } = split();
+    const issues = (ps: Array<{ name: string; data: unknown }>) => mergeSupplementParts(main, ps).issues.map(formatPackIssue);
+    expect(issues([parts[0]!])).toEqual(['$.parts: part "a.json" is missing']);
+    const stray = clone(parts[0]!);
+    stray.name = "c.json";
+    stray.data.name = "c.json";
+    expect(issues([...parts, stray])).toEqual(['c.json: $.name: part "c.json" is not listed in the supplement\'s parts (a.json, b.json)']);
+    const foreign = clone(parts[1]!);
+    foreign.data.supplement = "other";
+    expect(issues([foreign, parts[0]!])).toEqual(['a.json: $.supplement: part belongs to supplement "other", not "deep-roads"']);
+    expect(validateSupplement(main).issues.map(formatPackIssue)).toEqual(["$.parts: this supplement is split into parts (a.json, b.json); join them first (choose the main file together with its parts)"]);
+    expect(validateSupplement(parts[0]!.data).issues[0]!.message).toMatch(/part of a split supplement/);
+    await expect(supplementFromSource({ main: async () => main })).rejects.toThrow(/part "a.json" is missing/);
   });
 });
 
