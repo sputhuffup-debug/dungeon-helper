@@ -157,7 +157,7 @@ export const PF2E_PARTY: PcSpec[] = [
       heroPoints: 1,
       strikes: [
         { name: "Longsword", bonus: "+9 [+4/−1]", damage: "1d8+4 slashing", traits: "versatile P" },
-        { name: "Javelin", bonus: "+6 [+1/−4]", damage: "1d6+4 piercing", traits: "thrown 30 feet" },
+        { name: "Javelin", bonus: "+6 [+1/−4]", damage: "1d6+4 piercing", traits: "thrown 30 feet", type: "ranged" },
       ],
       feats: [
         { level: 1, type: "ancestry", name: "Natural Ambition" },
@@ -303,7 +303,7 @@ export const PF2E_PARTY: PcSpec[] = [
       heroPoints: 1,
       strikes: [
         { name: "Rapier", bonus: "+7 [+2/−3]", damage: "1d6+4 piercing", traits: "deadly d8, disarm, finesse" },
-        { name: "Sling", bonus: "+7 [+2/−3]", damage: "1d6 bludgeoning", traits: "propulsive, range increment 50 feet, reload 1" },
+        { name: "Sling", bonus: "+7 [+2/−3]", damage: "1d6 bludgeoning", traits: "propulsive, range increment 50 feet, reload 1", type: "ranged" },
       ],
       feats: [
         { level: 1, type: "ancestry", name: "Halfling Luck" },

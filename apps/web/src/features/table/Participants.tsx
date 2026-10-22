@@ -110,6 +110,7 @@ export function ParticipantCard({
           {entity.conditions.map((c) => (
             <Badge key={c.id} tone="warning" title={c.source}>
               {c.label}
+              {c.value !== undefined ? ` ${c.value}` : ""}
             </Badge>
           ))}
         </span>

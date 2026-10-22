@@ -32,6 +32,7 @@ import { isSessionZero } from "../../lib/sessionZero";
 import { routeStoryPointEffects, type SessionAct } from "../../state/progressionActions";
 import { SessionChecklist, useLogNotesAutoTick } from "../sessions/SessionChecklist";
 import { CreatureTurnCard, TakeHitDialog, useInitiativeCurrent, type CombatHandlers } from "./Combat";
+import { D20CombatPanel } from "./D20Combat";
 import { DicePanel } from "./DicePanel";
 import { PlayGuidePanel, usePlayGuides } from "./PlayGuidePanel";
 import { formatDuration, useCrossTabSync, useEntities, usePlayerCharacters, useSessionScenes, useSessionTrackerState, useTableState, useTick } from "./hooks";
@@ -279,6 +280,7 @@ function GmTable({ sessionId }: { sessionId: Id }) {
                 onOperationRoll={setRoll}
               />
             )}
+            {ctx.module.module.d20Combat && <D20CombatPanel sessionId={sessionId} pcs={pcs} others={others} onOpen={setDrawer} />}
             <Participants pcs={pcs} others={others} onOpen={setDrawer} onRoll={(op, id) => handlers.onRollOperation(op, id)} lifecycle={{ sessionId, onPrompts: handlers.onPrompts }} combat={combat} act={currentAct} />
             <RevealPanel sessionId={sessionId} scene={scene} />
             {map && <SceneMap sessionId={sessionId} map={map} scene={scene} participants={[...pcs, ...others]} />}

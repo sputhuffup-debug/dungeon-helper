@@ -2651,3 +2651,219 @@ a.cf-btn {
   cursor: pointer;
   color: var(--cf-muted);
 }
+
+/* d20 combat: initiative order, combatant cards, condition chips with helper text, attack and save dialogs */
+.app-d20__turn {
+  margin: 0;
+  font-size: var(--cf-text-lg);
+}
+.app-d20__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cf-space-2);
+}
+.app-d20__combatant {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cf-space-2);
+  padding: var(--cf-space-2) var(--cf-space-3);
+  border: 1px solid var(--cf-border);
+  border-left-width: 4px;
+  border-radius: var(--cf-radius);
+  background: var(--cf-elevated);
+}
+.app-d20__combatant--current {
+  border-color: var(--cf-accent);
+  background: var(--cf-accent-soft);
+}
+.app-d20__combatant--acted {
+  opacity: 0.85;
+}
+.app-d20__combatant--defeated {
+  opacity: 0.6;
+}
+.app-d20__head,
+.app-d20__hp,
+.app-d20__conditions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cf-space-2);
+}
+.app-d20__init {
+  min-width: 2.2em;
+  padding: 2px var(--cf-space-2);
+  border-radius: var(--cf-radius-sm);
+  background: var(--cf-surface);
+  border: 1px solid var(--cf-border-strong);
+  font-family: var(--cf-font-mono);
+  font-weight: 700;
+  text-align: center;
+}
+.app-d20__amount {
+  width: 5em;
+}
+.app-d20__chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 2px var(--cf-space-3);
+  border: 1px solid var(--cf-warning);
+  border-radius: var(--cf-radius-pill);
+  background: var(--cf-warning-soft);
+  color: var(--cf-text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.app-d20__chip:hover,
+.app-d20__chip--open {
+  border-color: var(--cf-accent-strong);
+  box-shadow: 0 0 0 2px var(--cf-accent-soft);
+}
+.app-d20__chip--implied {
+  border-style: dashed;
+  background: transparent;
+  font-weight: 400;
+}
+.app-d20__chip-from {
+  color: var(--cf-muted);
+  font-size: var(--cf-text-xs);
+}
+.app-d20__help,
+.app-d20__summary,
+.app-d20__save {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cf-space-2);
+  padding: var(--cf-space-2) var(--cf-space-3);
+  border: 1px solid var(--cf-border-strong);
+  border-radius: var(--cf-radius);
+  background: var(--cf-surface);
+}
+.app-d20__help p,
+.app-d20__summary p,
+.app-d20__save p {
+  margin: 0;
+}
+.app-d20__summary {
+  border-color: var(--cf-accent);
+}
+.app-d20__label {
+  display: block;
+  font-size: var(--cf-text-xs);
+  color: var(--cf-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.app-d20__duration .app-d20__label {
+  display: inline;
+  margin-right: var(--cf-space-1);
+}
+.app-d20__cite {
+  font-size: var(--cf-text-xs);
+}
+.app-d20__restrictions {
+  margin: 0;
+  color: var(--cf-danger);
+  font-weight: 600;
+}
+.app-d20__reasons {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--cf-space-2);
+  margin: 0;
+  color: var(--cf-warning);
+  font-weight: 600;
+}
+.app-d20__poolline {
+  margin: 0;
+}
+.app-d20__total {
+  font-size: var(--cf-text-xl);
+  font-family: var(--cf-font-mono);
+}
+.app-d20__result p {
+  margin: 0;
+}
+.app-d20__part {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--cf-space-1);
+}
+.app-d20__damage,
+.app-d20__facts {
+  margin: 0;
+}
+.app-d20__effect {
+  font-weight: 400;
+}
+.app-d20__picklist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 280px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.app-d20__pick {
+  display: block;
+  width: 100%;
+  padding: var(--cf-space-1) var(--cf-space-2);
+  border: 1px solid transparent;
+  border-radius: var(--cf-radius-sm);
+  background: none;
+  color: var(--cf-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.app-d20__pick:hover,
+.app-d20__pick--on {
+  border-color: var(--cf-accent);
+  background: var(--cf-accent-soft);
+}
+.app-d20__dialog {
+  width: min(860px, calc(100vw - 32px));
+}
+.app-d20__outside summary {
+  cursor: pointer;
+  color: var(--cf-muted);
+}
+.app-d20__zero summary {
+  cursor: pointer;
+  color: var(--cf-danger);
+  font-weight: 600;
+}
+.app-d20__zero p {
+  margin: var(--cf-space-1) 0 0;
+}
+.app-d20__due {
+  margin: 0;
+}
+.app-player__combat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cf-space-2);
+}
+.app-player__combatants {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cf-space-1);
+}
+.app-player__combatant {
+  display: flex;
+  align-items: center;
+  gap: var(--cf-space-2);
+}
+.app-player__combatant--current {
+  font-weight: 700;
+}

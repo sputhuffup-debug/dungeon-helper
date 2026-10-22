@@ -17,7 +17,13 @@ export function abilityModifier(score: number): number {
 }
 
 /** Roll option keys the engine uses itself (a `modifierChoices` id may not take one). */
-const OWN_KEYS = new Set(["advantage", "dc", "modifier", "attribute", "skill", "attributeId", "skillId", "fields", "computed", "bonus"]);
+const OWN_KEYS = new Set(["advantage", "dc", "modifier", "attribute", "skill", "attributeId", "skillId", "fields", "computed", "bonus", "adjustments"]);
+
+/** Labelled modifiers the caller adds (e.g. from conditions): `[{ label, value }]`, each shown in the breakdown. */
+function adjustmentsOf(v: unknown): Array<{ label: string; value: number }> {
+  if (!Array.isArray(v)) return [];
+  return v.flatMap((a) => (a && typeof a === "object" && typeof (a as { label?: unknown }).label === "string" && typeof (a as { value?: unknown }).value === "number" && Number.isFinite((a as { value: number }).value) ? [{ label: (a as { label: string }).label, value: Math.trunc((a as { value: number }).value) }] : []));
+}
 
 function checkChoices(groups: D20ModifierChoice[] | undefined): void {
   if (groups === undefined) return;
@@ -145,10 +151,16 @@ export function createD20Engine(config: D20EngineConfig): DiceSystem {
       const dc = typeof input.dc === "number" && Number.isFinite(input.dc) ? Math.floor(input.dc) : undefined;
       const breakdown: NonNullable<DicePool["breakdown"]> = [];
       const attrName = typeof input.attributeId === "string" ? capitalize(input.attributeId) : "Ability";
-      if (ability !== 0 || useAbility) breakdown.push({ label: useAbility ? `${attrName} ${attribute}` : attrName, die: "mod", count: ability });
+      // a roll made of labelled adjustments alone (an attack, a save) has no ability line
+      if (ability !== 0 || (useAbility && (input.attribute !== undefined || input.adjustments === undefined))) breakdown.push({ label: useAbility ? `${attrName} ${attribute}` : attrName, die: "mod", count: ability });
       if (prof !== 0) breakdown.push({ label: addProficiency || skill === 1 ? "Proficiency" : `Proficiency ×${skill}`, die: "mod", count: prof });
       if (bonus !== 0) breakdown.push({ label: "Bonus", die: "mod", count: bonus });
       let situational = 0;
+      for (const a of adjustmentsOf(input.adjustments)) {
+        if (a.value === 0) continue;
+        breakdown.push({ label: a.label, die: "mod", count: a.value });
+        situational += a.value;
+      }
       for (const g of config.modifierChoices ?? []) {
         const picked = g.choices.find((c) => c.label === input[g.id]) ?? g.choices[0]!;
         if (picked.value !== 0) breakdown.push({ label: picked.label, die: "mod", count: picked.value });

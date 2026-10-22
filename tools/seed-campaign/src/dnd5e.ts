@@ -207,7 +207,7 @@ const PARTY: PcSpec[] = [
       hp: { max: 21, current: 21, temp: 0 },
       attacks: [
         { name: "Shortsword", bonus: "+5", damage: "1d6 + 3 piercing", notes: "Finesse, light" },
-        { name: "Shortbow", bonus: "+5", damage: "1d6 + 3 piercing", notes: "80/320 ft." },
+        { name: "Shortbow", bonus: "+5", damage: "1d6 + 3 piercing", kind: "ranged", notes: "80/320 ft." },
       ],
       features: [
         { name: "Sneak Attack", desc: "Once per turn, +2d6 damage with a finesse or ranged weapon when you have advantage or an ally is next to the target." },
@@ -255,7 +255,7 @@ const PARTY: PcSpec[] = [
       hp: { max: 17, current: 17, temp: 0 },
       spells: ["Fire Bolt", "Mage Hand", "Light", "Magic Missile", "Shield", "Sleep", "Burning Hands", "Detect Magic", "Misty Step", "Scorching Ray"],
       attacks: [
-        { name: "Fire Bolt", bonus: "+5", damage: "1d10 fire", notes: "Cantrip, 120 ft." },
+        { name: "Fire Bolt", bonus: "+5", damage: "1d10 fire", kind: "spell", notes: "Cantrip, 120 ft." },
         { name: "Dagger", bonus: "+4", damage: "1d4 + 2 piercing", notes: "Finesse, thrown 20/60 ft." },
       ],
       features: [

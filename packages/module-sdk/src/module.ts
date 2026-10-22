@@ -3,6 +3,7 @@
  * The checks mirror architecture seed section 5: dice coverage, page refs,
  * dangling references, declared modes, procedure termination.
  */
+import { d20AttackIssues, d20Attacks, d20CombatIssues } from "./d20combat";
 import { diceOutcomes, parseDiceExpression } from "./dice";
 import { computeFields, defaultFieldsFor, fieldSchemaAt, schemaDefaults, validateAgainstSchema, validateEntityFields } from "./entities";
 import { runProcedure } from "./procedures";
@@ -829,6 +830,45 @@ function checkProgression(module: GameModule, declaredModes: Set<PlayModeId>, c:
   }
 }
 
+function checkD20Combat(module: GameModule, c: Collector): void {
+  const def = module.d20Combat;
+  if (!def) return;
+  const types = module.entityTypes;
+  const issues = d20CombatIssues(def, {
+    entityTypes: types,
+    rules: new Set(module.rules.map((r) => r.id)),
+    hasPath: (typeId, path) => {
+      const t = types.find((x) => x.id === typeId);
+      return !!t && fieldPathExists(t, path);
+    },
+    sample: (typeId) => {
+      const t = types.find((x) => x.id === typeId);
+      if (!t) return undefined;
+      try {
+        const fields = defaultFieldsFor(t);
+        return { fields, computed: computeFields(t, fields) };
+      } catch {
+        return undefined;
+      }
+    },
+    ...(module.dice?.engine ? { engine: module.dice.engine } : {}),
+    validPage: (p) => validPage(p as PageRef | undefined),
+  });
+  for (const i of issues) (i.severity === "error" ? c.error.bind(c) : c.warn.bind(c))(i.where, i.message);
+  // Presets of combatant types: their attacks and damage modifiers must read cleanly.
+  const kinds = new Set(["immunity", "resistance", "vulnerability", "weakness"]);
+  for (const p of module.presets) {
+    const cb = def.combatants.find((x) => x.entityTypes.includes(p.entityType));
+    if (!cb) continue;
+    // dice, damage types, saves and conditions are what can be wrong in data; computed bonuses are checked with the entity type
+    for (const a of d20Attacks(def, cb, { fields: p.fields })) for (const m of d20AttackIssues(def, a)) c.error(`preset:${p.id}`, `attack "${a.name}": ${m}`);
+    if (cb.damageModifiers) {
+      const mods = p.fields[cb.damageModifiers];
+      if (Array.isArray(mods)) for (const m of mods as Array<Record<string, unknown>>) if (typeof m?.type !== "string" || !m.type || !kinds.has(String(m?.kind))) c.error(`preset:${p.id}`, `damage modifier ${JSON.stringify(m)} needs a kind (immunity, resistance, vulnerability, weakness) and a type`);
+    }
+  }
+}
+
 /** Run every conformance check. `ok` is true when no error-severity issue was found. */
 export function checkModule(module: GameModule, options: CheckModuleOptions = {}): ConformanceReport {
   const c = new Collector();
@@ -927,6 +967,9 @@ export function checkModule(module: GameModule, options: CheckModuleOptions = {}
 
   // Character progression.
   checkProgression(module, declaredModes, c);
+
+  // Declarative d20 combat.
+  checkD20Combat(module, c);
 
   // Calendar.
   const cal = module.calendar;

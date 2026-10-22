@@ -12,6 +12,7 @@ import { Badge, Button, Card, DiceRollPanel, DieFace, RollLog, Stepper, humanize
 import { errorMessage } from "../../lib/format";
 import { useCampaign, useMeta, useRecord } from "../../state/hooks";
 import { entityAdvances, poolOf, spendStoryPoint, storyUses } from "../../state/progressionActions";
+import { checkConditionInput } from "../../state/d20Actions";
 import { DICE_LOG, applySessionEffects, diceCounter, enteredField, recordPoolRoll, withRollRng, type DiceLogData } from "../../state/tableActions";
 import { useSessionTrackerState } from "./hooks";
 import { SpecialAttackCard, useSpecialAttacks } from "./SpecialAttacks";
@@ -115,7 +116,7 @@ export function skillInput(module: LoadedModule, entity: Entity, choice: string)
   const sheet = { fields: entity.fields, computed: def ? computeFields(def, entity.fields) : {} };
   if (choice.startsWith("attr:")) {
     const attributeId = choice.slice(5);
-    return { label: humanize(attributeId), input: { attribute: num(getPath(entity.fields, `${attrPath}.${attributeId}`)), skill: 0, attributeId, stress, entity: entity.id, ...sheet } };
+    return { label: humanize(attributeId), input: { attribute: num(getPath(entity.fields, `${attrPath}.${attributeId}`)), skill: 0, attributeId, stress, entity: entity.id, ...sheet, ...conditionInput(module, entity, choice, attributeId) } };
   }
   const skill = skillOptions(module, def).find((s) => s.id === choice);
   const attributeId = skill?.attribute;
@@ -129,8 +130,31 @@ export function skillInput(module: LoadedModule, entity: Entity, choice: string)
       stress,
       entity: entity.id,
       ...sheet,
+      ...conditionInput(module, entity, choice, attributeId),
     },
   };
+}
+
+/**
+ * What the entity's conditions do to this check or save, for modules with
+ * d20 combat: labelled modifiers (`adjustments`), the roll mode the roll
+ * panel starts in, and notes shown with the panel (`conditionNotes`).
+ */
+function conditionInput(module: LoadedModule, entity: Entity, choice: string, attributeId?: string): Record<string, unknown> {
+  const c = checkConditionInput({ module }, entity, choice, attributeId);
+  if (!c) return {};
+  return { ...(c.adjustments.length ? { adjustments: c.adjustments } : {}), ...(c.advantage ? { advantage: c.advantage } : {}), conditionNotes: c.notes };
+}
+
+/** The conditions that changed a roll, shown above its panel. */
+export function ConditionNotes({ input }: { input: Record<string, unknown> }) {
+  const notes = Array.isArray(input.conditionNotes) ? (input.conditionNotes as string[]) : [];
+  if (!notes.length) return null;
+  return (
+    <p className="app-d20__reasons" data-testid="condition-notes">
+      Conditions: {notes.join("; ")}
+    </p>
+  );
 }
 
 /**
@@ -211,6 +235,8 @@ export function SessionRollPanel({
   };
   const storyOp = story?.use.operation ? ctx.module.module.dice.operations?.[story.use.operation] : undefined;
   return (
+    <>
+    <ConditionNotes input={input} />
     <DiceRollPanel
       {...(story ? { storyPoints: story.points, storyPointName: story.pool.label, storyPointLabel: `Spend: ${story.use.label.toLowerCase()}`, storyPointNeedsResult: true, onSpendStoryPoint: spendStory } : {})}
       {...(storyOp ? { storyPointRun: (result: RollResult, rng: Rng) => storyOp.run({ result }, rng, ctx.module.tables) } : {})}
@@ -233,6 +259,7 @@ export function SessionRollPanel({
         onResult?.(r);
       }}
     />
+    </>
   );
 }
 

@@ -35,5 +35,5 @@ export const pf2eOrcBooksManifest: Pick<SupplementManifest, "id" | "name" | "ver
     "presets": 847,
     "rules": 233
   },
-  "bytes": 9094713
+  "bytes": 9456883
 };

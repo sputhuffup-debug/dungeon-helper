@@ -7,7 +7,7 @@
  *
  * Nothing in this file names a rule from any game.
  */
-import type { Effect, LedgerLinks, PageRef, ProgressionPoolId, RollRecord, SiteLayout, VisibilityLevel } from "@campaign-forge/module-sdk";
+import type { AppliedDuration, Effect, LedgerLinks, PageRef, ProgressionPoolId, RollRecord, SiteLayout, VisibilityLevel } from "@campaign-forge/module-sdk";
 
 export type Id = string; // ULID
 
@@ -86,7 +86,25 @@ export interface Entity extends BaseRecord {
   /** For PCs: the member id that owns the sheet. */
   ownerMemberId?: Id;
   /** Conditions currently on the entity (stress responses, injuries...). Module-defined ids. */
-  conditions?: Array<{ id: string; label: string; source?: string; page?: PageRef; since?: string }>;
+  conditions?: EntityCondition[];
+}
+
+/**
+ * A condition on an entity. `value`, `duration`, `sourceId` and `note` are
+ * used by modules with declarative d20 combat (frightened 2 until the end of
+ * the goblin's next turn); other modules set only id, label and source.
+ */
+export interface EntityCondition {
+  id: string;
+  label: string;
+  source?: string;
+  page?: PageRef;
+  since?: string;
+  value?: number;
+  /** The entity that applied it. */
+  sourceId?: Id;
+  duration?: AppliedDuration;
+  note?: string;
 }
 
 export interface Relationship extends BaseRecord {

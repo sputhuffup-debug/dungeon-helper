@@ -68,6 +68,14 @@
           },
           "background": { "type": "string", "enum": ["miner", "scribe", "wanderer"] },
           "damage": { "type": "integer", "minimum": 0, "default": 0 },
+          "armor": { "type": "integer", "minimum": 0, "maximum": 30, "default": 12, "description": "Armor class." },
+          "tempHp": { "type": "integer", "minimum": 0, "default": 0 },
+          "dazed": { "type": "integer", "minimum": 0, "maximum": 3, "default": 0 },
+          "weapons": {
+            "type": "array",
+            "items": { "type": "object", "properties": { "name": { "type": "string" }, "bonus": { "type": "string" }, "damage": { "type": "string" }, "type": { "type": "string" } }, "required": ["name"] },
+            "default": []
+          },
           "oil": { "type": "integer", "minimum": 0, "maximum": 6, "default": 6, "description": "Hours of lantern oil left." },
           "isPC": { "type": "boolean", "default": false },
           "notes": { "type": "string" }
@@ -111,6 +119,10 @@
               { "path": "damage", "label": "Damage taken", "widget": "number" },
               { "path": "maxHp", "label": "Max HP", "widget": "computed" },
               { "path": "hpLeft", "label": "HP left", "widget": "computed" },
+              { "path": "armor", "label": "Armor class", "widget": "number" },
+              { "path": "tempHp", "label": "Temporary HP", "widget": "number" },
+              { "path": "dazed", "label": "Dazed", "widget": "number" },
+              { "path": "weapons", "label": "Weapons", "widget": "table", "config": { "columns": ["name", "bonus", "damage", "type"] } },
               { "path": "oil", "label": "Lantern oil", "widget": "number", "rule": "example-pack.rule.lantern" },
               { "path": "isPC", "label": "Player character", "widget": "checkbox" }
             ]
@@ -171,7 +183,11 @@
         "properties": {
           "defense": { "type": "integer", "minimum": 1, "maximum": 30, "default": 12 },
           "hp": { "type": "integer", "minimum": 1, "default": 7 },
+          "hpNow": { "type": "integer", "minimum": 0, "default": 7 },
           "attack": { "type": "integer", "minimum": -5, "maximum": 15, "default": 3 },
+          "attacks": { "type": "array", "items": { "type": "object" }, "default": [] },
+          "resist": { "type": "array", "items": { "type": "object" }, "default": [] },
+          "immune": { "type": "array", "items": { "type": "string" }, "default": [] },
           "lair": { "type": "string" }
         },
         "additionalProperties": false
@@ -185,7 +201,9 @@
             "fields": [
               { "path": "defense", "label": "Defense", "widget": "number" },
               { "path": "hp", "label": "HP", "widget": "number" },
+              { "path": "hpNow", "label": "Current HP", "widget": "number" },
               { "path": "attack", "label": "Attack bonus", "widget": "number" },
+              { "path": "immune", "label": "Condition immunities", "widget": "tags" },
               { "path": "lair", "label": "Lair", "widget": "text" }
             ]
           }
@@ -229,7 +247,7 @@
       "summary": "An old guide who knows every tunnel.",
       "original": true,
       "tags": ["npc"],
-      "fields": { "level": 3, "abilities": { "might": 12, "grace": 10, "wits": 14 }, "skills": { "lore": 2, "climb": 1 }, "background": "miner", "damage": 0, "oil": 6 }
+      "fields": { "level": 3, "abilities": { "might": 12, "grace": 10, "wits": 14 }, "skills": { "lore": 2, "climb": 1 }, "background": "miner", "damage": 0, "oil": 6, "armor": 13, "weapons": [{ "name": "Pick", "bonus": "+4", "damage": "1d6 + 1", "type": "cut" }, { "name": "Torch", "bonus": "+2", "damage": "1d4 fire" }] }
     },
     {
       "id": "example-pack.preset.gloomling",
@@ -237,7 +255,19 @@
       "name": "Gloomling",
       "summary": "A small thing that hates light.",
       "cite": "LRD, Monsters: Gloomling",
-      "fields": { "defense": 11, "hp": 5, "attack": 2, "lair": "Under the stairs" }
+      "fields": {
+        "defense": 11,
+        "hp": 5,
+        "hpNow": 5,
+        "attack": 2,
+        "lair": "Under the stairs",
+        "attacks": [
+          { "name": "Bite", "kind": "melee", "bonus": 3, "damage": [{ "dice": "1d4+1", "type": "cut" }], "reach": "close" },
+          { "name": "Gloom breath", "save": { "dc": 11, "save": "grace-save", "half": true, "damage": [{ "dice": "2d6", "type": "cold" }], "conditions": [{ "id": "dazed", "value": 1, "duration": { "save": { "save": "might-save" } } }] } }
+        ],
+        "resist": [{ "kind": "resistance", "type": "cold" }, { "kind": "vulnerability", "type": "fire" }, { "kind": "resistance", "type": "physical", "value": 1, "except": ["silver"] }],
+        "immune": ["sick"]
+      }
     },
     {
       "id": "example-pack.preset.old-mine",
@@ -506,6 +536,95 @@
     "format": "{year}-{month:02}-{day:02}"
   },
   "styleNotes": ["Dim, close, hopeful."],
+  "d20Combat": {
+    "cite": "LRD, Combat",
+    "damageTypes": [
+      { "id": "cut", "name": "Cut" },
+      { "id": "fire", "name": "Fire" },
+      { "id": "cold", "name": "Cold" }
+    ],
+    "damageGroups": { "physical": ["cut"] },
+    "saves": [
+      { "id": "might-save", "name": "Might save", "ability": "might" },
+      { "id": "grace-save", "name": "Grace save", "ability": "grace" }
+    ],
+    "attackAbilities": { "melee": "might", "ranged": "grace", "spell": "wits" },
+    "skillAbilities": { "climb": "might", "sneak": "grace", "lore": "wits" },
+    "combatants": [
+      {
+        "entityTypes": ["example-pack.adventurer"],
+        "ac": { "var": ["fields.armor", 10] },
+        "hp": { "damage": "damage", "max": { "var": "computed.maxHp" }, "temp": "tempHp" },
+        "saves": { "might-save": { "var": "computed.mightMod" }, "grace-save": 0 },
+        "attacks": [{ "path": "weapons", "keys": { "damageType": "type" } }]
+      },
+      {
+        "entityTypes": ["example-pack.monster"],
+        "ac": { "var": "fields.defense" },
+        "hp": { "current": "hpNow", "max": { "var": "fields.hp" } },
+        "saves": { "might-save": { "var": ["fields.attack", 0] }, "grace-save": 1 },
+        "damageModifiers": "resist",
+        "conditionImmunities": "immune",
+        "attacks": [{ "path": "attacks" }]
+      }
+    ],
+    "rules": { "crit": "natural20Doubles", "critDamage": "dice", "save": "total", "stacking": "typed" },
+    "conditions": [
+      {
+        "id": "dazed",
+        "name": "Dazed",
+        "summary": "Head ringing: −1 per level to checks and attack rolls. Drops by 1 at the end of each of its turns.",
+        "cite": "LRD, Conditions: Dazed",
+        "valued": true,
+        "max": 3,
+        "field": "dazed",
+        "effects": [{ "on": ["check", "attack"], "modifier": { "*": [-1, { "var": "value" }] }, "bonusType": "status" }],
+        "endOfTurnDecrement": 1
+      },
+      { "id": "shaken", "name": "Shaken", "summary": "−1 to checks.", "cite": "LRD, Conditions: Shaken", "effects": [{ "on": ["check"], "modifier": -1, "bonusType": "status" }] },
+      { "id": "sick", "name": "Sick", "summary": "Disadvantage on attack rolls and checks.", "cite": "LRD, Conditions: Sick", "effects": [{ "on": ["attack", "check"], "roll": "disadvantage" }] },
+      {
+        "id": "down",
+        "name": "Down",
+        "summary": "On the ground: disadvantage on its attacks; close attackers have advantage against it, distant ones disadvantage.",
+        "cite": "LRD, Conditions: Down",
+        "effects": [
+          { "on": ["attack"], "roll": "disadvantage" },
+          { "on": ["attack"], "against": true, "range": "close", "roll": "advantage" },
+          { "on": ["attack"], "against": true, "range": "far", "roll": "disadvantage" }
+        ],
+        "manual": ["standing up costs half its movement"]
+      },
+      {
+        "id": "helpless",
+        "name": "Helpless",
+        "summary": "Can't act or react. Attacks against it have advantage, and a close hit is a critical hit.",
+        "cite": "LRD, Conditions: Helpless",
+        "cannot": ["act", "react"],
+        "effects": [
+          { "on": ["attack"], "against": true, "roll": "advantage" },
+          { "on": ["attack"], "against": true, "range": "close", "critOnHit": true }
+        ]
+      },
+      {
+        "id": "stunned",
+        "name": "Stunned",
+        "summary": "Helpless, and fails Might and Grace saves.",
+        "cite": "LRD, Conditions: Stunned",
+        "implies": ["helpless"],
+        "effects": [{ "on": ["save"], "saves": ["might-save", "grace-save"], "autoFail": true }]
+      },
+      { "id": "knocked-out", "name": "Knocked out", "summary": "Unconscious: helpless and down until healed.", "cite": "LRD, Conditions: Knocked out", "implies": ["helpless", "down"] },
+      { "id": "burning", "name": "Burning", "summary": "Takes the noted fire damage at the end of each of its turns until it puts the fire out.", "cite": "LRD, Conditions: Burning", "manual": ["roll the fire damage at the end of its turn", "putting the fire out"] }
+    ],
+    "zeroHp": [
+      { "when": { "==": [{ "var": "kind" }, "character"] }, "conditions": [{ "id": "knocked-out" }], "recover": { "remove": ["knocked-out"] }, "text": "An adventurer at 0 HP is knocked out until healed.", "cite": "LRD, Combat: Down and out" },
+      { "defeated": true, "text": "A monster at 0 HP is defeated.", "cite": "LRD, Combat: Down and out" }
+    ],
+    "closeLabel": "within reach",
+    "persistentCondition": "burning",
+    "playerHealth": true
+  },
   "primer": {
     "sections": [
       { "id": "setting", "title": "Lanternlight", "prompt": "The lamp-lit streets the game is set in.", "starter": "A city of narrow streets where every door keeps a lantern burning.", "original": true },

@@ -1,6 +1,7 @@
 /** GM Core hazards (traps, environmental and haunts) as presets of the hazard entity type. */
 import type { EntityPreset } from "@campaign-forge/module-sdk";
 import { cite, HAZARD, preset, slug as toSlug } from "../ids.ts";
+import { damageModifiers } from "./creatures.ts";
 import { actionCost, frequencyText, line, md, traitText, traitsLine, usable, type Ctx } from "./common.ts";
 import { num, obj, objs, str, strs, type Entry } from "./read.ts";
 
@@ -55,6 +56,8 @@ export function convertHazards(entries: Entry[], ctx: Ctx): EntityPreset[] {
         immunities: iwr(attrs.immunities, false),
         weaknesses: iwr(attrs.weaknesses, true),
         resistances: iwr(attrs.resistances, true),
+        damageModifiers: damageModifiers(attrs).modifiers,
+        conditionImmunities: damageModifiers(attrs).conditionImmunities,
         actions,
         ...(md(ctx, details.routine) ? { routine: md(ctx, details.routine) } : {}),
         ...(md(ctx, details.reset) ? { reset: md(ctx, details.reset) } : {}),

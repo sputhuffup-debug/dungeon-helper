@@ -705,6 +705,62 @@ test("dnd5e-hints", async ({ page }) => {
   await shot(page, "dnd5e-hints");
 });
 
+/** Type faces into the enter-dice dialog the page's "Enter dice" mode opens, and roll. */
+async function enterDice(page: Page, faces: number[]) {
+  const form = page.getByRole("dialog").getByTestId("enter-dice");
+  await expect(form.locator("[data-testid^=enter-die-]")).toHaveCount(faces.length);
+  for (const [i, f] of faces.entries()) await form.getByTestId(`enter-die-${i}`).fill(String(f));
+  await form.getByTestId("enter-dice-submit").click();
+  await expect(form).toBeHidden();
+}
+
+/** The combat panel's card for a combatant. */
+const combatant = (page: Page, name: string) => page.getByTestId("d20-combat").locator("[data-combatant]").filter({ has: page.getByRole("button", { name: `Open ${name}`, exact: true }) });
+
+/** Frame the combat panel (the left column), from its top to the bottom of `last`. */
+async function combatClip(page: Page, last: Locator) {
+  const panel = page.getByTestId("d20-combat");
+  await panel.evaluate((e) => e.scrollIntoView({ block: "start" }));
+  await settle(page);
+  const a = (await panel.boundingBox())!;
+  const b = (await last.boundingBox())!;
+  const pad = 8;
+  return { x: Math.floor(a.x - pad), y: Math.floor(a.y - pad), width: Math.ceil(a.width + 2 * pad), height: Math.ceil(b.y + b.height + pad - a.y + pad) };
+}
+
+test("dnd5e-combat", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 2600 });
+  await loadDemo(page, "dnd5e");
+  await startSession1(page);
+  const combat = page.getByTestId("d20-combat");
+  // the dice are rolled at the table and typed in: initiative puts the wolf first and Wren second
+  await page.getByTestId("dice-mode-enter").first().click();
+  await combat.getByTestId("roll-initiative-all").click();
+  await enterDice(page, [6, 4, 3, 15, 2, 5, 18]);
+  await expect(combat.getByTestId("current-turn")).toHaveText("Wolf 1's turn");
+  // the wolf bites Wren: 13 + 4 = 17 against AC 14 hits, 2d4 + 2 piercing, then a DC 11 Strength save or prone
+  await combatant(page, "Wolf 1").getByRole("button", { name: "Attack with Wolf 1" }).click();
+  const attack = page.getByTestId("attack-dialog");
+  await attack.getByRole("combobox", { name: "Target" }).selectOption({ label: "Wren Talliver" });
+  await attack.getByTestId("roll-attack").click();
+  await enterDice(page, [13]);
+  await expect(attack.getByTestId("attack-outcome")).toHaveText("Hit");
+  await attack.getByTestId("roll-damage").click();
+  await enterDice(page, [6]);
+  await attack.getByTestId("apply-damage").click();
+  await expect(attack.getByTestId("damage-applied")).toContainText("Wren Talliver takes 6 damage: HP 15/21");
+  await attack.getByRole("button", { name: "Roll Strength save for Wren Talliver" }).click();
+  await enterDice(page, [6]);
+  await expect(attack.getByTestId("save-outcome")).toHaveText("failure");
+  await attack.getByTestId("save-effect").getByRole("button", { name: "Apply", exact: true }).click();
+  // Wren is prone: the chip's helper text says what that does and what the app applies by itself
+  const wren = combatant(page, "Wren Talliver");
+  await wren.locator('[data-condition="prone"]').click();
+  await expect(wren.getByTestId("condition-helper")).toContainText("Can only crawl until it stands up");
+  await expect(wren.getByTestId("condition-automated")).toContainText("advantage on attack rolls against it (attacker within 5 feet)");
+  await shot(page, "dnd5e-combat", { clip: await combatClip(page, wren) });
+});
+
 // ---------------------------------------------------------------------------
 // Hollowmere (second edition remaster, ORC core rules)
 // ---------------------------------------------------------------------------
@@ -769,6 +825,42 @@ test("pf2e-encounter", async ({ page }) => {
   await expect(page.getByTestId("step-result-g1list")).toHaveText(/^\d+ × .+$/);
   await dismissToasts(page);
   await shot(page, "pf2e-encounter");
+});
+
+test("orc-combat", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 2600 });
+  await loadDemo(page, "pf2e");
+  await startSession1(page);
+  const combat = page.getByTestId("d20-combat");
+  await page.getByTestId("dice-mode-enter").first().click();
+  await combat.getByTestId("roll-initiative-all").click();
+  const faces = await page.getByRole("dialog").getByTestId("enter-dice").locator("[data-testid^=enter-die-]").count();
+  // Garrick acts first
+  await enterDice(page, Array.from({ length: faces }, (_, i) => (i === 1 ? 19 : 2 + (i % 5))));
+  const garrick = combatant(page, "Garrick Thornley");
+  await expect(combat.getByTestId("current-turn")).toHaveText("Garrick Thornley's turn");
+  // a kobold's taunt left Garrick frightened 2: −2 status to his checks, DCs and AC
+  await garrick.getByRole("button", { name: "Add a condition to Garrick Thornley" }).click();
+  const picker = page.getByTestId("condition-picker");
+  await picker.getByRole("searchbox", { name: "Search conditions" }).fill("fright");
+  await picker.getByRole("button", { name: /^Frightened/ }).click();
+  await picker.getByRole("button", { name: "Increase Frightened value" }).click();
+  await picker.getByRole("button", { name: "Add Frightened" }).click();
+  // his longsword Strike: 19 + 9 − 2 = 26 against AC 16 is a critical hit (four degrees), damage doubled
+  await garrick.getByRole("button", { name: "Attack with Garrick Thornley" }).click();
+  const attack = page.getByTestId("attack-dialog");
+  await attack.getByRole("combobox", { name: "Target" }).selectOption({ label: "Kobold Warrior 1" });
+  await expect(attack.getByTestId("attack-pool")).toContainText("Frightened 2 (status) −2");
+  await attack.getByTestId("roll-attack").click();
+  await enterDice(page, [19]);
+  await expect(attack.getByTestId("attack-outcome")).toHaveText("Critical hit");
+  await attack.getByTestId("roll-damage").click();
+  await enterDice(page, [5]);
+  await attack.getByTestId("apply-damage").click();
+  await expect(attack.getByTestId("damage-applied")).toContainText("defeated");
+  await garrick.locator('[data-condition="frightened"]').click();
+  await expect(garrick.getByTestId("condition-helper")).toContainText("status penalty equal to the value");
+  await shot(page, "orc-combat", { clip: await combatClip(page, garrick) });
 });
 
 test("pf2e-supplement", async ({ page }) => {

@@ -39,6 +39,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Burn It All ↺",
@@ -83,6 +85,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Quietus ↺",
@@ -132,6 +136,13 @@
     ],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [
+     {
+      "kind": "immunity",
+      "type": "precision"
+     }
+    ],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Infinite Pitfall ↺",
@@ -177,6 +188,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Unmask ↺",
@@ -223,6 +236,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Prelude ↺",
@@ -274,6 +289,13 @@
     ],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [
+     {
+      "kind": "immunity",
+      "type": "precision"
+     }
+    ],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Pitfall ↺",
@@ -322,6 +344,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Electrocution ↺",
@@ -366,6 +390,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Searing Agony ↺",
@@ -414,6 +440,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Fireball ↺",
@@ -463,6 +491,18 @@
      "vitality 15"
     ],
     "resistances": [],
+    "damageModifiers": [
+     {
+      "kind": "immunity",
+      "type": "precision"
+     },
+     {
+      "kind": "weakness",
+      "type": "vitality",
+      "value": 15
+     }
+    ],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Whirling Blades ↺",
@@ -509,6 +549,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Profane Chant ↺",
@@ -557,6 +599,13 @@
     ],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [
+     {
+      "kind": "immunity",
+      "type": "precision"
+     }
+    ],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Powder Burst ↺",
@@ -607,6 +656,13 @@
     ],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [
+     {
+      "kind": "immunity",
+      "type": "precision"
+     }
+    ],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Forbid Entry ↺",
@@ -655,6 +711,13 @@
     ],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [
+     {
+      "kind": "immunity",
+      "type": "precision"
+     }
+    ],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Ensnare ↺",
@@ -703,6 +766,13 @@
     ],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [
+     {
+      "kind": "immunity",
+      "type": "precision"
+     }
+    ],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Pitfall ↺",
@@ -749,6 +819,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Curse the Intruders ↺",
@@ -795,6 +867,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Into the Great Beyond ↺",
@@ -844,6 +918,13 @@
     ],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [
+     {
+      "kind": "immunity",
+      "type": "precision"
+     }
+    ],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Dart Volley ↺",
@@ -902,6 +983,13 @@
     ],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [
+     {
+      "kind": "immunity",
+      "type": "precision"
+     }
+    ],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Spring ↺",
@@ -956,6 +1044,18 @@
      "fire 10"
     ],
     "resistances": [],
+    "damageModifiers": [
+     {
+      "kind": "immunity",
+      "type": "precision"
+     },
+     {
+      "kind": "weakness",
+      "type": "fire",
+      "value": 10
+     }
+    ],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Feed on Decay",
@@ -1010,6 +1110,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Cursed Metamorphosis ↺",
@@ -1054,6 +1156,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Submerge ◇",
@@ -1104,6 +1208,13 @@
     ],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [
+     {
+      "kind": "immunity",
+      "type": "precision"
+     }
+    ],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Falling Scythes ↺",
@@ -1153,6 +1264,13 @@
     ],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [
+     {
+      "kind": "immunity",
+      "type": "precision"
+     }
+    ],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Slam Shut ↺",
@@ -1200,6 +1318,13 @@
     ],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [
+     {
+      "kind": "immunity",
+      "type": "precision"
+     }
+    ],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Snowdrop ↺",
@@ -1248,6 +1373,13 @@
     ],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [
+     {
+      "kind": "immunity",
+      "type": "precision"
+     }
+    ],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Spear ↺",
@@ -1295,6 +1427,13 @@
     ],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [
+     {
+      "kind": "immunity",
+      "type": "precision"
+     }
+    ],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Spectral Impale ↺",
@@ -1353,6 +1492,13 @@
     ],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [
+     {
+      "kind": "immunity",
+      "type": "precision"
+     }
+    ],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Rising Pillar ↺",
@@ -1404,6 +1550,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Summon Monster ↺",
@@ -1454,6 +1602,23 @@
      "acid 20",
      "fire 10"
     ],
+    "damageModifiers": [
+     {
+      "kind": "immunity",
+      "type": "mental"
+     },
+     {
+      "kind": "resistance",
+      "type": "acid",
+      "value": 20
+     },
+     {
+      "kind": "resistance",
+      "type": "fire",
+      "value": 10
+     }
+    ],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Snap Shut ↺",
@@ -1512,6 +1677,13 @@
     ],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [
+     {
+      "kind": "immunity",
+      "type": "precision"
+     }
+    ],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Total Decapitation ↺",
@@ -1566,6 +1738,13 @@
     ],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [
+     {
+      "kind": "immunity",
+      "type": "precision"
+     }
+    ],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Wheel Spin ↺",

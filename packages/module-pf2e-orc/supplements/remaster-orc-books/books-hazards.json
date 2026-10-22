@@ -47,6 +47,13 @@
     ],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [
+     {
+      "kind": "immunity",
+      "type": "precision"
+     }
+    ],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Gathering Mist ↺",
@@ -94,6 +101,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Spawn Reflection ↺",
@@ -142,6 +151,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Confounding Misdirection ↺",
@@ -187,6 +198,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Lose Form ↺",
@@ -236,6 +249,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Reflection of Malice ↺",
@@ -284,6 +299,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Disorient ↺",
@@ -330,6 +347,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Painful Transformation ↺",
@@ -376,6 +395,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Take a Seat! ↺",
@@ -421,6 +442,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Gust ↺",
@@ -469,6 +492,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Drop ↺",
@@ -515,6 +540,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "False Step ↺",
@@ -561,6 +588,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Shock ↺",
@@ -607,6 +636,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Static Shock ↺",
@@ -658,6 +689,18 @@
      "electricity 20"
     ],
     "resistances": [],
+    "damageModifiers": [
+     {
+      "kind": "immunity",
+      "type": "precision"
+     },
+     {
+      "kind": "weakness",
+      "type": "electricity",
+      "value": 20
+     }
+    ],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Awaken ↺",
@@ -705,6 +748,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Appear ↺",
@@ -752,6 +797,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Wild Surge ↺",
@@ -800,6 +847,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Tempt ↺",
@@ -845,6 +894,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Shrink ↺",
@@ -892,6 +943,21 @@
     "resistances": [
      "all damage 20"
     ],
+    "damageModifiers": [
+     {
+      "kind": "resistance",
+      "type": "all",
+      "value": 20,
+      "except": [
+       "force",
+       "ghost-touch",
+       "spirit",
+       "vitality"
+      ],
+      "note": "double resistance vs. non magical"
+     }
+    ],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Don Shroud ↺",
@@ -938,6 +1004,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Flip ↺",
@@ -984,6 +1052,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Face Your Fear ↺",
@@ -1029,6 +1099,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Siphon Soul ↺",
@@ -1075,6 +1147,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Mimic Food ↺",
@@ -1125,6 +1199,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Steam Blast ↺",
@@ -1170,6 +1246,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Downpour ↺",
@@ -1217,6 +1295,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Bone-Shattering Rhythms ↺",
@@ -1264,6 +1344,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "actions": [
      {
       "name": "Hurricane Flyby ↺",

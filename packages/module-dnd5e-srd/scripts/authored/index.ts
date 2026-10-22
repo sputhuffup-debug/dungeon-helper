@@ -8,6 +8,7 @@
  */
 import type { EntityPreset, ReferenceList } from "@campaign-forge/module-sdk";
 import { LIST, PACK } from "../ids.ts";
+import { d20Combat } from "./combat.ts";
 import { characterType, encounterType, factionType, itemType, locationType, monsterType, npcType, questType } from "./entityTypes.ts";
 import { playGuide } from "./guides.ts";
 import { primer } from "./primer.ts";
@@ -42,6 +43,7 @@ export function buildAuthored(data: GeneratedData): Record<string, unknown> {
     trackers,
     playGuides: [playGuide],
     primer,
+    d20Combat: d20Combat(data.lists),
     templates,
     calendar,
     styleNotes: [

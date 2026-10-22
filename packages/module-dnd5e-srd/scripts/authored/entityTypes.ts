@@ -48,6 +48,59 @@ const bonusesSchema: JsonSchema = {
   additionalProperties: false,
   default: {},
 };
+const DAMAGE_TYPES = ["acid", "bludgeoning", "cold", "fire", "force", "lightning", "necrotic", "piercing", "poison", "psychic", "radiant", "slashing", "thunder"];
+const bool: JsonSchema = { type: "boolean" };
+const damagePart: JsonSchema = { type: "object", properties: { dice: text(40), type: { type: "string", enum: DAMAGE_TYPES }, persistent: bool }, required: ["dice"], additionalProperties: false };
+const conditionApply: JsonSchema = {
+  type: "object",
+  properties: {
+    id: text(40),
+    value: int(0, 20),
+    duration: { type: "object", properties: { rounds: int(1, 10000), sourceNextTurn: bool, save: { type: "object", properties: { save: text(40), dc: int(1, 40) }, required: ["save"], additionalProperties: false } }, additionalProperties: false },
+  },
+  required: ["id"],
+  additionalProperties: false,
+};
+/** Structured attacks the combat panel rolls (the action text stays in `actions`). */
+const attacksSchema: JsonSchema = {
+  type: "array",
+  description: "Attacks as the combat panel reads them: attack bonus, damage parts with types, reach and range, save effects.",
+  items: {
+    type: "object",
+    properties: {
+      name: text(120),
+      kind: { type: "string", enum: ["melee", "ranged", "spell"] },
+      bonus: int(-10, 40),
+      damage: { type: "array", items: damagePart },
+      reach: text(40),
+      range: text(40),
+      traits: tags,
+      save: {
+        type: "object",
+        properties: { dc: int(1, 40), save: { type: "string", enum: SAVES.map((x) => x.id) }, half: bool, damage: { type: "array", items: damagePart }, conditions: { type: "array", items: conditionApply }, text: text(400) },
+        required: ["dc", "save"],
+        additionalProperties: false,
+      },
+      onHit: { type: "array", items: conditionApply },
+      effect: text(400),
+    },
+    required: ["name"],
+    additionalProperties: false,
+  },
+  default: [],
+};
+/** Resistances, immunities and vulnerabilities by damage type, with the attack traits that get past them. */
+const damageModifiersSchema: JsonSchema = {
+  type: "array",
+  description: "Damage immunities, resistances and vulnerabilities by damage type, as the combat panel applies them.",
+  items: {
+    type: "object",
+    properties: { kind: { type: "string", enum: ["immunity", "resistance", "vulnerability"] }, type: { type: "string", enum: DAMAGE_TYPES }, except: tags, note: text(200) },
+    required: ["kind", "type"],
+    additionalProperties: false,
+  },
+  default: [],
+};
 const hpSchema: JsonSchema = {
   type: "object",
   properties: { max: int(1, 2000, 8), current: int(0, 2000, 8), temp: int(0, 500, 0) },
@@ -213,7 +266,18 @@ export function characterType(classes: ReferenceList, spellSlots: Record<string,
       spells: { ...tags, description: "Spells known or prepared (names from the Spells list)." },
       attacks: {
         type: "array",
-        items: { type: "object", properties: { name: text(80), bonus: text(20), damage: text(80), notes: text(200) }, required: ["name"] },
+        items: {
+          type: "object",
+          properties: {
+            name: text(80),
+            bonus: text(20),
+            damage: text(80),
+            type: { type: "string", enum: DAMAGE_TYPES, description: "Damage type, when the damage text does not say." },
+            kind: { type: "string", enum: ["melee", "ranged", "spell"], description: "Melee (the default), ranged or spell attack." },
+            notes: text(200),
+          },
+          required: ["name"],
+        },
         default: [],
       },
       features: entryList,
@@ -298,7 +362,11 @@ export function characterType(classes: ReferenceList, spellSlots: Record<string,
             { path: "passiveInsight", label: "Passive Wisdom (Insight)", widget: "computed" },
           ],
         },
-        { id: "attacks", title: "Attacks", fields: [{ path: "attacks", label: "Attacks", widget: "table", config: { columns: ["name", { key: "bonus", label: "Attack bonus" }, "damage", "notes"] } }] },
+        {
+          id: "attacks",
+          title: "Attacks",
+          fields: [{ path: "attacks", label: "Attacks", widget: "table", config: { columns: ["name", { key: "bonus", label: "Attack bonus" }, "damage", { key: "type", label: "Damage type" }, { key: "kind", label: "Attack" }, "notes"] } }],
+        },
         {
           id: "spellcasting",
           title: "Spellcasting",
@@ -384,6 +452,7 @@ export function monsterType(): EntityTypeDef {
       damageResistances: tags,
       damageImmunities: tags,
       conditionImmunities: tags,
+      damageModifiers: damageModifiersSchema,
       senses: text(400),
       languages: text(400),
       cr: { type: "number", minimum: 0, maximum: 30, default: 0 },
@@ -392,6 +461,7 @@ export function monsterType(): EntityTypeDef {
       actions: entryList,
       reactions: entryList,
       legendaryActions: entryList,
+      attacks: attacksSchema,
       description: longText,
       notes: longText,
     },
@@ -456,6 +526,20 @@ export function monsterType(): EntityTypeDef {
             { path: "actions", label: "Actions", widget: "entries", rule: rule("actions-in-combat") },
             { path: "reactions", label: "Reactions", widget: "entries" },
             { path: "legendaryActions", label: "Legendary actions", widget: "entries" },
+          ],
+        },
+        {
+          id: "combat",
+          title: "Combat panel data",
+          collapsed: true,
+          fields: [
+            {
+              path: "attacks",
+              label: "Attacks",
+              widget: "table",
+              config: { columns: ["name", { key: "kind", label: "Attack" }, { key: "bonus", label: "To hit" }, { key: "damage", readonly: true }, "reach", "range", { key: "save", readonly: true }, "effect"] },
+            },
+            { path: "damageModifiers", label: "Damage modifiers", widget: "table", rule: rule("damage-and-healing.damage-resistance-and-vulnerability"), config: { columns: ["kind", "type", { key: "except", readonly: true }, "note"] } },
           ],
         },
         { id: "description", title: "Description", collapsed: true, fields: [{ path: "description", label: "Description", widget: "textarea" }] },
