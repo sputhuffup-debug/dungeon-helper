@@ -567,7 +567,11 @@ export function d20ConditionAutomation(def: D20CombatDef, cd: D20ConditionDef): 
     const who = e.against ? `attack rolls against it${e.range ? (e.range === "close" ? ` (attacker ${close})` : ` (attacker not ${close})`) : ""}` : what;
     const parts: string[] = [];
     if (e.roll) parts.push(`${e.roll} on ${who}`);
-    if (e.modifier !== undefined) parts.push(`${typeof e.modifier === "number" ? (e.modifier > 0 ? `+${e.modifier}` : `−${Math.abs(e.modifier)}`) : "its value as a modifier"}${e.bonusType ? ` ${e.bonusType}` : ""} to ${who}`);
+    if (e.modifier !== undefined) {
+      const kind = (n: number) => `${e.bonusType ? `${e.bonusType} ` : ""}${n < 0 ? "penalty" : "bonus"}`;
+      if (typeof e.modifier === "number") parts.push(`${e.modifier > 0 ? `+${e.modifier}` : `−${Math.abs(e.modifier)}`} ${kind(e.modifier)} to ${who}`);
+      else parts.push(`a ${kind(d20Number(e.modifier, { value: 1 }) ?? -1)} equal to its value to ${who}`);
+    }
     if (e.autoFail) parts.push(`${who} fail automatically`);
     if (e.critOnHit) parts.push(`a hit is a critical hit${e.range === "close" ? ` (attacker ${close})` : ""}`);
     for (const p of parts) automated.push(scope ? `${p} (${scope})` : p);

@@ -860,14 +860,8 @@ function checkD20Combat(module: GameModule, c: Collector): void {
   for (const p of module.presets) {
     const cb = def.combatants.find((x) => x.entityTypes.includes(p.entityType));
     if (!cb) continue;
-    const t = types.find((x) => x.id === p.entityType);
-    let computed: Record<string, unknown> = {};
-    try {
-      computed = t ? computeFields(t, p.fields) : {};
-    } catch {
-      computed = {};
-    }
-    for (const a of d20Attacks(def, cb, { fields: p.fields, computed })) for (const m of d20AttackIssues(def, a)) c.error(`preset:${p.id}`, `attack "${a.name}": ${m}`);
+    // dice, damage types, saves and conditions are what can be wrong in data; computed bonuses are checked with the entity type
+    for (const a of d20Attacks(def, cb, { fields: p.fields })) for (const m of d20AttackIssues(def, a)) c.error(`preset:${p.id}`, `attack "${a.name}": ${m}`);
     if (cb.damageModifiers) {
       const mods = p.fields[cb.damageModifiers];
       if (Array.isArray(mods)) for (const m of mods as Array<Record<string, unknown>>) if (typeof m?.type !== "string" || !m.type || !kinds.has(String(m?.kind))) c.error(`preset:${p.id}`, `damage modifier ${JSON.stringify(m)} needs a kind (immunity, resistance, vulnerability, weakness) and a type`);

@@ -29,5 +29,6 @@ describe("demo primers", () => {
     const h = primerOf(hollowmere);
     expect(h[0]?.markdown).toContain("Hollowmere");
     expect(h.some((s) => s.id === "characters")).toBe(true);
-  });
+    // two whole demos from the two largest packs: slow when turbo runs every suite at once
+  }, 60_000);
 });
