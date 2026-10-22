@@ -41,6 +41,15 @@ export interface CampaignMeta extends BaseRecord {
   settings: Record<string, unknown>;
   /** Members: GM plus players. v1 is GM-only but the shape is kept. */
   members: Array<{ id: Id; name: string; role: "gm" | "player"; characterId?: Id }>;
+  /** The campaign primer: the players' session 0 introduction (see primer.ts). */
+  primer?: CampaignPrimer;
+}
+
+/** The campaign primer's sections, in order; each section's text is a rich-text body. */
+export interface CampaignPrimer {
+  sections: Array<{ id: string; title: string; doc: Id }>;
+  /** When "Draft from campaign" last wrote it. */
+  drafted?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -167,6 +176,27 @@ export interface Session extends BaseRecord {
   wrapUp?: Record<string, unknown>;
   /** Session checklist ticks: item id -> done. `false` is an explicit untick (see checklist.ts). */
   checklist?: Record<string, boolean>;
+  /** What the GM shared with the players from this session ("Share with players"), oldest first. GM-only. */
+  shares?: ShareRecord[];
+}
+
+/**
+ * One "Share with players" export: what went out, so the next share can send
+ * only what is new. Ids only; the content is rebuilt from the campaign.
+ */
+export interface ShareRecord {
+  at: string;
+  /** Handout ids included. */
+  handouts: Id[];
+  /** Map id -> the zones the players could see on it when it was shared. */
+  maps: Record<Id, Id[]>;
+  /** The scene whose briefing was included. */
+  scene?: Id;
+  /** The party card was included. */
+  party?: boolean;
+  /** The campaign primer was included. */
+  primer?: boolean;
+  format?: "images" | "pdf";
 }
 
 export interface TimelineEvent extends BaseRecord {

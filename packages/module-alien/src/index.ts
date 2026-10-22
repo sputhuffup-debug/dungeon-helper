@@ -25,6 +25,7 @@ import { narrativeFields, campaignThemes, fearStages } from "./narrative";
 import { adventureBuilders } from "./builders";
 import { mapGenerators } from "./maps";
 import { playGuide } from "./guides";
+import { primer } from "./primer";
 import { combat } from "./combat";
 import { crewShip, ledger } from "./economy";
 import { travel } from "./travel";
@@ -79,6 +80,7 @@ export const alienModule: GameModule = {
   adventureBuilders,
   mapGenerators,
   playGuides: [playGuide],
+  primer,
   combat,
   ledger,
   crewShip,

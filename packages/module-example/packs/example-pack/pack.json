@@ -505,5 +505,11 @@
     "weekdays": ["Flint", "Spark", "Flame", "Smoke"],
     "format": "{year}-{month:02}-{day:02}"
   },
-  "styleNotes": ["Dim, close, hopeful."]
+  "styleNotes": ["Dim, close, hopeful."],
+  "primer": {
+    "sections": [
+      { "id": "setting", "title": "Lanternlight", "prompt": "The lamp-lit streets the game is set in.", "starter": "A city of narrow streets where every door keeps a lantern burning.", "original": true },
+      { "id": "house-rules", "title": "House rules", "prompt": "Anything you play differently." }
+    ]
+  }
 }

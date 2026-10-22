@@ -21,6 +21,7 @@ import { Fragment, useEffect, useId, useRef, useState, type CSSProperties, type 
 import { Button, renderInline } from "../../components/ui";
 import { errorMessage } from "../../lib/format";
 import { useCampaign } from "../../state/hooks";
+import { usePaper, type Paper } from "../../lib/paper";
 import { agendaCards, type AgendaCard } from "./booklet";
 import { bookletDocument, type BookletBlock, type BookletDocument, type BookletSection, type CastCard, type FieldRow, type HandoutEntry, type LocationEntry, type MapDeckFigure, type SceneEntry, type StatBlock } from "./bookletDocument";
 
@@ -120,39 +121,13 @@ export function BookletMarkdown({ text, className }: { text: string; className?:
 // paper
 // ---------------------------------------------------------------------------
 
-export type Paper = "letter" | "a4";
-
-const PAPER_KEY = "cf.print.paper";
+export type { Paper };
 
 /** Page box and margins per paper, as CSS lengths. */
 export const PAPER_SIZES: Record<Paper, { label: string; size: string; width: string; height: string; margin: { top: string; side: string; bottom: string }; cardMargin: string }> = {
   letter: { label: "Letter", size: "letter", width: "8.5in", height: "11in", margin: { top: "0.85in", side: "0.75in", bottom: "0.8in" }, cardMargin: "0.4in" },
   a4: { label: "A4", size: "A4", width: "210mm", height: "297mm", margin: { top: "22mm", side: "19mm", bottom: "20mm" }, cardMargin: "10mm" },
 };
-
-function defaultPaper(): Paper {
-  try {
-    const saved = localStorage.getItem(PAPER_KEY);
-    if (saved === "letter" || saved === "a4") return saved;
-  } catch {
-    // storage blocked: fall through to the locale
-  }
-  const lang = typeof navigator !== "undefined" ? navigator.language : "en-US";
-  return /^en-(US|CA)$|^es-(MX|US)$|-(PH|CL|CO)$/i.test(lang) ? "letter" : "a4";
-}
-
-function usePaper(): [Paper, (p: Paper) => void] {
-  const [paper, setPaper] = useState<Paper>(defaultPaper);
-  const set = (p: Paper) => {
-    setPaper(p);
-    try {
-      localStorage.setItem(PAPER_KEY, p);
-    } catch {
-      // not saved; the choice still applies to this view
-    }
-  };
-  return [paper, set];
-}
 
 /** A CSS string literal. */
 const cssString = (s: string) => `"${s.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/[\r\n]+/g, " ")}"`;

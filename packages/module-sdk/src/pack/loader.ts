@@ -240,6 +240,7 @@ export function packToModule(input: ModulePack): GameModule {
   };
   if (pack.styleNotes) module.styleNotes = pack.styleNotes;
   if (pack.playGuides) module.playGuides = pack.playGuides;
+  if (pack.primer) module.primer = pack.primer;
   return module;
 }
 

@@ -509,6 +509,30 @@ test("agenda-cards", async ({ page }) => {
   await shot(page, "agenda-cards");
 });
 
+test("share-players", async ({ page }) => {
+  // Cold Harbor session 1 at the table: "Share with players" previews the phone cards (briefing, fogged map, the revealed relay log, the party)
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await loadDemo(page, "cinematic");
+  await startSession1(page);
+  await page.getByTestId("share-players").click();
+  const dialog = page.getByTestId("share-dialog");
+  await dialog.getByTestId("share-include-party").check();
+  await expect(dialog.getByTestId("share-preview-item")).toHaveCount(4);
+  await expect(dialog.getByTestId("share-send")).toBeEnabled();
+  await shot(page, "share-players");
+});
+
+test("primer", async ({ page }) => {
+  // Cold Harbor's campaign primer: the module's prompts in grey, the demo's own text, places drafted from player-visible locations
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await loadDemo(page, "cinematic");
+  await page.getByTestId("open-primer").click();
+  const primer = page.getByTestId("primer-page");
+  await expect(primer.locator('[data-section="tone"]')).toContainText("X-card");
+  await expect(primer.locator(".cf-editor--loading")).toHaveCount(0);
+  await shot(page, "primer");
+});
+
 // ---------------------------------------------------------------------------
 // Game modules and Thornwick Crossing (fifth edition, SRD 5.1)
 // ---------------------------------------------------------------------------
@@ -550,7 +574,8 @@ test("supplements", async ({ page }) => {
 /** Toasts repeat what the page shows and time out on their own: dismiss them so a shot does not depend on the timing. */
 async function dismissToasts(page: Page) {
   // (programmatic: under a modal dialog the toasts are inert to the pointer)
-  for (const dismiss of await page.locator(".cf-toasts").getByRole("button", { name: "Dismiss", includeHidden: true }).all()) await dismiss.evaluate((b) => (b as HTMLButtonElement).click());
+  // click every Dismiss in one go: a locator list goes stale as each toast leaves
+  await page.evaluate(() => document.querySelectorAll<HTMLButtonElement>(".cf-toasts button[aria-label='Dismiss']").forEach((b) => b.click()));
   await expect(page.locator(".cf-toast")).toHaveCount(0);
 }
 

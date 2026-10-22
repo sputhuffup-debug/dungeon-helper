@@ -62,6 +62,7 @@ import {
   type Visibility,
 } from "@campaign-forge/core";
 import { pf2eOrcSource } from "@campaign-forge/module-pf2e-orc";
+import { writeDemoPrimer } from "./primer";
 
 export const PF2E_DEMO_SEED = "hollowmere";
 export const PF2E_DEMO_NAME = "Hollowmere";
@@ -738,6 +739,12 @@ export async function buildPf2eDemo(opts: BuildPf2eDemoOptions = {}): Promise<Pf
       "Original adventure; the rules content is ORC-licensed (see Settings for the ORC notice and attribution).",
     ].join("\n"),
   );
+
+  // -- the campaign primer: the pack's prompts, drafted from the demo, a welcome of its own (original text)
+  writeDemoPrimer(store, registry, game, {
+    welcome: "**Hollowmere** is a one-shot for four level 1 heroes: someone is stealing lamp oil from a lakeside village, and the trail leads underground. Expect a mystery, a strange bargain and a dark place full of teeth.",
+    tone: "Bright adventure with a few scares.\n\n- **Lines** (never in the game): \n- **Veils** (happen off screen): \n- **Safety tools**: an X-card on the table and a check-in at the break.",
+  });
 
   const maps = store.toJSON();
   const resolve = nameResolver(store);

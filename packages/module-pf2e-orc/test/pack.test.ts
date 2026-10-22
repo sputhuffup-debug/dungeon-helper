@@ -124,6 +124,15 @@ describe("Fantasy d20 Remaster (ORC) data pack", () => {
     }
   });
 
+  it("has a campaign primer with generic fantasy prompts and no Reserved Material", () => {
+    const sections = module.primer?.sections ?? [];
+    expect(sections.map((s) => s.id)).toEqual(["welcome", "setting", "lore", "places", "house-rules", "characters", "opening"]);
+    for (const s of sections) expect(s.original).toBe(true);
+    const text = sections.map((s) => [s.title, s.prompt, s.starter ?? ""].join("\n")).join("\n");
+    expect(text.match(anyReservedPattern("g")) ?? []).toEqual([]);
+    expect(text).not.toMatch(/pathfinder|paizo/i);
+  });
+
   it("has the four core books' ORC content: 490 creatures, 32 hazards, 43 conditions, 16 classes and ancestries", () => {
     expect(module.presets.filter((p) => p.entityType === "pf2e-orc.creature")).toHaveLength(490);
     expect(module.presets.filter((p) => p.entityType === "pf2e-orc.hazard")).toHaveLength(32);

@@ -36,6 +36,8 @@ import type {
   ModuleManifest,
   NestedRoll,
   PlayGuideDef,
+  PrimerDef,
+  PrimerSectionDef,
   PlayGuideEntry,
   PlayGuideGroup,
   PlayMode,
@@ -466,6 +468,19 @@ const definitions: Record<string, JsonSchema> = {
     },
     ["id", "label", "kind", "callFor"],
   ),
+  primerSection: object<PrimerSectionDef>()(
+    {
+      id: str({ pattern: "^[a-z][a-z0-9-]*$", description: "A standard section id (welcome, setting, lore, places, tone, house-rules, characters, opening) or the pack's own." }),
+      title: text,
+      prompt: str({ minLength: 1, description: "What the GM writes in this section; shown to the GM only." }),
+      starter: str({ description: "Starter text (Markdown) the GM edits before sharing it." }),
+      original: bool,
+      page: ref("page"),
+      cite: ref("cite"),
+    },
+    ["id", "title", "prompt"],
+  ),
+  primer: object<PrimerDef>()({ sections: list(ref("primerSection"), { minItems: 1 }) }, ["sections"]),
   playGuide: object<PlayGuideDef>()(
     {
       id: ref("id"),
@@ -567,6 +582,7 @@ export const MODULE_PACK_SCHEMA: JsonSchema = {
       dice: ref("dice"),
       calendar: ref("calendar"),
       styleNotes: list(str()),
+      primer: ref("primer"),
       parts: list(str({ pattern: "^[A-Za-z0-9][A-Za-z0-9_.-]*\\.json$" }), { uniqueItems: true }),
       ...collections,
     },

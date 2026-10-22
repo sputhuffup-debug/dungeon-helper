@@ -62,6 +62,7 @@ import {
   type Visibility,
 } from "@campaign-forge/core";
 import { dnd5eSrdSource, THORNWICK_SUPPLEMENT_ID, thornwickHomebrewSupplement } from "@campaign-forge/module-dnd5e-srd";
+import { writeDemoPrimer } from "./primer";
 
 export const DND5E_DEMO_SEED = "thornwick";
 export const DND5E_DEMO_NAME = "Thornwick Crossing";
@@ -748,6 +749,30 @@ export async function buildDnd5eDemo(opts: BuildDnd5eDemoOptions = {}): Promise<
       "Original adventure; the rules content is from the SRD 5.1 (CC-BY-4.0), see Settings for the attribution.",
     ].join("\n"),
   );
+
+  // -- the campaign primer (original text) ----------------------------------------
+  writeDemoPrimer(store, registry, game, {
+    welcome: "**Thornwick Crossing** is a one-shot for four level 3 heroes: a river village has lost its flood bell to goblins, and the spring flood is three days away. Expect sneaking, a fight or two, a goblin who wants to talk, and a race against rising water.",
+    setting: [
+      "The Brackwater is a slow brown river that floods every spring. The villages along it live by its fords, ferries and mills, and every one of them keeps a bell to warn of the water.",
+      "Roads are poor, the reeves are tired, and the old border towers in the marshes have been empty for a century. Or so everyone thought.",
+    ].join("\n\n"),
+    lore: null,
+    places: null,
+    tone: [
+      "Heroic and a little muddy: real danger, but the heroes are expected to win, and the village is worth saving.",
+      "- **Lines** (never in the game): harm to children; cruelty to animals for its own sake.",
+      "- **Veils** (happen off screen): anything you ask for.",
+      "- **Safety tools**: an X-card on the table and a check-in at the break.",
+    ].join("\n\n"),
+    "house-rules": [
+      "- Critical hits: roll the damage dice twice, as the rules say.",
+      "- A short rest takes a meal and a fire; a long rest needs a roof.",
+      "- Potions: drinking your own is a bonus action, feeding one to a friend is an action.",
+    ].join("\n"),
+    characters: null,
+    opening: null,
+  });
 
   const maps = store.toJSON();
   const resolve = nameResolver(store);

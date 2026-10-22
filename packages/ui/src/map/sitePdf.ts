@@ -13,8 +13,12 @@
  *   pattern's tiles clipped to the shape: plain line sets any RIP can print
  * - `clipPath` references (the union of its shapes)
  *
- * Not supported: gradients, markers, filters, masks, images, embedded fonts,
- * `tspan`, `use`, CSS stylesheets and `%` lengths.
+ * - `image` with a JPEG `data:` URL (`href`), placed at x, y, width, height
+ *   (stretched to the box; the caller keeps the aspect ratio), embedded as is
+ *   (DCTDecode); other image types are skipped
+ *
+ * Not supported: gradients, markers, filters, masks, other image types,
+ * embedded fonts, `tspan`, `use`, CSS stylesheets and `%` lengths.
  *
  * Output is deterministic: no dates, no ids, fixed number formatting and
  * object order, so the same pages give the same bytes. Sizes are PDF points
@@ -478,6 +482,61 @@ function isBold(w: string): boolean {
 }
 
 // ---------------------------------------------------------------------------
+// images
+// ---------------------------------------------------------------------------
+
+export interface JpegInfo {
+  width: number;
+  height: number;
+  /** 1 grey, 3 RGB, 4 CMYK. */
+  components: number;
+  bytes: Uint8Array;
+}
+
+function base64Bytes(b64: string): Uint8Array {
+  const clean = b64.replace(/[^A-Za-z0-9+/]/g, "");
+  if (typeof atob === "function") {
+    const bin = atob(clean);
+    const out = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+  const B = (globalThis as { Buffer?: { from(s: string, enc: string): Uint8Array } }).Buffer;
+  return B ? new Uint8Array(B.from(clean, "base64")) : new Uint8Array();
+}
+
+/** Size and colour components of a baseline or progressive JPEG, or undefined when the bytes are not one. */
+export function jpegInfo(bytes: Uint8Array): JpegInfo | undefined {
+  if (bytes.length < 4 || bytes[0] !== 0xff || bytes[1] !== 0xd8) return undefined;
+  let i = 2;
+  while (i + 9 < bytes.length) {
+    if (bytes[i] !== 0xff) return undefined;
+    const marker = bytes[i + 1]!;
+    if (marker === 0xd8 || marker === 0x01 || (marker >= 0xd0 && marker <= 0xd7)) {
+      i += 2;
+      continue;
+    }
+    const len = (bytes[i + 2]! << 8) | bytes[i + 3]!;
+    // SOF0..SOF15 except DHT (C4), JPG (C8) and DAC (CC)
+    if (marker >= 0xc0 && marker <= 0xcf && marker !== 0xc4 && marker !== 0xc8 && marker !== 0xcc) {
+      const height = (bytes[i + 5]! << 8) | bytes[i + 6]!;
+      const width = (bytes[i + 7]! << 8) | bytes[i + 8]!;
+      const components = bytes[i + 9]!;
+      if (!width || !height) return undefined;
+      return { width, height, components, bytes };
+    }
+    i += 2 + len;
+  }
+  return undefined;
+}
+
+/** A JPEG `data:` URL's image, or undefined for anything else. */
+export function jpegFromDataUrl(href: string): JpegInfo | undefined {
+  const m = /^data:image\/jpe?g(?:;[^,]*)?;base64,(.*)$/is.exec(href.trim());
+  return m ? jpegInfo(base64Bytes(m[1]!)) : undefined;
+}
+
+// ---------------------------------------------------------------------------
 // writer
 // ---------------------------------------------------------------------------
 
@@ -515,6 +574,7 @@ class ContentWriter {
   constructor(
     private readonly defs: Map<string, SvgNode>,
     private readonly gstate: (fillAlpha: number, strokeAlpha: number) => string,
+    private readonly image: (href: string) => string | undefined = () => undefined,
   ) {}
 
   private save() {
@@ -550,11 +610,27 @@ class ContentWriter {
       for (const c of n.c ?? []) this.draw(c, style);
     } else if (n.t === "text") {
       this.text(n, style);
+    } else if (n.t === "image") {
+      this.drawImage(n, style);
     } else {
       const segs = shapeSegs(n);
       if (segs && segs.length) this.shape(segs, style, n.t === "line" || n.t === "polyline");
     }
     if (wrap) this.restore();
+  }
+
+  /** An image XObject stretched over its box (y down: the image's top row at `y`). */
+  private drawImage(n: SvgNode, s: Style) {
+    const href = n.a?.href ?? n.a?.["xlink:href"];
+    const w = attrNum(n, "width");
+    const h = attrNum(n, "height");
+    if (typeof href !== "string" || w <= 0 || h <= 0) return;
+    const name = this.image(href);
+    if (!name) return;
+    this.setAlpha(s.opacity, 1);
+    this.save();
+    this.ops.push(`${num(w, 4)} 0 0 ${num(-h, 4)} ${num(attrNum(n, "x"))} ${num(attrNum(n, "y") + h)} cm\n/${name} Do`);
+    this.restore();
   }
 
   private clipOf(n: SvgNode): string | undefined {
@@ -725,13 +801,24 @@ export function svgPagesToPdf(pages: PdfPage[], info: PdfInfo = {}): Uint8Array 
     }
     return name;
   };
-  // object numbers: 1 catalog, 2 pages, 3 Helvetica, 4 Helvetica-Bold, 5 resources, 6 info, then page + content pairs
+  // images by href, each embedded once
+  const images = new Map<string, { name: string; info: JpegInfo }>();
+  const image = (href: string) => {
+    const known = images.get(href);
+    if (known) return known.name;
+    const info = jpegFromDataUrl(href);
+    if (!info) return undefined;
+    const name = `Im${images.size}`;
+    images.set(href, { name, info });
+    return name;
+  };
+  // object numbers: 1 catalog, 2 pages, 3 Helvetica, 4 Helvetica-Bold, 5 resources, 6 info, then page + content pairs, then images
   const pageObjs: Array<{ dict: string; content: string }> = [];
   let needsUserUnit = false;
   pages.forEach((page, i) => {
     const defs = new Map<string, SvgNode>();
     collectDefs(page.node, defs);
-    const w = new ContentWriter(defs, gstate);
+    const w = new ContentWriter(defs, gstate, image);
     const big = Math.max(page.width, page.height);
     const unit = big > PDF_MAX_UNITS ? Math.ceil(big / PDF_MAX_UNITS) : 1;
     if (unit > 1) needsUserUnit = true;
@@ -755,7 +842,10 @@ export function svgPagesToPdf(pages: PdfPage[], info: PdfInfo = {}): Uint8Array 
     const [fa, sa] = k.split(" ");
     return `/${name} << /Type /ExtGState /ca ${fa} /CA ${sa} >>`;
   });
-  objects[5] = `<< /ProcSet [/PDF /Text] /Font << /F1 3 0 R /F2 4 0 R >>${gsDict.length ? ` /ExtGState << ${gsDict.join(" ")} >>` : ""} >>`;
+  const firstImage = 7 + pageObjs.length * 2;
+  const imageList = [...images.values()];
+  const xobjects = imageList.map((im, i) => `/${im.name} ${firstImage + i} 0 R`);
+  objects[5] = `<< /ProcSet [/PDF /Text${imageList.length ? " /ImageB /ImageC" : ""}] /Font << /F1 3 0 R /F2 4 0 R >>${gsDict.length ? ` /ExtGState << ${gsDict.join(" ")} >>` : ""}${xobjects.length ? ` /XObject << ${xobjects.join(" ")} >>` : ""} >>`;
   const infoParts = [`/Producer ${pdfString("Campaign Forge")}`];
   if (info.title) infoParts.push(`/Title ${pdfString(info.title)}`);
   if (info.subject) infoParts.push(`/Subject ${pdfString(info.subject)}`);
@@ -765,6 +855,14 @@ export function svgPagesToPdf(pages: PdfPage[], info: PdfInfo = {}): Uint8Array 
   pageObjs.forEach((p, i) => {
     objects[7 + i * 2] = p.dict;
     objects[8 + i * 2] = `<< /Length ${p.content.length} >>\nstream\n${p.content}endstream`;
+  });
+  imageList.forEach((im, i) => {
+    const { info } = im;
+    const space = info.components === 1 ? "/DeviceGray" : info.components === 4 ? "/DeviceCMYK /Decode [1 0 1 0 1 0 1 0]" : "/DeviceRGB";
+    // the JPEG bytes as one char per byte (the writer turns chars back into bytes)
+    let data = "";
+    for (let j = 0; j < info.bytes.length; j += 0x8000) data += String.fromCharCode(...info.bytes.subarray(j, j + 0x8000));
+    objects[firstImage + i] = `<< /Type /XObject /Subtype /Image /Width ${info.width} /Height ${info.height} /ColorSpace ${space} /BitsPerComponent 8 /Filter /DCTDecode /Length ${info.bytes.length} >>\nstream\n${data}\nendstream`;
   });
 
   // everything above is ASCII; the header's binary comment marks the file as binary

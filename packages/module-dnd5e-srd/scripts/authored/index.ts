@@ -10,6 +10,7 @@ import type { EntityPreset, ReferenceList } from "@campaign-forge/module-sdk";
 import { LIST, PACK } from "../ids.ts";
 import { characterType, encounterType, factionType, itemType, locationType, monsterType, npcType, questType } from "./entityTypes.ts";
 import { playGuide } from "./guides.ts";
+import { primer } from "./primer.ts";
 import { dice, manifest } from "./manifest.ts";
 import { originalTables } from "./tables.ts";
 import { adviceRules, calendar, relationshipTypes, templates } from "./templates.ts";
@@ -40,6 +41,7 @@ export function buildAuthored(data: GeneratedData): Record<string, unknown> {
     relationshipTypes,
     trackers,
     playGuides: [playGuide],
+    primer,
     templates,
     calendar,
     styleNotes: [

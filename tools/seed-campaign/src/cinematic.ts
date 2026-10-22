@@ -58,6 +58,7 @@ import {
 import { loadModule } from "@campaign-forge/module-sdk";
 import { CINEMATIC, CINEMATIC_BUILDER_ID, DEFAULT_YEAR, MAP_GENERATOR_ID, alienModule, careerItems, type CareerItem } from "@campaign-forge/module-alien";
 import { startInfection } from "./infection";
+import { writeDemoPrimer } from "./primer";
 
 export const CINEMATIC_DEMO_SEED = "cold-harbor";
 export const CINEMATIC_DEMO_NAME = "Cold Harbor Relay";
@@ -747,6 +748,22 @@ export function buildCinematicDemo(opts: BuildCinematicDemoOptions = {}): Cinema
     summary: "Pitched Cold Harbor, agreed the content note and the X-card, picked the four pregenerated PCs and read their backgrounds aloud. Act 1 agendas go out at the start of session 1.",
   });
   writeDoc(registry, zero.logDoc, "Pitch, content note, X-card. Players chose: Rosa, Ana, Teo, Jun.");
+  // the relay's last log went to the players at session 0, with the pitch (original text)
+  const relayLog = store.createHandout({ title: "Cold Harbor: last relay log", kind: "text", visibility: { level: "revealed", revealedIn: zero.id }, attachedTo: { kind: "adventure", id: adventureId } });
+  store.update("handouts", relayLog.id, { revealedIn: zero.id });
+  writeDoc(
+    registry,
+    relayLog.bodyDoc,
+    [
+      "Automated relay log, Cold Harbor, Tethra-4 orbit. Recovered by the tender *Halvard* on approach.",
+      "",
+      "- Day 1: survey probe pod logged into the research annex. Quarantine seal applied.",
+      "- Day 2: heating fault on the habitat ring. Staff told to stay in quarters.",
+      "- Day 3: uplink lost. Carrier tone only.",
+      "",
+      "Last voice entry, partial: “…anyone on this channel, keep the lab doors shut…”",
+    ].join("\n"),
+  );
   for (const item of checklist) setChecklistItem(store, zero.id, item.id, true);
 
   const session = store.createSession({ number: 1, date: "2026-11-14", title: "Cold Harbor", status: "planned" });
@@ -812,6 +829,34 @@ export function buildCinematicDemo(opts: BuildCinematicDemoOptions = {}): Cinema
       "- **Session checklist**: session 0 is done and fully ticked; session 1 is partly prepared.",
     ].join("\n"),
   );
+
+  // -- the campaign primer sent out before session 0 (original text) ------------
+  writeDemoPrimer(store, registry, alienModule, {
+    welcome: [
+      "**Cold Harbor** is a one-shot for four players: a relief team sent to a company relay that has gone silent above an ice moon.",
+      "Expect one long, tense evening: creeping dread, hard choices under pressure, and a crew that may not all make it home.",
+    ].join("\n\n"),
+    setting: null,
+    lore: null,
+    places: null,
+    tone: [
+      "This is a game of dread and hard choices. The characters are working people, not heroes, and they are right to be afraid.",
+      "- **Lines** (never in the game): harm to children.",
+      "- **Veils** (happen off screen): anything you ask for, at any time.",
+      "- **In**: body horror, crew deaths, betrayal by someone you trust.",
+      "- **Safety tools**: the X-card is on the table; anyone can pause or rewind a scene, no reason needed.",
+    ].join("\n\n"),
+    "house-rules": [
+      "- Cinematic play: Story Points each act, no experience.",
+      "- A pushed roll always costs stress; say it out loud when you push.",
+      "- Phones face down while the lights are low.",
+    ].join("\n"),
+    characters: [
+      "Four pregenerated characters, chosen at session 0: Rosa Ilunga, Ana Kovac, Teo Marsh and Jun Akiyama. Each gets a secret agenda card at the start of every act. Keep yours to yourself.",
+      "Read your character's background before the session and pick one thing they would never tell the others.",
+    ].join("\n\n"),
+    opening: null,
+  });
 
   const maps = store.toJSON();
   const resolve = nameResolver(store);

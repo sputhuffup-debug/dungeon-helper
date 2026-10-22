@@ -77,6 +77,9 @@ export function HomePage() {
           <Button onClick={onNewNote} data-testid="quick-note">
             + Note
           </Button>
+          <Link to="/c/$campaignId/primer" params={{ campaignId }} className="cf-btn" data-testid="open-primer" title="The players' introduction to the campaign, for session 0">
+            Campaign primer
+          </Link>
         </div>
       </header>
 
