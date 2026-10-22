@@ -632,7 +632,11 @@ export interface ReferenceItem {
   summary?: string;
   /** A ruleset or edition label shown next to the item (e.g. "2024"), for lists that mix editions. */
   edition?: string;
-  /** Set by the loader on items a supplement added: the supplement's name. */
+  /**
+   * Where the item comes from, shown as a badge: set by the loader on items a
+   * supplement added (the supplement's name); a module may set it on its own
+   * items when one list mixes sources (e.g. "SRD 5.2" beside SRD 5.1 items).
+   */
   source?: string;
   [key: string]: unknown;
 }

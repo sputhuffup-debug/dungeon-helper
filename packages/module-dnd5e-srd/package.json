@@ -2,7 +2,7 @@
   "name": "@campaign-forge/module-dnd5e-srd",
   "version": "0.1.0",
   "private": true,
-  "description": "5th Edition SRD 5.1 (fantasy d20) as a Campaign Forge data pack.",
+  "description": "5th Edition SRD 5.1 & 5.2 (fantasy d20) as a Campaign Forge data pack.",
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",

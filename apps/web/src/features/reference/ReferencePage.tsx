@@ -43,9 +43,9 @@ export function listColumns(list: ReferenceList | undefined): string[] {
   return [...keys].slice(0, 5);
 }
 
-/** Text an item matches a filter on: its name, summary and the shown columns. */
+/** Text an item matches a filter on: its name, summary, edition and source badges, and the shown columns. */
 function itemText(item: ReferenceItem, columns: string[]): string {
-  return [item.name, item.summary ?? "", ...columns.map((c) => formatValue(item[c]))].join(" ").toLowerCase();
+  return [item.name, item.summary ?? "", item.edition ?? "", item.source ?? "", ...columns.map((c) => formatValue(item[c]))].join(" ").toLowerCase();
 }
 
 function ListsTab() {

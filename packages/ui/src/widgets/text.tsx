@@ -12,11 +12,21 @@ function suggestionLabel(o: Option): string {
   return bits.join(" · ");
 }
 
+/** The reference item a text field's value names (exactly, ignoring case and outer spaces), if it has one. */
+function namedItem(options: Option[], value: string): Option["item"] {
+  const want = value.trim().toLowerCase();
+  if (!want) return undefined;
+  return options.find((o) => o.item && o.item.name.trim().toLowerCase() === want)?.item;
+}
+
 /**
  * A free-text field. With `options` (a list, or `{ ref }` to a reference
  * list) it suggests values as you type (a native datalist of item names,
  * supplement items included) but still takes any text; `config.optionsFilter`
- * narrows the suggestions by a sibling field (see `filterOptions`).
+ * narrows the suggestions by a sibling field (see `filterOptions`). When the
+ * value names a list item that has a `summary`, the summary shows under the
+ * field as a hint (e.g. a background's ability scores and feat); nothing is
+ * applied to the sheet.
  */
 export function TextField({ id, value, onChange, readonly, invalid, field, schema, referenceLists, fields }: WidgetProps) {
   const { mode } = useSheetContext();
@@ -29,7 +39,19 @@ export function TextField({ id, value, onChange, readonly, invalid, field, schem
       .map((o) => ({ value: o.item ? o.item.name : o.value, label: suggestionLabel(o) }))
       .filter((o) => (seen.has(o.value) ? false : (seen.add(o.value), true)));
   }, [all, field, fields]);
-  if (readonly) return <div className="cf-field__readonly">{str || <span className="cf-muted">—</span>}</div>;
+  const picked = useMemo(() => namedItem(all, str), [all, str]);
+  const hint = typeof picked?.summary === "string" && picked.summary !== "" ? (
+    <p className="cf-field__help" data-testid={`hint-${field.path}`}>
+      {picked.summary}
+    </p>
+  ) : null;
+  if (readonly)
+    return (
+      <>
+        <div className="cf-field__readonly">{str || <span className="cf-muted">—</span>}</div>
+        {hint}
+      </>
+    );
   const maxLength = configNumber(field, "maxLength") ?? (typeof schema?.maxLength === "number" ? schema.maxLength : undefined);
   const listId = suggestions.length > 0 ? `${id}-options` : undefined;
   return (
@@ -53,6 +75,7 @@ export function TextField({ id, value, onChange, readonly, invalid, field, schem
           ))}
         </datalist>
       )}
+      {hint}
     </>
   );
 }

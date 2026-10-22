@@ -59,9 +59,11 @@ test("import a supplement, then pick its background and subclass on a 5e PC shee
   await expect(page.locator('[data-testid="options-background"] option[value="Acolyte"]')).toHaveCount(1);
   await background.fill("Ferrywright");
   const subclassOptions = page.locator('[data-testid="options-subclass"] option');
-  await expect(subclassOptions).toHaveCount(2);
+  // the SRD 5.1 Thief, the SRD 5.2 one, then the supplement's
+  await expect(subclassOptions).toHaveCount(3);
   await expect(subclassOptions.nth(0)).toHaveAttribute("value", "Thief");
-  await expect(subclassOptions.nth(1)).toHaveAttribute("value", "Lantern Thief");
+  await expect(subclassOptions.nth(1)).toHaveAttribute("value", "Thief (2024)");
+  await expect(subclassOptions.nth(2)).toHaveAttribute("value", "Lantern Thief");
   await page.getByRole("combobox", { name: "Subclass", exact: true }).fill("Lantern Thief");
   await expect(page.locator('[data-testid="options-race"] option[value="Mossborn"]')).toHaveCount(1);
   await page.getByRole("combobox", { name: "Race", exact: true }).fill("Mossborn");

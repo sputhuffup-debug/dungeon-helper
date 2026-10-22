@@ -602,6 +602,21 @@ test("dnd5e-table", async ({ page }) => {
   await shot(page, "dnd5e-table");
 });
 
+test("dnd5e-origins", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 760 });
+  const base = await loadDemo(page, "dnd5e");
+  await page.goto(`${base}/reference`);
+  // the SRD 5.1 Acolyte, the SRD 5.2 backgrounds (badged 2024 and SRD 5.2) and the demo supplement's Ferrywright in one list
+  await page.getByRole("combobox", { name: "Reference list" }).selectOption("dnd5e-srd.backgrounds");
+  const rows = page.getByTestId("reference-items").locator("tbody tr");
+  await expect(rows).toHaveCount(6);
+  const sage = rows.filter({ has: page.getByRole("button", { name: "Sage", exact: true }) });
+  await expect(sage.getByTestId("edition-badge")).toHaveText("2024");
+  await expect(sage).toContainText("Magic Initiate (Wizard)");
+  await expect(rows.filter({ hasText: "Ferrywright" }).getByTestId("source-badge")).toHaveText("Thornwick Homebrew");
+  await shot(page, "dnd5e-origins");
+});
+
 test("dnd5e-hints", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await loadDemo(page, "dnd5e");

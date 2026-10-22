@@ -1,10 +1,14 @@
-/** The pack's manifest and dice: the SRD 5.1 licence and attribution, play modes, the d20 engine. */
+/** The pack's manifest and dice: the SRD 5.1 and SRD 5.2 licence and attributions, play modes, the d20 engine. */
 import type { D20EngineConfig, PackManifest } from "@campaign-forge/module-sdk";
 import { PACK } from "../ids.ts";
 
 /** The attribution CC-BY-4.0 asks for, exactly as the SRD 5.1 legal information gives it. */
 export const SRD_ATTRIBUTION =
   'This work includes material taken from the System Reference Document 5.1 ("SRD 5.1") by Wizards of the Coast LLC and available at https://dnd.wizards.com/resources/systems-reference-document. The SRD 5.1 is licensed under the Creative Commons Attribution 4.0 International License available at https://creativecommons.org/licenses/by/4.0/legalcode.';
+
+/** The attribution CC-BY-4.0 asks for, exactly as the SRD 5.2 legal information gives it. */
+export const SRD52_ATTRIBUTION =
+  "This work includes material from the System Reference Document 5.2 (“SRD 5.2”) by Wizards of the Coast LLC, available at https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License, available at https://creativecommons.org/licenses/by/4.0/legalcode.";
 
 export const VERSION = "0.1.0";
 
@@ -16,24 +20,24 @@ export const MODES = [
 export const manifest: PackManifest = {
   id: PACK,
   version: VERSION,
-  name: "5th Edition SRD 5.1 (fantasy d20)",
-  ruleset: "SRD 5.1",
-  edition: "System Reference Document 5.1",
-  publisher: "Wizards of the Coast LLC (SRD 5.1, CC-BY-4.0)",
+  name: "5th Edition SRD 5.1 & 5.2 (fantasy d20)",
+  ruleset: "SRD 5.1 / 5.2",
+  edition: "System Reference Document 5.1, with the SRD 5.2 character options",
+  publisher: "Wizards of the Coast LLC (SRD 5.1 and SRD 5.2, CC-BY-4.0)",
   authors: ["Campaign Forge contributors (conversion and GM tools)"],
   licenseNotice:
-    "SRD 5.1 content under CC-BY-4.0 (see attribution). JSON structure derived from 5e-bits/5e-database (MIT). Tables, generators, templates and play advice marked Original were written for Campaign Forge. Compatible with fifth edition rules; not affiliated with or endorsed by Wizards of the Coast.",
+    "SRD 5.1 and SRD 5.2 content under CC-BY-4.0 (see attribution). JSON structure derived from 5e-bits/5e-database (MIT). Tables, generators, templates and play advice marked Original were written for Campaign Forge. Compatible with fifth edition rules; not affiliated with or endorsed by Wizards of the Coast.",
   requiredCore: "0.1.0",
   modes: MODES,
   defaultMode: "campaign",
   dataStatus: "partially-verified",
-  sourceBook: { title: "System Reference Document 5.1", pageNote: "Cited by SRD section; the SRD's own text is used as written.", url: "https://dnd.wizards.com/resources/systems-reference-document" },
+  sourceBook: { title: "System Reference Documents 5.1 and 5.2", pageNote: "Cited by SRD version and section; the SRDs' own text is used as written.", url: "https://www.dndbeyond.com/srd" },
   citationStyle: "section",
   license: {
     spdx: "CC-BY-4.0",
     name: "Creative Commons Attribution 4.0 International",
     url: "https://creativecommons.org/licenses/by/4.0/",
-    attribution: SRD_ATTRIBUTION,
+    attribution: `${SRD_ATTRIBUTION}\n\n${SRD52_ATTRIBUTION}`,
   },
 };
 

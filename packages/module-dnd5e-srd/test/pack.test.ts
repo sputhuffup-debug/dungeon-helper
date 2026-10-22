@@ -20,6 +20,8 @@ import { dnd5eSrdSource } from "../src";
 const PACK_DIR = join(__dirname, "../pack");
 const ATTRIBUTION =
   'This work includes material taken from the System Reference Document 5.1 ("SRD 5.1") by Wizards of the Coast LLC and available at https://dnd.wizards.com/resources/systems-reference-document. The SRD 5.1 is licensed under the Creative Commons Attribution 4.0 International License available at https://creativecommons.org/licenses/by/4.0/legalcode.';
+const ATTRIBUTION_52 =
+  "This work includes material from the System Reference Document 5.2 (“SRD 5.2”) by Wizards of the Coast LLC, available at https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License, available at https://creativecommons.org/licenses/by/4.0/legalcode.";
 
 let module: GameModule;
 let loaded: LoadedModule;
@@ -75,13 +77,20 @@ describe("SRD 5.1 data pack", () => {
     expect(checkDeterminism(module, { seeds: 10 })).toEqual([]);
   });
 
-  it("ships the SRD 5.1 licence and attribution exactly", () => {
-    expect(module.manifest.license).toEqual({ spdx: "CC-BY-4.0", name: "Creative Commons Attribution 4.0 International", url: "https://creativecommons.org/licenses/by/4.0/", attribution: ATTRIBUTION });
-    expect(module.manifest.citationStyle).toBe("section");
+  it("ships the SRD 5.1 and SRD 5.2 licence and attributions exactly", () => {
+    expect(module.manifest.license).toEqual({ spdx: "CC-BY-4.0", name: "Creative Commons Attribution 4.0 International", url: "https://creativecommons.org/licenses/by/4.0/", attribution: `${ATTRIBUTION}\n\n${ATTRIBUTION_52}` });
+    expect(module.manifest).toMatchObject({ name: "5th Edition SRD 5.1 & 5.2 (fantasy d20)", ruleset: "SRD 5.1 / 5.2", citationStyle: "section" });
     const notice = readFileSync(join(__dirname, "../NOTICE"), "utf8");
     expect(notice).toContain(ATTRIBUTION);
+    expect(notice).toContain(ATTRIBUTION_52);
     expect(notice).toContain("Copyright (c) [2018-2020] [Adrian Padua, Christopher Ward]");
-    expect(readFileSync(join(__dirname, "../README.md"), "utf8")).toContain(ATTRIBUTION);
+    const readme = readFileSync(join(__dirname, "../README.md"), "utf8");
+    expect(readme).toContain(ATTRIBUTION);
+    expect(readme).toContain(ATTRIBUTION_52);
+    // the repository README's licence section too
+    const root = readFileSync(join(__dirname, "../../../README.md"), "utf8");
+    expect(root).toContain(ATTRIBUTION);
+    expect(root).toContain(ATTRIBUTION_52);
   });
 
   it("keeps every pack file under 2 MB and free of trademarks used as a name", () => {
@@ -90,7 +99,7 @@ describe("SRD 5.1 data pack", () => {
       expect(Buffer.byteLength(text), f).toBeLessThan(2 * 1024 * 1024);
       expect(text, f).not.toMatch(/Dungeons\s*&\s*Dragons|\bD&D\b|Forgotten Realms|Greyhawk/);
       // No API urls or image paths from the source.
-      expect(text, f).not.toMatch(/"image":|\/api\/(2014|images)\//);
+      expect(text, f).not.toMatch(/"image":|"url": "\/|\/api\/(2014|2024|images)\//);
     }
   });
 
@@ -215,6 +224,8 @@ describe("SRD 5.1 data pack", () => {
     for (const p of module.presets) expect(p.cite, p.id).toMatch(/^SRD 5\.1 — Monsters: /);
     for (const t of module.templates) expect(t.original, t.id).toBe(true);
     for (const l of module.referenceLists) expect(l.cite, l.id).toMatch(/^SRD 5\.1 — /);
+    // in a list that mixes both SRDs, every item cites its own
+    for (const l of module.referenceLists.filter((x) => x.cite?.includes("SRD 5.2"))) for (const i of l.items) expect(i.cite, `${l.id} ${i.id}`).toMatch(/^SRD 5\.[12] — /);
     expect(module.playGuides?.every((g) => g.original)).toBe(true);
     // The SRD's own dice tables become roll tables.
     expect(loaded.table("dnd5e-srd.madness.short-term-madness")?.rows).toHaveLength(10);

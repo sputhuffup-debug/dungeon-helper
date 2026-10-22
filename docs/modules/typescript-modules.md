@@ -99,10 +99,10 @@ A pack that ships with the app (rather than being imported by a GM) lives in a p
    ```ts
    builtinPack(
      {
-       id: "dnd5e-srd", name: "5th Edition SRD 5.1 (fantasy d20)", version: "0.1.0",
+       id: "dnd5e-srd", name: "5th Edition SRD 5.1 & 5.2 (fantasy d20)", version: "0.1.0",
        modes: [/* copied from pack.json */], defaultMode: "campaign", dataStatus: "partially-verified",
-       ruleset: "SRD 5.1", publisher: "Wizards of the Coast LLC (SRD 5.1, CC-BY-4.0)",
-       license: { spdx: "CC-BY-4.0", name: "Creative Commons Attribution 4.0 International", url: "https://creativecommons.org/licenses/by/4.0/", attribution: "/* the SRD attribution, as in pack.json */" },
+       ruleset: "SRD 5.1 / 5.2", publisher: "Wizards of the Coast LLC (SRD 5.1 and SRD 5.2, CC-BY-4.0)",
+       license: { spdx: "CC-BY-4.0", name: "Creative Commons Attribution 4.0 International", url: "https://creativecommons.org/licenses/by/4.0/", attribution: "/* the SRD 5.1 and 5.2 attributions, as in pack.json */" },
      },
      () => import("@campaign-forge/module-dnd5e-srd").then((m) => m.dnd5eSrdSource),
    ),
