@@ -170,6 +170,23 @@ async function calm(page: Page) {
 // Skyfire Down (campaign play)
 // ---------------------------------------------------------------------------
 
+test("campaign-list", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1040 });
+  // a few demos loaded, then back to the front page: one section per game system.
+  // Back in history, not a reload: the shot's seeded randomness restarts on every
+  // page load, so a reload between demos would give them the same campaign id.
+  await page.goto("/");
+  for (const which of ["skyfire", "cinematic", "dnd5e", "pf2e"] as const) {
+    await page.getByTestId(DEMOS[which].button).click();
+    await expect(page.getByTestId("campaign-name")).toHaveText(DEMOS[which].name, { timeout: 30_000 });
+    await page.goBack();
+    await expect(page.getByTestId(DEMOS[which].button)).toBeEnabled();
+  }
+  await expect(page.getByTestId("module-group")).toHaveCount(3);
+  await expect(page.locator('[data-module="alien"]').getByRole("link")).toHaveCount(2);
+  await shot(page, "campaign-list");
+});
+
 test("home", async ({ page }) => {
   await loadDemo(page, "skyfire");
   await expect(page.getByRole("heading", { name: "Next session" })).toBeVisible();

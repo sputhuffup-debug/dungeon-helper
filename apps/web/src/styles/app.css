@@ -221,6 +221,33 @@ h3 {
 .app-landing {
   margin: 0 auto;
 }
+/* the campaign list: one section per game system (start, demos, its campaigns) */
+.app-module-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cf-space-3);
+  padding: var(--cf-space-4);
+  border: 1px solid var(--cf-border);
+  border-radius: var(--cf-radius);
+  background: var(--cf-surface);
+}
+.app-module-group__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cf-space-2);
+}
+.app-module-group__title {
+  margin-bottom: var(--cf-space-1);
+  display: flex;
+  align-items: center;
+  gap: var(--cf-space-2);
+}
+.app-module-group__line {
+  font-size: var(--cf-text-sm);
+}
+.app-module-group__empty {
+  font-size: var(--cf-text-sm);
+}
 .app-title {
   font-size: var(--cf-text-xl);
   font-weight: 800;

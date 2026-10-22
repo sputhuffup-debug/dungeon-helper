@@ -7,6 +7,7 @@ For Alien, Campaign Forge is a companion to the rulebook, not a replacement. The
 ## What it does (v1)
 
 - **Local-first PWA.** The campaign lives in the browser (IndexedDB), works offline at the table, and exports to a self-describing zip bundle at any time. No server, no accounts.
+- **One place per game system.** The campaign list groups everything by game module: start a campaign, load its demos and open its campaigns from that system's section.
 - **Campaign structure.** Adventures, acts, scenes, sessions, timeline, handouts, notes with `@` entity references and backlinks.
 - **World entities.** Characters, creatures, locations, factions, items, vehicles, ships, clues, jobs and encounters, each rendered from the module's JSON Schema sheet layout, linked by typed relationships.
 - **Generators.** Seeded, re-rollable procedures over the module's tables: world creation, star systems, jobs, life paths, encounter checks, shore leave and between jobs, with full roll provenance.
@@ -31,6 +32,10 @@ For Alien, Campaign Forge is a companion to the rulebook, not a replacement. The
 ## Screenshots
 
 Four demo campaigns load from the campaign list: *Skyfire Down* (Alien campaign play, with an infection under way), *Cold Harbor Relay*, an Alien cinematic one-shot built with the guided builder, with a generated site map, duct levels and live map state ready for session 1, *Thornwick Crossing*, a fifth edition one-shot on the SRD module (SRD 5.1 characters) with four level 3 characters, SRD monsters and a goblin ambush ready for table mode, and *Hollowmere*, a second edition remaster one-shot on the ORC core rules module with four level 1 characters, kobold oil thieves and a xulgath den.
+
+**Campaign list**: each game system has its own section with a button to start a campaign, its demos and the campaigns that use it; import and game modules stay at the top.
+
+![Campaign list](docs/screenshots/campaign-list.png)
 
 **Campaign home**: next session, adventures and open hooks.
 
