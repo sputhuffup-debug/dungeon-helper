@@ -130,6 +130,24 @@ A TypeScript dice system can define `strength(pool)` to rank its own way.
 
 The table's free roll lets the GM roll any number of each die kind. Engines roll a free pool as a plain sum (no outcome); pool engines count successes as usual.
 
+## Dice rolled at the table
+
+Many groups roll physical dice. Every roll surface in the app (the roll panel, the table's free roll and one-tap rolls, creature turns, generator steps, travel checks) can take the faces the GM typed instead of rolling, and treats them exactly like an app roll: outcome, successes, pushes, table rows, effects and the log (marked "entered", with the faces). Nothing per engine is needed, because every roll takes its randomness from the `Rng` it is given: the app passes an Rng that hands out the typed faces in order (`createEnteredRng` in the SDK) and asks for them in the order the roll uses them (`planEntry`, which runs the roll to find out).
+
+The order each built-in engine uses:
+
+| Engine | Dice asked for |
+| --- | --- |
+| `d20` | one d20; with advantage or disadvantage two d20, in order |
+| `pool` | each die kind in config order, all of one kind first; a push asks only for the dice it re-rolls |
+| `2d6` | two d6 (the total can be typed as one number) |
+| `d100` | units d10 then tens d10, typed as one percentile; with bonus or penalty dice, the units, the tens, then each extra tens die |
+| tables | the table's dice expression term by term (a d66 is typed as one number), then nested tables in row order |
+
+A table's 2d6 or d66 is offered as one number (its total) with an "each die" switch; a total the dice cannot make is refused.
+
 ## Your own dice system (TypeScript only)
 
 Implement `DiceSystem` (`buildPool`, `roll`, optional `push`, `describe`, optional `operations`). Set `resultStyle: "total"` and fill `total` / `outcome` when the result is a number rather than a success count, and `rollOptions` (a JSON Schema object of integer, number, boolean or string-enum properties) for options the roll panel should offer. The determinism check in `module-check` rolls it twice per seed.
+
+Name the dice you roll so a GM entering physical dice sees what to roll: `rng.int(1, 6, { label: "Stress die", die: "stress" })` (the `die` is the DieSpec id, for its colour). Dice that read as one number at the table (a sum, a d66) can share a `group` (`facesGroup("2d6")` from the SDK makes one). Unlabelled dice still work, named by their range ("d6"). The determinism check confirms that typing back the faces an app roll used gives the same result, push and dice operations included (`enteredReplayProblem`).

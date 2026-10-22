@@ -4,6 +4,7 @@
  * step id), so re-seeding one step never changes another.
  */
 import { rollDice } from "./dice";
+import { assertAllUsed, createEnteredRng, EnteredDiceError } from "./entered";
 import { getPath } from "./logic";
 import { createRng } from "./rng";
 import { createTableRegistry, rollTable } from "./tables";
@@ -15,6 +16,7 @@ import type {
   ProcedureRunOptions,
   ProcedureStep,
   RollRecord,
+  Rng,
   TableRegistry,
 } from "./types";
 
@@ -45,7 +47,7 @@ function makeContext(inputs: Record<string, unknown>, results: Record<string, un
   };
 }
 
-function repeatCount(step: ProcedureStep, ctx: ProcedureContext, stepRng: ReturnType<typeof createRng>): number | undefined {
+function repeatCount(step: ProcedureStep, ctx: ProcedureContext, stepRng: Rng): number | undefined {
   const r = step.repeat;
   if (r === undefined) return undefined;
   let n: number;
@@ -71,9 +73,16 @@ export function runProcedure(
   const pinned = options.pinned ?? {};
   const includeOptional = new Set(options.includeOptional ?? []);
 
+  const entered: Record<string, number[]> = {};
+
   for (const step of procedure.steps) {
     const stepSeed = options.stepSeeds?.[step.id] ?? options.seed;
-    const stepRng = createRng(stepSeed).fork(`${procedure.id}/${step.id}`);
+    const seeded = createRng(stepSeed).fork(`${procedure.id}/${step.id}`);
+    // Dice rolled at the table for this step: its rolls take the typed faces in order.
+    const custom = options.stepRng?.(step.id);
+    const faces = custom ? undefined : options.stepDice?.[step.id];
+    const enteredRng = faces ? createEnteredRng(faces, { fallback: seeded }) : undefined;
+    const stepRng: Rng = custom ?? enteredRng ?? seeded;
 
     if (step.optional && !includeOptional.has(step.id)) {
       skipped.push({ step: step.id, reason: "optional" });
@@ -88,32 +97,42 @@ export function runProcedure(
       continue;
     }
 
-    const repeat = repeatCount(step, ctx, stepRng);
-    const iterations = repeat ?? 1;
     const values: unknown[] = [];
-    for (let i = 0; i < iterations; i++) {
-      const iterRng = stepRng.fork(String(i));
-      let value: unknown;
-      if (step.compute) {
-        value = step.compute(ctx, iterRng);
-      } else if (step.table !== undefined) {
-        const tableId = typeof step.table === "function" ? step.table(ctx) : step.table;
-        const table = tables.get(tableId);
-        if (!table) throw new Error(`Procedure "${procedure.id}" step "${step.id}": unknown table "${tableId}"`);
-        const extraModifier = step.modifier ? step.modifier(ctx) : 0;
-        const record = rollTable(table, iterRng, tables, {
-          context: ctx.data(),
-          extraModifier,
-          step: step.id,
-          iteration: repeat === undefined ? undefined : i,
-        });
-        rolls.push(record);
-        value = record.result;
-      } else {
-        throw new Error(`Procedure "${procedure.id}" step "${step.id}" has neither table nor compute`);
+    let repeat: number | undefined;
+    try {
+      repeat = repeatCount(step, ctx, stepRng);
+      const iterations = repeat ?? 1;
+      for (let i = 0; i < iterations; i++) {
+        const iterRng = stepRng.fork(String(i));
+        let value: unknown;
+        if (step.compute) {
+          value = step.compute(ctx, iterRng);
+        } else if (step.table !== undefined) {
+          const tableId = typeof step.table === "function" ? step.table(ctx) : step.table;
+          const table = tables.get(tableId);
+          if (!table) throw new Error(`Procedure "${procedure.id}" step "${step.id}": unknown table "${tableId}"`);
+          const extraModifier = step.modifier ? step.modifier(ctx) : 0;
+          const record = rollTable(table, iterRng, tables, {
+            context: ctx.data(),
+            extraModifier,
+            step: step.id,
+            iteration: repeat === undefined ? undefined : i,
+          });
+          rolls.push(record);
+          value = record.result;
+        } else {
+          throw new Error(`Procedure "${procedure.id}" step "${step.id}" has neither table nor compute`);
+        }
+        if (step.after) value = step.after(ctx, value, iterRng);
+        values.push(value);
       }
-      if (step.after) value = step.after(ctx, value, iterRng);
-      values.push(value);
+      if (enteredRng && faces) {
+        assertAllUsed(enteredRng);
+        entered[step.id] = [...faces];
+      }
+    } catch (e) {
+      if (e instanceof EnteredDiceError && enteredRng) throw new EnteredDiceError(e.code, `Step “${step.title ?? step.id}”: ${e.message}`, e.index, e.request);
+      throw e;
     }
     results[step.id] = repeat === undefined ? values[0] : values;
   }
@@ -130,6 +149,7 @@ export function runProcedure(
     skipped,
   };
   const supplements = module.manifest.supplements;
+  if (Object.keys(entered).length > 0) graph.entered = entered;
   if (supplements && supplements.length > 0) graph.supplements = supplements.map((s) => ({ id: s.id, version: s.version }));
   const display = stepDisplays(procedure, ctx);
   if (display) graph.display = display;

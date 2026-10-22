@@ -1,26 +1,32 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import type { DiceSystem, DieSpec, RollResult, Rng } from "@campaign-forge/module-sdk";
+import { probeDice, rollEntered, type DiceSystem, type DieSpec, type RollResult, type Rng } from "@campaign-forge/module-sdk";
 import { Badge } from "../primitives/Badge";
 import { Button } from "../primitives/Button";
 import { cx, humanize } from "../sheet/paths";
 import { DicePoolView } from "../widgets/dicepool";
 import { DieFace } from "./DieFace";
+import { DiceModeSwitch, useDiceRoller } from "./DiceRoller";
+import { EnterDice } from "./EnterDice";
 import { rollOptionFields, showsTotal, toneBadge, type RollOptionField } from "./outcome";
 
 export interface DiceRollPanelProps {
   dice: DiceSystem;
   /** Module-specific input for `buildPool` (attribute, skill, modifier...). */
   input: Record<string, unknown>;
-  onRolled: (result: RollResult) => void;
+  /** A roll or push was made; `entered` holds the faces typed when the dice were rolled at the table. */
+  onRolled: (result: RollResult, entered?: number[]) => void;
   rng: Rng;
   allowPush?: boolean;
   storyPoints?: number;
   /**
    * Spend a story point. It gets the roll shown (if any); returning a result
    * shows that instead (e.g. one die turned into a success). Nothing is
-   * logged here: the handler logs the spend and the changed roll.
+   * logged here: the handler logs the spend and the changed roll. When the
+   * spend rolls dice and they were rolled at the table, `entered` has them.
    */
-  onSpendStoryPoint?: (result: RollResult | undefined) => RollResult | void;
+  onSpendStoryPoint?: (result: RollResult | undefined, entered?: number[]) => RollResult | void;
+  /** The spend as a pure function of its Rng, so dice it rolls can be entered (none asked when it rolls none). */
+  storyPointRun?: (result: RollResult, rng: Rng) => unknown;
   /** Name of the pool on the badge (default "Story points"). */
   storyPointName?: string;
   /** Spend button label (default "Spend"). */
@@ -31,6 +37,12 @@ export interface DiceRollPanelProps {
   pushInput?: Record<string, unknown>;
   /** Start from an existing result (e.g. re-opening a log entry). */
   initialResult?: RollResult;
+  /** Faces typed for `initialResult`, when it was rolled at the table. */
+  initialEntered?: number[];
+  /** Start in "Enter dice" mode (default: the page's mode, from the per-device preference). */
+  physical?: boolean;
+  /** Leave out the panel's own In app / Enter dice switch (the page has one, e.g. table mode's). */
+  hideModeSwitch?: boolean;
   title?: string;
   className?: string;
 }
@@ -103,7 +115,16 @@ function RollOptions({ fields, values, onChange }: { fields: RollOptionField[]; 
 }
 
 /** Pool breakdown, roll options, roll and push buttons, die faces, then successes or total and outcome, and the module's description. */
-export function DiceRollPanel({ dice, input, onRolled, rng, allowPush = true, storyPoints, onSpendStoryPoint, storyPointName, storyPointLabel, storyPointNeedsResult, pushInput, initialResult, title, className }: DiceRollPanelProps) {
+export function DiceRollPanel({ dice, input, onRolled, rng, allowPush = true, storyPoints, onSpendStoryPoint, storyPointRun, storyPointName, storyPointLabel, storyPointNeedsResult, pushInput, initialResult, initialEntered, physical: physicalProp, hideModeSwitch, title, className }: DiceRollPanelProps) {
+  const roller = useDiceRoller();
+  const [physical, setPhysical] = useState(physicalProp ?? roller.physical);
+  useEffect(() => {
+    if (physicalProp === undefined) setPhysical(roller.physical);
+  }, [roller.physical, physicalProp]);
+  /** What the entry form is for, in "Enter dice" mode. */
+  const [entering, setEntering] = useState<"roll" | "push" | "story" | undefined>();
+  /** Faces typed for the result shown (undefined when it was rolled in the app). */
+  const [entered, setEntered] = useState<number[] | undefined>(initialEntered);
   const optionFields = useMemo(() => rollOptionFields(dice.rollOptions), [dice]);
   const [options, setOptions] = useState<Record<string, unknown>>(() => initialOptions(optionFields, input));
   // Key the pool on the input's content so a parent passing a fresh inline
@@ -116,20 +137,48 @@ export function DiceRollPanel({ dice, input, onRolled, rng, allowPush = true, st
     if (lastKey.current === inputKey) return;
     lastKey.current = inputKey;
     setResult(undefined);
+    setEntering(undefined);
+    setEntered(undefined);
   }, [inputKey]);
 
   const baseId = dice.dice[0]?.id;
-  const roll = () => {
-    const r = dice.roll(pool, rng);
+  const show = (r: RollResult, faces?: number[]) => {
     setResult(r);
-    onRolled(r);
+    setEntered(faces);
+    setEntering(undefined);
+    if (faces) onRolled(r, faces);
+    else onRolled(r);
   };
+  const roll = () => show(dice.roll(pool, rng));
   const push = () => {
     if (!result || !dice.push) return;
-    const r = dice.push(result, rng, pushInput);
-    setResult(r);
-    onRolled(r);
+    if (physical) return setEntering("push");
+    show(dice.push(result, rng, pushInput));
   };
+  const spend = (faces?: number[]) => {
+    if (!onSpendStoryPoint) return;
+    const next = faces ? onSpendStoryPoint(result, faces) : onSpendStoryPoint(result);
+    setEntering(undefined);
+    if (next) {
+      setResult(next);
+      // a spend that rolls no dice keeps the roll's own "entered" mark
+      if (faces) setEntered(faces);
+    }
+  };
+  const startSpend = () => {
+    // Ask for dice only when the spend rolls some.
+    if (physical && result && storyPointRun && probeDice((r) => storyPointRun(result, r)).requests.length > 0) return setEntering("story");
+    spend();
+  };
+  const entry: { run: (r: Rng) => unknown; submit: (faces: number[]) => void; label: string } | undefined = !physical
+    ? undefined
+    : entering === "push" && result && dice.push
+      ? { run: (r) => dice.push!(result, r, pushInput), submit: (faces) => show(rollEntered((r) => dice.push!(result, r, pushInput), faces), faces), label: "Use these dice for the push" }
+      : entering === "story" && result && storyPointRun
+        ? { run: (r) => storyPointRun(result, r), submit: (faces) => spend(faces), label: "Use these dice" }
+        : entering === "roll" || !result
+          ? { run: (r) => dice.roll(pool, r), submit: (faces) => show(rollEntered((r) => dice.roll(pool, r), faces), faces), label: "Use these dice" }
+          : undefined;
   const hasPush = typeof dice.push === "function";
   const canPush = !!result && result.canPush && allowPush && hasPush;
   const totalStyle = showsTotal(dice, result);
@@ -143,11 +192,20 @@ export function DiceRollPanel({ dice, input, onRolled, rng, allowPush = true, st
       </div>
       <RollOptions fields={optionFields} values={options} onChange={setOptions} />
       <div className="cf-dice__actions">
-        <Button variant="primary" size="lg" onClick={roll}>
-          {result ? "Roll again" : "Roll"}
-        </Button>
+        {!physical ? (
+          <Button variant="primary" size="lg" onClick={roll}>
+            {result ? "Roll again" : "Roll"}
+          </Button>
+        ) : (
+          result &&
+          entering !== "roll" && (
+            <Button variant="primary" size="lg" onClick={() => setEntering("roll")} data-testid="enter-new-roll">
+              Enter a new roll
+            </Button>
+          )
+        )}
         {result && hasPush && (
-          <Button onClick={push} disabled={!canPush} title={canPush ? "Re-roll per the push rule" : "No push available"}>
+          <Button onClick={push} disabled={!canPush || entering === "push"} title={canPush ? (physical ? "Enter the re-rolled dice" : "Re-roll per the push rule") : "No push available"}>
             Push
           </Button>
         )}
@@ -159,10 +217,7 @@ export function DiceRollPanel({ dice, input, onRolled, rng, allowPush = true, st
             {onSpendStoryPoint && (
               <Button
                 size="sm"
-                onClick={() => {
-                  const next = onSpendStoryPoint(result);
-                  if (next) setResult(next);
-                }}
+                onClick={startSpend}
                 disabled={storyPoints <= 0 || (!!storyPointNeedsResult && !result)}
                 data-testid="spend-story-point"
               >
@@ -171,7 +226,27 @@ export function DiceRollPanel({ dice, input, onRolled, rng, allowPush = true, st
             )}
           </span>
         )}
+        {!hideModeSwitch && (
+          <DiceModeSwitch
+            className="cf-dice__mode"
+            physical={physical}
+            onChange={(on) => {
+              setPhysical(on);
+              setEntering(undefined);
+            }}
+          />
+        )}
       </div>
+      {entry && (
+        <EnterDice
+          key={`${entering ?? "roll"}:${inputKey}:${result?.pushes ?? -1}:${result?.successes ?? -1}`}
+          run={entry.run}
+          dice={dice.dice}
+          submitLabel={entry.label}
+          onSubmit={(faces) => entry.submit(faces)}
+          {...(result ? { onCancel: () => setEntering(undefined) } : {})}
+        />
+      )}
       {result && (
         <>
           <div className="cf-dice__faces" aria-label="Rolled dice">
@@ -208,6 +283,11 @@ export function DiceRollPanel({ dice, input, onRolled, rng, allowPush = true, st
               </>
             )}
             {result.pushes > 0 && <Badge tone="warning">pushed ×{result.pushes}</Badge>}
+            {entered && (
+              <Badge tone="accent" data-testid="roll-entered" title={`Rolled at the table: ${entered.join(" ")}`}>
+                entered
+              </Badge>
+            )}
             <span className="cf-dice__describe" data-testid="describe">
               {dice.describe(result)}
             </span>

@@ -87,10 +87,11 @@ describe("SRD 5.1 data pack", () => {
     const readme = readFileSync(join(__dirname, "../README.md"), "utf8");
     expect(readme).toContain(ATTRIBUTION);
     expect(readme).toContain(ATTRIBUTION_52);
-    // the repository README's licence section too
-    const root = readFileSync(join(__dirname, "../../../README.md"), "utf8");
-    expect(root).toContain(ATTRIBUTION);
-    expect(root).toContain(ATTRIBUTION_52);
+    // the root README links the module's feature page, which carries the attributions in full
+    const page = readFileSync(join(__dirname, "../../../docs/features/dnd5e.md"), "utf8");
+    expect(page).toContain(ATTRIBUTION);
+    expect(page).toContain(ATTRIBUTION_52);
+    expect(readFileSync(join(__dirname, "../../../README.md"), "utf8")).toContain("docs/features/dnd5e.md#licence");
   });
 
   it("keeps every pack file under 2 MB and free of trademarks used as a name", () => {

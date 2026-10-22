@@ -1,11 +1,12 @@
 /**
  * `/generate/$procedureId`: the generator workbench. Inputs from the
  * procedure's JSON Schema, a seed, every step with its rolls, per-step
- * re-roll and pin, a preview of what will be created, accept into the
- * campaign, chained procedures and recent runs.
+ * re-roll, pin and "enter roll" (dice rolled at the table, one step or the
+ * whole run step by step), a preview of what will be created, accept into
+ * the campaign, chained procedures and recent runs.
  */
 import type { GeneratorRun, Id } from "@campaign-forge/core";
-import type { GeneratedGraph, Procedure, RollRecord } from "@campaign-forge/module-sdk";
+import { isDieRequest, probeDice, type GeneratedGraph, type Procedure, type RollRecord } from "@campaign-forge/module-sdk";
 import { Link, useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Badge, Button, Card, EmptyState, PageRef, pushToast } from "../../components/ui";
@@ -16,7 +17,7 @@ import { InputForm } from "./InputForm";
 import { initialInputs, inputProperties, pickedInputs } from "./prefill";
 import { PreviewPanel } from "./PreviewPanel";
 import { ResultsPanel } from "./ResultsPanel";
-import { changedSteps, contextFromRun, newSeed, requestFromRun, runGenerator, stepViews, type GeneratorRequest } from "./runner";
+import { changedSteps, contextFromRun, newSeed, requestFromRun, runGenerator, stepRun, stepViews, withoutDependentDice, type GeneratorRequest } from "./runner";
 import { StepList } from "./StepList";
 import { ChainButtons } from "./ChainButtons";
 
@@ -105,6 +106,9 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
   const [seed, setSeed] = useState(initial.request.seed);
   const [inputs, setInputs] = useState<Record<string, unknown>>(initial.request.inputs ?? {});
   const [stepSeeds, setStepSeeds] = useState<Record<string, string>>(initial.request.stepSeeds ?? {});
+  const [stepDice, setStepDice] = useState<Record<string, number[]>>(initial.request.stepDice ?? {});
+  /** Steps waiting for dice rolled at the table, the first one shown (one step, or the whole run step by step). */
+  const [enterQueue, setEnterQueue] = useState<string[]>([]);
   const [pinned, setPinned] = useState<Record<string, unknown>>(initial.request.pinned ?? {});
   const [pinnedRolls, setPinnedRolls] = useState<Record<string, RollRecord[]>>(() => {
     const out: Record<string, RollRecord[]> = {};
@@ -120,11 +124,11 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
 
   const outcome = useMemo((): { graph?: GeneratedGraph; error?: string } => {
     try {
-      return { graph: runGenerator(ctx.module, { procedureId: procedure.id, seed, inputs, stepSeeds, pinned, includeOptional }) };
+      return { graph: runGenerator(ctx.module, { procedureId: procedure.id, seed, inputs, stepSeeds, stepDice, pinned, includeOptional }) };
     } catch (e) {
       return { error: errorMessage(e) };
     }
-  }, [ctx.module, procedure.id, seed, inputs, stepSeeds, pinned, includeOptional]);
+  }, [ctx.module, procedure.id, seed, inputs, stepSeeds, stepDice, pinned, includeOptional]);
   const graph = outcome.graph;
 
   const steps = useMemo(() => stepViews(procedure, graph, { stepSeeds, pinned }), [procedure, graph, stepSeeds, pinned]);
@@ -141,8 +145,42 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
   const reroll = (stepId: string) => {
     setCompareTo(graph);
     setAccepted(undefined);
+    setStepDice((d) => withoutDependentDice(procedure, d, stepId, true));
     setStepSeeds((s) => ({ ...s, [stepId]: newSeed() }));
   };
+  // Dice rolled at the table: a step takes the typed faces; steps that read it re-run (their own typed dice are dropped).
+  const entering = enterQueue[0];
+  const enterRun = useMemo(
+    () => (entering ? stepRun(ctx.module, { procedureId: procedure.id, seed, inputs, stepSeeds, stepDice, pinned, includeOptional }, entering) : undefined),
+    [ctx.module, procedure.id, entering, seed, inputs, stepSeeds, stepDice, pinned, includeOptional],
+  );
+  const enterStep = (stepId: string, faces: number[]) => {
+    setCompareTo(graph);
+    setAccepted(undefined);
+    setPinned((p) => {
+      const n = { ...p };
+      delete n[stepId];
+      return n;
+    });
+    setStepDice((d) => ({ ...withoutDependentDice(procedure, d, stepId), [stepId]: faces }));
+    setEnterQueue((q) => q.slice(1));
+  };
+  const clearEntered = (stepId: string) => {
+    setCompareTo(graph);
+    setStepDice((d) => withoutDependentDice(procedure, d, stepId, true));
+  };
+  /** Steps that roll dice (so they can take dice rolled at the table); a step that only picks names from lists does not. */
+  const diceSteps = useMemo(() => {
+    const req: GeneratorRequest = { procedureId: procedure.id, seed, inputs, stepSeeds, stepDice, pinned, includeOptional };
+    const out = new Set<string>();
+    if (!graph) return out;
+    for (const s of steps) if (s.state === "rolled" && probeDice(stepRun(ctx.module, req, s.id)).requests.some(isDieRequest)) out.add(s.id);
+    return out;
+    // the steps follow the graph
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [graph]);
+  /** Enter dice for every step that rolls, in order (pinned and skipped steps are left alone). */
+  const enterWholeRun = () => setEnterQueue(steps.filter((s) => diceSteps.has(s.id)).map((s) => s.id));
   const resetStepSeed = (stepId: string) => {
     setCompareTo(graph);
     setStepSeeds((s) => {
@@ -172,6 +210,7 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
     setCompareTo(undefined);
     setAccepted(undefined);
     setStepSeeds({});
+    setStepDice({});
     setSeed(newSeed());
   };
 
@@ -179,6 +218,7 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
     if (!graph) return;
     try {
       const res = acceptGenerated(ctx, { graph, stepSeeds, pinned, names, within });
+      setEnterQueue([]);
       const root = res.entities[0];
       if (root) {
         pushToast(`Accepted ${res.entities.length} entit${res.entities.length === 1 ? "y" : "ies"} into the campaign.`, { tone: "success" });
@@ -240,6 +280,14 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
                   </span>
                 )}
                 {Object.keys(pinned).length > 0 && <Badge tone="warning">{Object.keys(pinned).length} pinned</Badge>}
+                {Object.keys(stepDice).length > 0 && (
+                  <Badge tone="accent" data-testid="entered-steps">
+                    {Object.keys(stepDice).length} entered
+                  </Badge>
+                )}
+                <Button variant="ghost" onClick={enterWholeRun} disabled={diceSteps.size === 0} data-testid="enter-whole-run" title="Type the dice rolled at the table for each step, in order">
+                  Enter dice for every step
+                </Button>
               </div>
               {within && (
                 <p className="app-row">
@@ -255,9 +303,14 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
           </Card>
 
           {outcome.error ? (
-            <p className="app-note app-note--warning" role="alert">
-              The procedure could not run with these inputs: {outcome.error}
-            </p>
+            <div className="app-note app-note--warning" role="alert">
+              <p>The procedure could not run with these inputs: {outcome.error}</p>
+              {Object.keys(stepDice).length > 0 && (
+                <Button size="sm" onClick={() => setStepDice({})}>
+                  Forget the entered dice
+                </Button>
+              )}
+            </div>
           ) : (
             <section aria-label="Steps" className="app-stack">
               <h2 className="app-subtitle">Steps</h2>
@@ -271,6 +324,14 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
                 onUnpin={unpin}
                 onResetSeed={resetStepSeed}
                 onToggleOptional={toggleOptional}
+                entering={entering && enterRun ? { stepId: entering, run: enterRun, remaining: enterQueue.length } : undefined}
+                canEnter={diceSteps}
+                dice={ctx.module.module.dice.dice}
+                onEnter={(stepId) => setEnterQueue([stepId])}
+                onEntered={enterStep}
+                onSkipEnter={() => setEnterQueue((q) => q.slice(1))}
+                onCancelEnter={() => setEnterQueue([])}
+                onClearEntered={clearEntered}
               />
             </section>
           )}
@@ -315,6 +376,7 @@ function RecentRuns({ procedure }: { procedure: Procedure }) {
               <li key={r.id} className="app-list__row">
                 <span className="cf-mono">{r.seed}</span>
                 {Object.keys(r.stepSeeds ?? {}).length > 0 && <Badge tone="accent">{Object.keys(r.stepSeeds ?? {}).length} re-rolled</Badge>}
+                {Object.keys(r.stepDice ?? {}).length > 0 && <Badge tone="accent">{Object.keys(r.stepDice ?? {}).length} entered</Badge>}
                 {first ? (
                   <Link to="/c/$campaignId/entities/$entityId" params={{ campaignId: ctx.campaignId, entityId: first.id }} className="app-link-strong">
                     {first.name}

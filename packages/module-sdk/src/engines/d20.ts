@@ -162,9 +162,9 @@ export function createD20Engine(config: D20EngineConfig): DiceSystem {
     roll(pool: DicePool, rng: Rng): RollResult {
       if (!builtBy(pool, "d20")) return rollFree(pool, specs, rng);
       const advantage = advantageOf(pool.meta?.advantage);
-      const first = rng.int(1, 20);
+      const first = rng.int(1, 20, { label: "d20", die: "d20" });
       if (advantage === "normal") return finish(pool, [{ die: "d20", value: first }], 0);
-      const second = rng.int(1, 20);
+      const second = rng.int(1, 20, { label: "d20", die: "d20" });
       const keepFirst = advantage === "advantage" ? first >= second : first <= second;
       return finish(pool, [{ die: "d20", value: first, ...(keepFirst ? {} : { dropped: true }) }, { die: "d20", value: second, ...(keepFirst ? { dropped: true } : {}) }], 0);
     },

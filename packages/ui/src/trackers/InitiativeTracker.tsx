@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { evaluateLogic, getPath, rollDice, type JsonLogicRule } from "@campaign-forge/module-sdk";
+import { createRng, evaluateLogic, getPath, labelDice, rollDice, rollEntered, type JsonLogicRule, type Rng } from "@campaign-forge/module-sdk";
+import { useDiceRoller } from "../dice/DiceRoller";
 import { Badge } from "../primitives/Badge";
 import { Button, IconButton } from "../primitives/Button";
 import { asNumber, cx, isRecord, newId } from "../sheet/paths";
@@ -85,6 +86,9 @@ export function initiativeOrder(participants: Participant[], rolled: boolean): P
  * "1d20") plus `config.modifier` (a number or JSONLogic over the entity's
  * `{ fields, computed }`) and the highest acts first; the GM can also type a
  * total a player rolled. Draw or roll, reorder, mark acted, next round.
+ * When the GM rolls physical dice (the page's dice mode), "Roll initiative"
+ * asks for each participant's die and adds their modifier, and drawn cards
+ * can be typed in; both are marked "entered".
  */
 export function InitiativeTracker({ def, state, onChange, entities = [], rng, onLog, readonly, className }: TrackerProps) {
   const init = initiativeState(state);
@@ -93,6 +97,7 @@ export function InitiativeTracker({ def, state, onChange, entities = [], rng, on
   const deckSize = typeof def.config?.cards === "number" ? def.config.cards : 10;
   const drawsField = typeof def.config?.drawsField === "string" ? def.config.drawsField : undefined;
   const drawLabel = typeof def.config?.label === "string" ? def.config.label : rolled ? "Roll initiative" : "Draw cards";
+  const roller = useDiceRoller();
   const [pick, setPick] = useState("");
   const [customName, setCustomName] = useState("");
   const commit = (next: Partial<InitiativeState>) => onChange({ ...stateRecord(state), ...init, ...next });
@@ -117,15 +122,24 @@ export function InitiativeTracker({ def, state, onChange, entities = [], rng, on
     setCustomName("");
   };
 
-  const rollAll = (onlyMissing: boolean) => {
-    const participants = init.participants.map((p) => {
+  /** Roll for each participant (all, or those without a score) with `r`; each die is named after its roller. */
+  const rolledParticipants = (onlyMissing: boolean, r: Rng | undefined, entered: boolean) =>
+    init.participants.map((p) => {
       if (onlyMissing && p.card !== null) return p;
       const mod = initiativeModifier(def.config?.modifier, entities.find((e) => e.id === p.entityId));
-      const natural = rng ? rollDice(rollDiceExpr, rng).total : randomInt(rng, 1, 20);
-      return { ...p, card: natural + mod, mod, detail: `${natural} ${mod < 0 ? "−" : "+"} ${Math.abs(mod)}` };
+      const natural = r ? rollDice(rollDiceExpr, labelDice(r, p.name)).total : randomInt(r, 1, 20);
+      return { ...p, card: natural + mod, mod, detail: `${natural} ${mod < 0 ? "−" : "+"} ${Math.abs(mod)}${entered ? " (entered)" : ""}` };
     });
-    commit({ participants });
-    onLog?.(`Initiative rolled: ${initiativeOrder(participants, true).map((p) => `${p.name} ${p.card ?? "–"}`).join(", ")}`);
+  const rollAll = (onlyMissing: boolean) => {
+    const finish = (participants: Participant[], entered?: number[]) => {
+      commit({ participants });
+      onLog?.(`Initiative ${entered ? "rolled at the table" : "rolled"}: ${initiativeOrder(participants, true).map((p) => `${p.name} ${p.card ?? "–"}`).join(", ")}${entered ? ` (entered: ${entered.join(" ")})` : ""}`);
+    };
+    roller.roll({
+      title: drawLabel,
+      run: (r) => rolledParticipants(onlyMissing, r, true),
+      perform: (entered) => (entered ? finish(rollEntered((r) => rolledParticipants(onlyMissing, r, true), entered), entered) : finish(rolledParticipants(onlyMissing, rng ?? createRng(`${Date.now()}`), false))),
+    });
   };
 
   const draw = (onlyMissing: boolean) => {
@@ -194,19 +208,22 @@ export function InitiativeTracker({ def, state, onChange, entities = [], rng, on
           data-participant={p.id}
           aria-current={current?.id === p.id ? "step" : undefined}
         >
-          {rolled && !readonly ? (
+          {(rolled || roller.physical) && !readonly ? (
             <input
-              className={cx("cf-input", "cf-initiative__card", "cf-initiative__card--score", p.card === null && "cf-initiative__card--empty")}
+              className={cx("cf-input", "cf-initiative__card", rolled && "cf-initiative__card--score", p.card === null && "cf-initiative__card--empty")}
               type="number"
               inputMode="numeric"
-              aria-label={`${p.name} initiative`}
+              aria-label={rolled ? `${p.name} initiative` : `${p.name} initiative card`}
+              title={rolled ? "Type the total rolled at the table" : `Type the card drawn at the table (1–${deckSize})`}
               data-testid={`card-${p.id}`}
               value={p.card ?? ""}
               placeholder="–"
+              {...(rolled ? {} : { min: 1, max: deckSize })}
               onChange={(e) => {
                 const raw = e.target.value.trim();
                 const n = Number(raw);
-                update(p.id, raw === "" || !Number.isFinite(n) ? { card: null, detail: undefined } : { card: Math.round(n), detail: "entered" });
+                const ok = raw !== "" && Number.isFinite(n) && (rolled || (Number.isInteger(n) && n >= 1 && n <= deckSize));
+                update(p.id, ok ? { card: Math.round(n), detail: "entered" } : { card: null, detail: undefined });
               }}
             />
           ) : (
@@ -216,7 +233,15 @@ export function InitiativeTracker({ def, state, onChange, entities = [], rng, on
           )}
           <span className="cf-tracker__name">
             {p.name}
-            {rolled && p.detail && p.detail !== "entered" && <span className="cf-muted"> ({p.detail})</span>}
+            {rolled && p.detail && p.detail !== "entered" && <span className="cf-muted"> ({p.detail.replace(/ \(entered\)$/, "")})</span>}
+            {p.detail === "entered" || p.detail?.endsWith("(entered)") ? (
+              <>
+                {" "}
+                <Badge tone="accent" data-testid={`entered-${p.id}`}>
+                  entered
+                </Badge>
+              </>
+            ) : null}
           </span>
           {p.extraDraws > 0 && <Badge>+{p.extraDraws} draw</Badge>}
           {!readonly && (

@@ -2,16 +2,17 @@
  * Dice at the table: a quick skill roll for a PC (the module's `buildPool`,
  * push adds stress through an effect), a free roll of any dice, and the
  * session's roll log. Every roll uses a seeded rng `sessionId:counter` and
- * logs its seed, so the log can reproduce it.
+ * logs its seed, so the log can reproduce it; a roll made with physical dice
+ * logs the faces the GM typed (`entered`) instead.
  */
 import { getPath, type Entity, type Id, type TrackerState } from "@campaign-forge/core";
-import { computeFields, createRng, poolValue, type DicePool, type EntityTypeDef, type LoadedModule, type PlayModeId, type RollResult, type SheetField } from "@campaign-forge/module-sdk";
+import { computeFields, createRng, poolValue, type DicePool, type EntityTypeDef, type LoadedModule, type PlayModeId, type RollResult, type Rng, type SheetField } from "@campaign-forge/module-sdk";
 import { useMemo, useRef, useState } from "react";
-import { Badge, Button, Card, DiceRollPanel, DieFace, RollLog, Stepper, humanize, pushToast, resolveBindPath, showsTotal, specById, toneBadge, type RollLogEntry } from "../../components/ui";
+import { Badge, Button, Card, DiceRollPanel, DieFace, RollLog, Stepper, humanize, pushToast, resolveBindPath, showsTotal, specById, toneBadge, useDiceRoller, type RollLogEntry } from "../../components/ui";
 import { errorMessage } from "../../lib/format";
 import { useCampaign, useMeta, useRecord } from "../../state/hooks";
 import { entityAdvances, poolOf, spendStoryPoint, storyUses } from "../../state/progressionActions";
-import { DICE_LOG, applySessionEffects, diceCounter, recordPoolRoll, type DiceLogData } from "../../state/tableActions";
+import { DICE_LOG, applySessionEffects, diceCounter, enteredField, recordPoolRoll, withRollRng, type DiceLogData } from "../../state/tableActions";
 import { useSessionTrackerState } from "./hooks";
 import { SpecialAttackCard, useSpecialAttacks } from "./SpecialAttacks";
 
@@ -134,19 +135,47 @@ export function skillInput(module: LoadedModule, entity: Entity, choice: string)
 
 /**
  * Roll a pool for an entity right away, as SessionRollPanel's Roll button
- * does: seeded `sessionId:counter` and logged to the session. Pass the result
- * to SessionRollPanel's `initialResult` so it can be pushed.
+ * does: seeded `sessionId:counter` (or the faces typed, `entered`) and logged
+ * to the session. Pass the result to SessionRollPanel's `initialResult` so it
+ * can be pushed.
  */
-export function rollSessionPool(ctx: ReturnType<typeof useCampaign>, sessionId: Id, entity: Entity, label: string, input: Record<string, unknown>): RollResult {
+export function rollSessionPool(ctx: ReturnType<typeof useCampaign>, sessionId: Id, entity: Entity, label: string, input: Record<string, unknown>, entered?: number[]): RollResult {
   const dice = ctx.module.module.dice;
   const seed = `${sessionId}:${diceCounter(ctx.store, sessionId)}`;
-  const result = dice.roll(dice.buildPool(input), createRng(seed));
-  recordPoolRoll(ctx, sessionId, { label: `${entity.name}: ${label}`, seed, result, entityId: entity.id });
+  const result = withRollRng(seed, entered, (rng) => dice.roll(dice.buildPool(input), rng));
+  recordPoolRoll(ctx, sessionId, { label: `${entity.name}: ${label}`, seed, result, entityId: entity.id, ...enteredField(entered) });
   return result;
 }
 
+/** The pool roll `rollSessionPool` makes, as a pure function of its Rng (to ask for its dice). */
+export function sessionPoolRun(ctx: ReturnType<typeof useCampaign>, input: Record<string, unknown>): (rng: Rng) => unknown {
+  const dice = ctx.module.module.dice;
+  const pool = dice.buildPool(input);
+  return (rng) => dice.roll(pool, rng);
+}
+
 /** A DiceRollPanel bound to the session: seeded, logged, and a push adds one stress to the roller. */
-export function SessionRollPanel({ sessionId, entity, label, input, initialResult, onResult }: { sessionId: Id; entity?: Entity; label: string; input: Record<string, unknown>; initialResult?: RollResult; onResult?: (result: RollResult) => void }) {
+export function SessionRollPanel({
+  sessionId,
+  entity,
+  label,
+  input,
+  initialResult,
+  initialEntered,
+  modeSwitch,
+  onResult,
+}: {
+  sessionId: Id;
+  entity?: Entity;
+  label: string;
+  input: Record<string, unknown>;
+  initialResult?: RollResult;
+  /** Faces typed for `initialResult`, when it was rolled at the table. */
+  initialEntered?: number[];
+  /** Show the panel's own In app / Enter dice switch (table mode's tab row has the page's). */
+  modeSwitch?: boolean;
+  onResult?: (result: RollResult) => void;
+}) {
   const ctx = useCampaign();
   const ts = useSessionTrackerState(sessionId);
   const counter = ts ? ts.log.filter((l) => l.tracker === DICE_LOG).length : 0;
@@ -154,7 +183,7 @@ export function SessionRollPanel({ sessionId, entity, label, input, initialResul
   const rng = useMemo(() => createRng(seed), [seed]);
   const lastPushes = useRef(initialResult?.pushes ?? 0);
   const story = useStoryPointUse(entity);
-  const spendStory = (result: RollResult | undefined): RollResult | void => {
+  const spendStory = (result: RollResult | undefined, entered?: number[]): RollResult | void => {
     if (!result || !entity || !story) return;
     const { use, pool } = story;
     if ((use.push === "before" && result.pushes > 0) || (use.push === "after" && result.pushes === 0)) {
@@ -165,7 +194,7 @@ export function SessionRollPanel({ sessionId, entity, label, input, initialResul
     if (!op) return;
     try {
       // run without the entity: the spend is logged here, through the advancement log
-      const out = op.run({ result }, createRng(seed), ctx.module.tables);
+      const out = withRollRng(seed, entered, (rng) => op.run({ result }, rng, ctx.module.tables));
       const next = out.result as RollResult | null;
       if (!next || next === result || !Array.isArray(next.dice)) {
         pushToast(out.label, { tone: "warning" });
@@ -173,26 +202,30 @@ export function SessionRollPanel({ sessionId, entity, label, input, initialResul
       }
       ctx.store.transact(() => {
         spendStoryPoint(ctx, { character: entity.id, use: use.id, reason: `${use.label}: ${label}`, sessionId });
-        recordPoolRoll(ctx, sessionId, { label: `${entity.name}: ${label} (${pool.label})`, seed, result: next, entityId: entity.id });
+        recordPoolRoll(ctx, sessionId, { label: `${entity.name}: ${label} (${pool.label})`, seed, result: next, entityId: entity.id, ...enteredField(entered) });
       });
       return next;
     } catch (e) {
       pushToast(errorMessage(e), { tone: "danger" });
     }
   };
+  const storyOp = story?.use.operation ? ctx.module.module.dice.operations?.[story.use.operation] : undefined;
   return (
     <DiceRollPanel
       {...(story ? { storyPoints: story.points, storyPointName: story.pool.label, storyPointLabel: `Spend: ${story.use.label.toLowerCase()}`, storyPointNeedsResult: true, onSpendStoryPoint: spendStory } : {})}
+      {...(storyOp ? { storyPointRun: (result: RollResult, rng: Rng) => storyOp.run({ result }, rng, ctx.module.tables) } : {})}
       dice={ctx.module.module.dice}
       input={input}
       rng={rng}
       initialResult={initialResult}
+      {...(initialEntered ? { initialEntered } : {})}
+      hideModeSwitch={!modeSwitch}
       pushInput={entity ? { entity: entity.id } : undefined}
       title={entity ? `${entity.name}: ${label}` : label}
-      onRolled={(r: RollResult) => {
+      onRolled={(r: RollResult, entered?: number[]) => {
         const pushed = r.pushes > lastPushes.current;
         lastPushes.current = r.pushes;
-        recordPoolRoll(ctx, sessionId, { label: `${entity ? `${entity.name}: ` : ""}${label}${pushed ? " (pushed)" : ""}`, seed, result: r, ...(entity ? { entityId: entity.id } : {}) });
+        recordPoolRoll(ctx, sessionId, { label: `${entity ? `${entity.name}: ` : ""}${label}${pushed ? " (pushed)" : ""}`, seed, result: r, ...(entity ? { entityId: entity.id } : {}), ...enteredField(entered) });
         if (pushed && entity) {
           const path = stressPathFor(ctx.module, entity);
           if (path) applySessionEffects(ctx, sessionId, [{ kind: "incrementField", entity: entity.id, path, by: 1, min: 0 }]);
@@ -307,18 +340,23 @@ export function SkillRoll({ sessionId, pcs, others = [] }: { sessionId: Id; pcs:
 
 export function FreeRoll({ sessionId }: { sessionId: Id }) {
   const ctx = useCampaign();
+  const roller = useDiceRoller();
   const dice = ctx.module.module.dice;
   const [counts, setCounts] = useState<Record<string, number>>(() => Object.fromEntries(dice.dice.map((d, i) => [d.id, i === 0 ? 1 : 0])));
-  const [result, setResult] = useState<RollResult | undefined>();
+  const [result, setResult] = useState<{ result: RollResult; entered?: number[] } | undefined>();
   const total = Object.values(counts).reduce((a, b) => a + b, 0);
-  const roll = () => {
-    const seed = `${sessionId}:${diceCounter(ctx.store, sessionId)}`;
-    const pool: DicePool = { dice: { ...counts }, breakdown: Object.entries(counts).filter(([, n]) => n > 0).map(([die, count]) => ({ label: "Free roll", die, count })) };
-    const r = dice.roll(pool, createRng(seed));
-    setResult(r);
-    recordPoolRoll(ctx, sessionId, { label: "Free roll", seed, result: r, kind: "free" });
-  };
-  const baseId = dice.dice[0]?.id;
+  const pool: DicePool = { dice: { ...counts }, breakdown: Object.entries(counts).filter(([, n]) => n > 0).map(([die, count]) => ({ label: "Free roll", die, count })) };
+  const roll = () =>
+    roller.roll({
+      title: "Free roll",
+      run: (rng) => dice.roll(pool, rng),
+      perform: (entered) => {
+        const seed = `${sessionId}:${diceCounter(ctx.store, sessionId)}`;
+        const r = withRollRng(seed, entered, (rng) => dice.roll(pool, rng));
+        setResult({ result: r, ...enteredField(entered) });
+        recordPoolRoll(ctx, sessionId, { label: "Free roll", seed, result: r, kind: "free", ...enteredField(entered) });
+      },
+    });
   return (
     <Card title="Free roll" className="app-table__freeroll">
       <div className="app-row">
@@ -328,10 +366,21 @@ export function FreeRoll({ sessionId }: { sessionId: Id }) {
             <Stepper value={counts[d.id] ?? 0} min={0} max={20} onChange={(n) => setCounts({ ...counts, [d.id]: n })} label={`${d.name} count`} />
           </label>
         ))}
-        <Button variant="primary" size="lg" onClick={roll} disabled={total === 0}>
-          Roll {total}
+        <Button variant="primary" size="lg" onClick={roll} disabled={total === 0} data-testid="free-roll">
+          {roller.physical ? `Enter ${total}` : `Roll ${total}`}
         </Button>
       </div>
+      {result && <FreeRollResult result={result.result} entered={result.entered} />}
+    </Card>
+  );
+}
+
+function FreeRollResult({ result, entered }: { result: RollResult; entered?: number[] }) {
+  const ctx = useCampaign();
+  const dice = ctx.module.module.dice;
+  const baseId = dice.dice[0]?.id;
+  return (
+    <>
       {result && (
         <div className="app-stack">
           <div className="cf-dice__faces" aria-label="Rolled dice">
@@ -351,10 +400,15 @@ export function FreeRoll({ sessionId }: { sessionId: Id }) {
               </Badge>
             )}
             <span className="cf-muted">{dice.describe(result)}</span>
+            {entered && (
+              <Badge tone="accent" title={`Rolled at the table: ${entered.join(" ")}`}>
+                entered
+              </Badge>
+            )}
           </div>
         </div>
       )}
-    </Card>
+    </>
   );
 }
 
@@ -367,7 +421,8 @@ export function rollLogEntries(ts: TrackerState | undefined): RollLogEntry[] {
     .map(({ l, i }) => {
       const data = (l.data ?? {}) as Partial<DiceLogData>;
       const entry: RollLogEntry = { id: `${i}`, at: l.at, label: l.text };
-      if (data.seed) entry.summary = `seed ${data.seed}`;
+      if (data.entered) entry.entered = data.entered;
+      else if (data.seed) entry.summary = `seed ${data.seed}`;
       if (data.result) entry.result = data.result;
       if (data.rolls?.length) entry.records = data.rolls;
       return entry;

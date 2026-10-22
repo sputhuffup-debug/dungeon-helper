@@ -9,9 +9,12 @@
  */
 import {
   addDaysToDate,
+  assertAllUsed,
   computeFields,
+  createEnteredRng,
   createRng,
   createTableRegistry,
+  isEnteredRng,
   type CalendarDef,
   type CrewShipDef,
   type GameModule,
@@ -21,6 +24,7 @@ import {
   type TravelOutcome,
   type TravelPlan,
   type TravelRequest,
+  type Rng,
 } from "@campaign-forge/module-sdk";
 import { applyEffects, type ApplyEffectsResult } from "./effects";
 import { clone } from "./paths";
@@ -150,6 +154,8 @@ export function arrivalDate(calendar: CalendarDef, date: string | undefined, day
 export interface DepartOptions extends TravelInput {
   /** Seed for the arrival rolls (recorded on the leg). */
   seed: string;
+  /** Faces of arrival dice rolled at the table, in the order the module rolls them (recorded on the leg). */
+  entered?: number[];
   session?: Id;
   note?: string;
   /** Apply the module's arrival effects now (default true); otherwise they wait on the leg. */
@@ -169,6 +175,18 @@ export interface DepartResult {
 }
 
 /**
+ * The arrival checks `departTravel` rolls, as a pure function of their Rng:
+ * to ask a GM who rolls physical dice for the right dice in the right order.
+ */
+export function travelArrivalRun(store: CampaignStore, module: TravelModule, input: TravelInput): (rng: Rng) => unknown {
+  const travel = requireTravel(module);
+  const req = travelRequest(store, module, input);
+  const plan = travel.plan(req);
+  const tables = createTableRegistry(module.tables);
+  return (rng) => travel.arrive(req, plan, rng, tables);
+}
+
+/**
  * Travel now: record the leg as arrived, roll the arrival checks from `seed`,
  * apply their effects, move the in-world date forward by the trip's days and
  * keep the location setting and the vehicle's `found_at` link in step.
@@ -180,8 +198,10 @@ export function departTravel(store: CampaignStore, module: TravelModule, opts: D
   if (plan.blocked) throw new Error(plan.blocked);
   const days = Math.max(0, Math.round(plan.days));
   const effectivePlan = plan;
-  const rng = createRng(`travel:${opts.seed}`);
+  const seeded = createRng(`travel:${opts.seed}`);
+  const rng = opts.entered ? createEnteredRng(opts.entered, { fallback: seeded }) : seeded;
   const outcome = travel.arrive(req, plan, rng, createTableRegistry(module.tables));
+  if (isEnteredRng(rng)) assertAllUsed(rng);
   const meta = store.meta();
   const departDate = meta.currentDate;
   const arriveDate = arrivalDate(module.calendar, departDate, days);
@@ -194,6 +214,7 @@ export function departTravel(store: CampaignStore, module: TravelModule, opts: D
       days,
       status: "arrived",
       seed: opts.seed,
+      ...(opts.entered ? { entered: [...opts.entered] } : {}),
       rolls: clone(outcome.rolls),
       log: [...outcome.log],
       effects: clone(outcome.effects),

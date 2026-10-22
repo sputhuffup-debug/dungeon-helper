@@ -14,10 +14,12 @@ export interface TabsProps {
   value?: string;
   defaultValue?: string;
   onChange?: (id: string) => void;
+  /** Shown at the end of the tab row (e.g. a mode switch); wraps below the tabs when there is no room. */
+  extra?: ReactNode;
   className?: string;
 }
 
-export function Tabs({ tabs, value, defaultValue, onChange, className }: TabsProps) {
+export function Tabs({ tabs, value, defaultValue, onChange, extra, className }: TabsProps) {
   const base = useId();
   const [inner, setInner] = useState(defaultValue ?? tabs[0]?.id ?? "");
   const active = value ?? inner;
@@ -42,27 +44,37 @@ export function Tabs({ tabs, value, defaultValue, onChange, className }: TabsPro
     document.getElementById(`${base}-tab-${target.id}`)?.focus();
   };
   const current = tabs.find((t) => t.id === active);
+  const list = (
+    <div className="cf-tabs__list" role="tablist">
+      {tabs.map((t, i) => (
+        <button
+          key={t.id}
+          id={`${base}-tab-${t.id}`}
+          type="button"
+          role="tab"
+          className={cx("cf-tabs__tab", t.id === active && "cf-tabs__tab--active")}
+          aria-selected={t.id === active}
+          aria-controls={`${base}-panel-${t.id}`}
+          tabIndex={t.id === active ? 0 : -1}
+          disabled={t.disabled}
+          onClick={() => select(t.id)}
+          onKeyDown={(e) => onKey(e, i)}
+        >
+          {t.label}
+        </button>
+      ))}
+    </div>
+  );
   return (
     <div className={cx("cf-tabs", className)}>
-      <div className="cf-tabs__list" role="tablist">
-        {tabs.map((t, i) => (
-          <button
-            key={t.id}
-            id={`${base}-tab-${t.id}`}
-            type="button"
-            role="tab"
-            className={cx("cf-tabs__tab", t.id === active && "cf-tabs__tab--active")}
-            aria-selected={t.id === active}
-            aria-controls={`${base}-panel-${t.id}`}
-            tabIndex={t.id === active ? 0 : -1}
-            disabled={t.disabled}
-            onClick={() => select(t.id)}
-            onKeyDown={(e) => onKey(e, i)}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+      {extra === undefined ? (
+        list
+      ) : (
+        <div className="cf-tabs__bar">
+          {list}
+          <div className="cf-tabs__extra">{extra}</div>
+        </div>
+      )}
       {current?.content !== undefined && (
         <div className="cf-tabs__panel" role="tabpanel" id={`${base}-panel-${current.id}`} aria-labelledby={`${base}-tab-${current.id}`}>
           {current.content}

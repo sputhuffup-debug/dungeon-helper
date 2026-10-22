@@ -1,4 +1,5 @@
 import type { DiceSystem, RollRecord, RollResult } from "@campaign-forge/module-sdk";
+import { Badge } from "../primitives/Badge";
 import { RollRecordList } from "../primitives/ProvenanceBadge";
 import { EmptyState } from "../primitives/Toolbar";
 import { cx } from "../sheet/paths";
@@ -13,6 +14,8 @@ export interface RollLogEntry {
   /** Who rolled / what for. */
   label: string;
   summary?: string;
+  /** Faces typed by the GM: the dice were rolled at the table, not in the app. */
+  entered?: number[];
   result?: RollResult;
   records?: RollRecord[];
 }
@@ -46,7 +49,16 @@ export function RollLog({ entries, dice, newestFirst = true, max, className }: R
             <strong>{e.label}</strong>
             <span className="cf-rolllog__time">{shortTime(e.at)}</span>
           </div>
-          {e.summary && <div className="cf-muted">{e.summary}</div>}
+          {e.entered ? (
+            <div className="cf-rolllog__entered">
+              <Badge tone="accent" data-testid="rolllog-entered">
+                entered
+              </Badge>{" "}
+              <span className="cf-muted">rolled at the table: {e.entered.length > 0 ? e.entered.join(" ") : "no dice"}</span>
+            </div>
+          ) : (
+            e.summary && <div className="cf-muted">{e.summary}</div>
+          )}
           {e.result && (
             <div className="cf-rolllog__faces cf-dice__faces">
               {e.result.dice.map((d, i) => (

@@ -34,6 +34,9 @@ export { SchemaValueEditor, schemaType } from "./widgets/SchemaValueEditor";
 // Dice
 export { DieFace, type DieFaceProps } from "./dice/DieFace";
 export { DiceRollPanel, specById, type DiceRollPanelProps } from "./dice/DiceRollPanel";
+export { EnterDice, type EnterDiceProps } from "./dice/EnterDice";
+export { DiceRollerProvider, DiceModeSwitch, useDiceRoller, type DiceRollerValue, type RollRequest } from "./dice/DiceRoller";
+export { usePhysicalDicePreference, getPhysicalDice, setPhysicalDice, PHYSICAL_DICE_KEY } from "./dice/physicalDice";
 export { RollLog, type RollLogEntry, type RollLogProps } from "./dice/RollLog";
 export { toneBadge, showsTotal, resultHeadline, rollOptionFields, type RollOptionField } from "./dice/outcome";
 

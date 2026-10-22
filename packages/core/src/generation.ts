@@ -40,6 +40,8 @@ export function acceptGeneratedGraph(store: CampaignStore, graph: GeneratedGraph
       editedFields: [],
     };
     if (opts.stepSeeds) runInput.stepSeeds = clone(opts.stepSeeds);
+    // Steps rolled with physical dice keep the faces typed, so the run can be replayed.
+    if (graph.entered && Object.keys(graph.entered).length > 0) runInput.stepDice = clone(graph.entered);
     if (opts.pinned) runInput.pinned = clone(opts.pinned);
     const run = store.insert("generatorRuns", runInput);
 

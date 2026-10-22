@@ -303,6 +303,11 @@ export interface GeneratorRun extends BaseRecord {
   seed: string;
   inputs: Record<string, unknown>;
   stepSeeds?: Record<string, string>;
+  /**
+   * Step id -> faces of dice rolled at the table for that step (in roll order).
+   * Re-running with them as `stepDice` gives the same results.
+   */
+  stepDice?: Record<string, number[]>;
   pinned?: Record<string, unknown>;
   rolls: RollRecord[];
   results: Record<string, unknown>;
@@ -384,6 +389,8 @@ export interface TravelLeg extends BaseRecord {
   options?: Record<string, unknown>;
   /** Seed of the arrival rolls: same seed and module version, same arrival. */
   seed?: string;
+  /** Faces typed for the arrival rolls when they were rolled at the table (in roll order; the seed covers anything that is not a die). */
+  entered?: number[];
   rolls?: RollRecord[];
   log?: string[];
   /** Arrival effects the module suggested, and whether they were applied. */

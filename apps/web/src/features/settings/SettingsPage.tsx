@@ -1,9 +1,9 @@
-/** Settings: campaign name, mode, in-world date, members, session checklist, export/import, delete, module info. */
+/** Settings: campaign name, mode, in-world date, members, dice on this device, session checklist, export/import, delete, module info. */
 import { exportMarkdown } from "@campaign-forge/core";
 import { useNavigate } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
-import { Badge, Button, Card } from "../../components/ui";
+import { Badge, Button, Card, usePhysicalDicePreference } from "../../components/ui";
 import { downloadFile, slug } from "../../lib/download";
 import { adventureTitle, errorMessage } from "../../lib/format";
 import { deleteCampaign, exportCampaignBundle, exportCampaignJSON, importBundleIntoCampaign, updateMeta } from "../../state/actions";
@@ -103,6 +103,8 @@ export function SettingsPage() {
           ))}
         </ul>
       </Card>
+
+      <DiceSettings />
 
       <ChecklistSettings />
 
@@ -311,6 +313,21 @@ function SupplementsCard() {
           Generated content records the supplements that were active.
         </p>
       </div>
+    </Card>
+  );
+}
+
+/** "I roll physical dice": a per-device preference (this browser only) that makes every roll ask for the dice rolled at the table. */
+function DiceSettings() {
+  const [physical, setPhysical] = usePhysicalDicePreference();
+  return (
+    <Card title="Dice" subtitle="On this device">
+      <label className="app-toggle" data-testid="physical-dice-setting">
+        <input type="checkbox" className="cf-checkbox" checked={physical} onChange={(e) => setPhysical(e.target.checked)} />I roll physical dice
+      </label>
+      <p className="cf-muted">
+        Rolls then ask for the faces your dice show (one box per die, in the order the rules read them) instead of rolling in the app. Outcomes, pushes, tables and effects work the same, and the roll log marks these rolls “entered”. Every roll surface keeps a switch to roll in the app instead.
+      </p>
     </Card>
   );
 }

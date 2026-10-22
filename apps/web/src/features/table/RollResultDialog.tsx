@@ -55,7 +55,13 @@ export function RollResultDialog({ roll, onClose, resolveName }: { roll: Operati
               ))}
             </ul>
           )}
-          <p className="cf-muted cf-mono app-roll-result__seed">Seed {roll.seed}</p>
+          {roll.entered ? (
+            <p className="cf-muted app-roll-result__seed" data-testid="roll-result-entered">
+              <Badge tone="accent">entered</Badge> Rolled at the table: <span className="cf-mono">{roll.entered.join(" ") || "no dice"}</span>
+            </p>
+          ) : (
+            <p className="cf-muted cf-mono app-roll-result__seed">Seed {roll.seed}</p>
+          )}
         </div>
       )}
     </Dialog>

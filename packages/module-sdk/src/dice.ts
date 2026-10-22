@@ -7,7 +7,7 @@
  * where N is a die count, X the face count (d2, d3, d6, d10, ...) and K a flat
  * constant. "d66" is the tens d6 * 10 + units d6 (values 11..66, digits 1..6).
  */
-import type { Rng } from "./types";
+import type { DiceGroup, Rng } from "./types";
 
 export type DiceTerm =
   | { kind: "dice"; count: number; faces: number; sign: 1 | -1 }
@@ -63,22 +63,93 @@ export function parseDiceExpression(expr: string): DiceExpression {
   return parsed;
 }
 
-/** Roll a dice expression. `raw` holds each die face in order (d66 contributes tens then units). */
+/** How many dice an expression rolls (a d66 is two). */
+export function diceCount(expr: string | DiceExpression): number {
+  const parsed = typeof expr === "string" ? parseDiceExpression(expr) : expr;
+  return parsed.terms.reduce((n, t) => n + (t.kind === "d66" ? 2 : t.kind === "dice" ? t.count : 0), 0);
+}
+
+/** Faces for one term that make `value` (the term's signed contribution), in the order the term rolls them, or undefined. */
+function termFaces(term: DiceTerm, value: number): number[] | undefined {
+  if (term.kind === "const") return value === term.value ? [] : undefined;
+  const v = value * term.sign;
+  if (term.kind === "d66") {
+    const tens = Math.floor(v / 10);
+    const units = v % 10;
+    return tens >= 1 && tens <= 6 && units >= 1 && units <= 6 ? [tens, units] : undefined;
+  }
+  if (v < term.count || v > term.count * term.faces) return undefined;
+  // Fill the dice in order: each takes as much as it can while leaving one per die still to come.
+  const out: number[] = [];
+  let left = v;
+  for (let i = 0; i < term.count; i++) {
+    const face = Math.min(term.faces, left - (term.count - i - 1));
+    out.push(face);
+    left -= face;
+  }
+  return out;
+}
+
+/**
+ * The faces, in roll order, that make `total` for the expression (constants
+ * included), or undefined when the dice cannot make it. Used when a GM types
+ * the total of a physical roll ("7" on 2d6, "35" on a d66): the faces are one
+ * way to make it, which is all a total-based table needs.
+ */
+export function facesForTotal(expr: string | DiceExpression, total: number): number[] | undefined {
+  if (!Number.isInteger(total)) return undefined;
+  const parsed = typeof expr === "string" ? parseDiceExpression(expr) : expr;
+  const terms = parsed.terms;
+  // reach[i]: the totals terms i.. can make.
+  const reach: Array<Set<number>> = new Array(terms.length + 1);
+  reach[terms.length] = new Set([0]);
+  for (let i = terms.length - 1; i >= 0; i--) {
+    const next = new Set<number>();
+    for (const s of reach[i + 1]!) for (const o of termOutcomes(terms[i]!)) next.add(s + o);
+    reach[i] = next;
+  }
+  if (!reach[0]!.has(total)) return undefined;
+  const faces: number[] = [];
+  let left = total;
+  for (let i = 0; i < terms.length; i++) {
+    const term = terms[i]!;
+    const pick = termOutcomes(term).find((o) => reach[i + 1]!.has(left - o));
+    const f = pick === undefined ? undefined : termFaces(term, pick);
+    if (pick === undefined || !f) return undefined;
+    faces.push(...f);
+    left -= pick;
+  }
+  return faces;
+}
+
+/** A fresh group for an expression's dice (its total typed in one go); one per roll, as groups are told apart by identity. */
+export function facesGroup(expr: string | DiceExpression): DiceGroup {
+  const parsed = typeof expr === "string" ? parseDiceExpression(expr) : expr;
+  const [min, max] = diceRange(parsed);
+  return { label: parsed.source.replace(/\s+/g, "").toLowerCase(), min, max, faces: (value) => facesForTotal(parsed, value) };
+}
+
+/**
+ * Roll a dice expression. `raw` holds each die face in order (d66 contributes
+ * tens then units). An expression of two or more dice passes a group in each
+ * die's hint, so a GM rolling at the table can type its total.
+ */
 export function rollDice(expr: string | DiceExpression, rng: Rng): { raw: number[]; total: number } {
   const parsed = typeof expr === "string" ? parseDiceExpression(expr) : expr;
+  const group = diceCount(parsed) > 1 ? facesGroup(parsed) : undefined;
   const raw: number[] = [];
   let total = 0;
   for (const term of parsed.terms) {
     if (term.kind === "const") {
       total += term.value;
     } else if (term.kind === "d66") {
-      const tens = rng.int(1, 6);
-      const units = rng.int(1, 6);
+      const tens = rng.int(1, 6, { label: "d66 tens d6", ...(group ? { group } : {}) });
+      const units = rng.int(1, 6, { label: "d66 ones d6", ...(group ? { group } : {}) });
       raw.push(tens, units);
       total += term.sign * (tens * 10 + units);
     } else {
       for (let i = 0; i < term.count; i++) {
-        const v = rng.int(1, term.faces);
+        const v = rng.int(1, term.faces, { label: `d${term.faces}`, ...(group ? { group } : {}) });
         raw.push(v);
         total += term.sign * v;
       }

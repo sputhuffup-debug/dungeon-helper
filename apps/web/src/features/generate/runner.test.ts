@@ -1,8 +1,8 @@
 import { alienModule } from "@campaign-forge/module-alien";
 import { exampleModule, examplePackSource } from "@campaign-forge/module-example";
-import { dependentSteps, loadModule, loadPack, packFromSource, type GeneratedGraph } from "@campaign-forge/module-sdk";
+import { dependentSteps, loadModule, loadPack, packFromSource, planEntry, type GeneratedGraph } from "@campaign-forge/module-sdk";
 import { describe, expect, it } from "vitest";
-import { changedSteps, includedOptional, newSeed, runGenerator, stepViews, summarizeValue, UnknownProcedureError, type GeneratorRequest } from "./runner";
+import { changedSteps, includedOptional, newSeed, runGenerator, stepRun, stepViews, summarizeValue, UnknownProcedureError, withoutDependentDice, type GeneratorRequest } from "./runner";
 
 const alien = loadModule(alienModule, { skipProcedureRuns: true });
 const example = loadModule(exampleModule, { skipProcedureRuns: true });
@@ -50,6 +50,25 @@ describe("runGenerator", () => {
     for (const id of ["distance", "employer", "bonus", "mission", "destination", "destinationStar"]) {
       expect(afterDifficulty.results[id]).toEqual(before.results[id]);
     }
+  });
+
+  it("a step takes dice rolled at the table: the form asks for its dice, the run records them, later steps re-run", () => {
+    const base = job();
+    const procedure = alien.procedure("alien.job.create")!;
+    const plan = planEntry(stepRun(alien, base, "difficulty"), []);
+    expect(plan.slots.map((s) => s.label)).toEqual(["d3"]);
+    const done = planEntry(stepRun(alien, base, "difficulty"), [3]);
+    const graph = runGenerator(alien, { ...base, stepDice: { difficulty: done.faces! } });
+    expect(graph.results.difficulty).toBe(3);
+    expect(graph.entered).toEqual({ difficulty: [3] });
+    const views = stepViews(procedure, graph);
+    expect(views.find((v) => v.id === "difficulty")?.entered).toEqual([3]);
+    // other steps keep their seed
+    const app = runGenerator(alien, base);
+    expect(graph.results.employer).toEqual(app.results.employer);
+    // a changed step drops typed dice of the steps that read it
+    const reader = dependentSteps(procedure, "difficulty")[0];
+    if (reader) expect(withoutDependentDice(procedure, { difficulty: [3], [reader]: [1] }, "difficulty")).toEqual({ difficulty: [3] });
   });
 
   it("keeps pinned values and records optional steps", () => {

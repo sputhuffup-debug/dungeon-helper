@@ -7,5 +7,5 @@
 
 ## Publish (user-facing features)
 - [ ] Screenshot shot added to `apps/web/screenshots/readme.spec.ts` and regenerated with `pnpm screenshots`
-- [ ] README: image and caption in Screenshots, feature line in "What it does"
+- [ ] Image, caption and feature line on the right page: `docs/features/app.md` for app features, the module's `docs/features/<module>.md` for module features (README only for headline features)
 - [ ] Demo campaign updated so the feature is visible in a demo

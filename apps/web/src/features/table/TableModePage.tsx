@@ -10,13 +10,16 @@ import type { Effect, Prompt } from "@campaign-forge/module-sdk";
 import { Link, useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { lazyView } from "../../components/lazyView";
-import { Badge, Button, EmptyState, PromptDialog, Tabs, pushToast, type PromptAnswer } from "../../components/ui";
+import { Badge, Button, DiceModeSwitch, EmptyState, PromptDialog, Tabs, pushToast, useDiceRoller, type PromptAnswer } from "../../components/ui";
 import { errorMessage } from "../../lib/format";
 import { useCampaign, useOfflineStatus, useRecord } from "../../state/hooks";
 import {
   answerPrompt,
+  answerRollOperation,
   applySessionEffects,
   logTable,
+  operationRun,
+  operationTitle,
   rollOperation,
   sessionLabel,
   setTimer,
@@ -57,6 +60,7 @@ export function TableModePage() {
 
 function GmTable({ sessionId }: { sessionId: Id }) {
   const ctx = useCampaign();
+  const roller = useDiceRoller();
   const navigate = useNavigate();
   const campaignId = ctx.campaignId;
   const session = useRecord("sessions", sessionId);
@@ -138,9 +142,16 @@ function GmTable({ sessionId }: { sessionId: Id }) {
       },
       onRollOperation: (operationId, entityId, extra) => {
         try {
-          const r = rollOperation(ctx, sessionId, operationId, entityId, extra ?? {});
-          setRoll(r);
-          if (r.prompts.length) setPrompts((p) => [...p, ...r.prompts]);
+          // In the app, or with the dice rolled at the table (the page's dice mode)
+          roller.roll({
+            title: operationTitle(ctx, operationId, entityId),
+            run: operationRun(ctx, operationId, entityId, extra ?? {}),
+            perform: (entered) => {
+              const r = rollOperation(ctx, sessionId, operationId, entityId, extra ?? {}, entered);
+              setRoll(r);
+              if (r.prompts.length) setPrompts((p) => [...p, ...r.prompts]);
+            },
+          });
         } catch (e) {
           pushToast(`Roll failed: ${errorMessage(e)}`, { tone: "danger" });
         }
@@ -148,17 +159,22 @@ function GmTable({ sessionId }: { sessionId: Id }) {
       onLog: (trackerId, text) => appendTrackerLog(ctx.store, sessionId, { tracker: trackerId, text }),
       onPrompts: (raised: Prompt[]) => setPrompts((p) => [...p, ...raised]),
     }),
-    [ctx, sessionId],
+    [ctx, sessionId, roller],
   );
 
   const onAnswer = (answer: PromptAnswer) => {
     const prompt = prompts[0];
     setPrompts((p) => p.slice(1));
     if (!prompt) return;
-    try {
-      const out = answerPrompt(ctx, sessionId, prompt, answer, { record: false });
+    const apply = (entered?: number[]) => {
+      const out = answerPrompt(ctx, sessionId, prompt, answer, { record: false, ...(entered ? { entered } : {}) });
       if (out.roll) setRoll(out.roll);
       if (out.prompts.length) setPrompts((p) => [...p, ...out.prompts]);
+    };
+    try {
+      const op = answerRollOperation(prompt, answer);
+      if (op) roller.roll({ title: operationTitle(ctx, op, prompt.entity), run: operationRun(ctx, op, prompt.entity), perform: apply, onCancel: () => setPrompts((p) => [prompt, ...p]) });
+      else apply();
     } catch (e) {
       pushToast(errorMessage(e), { tone: "danger" });
     }
@@ -269,6 +285,8 @@ function GmTable({ sessionId }: { sessionId: Id }) {
           </div>
           <div className="app-table__col">
             <Tabs
+              // how every roll on this page is made: in the app, or with the dice rolled at the table
+              extra={<DiceModeSwitch physical={roller.physical} onChange={roller.setPhysical} />}
               value={tab === "hints" && !hasGuide ? "trackers" : tab}
               onChange={setTab}
               tabs={[

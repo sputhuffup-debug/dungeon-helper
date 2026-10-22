@@ -36,10 +36,39 @@ export type PageRef = number | [number, number];
  */
 export type CiteRef = string;
 
+/**
+ * Several dice read as one number at the table (a 2d6 total, a d66, a
+ * percentile roll). The dice a group consumes carry the same group object in
+ * their hint, one after another, so a GM rolling physical dice can type the
+ * number instead of each face (see `entered.ts`).
+ */
+export interface DiceGroup {
+  /** What the number is, e.g. "2d6", "d66", "d100". */
+  label: string;
+  /** Lowest and highest number the dice can make. */
+  min: number;
+  max: number;
+  /** The faces, in the order the group consumes them, that make `value`; undefined when the dice cannot make it. */
+  faces(value: number): number[] | undefined;
+}
+
+/**
+ * What a die rolled through `Rng.int` is, for a GM who rolls physical dice
+ * and types the faces: a label ("Stress die", "Tens d10"), the DieSpec id
+ * (for its colour) and the group it belongs to. Seeded Rngs ignore it.
+ */
+export interface DieHint {
+  label?: string;
+  /** DieSpec id, e.g. "stress". */
+  die?: string;
+  group?: DiceGroup;
+}
+
 /** Seeded random source. `next()` is in [0, 1). `int` is inclusive on both ends. */
 export interface Rng {
   next(): number;
-  int(min: number, max: number): number;
+  /** A whole number from min to max; `hint` says which die it is, for a GM who enters dice rolled at the table. */
+  int(min: number, max: number, hint?: DieHint): number;
   /** Fork a child RNG for a named sub-stream. Same (seed, name) => same stream. */
   fork(name: string): Rng;
 }
@@ -475,6 +504,8 @@ export interface GeneratedGraph {
   skipped: Array<{ step: string; reason: string }>;
   /** Step id -> the step's `display` line, for steps that declare one. Absent when none does. */
   display?: Record<string, string>;
+  /** Step id -> the faces of dice rolled at the table for it (entered by the GM), in roll order. */
+  entered?: Record<string, number[]>;
 }
 
 export interface ProcedureRunOptions {
@@ -489,6 +520,14 @@ export interface ProcedureRunOptions {
   pinned?: Record<string, unknown>;
   /** Optional steps the GM chose to include. */
   includeOptional?: string[];
+  /**
+   * Dice rolled at the table, per step: the step's rolls take these faces in
+   * order (see `createEnteredRng`) instead of its seed. Every face must be
+   * used; the graph records them in `entered`.
+   */
+  stepDice?: Record<string, number[]>;
+  /** A step's Rng supplied by the caller (e.g. to find out which dice it asks for); wins over `stepDice` and the seed. */
+  stepRng?: (stepId: string) => Rng | undefined;
 }
 
 // ---------------------------------------------------------------------------

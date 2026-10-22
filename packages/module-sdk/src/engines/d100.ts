@@ -5,7 +5,7 @@
  * the best or worst. 01 (or `criticalAt`) is a critical, 100 (or from
  * `fumbleAt`) a fumble.
  */
-import type { DicePool, DiceSystem, RolledDie, RollResult, Rng } from "../types";
+import type { DiceGroup, DicePool, DiceSystem, RolledDie, RollResult, Rng } from "../types";
 import { assertInteger, builtBy, num, numberRule, rollFree } from "./shared";
 import type { D100EngineConfig, PercentileDegree } from "./types";
 
@@ -63,9 +63,12 @@ export function createD100Engine(config: D100EngineConfig): DiceSystem {
 
   const rollDice = (pool: DicePool, rng: Rng): RolledDie[] => {
     const bonus = Math.max(-2, Math.min(2, Math.floor(num(pool.meta?.bonus))));
-    const units = rng.int(0, 9);
-    const tens: number[] = [rng.int(0, 9)];
-    for (let i = 0; i < Math.abs(bonus); i++) tens.push(rng.int(0, 9));
+    // Without bonus dice the two d10 read as one percentile number (00 and 0 make 100).
+    const group: DiceGroup | undefined =
+      bonus === 0 ? { label: "d100", min: 1, max: 100, faces: (v) => (Number.isInteger(v) && v >= 1 && v <= 100 ? (v === 100 ? [0, 0] : [v % 10, Math.floor(v / 10)]) : undefined) } : undefined;
+    const units = rng.int(0, 9, { label: "Units d10 (0–9)", die: "d100", ...(group ? { group } : {}) });
+    const tens: number[] = [rng.int(0, 9, { label: "Tens d10 (00–90)", die: "d100", ...(group ? { group } : {}) })];
+    for (let i = 0; i < Math.abs(bonus); i++) tens.push(rng.int(0, 9, { label: `${bonus > 0 ? "Bonus" : "Penalty"} tens d10 (00–90)`, die: "d100" }));
     const values = tens.map((t) => (t === 0 && units === 0 ? 100 : t * 10 + units));
     if (values.length === 1) return [{ die: "d100", value: values[0]! }];
     const best = bonus > 0 ? Math.min(...values) : Math.max(...values);
