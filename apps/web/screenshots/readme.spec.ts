@@ -509,6 +509,19 @@ test("agenda-cards", async ({ page }) => {
   await shot(page, "agenda-cards");
 });
 
+test("share-players", async ({ page }) => {
+  // Cold Harbor session 1 at the table: "Share with players" previews the phone cards (briefing, fogged map, the revealed relay log, the party)
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await loadDemo(page, "cinematic");
+  await startSession1(page);
+  await page.getByTestId("share-players").click();
+  const dialog = page.getByTestId("share-dialog");
+  await dialog.getByTestId("share-include-party").check();
+  await expect(dialog.getByTestId("share-preview-item")).toHaveCount(4);
+  await expect(dialog.getByTestId("share-send")).toBeEnabled();
+  await shot(page, "share-players");
+});
+
 // ---------------------------------------------------------------------------
 // Game modules and Thornwick Crossing (fifth edition, SRD 5.1)
 // ---------------------------------------------------------------------------

@@ -167,6 +167,27 @@ export interface Session extends BaseRecord {
   wrapUp?: Record<string, unknown>;
   /** Session checklist ticks: item id -> done. `false` is an explicit untick (see checklist.ts). */
   checklist?: Record<string, boolean>;
+  /** What the GM shared with the players from this session ("Share with players"), oldest first. GM-only. */
+  shares?: ShareRecord[];
+}
+
+/**
+ * One "Share with players" export: what went out, so the next share can send
+ * only what is new. Ids only; the content is rebuilt from the campaign.
+ */
+export interface ShareRecord {
+  at: string;
+  /** Handout ids included. */
+  handouts: Id[];
+  /** Map id -> the zones the players could see on it when it was shared. */
+  maps: Record<Id, Id[]>;
+  /** The scene whose briefing was included. */
+  scene?: Id;
+  /** The party card was included. */
+  party?: boolean;
+  /** The campaign primer was included. */
+  primer?: boolean;
+  format?: "images" | "pdf";
 }
 
 export interface TimelineEvent extends BaseRecord {

@@ -1,0 +1,79 @@
+/* Share with players */
+.app-share.cf-dialog {
+  width: min(920px, 96vw);
+  max-width: min(920px, 96vw);
+}
+.app-share__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cf-space-3);
+}
+.app-share__safety {
+  margin: 0;
+  font-size: var(--cf-text-sm);
+}
+.app-share__options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  align-items: start;
+  gap: var(--cf-space-3);
+}
+.app-share__options .app-fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cf-space-1);
+  margin: 0;
+}
+.app-share__preview {
+  display: flex;
+  gap: var(--cf-space-3);
+  overflow-x: auto;
+  padding: var(--cf-space-2);
+  border: 1px solid var(--cf-border);
+  border-radius: var(--cf-radius);
+  background: var(--cf-elevated);
+  align-items: flex-start;
+}
+.app-share__item {
+  flex: 0 0 auto;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cf-space-1);
+  width: 168px;
+}
+.app-share__item--pdf {
+  width: 200px;
+}
+.app-share__item img {
+  display: block;
+  width: 100%;
+  max-height: 320px;
+  object-fit: contain;
+  object-position: top;
+  background: #fff;
+  border: 1px solid var(--cf-border-strong);
+  border-radius: var(--cf-radius-sm);
+}
+.app-share__item figcaption {
+  font-size: var(--cf-text-xs);
+  color: var(--cf-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.app-share__empty {
+  margin: 0;
+  padding: var(--cf-space-3);
+  border: 1px dashed var(--cf-border-strong);
+  border-radius: var(--cf-radius);
+  color: var(--cf-muted);
+}
+.app-share__message {
+  width: 100%;
+  resize: vertical;
+  font-family: var(--cf-font-sans);
+}
+.app-share__actions {
+  flex-wrap: wrap;
+}

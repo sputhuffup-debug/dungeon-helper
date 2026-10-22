@@ -747,6 +747,22 @@ export function buildCinematicDemo(opts: BuildCinematicDemoOptions = {}): Cinema
     summary: "Pitched Cold Harbor, agreed the content note and the X-card, picked the four pregenerated PCs and read their backgrounds aloud. Act 1 agendas go out at the start of session 1.",
   });
   writeDoc(registry, zero.logDoc, "Pitch, content note, X-card. Players chose: Rosa, Ana, Teo, Jun.");
+  // the relay's last log went to the players at session 0, with the pitch (original text)
+  const relayLog = store.createHandout({ title: "Cold Harbor: last relay log", kind: "text", visibility: { level: "revealed", revealedIn: zero.id }, attachedTo: { kind: "adventure", id: adventureId } });
+  store.update("handouts", relayLog.id, { revealedIn: zero.id });
+  writeDoc(
+    registry,
+    relayLog.bodyDoc,
+    [
+      "Automated relay log, Cold Harbor, Tethra-4 orbit. Recovered by the tender *Halvard* on approach.",
+      "",
+      "- Day 1: survey probe pod logged into the research annex. Quarantine seal applied.",
+      "- Day 2: heating fault on the habitat ring. Staff told to stay in quarters.",
+      "- Day 3: uplink lost. Carrier tone only.",
+      "",
+      "Last voice entry, partial: “…anyone on this channel, keep the lab doors shut…”",
+    ].join("\n"),
+  );
   for (const item of checklist) setChecklistItem(store, zero.id, item.id, true);
 
   const session = store.createSession({ number: 1, date: "2026-11-14", title: "Cold Harbor", status: "planned" });

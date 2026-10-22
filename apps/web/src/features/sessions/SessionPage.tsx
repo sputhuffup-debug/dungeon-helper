@@ -17,13 +17,17 @@ import {
   sessionLabel,
   setPlannedScenes,
   startPlannedSession,
+  tableStateOf,
   updateSession,
   wrapUpOf,
 } from "../../state/tableActions";
+import { useSessionTrackerState } from "../table/hooks";
 import { ChecklistSummary, SessionChecklist } from "./SessionChecklist";
 
 // The end-of-session wrap-up loads when the GM ends a session.
 const WrapUpWizard = lazyView(() => import("./WrapUp").then((m) => m.WrapUpWizard), { what: "the wrap-up" });
+// "Share with players" loads when the GM opens it.
+const ShareDialog = lazyView(() => import("../share/ShareDialog").then((m) => m.ShareDialog), { what: "sharing", loading: () => null });
 
 const TONE = { planned: "warning", running: "success", done: "muted" } as const;
 
@@ -34,6 +38,8 @@ export function SessionPage() {
   const campaignId = ctx.campaignId;
   const session = useRecord("sessions", sessionId);
   const [wrapping, setWrapping] = useState(false);
+  const [sharing, setSharing] = useState(false);
+  const shareScene = useShareScene(session);
 
   if (!session) {
     return (
@@ -68,6 +74,9 @@ export function SessionPage() {
           </div>
         </div>
         <div className="app-row">
+          <Button onClick={() => setSharing(true)} data-testid="share-players" title="Send the player view to the group chat: images or a PDF">
+            Share with players
+          </Button>
           {session.status === "planned" && (
             <Button
               variant="primary"
@@ -95,8 +104,16 @@ export function SessionPage() {
       </header>
 
       {session.status === "done" ? <DoneSession session={session} /> : <PlanSession session={session} />}
+      {sharing && <ShareDialog open onClose={() => setSharing(false)} sessionId={sessionId} sceneId={shareScene} />}
     </div>
   );
+}
+
+/** The scene a share from the session page briefs: the table's current scene, else the first planned or run scene. */
+function useShareScene(session: Session | undefined): Id | undefined {
+  const ts = useSessionTrackerState(session?.id ?? "");
+  if (!session) return undefined;
+  return tableStateOf(ts?.state).sceneId ?? plannedScenesOf(session)[0] ?? session.scenesRun[0];
 }
 
 // ---------------------------------------------------------------------------

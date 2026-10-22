@@ -137,3 +137,34 @@ describe("roll PDF", () => {
     }
   });
 });
+
+describe("PDF writer images", () => {
+  // a 2x1 baseline JPEG header (SOI, APP0 skipped by length, SOF0 with 3 components), enough for the writer
+  const jpeg = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x04, 0x4a, 0x46, 0xff, 0xc0, 0x00, 0x11, 0x08, 0x00, 0x01, 0x00, 0x02, 0x03, 0x01, 0x22, 0x00, 0x02, 0x11, 0x01, 0x03, 0x11, 0x01, 0xff, 0xd9]);
+  const href = `data:image/jpeg;base64,${btoa(String.fromCharCode(...jpeg))}`;
+
+  it("reads a JPEG's size and components", async () => {
+    const { jpegInfo, jpegFromDataUrl } = await import("../src/index");
+    expect(jpegInfo(jpeg)).toMatchObject({ width: 2, height: 1, components: 3 });
+    expect(jpegFromDataUrl(href)).toMatchObject({ width: 2, height: 1 });
+    expect(jpegFromDataUrl("data:image/png;base64,AAAA")).toBeUndefined();
+    expect(jpegInfo(new Uint8Array([1, 2, 3, 4]))).toBeUndefined();
+  });
+
+  it("embeds a JPEG once as a DCTDecode XObject and places it in its box", () => {
+    const node = el("g", {}, [el("image", { href, x: 10, y: 5, width: 40, height: 20 }), el("image", { href, x: 60, y: 5, width: 40, height: 20 }), el("image", { href: "data:image/png;base64,AAAA", x: 0, y: 0, width: 5, height: 5 })]);
+    const bytes = svgPagesToPdf([page(node)]);
+    const pdf = text(bytes);
+    checkStructure(pdf);
+    expect(pdf.match(/\/Subtype \/Image/g)).toHaveLength(1);
+    expect(pdf).toContain("/Width 2 /Height 1 /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode");
+    expect(pdf).toContain("/XObject << /Im0 9 0 R >>");
+    // y down: the image's top row lands at y = 5, its bottom at y = 25
+    expect(pdf).toContain("40 0 0 -20 10 25 cm\n/Im0 Do");
+    expect(pdf).toContain("40 0 0 -20 60 25 cm\n/Im0 Do");
+    // the JPEG bytes are in the file unchanged
+    const at = bytes.findIndex((b, i) => b === 0xff && bytes[i + 1] === 0xd8 && bytes[i + 2] === 0xff && bytes[i + 3] === 0xe0);
+    expect(Array.from(bytes.slice(at, at + jpeg.length))).toEqual(Array.from(jpeg));
+    expect(text(svgPagesToPdf([page(node)]))).toBe(pdf);
+  });
+});

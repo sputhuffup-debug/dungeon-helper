@@ -108,7 +108,7 @@ describe("bookletDocument", () => {
     const stats = blocksOf(doc, "statBlocks")[0]!.items;
     expect(stats.map((b) => b.name)).toEqual(["Dr. Mara Lindqvist", "Elias Brandt", "Nell Okoro", "Facehugger (Cold Lab specimen)"]);
     expect(stats[3]!.tables.map((t) => t.title)).toContain("Signature attacks (D6)");
-    expect(blocksOf(doc, "handouts")[0]!.items).toHaveLength(12);
+    expect(blocksOf(doc, "handouts")[0]!.items).toHaveLength(13); // 12 agendas and the relay log
 
     // no placeholder or broken text anywhere
     const strings = bookletStrings(doc);

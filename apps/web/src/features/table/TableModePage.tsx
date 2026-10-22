@@ -43,6 +43,8 @@ import { BoundTracker, TrackersPanel, useModeTrackers, type TrackerHandlers } fr
 
 // The end-of-session wrap-up loads when the GM ends a session.
 const WrapUpWizard = lazyView(() => import("../sessions/WrapUp").then((m) => m.WrapUpWizard), { what: "the wrap-up" });
+// "Share with players" (card drawing, PDF writer, zip) loads when the GM opens it.
+const ShareDialog = lazyView(() => import("../share/ShareDialog").then((m) => m.ShareDialog), { what: "sharing", loading: () => null });
 
 export function TableModePage() {
   const { sessionId } = useParams({ from: "/c/$campaignId/table/$sessionId" });
@@ -83,6 +85,7 @@ function GmTable({ sessionId }: { sessionId: Id }) {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [roll, setRoll] = useState<OperationRoll | undefined>();
   const [wrapping, setWrapping] = useState(false);
+  const [sharing, setSharing] = useState(false);
   const [tab, setTab] = useState("trackers");
   const hasGuide = usePlayGuides().length > 0;
   const resolveName = useCallback((id: string) => ctx.store.get("entities", id)?.name ?? id, [ctx.store]);
@@ -209,6 +212,9 @@ function GmTable({ sessionId }: { sessionId: Id }) {
         <Timer sessionId={sessionId} running={!!table.timer?.running} timer={table.timer} />
         <span className="app-grow" />
         <Button onClick={openPlayerScreen}>Player screen</Button>
+        <Button onClick={() => setSharing(true)} data-testid="share-players" title="Send the player view to the group chat: images or a PDF">
+          Share with players
+        </Button>
         {session.status === "planned" && (
           <Button variant="primary" onClick={() => startPlannedSession(ctx, sessionId)}>
             Start session
@@ -285,6 +291,7 @@ function GmTable({ sessionId }: { sessionId: Id }) {
       {specials.length > 0 && (
         <SpecialAttackDialog key={specialPc ?? "none"} open={!!specialPc} onClose={() => setSpecialPc(undefined)} sessionId={sessionId} pcs={pcs} others={others} {...(specialPc ? { initialPc: specialPc } : {})} />
       )}
+      {sharing && <ShareDialog open onClose={() => setSharing(false)} sessionId={sessionId} sceneId={table.sceneId} />}
       <RollResultDialog roll={roll} onClose={() => setRoll(undefined)} resolveName={resolveName} />
       <PromptDialog prompt={roll ? undefined : prompts[0]} onAnswer={onAnswer} onCancel={() => setPrompts((p) => p.slice(1))} resolveEntityName={(id) => ctx.store.get("entities", id)?.name} />
     </div>
