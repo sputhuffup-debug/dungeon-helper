@@ -1,6 +1,6 @@
 # Fantasy d20 Remaster (ORC)
 
-A built-in Campaign Forge game module for fantasy play with the second edition remaster rules, shipped as a declarative **data pack** (no code): the ORC-licensed content of four core books (Player Core, Player Core 2, GM Core and Monster Core) as sheets, presets, reference lists, rule cards and roll tables, plus original GM tools.
+A built-in Campaign Forge game module for fantasy play with the second edition remaster rules, shipped as a declarative **data pack** (no code): the ORC-licensed content of four core books (Player Core, Player Core 2, GM Core and Monster Core) as sheets, presets, reference lists, rule cards and roll tables, plus original GM tools. A built-in, optional **supplement**, [Remaster ORC books](#supplement-remaster-orc-books), adds the ORC content of nine more remaster books.
 
 Compatible with Pathfinder Second Edition (Remaster). Not affiliated with or endorsed by Paizo Inc. Pathfinder is a trademark of Paizo Inc.
 
@@ -45,16 +45,16 @@ The first three lines are copied from the source's `static/licenses/ORCLicense.m
 | Calendar | An original twelve-month calendar (no setting calendar) |
 | Modes | Campaign, One-shot |
 
-The character sheet stores what a player writes down (attribute modifiers, proficiency ranks, armor, inventory) and derives the rest with JSONLogic at render time: Perception, saves and skills (untrained +0; trained, expert, master, legendary = level + 2, 4, 6, 8; plus a flat bonus per check), class DC, AC (10 + Dexterity up to the armor's cap + proficiency in the armor's category + item bonus), AC with a raised shield, Hit Point maximum (ancestry HP + (class HP + Constitution) × level), spell DC and attack, Bulk carried and the encumbered and maximum limits, the dying maximum (4 − doomed), the recovery check DC and initiative. Creature and hazard stat blocks keep the book's totals.
+The character sheet stores what a player writes down (attribute modifiers, proficiency ranks, armor, inventory) and derives the rest with JSONLogic at render time: Perception, saves and skills (untrained +0; trained, expert, master, legendary = level + 2, 4, 6, 8; plus a flat bonus per check), class DC, AC (10 + Dexterity up to the armor's cap + proficiency in the armor's category + item bonus), AC with a raised shield, Hit Point maximum (ancestry HP + (class HP + Constitution) × level; Ancestry and Class offer the lists' items, a supplement's included, and the Hit Points of the built-in supplement's ancestries and classes are in the sheet's lookup too), spell DC and attack, Bulk carried and the encumbered and maximum limits, the dying maximum (4 − doomed), the recovery check DC and initiative. Creature and hazard stat blocks keep the book's totals.
 
 The dice engine is `d20` with the generic four-degree options (`critMargin: 10`, `naturalShift: true`): a total of DC + 10 or more is a critical success, DC − 10 or less a critical failure, and a natural 20 or 1 moves the result one step. The roll panel names its two-dice modes fortune and misfortune and offers the multiple attack penalty (−5 / −10, agile −4 / −8). See `docs/modules/dice-engines.md`.
 
 ## Reserved Material
 
-`scripts/source/reserved.ts` lists 305 terms: trademarks and other publications, deities and archfiends and their titles, named characters and artifacts, organizations and schools, places, peoples and the setting's regional languages, events, and the setting's planes. It was built by scanning every included entry for capitalized words that are not rules vocabulary and reviewing them by hand, plus the setting's major names around them.
+`scripts/source/reserved.ts` lists 433 terms (305 for the core books, 128 more added for the books of the supplement, which the core books' text is checked against too): trademarks and other publications, deities and archfiends and their titles, named characters and artifacts, organizations and schools, places, peoples and the setting's regional languages, events, and the setting's planes. It was built by scanning every included entry for capitalized words that are not rules vocabulary and reviewing them by hand, plus the setting's major names around them.
 
 - An entry whose **name** contains a term is dropped (28 entries: 23 items such as named volcano variants and artifacts, three feats named after the setting's planes, and two unique Monster Core creatures).
-- A sentence, list item or table row that names a term is **removed** (291 removals: deity examples in domains and mysteries, place names in creature descriptions, references to other books).
+- A sentence, list item or table row that names a term is **removed** (292 removals: deity examples in domains and mysteries, place names in creature descriptions, references to other books).
 - The setting's planes and underground realm are **rewritten** to generic phrases so rules that need a place still read (328 rewrites: "the demonic realms", "the realm of the dead", "the deep underground", "the world" and so on).
 
 The build fails if any term (or any Foundry markup) is left in a part file, and `test/pack.test.ts` checks every pack file again; the demo campaign's test checks its text too. Language names used as game terms (Common, Draconic, Sakvroth, Petran...) are kept; regional languages named after the setting's peoples are removed.
@@ -71,14 +71,41 @@ The build fails if any term (or any Foundry markup) is left in a part file, and 
 
 Every file is a lazily loaded chunk in the app, stays under 2 MB (under 500 kB minified, so under the bundler's chunk warning) and is precached for offline play.
 
+## Supplement: Remaster ORC books
+
+`supplements/remaster-orc-books/` is a built-in [supplement](../../docs/modules/supplements.md) for this module (id `pf2e-orc-books`, "Remaster ORC books"): the ORC-licensed, remastered content of more books, converted by the same code and scrubbed against the same Reserved Material list. It is **off by default**: the GM switches it on per device under *Game modules* (it roughly doubles the data the module loads: about 9 MB of JSON in 25 files next to the module's 7 MB). Its licence, attribution and the owner's TODOs are in [supplements/NOTICE](supplements/NOTICE).
+
+- **Allow-list**: `system.publication.license === "ORC"`, `remaster === true`, title one of Monster Core 2, NPC Core, Howl of the Wild, Rage of Elements, Treasure Vault (Remastered), Battlecry!, Impossible Magic, Guns & Gears (Remastered), Dark Archive (Remastered), War of Immortals. The source has no "(Remastered)" title for Guns & Gears: its ORC, remastered entries are titled "Pathfinder Guns & Gears" and are taken as the remastered book. **Rage of Elements** is marked OGL in the source (all 677 entries), so nothing of it is included and it is not credited. Never read: Lost Omens, adventure paths, society, player's guides, the Beginner Box, anything OGL, and the folders the module never reads. `scripts/generated/supplement-notes.txt` counts every entry of these books in every folder, what was kept, and why the rest was not (Foundry effects, adventure copies, other licences).
+- **Kept**: 820 creatures and NPCs and 27 hazards as presets; 12 classes (animist, commander, exemplar, guardian, gunslinger, inventor, magus, necromancer, psychic, runesmith, summoner, thaumaturge) and 8 ancestries (athamaru, automaton, awakened animal, centaur, jotunborn, merfolk, minotaur, surki) with their heritages, backgrounds, class and ancestry features; feats; spells, focus spells and rituals; items; actions (also as 233 rule cards); monster, familiar and vehicle entries: 4,400 items in the module's own lists, plus 14 new lists (class feats for each new class, mythic feats, aftermath and deviant feats; 788 items). By book:
+
+| Book | Kept |
+|---|---|
+| Monster Core 2 | 430 creatures, 1 hazard, 32 monster abilities, 2 spells, 1 item |
+| NPC Core | 256 NPCs (tagged by role), 20 monster abilities, 4 spells, 6 items |
+| Howl of the Wild | 6 ancestries, 29 heritages, 273 feats, 34 spells, 113 items, 71 creatures, 20 actions and more |
+| Treasure Vault (Remastered) | 1,061 items, 22 feats, 3 actions, 1 spell, 1 familiar ability |
+| Battlecry! | commander and guardian, 1 ancestry, 13 backgrounds, 233 feats, 39 spells, 226 items, 54 creatures, 29 vehicles, 47 actions |
+| Impossible Magic | magus, necromancer, runesmith and summoner, 365 feats, 325 spells, 307 items, 42 actions |
+| Guns & Gears (Remastered) | gunslinger and inventor, automaton, 36 backgrounds, 248 feats, 283 items, 19 vehicles, 3 hazards, 36 actions |
+| Dark Archive (Remastered) | psychic and thaumaturge, 231 feats, 77 spells, 47 items, 4 creatures, 18 hazards, 28 actions |
+| War of Immortals | animist and exemplar, 318 feats (163 mythic), 42 spells, 28 items, 5 creatures, 5 hazards, 57 actions |
+
+  Exact counts per content type are in `scripts/generated/supplement-counts.json`. Feats a class list shares are counted under each list.
+- **Reserved Material**: these books name far more of the setting than the core books. The converter's `--candidates` option lists the capitalised words in the converted text that never appear in lower case and that the module's reviewed text never uses (about 1,100, mostly rules terms); the setting names among them were added to `scripts/source/reserved.ts` (128 terms: deities and demigods, kaiju and named spirits, the iconics, named characters, organizations, places, peoples and Shoanti clans, a regional language, two publications). 139 entries were dropped (95 named with a term, 44 unique creatures, items and spells), 586 sentences, list items or table rows removed and 492 planes rewritten; every one is listed in the notes. No book turned out to be mostly setting material: War of Immortals loses the most (6 of its 11 creatures and the deity-bound mythic options), but keeps its classes, mythic rules and feats. The build fails on any leftover term or Foundry markup; `test/supplement.test.ts` scans every file again. A book's title appears only in the citation of an entry from it ("Howl of the Wild — Ancestries: Centaur"), which the scan allows.
+- **The character sheet**: Ancestry and Class accept the supplement's ancestries and classes (the sheet's lists show them while it is on), and their Hit Points are in the sheet's lookup (numbers only, `scripts/generated/supplement-hp.json`), so Hit Points are right for them too.
+- **Files**: `supplement.json` (manifest and the list of parts) and 24 parts named `books-*.json` (each under 500 kB minified), `src/supplement.ts` (one lazy import per file) and `src/supplementManifest.ts` (what the module list shows before loading it), all written by `scripts/build-supplement.ts`.
+
 ## Rebuilding
 
 ```sh
 # convert the source and rewrite every file (the source is a checkout of foundryvtt/pf2e)
 pnpm --filter @campaign-forge/module-pf2e-orc build-pack -- --source /path/to/pf2e
+# then the supplement (reads the module's list ids), and the authored files again (the sheet reads the supplement's Hit Points)
+pnpm --filter @campaign-forge/module-pf2e-orc build-supplement -- --source /path/to/pf2e [--candidates]
+pnpm --filter @campaign-forge/module-pf2e-orc build-pack
 # rewrite only pack.json, tables.json and src/index.ts after editing scripts/authored
 pnpm --filter @campaign-forge/module-pf2e-orc build-pack
-pnpm module-check pf2e-orc
+pnpm module-check pf2e-orc pf2e-orc-books
 ```
 
 The converter reads the source as data only (`JSON.parse`, typed accessors); nothing from it is run. It is deterministic. `scripts/generated/conversion-notes.txt` lists every exclusion, every Reserved Material removal and rewrite, and every text conversion it could not do exactly; `test/authored.test.ts` fails when the committed authored files are out of date.
@@ -91,4 +118,5 @@ The converter reads the source as data only (`JSON.parse`, typed accessors); not
 - **Level-scaled damage**: 44 formulas that scale with level are written as text ("(1d8 per 2 levels)"); a few complex ones read "level-based".
 - **Not modelled**: condition penalties on rolls (the conditions tracker records the values; the GM applies them with the roll panel's modifier), weapon Strikes from the sheet (written down as a table), archetype dedication limits, multiclass spellcasting.
 - **Encounter builder**: creatures are picked by level only, not by environment or theme; Monster Core has few creatures at the highest levels (one at level 21), so top-level encounters repeat them.
-- **Legal review**: the Reserved Material list is the converter's best effort from the text; the owner should review it before release, complete Monster Core's attribution line, and decide how to designate Campaign Forge's own additions (see NOTICE).
+- **Legal review**: the Reserved Material list is the converter's best effort from the text; the owner should review it before release, complete Monster Core's attribution line, and decide how to designate Campaign Forge's own additions (see NOTICE). For the supplement, seven books' Attribution Notice lines are incomplete in the source (see supplements/NOTICE).
+- **Supplement spot checks** (against the source): Adlet (Monster Core 2), Centaur and Minotaur (Howl of the Wild), Gorgon's Breath and Gossip's Eye (Treasure Vault). Two books share a creature name (Tripkee Scout in Monster Core 2 and NPC Core): both are kept, the NPC Core one with `npc-core` in its id.

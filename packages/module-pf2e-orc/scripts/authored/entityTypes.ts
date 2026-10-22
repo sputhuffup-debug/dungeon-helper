@@ -42,7 +42,10 @@ const attributeFields = (): SheetField[] => ATTRIBUTES.map((a): SheetField => ({
 // Player character
 // ---------------------------------------------------------------------------
 
-export function characterType(ancestryHp: Record<string, number>, classHp: Record<string, number>): EntityTypeDef {
+/** Hit Points by ancestry or class id; a supplement's ids ("<supplement id>.<item id>") nest under the supplement id, which is how `lookup` reads a dotted path. */
+export type HpTable = Record<string, number | Record<string, number>>;
+
+export function characterType(ancestryHp: HpTable, classHp: HpTable): EntityTypeDef {
   for (const a of ANCESTRIES) if (!(a in ancestryHp)) throw new Error(`ancestry ${a} missing from the ancestry list`);
   for (const c of CLASSES) if (!(c in classHp)) throw new Error(`class ${c} missing from the class list`);
   const level = v("fields.level", 1);
@@ -93,10 +96,10 @@ export function characterType(ancestryHp: Record<string, number>, classHp: Recor
     properties: {
       isPC: { type: "boolean", default: true },
       player: text(120),
-      ancestry: { type: "string", enum: [...ANCESTRIES] },
+      ancestry: { type: "string", maxLength: 120, description: `An ancestry id from the Ancestries list (${ANCESTRIES.join(", ")}, or one a supplement adds).` },
       heritage: text(120),
       background: text(120),
-      class: { type: "string", enum: [...CLASSES] },
+      class: { type: "string", maxLength: 120, description: `A class id from the Classes list (${CLASSES.join(", ")}, or one a supplement adds).` },
       subclass: { ...text(120), description: "Class choice: a doctrine, instinct, muse, racket, mystery, school and so on." },
       level: int(1, 20, 1),
       xp: int(0, 999, 0),

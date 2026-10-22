@@ -68,7 +68,7 @@ vehicles: 63 × ORC, but not from Player Core, Player Core 2, GM Core or Monster
 vehicles: 14 × licence OGL (not ORC)
 total excluded: 13431
 
-## Reserved Material (denylist of 305 terms)
+## Reserved Material (denylist of 433 terms)
 Entries dropped:
 - equipment: Blackaxe (name is Reserved Material: Blackaxe)
 - equipment: Bounty's Light (unique: a named character or artifact of the setting)
@@ -135,6 +135,7 @@ Sentences, list items or table rows removed, by term:
 - Gozreh: 2
 - Gozren: 1
 - Haagenti: 3
+- Harrow: 1
 - Hei Feng: 1
 - Horseman: 2
 - Horsemen: 1

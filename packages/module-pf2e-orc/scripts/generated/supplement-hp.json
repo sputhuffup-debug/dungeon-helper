@@ -1,0 +1,26 @@
+{
+ "ancestryHp": {
+  "pf2e-orc-books.athamaru": 8,
+  "pf2e-orc-books.automaton": 8,
+  "pf2e-orc-books.awakened-animal": 6,
+  "pf2e-orc-books.centaur": 8,
+  "pf2e-orc-books.jotunborn": 10,
+  "pf2e-orc-books.merfolk": 8,
+  "pf2e-orc-books.minotaur": 10,
+  "pf2e-orc-books.surki": 8
+ },
+ "classHp": {
+  "pf2e-orc-books.animist": 8,
+  "pf2e-orc-books.commander": 8,
+  "pf2e-orc-books.exemplar": 10,
+  "pf2e-orc-books.guardian": 12,
+  "pf2e-orc-books.gunslinger": 8,
+  "pf2e-orc-books.inventor": 8,
+  "pf2e-orc-books.magus": 8,
+  "pf2e-orc-books.necromancer": 8,
+  "pf2e-orc-books.psychic": 6,
+  "pf2e-orc-books.runesmith": 8,
+  "pf2e-orc-books.summoner": 10,
+  "pf2e-orc-books.thaumaturge": 8
+ }
+}

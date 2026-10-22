@@ -216,24 +216,8 @@
      },
      "ancestry": {
       "type": "string",
-      "enum": [
-       "catfolk",
-       "dwarf",
-       "elf",
-       "gnome",
-       "goblin",
-       "halfling",
-       "hobgoblin",
-       "human",
-       "kholo",
-       "kobold",
-       "leshy",
-       "lizardfolk",
-       "orc",
-       "ratfolk",
-       "tengu",
-       "tripkee"
-      ]
+      "maxLength": 120,
+      "description": "An ancestry id from the Ancestries list (catfolk, dwarf, elf, gnome, goblin, halfling, hobgoblin, human, kholo, kobold, leshy, lizardfolk, orc, ratfolk, tengu, tripkee, or one a supplement adds)."
      },
      "heritage": {
       "type": "string",
@@ -245,24 +229,8 @@
      },
      "class": {
       "type": "string",
-      "enum": [
-       "alchemist",
-       "barbarian",
-       "bard",
-       "champion",
-       "cleric",
-       "druid",
-       "fighter",
-       "investigator",
-       "monk",
-       "oracle",
-       "ranger",
-       "rogue",
-       "sorcerer",
-       "swashbuckler",
-       "witch",
-       "wizard"
-      ]
+      "maxLength": 120,
+      "description": "A class id from the Classes list (alchemist, barbarian, bard, champion, cleric, druid, fighter, investigator, monk, oracle, ranger, rogue, sorcerer, swashbuckler, witch, wizard, or one a supplement adds)."
      },
      "subclass": {
       "type": "string",
@@ -2614,7 +2582,17 @@
        "orc": 10,
        "ratfolk": 6,
        "tengu": 6,
-       "tripkee": 6
+       "tripkee": 6,
+       "pf2e-orc-books": {
+        "athamaru": 8,
+        "automaton": 8,
+        "awakened-animal": 6,
+        "centaur": 8,
+        "jotunborn": 10,
+        "merfolk": 8,
+        "minotaur": 10,
+        "surki": 8
+       }
       },
       {
        "var": [
@@ -2643,7 +2621,21 @@
        "sorcerer": 6,
        "swashbuckler": 10,
        "witch": 6,
-       "wizard": 6
+       "wizard": 6,
+       "pf2e-orc-books": {
+        "animist": 8,
+        "commander": 8,
+        "exemplar": 10,
+        "guardian": 12,
+        "gunslinger": 8,
+        "inventor": 8,
+        "magus": 8,
+        "necromancer": 8,
+        "psychic": 6,
+        "runesmith": 8,
+        "summoner": 10,
+        "thaumaturge": 8
+       }
       },
       {
        "var": [

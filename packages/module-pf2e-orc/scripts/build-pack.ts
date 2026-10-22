@@ -16,6 +16,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { AUTHORED_PARTS, buildAuthored, type GeneratedData } from "./authored/index.ts";
+import type { HpTable } from "./authored/entityTypes.ts";
 import { convertSource, type Part } from "./convert.ts";
 import { PACK } from "./ids.ts";
 
@@ -98,7 +99,31 @@ function readPart(name: string): Record<string, unknown> {
 export function generatedData(readJson: (name: string) => Record<string, unknown>, extra: Record<string, unknown>, parts: string[]): GeneratedData {
   const presets = parts.flatMap((p) => (readJson(p).presets as GeneratedData["presets"] | undefined) ?? []);
   const lists = parts.flatMap((p) => (readJson(p).referenceLists as GeneratedData["lists"] | undefined) ?? []);
-  return { presets, lists, parts, ancestryHp: extra.ancestryHp as Record<string, number>, classHp: extra.classHp as Record<string, number> };
+  return { presets, lists, parts, ancestryHp: extra.ancestryHp as HpTable, classHp: extra.classHp as HpTable };
+}
+
+/**
+ * Hit Points by ancestry and class for the character sheet: the module's own
+ * (generated/hp.json) plus, when it was built, those of the built-in
+ * supplement's ancestries and classes (generated/supplement-hp.json, numbers
+ * only), nested under the supplement id, so a character with one of them gets
+ * the right Hit Points while the supplement is on.
+ */
+export function readHp(generated = GENERATED): Record<string, unknown> {
+  const hp = JSON.parse(readFileSync(join(generated, "hp.json"), "utf8")) as { ancestryHp: HpTable; classHp: HpTable };
+  const file = join(generated, "supplement-hp.json");
+  if (!existsSync(file)) return hp;
+  const extra = JSON.parse(readFileSync(file, "utf8")) as { ancestryHp: Record<string, number>; classHp: Record<string, number> };
+  const nest = (flat: Record<string, number>): HpTable => {
+    const out: Record<string, Record<string, number>> = {};
+    for (const [k, v] of Object.entries(flat)) {
+      const dot = k.indexOf(".");
+      if (dot < 0) throw new Error(`supplement Hit Points for "${k}": not a supplement id`);
+      (out[k.slice(0, dot)] ??= {})[k.slice(dot + 1)] = v;
+    }
+    return out;
+  };
+  return { ancestryHp: { ...hp.ancestryHp, ...nest(extra.ancestryHp) }, classHp: { ...hp.classHp, ...nest(extra.classHp) } };
 }
 
 function main(argv: string[]): void {
@@ -124,7 +149,7 @@ function main(argv: string[]): void {
   }
   const parts = convertedParts();
   writeFileSync(SRC_INDEX, sourceIndex(parts));
-  const hp = JSON.parse(readFileSync(join(GENERATED, "hp.json"), "utf8")) as Record<string, unknown>;
+  const hp = readHp();
   const authored = buildAuthored(generatedData(readPart, hp, parts));
   for (const [name, data] of Object.entries(authored)) sizes[name] = write(join(PACK_DIR, name), data);
   writeFileSync(SRC_MANIFEST, sourceManifest(authored["pack.json"] as Record<string, unknown>));

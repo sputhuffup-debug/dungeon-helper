@@ -7,7 +7,7 @@
  * abilities point to the Monster abilities list instead of repeating it.
  */
 import type { EntityPreset } from "@campaign-forge/module-sdk";
-import { ATTRIBUTES, cite, CREATURE, preset, SKILLS } from "../ids.ts";
+import { ATTRIBUTES, cite, CREATURE, preset, SKILLS, slug as toSlug } from "../ids.ts";
 import { actionCost, frequencyText, line, md, ordinal, signed, traitText, traitsLine, usable, type Ctx } from "./common.ts";
 import { findReserved } from "./reserved.ts";
 import { num, obj, objs, str, strs, type Entry, type Raw } from "./read.ts";
@@ -145,7 +145,12 @@ export interface CreatureConversion {
   presets: EntityPreset[];
 }
 
-export function convertCreatures(entries: Entry[], ctx: Ctx): CreatureConversion {
+export interface CreatureOptions {
+  /** Tags after the book's name (e.g. an NPC's role), before the creature's traits. */
+  extraTags?: (e: Entry) => string[];
+}
+
+export function convertCreatures(entries: Entry[], ctx: Ctx, opts: CreatureOptions = {}): CreatureConversion {
   const seen = new Set<string>();
   const presets: EntityPreset[] = [];
   for (const e of entries.filter((x) => usable(ctx, x)).sort((a, b) => a.name.localeCompare(b.name))) {
@@ -155,7 +160,7 @@ export function convertCreatures(entries: Entry[], ctx: Ctx): CreatureConversion
     const level = num(obj(details.level).value, 0);
     const traits = obj(s.traits);
     const items = e.items;
-    const slug = e.file.split("/").pop()!.replace(/\.json$/, "");
+    const slug = toSlug(e.file.split("/").pop()!.replace(/\.json$/, ""));
     if (seen.has(slug)) throw new Error(`duplicate creature ${slug}`);
     seen.add(slug);
     const skills: Record<string, number> = {};
@@ -220,7 +225,7 @@ export function convertCreatures(entries: Entry[], ctx: Ctx): CreatureConversion
       name: e.name,
       summary: `Creature ${level}. ${fields.rarity !== "common" ? `${titleCase(String(fields.rarity))} ` : ""}${sizeName} ${traitWords}. AC ${fields.ac}, HP ${num(hp.max, 1)}.`,
       cite: cite(e.book, "Creatures", e.name),
-      tags: ["monster core", ...strs(traits.value).filter((x) => !["common"].includes(x) && !findReserved(x)).slice(0, 4)],
+      tags: [e.book.toLowerCase(), ...(opts.extraTags?.(e) ?? []), ...strs(traits.value).filter((x) => !["common"].includes(x) && !findReserved(x)).slice(0, 4)],
       fields,
     });
   }
