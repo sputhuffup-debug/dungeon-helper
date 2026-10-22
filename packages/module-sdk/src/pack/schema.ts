@@ -349,7 +349,7 @@ const definitions: Record<string, JsonSchema> = {
       mode: ref("modes"),
       summary: str(),
       edition: str({ maxLength: 40, description: "A ruleset or edition label shown next to the item, e.g. \"2024\"." }),
-      source: str({ maxLength: 200, description: "Set by the loader on items a supplement added (the supplement's name)." }),
+      source: str({ maxLength: 200, description: "Where the item comes from, shown as a badge: the supplement's name (set by the loader on items a supplement added), or a source label a module gives its own items (e.g. \"SRD 5.2\")." }),
     },
     description: "Any other properties are the item's own data (e.g. the attribute a skill uses).",
   },

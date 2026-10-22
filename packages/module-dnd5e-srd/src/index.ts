@@ -1,8 +1,9 @@
 /**
- * 5th Edition SRD 5.1 (fantasy d20) as a built-in Campaign Forge data pack.
+ * 5th Edition SRD 5.1 & 5.2 (fantasy d20) as a built-in Campaign Forge data pack.
  *
- * The pack is plain JSON in `pack/`: the converted SRD 5.1 (CC-BY-4.0; see
- * NOTICE) and the module's own tables, generators, templates and play advice.
+ * The pack is plain JSON in `pack/`: the converted SRD 5.1 and the SRD 5.2
+ * character options (CC-BY-4.0; see NOTICE) and the module's own tables,
+ * generators, templates and play advice.
  * Each file is loaded lazily, so a bundler gives every one its own chunk.
  * `scripts/build-pack.ts` regenerates the files from the SRD data.
  */

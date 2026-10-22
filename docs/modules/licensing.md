@@ -17,7 +17,7 @@ Two rules from the project's `CLAUDE.md` apply to every module:
 ```
 
 - `license` is required in a data pack and recommended in every TypeScript module.
-- `attribution` is shown as written, as plain text, in the module list (*Game modules…*), in the New campaign dialog, in the campaign's Settings → Game module, and folded away at the foot of the Rules and Reference pages. Put everything the licence asks you to credit there. `packages/module-dnd5e-srd` is a worked example (with a NOTICE file for the data it was converted from).
+- `attribution` is shown as written, as plain text, in the module list (*Game modules…*), in the New campaign dialog, in the campaign's Settings → Game module, and folded away at the foot of the Rules and Reference pages. Put everything the licence asks you to credit there; content from more than one source gets each source's attribution, separated by a blank line (`\n\n`), which the app keeps. `packages/module-dnd5e-srd` is a worked example (the SRD 5.1 and SRD 5.2 attributions, with a NOTICE file for the data it was converted from).
 - `url` and `sourceBook.url` must be `http(s)`; the app links nothing else.
 - `licenseNotice` stays a short notice for exports and the settings page; it is not a substitute for the attribution.
 - When you write your own game, say so (`"name": "All rights reserved"` and your own credit line) or pick an open licence.

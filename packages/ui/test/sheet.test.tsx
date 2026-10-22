@@ -278,7 +278,7 @@ describe("text fields with suggestions", () => {
       name: "Paths",
       items: [
         { id: "thief", name: "Thief", class: "Rogue" },
-        { id: "house.lamplighter", name: "Lamplighter", class: "Rogue", source: "House rules", edition: "2024" },
+        { id: "house.lamplighter", name: "Lamplighter", class: "Rogue", source: "House rules", edition: "2024", summary: "Ability scores Dex, Int, Wis; feat Alert" },
         { id: "house.gearwright", name: "Gearwright", class: "Tinker", source: "House rules" },
         { id: "spy", name: "Spy", class: "Rogue", mode: ["intrigue"] },
       ],
@@ -328,5 +328,19 @@ describe("text fields with suggestions", () => {
     expect(within(screen.getByRole("combobox", { name: "Class" })).getAllByRole("option").map((o) => o.textContent)).toEqual(["—", "bard", "Rogue", "Tinker (House rules)"]);
     expect(screen.getByRole("textbox", { name: "Nickname" })).not.toHaveAttribute("list");
     expect(container.querySelector('[data-testid="options-nickname"]')).toBeNull();
+  });
+
+  it("shows the summary of the item the value names as a hint, without changing anything else", () => {
+    const onChange = vi.fn();
+    const { container, rerender } = render(<SheetRenderer def={def} mode="standard" fields={{ class: "rogue", path: "lamplighter " }} onChange={onChange} referenceLists={lists} />);
+    // the name matches loosely on case and outer spaces; only the summary shows
+    expect(screen.getByTestId("hint-path")).toHaveTextContent("Ability scores Dex, Int, Wis; feat Alert");
+    // free text, or an item with no summary: no hint
+    rerender(<SheetRenderer def={def} mode="standard" fields={{ class: "rogue", path: "Thief" }} onChange={onChange} referenceLists={lists} />);
+    expect(screen.queryByTestId("hint-path")).toBeNull();
+    rerender(<SheetRenderer def={def} mode="standard" fields={{ class: "rogue", path: "Lamplighters" }} onChange={onChange} referenceLists={lists} />);
+    expect(screen.queryByTestId("hint-path")).toBeNull();
+    expect(container.querySelector('[data-testid="hint-nickname"]')).toBeNull();
+    expect(onChange).not.toHaveBeenCalled();
   });
 });

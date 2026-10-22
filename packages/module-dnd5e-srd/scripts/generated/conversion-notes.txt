@@ -10,3 +10,5 @@ Spider: passive Perception derived as 10; the source lists 12
 Swarm of Ravens: added perception +5 from the stat block (missing in the source's proficiency list)
 table dnd5e-srd.magic-item.robe-of-useful-items-patch: skipped (no row for 45)
 table dnd5e-srd.magic-item.wand-of-wonder-effect: skipped (no row for 16)
+SRD 5.2 background Sage: origin feat Magic Initiate given its spell list (Wizard), missing in the source
+SRD 5.2 feature Oath of Devotion Spells: spelling "Shielf of Faith" corrected to "Shield of Faith"

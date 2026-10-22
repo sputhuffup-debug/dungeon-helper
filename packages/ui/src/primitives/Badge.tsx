@@ -16,7 +16,7 @@ export function Badge({ tone = "muted", className, children, ...rest }: BadgePro
   );
 }
 
-/** Where an entry comes from when a supplement added it: a small badge with the supplement's name. Renders nothing for the module's own content. */
+/** Where an entry comes from: a small badge with the supplement's name (or the source a module gives its own items, e.g. "SRD 5.2"), and its edition. Renders nothing for an entry with neither. */
 export function SourceBadge({ source, edition }: { source?: string | undefined; edition?: string | undefined }) {
   if (!source && !edition) return null;
   return (
@@ -27,7 +27,7 @@ export function SourceBadge({ source, edition }: { source?: string | undefined; 
         </Badge>
       )}
       {source && (
-        <Badge tone="accent" className="cf-badge--source" data-testid="source-badge" title={`From the supplement ${source}`}>
+        <Badge tone="accent" className="cf-badge--source" data-testid="source-badge" title={`Source: ${source}`}>
           {source}
         </Badge>
       )}

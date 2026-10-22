@@ -1368,7 +1368,7 @@
         "source": {
           "type": "string",
           "maxLength": 200,
-          "description": "Set by the loader on items a supplement added (the supplement's name)."
+          "description": "Where the item comes from, shown as a badge: the supplement's name (set by the loader on items a supplement added), or a source label a module gives its own items (e.g. \"SRD 5.2\")."
         }
       },
       "description": "Any other properties are the item's own data (e.g. the attribute a skill uses)."

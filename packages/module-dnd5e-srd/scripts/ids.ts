@@ -95,5 +95,12 @@ export const LIST = {
 /** The citation of SRD 5.1 content by section. */
 export const cite = (section: string, sub?: string): string => (sub ? `SRD 5.1 — ${section}: ${sub}` : `SRD 5.1 — ${section}`);
 
+/** The citation of SRD 5.2 content by section ("SRD 5.2 — Character Origins: Species (Elf)"). */
+export const cite52 = (section: string, sub?: string): string => (sub ? `SRD 5.2 — ${section}: ${sub}` : `SRD 5.2 — ${section}`);
+
+/** What every SRD 5.2 item carries, so the app badges it and tells it apart from the SRD 5.1 item of the same name. */
+export const EDITION_2024 = "2024";
+export const SOURCE_52 = "SRD 5.2";
+
 export const rule = (rest: string): string => id(`rule.${rest}`);
 export const preset = (monsterIndex: string): string => id(`preset.${monsterIndex}`);

@@ -1,6 +1,7 @@
 /**
- * The built-in SRD 5.1 data pack end to end: its licence before download, a
- * campaign with it, a player character whose sheet derives its numbers, a
+ * The built-in SRD 5.1 & 5.2 data pack end to end: its licence (both SRD
+ * attributions) before download, a campaign with it, a player character whose
+ * sheet derives its numbers and suggests SRD 5.1 and SRD 5.2 options, a
  * Goblin from the SRD presets, a skill roll at the table with a DC, the
  * rolled initiative and hit point trackers, reference lists, rule cards and
  * the encounter generator. `DND5E_SHOTS=<dir>` keeps screenshots for review.
@@ -17,7 +18,7 @@ async function shot(page: Page, name: string) {
 
 const nav = (page: Page, name: string) => page.getByRole("navigation", { name: "Campaign" }).getByRole("link", { name, exact: true });
 
-test("SRD 5.1 pack: a campaign, a PC and a Goblin, a skill roll at the table, reference, rules and a generator", async ({ page }) => {
+test("SRD 5.1 & 5.2 pack: a campaign, a PC and a Goblin, a skill roll at the table, reference, rules and a generator", async ({ page }) => {
   test.setTimeout(120_000);
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
@@ -27,8 +28,9 @@ test("SRD 5.1 pack: a campaign, a PC and a Goblin, a skill roll at the table, re
   await page.goto("/");
   await page.getByTestId("open-modules").click();
   const modules = page.getByRole("dialog", { name: "Game modules" });
-  await expect(modules.getByTestId("module-dnd5e-srd")).toContainText("5th Edition SRD 5.1 (fantasy d20)");
+  await expect(modules.getByTestId("module-dnd5e-srd")).toContainText("5th Edition SRD 5.1 & 5.2 (fantasy d20)");
   await expect(modules.getByTestId("module-licence-dnd5e-srd")).toContainText('This work includes material taken from the System Reference Document 5.1 ("SRD 5.1") by Wizards of the Coast LLC');
+  await expect(modules.getByTestId("module-licence-dnd5e-srd")).toContainText("This work includes material from the System Reference Document 5.2 (“SRD 5.2”) by Wizards of the Coast LLC, available at https://www.dndbeyond.com/srd.");
   await modules.getByRole("button", { name: "Close" }).click();
 
   // 2. a campaign with it
@@ -37,6 +39,7 @@ test("SRD 5.1 pack: a campaign, a PC and a Goblin, a skill roll at the table, re
   await create.getByLabel("Name", { exact: true }).fill("Into the Vale");
   await create.getByRole("combobox", { name: "Game module" }).selectOption("dnd5e-srd");
   await expect(create.getByRole("radio", { name: /Campaign/ })).toBeChecked();
+  await expect(create).toContainText("System Reference Document 5.2 (“SRD 5.2”)");
   await create.getByRole("button", { name: "Create campaign" }).click();
   await expect(page).toHaveURL(/\/c\/[0-9A-Z]{26}\/home$/, { timeout: 30_000 });
   const base = page.url().replace(/\/home$/, "");
@@ -58,6 +61,29 @@ test("SRD 5.1 pack: a campaign, a PC and a Goblin, a skill roll at the table, re
   // Dexterity 14 (+2) with expertise at proficiency +3
   await expect(page.getByTestId("pool-stealth")).toHaveText("1d20 + 8");
   await shot(page, "pc-sheet");
+
+  // 3b. SRD 5.1 and SRD 5.2 options side by side: the 2024 ones are labelled, and picking a background shows its abilities and feat
+  const opt = (field: string, value: string) => page.locator(`[data-testid="options-${field}"] option[value="${value}"]`);
+  await expect(opt("background", "Acolyte")).not.toHaveAttribute("label");
+  await expect(opt("background", "Acolyte (2024)")).toHaveAttribute("label", "2024 · SRD 5.2");
+  await expect(opt("background", "Sage")).toHaveAttribute("label", "2024 · SRD 5.2");
+  await page.getByRole("combobox", { name: "Background", exact: true }).fill("Sage");
+  await expect(page.getByTestId("hint-background")).toHaveText("Ability scores Con, Int, Wis; feat Magic Initiate (Wizard); skills Arcana, History");
+  // the hint changes nothing: Intelligence is still what was typed
+  await expect(page.getByRole("spinbutton", { name: "Intelligence", exact: true })).toHaveValue("16");
+  await expect(page.locator('[data-testid="options-subclass"] option')).toHaveCount(2);
+  await expect(opt("subclass", "Evocation")).toHaveCount(1);
+  await expect(opt("subclass", "Evoker")).toHaveAttribute("label", "2024 · SRD 5.2");
+  await expect(opt("race", "Elf")).toHaveCount(1);
+  await expect(opt("race", "Elf (2024)")).toHaveCount(1);
+  await page.getByRole("combobox", { name: "Race", exact: true }).fill("Elf (2024)");
+  // lineages follow the 2024 species; the SRD 5.1 High Elf stays with the SRD 5.1 Elf
+  await expect(page.locator('[data-testid="options-subrace"] option')).toHaveCount(3);
+  await expect(opt("subrace", "Elven Lineage: High Elf")).toHaveCount(1);
+  await expect(opt("subrace", "High Elf")).toHaveCount(0);
+  await page.getByRole("combobox", { name: "Race", exact: true }).fill("Elf");
+  await expect(page.locator('[data-testid="options-subrace"] option')).toHaveCount(1);
+  await expect(opt("subrace", "High Elf")).toHaveCount(1);
 
   // 4. a Goblin from the SRD presets, one click
   await page.goto(`${base}/home`);
@@ -122,7 +148,24 @@ test("SRD 5.1 pack: a campaign, a PC and a Goblin, a skill roll at the table, re
   await expect(item).toContainText("SRD 5.1 — Spells");
   await shot(page, "reference-spell");
   await page.getByRole("dialog").getByRole("button", { name: "Close" }).click();
+  await page.goto(`${base}/settings`);
+  await expect(page.getByTestId("module-attribution")).toContainText("System Reference Document 5.1 (\"SRD 5.1\")");
+  await expect(page.getByTestId("module-attribution")).toContainText("System Reference Document 5.2 (“SRD 5.2”)");
+  await page.goto(`${base}/reference`);
   await expect(page.getByTestId("page-attribution")).toContainText("Licence and attribution");
+  await page.getByTestId("page-attribution").locator("summary").click();
+  await expect(page.getByTestId("page-attribution")).toContainText("System Reference Document 5.2 (“SRD 5.2”)");
+  // the SRD 5.2 backgrounds sit beside the SRD 5.1 one, badged with their edition and source
+  await page.getByRole("combobox", { name: "Reference list" }).selectOption("dnd5e-srd.backgrounds");
+  await page.getByRole("searchbox", { name: "Filter items" }).fill("2024");
+  const rows = page.getByTestId("reference-items").locator("tbody tr");
+  await expect(rows).toHaveCount(4);
+  await expect(rows.first().getByTestId("edition-badge")).toHaveText("2024");
+  await expect(rows.first().getByTestId("source-badge")).toHaveText("SRD 5.2");
+  await page.getByTestId("reference-items").getByRole("button", { name: "Sage", exact: true }).click();
+  await expect(page.getByTestId("reference-item")).toContainText("Magic Initiate (Wizard)");
+  await expect(page.getByTestId("reference-item")).toContainText("SRD 5.2 — Character Origins: Backgrounds (Sage)");
+  await page.getByRole("dialog").getByRole("button", { name: "Close" }).click();
 
   // 8. rule cards browse and cite the SRD by section
   await nav(page, "Rules").click();
