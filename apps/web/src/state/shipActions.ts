@@ -165,6 +165,8 @@ export interface DepartInput {
   options: Record<string, unknown>;
   days?: number;
   seed: string;
+  /** Faces of arrival dice rolled at the table. */
+  entered?: number[];
 }
 
 /** Depart now: log the leg, roll arrival checks from the seed, apply them and move the date. */
@@ -176,6 +178,7 @@ export function departShip(ctx: Ctx, input: DepartInput): DepartResult {
     distance: input.distance,
     options: input.options,
     seed: input.seed,
+    ...(input.entered ? { entered: input.entered } : {}),
     ...(input.from ? { from: input.from } : {}),
     ...(ship ? { ship: ship.id } : {}),
     ...(input.days !== undefined ? { days: input.days } : {}),

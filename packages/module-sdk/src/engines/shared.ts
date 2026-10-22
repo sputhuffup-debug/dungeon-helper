@@ -20,7 +20,7 @@ export function rollFree(pool: DicePool, specs: DieSpec[], rng: Rng): RollResult
   const dice: RolledDie[] = [];
   for (const spec of specs) {
     const n = Math.max(0, Math.floor(num(pool.dice[spec.id])));
-    for (let i = 0; i < n; i++) dice.push({ die: spec.id, value: rng.int(1, spec.faces) });
+    for (let i = 0; i < n; i++) dice.push({ die: spec.id, value: rng.int(1, spec.faces, { label: spec.name, die: spec.id }) });
   }
   const total = dice.reduce((a, d) => a + d.value, 0) + num(pool.modifier);
   return { pool, dice, successes: 0, symbols: {}, pushes: 0, canPush: false, total };

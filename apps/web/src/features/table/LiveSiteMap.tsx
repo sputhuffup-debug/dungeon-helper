@@ -32,14 +32,15 @@ import {
 } from "@campaign-forge/core";
 import type { MapGeneratorDef, MapLegendEntry, MapZoneData } from "@campaign-forge/module-sdk";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Badge, Button, Card, MapLegend, PageRef, SiteMapView, pushToast } from "../../components/ui";
+import { Badge, Button, Card, MapLegend, PageRef, SiteMapView, pushToast, useDiceRoller } from "../../components/ui";
 import { errorMessage } from "../../lib/format";
-import { rollZoneTable } from "../../state/tableActions";
+import { rollZoneTable, tableRun } from "../../state/tableActions";
 import { useCampaign } from "../../state/hooks";
 import { maxActOf, useMapGenerator, useMapPalette } from "../maps/siteMapFiles";
 import "../maps/sitemap.css";
 import { useSessionTrackerState } from "./hooks";
 import { clearPingsOnStretch, clockStamp, ensureLive, measureRange, sceneActNumber, unrevealed, zoneExits, borderControls, type LiveTool } from "./siteMapLive";
+import { RollSource } from "./RollSource";
 import { useModeTrackers } from "./TrackersPanel";
 
 const TOOLS: Array<{ id: LiveTool; label: string; hint: string }> = [
@@ -206,7 +207,8 @@ export function LiveSiteMap({ sessionId, map, scene, participants }: { sessionId
  */
 function DuctEvents({ sessionId, map, zones, label }: { sessionId: Id; map: SiteMap; zones: string[]; label: (id: string) => string }) {
   const ctx = useCampaign();
-  const [last, setLast] = useState<{ zone: string; label: string; text: string; seed: string } | undefined>();
+  const roller = useDiceRoller();
+  const [last, setLast] = useState<{ zone: string; label: string; text: string; seed: string; entered?: number[] } | undefined>();
   const zoneKey = [...new Set(zones)].join("|");
   const rows = useMemo(
     () =>
@@ -251,8 +253,14 @@ function DuctEvents({ sessionId, map, zones, label }: { sessionId: Id; map: Site
                 data-testid="duct-event-roll"
                 onClick={() => {
                   try {
-                    const out = rollZoneTable(ctx, sessionId, { zoneTable: t, map: map.id, zone: r.zone, zoneLabel: label(r.zone) });
-                    setLast({ zone: r.zone, label: t.label, text: out.text, seed: out.seed });
+                    roller.roll({
+                      title: `${t.label} (${label(r.zone)})`,
+                      run: tableRun(ctx, t.table),
+                      perform: (entered) => {
+                        const out = rollZoneTable(ctx, sessionId, { zoneTable: t, map: map.id, zone: r.zone, zoneLabel: label(r.zone) }, entered);
+                        setLast({ zone: r.zone, label: t.label, text: out.text, seed: out.seed, ...(out.entered ? { entered: out.entered } : {}) });
+                      },
+                    });
                   } catch (e) {
                     pushToast(`Roll failed: ${errorMessage(e)}`, { tone: "danger" });
                   }
@@ -266,7 +274,7 @@ function DuctEvents({ sessionId, map, zones, label }: { sessionId: Id; map: Site
       </ul>
       {last && (
         <output className="app-livemap__ductresult" data-testid="duct-event-result" aria-live="polite">
-          <strong>{last.label}</strong> ({label(last.zone)}): {last.text} <span className="cf-muted">· seed {last.seed}</span>
+          <strong>{last.label}</strong> ({label(last.zone)}): {last.text} <span className="cf-muted">·</span> <RollSource seed={last.seed} entered={last.entered} />
         </output>
       )}
     </section>

@@ -3,13 +3,17 @@
  * Every procedure runs twice per seed (with its optional steps) and every
  * dice roll and push is made twice from the same seed; any difference is an
  * error. Catches module code that reads the clock, `Math.random` or shared
- * mutable state.
+ * mutable state. It also checks dice rolled at the table: the faces an app
+ * roll used, typed back in (`createEnteredRng`), must give the same roll,
+ * push, dice operation and procedure step.
  */
 import { schemaDefaults } from "./entities";
 import type { ConformanceIssue } from "./module";
+import { recordDice, rollEntered } from "./entered";
 import { runProcedure } from "./procedures";
 import { createRng } from "./rng";
-import type { GameModule } from "./types";
+import { createTableRegistry } from "./tables";
+import type { GameModule, Procedure, ProcedureRunOptions, Rng } from "./types";
 
 export interface DeterminismOptions {
   /** Seeds per procedure (default 25). */
@@ -48,6 +52,13 @@ export function checkDeterminism(module: GameModule, options: DeterminismOptions
           issues.push({ severity: "error", where, message: `two runs with seed "${seed}" gave different results (rule 3: same seed, same output)` });
           break;
         }
+        if (i < ENTERED_SEEDS) {
+          const problem = enteredProcedureProblem(proc, module, { seed, inputs, includeOptional }, a);
+          if (problem) {
+            issues.push({ severity: "error", where, message: `seed "${seed}": ${problem}` });
+            break;
+          }
+        }
       } catch (e) {
         issues.push({ severity: "error", where, message: `threw for seed "${seed}": ${(e as Error).message}` });
         break;
@@ -69,9 +80,70 @@ export function checkDeterminism(module: GameModule, options: DeterminismOptions
       if (dice.push && a.canPush && !same(dice.push(a, createRng(`${seed}/push`), input), dice.push(b, createRng(`${seed}/push`), input))) {
         issues.push({ severity: "error", where: "dice", message: `two pushes with seed "${seed}" differ` });
       }
+      const problem = enteredReplayProblem((rng) => dice.roll(pool, rng), createRng(seed));
+      if (problem) issues.push({ severity: "error", where: "dice", message: `entered dice for ${JSON.stringify(input)}: ${problem}` });
+      const push = dice.push;
+      if (push && a.canPush) {
+        const pushProblem = enteredReplayProblem((rng) => push(a, rng, input), createRng(`${seed}/push`));
+        if (pushProblem) issues.push({ severity: "error", where: "dice", message: `entered dice for a push of ${JSON.stringify(input)}: ${pushProblem}` });
+      }
     } catch (e) {
       issues.push({ severity: "error", where: "dice", message: `rolling ${JSON.stringify(input)} threw: ${(e as Error).message}` });
     }
   }
+  const tables = createTableRegistry(module.tables);
+  for (const op of Object.values(dice.operations ?? {})) {
+    const input = schemaDefaults(op.input);
+    let probe: unknown;
+    try {
+      probe = op.run(input, createRng("determinism-op"), tables);
+    } catch {
+      continue; // needs input the defaults do not give (a roll result, an entity)
+    }
+    if (probe === undefined) continue;
+    const problem = enteredReplayProblem((rng) => op.run(input, rng, tables), createRng("determinism-op"));
+    if (problem) issues.push({ severity: "error", where: `dice.operations.${op.id}`, message: `entered dice: ${problem}` });
+  }
   return issues;
+}
+
+/** Seeds per procedure that also replay every step from entered dice. */
+const ENTERED_SEEDS = 3;
+
+/**
+ * Roll once with a seeded Rng, keeping the faces, then roll again with those
+ * faces entered: the two must match. Returns what went wrong, if anything.
+ */
+export function enteredReplayProblem(run: (rng: Rng) => unknown, rng: Rng): string | undefined {
+  const rec = recordDice(rng);
+  const app = run(rec.rng);
+  try {
+    const typed = rollEntered(run, rec.faces, { fallback: createRng("entered-fallback") });
+    return same(app, typed) ? undefined : `typing the faces ${rec.faces.join(" ")} gave a different result`;
+  } catch (e) {
+    return `typing the faces ${rec.faces.join(" ")} threw: ${(e as Error).message}`;
+  }
+}
+
+/** Every step's faces from a seeded run, typed back in, must give the same graph. */
+function enteredProcedureProblem(proc: Procedure, module: GameModule, options: ProcedureRunOptions, expected: unknown): string | undefined {
+  const faces: Record<string, number[]> = {};
+  const recorded = runProcedure(proc, module, {
+    ...options,
+    stepRng: (stepId) => {
+      const rec = recordDice(createRng(options.stepSeeds?.[stepId] ?? options.seed).fork(`${proc.id}/${stepId}`));
+      faces[stepId] = rec.faces;
+      return rec.rng;
+    },
+  });
+  if (!same(recorded, expected)) return "recording the dice changed the run (a step reads randomness some other way)";
+  // Steps that use `next()` (not dice) cannot be typed in; leave them seeded.
+  const stepDice = Object.fromEntries(Object.entries(faces).filter(([, f]) => f.length > 0));
+  try {
+    const typed = runProcedure(proc, module, { ...options, stepDice });
+    const { entered: _entered, ...rest } = typed;
+    return same(rest, expected) ? undefined : "typing each step's faces gave a different run";
+  } catch (e) {
+    return `typing each step's faces threw: ${(e as Error).message}`;
+  }
 }

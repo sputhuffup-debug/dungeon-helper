@@ -2,12 +2,13 @@
  * Travel planner: pick a destination from the atlas, enter the distance, see
  * the module's travel time and the checks it calls for, then depart. Departing
  * records the leg, rolls the arrival checks from a fresh seed (kept on the
- * leg), applies their effects and moves the in-world date.
+ * leg) or takes the faces of dice rolled at the table (kept too), applies
+ * their effects and moves the in-world date.
  */
-import { knownDistance, planTravel, travelLog, type Entity, type Id, type TravelLeg } from "@campaign-forge/core";
+import { knownDistance, planTravel, travelArrivalRun, travelLog, type Entity, type Id, type TravelLeg } from "@campaign-forge/core";
 import { addDaysToDate, type Procedure, type TravelDef, type TravelPlan } from "@campaign-forge/module-sdk";
 import { useMemo, useState } from "react";
-import { Badge, Button, Card, PageRef, pushToast } from "../../components/ui";
+import { Badge, Button, Card, PageRef, pushToast, useDiceRoller, type RollRequest } from "../../components/ui";
 import { errorMessage } from "../../lib/format";
 import { useCampaign, useList, useMeta } from "../../state/hooks";
 import { departShip, whereIsShip } from "../../state/shipActions";
@@ -23,6 +24,7 @@ function destinationsOf(entities: Entity[], def: TravelDef): Entity[] {
 
 export function TravelPlanner({ def, ship }: { def: TravelDef; ship?: Entity }) {
   const ctx = useCampaign();
+  const roller = useDiceRoller();
   const meta = useMeta();
   const entities = useList("entities");
   const legs = useList("travel");
@@ -73,23 +75,35 @@ export function TravelPlanner({ def, ship }: { def: TravelDef; ship?: Entity }) 
     setDistance(known !== undefined ? String(known) : "");
   };
 
-  const depart = () => {
-    if (!to || !plan.plan || plan.plan.blocked) return;
+  /** Departing rolls the arrival checks: in the app, or with the dice rolled at the table. */
+  const departRequest = (): RollRequest | undefined => {
+    if (!to || !plan.plan || plan.plan.blocked) return undefined;
+    const input = {
+      to,
+      distance: Number(distance) || 0,
+      options,
+      ...(origin ? { from: origin } : {}),
+      ...(days.trim() !== "" && Number.isFinite(Number(days)) ? { days: Number(days) } : {}),
+    };
+    const destination = places.find((pl) => pl.id === to)?.name ?? "the destination";
+    return {
+      title: `Arrival at ${destination}`,
+      run: travelArrivalRun(ctx.store, ctx.module.module, { ...input, ...(ship ? { ship: ship.id } : {}) }),
+      perform: (entered) => {
+        const res = departShip(ctx, { ...input, seed: newSeed(), ...(entered ? { entered } : {}) });
+        setArrived(res.leg);
+        setFrom(res.leg.to);
+        setTo(undefined);
+        setDistance("");
+        setDays("");
+        pushToast(`Arrived at ${res.leg.toName}${res.leg.arriveDate ? ` on ${res.leg.arriveDate}` : ""}.`, { tone: "success" });
+      },
+    };
+  };
+  const depart = (enter = false) => {
     try {
-      const res = departShip(ctx, {
-        to,
-        distance: Number(distance) || 0,
-        options,
-        seed: newSeed(),
-        ...(origin ? { from: origin } : {}),
-        ...(days.trim() !== "" && Number.isFinite(Number(days)) ? { days: Number(days) } : {}),
-      });
-      setArrived(res.leg);
-      setFrom(res.leg.to);
-      setTo(undefined);
-      setDistance("");
-      setDays("");
-      pushToast(`Arrived at ${res.leg.toName}${res.leg.arriveDate ? ` on ${res.leg.arriveDate}` : ""}.`, { tone: "success" });
+      const req = departRequest();
+      if (req) (enter ? roller.enter : roller.roll)(req);
     } catch (e) {
       pushToast(`Could not depart: ${errorMessage(e)}`, { tone: "danger" });
     }
@@ -179,9 +193,14 @@ export function TravelPlanner({ def, ship }: { def: TravelDef; ship?: Entity }) 
         )}
         {def.options && <InputForm properties={inputProperties(optionsProcedure)} value={options} onChange={setOptions} store={ctx.store} module={ctx.module} />}
         <div className="app-row">
-          <Button variant="primary" disabled={!p || !!p.blocked} onClick={depart} data-testid="depart">
+          <Button variant="primary" disabled={!p || !!p.blocked} onClick={() => depart()} data-testid="depart">
             Depart
           </Button>
+          {!roller.physical && p && !p.blocked && p.checks.some((c) => c.dice) && (
+            <Button variant="ghost" onClick={() => depart(true)} data-testid="depart-enter" title="Depart and type the arrival dice rolled at the table">
+              Depart, enter dice
+            </Button>
+          )}
           {!ship && <span className="cf-muted">Choose the crew's ship to plan a trip.</span>}
         </div>
         {arrived && <LegDetail leg={arrived} open />}
@@ -207,11 +226,18 @@ export function LegDetail({ leg, open }: { leg: TravelLeg; open?: boolean }) {
           ))}
         </ul>
       )}
-      {leg.seed && (
-        <p className="cf-muted cf-small">
-          Seed <span className="cf-mono">{leg.seed}</span>
+      {leg.entered ? (
+        <p className="cf-muted cf-small" data-testid="travel-entered">
+          <Badge tone="accent">entered</Badge> Rolled at the table: <span className="cf-mono">{leg.entered.join(" ") || "no dice"}</span>
           {leg.effectsApplied ? " · effects applied" : ""}
         </p>
+      ) : (
+        leg.seed && (
+          <p className="cf-muted cf-small">
+            Seed <span className="cf-mono">{leg.seed}</span>
+            {leg.effectsApplied ? " · effects applied" : ""}
+          </p>
+        )
       )}
     </details>
   );

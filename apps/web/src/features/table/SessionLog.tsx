@@ -1,7 +1,7 @@
 /** The running session log: a rich-text note with @ mentions, a quick timestamped line, and the tracker event feed. */
 import type { Id } from "@campaign-forge/core";
 import { useMemo, useState } from "react";
-import { Button, Card, pushToast } from "../../components/ui";
+import { Badge, Button, Card, pushToast } from "../../components/ui";
 import { RichTextEditor } from "../../editor";
 import { errorMessage } from "../../lib/format";
 import { useCampaign, useRecord } from "../../state/hooks";
@@ -55,12 +55,23 @@ export function EventFeed({ sessionId, max = 30 }: { sessionId: Id; max?: number
             <li key={i}>
               <span className="cf-tracker__log-time">{shortTime(e.at)}</span>
               <span>{e.text}</span>
+              {enteredFaces(e.data) && (
+                <Badge tone="accent" title={`Rolled at the table: ${enteredFaces(e.data)!.join(" ")}`} data-testid="event-entered">
+                  entered
+                </Badge>
+              )}
             </li>
           ))}
         </ul>
       )}
     </Card>
   );
+}
+
+/** Faces typed for a roll made with dice rolled at the table, from a log entry's data. */
+export function enteredFaces(data: unknown): number[] | undefined {
+  const entered = data && typeof data === "object" ? (data as { entered?: unknown }).entered : undefined;
+  return Array.isArray(entered) ? (entered as number[]) : undefined;
 }
 
 function shortTime(at: string): string {

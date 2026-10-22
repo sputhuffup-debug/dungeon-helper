@@ -1,5 +1,6 @@
 import "fake-indexeddb/auto";
 import { getTrackerState, listCampaigns, plainText, updateTrackerState, type Entity } from "@campaign-forge/core";
+import { createRng, recordDice } from "@campaign-forge/module-sdk";
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
 import { createCampaign, createEntity } from "../../state/actions";
 import { openCampaign, type CampaignContextValue } from "../../state/CampaignProvider";
@@ -12,6 +13,7 @@ import {
   loadDemoCampaign,
   markScene,
   operationInput,
+  operationRun,
   planNextSession,
   playerCharacters,
   revealHandout,
@@ -99,6 +101,25 @@ describe("table actions", () => {
     expect(diceLog).toHaveLength(1);
     expect((diceLog[0]?.data as { seed: string }).seed).toBe(roll.seed);
     expect(rollOperation(ctx, session.id, "stressResponse", ripley.id).seed).toBe(`${session.id}:1`);
+  });
+
+  it("rolls an operation with dice rolled at the table: same result as the app roll with those faces, logged as entered", async () => {
+    const ctx = await open(alienCampaign);
+    const ripley = pc(ctx, "Hicks", { stress: 4 });
+    const session = runningSession(ctx);
+    // the faces an app roll would use, recorded
+    const rec = recordDice(createRng("table-dice"));
+    const expected = operationRun(ctx, "panicRoll", ripley.id)(rec.rng) as { total: number; label: string };
+    expect(rec.faces.length).toBeGreaterThan(0);
+    const roll = rollOperation(ctx, session.id, "panicRoll", ripley.id, {}, rec.faces);
+    expect(roll.result.total).toBe(expected.total);
+    expect(roll.result.label).toBe(expected.label);
+    expect(roll.entered).toEqual(rec.faces);
+    const log = getTrackerState(ctx.store, session.id).log.filter((l) => l.tracker === DICE_LOG);
+    expect(log[0]?.data).toMatchObject({ entered: rec.faces, seed: `${session.id}:0` });
+    // dice that do not fit change nothing
+    expect(() => rollOperation(ctx, session.id, "stressResponse", ripley.id, {}, [9])).toThrow(/shows 1–6/);
+    expect(getTrackerState(ctx.store, session.id).log.filter((l) => l.tracker === DICE_LOG)).toHaveLength(1);
   });
 
   it("builds supply-roll input from a gear item", async () => {

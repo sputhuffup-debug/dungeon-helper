@@ -9,10 +9,10 @@
 import type { Entity, Id } from "@campaign-forge/core";
 import type { LoadedModule, RollResult, SpecialAttackDef } from "@campaign-forge/module-sdk";
 import { useMemo, useState } from "react";
-import { Badge, Button, Card, Dialog, PageRef, humanize } from "../../components/ui";
+import { Badge, Button, Card, Dialog, PageRef, humanize, useDiceRoller } from "../../components/ui";
 import { creaturePoolInput, logSpecialAttack, numberAt, opposedOutcome, specialAttacksFor, type OpposedOutcome } from "../../state/combatActions";
 import { useCampaign, useMeta } from "../../state/hooks";
-import { SessionRollPanel, attributeIds, rollSessionPool, skillInput, skillOptions } from "./DicePanel";
+import { SessionRollPanel, attributeIds, rollSessionPool, sessionPoolRun, skillInput, skillOptions } from "./DicePanel";
 
 /** The module's special attacks for the campaign's play mode. */
 export function useSpecialAttacks(): SpecialAttackDef[] {
@@ -52,6 +52,7 @@ interface RollState {
   label: string;
   input: Record<string, unknown>;
   result: RollResult;
+  entered?: number[];
 }
 
 const ACTIONS: Record<NonNullable<SpecialAttackDef["action"]>, string> = { full: "Full action", quick: "Quick action" };
@@ -73,6 +74,7 @@ export function SpecialAttackPanel({
   initialAttack?: string;
 }) {
   const ctx = useCampaign();
+  const roller = useDiceRoller();
   const all = useSpecialAttacks();
   const attacks = attackIds ? all.filter((a) => attackIds.includes(a.id)) : all;
   const [pcId, setPcId] = useState<Id>(initialPc ?? "");
@@ -103,21 +105,33 @@ export function SpecialAttackPanel({
     if (!pc || !attack) return;
     const { label, input } = rollInputFor(ctx.module, pc, attack.roll);
     const full = `${attack.name} (${label})`;
-    const result = rollSessionPool(ctx, sessionId, pc, full, input);
-    const next = { key: Date.now(), entity: pc, label: full, input, result };
-    setAttacker(next);
-    if (!attack.opposed) logSpecialAttack(ctx, sessionId, { attacker: pc, attack, ...(target ? { target } : {}), successes: result.successes });
-    settle(next, defender);
+    roller.roll({
+      title: `${pc.name}: ${full}`,
+      run: sessionPoolRun(ctx, input),
+      perform: (entered) => {
+        const result = rollSessionPool(ctx, sessionId, pc, full, input, entered);
+        const next = { key: Date.now(), entity: pc, label: full, input, result, ...(entered ? { entered } : {}) };
+        setAttacker(next);
+        if (!attack.opposed) logSpecialAttack(ctx, sessionId, { attacker: pc, attack, ...(target ? { target } : {}), successes: result.successes });
+        settle(next, defender);
+      },
+    });
   };
 
   const rollDefender = () => {
     if (!target || !attack?.opposed) return;
     const { label, input } = rollInputFor(ctx.module, target, attack.opposed);
     const full = `resists ${attack.name} (${label})`;
-    const result = rollSessionPool(ctx, sessionId, target, full, input);
-    const next = { key: Date.now(), entity: target, label: full, input, result };
-    setDefender(next);
-    settle(attacker, next);
+    roller.roll({
+      title: `${target.name}: ${full}`,
+      run: sessionPoolRun(ctx, input),
+      perform: (entered) => {
+        const result = rollSessionPool(ctx, sessionId, target, full, input, entered);
+        const next = { key: Date.now(), entity: target, label: full, input, result, ...(entered ? { entered } : {}) };
+        setDefender(next);
+        settle(attacker, next);
+      },
+    });
   };
 
   const ties = ctx.module.module.combat?.opposedTies;
@@ -206,6 +220,7 @@ export function SpecialAttackPanel({
           label={attacker.label}
           input={attacker.input}
           initialResult={attacker.result}
+          {...(attacker.entered ? { initialEntered: attacker.entered } : {})}
           onResult={(r) => {
             const next = { ...attacker, result: r };
             setAttacker(next);
@@ -248,6 +263,7 @@ export function SpecialAttackPanel({
               label={defender.label}
               input={defender.input}
               initialResult={defender.result}
+              {...(defender.entered ? { initialEntered: defender.entered } : {})}
               onResult={(r) => {
                 const next = { ...defender, result: r };
                 setDefender(next);

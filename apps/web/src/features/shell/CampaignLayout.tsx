@@ -3,7 +3,7 @@ import { useMemo, type ReactNode } from "react";
 import { RecordLinksContext, type RecordLinks } from "../../components/EntityLinkContext";
 import { ErrorPage } from "../../components/ErrorPage";
 import { Loading } from "../../components/Loading";
-import { Badge, IconButton, useTheme } from "../../components/ui";
+import { Badge, DiceRollerProvider, IconButton, useTheme } from "../../components/ui";
 import { CampaignProvider } from "../../state/CampaignProvider";
 import { useCampaign, useMeta, useOfflineStatus } from "../../state/hooks";
 import { crewShipDefOf, hasShipPage } from "../../state/shipActions";
@@ -61,6 +61,7 @@ function Shell() {
 
   return (
     <RecordLinksContext.Provider value={links}>
+      <DiceRollerProvider dice={ctx.module.module.dice.dice}>
       <div className="app-shell">
         <header className="app-header">
           <Link to="/" className="app-brand" title="All campaigns">
@@ -108,6 +109,7 @@ function Shell() {
           <Outlet />
         </main>
       </div>
+      </DiceRollerProvider>
     </RecordLinksContext.Provider>
   );
 }

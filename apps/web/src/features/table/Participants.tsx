@@ -220,7 +220,7 @@ export function EntityDrawer({ entityId, sessionId, onClose }: { entityId: Id | 
           />
           {roll && (
             <Card title={`Roll: ${labelFromPath(roll.label)}`} elevated>
-              <SessionRollPanel key={roll.key} sessionId={sessionId} entity={entity} label={labelFromPath(roll.label)} input={roll.input} />
+              <SessionRollPanel key={roll.key} sessionId={sessionId} entity={entity} label={labelFromPath(roll.label)} input={roll.input} modeSwitch />
             </Card>
           )}
         </>

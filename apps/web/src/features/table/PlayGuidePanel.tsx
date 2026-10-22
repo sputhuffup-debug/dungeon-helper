@@ -8,9 +8,9 @@
 import type { Entity, Id } from "@campaign-forge/core";
 import { poolStrength, type LoadedModule, type PlayGuideDef, type PlayGuideEntry } from "@campaign-forge/module-sdk";
 import { useMemo, useState } from "react";
-import { Badge, Button, EmptyState, PlayGuideView, playGuidesForMode } from "../../components/ui";
+import { Badge, Button, EmptyState, PlayGuideView, playGuidesForMode, useDiceRoller } from "../../components/ui";
 import { useCampaign, useMeta } from "../../state/hooks";
-import { SessionRollPanel, attributeIds, rollSessionPool, skillInput, skillOptions } from "./DicePanel";
+import { SessionRollPanel, attributeIds, rollSessionPool, sessionPoolRun, skillInput, skillOptions } from "./DicePanel";
 import { SpecialAttackDialog, useSpecialAttacks } from "./SpecialAttacks";
 
 /** The module's play guides that apply in the campaign's play mode. */
@@ -145,18 +145,26 @@ interface ActiveRoll {
   label: string;
   input: Record<string, unknown>;
   result: ReturnType<typeof rollSessionPool>;
+  entered?: number[];
 }
 
 /** The session's PCs ranked by roll strength for this entry, best and worst marked; a tap rolls it for that PC, shown below and logged. */
 function WhoIsBest({ sessionId, entry, ranked, hasPcs }: { sessionId: Id; entry: PlayGuideEntry; ranked: RankedRoller[]; hasPcs: boolean }) {
   const ctx = useCampaign();
+  const roller = useDiceRoller();
   const [active, setActive] = useState<ActiveRoll | undefined>();
   const entity = active ? ranked.find((r) => r.entity.id === active.entityId)?.entity : undefined;
   if (ranked.length === 0) return <p className="cf-muted">{hasPcs ? "No player character can roll this." : "No player characters yet."}</p>;
   const roll = (r: RankedRoller) => {
     // the input is captured now, so a push that adds stress does not reset the shown result
-    const result = rollSessionPool(ctx, sessionId, r.entity, r.label, r.input);
-    setActive({ key: Date.now(), entityId: r.entity.id, label: r.label, input: r.input, result });
+    roller.roll({
+      title: `${r.entity.name}: ${r.label}`,
+      run: sessionPoolRun(ctx, r.input),
+      perform: (entered) => {
+        const result = rollSessionPool(ctx, sessionId, r.entity, r.label, r.input, entered);
+        setActive({ key: Date.now(), entityId: r.entity.id, label: r.label, input: r.input, result, ...(entered ? { entered } : {}) });
+      },
+    });
   };
   return (
     <div className="app-guide__best" data-testid="who-is-best">
@@ -181,7 +189,7 @@ function WhoIsBest({ sessionId, entry, ranked, hasPcs }: { sessionId: Id; entry:
           </li>
         ))}
       </ul>
-      {active && entity && <SessionRollPanel key={active.key} sessionId={sessionId} entity={entity} label={active.label} input={active.input} initialResult={active.result} />}
+      {active && entity && <SessionRollPanel key={active.key} sessionId={sessionId} entity={entity} label={active.label} input={active.input} initialResult={active.result} {...(active.entered ? { initialEntered: active.entered } : {})} />}
     </div>
   );
 }

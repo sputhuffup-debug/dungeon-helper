@@ -1,6 +1,6 @@
-/** Every procedure step in order: its rolls, result, skip reason, and per-step re-roll / pin / include. */
-import type { RollRecord } from "@campaign-forge/module-sdk";
-import { Badge, Button, PageRef, ProvenanceBadge, RollRecordList } from "../../components/ui";
+/** Every procedure step in order: its rolls, result, skip reason, and per-step re-roll / pin / include / enter roll. */
+import type { DieSpec, RollRecord, Rng } from "@campaign-forge/module-sdk";
+import { Badge, Button, EnterDice, PageRef, ProvenanceBadge, RollRecordList } from "../../components/ui";
 import { summarizeValue, type StepView } from "./runner";
 
 export interface StepListProps {
@@ -15,9 +15,22 @@ export interface StepListProps {
   onUnpin: (stepId: string) => void;
   onResetSeed: (stepId: string) => void;
   onToggleOptional: (stepId: string, include: boolean) => void;
+  /** The step whose dice are being typed (rolled at the table), with its roll and how many steps are queued. */
+  entering?: { stepId: string; run: (rng: Rng) => unknown; remaining: number };
+  /** Steps that roll dice; only they offer "Enter roll". */
+  canEnter?: Set<string>;
+  onEnter?: (stepId: string) => void;
+  onEntered?: (stepId: string, faces: number[]) => void;
+  /** Leave this step as rolled and move on (entering the whole run). */
+  onSkipEnter?: () => void;
+  onCancelEnter?: () => void;
+  /** Back to the step's seed. */
+  onClearEntered?: (stepId: string) => void;
+  /** The module's dice, for the entry inputs' colours. */
+  dice?: DieSpec[];
 }
 
-export function StepList({ steps, changed, pinnedRolls, includeOptional, onReroll, onPin, onUnpin, onResetSeed, onToggleOptional }: StepListProps) {
+export function StepList({ steps, changed, pinnedRolls, includeOptional, onReroll, onPin, onUnpin, onResetSeed, onToggleOptional, entering, canEnter, onEnter, onEntered, onSkipEnter, onCancelEnter, onClearEntered, dice }: StepListProps) {
   const titleOf = (id: string) => steps.find((s) => s.id === id)?.title ?? id;
   return (
     <ol className="prep-steps" aria-label="Procedure steps">
@@ -37,7 +50,12 @@ export function StepList({ steps, changed, pinnedRolls, includeOptional, onRerol
                   {s.repeat && <span className="cf-muted">repeats</span>}
                   {s.optional && <Badge>optional</Badge>}
                   {s.state === "pinned" && <Badge tone="warning">pinned</Badge>}
-                  {s.customSeed && <Badge tone="accent">re-rolled</Badge>}
+                  {s.customSeed && !s.entered && <Badge tone="accent">re-rolled</Badge>}
+                  {s.entered && (
+                    <Badge tone="accent" data-testid={`step-entered-${s.id}`} title={`Rolled at the table: ${s.entered.join(" ")}`}>
+                      entered
+                    </Badge>
+                  )}
                   {changed.has(s.id) && <Badge tone="success">changed</Badge>}
                 </span>
               </div>
@@ -53,7 +71,17 @@ export function StepList({ steps, changed, pinnedRolls, includeOptional, onRerol
                     Re-roll
                   </Button>
                 )}
-                {s.customSeed && s.state !== "pinned" && (
+                {!inactive && s.state !== "pinned" && onEnter && (canEnter?.has(s.id) ?? true) && (
+                  <Button size="sm" variant="ghost" onClick={() => onEnter(s.id)} aria-label={`Enter roll for ${s.title}`} title="Type the dice rolled at the table for this step" data-testid={`enter-roll-${s.id}`}>
+                    Enter roll
+                  </Button>
+                )}
+                {s.entered && onClearEntered && (
+                  <Button size="sm" variant="ghost" onClick={() => onClearEntered(s.id)} aria-label={`Undo entered roll of ${s.title}`}>
+                    Undo
+                  </Button>
+                )}
+                {s.customSeed && !s.entered && s.state !== "pinned" && (
                   <Button size="sm" variant="ghost" onClick={() => onResetSeed(s.id)} aria-label={`Undo re-roll of ${s.title}`}>
                     Undo
                   </Button>
@@ -72,6 +100,18 @@ export function StepList({ steps, changed, pinnedRolls, includeOptional, onRerol
               </div>
             </header>
 
+            {entering?.stepId === s.id && onEntered && (
+              <EnterDice
+                key={s.id}
+                title={entering.remaining > 1 ? `Dice for “${s.title}” (${entering.remaining} steps to go)` : `Dice for “${s.title}”`}
+                run={entering.run}
+                dice={dice}
+                onSubmit={(faces) => onEntered(s.id, faces)}
+                {...(entering.remaining > 1 && onSkipEnter ? { onRollInApp: onSkipEnter, rollInAppLabel: "Keep the app's roll" } : {})}
+                {...(onCancelEnter ? { onCancel: onCancelEnter } : {})}
+                className="prep-step__enter"
+              />
+            )}
             {inactive ? (
               <p className="cf-muted prep-step__skip">{s.skipReason}</p>
             ) : (

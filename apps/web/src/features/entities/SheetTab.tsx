@@ -121,7 +121,7 @@ export function SheetTab({ entity, def }: { entity: Entity; def: EntityTypeDef |
             dice={ctx.module.module.dice}
             input={roll.input}
             rng={createRng(`${entity.id}:${Date.now()}:${Math.random()}`)}
-            onRolled={(r: RollResult) => pushToast(`${entity.name}, ${roll.label}: ${ctx.module.module.dice.describe(r)}`)}
+            onRolled={(r: RollResult, entered?: number[]) => pushToast(`${entity.name}, ${roll.label}: ${ctx.module.module.dice.describe(r)}${entered ? " (entered)" : ""}`)}
             title={`${entity.name}: ${roll.label}`}
           />
         )}

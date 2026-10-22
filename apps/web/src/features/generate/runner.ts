@@ -15,6 +15,7 @@ import {
   type Procedure,
   type ProcedureContext,
   type RollRecord,
+  type Rng,
 } from "@campaign-forge/module-sdk";
 
 export interface GeneratorRequest {
@@ -22,6 +23,8 @@ export interface GeneratorRequest {
   seed: string;
   inputs?: Record<string, unknown>;
   stepSeeds?: Record<string, string>;
+  /** Step id -> faces of dice rolled at the table for it. */
+  stepDice?: Record<string, number[]>;
   pinned?: Record<string, unknown>;
   includeOptional?: string[];
 }
@@ -41,9 +44,40 @@ export function runGenerator(module: Pick<LoadedModule, "procedure" | "module">,
     seed: req.seed,
     inputs: req.inputs ?? {},
     stepSeeds: req.stepSeeds ?? {},
+    ...(req.stepDice && Object.keys(req.stepDice).length > 0 ? { stepDice: req.stepDice } : {}),
     pinned: req.pinned ?? {},
     includeOptional: req.includeOptional ?? [],
   });
+}
+
+/**
+ * One step of a run as a pure function of its Rng: the whole procedure runs
+ * with that step's dice taken from `rng`, so the enter-dice form can ask for
+ * exactly the dice the step rolls, given what the steps before it produced.
+ */
+export function stepRun(module: Pick<LoadedModule, "procedure" | "module">, req: GeneratorRequest, stepId: string): (rng: Rng) => unknown {
+  const procedure = module.procedure(req.procedureId);
+  if (!procedure) throw new UnknownProcedureError(req.procedureId);
+  const { [stepId]: _own, ...stepDice } = req.stepDice ?? {};
+  const pinned = { ...(req.pinned ?? {}) };
+  delete pinned[stepId];
+  return (rng) =>
+    runProcedure(procedure, module.module, {
+      seed: req.seed,
+      inputs: req.inputs ?? {},
+      stepSeeds: req.stepSeeds ?? {},
+      stepDice,
+      pinned,
+      includeOptional: req.includeOptional ?? [],
+      stepRng: (id) => (id === stepId ? rng : undefined),
+    });
+}
+
+/** Faces entered for steps that read `stepId` are dropped when it changes: their dice may no longer fit. */
+export function withoutDependentDice(procedure: Procedure, stepDice: Record<string, number[]>, stepId: string, alsoSelf = false): Record<string, number[]> {
+  const drop = new Set(dependentSteps(procedure, stepId));
+  if (alsoSelf) drop.add(stepId);
+  return Object.fromEntries(Object.entries(stepDice).filter(([id]) => !drop.has(id)));
 }
 
 /** A short random seed (base36), e.g. "k3f9x2qa". */
@@ -84,10 +118,13 @@ export interface StepView {
   dependents: string[];
   reads: string[];
   customSeed: boolean;
+  /** Faces typed for the step when its dice were rolled at the table. */
+  entered?: number[];
 }
 
 /** One view per procedure step, in order, joined with the graph's rolls, results and skips. */
 export function stepViews(procedure: Procedure, graph: GeneratedGraph | undefined, opts: { stepSeeds?: Record<string, string>; pinned?: Record<string, unknown> } = {}): StepView[] {
+  const entered = graph?.entered ?? {};
   const info = procedureStepGraph(procedure);
   return info.map((s, i) => {
     const step = procedure.steps[i];
@@ -116,6 +153,7 @@ export function stepViews(procedure: Procedure, graph: GeneratedGraph | undefine
     };
     if (table !== undefined) view.table = table;
     if (page !== undefined) view.page = page;
+    if (entered[s.id] && !pinned) view.entered = entered[s.id];
     if (skipped) view.skipReason = skipReasonText(skipped.reason);
     const display = hasResult ? graph?.display?.[s.id] : undefined;
     if (display !== undefined) view.display = display;
@@ -189,6 +227,7 @@ export function requestFromRun(procedure: Procedure, run: GeneratorRun): Generat
     seed: run.seed,
     inputs: { ...run.inputs },
     stepSeeds: { ...(run.stepSeeds ?? {}) },
+    ...(run.stepDice ? { stepDice: { ...run.stepDice } } : {}),
     pinned: { ...(run.pinned ?? {}) },
     includeOptional: includedOptional(procedure, run.results),
   };

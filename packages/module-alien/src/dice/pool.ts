@@ -106,8 +106,8 @@ export function roll(pool: DicePool, rng: Rng): RollResult {
   const rolled: RolledDie[] = [];
   const baseCount = pool.dice[BASE_DIE] ?? 0;
   const stressCount = pool.dice[STRESS_DIE] ?? 0;
-  for (let n = 0; n < baseCount; n++) rolled.push({ die: BASE_DIE, value: rng.int(1, 6) });
-  for (let n = 0; n < stressCount; n++) rolled.push({ die: STRESS_DIE, value: rng.int(1, 6) });
+  for (let n = 0; n < baseCount; n++) rolled.push({ die: BASE_DIE, value: rng.int(1, 6, { label: "Base die", die: BASE_DIE }) });
+  for (let n = 0; n < stressCount; n++) rolled.push({ die: STRESS_DIE, value: rng.int(1, 6, { label: "Stress die", die: STRESS_DIE }) });
 
   const { successes, symbols } = tally(rolled);
   const facehuggers = symbols[FACEHUGGER] ?? 0;
@@ -145,9 +145,9 @@ export function push(previous: RollResult, rng: Rng, input: Record<string, unkno
   const rolled: RolledDie[] = [];
   for (const d of previous.dice) {
     if (d.value === 6) rolled.push({ ...d, kept: true });
-    else rolled.push({ die: d.die, value: rng.int(1, 6) });
+    else rolled.push({ die: d.die, value: rng.int(1, 6, { label: d.die === STRESS_DIE ? "Stress die (re-roll)" : "Base die (re-roll)", die: d.die }) });
   }
-  rolled.push({ die: STRESS_DIE, value: rng.int(1, 6) });
+  rolled.push({ die: STRESS_DIE, value: rng.int(1, 6, { label: "New stress die (push)", die: STRESS_DIE }) });
 
   const stressBefore = Number(previous.meta?.stressAfter ?? previous.pool.meta?.stress ?? 0);
   const stressAfter = stressBefore + 1;

@@ -1,5 +1,6 @@
 /** 2d6 engine (Powered by the Apocalypse style): 2d6 + stat + modifier, read as bands (10+ / 7-9 / 6-). */
 import type { DicePool, DiceSystem, RolledDie, RollResult, Rng } from "../types";
+import { facesGroup } from "../dice";
 import { builtBy, num, numberRule, rollFree, signed } from "./shared";
 import type { RollBand, TwoD6EngineConfig } from "./types";
 
@@ -45,9 +46,10 @@ export function createTwoD6Engine(config: TwoD6EngineConfig): DiceSystem {
     },
     roll(pool: DicePool, rng: Rng): RollResult {
       if (!builtBy(pool, "2d6")) return rollFree(pool, specs, rng);
+      const group = facesGroup("2d6");
       return finish(pool, [
-        { die: "d6", value: rng.int(1, 6) },
-        { die: "d6", value: rng.int(1, 6) },
+        { die: "d6", value: rng.int(1, 6, { label: "d6", die: "d6", group }) },
+        { die: "d6", value: rng.int(1, 6, { label: "d6", die: "d6", group }) },
       ]);
     },
     describe(result) {

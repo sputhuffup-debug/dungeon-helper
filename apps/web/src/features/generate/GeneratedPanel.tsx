@@ -41,8 +41,13 @@ export function GeneratedPanel({ entity }: { entity: Entity }) {
       data-testid="generated-panel"
     >
       <div className="app-stack">
-        {(Object.keys(run.stepSeeds ?? {}).length > 0 || Object.keys(run.pinned ?? {}).length > 0 || edited.length > 0) && (
+        {(Object.keys(run.stepSeeds ?? {}).length > 0 || Object.keys(run.stepDice ?? {}).length > 0 || Object.keys(run.pinned ?? {}).length > 0 || edited.length > 0) && (
           <div className="app-row">
+            {Object.entries(run.stepDice ?? {}).map(([s, faces]) => (
+              <Badge key={`d-${s}`} tone="accent" title={`Rolled at the table: ${faces.join(" ")}`}>
+                entered {s}
+              </Badge>
+            ))}
             {Object.keys(run.stepSeeds ?? {}).map((s) => (
               <Badge key={`s-${s}`} tone="accent">
                 re-rolled {s}

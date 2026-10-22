@@ -7,12 +7,15 @@
 import type { Entity, Id } from "@campaign-forge/core";
 import type { Prompt } from "@campaign-forge/module-sdk";
 import { useEffect, useMemo, useState } from "react";
-import { Badge, Button, Card, PageRef, pushToast } from "../../components/ui";
+import { Badge, Button, Card, PageRef, pushToast, useDiceRoller } from "../../components/ui";
 import { errorMessage } from "../../lib/format";
 import { useCampaign, useMeta, useRecord } from "../../state/hooks";
 import {
   answerPrompt,
+  answerRollOperation,
   finishSession,
+  operationRun,
+  operationTitle,
   plannedScenesOf,
   sessionEndPrompts,
   sessionLabel,
@@ -256,11 +259,15 @@ function PromptsStep({ sessionId, prompts, answers, pcs }: { sessionId: Id; prom
 
 function PromptRow({ sessionId, prompt, answer, entity }: { sessionId: Id; prompt: Prompt; answer: WrapUpAnswer | undefined; entity?: Entity }) {
   const ctx = useCampaign();
+  const roller = useDiceRoller();
   const [text, setText] = useState("");
   const [rolling, setRolling] = useState(false);
   const run = (a: Parameters<typeof answerPrompt>[3]) => {
     try {
-      answerPrompt(ctx, sessionId, prompt, a);
+      // an answer that rolls (a panic roll, say) can take dice rolled at the table
+      const op = answerRollOperation(prompt, a);
+      if (op) roller.roll({ title: operationTitle(ctx, op, prompt.entity), run: operationRun(ctx, op, prompt.entity), perform: (entered) => void answerPrompt(ctx, sessionId, prompt, a, entered ? { entered } : {}) });
+      else answerPrompt(ctx, sessionId, prompt, a);
     } catch (e) {
       pushToast(errorMessage(e), { tone: "danger" });
     }
@@ -345,7 +352,7 @@ function PromptRow({ sessionId, prompt, answer, entity }: { sessionId: Id; promp
       {controls}
       {rolling && entity && check && !answer && (
         <div className="app-prompt__roll">
-          <SessionRollPanel sessionId={sessionId} entity={entity} {...skillInput(ctx.module, entity, `attr:${check}`)} />
+          <SessionRollPanel sessionId={sessionId} entity={entity} {...skillInput(ctx.module, entity, `attr:${check}`)} modeSwitch />
         </div>
       )}
     </li>

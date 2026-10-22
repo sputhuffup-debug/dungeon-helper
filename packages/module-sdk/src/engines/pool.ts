@@ -94,7 +94,7 @@ export function createPoolEngine(config: PoolEngineConfig): DiceSystem {
       const dice: RolledDie[] = [];
       for (const r of rules) {
         const n = Math.max(0, Math.floor(num(pool.dice[r.spec.id])));
-        for (let i = 0; i < n; i++) dice.push({ die: r.spec.id, value: rng.int(1, r.spec.faces) });
+        for (let i = 0; i < n; i++) dice.push({ die: r.spec.id, value: rng.int(1, r.spec.faces, { label: r.spec.name, die: r.spec.id }) });
       }
       return tally(pool, dice, 0);
     },
@@ -105,7 +105,7 @@ export function createPoolEngine(config: PoolEngineConfig): DiceSystem {
             const dice = previous.dice.map((d) => {
               const r = ruleOf(d.die);
               const keep = !r || r.success.has(d.value) || (push.lockBanes && r.bane.has(d.value));
-              return keep ? { ...d, kept: true } : { die: d.die, value: rng.int(1, r.spec.faces) };
+              return keep ? { ...d, kept: true } : { die: d.die, value: rng.int(1, r.spec.faces, { label: `${r.spec.name} (re-roll)`, die: r.spec.id }) };
             });
             return tally(previous.pool, dice, previous.pushes + 1, ["pushed"]);
           },

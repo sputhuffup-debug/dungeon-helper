@@ -41,7 +41,9 @@ import {
 import {
   activeLifecyclesFor,
   advanceLifecycles,
+  assertAllUsed,
   computeFields,
+  createEnteredRng,
   createRng,
   lifecycleConfig,
   lifecycleState,
@@ -55,6 +57,7 @@ import {
   type LoadedModule,
   type MapZoneTable,
   type Prompt,
+  type Rng,
   type RollRecord,
   type RollResult,
   type SessionChecklistEvent,
@@ -370,7 +373,13 @@ export function logTable(ctx: Ctx, sessionId: Id, text: string, data?: unknown):
 
 export interface DiceLogData {
   kind: "operation" | "pool" | "free" | "table" | "damage";
+  /** The roll's seed (`sessionId:counter`). Entered rolls keep it too: randomness that is not a die comes from it. */
   seed: string;
+  /**
+   * Faces the GM typed: the dice were rolled at the table, not in the app.
+   * Replaying the roll with `createEnteredRng(entered, { fallback: createRng(seed) })` gives it again.
+   */
+  entered?: number[];
   operation?: string;
   input?: Record<string, unknown>;
   label?: string;
@@ -396,6 +405,23 @@ export function diceCounter(store: CampaignStore, sessionId: Id): number {
 export function nextRollSeed(store: CampaignStore, sessionId: Id): string {
   return `${sessionId}:${diceCounter(store, sessionId)}`;
 }
+
+/**
+ * Make a roll with the seed's Rng, or with the faces typed by a GM who rolled
+ * at the table (`entered`): those must all be used, in the order the roll
+ * asks for them (`createEnteredRng`). Randomness that is not a die still comes
+ * from the seed.
+ */
+export function withRollRng<T>(seed: string, entered: number[] | undefined, roll: (rng: Rng) => T): T {
+  if (!entered) return roll(createRng(seed));
+  const rng = createEnteredRng(entered, { fallback: createRng(seed) });
+  const out = roll(rng);
+  assertAllUsed(rng);
+  return out;
+}
+
+/** `{ entered }` for a log entry when the dice were rolled at the table, else nothing. */
+export const enteredField = (entered: number[] | undefined): { entered?: number[] } => (entered ? { entered: [...entered] } : {});
 
 /**
  * Build a dice operation's input from an entity: each property the
@@ -456,6 +482,8 @@ export interface OperationRoll {
   entity?: Entity;
   input: Record<string, unknown>;
   seed: string;
+  /** Faces typed when the dice were rolled at the table. */
+  entered?: number[];
   result: DiceOperationResult;
   /** Prompts raised by the operation's effects. */
   prompts: Prompt[];
@@ -467,18 +495,19 @@ export interface OperationRoll {
  * results on the module's stress tracker (`panicLog`, read by the
  * session-end hook).
  */
-export function rollOperation(ctx: Ctx, sessionId: Id, operationId: string, entityId?: Id, extra: Record<string, unknown> = {}): OperationRoll {
+export function rollOperation(ctx: Ctx, sessionId: Id, operationId: string, entityId?: Id, extra: Record<string, unknown> = {}, entered?: number[]): OperationRoll {
   const store = ctx.store;
   const op = ctx.module.module.dice.operations?.[operationId];
   if (!op) throw new Error(`The module has no dice operation "${operationId}"`);
   const entity = entityId ? store.get("entities", entityId) : undefined;
   const input = operationInput(ctx.module, op, entity, extra);
+  const seed = nextRollSeed(store, sessionId);
+  // Rolled before anything is written, so dice that do not fit change nothing.
+  const result = withRollRng(seed, entered, (rng) => op.run(input, rng, ctx.module.tables));
   return store.transact(() => {
-    const seed = nextRollSeed(store, sessionId);
-    const result = op.run(input, createRng(seed), ctx.module.tables);
     const applied = applyEffects(store, result.effects ?? [], effectContext(ctx, sessionId));
     if (entity && typeof result.total === "number") recordPanic(ctx, sessionId, operationId, entity.id, result);
-    const data: DiceLogData = { kind: "operation", seed, operation: operationId, input, label: result.label, rolls: result.rolls, ...(result.effects ? { effects: result.effects } : {}) };
+    const data: DiceLogData = { kind: "operation", seed, ...enteredField(entered), operation: operationId, input, label: result.label, rolls: result.rolls, ...(result.effects ? { effects: result.effects } : {}) };
     if (typeof result.total === "number") data.total = result.total;
     appendTrackerLog(store, sessionId, {
       tracker: DICE_LOG,
@@ -486,8 +515,31 @@ export function rollOperation(ctx: Ctx, sessionId: Id, operationId: string, enti
       ...(entity ? { entity: entity.id } : {}),
       data,
     });
-    return { operation: op, ...(entity ? { entity } : {}), input, seed, result, prompts: applied.prompts };
+    return { operation: op, ...(entity ? { entity } : {}), input, seed, ...enteredField(entered), result, prompts: applied.prompts };
   });
+}
+
+/** A dice operation for an entity as a pure function of its Rng: what `rollOperation` rolls, to ask for the dice. */
+export function operationRun(ctx: Ctx, operationId: string, entityId?: Id, extra: Record<string, unknown> = {}): (rng: Rng) => unknown {
+  const op = ctx.module.module.dice.operations?.[operationId];
+  if (!op) throw new Error(`The module has no dice operation "${operationId}"`);
+  const entity = entityId ? ctx.store.get("entities", entityId) : undefined;
+  const input = operationInput(ctx.module, op, entity, extra);
+  return (rng) => op.run(input, rng, ctx.module.tables);
+}
+
+/** "Ripley: Panic roll": what a roll is called in the enter-dice dialog. */
+export function operationTitle(ctx: Ctx, operationId: string, entityId?: Id): string {
+  const name = ctx.module.module.dice.operations?.[operationId]?.name ?? operationId;
+  const entity = entityId ? ctx.store.get("entities", entityId) : undefined;
+  return entity ? `${entity.name}: ${name}` : name;
+}
+
+/** A table roll as a pure function of its Rng (to ask for its dice). */
+export function tableRun(ctx: Ctx, tableId: string): (rng: Rng) => unknown {
+  const table = ctx.module.tables.get(tableId);
+  if (!table) throw new Error(`The module has no table "${tableId}"`);
+  return (rng) => rollTable(table, rng, ctx.module.tables, { step: table.id });
 }
 
 /** The stress-kind tracker whose panic operation this is gets the result in its `panicLog`. */
@@ -505,8 +557,8 @@ function recordPanic(ctx: Ctx, sessionId: Id, operationId: string, entityId: Id,
 }
 
 /** Log a pool roll (skill roll, push, free roll) made with `seed`; `gmOnly` keeps it off every player output. */
-export function recordPoolRoll(ctx: Ctx, sessionId: Id, input: { label: string; seed: string; result: RollResult; entityId?: Id; kind?: "pool" | "free"; gmOnly?: boolean }): void {
-  const data: DiceLogData = { kind: input.kind ?? "pool", seed: input.seed, label: input.label, result: input.result, ...(input.gmOnly ? { gmOnly: true } : {}) };
+export function recordPoolRoll(ctx: Ctx, sessionId: Id, input: { label: string; seed: string; result: RollResult; entityId?: Id; kind?: "pool" | "free"; gmOnly?: boolean; entered?: number[] }): void {
+  const data: DiceLogData = { kind: input.kind ?? "pool", seed: input.seed, ...enteredField(input.entered), label: input.label, result: input.result, ...(input.gmOnly ? { gmOnly: true } : {}) };
   appendTrackerLog(ctx.store, sessionId, {
     tracker: DICE_LOG,
     text: `${input.label}: ${ctx.module.module.dice.describe(input.result)}`,
@@ -537,6 +589,7 @@ export function tableResultText(record: RollRecord): string {
 export interface ZoneTableRoll {
   zoneTable: MapZoneTable;
   seed: string;
+  entered?: number[];
   record: RollRecord;
   /** The one-line result, as logged. */
   text: string;
@@ -548,17 +601,17 @@ export interface ZoneTableRoll {
  * mode roll) and log it to the session's roll log, marked GM-only. Nothing
  * here reaches the player screen.
  */
-export function rollZoneTable(ctx: Ctx, sessionId: Id, input: { zoneTable: MapZoneTable; map: Id; zone: Id; zoneLabel: string }): ZoneTableRoll {
+export function rollZoneTable(ctx: Ctx, sessionId: Id, input: { zoneTable: MapZoneTable; map: Id; zone: Id; zoneLabel: string }, entered?: number[]): ZoneTableRoll {
   const store = ctx.store;
   const table = ctx.module.tables.get(input.zoneTable.table);
   if (!table) throw new Error(`The module has no table "${input.zoneTable.table}"`);
+  const seed = nextRollSeed(store, sessionId);
+  const record = withRollRng(seed, entered, (rng) => rollTable(table, rng, ctx.module.tables, { step: table.id }));
   return store.transact(() => {
-    const seed = nextRollSeed(store, sessionId);
-    const record = rollTable(table, createRng(seed), ctx.module.tables, { step: table.id });
     const text = tableResultText(record);
-    const data: DiceLogData = { kind: "table", seed, label: input.zoneTable.label, table: table.id, total: record.total, rolls: [record], map: input.map, zone: input.zone, gmOnly: true };
+    const data: DiceLogData = { kind: "table", seed, ...enteredField(entered), label: input.zoneTable.label, table: table.id, total: record.total, rolls: [record], map: input.map, zone: input.zone, gmOnly: true };
     appendTrackerLog(store, sessionId, { tracker: DICE_LOG, text: `${input.zoneTable.label} (${input.zoneLabel}): ${text}`, data });
-    return { zoneTable: input.zoneTable, seed, record, text };
+    return { zoneTable: input.zoneTable, seed, ...enteredField(entered), record, text };
   });
 }
 
@@ -879,13 +932,13 @@ export interface PromptOutcome {
  * operation for a roll prompt without options, and remember the answer on
  * the session so it is applied once.
  */
-export function answerPrompt(ctx: Ctx, sessionId: Id, prompt: Prompt, answer: PromptAnswer, opts: { record?: boolean } = {}): PromptOutcome {
+export function answerPrompt(ctx: Ctx, sessionId: Id, prompt: Prompt, answer: PromptAnswer, opts: { record?: boolean; entered?: number[] } = {}): PromptOutcome {
   return ctx.store.transact(() => {
     const prompts = applySessionEffects(ctx, sessionId, answer.effects);
     let roll: OperationRoll | undefined;
-    const op = answer.roll?.operation ?? (prompt.kind === "roll" && !answer.optionId ? prompt.roll?.operation : undefined);
-    if (op && !answer.optionId) {
-      roll = rollOperation(ctx, sessionId, op, prompt.entity);
+    const op = answerRollOperation(prompt, answer);
+    if (op) {
+      roll = rollOperation(ctx, sessionId, op, prompt.entity, {}, opts.entered);
       prompts.push(...roll.prompts);
     }
     const label = answer.optionId ? prompt.options?.find((o) => o.id === answer.optionId)?.label : roll ? roll.result.label : typeof answer.value === "boolean" ? (answer.value ? "Yes" : "No") : undefined;
@@ -905,6 +958,12 @@ export function answerPrompt(ctx: Ctx, sessionId: Id, prompt: Prompt, answer: Pr
     }
     return { prompts, ...(roll ? { roll } : {}) };
   });
+}
+
+/** The dice operation answering this prompt rolls, if any (a roll prompt answered without picking an option). */
+export function answerRollOperation(prompt: Prompt, answer: PromptAnswer): string | undefined {
+  if (answer.optionId) return undefined;
+  return answer.roll?.operation ?? (prompt.kind === "roll" ? prompt.roll?.operation : undefined);
 }
 
 export interface TimelineDraft {

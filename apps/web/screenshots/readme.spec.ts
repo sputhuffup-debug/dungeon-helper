@@ -229,6 +229,37 @@ test("table-hints", async ({ page }) => {
   await shot(page, "table-hints");
 });
 
+test("enter-dice", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1300 });
+  await loadDemo(page, "skyfire");
+  await startSession1(page);
+  // the group rolls physical dice: table mode asks for the faces instead of rolling
+  await page.getByRole("tab", { name: "Dice" }).click();
+  await page.getByTestId("dice-mode-enter").first().click();
+  const skill = page.locator(".app-table__skillroll");
+  await skill.getByRole("combobox", { name: "Character" }).selectOption({ label: "Elena Sanchez" });
+  await skill.getByRole("combobox", { name: "Skill" }).selectOption({ label: "Heavy Machinery (Strength)" });
+  const panel = skill.getByTestId("dice-panel");
+  // the four base dice as the table rolled them: one success, then a push asks only for the three re-rolled dice and the push's stress die
+  for (const [i, f] of [6, 2, 3, 1].entries()) await panel.getByTestId(`enter-die-${i}`).fill(String(f));
+  await panel.getByTestId("enter-dice-submit").click();
+  await expect(panel.getByTestId("successes")).toHaveText("1");
+  await panel.getByRole("button", { name: "Push" }).click();
+  const push = panel.getByTestId("enter-dice");
+  await push.getByTestId("enter-die-0").fill("6");
+  await push.getByTestId("enter-die-1").fill("4");
+  await expect(push.getByTestId("enter-dice-status")).toHaveText("Needs 2 more dice.");
+  // frame the dice column from the tab row (the table's switch) to the end of the skill roll card
+  const col = page.locator(".app-table__col").nth(1);
+  await settle(page);
+  const a = (await col.boundingBox())!;
+  const b = (await skill.boundingBox())!;
+  const pad = 8;
+  const clip = { x: Math.floor(a.x - pad), y: Math.floor(a.y - pad), width: Math.ceil(a.width + 2 * pad), height: Math.ceil(b.y + b.height - a.y + 2 * pad) };
+  expect(clip.y + clip.height, "the skill roll card fits").toBeLessThanOrEqual(page.viewportSize()!.height);
+  await shot(page, "enter-dice", { clip });
+});
+
 test("ship", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1300 });
   const base = await loadDemo(page, "skyfire");

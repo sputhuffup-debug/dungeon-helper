@@ -25,9 +25,9 @@ import {
   type Id,
   type ResolvedHit,
 } from "@campaign-forge/core";
-import { createRng, rollTable, type PlayModeId, type RollRecord, type RollResult, type SpecialAttackDef } from "@campaign-forge/module-sdk";
+import { createRng, rollTable, type PlayModeId, type RollRecord, type RollResult, type Rng, type SpecialAttackDef } from "@campaign-forge/module-sdk";
 import type { CampaignContextValue } from "./CampaignProvider";
-import { DICE_LOG, logTable, nextRollSeed, recordPoolRoll, rollOperation, tableResultText, type DiceLogData, type OperationRoll } from "./tableActions";
+import { DICE_LOG, enteredField, logTable, nextRollSeed, operationRun, recordPoolRoll, rollOperation, tableResultText, withRollRng, type DiceLogData, type OperationRoll } from "./tableActions";
 
 type Ctx = Pick<CampaignContextValue, "store" | "module">;
 
@@ -122,6 +122,7 @@ export function brokenTableFor(ctx: Ctx, entity: Entity): BrokenEntry | undefine
 export interface BrokenRoll {
   label: string;
   seed: string;
+  entered?: number[];
   /** The one-line result, as logged. */
   text: string;
   record?: RollRecord;
@@ -134,24 +135,32 @@ export interface BrokenRoll {
  * entry names one (effects apply, as the card's one-tap rolls do), else the
  * table itself with the session's seeded rng. Logged GM-only.
  */
-export function rollBroken(ctx: Ctx, sessionId: Id, entityId: Id, entry: BrokenEntry): BrokenRoll {
+export function rollBroken(ctx: Ctx, sessionId: Id, entityId: Id, entry: BrokenEntry, entered?: number[]): BrokenRoll {
   const label = entry.label ?? ctx.module.table(entry.table)?.name ?? entry.table;
   if (entry.operation && ctx.module.module.dice.operations?.[entry.operation]) {
-    const r = rollOperation(ctx, sessionId, entry.operation, entityId);
-    return { label, seed: r.seed, text: r.result.label, operation: r };
+    const r = rollOperation(ctx, sessionId, entry.operation, entityId, {}, entered);
+    return { label, seed: r.seed, ...enteredField(entered), text: r.result.label, operation: r };
   }
   const table = ctx.module.table(entry.table);
   if (!table) throw new Error(`The module has no table "${entry.table}"`);
   const store = ctx.store;
+  const seed = nextRollSeed(store, sessionId);
+  const record = withRollRng(seed, entered, (rng) => rollTable(table, rng, ctx.module.tables, { step: table.id }));
   return store.transact(() => {
     const entity = entityOf(ctx, entityId);
-    const seed = nextRollSeed(store, sessionId);
-    const record = rollTable(table, createRng(seed), ctx.module.tables, { step: table.id });
     const text = tableResultText(record);
-    const data: DiceLogData = { kind: "table", seed, label, table: table.id, total: record.total, rolls: [record], gmOnly: true };
+    const data: DiceLogData = { kind: "table", seed, ...enteredField(entered), label, table: table.id, total: record.total, rolls: [record], gmOnly: true };
     appendTrackerLog(store, sessionId, { tracker: DICE_LOG, text: `${entity.name}: ${label}: ${text}`, entity: entity.id, data });
-    return { label, seed, text, record };
+    return { label, seed, ...enteredField(entered), text, record };
   });
+}
+
+/** The broken-table roll as a pure function of its Rng (to ask for its dice). */
+export function brokenRun(ctx: Ctx, entityId: Id, entry: BrokenEntry): (rng: Rng) => unknown {
+  if (entry.operation && ctx.module.module.dice.operations?.[entry.operation]) return operationRun(ctx, entry.operation, entityId);
+  const table = ctx.module.table(entry.table);
+  if (!table) throw new Error(`The module has no table "${entry.table}"`);
+  return (rng) => rollTable(table, rng, ctx.module.tables, { step: table.id });
 }
 
 // ---------------------------------------------------------------------------
@@ -159,16 +168,31 @@ export function rollBroken(ctx: Ctx, sessionId: Id, entityId: Id, entry: BrokenE
 // ---------------------------------------------------------------------------
 
 /** Roll the creature's signature attack table (seeded, logged GM-only with the creature's name). */
-export function rollCreatureAttackAt(ctx: Ctx, sessionId: Id, creatureId: Id): CreatureAttackRoll & { seed: string } {
+export function rollCreatureAttackAt(ctx: Ctx, sessionId: Id, creatureId: Id, entered?: number[]): CreatureAttackRoll & { seed: string; entered?: number[] } {
   const store = ctx.store;
+  const creature = entityOf(ctx, creatureId);
+  const seed = nextRollSeed(store, sessionId);
+  const roll = withRollRng(seed, entered, (rng) => rollCreatureAttack(ctx.module, creature, rng));
   return store.transact(() => {
-    const creature = entityOf(ctx, creatureId);
-    const seed = nextRollSeed(store, sessionId);
-    const roll = rollCreatureAttack(ctx.module, creature, createRng(seed));
-    const data: DiceLogData = { kind: "table", seed, label: `${creature.name}: ${roll.table.name}`, table: roll.table.id, total: roll.record.total, rolls: [roll.record], gmOnly: true };
+    const data: DiceLogData = {
+      kind: "table",
+      seed,
+      ...enteredField(entered),
+      label: `${creature.name}: ${roll.table.name}`,
+      table: roll.table.id,
+      total: roll.record.total,
+      rolls: [roll.record],
+      gmOnly: true,
+    };
     appendTrackerLog(store, sessionId, { tracker: DICE_LOG, text: `${creature.name}: ${roll.table.name}: ${roll.attack.name} (${roll.record.total})`, entity: creature.id, data });
-    return { ...roll, seed };
+    return { ...roll, seed, ...enteredField(entered) };
   });
+}
+
+/** The creature's signature attack roll as a pure function of its Rng (to ask for its dice). */
+export function creatureAttackRun(ctx: Ctx, creatureId: Id): (rng: Rng) => unknown {
+  const creature = entityOf(ctx, creatureId);
+  return (rng) => rollCreatureAttack(ctx.module, creature, rng);
 }
 
 /** The GM picks an attack instead of rolling (as the turn notes allow). Logged GM-only. */
@@ -187,18 +211,26 @@ export function creaturePoolInput(creature: Entity, dice: number, label: string)
 
 export interface CreatureDiceRoll {
   seed: string;
+  entered?: number[];
   input: Record<string, unknown>;
   result: RollResult;
 }
 
 /** Roll a creature's attack dice with the module's pool (seeded, logged GM-only). */
-export function rollCreatureDice(ctx: Ctx, sessionId: Id, creature: Entity, dice: number, label: string): CreatureDiceRoll {
+export function rollCreatureDice(ctx: Ctx, sessionId: Id, creature: Entity, dice: number, label: string, entered?: number[]): CreatureDiceRoll {
   const sys = ctx.module.module.dice;
   const input = creaturePoolInput(creature, dice, label);
   const seed = nextRollSeed(ctx.store, sessionId);
-  const result = sys.roll(sys.buildPool(input), createRng(seed));
-  recordPoolRoll(ctx, sessionId, { label: `${creature.name}: ${label}`, seed, result, entityId: creature.id, gmOnly: true });
-  return { seed, input, result };
+  const result = withRollRng(seed, entered, (rng) => sys.roll(sys.buildPool(input), rng));
+  recordPoolRoll(ctx, sessionId, { label: `${creature.name}: ${label}`, seed, result, entityId: creature.id, gmOnly: true, ...enteredField(entered) });
+  return { seed, ...enteredField(entered), input, result };
+}
+
+/** A creature's pool roll as a pure function of its Rng (to ask for its dice). */
+export function creatureDiceRun(ctx: Ctx, creature: Entity, dice: number, label: string): (rng: Rng) => unknown {
+  const sys = ctx.module.module.dice;
+  const pool = sys.buildPool(creaturePoolInput(creature, dice, label));
+  return (rng) => sys.roll(pool, rng);
 }
 
 export interface ReactionRoll extends CreatureDiceRoll {
@@ -207,8 +239,8 @@ export interface ReactionRoll extends CreatureDiceRoll {
 }
 
 /** Roll a creature's damage reaction (e.g. a splash): rating (+ damage taken) dice; logged GM-only. */
-export function rollReaction(ctx: Ctx, sessionId: Id, creature: Entity, reaction: DamageReaction): ReactionRoll {
-  const roll = rollCreatureDice(ctx, sessionId, creature, reaction.dice, reaction.reaction.label);
+export function rollReaction(ctx: Ctx, sessionId: Id, creature: Entity, reaction: DamageReaction, entered?: number[]): ReactionRoll {
+  const roll = rollCreatureDice(ctx, sessionId, creature, reaction.dice, reaction.reaction.label, entered);
   return { ...roll, damage: roll.result.successes * reaction.reaction.damage };
 }
 

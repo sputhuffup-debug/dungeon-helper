@@ -2,6 +2,7 @@
 export * from "./types";
 export * from "./rng";
 export * from "./dice";
+export * from "./entered";
 export * from "./logic";
 export * from "./tables";
 export * from "./procedures";

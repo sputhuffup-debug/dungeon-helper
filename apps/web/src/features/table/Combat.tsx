@@ -4,8 +4,9 @@
  * broken-table roll at zero health, a creature's turn (Speed, signature
  * attack table, target by range from the live map, attack dice, apply the
  * hit) and a creature's reaction to damage (e.g. a splash on everything
- * close). Every roll is seeded `sessionId:counter` and logged GM-only; none
- * of it reaches the player screen.
+ * close). Every roll is seeded `sessionId:counter` (or takes the faces typed
+ * when the GM rolls physical dice) and is logged GM-only; none of it reaches
+ * the player screen.
  */
 import {
   attackDamage,
@@ -24,12 +25,15 @@ import {
 } from "@campaign-forge/core";
 import type { RollResult } from "@campaign-forge/module-sdk";
 import { useMemo, useState } from "react";
-import { Badge, Button, Card, Dialog, DieFace, HealthBar, PageRef, Stepper, initiativeOrder, initiativeState, pushToast, specById } from "../../components/ui";
+import { Badge, Button, Card, Dialog, DieFace, HealthBar, PageRef, Stepper, initiativeOrder, initiativeState, pushToast, specById, useDiceRoller } from "../../components/ui";
 import { errorMessage } from "../../lib/format";
 import {
   adjustDamage,
+  brokenRun,
   brokenTableFor,
   chooseCreatureAttack,
+  creatureAttackRun,
+  creatureDiceRun,
   previewHit,
   rollBroken,
   rollCreatureAttackAt,
@@ -47,6 +51,7 @@ import { POSITIONS_STATE, type OperationRoll } from "../../state/tableActions";
 import { useMapGenerator } from "../maps/siteMapFiles";
 import { useSessionTrackerState } from "./hooks";
 import { nearestFirst, rangeText, rangesFrom, type TargetRange } from "./siteMapLive";
+import { RollSource } from "./RollSource";
 import { useModeTrackers } from "./TrackersPanel";
 
 /** What the table page hands participant cards so they can open combat dialogs. */
@@ -110,6 +115,7 @@ function RollFaces({ result }: { result: RollResult }) {
 /** Roll the entity's broken table (or the module's operation for it) and show the result. */
 export function BrokenRollButton({ sessionId, entity, entry, onOperationRoll }: { sessionId: Id; entity: Entity; entry: BrokenEntry; onOperationRoll?: (roll: OperationRoll) => void }) {
   const ctx = useCampaign();
+  const roller = useDiceRoller();
   const [roll, setRoll] = useState<BrokenRoll | undefined>();
   const label = entry.label ?? ctx.module.table(entry.table)?.name ?? entry.table;
   const page = ctx.module.table(entry.table)?.page;
@@ -121,9 +127,15 @@ export function BrokenRollButton({ sessionId, entity, entry, onOperationRoll }: 
         aria-label={`Roll ${label} for ${entity.name}`}
         onClick={() => {
           try {
-            const r = rollBroken(ctx, sessionId, entity.id, entry);
-            setRoll(r);
-            if (r.operation) onOperationRoll?.(r.operation);
+            roller.roll({
+              title: `${entity.name}: ${label}`,
+              run: brokenRun(ctx, entity.id, entry),
+              perform: (entered) => {
+                const r = rollBroken(ctx, sessionId, entity.id, entry, entered);
+                setRoll(r);
+                if (r.operation) onOperationRoll?.(r.operation);
+              },
+            });
           } catch (e) {
             pushToast(`Roll failed: ${errorMessage(e)}`, { tone: "danger" });
           }
@@ -134,7 +146,7 @@ export function BrokenRollButton({ sessionId, entity, entry, onOperationRoll }: 
       {page !== undefined && <PageRef page={page} />}
       {roll && (
         <output className="app-combat__broken-result" data-testid="broken-result">
-          <strong>{roll.label}:</strong> {roll.text} <span className="cf-muted">· seed {roll.seed}</span>
+          <strong>{roll.label}:</strong> {roll.text} <span className="cf-muted">·</span> <RollSource seed={roll.seed} entered={roll.entered} />
         </output>
       )}
     </span>
@@ -229,6 +241,7 @@ export function ReactionPanel({
   onOperationRoll?: (roll: OperationRoll) => void;
 }) {
   const ctx = useCampaign();
+  const roller = useDiceRoller();
   const r = reaction.reaction;
   const [roll, setRoll] = useState<ReactionRoll | undefined>();
   const [applied, setApplied] = useState<Record<Id, HitApplied>>({});
@@ -253,8 +266,14 @@ export function ReactionPanel({
           variant="primary"
           onClick={() => {
             try {
-              setRoll(rollReaction(ctx, sessionId, creature, reaction));
-              setApplied({});
+              roller.roll({
+                title: `${creature.name}: ${r.label}`,
+                run: creatureDiceRun(ctx, creature, reaction.dice, r.label),
+                perform: (entered) => {
+                  setRoll(rollReaction(ctx, sessionId, creature, reaction, entered));
+                  setApplied({});
+                },
+              });
             } catch (e) {
               pushToast(`Roll failed: ${errorMessage(e)}`, { tone: "danger" });
             }
@@ -270,7 +289,7 @@ export function ReactionPanel({
             <Badge tone={roll.damage > 0 ? "danger" : "muted"} data-testid="reaction-damage">
               {plural(roll.result.successes, "success", "successes")}: {roll.damage} damage
             </Badge>
-            <span className="cf-muted">seed {roll.seed}</span>
+            <RollSource seed={roll.seed} entered={roll.entered} />
           </div>
           {ranges ? (
             <p className="app-note" data-testid="reaction-near">
@@ -438,6 +457,8 @@ interface AttackState {
   attack: CreatureAttack;
   /** Set when rolled on the table; absent when the GM picked it. */
   seed?: string;
+  /** Faces typed when the attack table was rolled at the table. */
+  entered?: number[];
   total?: number;
 }
 
@@ -466,6 +487,7 @@ export function CreatureTurnCard({
   onOperationRoll?: (roll: OperationRoll) => void;
 }) {
   const ctx = useCampaign();
+  const roller = useDiceRoller();
   const turn = creatureTurnFor(ctx.module, creature);
   const speed = creatureSpeed(ctx.module, creature);
   const table = creatureAttackTable(ctx.module, creature);
@@ -490,18 +512,31 @@ export function CreatureTurnCard({
   };
   const rollTableAttack = () => {
     try {
-      const r = rollCreatureAttackAt(ctx, sessionId, creature.id);
-      pick({ attack: r.attack, seed: r.seed, total: r.record.total });
-      setChoosing(false);
+      roller.roll({
+        title: `${creature.name}: ${table?.name ?? "attack"}`,
+        run: creatureAttackRun(ctx, creature.id),
+        perform: (entered) => {
+          const r = rollCreatureAttackAt(ctx, sessionId, creature.id, entered);
+          pick({ attack: r.attack, seed: r.seed, total: r.record.total, ...(r.entered ? { entered: r.entered } : {}) });
+          setChoosing(false);
+        },
+      });
     } catch (e) {
       pushToast(`Roll failed: ${errorMessage(e)}`, { tone: "danger" });
     }
   };
   const rollDice = () => {
     if (!attack) return;
+    const label = `${attack.attack.name}${target ? ` at ${target.name}` : ""}`;
     try {
-      setDice(rollCreatureDice(ctx, sessionId, creature, attack.attack.dice, `${attack.attack.name}${target ? ` at ${target.name}` : ""}`));
-      setOutcome(undefined);
+      roller.roll({
+        title: `${creature.name}: ${label}`,
+        run: creatureDiceRun(ctx, creature, attack.attack.dice, label),
+        perform: (entered) => {
+          setDice(rollCreatureDice(ctx, sessionId, creature, attack.attack.dice, label, entered));
+          setOutcome(undefined);
+        },
+      });
     } catch (e) {
       pushToast(`Roll failed: ${errorMessage(e)}`, { tone: "danger" });
     }
@@ -611,7 +646,9 @@ export function CreatureTurnCard({
               <strong className="app-combat__attack-name" data-testid="attack-name">
                 {attack.attack.name}
               </strong>
-              {attack.total !== undefined ? <span className="cf-muted">rolled {attack.total} · seed {attack.seed}</span> : <span className="cf-muted">picked by the GM</span>}
+              {attack.total !== undefined ? <span className="cf-muted">
+                  rolled {attack.total} · <RollSource seed={attack.seed} entered={attack.entered} />
+                </span> : <span className="cf-muted">picked by the GM</span>}
             </header>
             <dl className="app-combat__stats">
               <dt>Dice</dt>
@@ -668,7 +705,7 @@ export function CreatureTurnCard({
                 <Badge tone={dice.result.successes > 0 ? "success" : "muted"} data-testid="attack-successes">
                   {plural(dice.result.successes, "success", "successes")}
                 </Badge>
-                <span className="cf-muted">seed {dice.seed}</span>
+                <RollSource seed={dice.seed} entered={dice.entered} />
               </div>
             )}
             {dice && dice.result.successes === 0 && <p className="cf-muted">The attack misses.</p>}

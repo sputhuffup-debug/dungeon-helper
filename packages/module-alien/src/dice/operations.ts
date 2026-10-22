@@ -187,7 +187,7 @@ export const supplyRoll: DiceOperation = {
     const capped = Math.min(SUPPLY_MAX_DICE, rating);
     const diceCount = rating === 0 ? 0 : Math.max(1, capped - reduceBy);
     const raw: number[] = [];
-    for (let n = 0; n < diceCount; n++) raw.push(rng.int(1, 6));
+    for (let n = 0; n < diceCount; n++) raw.push(rng.int(1, 6, { label: "Stress die", die: STRESS_DIE }));
     const ones = raw.filter((v) => v === 1).length;
     const after = Math.max(0, rating - ones);
     const what = str(input.label) ?? "supply";
@@ -365,7 +365,7 @@ export const inseminationCheck: DiceOperation = {
       const label = "Already implanted: no roll needed";
       return { rolls: [], result: { implanted: true, rolled: false }, label, effects: [{ kind: "log", text: `Insemination check (p. 214): ${label}.` }] };
     }
-    const value = rng.int(1, 6);
+    const value = rng.int(1, 6, { label: "Stress die", die: STRESS_DIE });
     const implanted = value === 1;
     const label = implanted ? "Facehugger symbol: implanted" : `Stress die ${value}: not yet`;
     const record: RollRecord = { step: "inseminationCheck", dice: "1d6", raw: [value], modifier: 0, total: value, rowLabel: label, result: { implanted }, page: 214 };

@@ -1,4 +1,4 @@
-import { addDaysToDate, daysBetween, formatAmount, parseCalendarDate, type EntityTypeDef, type GameModule, type TravelDef } from "@campaign-forge/module-sdk";
+import { addDaysToDate, createRng, daysBetween, planEntry, recordDice, formatAmount, parseCalendarDate, type EntityTypeDef, type GameModule, type TravelDef } from "@campaign-forge/module-sdk";
 import { strFromU8, unzipSync } from "fflate";
 import { describe, expect, it } from "vitest";
 import {
@@ -20,6 +20,7 @@ import {
   postLedgerEntry,
   projectCampaignForViewer,
   setCrewShip,
+  travelArrivalRun,
   travelLog,
 } from "../src";
 import { fixtureModule, newStore } from "./fixtures";
@@ -223,6 +224,22 @@ describe("travel", () => {
     const c = world();
     const rc = departTravel(c.store, mod, { ship: c.cart.id, to: c.fair.id, distance: 200, seed: "other" });
     expect(rc.outcome.rolls[0]!.raw).not.toEqual(ra.outcome.rolls[0]!.raw);
+  });
+
+  it("takes arrival dice rolled at the table: asks for them, gives the app roll's arrival with those faces, keeps them on the leg", () => {
+    const a = world();
+    const run = travelArrivalRun(a.store, mod, { ship: a.cart.id, to: a.fair.id, distance: 200 });
+    expect(planEntry(run, []).slots.length).toBeGreaterThan(0);
+    const rec = recordDice(createRng("travel:same"));
+    run(rec.rng);
+    const app = departTravel(a.store, mod, { ship: a.cart.id, to: a.fair.id, distance: 200, seed: "same" });
+    const b = world();
+    const typed = departTravel(b.store, mod, { ship: b.cart.id, to: b.fair.id, distance: 200, seed: "other", entered: rec.faces });
+    expect(typed.outcome.rolls).toEqual(app.outcome.rolls);
+    expect(typed.leg.entered).toEqual(rec.faces);
+    const c = world();
+    expect(() => departTravel(c.store, mod, { ship: c.cart.id, to: c.fair.id, distance: 200, seed: "x", entered: [...rec.faces, 1] })).toThrow(/more was entered/);
+    expect(travelLog(c.store)).toHaveLength(0);
   });
 
   it("refuses a blocked trip and can hold effects for later", () => {
