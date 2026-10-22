@@ -41,7 +41,7 @@ const SKIPPED_FOLDERS = ["deities", "journals", "rollable-tables", "iconics", "p
 const minified = (x: unknown) => Buffer.byteLength(JSON.stringify(x));
 
 /** Greedy, order-preserving packing of lists (or presets) into parts under the budget. */
-function pack<T>(prefix: string, items: T[], key: "referenceLists" | "presets" | "rules"): Part[] {
+export function pack<T>(prefix: string, items: T[], key: "referenceLists" | "presets" | "rules"): Part[] {
   const parts: Part[] = [];
   let cur: T[] = [];
   let size = 0;
@@ -63,7 +63,7 @@ function pack<T>(prefix: string, items: T[], key: "referenceLists" | "presets" |
 }
 
 /** Drop empty strings, empty lists and empty objects from reference items and preset fields (smaller, cleaner JSON). */
-function compact<T>(v: T): T {
+export function compact<T>(v: T): T {
   if (Array.isArray(v)) return v.map(compact) as T;
   if (v && typeof v === "object") {
     const out: Record<string, unknown> = {};
@@ -74,6 +74,16 @@ function compact<T>(v: T): T {
     return out as T;
   }
   return v;
+}
+
+/** Nothing the scrubber should have caught, and no Foundry markup, may reach an output file: throws on the first one. */
+export function assertClean(name: string, text: string): void {
+  for (const x of RESERVED) {
+    const m = termPattern(x.term).exec(text);
+    if (m) throw new Error(`${name}: Reserved Material "${x.term}" left in: …${text.slice(Math.max(0, m.index - 80), m.index + 80)}…`);
+  }
+  const markup = /@(UUID|Check|Damage|Template|Localize|actor|item)\b|\[\[\/|<\/?(p|strong|em|span|table|li)\b|&nbsp;|systems\/pf2e|\.webp/.exec(text);
+  if (markup) throw new Error(`${name}: Foundry markup left in: …${text.slice(Math.max(0, markup.index - 80), markup.index + 80)}…`);
 }
 
 export function convertSource(root: string): Conversion {
@@ -137,14 +147,7 @@ export function convertSource(root: string): Conversion {
   for (const p of parts) {
     const n = minified(p);
     if (n > PART_BUDGET * 1.25) throw new Error(`${p.name} is ${n} bytes; split it`);
-    const text = JSON.stringify(p);
-    // Nothing the scrubber should have caught, and no Foundry markup, may reach a part file.
-    for (const x of RESERVED) {
-      const m = termPattern(x.term).exec(text);
-      if (m) throw new Error(`${p.name}: Reserved Material "${x.term}" left in: …${text.slice(Math.max(0, m.index - 80), m.index + 80)}…`);
-    }
-    const markup = /@(UUID|Check|Damage|Template|Localize|actor|item)\b|\[\[\/|<\/?(p|strong|em|span|table|li)\b|&nbsp;|systems\/pf2e|\.webp/.exec(text);
-    if (markup) throw new Error(`${p.name}: Foundry markup left in: …${text.slice(Math.max(0, markup.index - 80), markup.index + 80)}…`);
+    assertClean(p.name, JSON.stringify(p));
   }
 
   // Notes: exclusions, Reserved Material handling, text conversion.

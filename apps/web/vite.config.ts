@@ -30,6 +30,9 @@ export default defineConfig({
         // pack (`PackSource`) becomes its own lazy chunk, so a large pack (a whole SRD) is split into
         // part files that each stay well under this limit (aim for 2 MB a part). A chunk over it would
         // silently miss the precache and fail offline. Imported packs live in IndexedDB, not here.
+        // Built-in supplements are precached too (pf2e-orc's "Remaster ORC books": the books-*.js
+        // chunks, about 7.9 MB of the 18.8 MB), so one can be switched on offline. If they ever make
+        // the precache too large, list them in globIgnores and cache them at runtime instead.
         maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
         navigateFallback: "/index.html",
       },

@@ -67,6 +67,32 @@ export const RESERVED: ReservedTerm[] = [
   ...t("people", "Varisian", "Chelaxian", "Taldan", "Osirian", "Thassilonian", "Azlanti", "Jistkan", "Garundi", "Keleshite", "Kellid", "Shoanti", "Ulfen", "Vudrani", "Jalmeri", "Mwangi", "Tian", "Nidalese", "Ustalavic", "Erutaki", "Varki"),
   ...t("language", "Osiriani", "Kelish", "Hallit", "Taldane", "Tien"),
   ...t("event", "Earthfall", "Bleaching", "Age of Lost Omens", "Convergence", "Skinsaw"),
+  // Found in the books of the built-in supplement "Remaster ORC books" (Monster Core 2, NPC Core, Howl of
+  // the Wild, Treasure Vault, Battlecry!, Impossible Magic, Guns & Gears, Dark Archive, War of Immortals):
+  // scanned with `build-supplement --candidates` and reviewed by hand.
+  ...t("publication", "Impossible Magic", "Battlecry"),
+  ...t(
+    "deity",
+    "Ahriman", "Angazhan", "Atreia", "Bastet", "Easivra", "Enkaar", "Iovett", "Irez", "Ragdya", "Reshmit", "Thalaphyrr", "Vyriavaxus", "Xar-Azmak", "Arcanotheign", "Cayden", "Crimson Son", "Verex",
+    "Azathoth", "Nhimbaloth", "Yog-Sothoth", "Nyarlathotep", "Outer God", "Elder Mythos", "Haunter of the Dark",
+  ),
+  ...t(
+    "character",
+    "Agyra", "Agmazar", "Bezravnis", "Ebeshra", "Mogaru", "Vorgozen", "Yarthoon", "Akkarok", "Hazi", "Nessek", "Zalok", "Amiri", "Valeros", "Seltyiel", "Digly", "Kenelm", "Tasya", "Iserav", "Igroon", "Jandelay", "Jassim",
+    "Rummbrrlar", "Tehialai", "Grobelarch", "Anong", "Arunak", "Kevoth", "Black Sovereign", "Stethelos", "Stasian",
+  ),
+  ...t("organization", "Aldori", "Iridian", "Arclord", "Arclords", "Palatine Eye", "Goldhand", "Butterfly Blades", "Thlipit", "Pharasmins", "Shelynites", "Desnans", "Kitharodian", "Nexian", "Reverient Empire", "Harrow"),
+  ...t(
+    "place",
+    "Leng", "Tindalos", "Dongun", "Jinin", "Oppara", "Minkai", "Goka", "Gokan", "Hwanggot", "Senghor", "Quantium", "Kortos", "Riddleport", "Okaiyo", "Embaral", "Alohmab", "Tianjing", "Mudii'a", "Mudii’a", "Ridonport", "Segada",
+    "Stetven", "Teskra", "Mzali", "Verduran", "Minata", "Castrovel", "Xibalba", "Iudica", "Empty Court", "Black Harbor", "Beachcomber", "Shackles", "Linnorm Kings", "Impossible Lands",
+  ),
+  ...t(
+    "people",
+    "Qadiran", "Mendevian", "Sarkorian", "Sarkorians", "Avistani", "Irriseni", "Arcadian", "Ulfens", "Nivian", "Thuvian", "Numerian", "Minatan", "Ghol-Gani", "Munavri",
+    "Lyrune-Quah", "Shadde-Quah", "Shriikirri-Quah", "Shundar-Quah", "Sklar-Quah", "Skoan-Quah", "Tamiir-Quah",
+  ),
+  ...t("language", "Skald"),
   r("plane", "River of Souls", "the procession of souls"),
   // The setting's own cosmology: rewritten to generic planes, so the rules that need a place keep working.
   r("plane", "Outer Rifts", "the demonic realms"),

@@ -9,7 +9,7 @@
  */
 import type { EntityPreset, ReferenceList } from "@campaign-forge/module-sdk";
 import { CREATURE, PACK } from "../ids.ts";
-import { characterType, creatureType, encounterType, factionType, hazardType, itemType, locationType, npcType, questType } from "./entityTypes.ts";
+import { characterType, creatureType, type HpTable, encounterType, factionType, hazardType, itemType, locationType, npcType, questType } from "./entityTypes.ts";
 import { playGuide } from "./guides.ts";
 import { dice, manifest } from "./manifest.ts";
 import { originalTables, procedures, shapeTables } from "./tables.ts";
@@ -24,8 +24,8 @@ export interface GeneratedData {
   lists: ReferenceList[];
   /** The converted part files, in join order. */
   parts: string[];
-  ancestryHp: Record<string, number>;
-  classHp: Record<string, number>;
+  ancestryHp: HpTable;
+  classHp: HpTable;
 }
 
 export function buildAuthored(data: GeneratedData): Record<string, unknown> {

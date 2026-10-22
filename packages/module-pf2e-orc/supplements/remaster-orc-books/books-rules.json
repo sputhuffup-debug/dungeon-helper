@@ -1,0 +1,2339 @@
+{
+ "$schema": "../../../module-sdk/schema/module-supplement-part.schema.json",
+ "format": "campaign-forge-supplement-part",
+ "formatVersion": 1,
+ "supplement": "pf2e-orc-books",
+ "name": "books-rules.json",
+ "rules": [
+  {
+   "id": "pf2e-orc-books.rule.action.automaton-aim",
+   "title": "Automaton Aim ◆",
+   "summary": "You steady your body and observe the events of the battlefield to maximize the range of your next shot. You reduce the penalty for firing into your weapon's second range increment from –2 to 0 for the next ranged attack you make this turn. You can use this action a second time in the same turn to reduce the penalty from firing into your weapon's third range increment from –4 to 0 for the next ranged attack you make this turn.",
+   "cite": "Guns & Gears (Remastered) — Ancestry Actions: Automaton Aim",
+   "tags": [
+    "action",
+    "ancestry actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.chassis-deflection",
+   "title": "Chassis Deflection ↺",
+   "summary": "*automaton*\n\n**Trigger** A critical hit deals physical damage to you.\n\nAttempt a DC 17 flat. If you are successful, the attack becomes a normal hit.",
+   "cite": "Guns & Gears (Remastered) — Ancestry Actions: Chassis Deflection",
+   "tags": [
+    "action",
+    "ancestry actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.dampening-harmonics",
+   "title": "Dampening Harmonics ◆◆",
+   "summary": "*magical*\n\n**Frequency** once per hour\n\n**Effect** You establish a force field that grants you resistance 10 to damage dealt by spells and magical abilities with the trait of your magiphage ability, except for force damage. The force field lasts for 10 minutes. Each time the field prevents damage, the duration decreases by 1 minute.",
+   "cite": "Howl of the Wild — Ancestry Actions: Dampening Harmonics",
+   "tags": [
+    "action",
+    "ancestry actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.dazzle-seeker",
+   "title": "Dazzle Seeker ↺",
+   "summary": "*misfortune*\n\n**Trigger** A creature attempts a flat check to target you due to you being concealed from it\n\n**Effect** You flash your bright scales in the creature's eyes, making it hard for them to pinpoint your exact location. The creature must roll the flat check twice and take the worse result.",
+   "cite": "Howl of the Wild — Ancestry Actions: Dazzle Seeker",
+   "tags": [
+    "action",
+    "ancestry actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.empty-vessel",
+   "title": "Empty Vessel ↺",
+   "summary": "*concentrate*\n\n**Frequency** once per day\n\n**Trigger** You would take mental damage or be affected by a mental effect\n\n**Effect** You gain a +2 circumstance bonus to Will saves and resistance to mental damage equal to your level against the triggering effect. This applies only to the initial effect, not successive saves, persistent mental damage, or other repeated effects.",
+   "cite": "Dark Archive (Remastered) — Ancestry Actions: Empty Vessel",
+   "tags": [
+    "action",
+    "ancestry actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.i-defy-you",
+   "title": "I Defy You! ↺",
+   "summary": "*fortune, mental*\n\n**Trigger** You fail a save against a mental effect\n\n**Frequency** once per hour\n\n**Effect** You reroll the triggering save and must take the second result.",
+   "cite": "Howl of the Wild — Ancestry Actions: I Defy You!",
+   "tags": [
+    "action",
+    "ancestry actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.lantern-beam",
+   "title": "Lantern Beam ◆",
+   "summary": "*fire, light, magical*\n\n**Requirements** Your lantern light is shining\n\n**Effect** Your lenses focus your light into a searing beam. You deal level-based fire damage to all creatures in a 30-foot line, with a basic Reflex saving throw against the higher of your class DC or spell DC. Your lantern light then extinguishes, and you can't use this ability or use your lantern light again for 1d4 rounds. At 11th level and every two levels thereafter, the damage increases by 1d4.",
+   "cite": "Howl of the Wild — Ancestry Actions: Lantern Beam",
+   "tags": [
+    "action",
+    "ancestry actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.lantern-strobe",
+   "title": "Lantern Strobe ◆◆",
+   "summary": "*light, magical, visual*\n\n**Frequency** once per hour\n\n**Effect** As you pulse your lantern, your emitters flash erratically, disorienting your opponents that see it. Each opponent in a 15-foot cone must attempt a Fortitude save against your class DC or spell DC (whichever is higher). On a failure, the creature is dazzled for 1 round. On a critical failure, the creature is blinded for 1 round and dazzled for the following round.",
+   "cite": "Howl of the Wild — Ancestry Actions: Lantern Strobe",
+   "tags": [
+    "action",
+    "ancestry actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.mirror-trickery",
+   "title": "Mirror-Trickery ↺",
+   "summary": "*concentrate, illusion, occult, visual*\n\n**Frequency** once per day\n\n**Trigger** You would be hit by a Strike\n\n**Effect** You create an illusory duplicate at the last instant and attempt to trick your foe into striking it instead of you. The attacker attempts a DC 11 flat; on a failure, the attack hits the duplicate, changing the result from a critical success to a success or a success to a failure.",
+   "cite": "Dark Archive (Remastered) — Ancestry Actions: Mirror-Trickery",
+   "tags": [
+    "action",
+    "ancestry actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.plaintive-plea",
+   "title": "Plaintive Plea ◆",
+   "summary": "*fortune*\n\n**Frequency** once per day\n\n**Effect** You make an emotional appeal to convince someone during a diplomatic encounter. If your next activity is to attempt a Diplomacy check to Make An Impression or Request, or to attempt to influence a creature during an influence encounter, you can roll twice and take the better result.",
+   "cite": "Impossible Magic — Ancestry Actions: Plaintive Plea",
+   "tags": [
+    "action",
+    "ancestry actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.raise-slabs",
+   "title": "Raise Slabs ◆◆",
+   "summary": "*divine, earth*\n\n**Frequency** once per day\n\n**Effect** Thick slabs of stone rise around you before tilting over. You deal (1d6 per 2 levels) bludgeoning damage to all adjacent creatures (basic Reflex against your class DC or spell DC, whichever is higher). On a critical failure, the creature is also knocked prone. At 3rd level, and every 2 levels thereafter, this damage increases by 1d6.",
+   "cite": "Howl of the Wild — Ancestry Actions: Raise Slabs",
+   "tags": [
+    "action",
+    "ancestry actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.resist-magic",
+   "title": "Resist Magic ↺",
+   "summary": "**Trigger** You attempt a saving throw against a harmful magical effect but haven't rolled yet.\n\nYour innate magic protects you. You gain a +1 circumstance bonus to the triggering saving throw. Additionally, if the triggering effect is arcane, if you roll a success, you get a critical success instead.",
+   "cite": "Guns & Gears (Remastered) — Ancestry Actions: Resist Magic",
+   "tags": [
+    "action",
+    "ancestry actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.shielding-wave",
+   "title": "Shielding Wave ◆",
+   "summary": "*primal, water*\n\nYou raise a magical barrier of twisting currents. Until the start of your next turn, the first time you take acid or fire damage, you gain resistance to that damage equal to half your level (minimum 1). The resistance is equal to your level instead if you're submerged in water, if you already Cast a Spell with the water trait, or if you used another ability with the water trait this turn.",
+   "cite": "Howl of the Wild — Ancestry Actions: Shielding Wave",
+   "tags": [
+    "action",
+    "ancestry actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.stridulating-song",
+   "title": "Stridulating Song ◆◆",
+   "summary": "*auditory, magical*\n\n**Frequency** once per day\n\n**Effect** You circulate magic through your wings, causing them to vibrate at high speeds such that their scraping produces disruptive sounds. You focus the sound at one creature within 30 feet who must succeed at a Fortitude save against your class DC or spell DC (whichever is higher) or become Sickened 1, or Sickened 2 on a critical failure, as the vibrations disrupt its inner equilibrium. You can Sustain the effect for up to 1 minute; the creature can't recover from the sickened condition as long as you continue your song and it can hear you.",
+   "cite": "Howl of the Wild — Ancestry Actions: Stridulating Song",
+   "tags": [
+    "action",
+    "ancestry actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.trench-digging",
+   "title": "Trench Digging ↺",
+   "summary": "**Trigger** You're subjected to forced movement\n\n**Effect** You deploy your claw spikes to churn the earth asunder, creating difficult terrain in each square of ground you're moved through.",
+   "cite": "Howl of the Wild — Ancestry Actions: Trench Digging",
+   "tags": [
+    "action",
+    "ancestry actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.absorb-magic",
+   "title": "Absorb Magic ↺",
+   "summary": "*concentrate, magical*\n\n**Requirements** You are not overflowing\n\n**Trigger** Another creature within 30 feet Casts a Spell or uses an action, activity, or reaction with the arcane, divine, magical, occult, or primal trait\n\n**Effect** You breathe in a small fraction of the magic produced by the triggering effect, storing it in your internal nexus. You become overflowing. You remain overflowing for up to 1 minute before the stored magical energy fades. While overflowing, you gain a +1 status bonus to saving throws against effects with the arcane, divine, magical, occult, and primal traits. This bonus becomes +2 at 15th level.",
+   "cite": "Impossible Magic — Archetype Actions: Absorb Magic",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.accidental-shot",
+   "title": "Accidental Shot ◆◆",
+   "summary": "*fortune*\n\n**Frequency** once per day\n\n**Effect** You make a Strike with a ranged weapon, rolling the attack and damage twice and using the better results for each. The attack ignores circumstance penalties to the attack roll and any flat check required due to the target being concealed or hidden.",
+   "cite": "Guns & Gears (Remastered) — Archetype Actions: Accidental Shot",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.administer-ambient-magic",
+   "title": "Administer Ambient Magic ◆",
+   "summary": "*healing*\n\n**Frequency** once per hour\n\n**Effect** Your ostilli pulses a calm lavender color as it converts stored magic into a curative balm. You regain level-based Hit Points, and you can immediately attempt a flat check to recover from persistent bleed damage with the DC reduced to 10. This healing increases by 2d4 at 8th level and every 4 levels thereafter.",
+   "cite": "Howl of the Wild — Archetype Actions: Administer Ambient Magic",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.amassed-assault",
+   "title": "Amassed Assault ◆",
+   "summary": "*attack*\n\nEach enemy in your united companion's space takes damage equal to one of its unarmed Strikes plus your level (basic Reflex save against your class DC or spell DC, whichever is higher).",
+   "cite": "War of Immortals — Archetype Actions: Amassed Assault",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.assume-a-role",
+   "title": "Assume a Role",
+   "summary": "*concentrate, exploration*\n\n**Requirements** You've spent at least 1 hour studying a creature whose role you intend to copy and have done so within the last 3 days. This could include meeting and learning from someone in that role, tailing and spying on someone, using magic to observe them at work, or some other method, as long as you have a visual source of information\n\n**Effect** You quickly and accurately learn how to do mundane jobs or at least copy the movements enough to appear as if you do. A chosen role can take many forms—from cook, cleaner, or librarian to cult member, priest, or duke—but it's always a role and never a specific individual. You perform the Impersonate activity to pass as a member of the role you observed and gain a +1 circumstance bonus to any Deception checks you attempt in your impersonation. This takes the normal amount of time it takes you to Impersonate. You also choose one Lore skill relevant to that role (such as Farming Lore for a farmer). While in your role, you gain a +1 circumstance bonus to checks for that Lore skill, and if you're untrained in it, you can use your level as your proficiency bonus. You stop assuming the role after 24 hours, if you start studying for a new role, or if you choose to.",
+   "cite": "Dark Archive (Remastered) — Archetype Actions: Assume a Role",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.banshee-cry",
+   "title": "Banshee Cry ↺",
+   "summary": "**Trigger** A creature within 30 feet Casts a Spell or Activates an Item using a concentrate Activation\n\n**Effect** You set off a firework that explodes with a loud screech near the creature. The creature must attempt a Will save.\n\n**Success** The creature is unaffected.\n\n**Failure** The creature must use an additional action on the triggering action or activity, or it's disrupted.\n\n**Critical Failure** The triggering action is disrupted.",
+   "cite": "Guns & Gears (Remastered) — Archetype Actions: Banshee Cry",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.bite-and-sting",
+   "title": "Bite and Sting ◆",
+   "summary": "**Requirements** Your swarm is outside your body\n\n**Effect** Each creature in your swarm's space takes (1d4 per 2 levels) piercing damage with a basic Reflex save against your class DC or spell DC, whichever is higher. At 4th level and every 2 levels thereafter, the damage increases by 1d4.",
+   "cite": "Howl of the Wild — Archetype Actions: Bite and Sting",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.bless-ally",
+   "title": "Bless Ally ◆",
+   "summary": "*concentrate, divine, fortune, mythic*\n\n**Frequency** once per 10 minutes\n\n**Requirements** Your nimbus is active\n\n**Target** a willing ally within the bright light of your nimbus\n\n**Effect** Your radiance grants an ally some of your celestial grace. That ally can roll twice and use the higher result for the next Will save they attempt before the beginning of your next turn.\n\nEffect: Bless Ally",
+   "cite": "War of Immortals — Archetype Actions: Bless Ally",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.bullet-dancer-stance",
+   "title": "Bullet Dancer Stance ◆",
+   "summary": "*stance*\n\n**Requirements** You're unarmored and wielding a simple firearm or simple combination weapon\n\n**Effect** You enter a specialized stance for a unique martial art centered around the use of simple firearms. While in this stance, the only Strikes you can make are those using bayonets, reinforced stocks, simple firearms, and simple combination weapons. You can use Flurry of Blows with these weapons. You can use other monk feats or monk abilities you have that normally require unarmed attacks with bayonets, reinforced stocks, and the melee component of simple combination weapons, so long as the feat or ability doesn't require a single, specific Strike. You can also use them with simple firearms when attacking within half the first range increment.",
+   "cite": "Guns & Gears (Remastered) — Archetype Actions: Bullet Dancer Stance",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.call-follower",
+   "title": "Call Follower",
+   "summary": "*exploration*\n\nYou spend 1 minute calling for a different follower, switching your active follower for another of your followers.",
+   "cite": "Battlecry! — Archetype Actions: Call Follower",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.call-gun",
+   "title": "Call Gun ◆",
+   "summary": "*magical*\n\n**Effect** You hold aloft a free hand and call the firearm or crossbow you chose during your daily preparations into your hand. As long as the weapon you chose is on the same plane, it appears in your hand.",
+   "cite": "Guns & Gears (Remastered) — Archetype Actions: Call Gun",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.claw-stance",
+   "title": "Claw Stance ◆",
+   "summary": "*stance*\n\n**Effect** You extend the claws in your hands and focus your attention to take down single targets. The only Strikes you can make are frenzied claw unarmed attacks. These deal 1d6 slashing damage, are in the brawling group, and have the agile, finesse, grapple, unarmed, and versatile piercing traits.",
+   "cite": "Howl of the Wild — Archetype Actions: Claw Stance",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.cleanse-soul-path",
+   "title": "Cleanse Soul Path",
+   "summary": "*exploration*\n\nYou meditate, pray, or otherwise try to reinforce your soul's connection to your armament. This takes 10 minutes. Attempt a counteract check against your *soulforged corruption*. The counteract rank is half your level rounded up, and the counteract check modifier is your Religion modifier. If successful, reduce the stage of *soulforged corruption* by 1 (to a minimum of stage 1).",
+   "cite": "Impossible Magic — Archetype Actions: Cleanse Soul Path",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.coughing-dragon",
+   "title": "Coughing Dragon ◆◆",
+   "summary": "Choose either auditory or visual effects. The display gains that trait, and you attempt to counteract one or more effects in a 60-foot emanation that have this trait. On a success, the effect is suppressed until the start of your next turn, rather than ending entirely. Use your Fireworks Lore modifier as your counteract modifier, and your counteract rank is equal to half your level (rounded up). You can spend 2 versatile vials and 3 actions (instead of the usual Cost and actions) to create an even bigger coughing dragon display that attempts to counteract both auditory and visual effects at the same time.",
+   "cite": "Guns & Gears (Remastered) — Archetype Actions: Coughing Dragon",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.crescent-spray",
+   "title": "Crescent Spray ◆◆",
+   "summary": "*flourish*\n\n**Requirements** You are wielding a crescent cross\n\n**Effects** You Strike up to three times with the ranged version of your crescent cross. If it is currently in its melee configuration, you can swap it to its ranged configuration as a free action before attempting these Strikes. You must have a bolt already chambered for each Strike and can Interact to swap to a different capacity chamber as a free action between each Strike. Each attack counts toward your multiple attack penalty, but you do not increase your penalty until you have made all your attacks.",
+   "cite": "Battlecry! — Archetype Actions: Crescent Spray",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.daydream-trance",
+   "title": "Daydream Trance ◆",
+   "summary": "*mental, occult*\n\nYou fall into a half-sleeping trance. This lasts for 1 minute or until you fall unconscious, whichever comes first. You can attempt to Dismiss your trance, but your attempt fails unless you succeed at a Will saving throw against your own class DC or spell DC, whichever is higher. Once your trance ends, you can't enter a Daydream Trance again for 1 minute. While you're in your trance, you gain the following effects:\n\n- You gain a +1 status bonus to Will saves. This bonus increases to +2 against mental effects. If you're legendary in Occultism, the bonus against mental effects increases to +3.\n- You take a –1 penalty to Perception checks and initiative rolls.",
+   "cite": "Dark Archive (Remastered) — Archetype Actions: Daydream Trance",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.death-drone",
+   "title": "Death Drone ◆◆",
+   "summary": "*auditory, flourish, mental*\n\nThe cicadas in your swarm make a droning sound that stimulates a fear response. Each creature within your swarm's space takes 6d4 mental damage and must attempt a Will save against your class DC or spell DC, whichever is higher.\n\n**Critical Success** The creature is unaffected.\n\n**Success** The creatures takes half damage.\n\n**Failure** The creature takes full damage, is Frightened 1, and takes a –2 circumstance penalty to Perception checks that require hearing.\n\n**Critical Failure** The creature takes double damage, is Frightened 2, and is deafened until the start of your next turn.",
+   "cite": "Howl of the Wild — Archetype Actions: Death Drone",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.devour-ambient-magic",
+   "title": "Devour Ambient Magic ↺",
+   "summary": "*concentrate*\n\n**Frequency** once per day\n\n**Trigger** A creature Casts a Spell with you as the only target\n\n**Effect** Your ostilli radiates cyan light as its tentacle-like filters attempt to consume the magical effect. You can attempt to counteract the triggering spell with an Arcana or Nature check and a counteract rank equal to half your level.",
+   "cite": "Howl of the Wild — Archetype Actions: Devour Ambient Magic",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.direct-follower",
+   "title": "Direct Follower ◆",
+   "summary": "*concentrate*\n\nYou issue an order to your follower, granting them 2 actions. This action has the auditory or visual trait depending on the method of communication used, but it must have one or the other. You can Direct your Follower to perform any of the following basic actions: Crawl, Drop Prone, Escape, Interact, Leap, Release, Seek, Sense Motive, Stand, Step, Stride, and Strike. They can only use the Strikes listed in their stat blocks. Followers that gain a burrow Speed or fly Speed can use Burrow or Fly, respectively. You can also direct your follower to use skill actions for which they meet the prerequisites. Finally, you can direct the follower to perform any actions listed in their stat block. Unlike an animal companion's support actions, these special actions don't impose restrictions on the other actions a follower can use on this turn.",
+   "cite": "Battlecry! — Archetype Actions: Direct Follower",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.dispelling-bullet",
+   "title": "Dispelling Bullet ◆◆",
+   "summary": "*magical, spellshot*\n\nYou imprint a bullet with a field of disruptive energy built upon your magical signature, disrupting the magic of whatever it hits. Make a firearm or crossbow Strike against a foe you can see. If you hit, you attempt to counteract a spell effect active on the target (your choice, or the highest-level effect if you don't choose). Your counteract rank is equal to half your level (rounded up), and your counteract check modifier is equal to your class DC – 10.",
+   "cite": "Guns & Gears (Remastered) — Archetype Actions: Dispelling Bullet",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.dragon-breath",
+   "title": "Dragon Breath ◆◆",
+   "summary": "**Frequency** once per hour\n\n**Effect** You breathe deeply and exhale a line or cone of powerful breath, much like the dragon with which you made the pact. If the dragon had a cone-shaped breath, your breath is a 30-foot cone. If they had a line-shaped breath, your breath is a 60-foot line. If they had a burst-shaped breath, your breath is a 10-foot burst within 60 feet. No matter the shape, it deals 1d6 damage per level ((1d6 per level) untyped), of the same damage type as the dragon's breath, with a basic Reflex save, using the higher of your class DC or spell DC. This action has the same traits as the breath of the dragon you made the pact with.",
+   "cite": "Dark Archive (Remastered) — Archetype Actions: Dragon Breath",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.drain-realm",
+   "title": "Drain Realm ◇",
+   "summary": "*concentrate*\n\n**Trigger** Your previous action was to Sustain your manifested realm\n\n**Requirements** Your manifested realm has a radius of at least 10 feet\n\n**Effect** You siphon power from your manifested realm to bolster your physical form. Decrease your manifested realm's radius by 10 feet. You regain a number of Hit Points equal to your level and each of your Strikes made before the end of your turn deal an additional 1d8 damage of your realm's damage type.",
+   "cite": "War of Immortals — Archetype Actions: Drain Realm",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.drape-ambient-magic",
+   "title": "Drape Ambient Magic ◆",
+   "summary": "*illusion*\n\n**Frequency** once per round\n\n**Effect** Your ostilli turns clear as it converts its stored magic into a bubble of refracting light around you. You become hidden to all creatures until the end of your turn. If you Strike a creature, that creature is off-guard against that attack, and you then become observed.",
+   "cite": "Howl of the Wild — Archetype Actions: Drape Ambient Magic",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.energy-shot",
+   "title": "Energy Shot ◇",
+   "summary": "*magical, spellshot*\n\n**Trigger** You roll initiative.\n\nYou unleash a small surge of magical energy into your weapon, shrouding the bullet with potential energy and granting it the ability to deal energy damage to your foes to exploit their weaknesses. You can Interact to draw a ranged weapon. On your first three Strikes of this encounter with a firearm or crossbow, you deal an additional 1 acid, cold, fire or electricity damage per weapon damage die. You choose which damage type to deal as part of making each Strike.\n\nEffect: Energy Shot",
+   "cite": "Guns & Gears (Remastered) — Archetype Actions: Energy Shot",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.engineers-efficiency",
+   "title": "Engineer's Efficiency ◆",
+   "summary": "**Frequency** once per turn\n\n**Requirements** You are adjacent to your light mortar\n\n**Effect** You Aim your light mortar and then either Load or Launch it.",
+   "cite": "Battlecry! — Archetype Actions: Engineer's Efficiency",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.enter-seat-of-power",
+   "title": "Enter Seat Of Power",
+   "summary": "*concentrate, exploration, mythic*\n\nYou focus your mind on your seat of power, then tap into this connection to transport yourself to its demiplane. This process takes 10 minutes. You can bring up to 10 willing creatures with you when you Enter Seat of Power; these creatures must remain within 30 feet of you for the duration of the activity.\n\nYou can remain in your seat of power for as long as you desire. Any creature that you bring to your seat of power in this way (including you) can depart the demiplane as a three-action activity that has the concentrate trait. They return to the location they were in when they Entered your Seat of Power, or the nearest unoccupied space if that location is occupied.",
+   "cite": "War of Immortals — Archetype Actions: Enter Seat Of Power",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.entitys-resurgence",
+   "title": "Entity's Resurgence ↺",
+   "summary": "**Trigger** You would be reduced to 0 Hit Points but not immediately killed\n\n**Effect** Instead of letting you fall unconscious, your entity takes control. You remain at 1 Hit Point and gain temporary Hit Points equal to your level + your key attribute modifier that last for 1 minute. However, the entity is in control for 1 minute or until you fall unconscious, whichever comes first.\n\nWhile the entity is in control, you gain a +1 status bonus to attack rolls and damage rolls, and the GM usually controls your character, roleplaying the entity. The GM might decide to have you roleplay the entity instead, but they retain final say over any decisions you make. No matter the entity's nature, the entity is sure to wreak vengeance upon the foe who jeopardized the life of their vessel—even a malicious entity won't change allegiances or ignore danger except in the most extreme circumstances.",
+   "cite": "Dark Archive (Remastered) — Archetype Actions: Entity's Resurgence",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.flyby-attack",
+   "title": "Flyby Attack ◆◆",
+   "summary": "**Effect** You Fly and can make a Strike at any point along the way.",
+   "cite": "War of Immortals — Archetype Actions: Flyby Attack",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.goblin-jubilee",
+   "title": "Goblin Jubilee ◆◆◆",
+   "summary": "*fire, sonic, visual*\n\nChaos fills a 20-foot burst within 120 feet. All creatures in the area takes level-based fire plus level-based sonic damage and must attempt a Fortitude save. Every 3 levels, the fire damage and sonic damage each increase by 1d6. You can expend 2 versatile vials instead of 1 to increase the fire and sonic damage by 1d6 each, or by 2d6 each at 16th level.\n\n**Critical Success** The creature is unaffected.\n\n**Success** The creature is dazzled and deafened until the end of its next turn and takes half damage.\n\n**Failure** The creature is dazzled and deafened for 1 minute and takes full damage.\n\n**Critical Failure** The creature is blinded for 1 round, dazzled and deafened for 1 minute, and takes double damage.",
+   "cite": "Guns & Gears (Remastered) — Archetype Actions: Goblin Jubilee",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.guerrilla-assault",
+   "title": "Guerrilla Assault ◆",
+   "summary": "**Frequency** once per round\n\n**Effect** You Interact to reload a sling or blowgun and then Strike. If the Strike is successful and you were undetected or unnoticed by the target when you made the attack, you are now hidden from the target after the attack, as they cannot tell where the attack came from.",
+   "cite": "Battlecry! — Archetype Actions: Guerrilla Assault",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.harvest-blood",
+   "title": "Harvest Blood ◆",
+   "summary": "**Requirements** Your last action was a successful piercing or slashing melee Strike against a creature that is not immune to bleed\n\n**Effect** You consume the blood lingering upon your weapon. You reduce the value of your drained condition by 1, gain temporary Hit Points equal to your Constitution modifier, and gain a +1 circumstance bonus to saving throws against that creature's spells for 1 minute, or until you Harvest Blood from another creature.",
+   "cite": "War of Immortals — Archetype Actions: Harvest Blood",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.infiltrators-draw",
+   "title": "Infiltrator's Draw ◆",
+   "summary": "**Frequency** once per round\n\n**Effect** You Interact to draw a gauntlet bow, hand crossbow, or repeating hand crossbow, then Strike with it. Alternatively, you can Strike with a loaded hand crossbow or repeating hand crossbow you're already holding and then Interact to stow it.",
+   "cite": "Battlecry! — Archetype Actions: Infiltrator's Draw",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.intercession-spell",
+   "title": "Intercession Spell ↺",
+   "summary": "*concentrate, divine, spellshape*\n\n**Frequency** once per day\n\n**Trigger** Your hierophant Casts a Spell\n\n**Effect** Interceding directly in your hierophant's affairs, you grant them additional magic. They do not expend the spell slot, usage, or Focus Point.",
+   "cite": "War of Immortals — Archetype Actions: Intercession Spell",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.jumping-jenny",
+   "title": "Jumping Jenny ◆",
+   "summary": "Target a flying creature within 60 feet. Until the start of your next turn, each time that creature attempts to Fly, they must succeed at an Acrobatics check to Maneuver In Flight against the DC of Launch Fireworks, or the Fly action is disrupted. If all the creature's attempts to Fly are disrupted, at the end of its turn, it falls harmlessly to the ground below.",
+   "cite": "Guns & Gears (Remastered) — Archetype Actions: Jumping Jenny",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.launch-fireworks",
+   "title": "Launch Fireworks ◆",
+   "summary": "*manipulate*\n\n**Cost** 1 versatile vial\n\n**Requirements** You're holding or wearing an Alchemist's Toolkit and have a free hand\n\n**Effect** You set off a fireworks display. You can launch a normal firework to simply create a visual or audible signal within 20 feet or you can choose one of the following special effects. You can also use the comet, flower, or salute fireworks displays, and feats can add more options. A specific fireworks display takes the listed number of actions to launch and has the listed traits.\n\n**Comet** ◆ (visual) You shoot a streak of shining light in a 60-foot line. All spaces in that line are lit with bright light until the start of your next turn. As part of this action, you can also Point Out a single creature in the line, and your allies do not need to hear or understand you.\n\n**Flower** ◆ (visual) You ignite a ring of sparks, creating a shape that might be reminiscent of a flower blooming in the sky. Each enemy in a 20-foot emanation must attempt a Fortitude save. On a failure, the enemy is dazzled for 1 round, and on a critical failure they are dazzled for 2 rounds.\n\n**Salute** ◆ (auditory) You create a startling bang or whistle. When you launch a salute display, you can choose a confused or fascinated ally within 60 feet. If the ally you chose is fascinated, the noise is so violent that it acts as a hostile effect for the purpose of their fascinated condition (though it has no negative repercussions) automatically ending most applications of the fascinated condition. If they're confused, the sound is so loud and violent that it might snap the ally out of confusion. They can immediately attempt the flat check to remove the confused condition which normally occurs when a creature is damaged. If the confused condition has special rules that remove the flat check when taking damage or make the flat check harder, those rules also apply to the salute.",
+   "cite": "Guns & Gears (Remastered) — Archetype Actions: Launch Fireworks",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.manifest-realm",
+   "title": "Manifest Realm ◆◆",
+   "summary": "*concentrate, divine, manipulate*\n\n**Frequency** once per hour\n\n**Effect** You corrupt the surrounding area into a manifestation of your realm in a 20-foot-radius burst centered on you. Your manifested realm counts as difficult terrain for your enemies, and your enemies take a –1 penalty to Fortitude saving throws while in your manifested realm.\n\nEffect: Manifest Realm\n\nYou can Sustain your manifested realm once per round on subsequent rounds, and if you do not, the radius of your manifested realm is reduced by 5 feet.\n\nYour realm remains manifested for a maximum of 1 minute, and you can Dismiss your manifested realm. If your manifested realm's radius is ever reduced to 0 feet or if you move beyond 100 feet from the borders of your manifested realm, your manifested realm is automatically Dismissed.",
+   "cite": "War of Immortals — Archetype Actions: Manifest Realm",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.manifest-soulforged-armament",
+   "title": "Manifest Soulforged Armament ◆",
+   "summary": "*concentrate, divine, extradimensional*\n\n**Requirements** If summoning a soulforged weapon or shield, you have the hands free to wield it; if summoning soulforged armor, you aren't wearing any armor\n\n**Effect** You immediately wield or wear the soulforged armament bound to you. The soulforged armament remains manifested until you Dismiss this effect.\n\nOnce per day when you use this ability, you can manifest the armament's essence form. You gain the armament's essence power until it's Dismissed. After 1 minute, the essence form armament is automatically Dismissed.",
+   "cite": "Impossible Magic — Archetype Actions: Manifest Soulforged Armament",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.mobbing-assault",
+   "title": "Mobbing Assault ◆",
+   "summary": "*concentrate*\n\n**Requirements** Your horde has been raised\n\n**Effect** Each enemy in a 5-foot emanation around your horde takes level-based bludgeoning damage (if your horde is zombies) or level-based slashing damage (if your horde is skeletons) with a basic Reflex save against your spell DC. At 10th level and every 4 levels thereafter, the damage increases by 2d6.",
+   "cite": "Battlecry! — Archetype Actions: Mobbing Assault",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.overawe-crowd",
+   "title": "Overawe Crowd ◆◆",
+   "summary": "*concentrate*\n\n**Requirements** You are sharing the same space as a swarm or are adjacent to a troop\n\n**Effect** Spend 1 Mythic Point and attempt an Intimidation check at mythic proficiency against the Will DC of the required swarm or troop. On a failure, the target Strides in a direction of your choosing and you move along with it. On a success, the target Strides twice in a direction of your choosing and you can decide whether or not to move along with it. No matter the result, the target is Stunned 1 and temporarily immune to your Overawe Crowd for 24 hours.",
+   "cite": "War of Immortals — Archetype Actions: Overawe Crowd",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.overflowing-blade",
+   "title": "Overflowing Blade ◆",
+   "summary": "*concentrate, force, magical*\n\n**Requirements** You are overflowing\n\n**Effect** You conduct the magic in your internal nexus to coat your weapon or unarmed strike, empowering it with magical energy for a devastating attack. Make a melee Strike. If the Strike hits, you deal an additional 1d4 force damage. At 10th level, the additional damage increases to 2d4 force damage. At 18th level, the additional damage increases to 3d4 force damage. You are no longer overflowing.",
+   "cite": "Impossible Magic — Archetype Actions: Overflowing Blade",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.part-the-veil",
+   "title": "Part the Veil ◆◆",
+   "summary": "*concentrate, magical*\n\n**Requirements** You are not observed by any enemies\n\n**Effect** You phase yourself into the interstices, veiling yourself from physical reality. You become concealed. You can use this concealment to Hide or Sneak as your disassociation from reality makes you difficult to focus on. If you use a hostile action, this effect ends after the action is complete; otherwise, it lasts for 1 minute.",
+   "cite": "Impossible Magic — Archetype Actions: Part the Veil",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.raise-the-horde",
+   "title": "Raise the Horde ◆◆",
+   "summary": "*concentrate, magical, manipulate*\n\n**Frequency** once per 10 minutes\n\n**Effect** Your undead horde appears in an unoccupied space within 30 feet. Choose whether your horde consists of skeletons or zombies, which affects the type of damage it deals with Mobbing Assault. Your horde remains summoned until the end of your next turn, but you can Sustain the effect for up to 1 minute. The effect also ends if you end your turn more than 120 feet away from the horde. When you first use Raise the Horde and each time you Sustain the effect, you can have the horde Stride.\n\nWhen Raise the Horde ends, the undead that comprise your horde collapse lifelessly to the ground and quickly rot away. They can no longer be targeted or used for actions.",
+   "cite": "Battlecry! — Archetype Actions: Raise the Horde",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.recall-ammunition",
+   "title": "Recall Ammunition ↺",
+   "summary": "*magical, spellshot, teleportation*\n\n**Trigger** You miss with a firearm or crossbow Strike.\n\nYou create a bond to your ammunition, calling your missed shot back. The ammunition you just fired is reloaded back into your weapon. If the ammunition was a piece of magical or alchemical ammunition that normally requires one or more actions to activate, you must re-activate it before firing again.",
+   "cite": "Guns & Gears (Remastered) — Archetype Actions: Recall Ammunition",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.repel-ambient-magic",
+   "title": "Repel Ambient Magic ◆",
+   "summary": "*concentrate*\n\nYour ostilli glows green as it absorbs magic. Until the start of your next turn, you gain a +1 circumstance bonus to AC and saving throws against the next magical attack, cantrip, or spell that targets you. This bonus increases to +2 at 12th level.",
+   "cite": "Howl of the Wild — Archetype Actions: Repel Ambient Magic",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.rouse-the-world",
+   "title": "Rouse the World ◆",
+   "summary": "*concentrate, primal*\n\nThe flora, fauna, and elements in a 10-foot burst within 30 feet stir, aiding you and your allies and whispering in your ear. This area is known as your waking world. While in your waking world, you and your allies gain a +1 circumstance bonus to Athletics and Acrobatics checks, and you gain a +1 circumstance bonus to Nature checks to Recall Knowledge about creatures and hazards in the area.\n\nThe effect lasts for 10 minutes, but you can Dismiss it. Once per round on subsequent turns, you can Sustain this ability to increase the burst's size by 10 feet. You can Rouse the World in only one area at a time; if you use this ability again, the first area returns to normal.",
+   "cite": "Impossible Magic — Archetype Actions: Rouse the World",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.royal-grace",
+   "title": "Royal Grace",
+   "summary": "*concentrate, exploration, linguistic, mental*\n\nYou spend 10 minutes conferring with one of your knights who has the doomed condition. By discussing plans for your future kingdom with them and describing the benefits of your rule, you can attempt to soothe their spirits. Attempt a Diplomacy or Society check against a hard DC of your knight's level. Regardless of the result, that knight gains the benefits of the Refocus activity (if they have a focus pool) but is temporarily immune to Royal Grace for 24 hours.\n\n**Critical Success** The knight's doomed condition is reduced by 2 (minimum 0).\n\n**Success** The knight's doomed condition is reduced by 1 (minimum 0).\n\n**Failure** The knight's doomed condition isn't reduced.",
+   "cite": "War of Immortals — Archetype Actions: Royal Grace",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.set-explosives",
+   "title": "Set Explosives ◆◆",
+   "summary": "*concentrate*\n\n**Requirements** You have 1 or 2 bombs in hand\n\n**Effect** You attach the bombs to an inanimate object within your reach, such as a door, wall, or column, and rig them to detonate at a set time. The bombs explode at a specific time you determine (such as after your next action or at the start of your next turn, to a maximum of 1 minute), dealing their damage and splash damage to the inanimate object. Combine this damage for the purpose of resistances and weaknesses, and this damage ignores an amount of the object's Hardness equal to your level. Any creatures adjacent to the hazard take the bombs' splash damage, also combined for the purpose of resistances and weaknesses. As a reminder, since you didn't throw the bombs, the Bomber's Field Discovery and similar effects don't apply. Making sure your timing is correct requires concentration, so you can't Set Explosives again while you're waiting for a previously set bomb to detonate.",
+   "cite": "Guns & Gears (Remastered) — Archetype Actions: Set Explosives",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.shift-spell",
+   "title": "Shift Spell ◆",
+   "summary": "*concentrate, manipulate*\n\n**Requirements** You are within the affected area of an ongoing spell, or you can physically touch an object or creature under the effects of a spell, and you are holding your conduit\n\n**Effect** Choose a spellshift and attempt an Arcana check against the DC of the spell (or the spell DC of the spellcaster if the spell does not normally have a DC). The caster immediately becomes aware that you're trying to shift their spell and intuitively knows the potential effects of the shift, but not the result of your skill check. A willing caster can allow you to achieve one degree of success higher than the result of your check. The effects of the check are dependent on the chosen spellshift. Regardless of the result, the spell becomes immune to Shift Spell for 24 hours.",
+   "cite": "Impossible Magic — Archetype Actions: Shift Spell",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.solitary-invocation",
+   "title": "Solitary Invocation ◆",
+   "summary": "*invocation, magical, runesmith*\n\nYou utter the name of one of your runes within 30 feet, which blazes with power, applying the effect in its Invocation entry. An invoked rune then fades away, its task complete.",
+   "cite": "Impossible Magic — Archetype Actions: Solitary Invocation",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.speed-of-arms",
+   "title": "Speed of Arms ↺",
+   "summary": "*mythic*\n\n**Trigger** Your turn begins\n\n**Effect** You make a Strike against one opponent within your reach, or Stride directly towards an opponent. If this is the first time you've struck that opponent during this encounter, the Strike is made at mythic proficiency.",
+   "cite": "War of Immortals — Archetype Actions: Speed of Arms",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.spell-woven-shot",
+   "title": "Spell-Woven Shot ◆◆◆",
+   "summary": "**Requirements** You are wielding a loaded magic firearm or magic crossbow\n\n**Effect** You Cast a Spell that takes 1 or 2 actions to cast and requires a spell attack roll. The effects of the spell do not occur immediately but are imbued into the required weapon. Make a Strike with that weapon. Your spell flies with the ammunition, using your attack roll result to determine the effects of both the Strike and the spell. This counts as two attacks for your multiple attack penalty, but you don't apply the penalty until after you've completed the Spell-Woven Shot.",
+   "cite": "Guns & Gears (Remastered) — Archetype Actions: Spell-Woven Shot",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.spellsling",
+   "title": "Spellsling ◆◆◆",
+   "summary": "**Requirements** You're wielding your bonded beast gun or another magic firearm\n\n**Effect** You Cast a Spell that takes 1 or 2 actions to cast and requires a spell attack roll. The effects of the spell do not occur immediately but are imbued into the beast gun you're wielding. Make a Strike with that beast gun. Your spell flies with the ammunition, using your attack roll result to determine the effects of both the Strike and the spell. Combine the Strike and spell's damage for the purpose of resistances and weaknesses. This counts as two attacks for the purposes of determining your multiple attack penalty, but you don't apply the penalty until after you've completed resolving the attack and spell.\n\n**Special** If you also have the Spell-Woven Shot action you can load and activate a piece of magical ammunition as a free action before making a Spellsling attack once per 10 minutes.",
+   "cite": "Guns & Gears (Remastered) — Archetype Actions: Spellsling",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.spit-ambient-magic",
+   "title": "Spit Ambient Magic ◆",
+   "summary": "*concentrate, magical*\n\n**Frequency** once per round\n\n**Effect** Your ostilli flashes red as it regurgitates a dart of magic at a target within 30 feet. This magical dart deals level-based piercing damage (basic Reflex save against the higher of your class DC or spell DC). This damage increases by 1d6 at 6th level and every 4 levels thereafter.",
+   "cite": "Howl of the Wild — Archetype Actions: Spit Ambient Magic",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.spread-propaganda",
+   "title": "Spread Propaganda",
+   "summary": "*exploration, secret*\n\nYou spread propaganda about a faction (which may include an army, organization, or other particular group of people). This takes as long as it would normally take for you to Gather Information (typically 2 hours). At the end of this time, the GM rolls a secret Deception check to see how effective you were at spreading propaganda.\n\n**Critical Success** Your propaganda spreads effectively, and for the next month, creatures that succeed on checks to Gather Information learn your propaganda over facts about the subject. It cannot be traced back to you. You also learn information as if you succeeded at a Recall Knowledge check about the faction.\n\n**Success** As critical success, but the propaganda persists for 1 week and can be traced back to you by a character who critically succeeds at the skill check to Gather Information.\n\n**Failure** Your propaganda fails to take hold.\n\n**Critical Failure** Your propaganda is stunningly ineffective, and you take a –4 circumstance penalty to Deception checks to spread propaganda about the same subject for 1 week. In addition, the subject and its enemies become aware that you attempted to spread propaganda.",
+   "cite": "Battlecry! — Archetype Actions: Spread Propaganda",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.spread-realm",
+   "title": "Spread Realm ◇",
+   "summary": "*concentrate*\n\n**Trigger** Your previous action was to Sustain your manifested realm\n\n**Effect** Your manifested realm further corrupts more of your surroundings. Increase your manifested realm's radius by 10 feet.",
+   "cite": "War of Immortals — Archetype Actions: Spread Realm",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.swarm-forth",
+   "title": "Swarm Forth ◆◆",
+   "summary": "*concentrate*\n\n**Requirements** Your swarm is within your body\n\n**Effect** Your swarm boils forth from your body into a space adjacent to yours. (Its space can overlap yours.) It remains separate from you until the end of your next turn, but you can Sustain the effect up to 1 minute. The effect also ends if you end your turn more than 60 feet away from the swarm. When you use Swarm Forth and each time you Sustain the effect, you can have the swarm Stride.",
+   "cite": "Howl of the Wild — Archetype Actions: Swarm Forth",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.talon-stance",
+   "title": "Talon Stance ◆",
+   "summary": "*stance*\n\n**Effect** You sway in a loose stance that lets you sweep in wide arcs with the claws on your feet. The only Strikes you can make are spinning talon unarmed attacks. These deal 1d8 slashing damage, are in the brawling group, and have the finesse, sweep, and unarmed traits. You don't need a free hand to use spinning talon strikes.",
+   "cite": "Howl of the Wild — Archetype Actions: Talon Stance",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.turn-aside-ambient-magic",
+   "title": "Turn Aside Ambient Magic ◆",
+   "summary": "*concentrate*\n\nYour ostilli glows a faint yellow as it establishes a barrier. Choose acid, cold, electricity, fire, or sonic damage. Until the beginning of your next turn, you gain resistance against the chosen damage type equal to half your level.",
+   "cite": "Howl of the Wild — Archetype Actions: Turn Aside Ambient Magic",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.ultimatum-of-liberation",
+   "title": "Ultimatum of Liberation ◆",
+   "summary": "*auditory, linguistic, mental, mythic*\n\n**Frequency** once per day\n\n**Effect** You proclaim an ultimatum against a creature you believe is oppressing others and all who follow their orders. All other creatures (including you) who hear your ultimatum, or learn about it later on, are emboldened by your words for 1 day, and gain a +2 status bonus to their Will saving throws against effects produced by the oppressing creature and their allies, which increases to +3 if they are within 30 feet of you.\n\nEffect: Ultimatum of Liberation\n\nAdditionally, the first time each day that creature and each of its allies comes within 30 feet of you, they must succeed on a Will save against your class DC or spell DC (whichever is higher) or become Frightened 1 (Frightened 2 on a critical failure). This second effect has the emotion, fear, and mental traits. The oppressing creature may end all the effects as a free action by truthfully agreeing to permanently end their oppression. Otherwise, your Ultimatum of Liberation has no duration, though you can have only one Ultimatum of Liberation active at a time. If you pronounce a second Ultimatum of Liberation, the effects of the first one end.",
+   "cite": "War of Immortals — Archetype Actions: Ultimatum of Liberation",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.unleash-realm",
+   "title": "Unleash Realm ◇",
+   "summary": "*concentrate*\n\n**Trigger** Your previous action was to Sustain your manifested realm\n\n**Effect** You punish those who transgress upon your realm. An enemy within your realm takes level-based damage of your realm's damage type with a basic Fortitude save against your class DC or spell DC, whichever is higher.",
+   "cite": "War of Immortals — Archetype Actions: Unleash Realm",
+   "tags": [
+    "action",
+    "archetype actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.affix-a-fulu",
+   "title": "Affix a Fulu ◆",
+   "summary": "*manipulate*\n\nYou affix a fulu to an armor, weapon, shield, creature, or structure that's beside or in the same square as you. A creature can remove a fulu from itself or an unattended object in its reach with a single action.",
+   "cite": "Impossible Magic — Basic Actions: Affix a Fulu",
+   "tags": [
+    "action",
+    "basic actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.a-challenge-for-heroes",
+   "title": "A Challenge for Heroes ◆◆",
+   "summary": "*concentrate, mental, spirit, transcendence*\n\nYou declare an enemy within 60 feet to be a heroic test. For 1 minute, that enemy deals an additional 10 spirit damage to you with each successful Strike or spell it targets you with.\n\nEffect: A Challenge for Heroes (Enemy)\n\nWhenever that enemy deals spirit damage to you, each ally who has the enemy in melee reach can attempt a Reactive Strike against it, even if the ally doesn't normally have that reaction. If an ally successfully slays the enemy with a Reactive Strike due to this effect, that ally immediately gains temporary Hit Points equal to your level, which persist for 1 minute.\n\nEffect: A Challenge for Heroes (Ally)",
+   "cite": "War of Immortals — Class Actions: A Challenge for Heroes",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.a-moment-unending",
+   "title": "A Moment Unending ◆",
+   "summary": "*concentrate, prediction, transcendence*\n\nYou take in every movement around you, affording you unparalleled accuracy. Your next successful Strike against an enemy before the end of your next turn deals an additional 1d6 precision damage. This damage increases to 2d6 at 10th level and 3d6 at 18th level.",
+   "cite": "War of Immortals — Class Actions: A Moment Unending",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.act-together",
+   "title": "Act Together ◆",
+   "summary": "*summoner, tandem*\n\n◆ to ◆◆◆\n\n**Frequency** once per round\n\nYou and your eidolon act as one. Either you or your eidolon takes an action or activity using the same number of actions as Act Together, and the other takes a single action.\n\nFor example, if you spent 2 actions to Act Together, you could cast Breathe Fire (2 actions) and your eidolon could Strike (1 action), or your eidolon could use their Dragon Breath (2 actions) and you could Stride (1 action).",
+   "cite": "Impossible Magic — Class Actions: Act Together",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.alley-oop",
+   "title": "Alley-Oop ◆",
+   "summary": "*commander, tactic*\n\nYour team excels at sharing resources and delivering them exactly where they need to be. Signal a squadmate within the aura of your banner who is holding or wearing a consumable that can be activated as a single action. That squadmate can toss their consumable to any other squadmate within the aura of your banner as a free action, and the receiving squadmate can catch and activate the consumable as a reaction. If the receiving squadmate chooses not to catch the consumable or if they don't have a free hand to catch it with, it lands on the ground in their space.\n\n**Special** If the consumable is a piece of activated ammunition and the receiving squadmate is wielding a compatible weapon that takes 1 or fewer actions to reload, they can load the ammunition into their weapon as part of the reaction used to catch and activate it. The ammunition remains activated until the end of their next turn.",
+   "cite": "Battlecry! — Class Actions: Alley-Oop",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.amulets-abeyance",
+   "title": "Amulet's Abeyance ↺",
+   "summary": "*magical, manipulate, thaumaturge*\n\n**Trigger** The target of your Exploit Vulnerability would damage you or an ally within 15 feet of you.\n\n**Requirements** You're holding your amulet implement and are benefiting from Exploit Vulnerability.\n\nYou forcefully present your amulet to turn away harm. You or a target ally within 15 feet gain resistance to all damage against the triggering damage. The resistance is equal to 2 + your level.\n\nEffect: Amulet's Abeyance",
+   "cite": "Dark Archive (Remastered) — Class Actions: Amulet's Abeyance",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.arcane-cascade",
+   "title": "Arcane Cascade ◆",
+   "summary": "*concentrate, magus, stance*\n\nYou cycle arcane power through your body and weapon using specialized forms, breathing, or footwork. While you're in the stance, your melee Strikes gain the arcane trait (making them magical) and deal 1 extra force damage, and you gain resistance 1 to damage from spells. If you have the Weapon Specialization class feature, the damage and resistance increase to 2, and if you have Greater Weapon Specialization, they increase to 3.\n\nIf you Cast a Spell and then enter Arcane Cascade on the same turn, you can change the damage from the stance to any one damage type that spell could deal instead of force.",
+   "cite": "Impossible Magic — Class Actions: Arcane Cascade",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.arrow-splits-arrow",
+   "title": "Arrow Splits Arrow ◆",
+   "summary": "*transcendence*\n\n**Requirements** Your previous action was to Strike with the Unfailing Bow\n\n**Effect** You repeat your motions exactly, your attack landing in the same location as your previous shot. You make a Strike against the same target. The result of your d20 roll is the same as the result of the required shot, though any penalties (such as your multiple attack penalty) apply normally to this shot and you don't automatically adjust the degree of success if the initial roll was a natural 1 or 20.",
+   "cite": "War of Immortals — Class Actions: Arrow Splits Arrow",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.bear-allies-burdens",
+   "title": "Bear Allies' Burdens ◆◆",
+   "summary": "*transcendence*\n\nYou move with a speed belying your strength, carrying your allies as easily as straw dolls. You Stride. At any point you are adjacent to a willing ally during the Stride, you can pick that ally up, and you can deposit them into a space adjacent to you at any other point during your movement. You ignore the ally's Bulk while carrying them during your Stride. You can Climb, Fly, or Swim instead of Striding if you have the corresponding movement type.",
+   "cite": "War of Immortals — Class Actions: Bear Allies' Burdens",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.beasts-charge",
+   "title": "Beast's Charge ◆◆",
+   "summary": "*eidolon*\n\nYour eidolon rushes forward, using their momentum to increase the power of their attack. Your eidolon Strides twice and then Strikes. If the eidolon moved at least 20 feet away from their starting position and moved entirely in a straight line, they gain a +1 circumstance bonus to this attack roll.",
+   "cite": "Impossible Magic — Class Actions: Beast's Charge",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.blinding-of-the-needle",
+   "title": "Blinding of the Needle ◆◆",
+   "summary": "*transcendence*\n\nYou aim your weapon in a superficial cut above your opponent's eye. Make a Strike with the imbued ikon. If that Strike is successful, the target must succeed at a Fortitude save against your class DC or become blinded for 1 round or until it uses an Interact action to clear the blood from its vision.",
+   "cite": "War of Immortals — Class Actions: Blinding of the Needle",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.bloody-guillotine",
+   "title": "Bloody Guillotine ◆◆",
+   "summary": "*commander, tactic*\n\n**Frequency** once per day\n\nYour squad performs a brutal combination attack that levels an enemy and attempts to put them down permanently. Choose and signal up to three squadmates within the aura of your commander's banner. Each squadmate can Stride up to half their Speed directly toward a single enemy you designate as a free action. Any who end their movement adjacent to the designated target can attempt to Trip or Strike it as a reaction.\n\nThe first time a prone enemy is successfully dealt damage by a Strike from this tactic, they must immediately attempt a Fortitude save against your class DC or die; this is a death and incapacitation effect. All enemies who witness a creature slain by Bloody Guillotine must succeed at a Will save against your class DC or become Sickened 1 for 1 round (Sickened 2 for 1 round on a critical failure); this is an emotion and mental effect.",
+   "cite": "Battlecry! — Class Actions: Bloody Guillotine",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.break-free",
+   "title": "Break Free ◆◆",
+   "summary": "*transcendence*\n\nYou can attempt to Escape with a +2 status bonus on your check, then Stride up to twice your Speed in a straight line, and finally make a melee Strike. If you don't need to Escape or you can't move or choose not to, you still take the other actions listed.",
+   "cite": "War of Immortals — Class Actions: Break Free",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.break-the-suns-legs",
+   "title": "Break the Sun's Legs ◆◆",
+   "summary": "*cold, concentrate, darkness, transcendence*\n\nYou make a slashing motion over the brightest source of light, whether it's a torch or the sun in the sky. A gash appears over the light source, visible to all, and devours the light. The entire area within a 120-foot burst around you is affected by a 9th-rank Darkness spell for 1 minute. The stolen light is channeled to your eyes, granting you greater darkvision for the duration of the effect.",
+   "cite": "War of Immortals — Class Actions: Break the Sun's Legs",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.buckle-cut-blitz",
+   "title": "Buckle-Cut Blitz ◆◆",
+   "summary": "*brandish, commander, tactic*\n\nYour squad dashes past enemies, slicing their boot laces and breaking their belt buckles. Signal up to two squadmates within the aura of your commander's banner; these squadmates can Stride up to their Speed as a reaction. Each enemy they are adjacent to at any point during this movement must attempt a Reflex save against your class DC or become Clumsy 1 for 1 round (Clumsy 2 on a critical failure).",
+   "cite": "Battlecry! — Class Actions: Buckle-Cut Blitz",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.burn-out-of-time",
+   "title": "Burn out of Time ◆◆",
+   "summary": "*spirit, transcendence, void*\n\nAn impossible amount of energy blazes in a sphere above you before compressing itself into your weapon. Strike one creature. The Strike deals an additional 3d8 spirit damage and 3d8 void damage. If the creature is reduced to 0 Hit Points, it's immediately killed and reduced to ash, not in the present, but in the recent past, erasing the consequences of their recent actions.\n\nIf a creature died within the last round as a result of the incinerated target's actions, that creature is returned to life with 5d8 Hit Points at the location that it died as its death is retroactively undone.",
+   "cite": "War of Immortals — Class Actions: Burn out of Time",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.calculate-threats",
+   "title": "Calculate Threats ◆",
+   "summary": "*mental, psyche, psychic*\n\nYour subconscious automatically calculates vectors and forces when your mind is unleashed, showing you the likely path of incoming attacks to avoid. You gain a +2 circumstance bonus to AC and Reflex saves until the beginning of your next turn.",
+   "cite": "Dark Archive (Remastered) — Class Actions: Calculate Threats",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.captivating-charm",
+   "title": "Captivating Charm ◆◆",
+   "summary": "*concentrate, emotion, mental, transcendence, visual*\n\nYou focus your attention on a creature within 30 feet, overwhelming its senses. The creature must succeed at a Will save against your class DC or be fascinated by you until the start of your next turn. The condition ends if you use a hostile action against the target, but not if you use a hostile action against its allies.",
+   "cite": "War of Immortals — Class Actions: Captivating Charm",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.clear-a-path",
+   "title": "Clear a Path ◆",
+   "summary": "*gunslinger*\n\n**Requirements** You're wielding a two-handed firearm or two-handed crossbow.\n\nYou push outward with your weapon to clear some space before quickly reloading a fresh round. You make an Athletics check to Shove an opponent within your reach using your weapon, then Interact to reload. For this Shove, you don't need a free hand, and you add the weapon's item bonus on attack rolls (if any) to the Athletics check. If your last action or activity this round included a ranged Strike with the weapon, use the same multiple attack penalty as the last Strike you attempted with the weapon for the Shove; the Shove still counts toward your multiple attack penalty on further attacks.",
+   "cite": "Guns & Gears (Remastered) — Class Actions: Clear a Path",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.coiling-serpents",
+   "title": "Coiling Serpents ◆◆",
+   "summary": "Make a ranged Strike with your ikon. If the Strike hits, the target must succeed at a Reflex save against your class DC or the arrow transforms into a multitude of ethereal snakes that coil around the target, Immobilizing it until it succeeds at an Escape attempt against your class DC.",
+   "cite": "War of Immortals — Class Actions: Coiling Serpents",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.command-a-construct",
+   "title": "Command a Construct ◆",
+   "summary": "*auditory, concentrate*\n\nYou instruct your construct companion to act as you instruct it, and according to its programming. Your construct companion gains 2 actions during this turn. See the minion trait for details.",
+   "cite": "Guns & Gears (Remastered) — Class Actions: Command a Construct",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.command-a-thrall",
+   "title": "Command a Thrall ◆",
+   "summary": "*concentrate, necromancer, thrall*\n\nYou make one of your thralls Crawl, Drop Prone, Escape, Interact, Stand, Stride, or Strike. A thrall can take only simple Interact actions, not ones that require skill checks or complicated movements. However, they can make checks to Escape using your spell attack modifier. Escaping this way uses and counts toward your multiple attack penalty.",
+   "cite": "Impossible Magic — Class Actions: Command a Thrall",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.consume-thrall",
+   "title": "Consume Thrall ◇",
+   "summary": "*concentrate, necromancer, occult*\n\n**Frequency** once per day\n\n**Requirements** You have 0 Focus Points and at least one thrall with 30 feet of you\n\n**Effect** You destroy one thrall within 30 feet of you and regain 1 Focus Point. You can spend this focus point only to cast a grave spell.",
+   "cite": "Impossible Magic — Class Actions: Consume Thrall",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.coordinating-maneuvers",
+   "title": "Coordinating Maneuvers ◆",
+   "summary": "*brandish, commander, tactic*\n\nYour team works to slip enemies into a disadvantageous position. Signal one squadmate within the aura of your banner; that squadmate can immediately Step as a free action. If they end this movement next to an opponent, they can attempt to Reposition that target as a reaction.",
+   "cite": "Battlecry! — Class Actions: Coordinating Maneuvers",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.covered-reload",
+   "title": "Covered Reload ◆",
+   "summary": "*gunslinger*\n\nYou duck into a safe position or minimize your profile while reloading to make your next attack. Either Take Cover or attempt to Hide, then Interact to reload. As normal, you must meet the requirements to Take Cover or Hide; you must be prone, benefiting from cover, or near a feature that allows you to Take Cover, and you need to be benefiting from cover or concealed to a creature to Hide from that creature.",
+   "cite": "Guns & Gears (Remastered) — Class Actions: Covered Reload",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.crash-against-me",
+   "title": "Crash Against Me ◆",
+   "summary": "*transcendence*\n\nYour skin becomes virtually unbreakable. Until the start of your next turn, you have resistance equal to your level to the chosen damage type.\n\nDuring this time, if a creature attacking you using a weapon dealing the same damage type as your resistance misses you or hits you but deals no damage due to your resistance, the weapon clangs wildly off your skin. This painful reverberation makes the attacking enemy off-guard and gives it a –2 circumstance penalty to attacks with that weapon until the start of the enemy's next turn.",
+   "cite": "War of Immortals — Class Actions: Crash Against Me",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.cry-havoc",
+   "title": "Cry Havoc! ◆◆◆",
+   "summary": "*brandish, commander, tactic*\n\n**Frequency** once per day\n\nYour squad rallies with a resounding clangor that drowns out all other sounds of war. Choose an enemy you are observing and signal all squadmates within the aura of your commander's banner. All squadmates can Stride up to twice their Speed directly toward the target as a reaction, yelling and trampling. When any squadmate enters a square adjacent to any enemy, that enemy must attempt a basic Fortitude save against your class DC or take 2d6 bludgeoning damage and 2d6 sonic damage damage, plus an additional 2d6 bludgeoning and 2d6 sonic damage for every squadmate participating in Cry Havoc! (enemies who critically fail are deafened for 1 round). Regardless of the outcome, the enemy is then temporarily immune to any further damage from Cry Havoc! for 24 hours.\n\nSquadmates can use Cry Havoc! while Burrowing, Climbing, Flying, or Swimming instead of Striding if they have the corresponding movement type.",
+   "cite": "Battlecry! — Class Actions: Cry Havoc!",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.defensive-retreat",
+   "title": "Defensive Retreat ◆◆",
+   "summary": "*brandish, commander, tactic*\n\nYou call for a careful retreat. Signal all squadmates within the aura of your banner; each can immediately Step up to three times as a free action. Each Step must take them farther away from at least one hostile creature they are observing and can only take them closer to a hostile creature if doing so is the only way for them to move toward safety (such as if they're surrounded).",
+   "cite": "Battlecry! — Class Actions: Defensive Retreat",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.demoralizing-charge",
+   "title": "Demoralizing Charge ◆◆",
+   "summary": "*brandish, commander, tactic*\n\nYour team's coordinated assault strikes fear into your enemies' hearts. Signal up to two squadmates within the aura of your commander's banner; as a free action, those squadmates can immediately Stride toward an enemy they are observing.\n\nIf they end this movement adjacent to an enemy, they can attempt to Strike that enemy as a reaction. For each of these Strikes that are successful, the target enemy must succeed at a Will save against your class DC or become Frightened 1 (Frightened 2 on a critical failure); this is an emotion, fear, and mental effect.\n\nIf both Strikes target the same enemy, that enemy attempts the save only once after the final attack and takes a –1 circumstance penalty to their Will save to resist this effect (this penalty increases to –2 if both Strikes are successful or to –3 if both Strikes are successful and either is a critical hit.)\n\nEffect: Demoralizing Charge",
+   "cite": "Battlecry! — Class Actions: Demoralizing Charge",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.double-spellstrike",
+   "title": "Double Spellstrike ◆◆",
+   "summary": "*magus*\n\n**Frequency** once per day\n\n**Requirements** Your Spellstrike is charged.\n\nYou Spellstrike, but you cast two spells instead of one. The combined rank of the spells must be 10 or less, and they must both meet the normal criteria for spells you can cast in a Spellstrike.",
+   "cite": "Impossible Magic — Class Actions: Double Spellstrike",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.double-team",
+   "title": "Double Team ◆◆",
+   "summary": "*commander, tactic*\n\nYour team works together to set an enemy up for a vicious attack. Signal one squadmate who has an opponent within their reach. That ally can Shove or Reposition an opponent as a free action. If their maneuver is successful and the target ends their movement adjacent to a different squadmate, the second squadmate can attempt a melee Strike against that target as a reaction.",
+   "cite": "Battlecry! — Class Actions: Double Team",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.draconic-frenzy",
+   "title": "Draconic Frenzy ◆◆",
+   "summary": "*eidolon*\n\nYour eidolon makes one Strike with their primary unarmed attack and two Strikes with their secondary unarmed attack (in any order). If any of these attacks critically hits an enemy, your eidolon instantly recovers the use of their Dragon Breath.",
+   "cite": "Impossible Magic — Class Actions: Draconic Frenzy",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.dragon-breath-eidolon",
+   "title": "Dragon Breath (Eidolon) ◆◆",
+   "summary": "*eidolon*\n\nYour eidolon exhales a blast of destructive energy that deals (1d6 per 2 levels) untyped damage to all creatures in an area with a basic Reflex save against your spell DC. Your eidolon then can't use Dragon Breath again for the next 1d4 rounds. At 3rd level and every 2 levels thereafter, the damage increases by 1d6.\n\nWhen the eidolon gains this ability, you choose the area—a 60-foot line or a 30-foot cone—as well as the damage type—acid, cold, electricity, fire, piercing, poison, or void. You can instead choose force if your eidolon has the arcane trait, spirit if they have the divine trait, or mental if they have the occult trait. If you model your eidolon after a specific type of dragon, your GM might allow you to choose from additional damage types.\n\nDragon Breath has the tradition trait of your eidolon and the trait matching the damage type chosen (unless you choose piercing damage).",
+   "cite": "Impossible Magic — Class Actions: Dragon Breath (Eidolon)",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.drain-life",
+   "title": "Drain Life ◆◆",
+   "summary": "*divine, eidolon, void*\n\nYour eidolon attacks a living creature and drains some of the creature's life force to feed your shared link. Your eidolon Strikes a living enemy. If the Strike hits and deals damage, the target must attempt a Fortitude save against your spell DC, with the following effects. On a critical hit, the enemy uses the result one degree worse than it rolled.\n\n**Critical Success** No effect.\n\n**Success** Your eidolon drains a small amount of life force. The enemy takes additional void damage equal to half your level.\n\n**Failure** Your eidolon drains enough life force to satisfy itself. The enemy takes additional void damage equal to half your level and is Drained 1. Your eidolon gains temporary Hit Points equal to the enemy's level, which last for 1 minute.\n\n**Critical Failure** Your eidolon drains an incredible amount of life force and is thoroughly glutted with energy. As failure, but the enemy is Drained 2 and the temporary Hit Points are equal to double the enemy's level.",
+   "cite": "Impossible Magic — Class Actions: Drain Life",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.drifters-wake",
+   "title": "Drifter's Wake ◆◆◆",
+   "summary": "*gunslinger*\n\nYou drift across the battlefield, striking down foes as you go. You Stride, and you can Strike up to three times at any points during your movement. Each attack must target a different enemy and must be made with a one-handed firearm, crossbow, melee weapon, or unarmed attack. Each attack counts toward your multiple attack penalty, but your multiple attack penalty doesn't increase until you've made all your attacks. Your movement doesn't trigger reactions.",
+   "cite": "Guns & Gears (Remastered) — Class Actions: Drifter's Wake",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.drink-from-the-chalice",
+   "title": "Drink from the Chalice ◆",
+   "summary": "*magical, manipulate, thaumaturge*\n\n**Frequency** once per round\n\n**Requirements** You are holding your chalice implement.\n\nYou drink from the liquid that slowly collects in your chalice or administer it to an adjacent ally. The drinker chooses whether to take a small sip or to drain the contents.\n\n- **Sip** A sip grants the drinker an amount of temporary Hit Points equal to your level (minimum 3) that last until the end of your next turn. Effect: Drink from the Chalice\n- **Drain** (healing, vitality) Drinking deep instead heals the drinker 3 Hit Points for each level you have. After the chalice is drained, it's left with only its slowly collecting dregs; the chalice can't be drained again, though it can still be sipped from. If 10 minutes pass without anyone drinking from the chalice, it refills itself and can be drained again. If the drinker has void healing, it can still heal in this way, and the effect has the void trait instead of healing and vitality.",
+   "cite": "Dark Archive (Remastered) — Class Actions: Drink from the Chalice",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.drink-of-my-foes",
+   "title": "Drink of my Foes ◆",
+   "summary": "*healing, transcendence, vitality*\n\n**Requirements** Your last action was a successful Strike with the Barrow's Edge\n\n**Effect** Your blade glows as it absorbs your foe's vitality. You regain Hit Points equal to half the damage dealt.",
+   "cite": "War of Immortals — Class Actions: Drink of my Foes",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.dutiful-retaliation",
+   "title": "Dutiful Retaliation ↺",
+   "summary": "*eidolon, occult*\n\n**Trigger** An enemy within 15 feet of you hits you with a Strike and deals damage to you\n\n**Requirements** Your eidolon is within 15 feet of you\n\n**Effect** Your eidolon instinctively flashes with ectoplasmic energy, allowing them to strike back against an enemy who dares to harm you. Your eidolon makes a melee unarmed Strike against the triggering enemy, even if that enemy isn't within your eidolon's reach.",
+   "cite": "Impossible Magic — Class Actions: Dutiful Retaliation",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.embrace-of-destiny",
+   "title": "Embrace of Destiny ◆",
+   "summary": "*mental, spirit, transcendence*\n\nChoose an enemy within 20 feet of you. It must succeed at a Will save against your class DC or be pulled directly toward you into a square adjacent to you.",
+   "cite": "War of Immortals — Class Actions: Embrace of Destiny",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.empower-breath",
+   "title": "Empower Breath ◇",
+   "summary": "*concentrate, eidolon*\n\n**Frequency** once per minute\n\n**Effect** Your eidolon gathers the power of the mightiest archdragons to make their magical breath even more spectacular. If your eidolon's next action is to use Dragon Breath, both the number of damage dice and area of Dragon Breath are doubled.",
+   "cite": "Impossible Magic — Class Actions: Empower Breath",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.end-it",
+   "title": "End It! ◆◆",
+   "summary": "*brandish, commander, incapacitation, tactic*\n\n**Requirements** You and your allies currently outnumber enemies on the battlefield, and you or a squadmate have reduced an enemy to 0 Hit Points since the start of your last turn.\n\nAt your proclamation that victory is already at hand, your allies march forward with an authoritative stomp, scattering your enemies in terror. Signal all squadmates within the aura of your banner; you and each ally can Step as a free action directly toward a hostile creature. Any hostile creatures within 10 feet of a squadmate after this movement must attempt a Will save against your class DC; on a failure they become fleeing for 1 round, and on a critical failure they become fleeing for 1 round and Frightened 2. This is an emotion, fear, and mental effect.",
+   "cite": "Battlecry! — Class Actions: End It!",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.executioners-volley",
+   "title": "Executioner's Volley ◆◆",
+   "summary": "*commander, tactic*\n\n**Frequency** once per day\n\nYou command your squadmates to act as a lethal firing squad. You and each squadmate within the aura of your commander's banner can attempt a ranged Strike as a reaction against a single target you choose; combine the damage from all attacks for the purpose of resistances and weaknesses. If the designated target is a living creature, these attacks gain the death trait. If the designated target dies as a result of this tactic, all other enemies within the affected area of your commander's banner must succeed at a Will save against your class DC or be Frightened 2; this is an emotion, fear, and mental effect.\n\n**Special** If one of your squadmates knows or has prepared a cantrip with a range of 30 feet or more that deals damage and requires 2 or fewer actions to cast, they can cast it targeting the designated enemy instead of taking the other actions normally granted by this tactic, gaining all other listed benefits.",
+   "cite": "Battlecry! — Class Actions: Executioner's Volley",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.exploit-vulnerability",
+   "title": "Exploit Vulnerability ◆",
+   "summary": "*esoterica, manipulate, thaumaturge*\n\n**Frequency** once per round\n\n**Requirements** You are holding your implement.\n\nYou scour your experiences and learning to identify something that might repel your foe. You retrieve an object from your esoterica with the appropriate supernatural qualities, then use your implement to stoke the remnants of its power into a blaze. Select a creature you can see and attempt an Esoteric Lore check against a standard DC for its level, as you retrieve the right object from your esoterica and use your implement to empower it. You gain the following effects until you Exploit Vulnerabilities again.\n\n**Critical Success** You remember the creature's weaknesses, and as you empower your esoterica, you have a flash of insight that grants even more knowledge about the creature. You learn all of the creature's resistances, weaknesses, and immunities, including the amounts of the resistances and weaknesses and any unusual weaknesses or vulnerabilities, such as an oni's bean panic. You can exploit either the creature's mortal weakness or personal antithesis (see below). Your unarmed and weapon Strikes against the creature also become magical if they weren't already.\n\n**Success** You recall an important fact about the creature, learning its highest weakness (or one of its highest weaknesses, if it has multiple with the same value) but not its other weaknesses, resistances, or immunities. You can exploit either the creature's mortal weakness or personal antithesis. Your unarmed and weapon Strikes against the creature also become magical if they weren't already.\n\n**Failure** Failing to recall a salient weakness about the creature, you instead attempt to exploit a more personal vulnerability. You can exploit only the creature's personal antithesis. Your unarmed and weapon Strikes against the creature also become magical if they weren't already.\n\n**Critical Failure** You couldn't remember the right object to use and become distracted while you rummage through your esoterica. You become off-guard until the start of your next turn.",
+   "cite": "Dark Archive (Remastered) — Class Actions: Exploit Vulnerability",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.fade-into-daydreams",
+   "title": "Fade Into Daydreams ◆",
+   "summary": "*illusion, psyche, psychic*\n\nYour flights of imagination spill into the real world, causing you to become indistinct, hazy, or cloaked in figments. You become concealed until the start of your next turn. This concealment can't be used to Hide, as normal for concealing effects that leave your location obvious.",
+   "cite": "Dark Archive (Remastered) — Class Actions: Fade Into Daydreams",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.feed-the-masses",
+   "title": "Feed the Masses ◆",
+   "summary": "*transcendence*\n\nThe Horn of Plenty allows you to transfer the effects of potions and elixirs to your allies. You Interact to draw a consumable from the horn and then Interact to drink it. Rather than nourishing yourself, the item's effects are transferred to a willing ally within 60 feet, as if they had consumed it themself.\n\nIf the consumable restores Hit Points, you can choose to divide the amount it restores between you and the ally freely (after rolling dice to determine the amount).",
+   "cite": "War of Immortals — Class Actions: Feed the Masses",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.feral-swing",
+   "title": "Feral Swing ◆◆",
+   "summary": "*spirit, transcendence*\n\nYou lash out with both arms, rending all before you. Each creature in a 15-foot cone must succeed at a basic Reflex save against your class DC or take spirit damage equal to your normal Strike damage with your Hands of the Wildling.\n\nYou can choose to swing with abandon, which imposes a –2 circumstance bonus to enemies' saving throws, but causes you to become off-guard until the start of your next turn.\n\nEffect: Feral Swing",
+   "cite": "War of Immortals — Class Actions: Feral Swing",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.field-of-roots",
+   "title": "Field of Roots ◆◆",
+   "summary": "*eidolon*\n\nYour eidolon extends their roots underground to entangle and possibly damage all foes nearby. All enemies within your eidolon's reach take damage of the same type and amount as your eidolon's most damaging Strike, depending on their Reflex saves against your spell DC. Any ongoing effects of the save last until the enemy either Escapes or leaves your eidolon's reach. After using Field of Roots, your eidolon is immobilized until they take an Interact action to detach from the ground; this also ends any remaining effects on enemies from Field of Roots.\n\n**Critical Success** The enemy is unaffected.\n\n**Success** The enemy takes no damage, but takes a –10 foot circumstance penalty to its Speeds.\n\n**Failure** The enemy takes half damage, takes a –10-foot circumstance penalty to its Speeds, and at the end of each of its turns, takes half damage again.\n\n**Critical Failure** The enemy is immobilized, takes full damage, and at the end of each of its turns, takes full damage again.",
+   "cite": "Impossible Magic — Class Actions: Field of Roots",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.finish-the-job",
+   "title": "Finish The Job ◆",
+   "summary": "*gunslinger*\n\n**Requirements** On your last action, you failed (but didn't critically fail) a Strike with a firearm or crossbow you're holding in one hand, and your other hand is either wielding a melee weapon or empty.\n\nYour last attack failed, but it set you up for another. Make a Strike with your other hand, using a one-handed melee weapon or unarmed attack. This Strike uses the same multiple attack penalty as the Strike that failed on the last action. Afterward, increase your multiple attack penalty normally.",
+   "cite": "Guns & Gears (Remastered) — Class Actions: Finish The Job",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.fleeting-arc-through-heaven-and-earth",
+   "title": "Fleeting Arc through Heaven and Earth ◆◆◆",
+   "summary": "*light, spirit, teleportation, transcendence*\n\nYou swing your weapon in a wide arc, releasing a blazing rainbow that deals 9d6 spirit damage and 9d6 untyped damage of the same type as your weapon to all enemies in a 60-foot cone, with a basic Fortitude save against your class DC. As the rainbow ripples out, you use it as a bridge to teleport to any location within the effect's area.",
+   "cite": "War of Immortals — Class Actions: Fleeting Arc through Heaven and Earth",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.fling-magic",
+   "title": "Fling Magic ◆◆",
+   "summary": "*concentrate, magical, manipulate, thaumaturge*\n\n**Requirements** You are holding your wand implement.\n\nYou fling magical energy at a target within 60 feet, dealing level-based untyped damage, with a basic Reflex save against your class DC. The damage is of the type you selected when you gained your wand implement. At 3rd level and every 2 levels thereafter, the damage increases by 1d4.\n\nYou can expend more energy than usual to boost the effect of Fling Magic, dealing d6s of damage instead of d4s. After you do, the wand's extra energy is discharged; you can't boost the wand's damage again, but can continue to Fling Magic normally. The extra energy recharges at the end of your next turn.\n\n**Special** This activity has the trait corresponding to the damage type you selected.",
+   "cite": "Dark Archive (Remastered) — Class Actions: Fling Magic",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.flowing-engulf",
+   "title": "Flowing Engulf ◆◆◆",
+   "summary": "*eidolon*\n\nYour eidolon Strides up to double their Speed and can move through the spaces of any creatures in their path. Any creature of the eidolon's size or smaller whose space your eidolon moves through is engulfed unless it succeeds at a Reflex save against your spell DC. Your eidolon can attempt to engulf the same creature only once in a single use of Flowing Engulf, and they can contain as many creatures as can fit in their space.\n\nAn engulfed creature is pulled into your eidolon's body. It is grabbed, Slowed 1, and moves along with your eidolon as long as it is engulfed. It can get free by Escaping against your spell DC, moving to a space of its choice adjacent to your eidolon.",
+   "cite": "Impossible Magic — Class Actions: Flowing Engulf",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.flowing-spirit-strike",
+   "title": "Flowing Spirit Strike ◆◆",
+   "summary": "*spirit, transcendence*\n\nMake two Strikes with the gleaming blade, each against the same target and using your current multiple attack penalty. If the Gleaming Blade doesn't have the agile trait, the second Strike takes a –2 penalty. If both attacks hit, you combine their damage, which is all dealt as spirit damage.\n\nYou add any precision damage only once. Combine the damage from both Strikes and apply resistances and weaknesses only once. This counts as two attacks when calculating your multiple attack penalty.",
+   "cite": "War of Immortals — Class Actions: Flowing Spirit Strike",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.fracture-mountains",
+   "title": "Fracture Mountains ◆◆",
+   "summary": "*spirit, transcendence*\n\nYour spirit is so dense it takes on tangible force. Make a melee Strike with the Titan's Breaker. This counts as two attacks when calculating your multiple attack penalty. If this Strike hits, your additional spirit damage from the ikon's immanence increases to 4 plus an extra die of weapon damage.\n\nIf you're at least 10th level, it's increased to 6 spirit damage and two extra dice, and if you're at least 18th level, it's increased to 8 spirit damage and three extra dice.",
+   "cite": "War of Immortals — Class Actions: Fracture Mountains",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.furious-strike",
+   "title": "Furious Strike ◆◆",
+   "summary": "*eidolon*\n\nYour eidolon makes a melee Strike. This counts as two attacks when calculating your multiple attack penalty. If this Strike hits, your eidolon deals an extra die of weapon damage and gains a +1 circumstance bonus to the damage roll.\n\nIf you're at least 10th level, increase this to two extra dice with a +2 circumstance bonus, and if you're at least 18th level, increase it to three extra dice with a +3 circumstance bonus.",
+   "cite": "Impossible Magic — Class Actions: Furious Strike",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.gather-to-me",
+   "title": "Gather to Me! ◆",
+   "summary": "*commander, tactic*\n\nYou signal your team to move into position together. Signal all squadmates; each can immediately Stride as a reaction, though each must end their movement inside your banner's aura, or as close to your banner's aura as their movement Speed allows.\n\nSquadmates can use Gather to Me! while Burrowing, Climbing, Flying, or Swimming instead of Striding if they have the corresponding movement type.",
+   "cite": "Battlecry! — Class Actions: Gather to Me!",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.ghost-shot",
+   "title": "Ghost Shot ◆",
+   "summary": "*flourish, gunslinger*\n\nMake a firearm or crossbow Strike. If you're hidden from or undetected by the target, the Strike adds the additional precision damage from One Shot, One Kill; if you would already receive that additional damage on the Strike, the effects aren't cumulative. If you were undetected or unnoticed by any creatures, you're now hidden from them instead, or undetected if the shot was made with a silencer.",
+   "cite": "Guns & Gears (Remastered) — Class Actions: Ghost Shot",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.giant-felling-comet",
+   "title": "Giant-Felling Comet ◆◆",
+   "summary": "*spirit, transcendence*\n\nYou shoot the Starshot, causing a detonation in a 5-foot burst within 60 feet. Each creature in the area must succeed at a basic Reflex save against your class DC or take spirit damage equal to your normal Strike damage with the starshot. Creatures larger than you take a –2 circumstance penalty to their saving throws. This shot requires any ammunition that would normally be required for the weapon.",
+   "cite": "War of Immortals — Class Actions: Giant-Felling Comet",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.glimpse-vulnerability",
+   "title": "Glimpse Vulnerability ◆",
+   "summary": "*esoterica, manipulate*\n\n**Frequency** once per round\n\n**Requirements** You are holding your implement\n\n**Effect** You glimpse a hidden vulnerability and then strengthen it to aid you. Select a creature you can see. Until you Glimpse Vulnerability again, that target gains weakness 2 against your unarmed and weapon Strikes.\n\nEffect: Glimpse Vulnerability",
+   "cite": "Dark Archive (Remastered) — Class Actions: Glimpse Vulnerability",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.grim-swagger",
+   "title": "Grim Swagger ◆◆",
+   "summary": "*auditory, emotion, fear, gunslinger, linguistic, mental*\n\n**Requirements** You have a one-handed firearm or one-handed crossbow visibly worn or wielded.\n\nYou attempt to clear the room by promising a grim fate to anyone who doesn't do what you say, and quickly. Attempt a Deception or Intimidation check against the Will DCs of each creature within 30 feet, except for your allies. Regardless of whether you succeed or fail, each subject is temporarily immune to your Grim Swagger for 10 minutes.\n\nFor example, if you attempt a Deception check, you lie and boast about your prowess or the large group of friends on their way to back you up. If you attempt an Intimidation check, you promise everyone in the room that you're going to be the last thing they see.\n\n**Critical Success** The creature becomes Frightened 3. If it's lower level than you, it's also fleeing for 1 round.\n\n**Success** The creature becomes Frightened 2.",
+   "cite": "Guns & Gears (Remastered) — Class Actions: Grim Swagger",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.haunting-visage",
+   "title": "Haunting Visage ◆",
+   "summary": "*concentrate, eidolon, manipulate, visual*\n\n**Requirements** Your eidolon is condensed.\n\nYour eidolon suddenly shifts itself into a terrifying shape of its choosing, rather than a simple mound, by closely controlling the positioning of its component bodies. The eidolon attempts to Demoralize a creature within 15 feet; this Demoralize attempt loses the auditory trait, gains the visual trait, and the eidolon doesn't take a –4 circumstance penalty to the check if they don't share a language with their target. On a success or critical success, the target is additionally off-guard for 1 round.",
+   "cite": "Battlecry! — Class Actions: Haunting Visage",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.heaven-rains-an-ending",
+   "title": "Heaven Rains an Ending ◆◆◆",
+   "summary": "*transcendence*\n\nYou shoot an arrow that multiplies into a dense cloud of weapons. Make one ranged Strike with a –2 penalty against each enemy you are aware of within a cone as long as your weapon's first range increment. Roll the damage only once for all targets, and all the Strike's damage is spirit damage instead of its normal type. Each attack counts toward your multiple attack penalty, the penalty doesn't increase until you have made all your attacks.",
+   "cite": "War of Immortals — Class Actions: Heaven Rains an Ending",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.heavy-is-the-crown",
+   "title": "Heavy is the Crown ◆◆",
+   "summary": "*concentrate, mental, spirit, transcendence*\n\nThe weight of authority falls heavily upon you, as well as nearby creatures. All enemies in a 15-foot burst within 60 feet take spirit damage damage equal to your level with a basic Will save against your class DC. Any enemy that fails its save must immediately kneel, dropping prone as a free action.",
+   "cite": "War of Immortals — Class Actions: Heavy is the Crown",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.implements-interruption",
+   "title": "Implement's Interruption ↺",
+   "summary": "*magical, thaumaturge*\n\n**Trigger** The target of your Exploit Vulnerability uses a concentrate, manipulate, or move action, or leaves a square during a move action it's using.\n\n**Requirements** You're holding your weapon implement and are benefiting from Exploit Vulnerability against a creature. The creature must be within your reach if you're wielding a melee weapon, or within 10 feet if you're wielding a ranged weapon.\n\nYour weapon senses a moment of weakness and guides your hand to strike down a foe. Make a Strike against the triggering creature with your weapon implement. If your attack is a critical hit, you disrupt the triggering action. This Strike doesn't count toward your multiple attack penalty, and your multiple attack penalty doesn't apply to this Strike.",
+   "cite": "Dark Archive (Remastered) — Class Actions: Implement's Interruption",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.inevitable-return",
+   "title": "Inevitable Return ↺",
+   "summary": "*concentrate, necromancer, thrall*\n\n**Trigger** A Small or Medium enemy within 30 feet dies.\n\nThe deaths of those around you simply fuel your undead army. You create a thrall in the triggering corpse's space. This thrall is the same size as the triggering creature.",
+   "cite": "Impossible Magic — Class Actions: Inevitable Return",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.insta-ballista",
+   "title": "Insta-Ballista ◆◆",
+   "summary": "*brandish, commander, tactic*\n\n**Frequency** once per day\n\nYour squad quickly assembles a special impromptu ballista and fires it to lethal effect. Signal all squadmates you previously chose to participate in this tactic (see Special); these squadmates must be within the aura of your commander's banner. They can all Stride as a free action to assemble into a close formation; as long as all the chosen squadmates end their movement no more than 10 feet away from any of the other chosen squadmates. They quickly assemble an impromptu ballista and fire it at an enemy of your choice within 200 feet.\n\nThis is a ranged Strike using your proficiency bonus with martial weapons and gets an item bonus to the attack roll you make with it equal to the number of assisting squadmates (maximum +4). It deals 10d12 piercing damage. Once the attack is completed, the pieces of the impromptu ballista fall apart.\n\n**Special** You must choose all squadmates who will participate in this tactic at the time you prepare it. Those squadmates must carry the pieces of your impromptu ballista, which can be made out of easily scavenged materials; these pieces are 8 Bulk in total and can be divided in 1 Bulk increments among any number of the chosen squadmates.",
+   "cite": "Battlecry! — Class Actions: Insta-Ballista",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.intensify-vulnerability",
+   "title": "Intensify Vulnerability ◆",
+   "summary": "*concentrate, esoterica, magical, thaumaturge*\n\n**Prerequisites** Exploit Vulnerability\n\n**Frequency** once per round\n\n**Requirements** You're benefiting from Exploit Vulnerability, you can see the subject, and you haven't used Exploit Vulnerability this round.\n\nYou present your implement and esoterica again, intensifying their effects on the target in a way unique to your implement. You gain the intensified vulnerability benefit from one of the implements you're holding, which lasts until the beginning of your next turn.",
+   "cite": "Dark Archive (Remastered) — Class Actions: Intensify Vulnerability",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.intercept-attack",
+   "title": "Intercept Attack ↺",
+   "summary": "*guardian*\n\n**Trigger** An ally within 10 feet of you takes physical damage.\n\nYou fling yourself in the way of oncoming harm to protect an ally. You can Step, but you must end your movement adjacent to the triggering ally. You take the damage instead of the triggering ally. Apply your own immunities, weaknesses, and resistances to the damage, not the ally's.\n\n**Special** You can extend this ability to an ally within 15 feet of you if the damage comes from your taunted enemy. If this ally is farther than you can Step to reach, you can Stride instead of Stepping; you still must end the movement adjacent to your ally.",
+   "cite": "Battlecry! — Class Actions: Intercept Attack",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.into-the-fray",
+   "title": "Into the Fray ◇",
+   "summary": "*gunslinger*\n\n**Trigger** You roll initiative.\n\nYou know trouble can lurk around every corner, and your hands never stray far from your holsters. You can Interact to draw a one-handed ranged weapon and can then Interact to draw a one-handed melee weapon. As your first action on your first turn, you can Stride as a free action toward an enemy you can perceive. If you can't perceive any enemies or can't end your movement closer to one, you can't use this Stride.",
+   "cite": "Guns & Gears (Remastered) — Class Actions: Into the Fray",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.invoke-rune",
+   "title": "Invoke Rune ◆",
+   "summary": "*invocation, magical, runesmith*\n\nYou utter the names of up to two of your runes within 30 feet, and each of which blazes with power, applying the effect in its Invocation entry. An invoked rune then fades away, its task completed. Though you can invoke up to two runes with a single Invoke Rune action, creatures that would be affected by multiple copies of the same rune are affected only once, as normal for duplicate effects.",
+   "cite": "Impossible Magic — Class Actions: Invoke Rune",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.liars-hidden-blade",
+   "title": "Liar's Hidden Blade ◆",
+   "summary": "*spirit, transcendence*\n\n**Requirements** Your previous action was an unsuccessful Strike with the weapon from the Shadow Sheath\n\n**Effect** The shadow weapon you threw fades, the distraction covering your true intention all along—a second strike in hidden in the blind spot of the first! Interact to draw another weapon from the shadow sheath, then Strike with it at the same multiple attack penalty as the unsuccessful attack. The opponent is off-guard to this attack.\n\nThis Strike counts toward your multiple attack penalty as normal. After the Strike resolves, you can Interact to draw another weapon from the shadow sheath.",
+   "cite": "War of Immortals — Class Actions: Liar's Hidden Blade",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.living-fortification",
+   "title": "Living Fortification ◇",
+   "summary": "*gunslinger*\n\n**Trigger** You roll initiative.\n\nYou posture defensively with firearms or crossbows, acting like a walking tower. Interact to draw a firearm or crossbow. You then position that weapon defensively, as the parry trait, gaining a +1 circumstance bonus to AC until the end of your first turn, or a +2 circumstance bonus if the chosen weapon has the parry trait.",
+   "cite": "Guns & Gears (Remastered) — Class Actions: Living Fortification",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.manifest-eidolon",
+   "title": "Manifest Eidolon ◆◆◆",
+   "summary": "*concentrate, manipulate, summoner, teleportation*\n\nYour eidolon appears in an open space adjacent to you, and can then take a single action. If your eidolon was already manifested, you unmanifest them instead. The conduit that allows your eidolon to manifest is also a tether between you. Your eidolon must remain within 100 feet of you at all times and can't willingly go beyond that limit. If forced beyond this distance, or if you are reduced to 0 Hit Points or your eidolon were to die, your eidolon's physical form unmanifests, and you need to use Manifest Eidolon to manifest them again.\n\n**Special** This activity has the trait matching your eidolon's tradition (arcane, divine, occult, or primal).",
+   "cite": "Impossible Magic — Class Actions: Manifest Eidolon",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.marathon-dash",
+   "title": "Marathon Dash ◆",
+   "summary": "*transcendence*\n\nYour feet carry you so quickly they leave a slipstream that speeds your allies on. You Stride. Each ally within 10 feet of you at the start of your movement can Stride as a reaction.",
+   "cite": "War of Immortals — Class Actions: Marathon Dash",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.mark-the-center",
+   "title": "Mark the Center ◆",
+   "summary": "*transcendence*\n\nYou hold a hand to your lips and exhale, releasing enchanted red ash in a 15-foot cone. The ash clings to the vital areas of each enemy in the area for 1 minute. When a creature marked by the ash is hit and dealt damage by a Strike, it takes an additional 4d6 precision or vitality damage, then its mark ends. The damage type is whichever is worse for the creature, as determined by the GM. At 13th level and every 3 levels thereafter, the damage increases by 1d6.",
+   "cite": "War of Immortals — Class Actions: Mark the Center",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.mirrors-reflection",
+   "title": "Mirror's Reflection ◆",
+   "summary": "*illusion, magical, manipulate, thaumaturge*\n\n**Requirements** You're holding your mirror implement.\n\nYou reflect an illusory image of yourself into another unoccupied space within 15 feet that you can see. You are treated as being in both spaces until the start of your next turn. For example, you can attack, Seek, and provide flanking—even with yourself. You occupy both spaces. Your mirror self mimics your actions exactly, but any effects you generate come from only one of your positions; you decide which each time you act. For example, if you made a melee Strike against a creature within reach of the reflection, you'd mime the actions of the Strike, but only the reflection would actually make the Strike. Anything that targets or would affect your reflection affects you and uses your statistics. Something that would target or affect both of you affects you only once. For example, a fireball that included both of you in its area would require only one save from you and damage you no more than once. When you move, you choose which square to move from, but the mirror effect ends (see below).\n\nSome events force you to determine which image is the real you, and then end the effect and cause your mirror self to disappear; this happens automatically at the start of your next turn. It also happens if you choose to move out of your space. Other benefits of this implement add more events that can end the reflection. The effect also ends when you fall unconscious, at which point you decide which version is truly you.",
+   "cite": "Dark Archive (Remastered) — Class Actions: Mirror's Reflection",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.mirrored-wall",
+   "title": "Mirrored Wall ◆◆",
+   "summary": "*commander, tactic, visual*\n\n**Frequency** once per 10 minutes\n\n**Requirements** At least one of your squadmates is in bright light or has a focused light source available, such as a bull's-eye lantern.\n\nYour squadmates have polished their shields to a reflective sheen and now position them to reflect a blinding light into your enemy's eyes. All of your squadmates can Raise a Shield or cast Shield as a reaction.\n\nThen, signal a squadmate within the aura of your commander's banner who currently has a shield raised (including spellcasting allies with an active casting of the *shield* cantrip), and choose an enemy within 60 feet. The formation bounces light off the raised shield and into the enemy's eyes; the target must succeed at a Fortitude saving throw against your class DC or become blinded for 1 round (on a critical failure, the creature remains dazzled for 3 rounds after the blindness ends).\n\nYou can signal additional allies with raised shields to participate in this tactic; the target takes a circumstance penalty on this save equal to the number of additional participating squadmates (to a maximum –4 circumstance penalty to the target's save).\n\nEffect: Mirrored Wall",
+   "cite": "Battlecry! — Class Actions: Mirrored Wall",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.mountaineering-training",
+   "title": "Mountaineering Training ◆",
+   "summary": "*commander, tactic*\n\nYour instructions make it easier for you and your allies to scale dangerous surfaces. Signal all squadmates; until the end of your next turn, you and each ally gain a climb Speed of 20 feet.\n\nEffect: Mountaineering Training\n\n**Special** If you have this tactic prepared, you can use Warfare Lore in place of Athletics for checks you make to Climb.",
+   "cite": "Battlecry! — Class Actions: Mountaineering Training",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.naval-training",
+   "title": "Naval Training ◆",
+   "summary": "*commander, tactic*\n\nYour instructions make it easier for you and your allies to swim through dangerous waters. Signal all squadmates; until the end of your next turn, you and each ally gain a swim Speed of 20 feet.\n\nEffect: Naval Training\n\n**Special** If you have this tactic prepared, you can use Warfare Lore in place of Athletics for checks you make to Swim.",
+   "cite": "Battlecry! — Class Actions: Naval Training",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.no-scar-but-this",
+   "title": "No Scar but This ◆",
+   "summary": "*concentrate, healing, transcendence, vitality*\n\nYour wounds knit shut with hardly a scratch. You regain (1d8 per 2 levels) Hit Points. At 3rd level and every 2 levels thereafter, the healing increases by 1d8.",
+   "cite": "War of Immortals — Class Actions: No Scar but This",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.one-moment-till-glory",
+   "title": "One Moment till Glory ◆",
+   "summary": "*concentrate, emotion, mental, transcendence*\n\nYou rally your allies, carrying them from the brink of disaster to the verge of victory. Each ally in your aura can immediately attempt a new saving throw with a +2 status bonus against one ongoing negative effect or condition currently affecting it that required a save. Use the result of the new save to determine the outcome of the effect, unless the new save would have a worse result than the original save, in which case nothing happens. Each ally can gain this benefit against a given effect only once.\n\nEffect: One Moment till Glory",
+   "cite": "War of Immortals — Class Actions: One Moment till Glory",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.one-shot-one-kill",
+   "title": "One Shot, One Kill ◇",
+   "summary": "*gunslinger*\n\n**Trigger** You roll Stealth for initiative.\n\nYour first shot is the deadliest. Interact to draw a firearm or crossbow. Your first successful Strike with that weapon during this encounter deals an additional 1d6 precision damage. This precision damage increases to 2d6 at 9th level and 3d6 at 15th level.",
+   "cite": "Guns & Gears (Remastered) — Class Actions: One Shot, One Kill",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.only-you-and-i",
+   "title": "Only You and I ◆",
+   "summary": "*concentrate, transcendence*\n\nYou draw your foe into a fated conflict—one you know you'll win. Choose an enemy within your reach. Until the end of your next turn, that enemy gains a +2 circumstance bonus to attack rolls it makes against you, but it must attempt a Will save against your class DC whenever it tries to move away from you, Strike a target other than you, or Cast a Spell that doesn't include you as a target. On a failure, the action or actions related to the failed attempt is disrupted. Whenever the enemy misses you with a Strike while this effect is active, you heal 1d8+5 Hit Points.\n\nEffect: Only You and I",
+   "cite": "War of Immortals — Class Actions: Only You and I",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.overdrive",
+   "title": "Overdrive ◆",
+   "summary": "*inventor, manipulate*\n\n**Frequency** once per round\n\nTemporarily cranking the gizmos on your body into overdrive, you try to add greater power to your attacks. Attempt a Crafting check that has a standard DC for your level.\n\nEffect: Overdrive\n\n**Critical Success** Your gizmos go into a state of incredible efficiency called critical overdrive, adding great power to your attacks. Your Strikes deal additional damage equal to your Intelligence modifier for 1 minute. After the Overdrive ends, your gizmos become unusable as they cool down or reset, and you can't use Overdrive for 1 minute.\n\n**Success** Your gizmos go into overdrive, adding power to your attacks. As critical success, except the additional damage is equal to half your Intelligence modifier.\n\n**Failure** Your gizmos whine concerningly and begin to smoke. Your Strikes deal 1 additional fire damage for 1 minute.\n\n**Critical Failure** Whoops! Something explodes. You take fire damage equal to half your level (rounded up), and you can't use Overdrive again for 1d4 rounds as your gizmos reset.\n\n**Special** When under the effects of Overdrive, you can still use the Overdrive action. You can't extend your Overdrive's duration this way, but you can turn an overdrive into a critical overdrive if you critically succeed. A failure has no effect on your current Overdrive, and you end your Overdrive on a critical failure.",
+   "cite": "Guns & Gears (Remastered) — Class Actions: Overdrive",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.passage-of-lines",
+   "title": "Passage of Lines ◆",
+   "summary": "*commander, tactic*\n\nYou command your allies to regroup, allowing endangered units to fall back while rested units press the advantage. Signal all squadmates within the aura of your commander's banner; each can swap positions with another willing ally adjacent to them. An ally can't swap into a space it can't fit into, and if one of the allies occupies more squares than the other, the smaller ally can move into any part of the larger ally's space as long as the two remain adjacent after the swap.",
+   "cite": "Battlecry! — Class Actions: Passage of Lines",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.pincer-attack",
+   "title": "Pincer Attack ◆",
+   "summary": "*commander, tactic*\n\nYou call for an aggressive formation designed for exploiting enemies' vulnerabilities. Signal all squadmates; each can Step as a reaction. If any of your allies ends this movement adjacent to an opponent, that opponent is off-guard to melee attacks from you and all other squadmates who responded to Pincer Attack until the start of your next turn.",
+   "cite": "Battlecry! — Class Actions: Pincer Attack",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.piranha-assault",
+   "title": "Piranha Assault ◆",
+   "summary": "*commander, tactic*\n\n**Frequency** once per 10 minutes\n\nYou know that a thousand small bites can fell a large foe just as surely a single well-placed hit. Designate a creature within the aura of your commander's banner and signal all squadmates; for 1 minute, each time they attack that creature and deal damage to it of a type the creature resists, they ignore an amount of that creature's resistance equal to your level.",
+   "cite": "Battlecry! — Class Actions: Piranha Assault",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.pistoleros-retort",
+   "title": "Pistolero's Retort ↺",
+   "summary": "*gunslinger*\n\n**Requirements** You're wielding a one-handed firearm or one-handed crossbow.\n\n**Trigger** A foe within the first range increment of the one-handed firearm or one-handed crossbow you're wielding critically fails an attack roll against you.\n\nYou punish your foe's failure with a shot. Make a Strike against the triggering foe with a one-handed firearm or one-handed crossbow.",
+   "cite": "Guns & Gears (Remastered) — Class Actions: Pistolero's Retort",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.plant-thirty-barbs",
+   "title": "Plant Thirty Barbs ◆",
+   "summary": "*death, transcendence*\n\nYou snap off a fragment of your ikon within your opponent's body, which threatens to burst into numerous barbs. Make a Strike with your ikon. If successful, barbs fill the target, dealing two die of weapon damage the first time the creature uses a move action on each of its turns; the barbs are made out of the same material as your weapon ikon and bypass resistances and such accordingly (for instance, a cold iron spear would create cold iron barbs). The barbs last for 1d4 rounds. If the target dies while the barbs are still in their body, the barbs burst forth in a forest of thorns covering the creature's space, which are greater difficult terrain and deal piercing damage equal to half your level for each square that is moved into.",
+   "cite": "War of Immortals — Class Actions: Plant Thirty Barbs",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.pop-drop-and-lock",
+   "title": "Pop, Drop, and Lock ◆◆",
+   "summary": "*brandish, commander, tactic*\n\n**Frequency** once per 10 minutes\n\nYou command your squadmates to perform a devastating coordinated takedown. Signal up to three squadmates within the aura of your commander's banner who all have the same enemy within their reach; the squadmates can attempt to Strike, Trip, or Grapple the opponent as a reaction. Each squadmate can only attempt one specific action granted by this tactic, the actions can be attempted in any order and a specific action can only be attempted once as part of this tactic.",
+   "cite": "Battlecry! — Class Actions: Pop, Drop, and Lock",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.primal-roar",
+   "title": "Primal Roar ◆◆",
+   "summary": "*auditory, eidolon*\n\nYour eidolon unleashes a primal roar or other terrifying noise that fits your eidolon's form. Your eidolon attempts to Demoralize each enemy that can hear the roar, comparing the result of a single Intimidation check to the Will DC of each target; this check doesn't take any penalty for not sharing a language.",
+   "cite": "Impossible Magic — Class Actions: Primal Roar",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.protective-screen",
+   "title": "Protective Screen ◆",
+   "summary": "*brandish, commander, tactic*\n\nYou've trained your allies in a technique designed to protect war mages. Signal one squadmate; as a reaction, that squadmate Strides directly toward any other squadmate who is within the aura of your banner. If the first squadmate ends their movement adjacent to another squadmate, the second squadmate does not trigger reactions when casting spells or making ranged attacks until the end of their next turn or until they are no longer adjacent to the first squadmate, whichever comes first. If the first squadmate ends their movement adjacent to more than one other squadmate, the first squadmate must choose which of the adjacent squadmates gains this benefit.",
+   "cite": "Battlecry! — Class Actions: Protective Screen",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.race-the-skies",
+   "title": "Race the Skies ◆",
+   "summary": "*concentrate, transcendence*\n\nYou take your place among the heavens. For 1 minute, you gain a fly Speed equal to your Speed or 20 feet, whichever is greater.",
+   "cite": "War of Immortals — Class Actions: Race the Skies",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.raconteurs-reload",
+   "title": "Raconteur's Reload ◆",
+   "summary": "*gunslinger*\n\nYour rapid or forceful words draw the enemy's attention away from your hands long enough to chamber another bullet. Interact to reload and then attempt a Deception check to Create a Diversion or an Intimidation check to Demoralize.",
+   "cite": "Guns & Gears (Remastered) — Class Actions: Raconteur's Reload",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.raise-the-walls",
+   "title": "Raise the Walls ◆",
+   "summary": "*force, transcendence*\n\nYou Raise the mirrored aegis, which summons ethereal shields that surround you and one ally of your choice within 15 feet in a tortoise shield formation. You and the ally gain a +1 status bonus to AC, Reflex saves, and any save against a force, spirit, vitality, or void effect for 1 minute.\n\nEffect: Raise the Walls",
+   "cite": "War of Immortals — Class Actions: Raise the Walls",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.ready-aim-fire",
+   "title": "Ready, Aim, Fire! ◆◆",
+   "summary": "*brandish, commander, tactic*\n\n**Frequency** once per 10 minutes\n\nYou signal a volley of ranged attacks from your allies. Choose an enemy and signal up to three squadmates within the aura of your commander's banner; your squadmates can Interact to reload as a free action and attempt a ranged Strike against the enemy as a reaction\n\n**Special** If one of your squadmates knows or has prepared a cantrip with a range of 30 feet or more that deals damage and requires 2 or fewer actions to cast, they can cast it targeting the enemy instead of taking the other actions normally granted by this tactic.",
+   "cite": "Battlecry! — Class Actions: Ready, Aim, Fire!",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.reap-the-field",
+   "title": "Reap the Field ◆",
+   "summary": "*transcendence*\n\n**Requirements** Your previous action was a successful Strike with the Mortal Harvest\n\n**Effect** Time seems to lag as you blur across the battlefield, deciding the fate of many in a moment. Stride up to half your Speed and make another melee Strike with the mortal harvest against a different creature.\n\nThis Strike uses the same multiple attack penalty as your previous Strike, but counts toward your multiple attack penalty as normal.",
+   "cite": "War of Immortals — Class Actions: Reap the Field",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.recall-the-teachings",
+   "title": "Recall the Teachings ◆",
+   "summary": "*occult, psyche, psychic*\n\nThe heightened power of your psyche lets you recall every lesson you've ever learned. You search your mind for the right teaching, which at first seems cryptic but comes into clarity when it's most relevant. Until the start of your next turn, you count as having prepared to Aid all allies within 30 feet of you. If you use the Aid reaction to help one of them during that time, you roll an Occultism check for Aid as you recall a lesson to help them. Most lessons take the form of short axioms, parables, or sayings, meaning that conveying them to your ally usually grants your Aid reaction the auditory and linguistic traits.",
+   "cite": "Dark Archive (Remastered) — Class Actions: Recall the Teachings",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.redistribute",
+   "title": "Redistribute ↺",
+   "summary": "*eidolon*\n\n**Frequency** once per 10 minutes\n\n**Trigger** An enemy's Strike against your eidolon is a critical hit.\n\nYour eidolon rearranges its component bodies in response to a powerful blow, mitigating the worst of the damage they would have taken. The triggering critical hit becomes a hit. Your eidolon immediately switches forms, from condensed to dispersed or from dispersed to condensed.",
+   "cite": "Battlecry! — Class Actions: Redistribute",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.rejoin-in-flight",
+   "title": "Rejoin in Flight ◆◆",
+   "summary": "*transcendence*\n\nYou throw your weapon ikons to either side of a creature, and they seek each other out, converging on the target. Make two thrown Strikes against a target within the first range increment of both your weapon ikons. This counts as two attacks toward your multiple attack penalty, but the penalty doesn't increase until after you've made both attacks. The target is flanked for both attacks (typically making it off-guard against both attacks). If both Strikes hit, the target also takes an additional die of weapon damage. The weapons then return to your hand.",
+   "cite": "War of Immortals — Class Actions: Rejoin in Flight",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.reload",
+   "title": "Reload! ◆",
+   "summary": "*commander, tactic*\n\nYour drill instruction kicks in, and your allies rapidly reload their weapons to prepare for the next volley. Signal all squadmates; each can immediately Interact to reload as a reaction.\n\n**Special** When leading a siege weapon crew, you can use this tactic to command your squadmates to Load a siege weapon instead.",
+   "cite": "Battlecry! — Class Actions: Reload!",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.reloading-cascade",
+   "title": "Reloading Cascade ◆",
+   "summary": "You use Arcane Cascade and Interact to reload a firearm.",
+   "cite": "Impossible Magic — Class Actions: Reloading Cascade",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.reloading-strike",
+   "title": "Reloading Strike ◆",
+   "summary": "*gunslinger*\n\n**Requirements** You're wielding a firearm or crossbow in one hand, and your other hand either wields a one-handed melee weapon or is empty.\n\nYou make a melee attack and reload in one fluid movement. Strike an opponent within reach with your one-handed melee weapon (or, if your other hand is empty, with an unarmed attack), and then Interact to reload. You don't need a free hand to reload in this way and this reload does not trigger reactions.",
+   "cite": "Guns & Gears (Remastered) — Class Actions: Reloading Strike",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.restore-the-mind",
+   "title": "Restore the Mind ◆",
+   "summary": "*emotion, healing, mental, psyche, psychic*\n\nYour unleashed psyche gives you closer connections to the emotions of your allies, letting you project reassurance and strength that replenishes their mind and body. Choose one of the two benefits to grant one ally within 30 feet that you can see. That ally is then temporarily immune for 10 minutes.\n\n- The ally gains a +1 status bonus to saving throws against mental effects until your psyche ends.\n- The ally regains Hit Points equal to 2 + double your level.",
+   "cite": "Dark Archive (Remastered) — Class Actions: Restore the Mind",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.ring-bell",
+   "title": "Ring Bell ↺",
+   "summary": "*auditory, magical, manipulate, sonic, thaumaturge*\n\n**Trigger** The target of your Exploit Vulnerability makes a Strike or Casts a Spell that would affect you or one of your allies.\n\n**Requirements** You are holding your bell implement, and the triggering creature is within 30 feet of you.\n\nYour implement sings out abruptly, disrupting your foe. The piece played depends on whether the trigger was a Strike or Spell, and it applies to the triggering Strike or Spell, except where noted otherwise.\n\n- **Distracting Cacophony** The trigger is a spell. You create a musical crash of sonic energy that assails the target and breaks its concentration. The target must succeed at a Fortitude save against your class DC or become Stupefied 1 until the end of your next turn (Stupefied 2 on a critical failure). The target doesn't have to attempt a flat check to avoid losing the triggering spell, but the discordant ring does lower the spell attack modifier or spell DC of the triggering spell from stupefied.\n- **Disrupting Harmony** The trigger is a Strike. You create a strangely discordant harmony that sinks into your foe's body and throws its movements off. The target must succeed at a Will save against your class DC or become your choice of Enfeebled 1 or Clumsy 1 until the end of your next turn (Enfeebled 2 or Clumsy 2 on a critical failure).",
+   "cite": "Dark Archive (Remastered) — Class Actions: Ring Bell",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.ringing-challenge",
+   "title": "Ringing Challenge ◆◆",
+   "summary": "*sonic, spirit, transcendence*\n\nYou clang your ikon against a weapon, shield, or the ground, emitting a shock wave that deals level-based spirit plus level-based sonic damage to all creatures in a 30-foot cone or 15-foot emanation (basic Fortitude save). A creature that critically fails its saving throw is deafened for 1 minute.\n\nAt 6th level and every 2 levels thereafter, the damage increases by 1d4 spirit damage and 1d4 sonic damage.",
+   "cite": "War of Immortals — Class Actions: Ringing Challenge",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.roaring-charge",
+   "title": "Roaring Charge ◆◆",
+   "summary": "*commander, tactic*\n\n**Frequency** once per 10 minutes\n\nYou and your squad surge forward with a mighty roar. Signal all squadmates within the aura of your commander's banner. As a reaction, these squadmates can Stride up to twice their Speed directly toward any enemy they are observing.\n\nAny creature within 10 feet of a squadmate once all movement from this tactic has been completed must attempt a Will save against your class DC with the following results. This is an emotion, fear, incapacitation, and mental effect.\n\n**Critical Success** No effect.\n\n**Success** The target is Frightened 1.\n\n**Failure** The target is Frightened 2.\n\n**Critical Failure** The target is Frightened 3 and fleeing for 1 round.",
+   "cite": "Battlecry! — Class Actions: Roaring Charge",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.sanguine-revitalization",
+   "title": "Sanguine Revitalization ◆◆",
+   "summary": "*commander, tactic*\n\n**Frequency** once per day\n\nYour squad is rejuvenated by the arterial spray of your enemies. Choose a creature within the aura of your commander's banner and signal all squadmates within the aura who are wielding a piercing or slashing melee weapon, or who have a piercing or slashing melee unarmed attack. Those allies can Stride up to half their Speed as a free action. If they end this movement within reach of the designated target, they can Strike the target with the required weapon or unarmed attack as a reaction.\n\nOnce all Strikes are completed, if the target took damage and is not immune to bleed damage, it must succeed at a Fortitude saving throw against your class DC or take 10 points of persistent bleed damage. The target takes a circumstance penalty on their save equal to the number of successful Strikes made as part of this tactic (up to a maximum –4 circumstance penalty).\n\nEffect: Sanguine Revitalization\n\nYour squadmates are energized by the display of your enemy's imminent defeat; each squadmate in a 20-foot emanation is healed for 10d6 Hit Points.",
+   "cite": "Battlecry! — Class Actions: Sanguine Revitalization",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.seething-frenzy",
+   "title": "Seething Frenzy ◆",
+   "summary": "*concentrate, eidolon, emotion, mental*\n\nYour eidolon's fury boils over into a reckless, out-of-control frenzy. While frenzied, your eidolon is affected by Boost Eidolon and gains temporary Hit Points equal to your level, but takes a –1 penalty to AC. Your eidolon can't voluntarily end the frenzy or start another frenzy while in the frenzy. The frenzy and the accompanying temporary Hit Points last for 1 minute or until your eidolon is no longer manifested, whichever comes first, after which they can't start another frenzy for 1 minute.\n\nWhen your eidolon makes a Furious Strike while in a Seething Frenzy, the status bonus from boost eidolon is 3 per damage die. The extra damage die from Furious Strike still doesn't count toward *boost eidolon*'s bonus, as normal for weapon dice added by abilities.",
+   "cite": "Impossible Magic — Class Actions: Seething Frenzy",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.sever-conduit",
+   "title": "Sever Conduit ↺",
+   "summary": "*concentrate*\n\n**Trigger** Your eidolon takes damage that would bring you to 0 Hit Points and comes from an effect other than a death effect\n\n**Effect** You quickly extinguish the link with your eidolon, causing your bonded ally to wink out of existence before you can be laid low. Your eidolon unmanifests, and you can't Manifest your Eidolon for 1 minute. In exchange, you don't take the triggering damage, though your eidolon still suffers any other adverse effects that accompanied the damage.",
+   "cite": "Impossible Magic — Class Actions: Sever Conduit",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.sever-four-dragonfly-wings",
+   "title": "Sever Four Dragonfly Wings ◆◆◆",
+   "summary": "*transcendence*\n\nMake a Strike that deals slashing damage with your weapon ikon. If that Strike is successful, you can immediately make an additional Strike against a different target within your reach. You can continue making Strikes in this manner, each against a different target, until you have made a total of four Strikes or you miss with a Strike, whichever comes first. Each attack counts toward your multiple attack penalty, but you do not increase your penalty until you have made all your attacks.",
+   "cite": "War of Immortals — Class Actions: Sever Four Dragonfly Wings",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.share-senses",
+   "title": "Share Senses ◆",
+   "summary": "*concentrate, scrying, summoner*\n\n**Requirements** Your eidolon is manifested.\n\nYou project your senses into your eidolon, allowing you to perceive through it. When you do, you lose all sensory information from your own body, but can sense through your eidolon's body for up to 1 minute. You can Dismiss this effect.\n\n**Special** This action has the trait matching your eidolon's tradition (arcane, divine, occult, or primal). Your eidolon can also use this ability. When it does, it projects its senses into your body.",
+   "cite": "Impossible Magic — Class Actions: Share Senses",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.shed-the-mortal-skin",
+   "title": "Shed the Mortal Skin ◆",
+   "summary": "*healing, light, transcendence, vitality*\n\nLike the serpent, that most ancient of immortals, you shed your skin, revealing a glowing divine form. If you are currently taking persistent fire or acid damage, you immediately end the effect. Until the beginning of your next turn, you shed bright light in a 20-foot radius (and dim light for the next 20 feet) like a torch. The next time you are dealt damage by an enemy before the beginning of your next turn, you shed glowing ichor in a square adjacent to you, and where it hits the earth, a glowing, thorned herb grows. A creature other than you can pluck and consume the herb with an Interact action to regain a number of Hit Points equal to half of the damage you were dealt by the attack that sprouted the herb.",
+   "cite": "War of Immortals — Class Actions: Shed the Mortal Skin",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.shields-up",
+   "title": "Shields Up! ◆",
+   "summary": "*commander, tactic*\n\nYou signal your allies to ready their defenses. Signal all squadmates within the aura of your commander's banner; each can immediately Raise a Shield as a reaction. Squadmates who are wielding a parry weapon can instead position that weapon defensively as a reaction.\n\n**Special** If one of your squadmates knows or has prepared the Shield cantrip, they can cast it as a reaction instead of taking the actions normally granted by this tactic.",
+   "cite": "Battlecry! — Class Actions: Shields Up!",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.shift-immanence",
+   "title": "Shift Immanence ◆",
+   "summary": "*divine, exemplar*\n\n**Frequency** once per round\n\nYou shift your power, filling one of your ikons with your divine spark. That ikon softly glows with radiant light, emits subtle chimes as it moves, or is otherwise obviously empowered in a way that matches your growing divinity, granting the ikon the divine trait and granting you that ikon's immanence effects for as long as your divine spark is empowering it. Your spark is indivisible, so it can empower only one ikon at a time. You can also Shift Immanence to return your spark to the depths of your soul, leaving none of your ikons empowered.\n\n**Special** In addition to the above usage, you can also Shift Immanence as a free action triggered when you roll initiative.",
+   "cite": "War of Immortals — Class Actions: Shift Immanence",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.sickening-assault",
+   "title": "Sickening Assault ◇",
+   "summary": "*concentrate, eidolon*\n\n**Frequency** once per minute\n\n**Requirements** Your eidolon is dispersed.\n\nYour eidolon focuses on inflicting the most damage possible on its foes. If your eidolon's next action is to use Swarming Assault, the number of damage dice of the Swarming Assault are doubled. Additionally, creatures that fail their Reflex save against that Swarming Assault are Sickened 2 (Sickened 4 on a critical failure).",
+   "cite": "Battlecry! — Class Actions: Sickening Assault",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.siegebreaker",
+   "title": "Siegebreaker ◆◆",
+   "summary": "*gunslinger*\n\n**Requirements** You're wielding a firearm that has the kickback or scatter trait, or a two-handed crossbow.\n\nWith unbelievable force, you charge and smash your weapon into a target before digging in your heels and pulling the trigger. Leap or Stride, then make a Strike with the required firearm or crossbow against an adjacent target. This Strike deals an additional 3d8 bludgeoning damage and ignores 10 points of the target's Hardness (if any), or of their shield's Hardness if the target uses Shield Block.\n\nAfter the Strike, you become immobilized and position the required weapon defensively, as the parry trait, gaining a +1 circumstance bonus to AC, or a +2 circumstance bonus if the chosen weapon has the parry trait. Both effects last until the start of your next turn. If a force would move you while you're immobilized in this way, it must succeed at an appropriate check against your class DC.",
+   "cite": "Guns & Gears (Remastered) — Class Actions: Siegebreaker",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.skirt-the-underworld",
+   "title": "Skirt the Underworld ◆◆",
+   "summary": "*concentrate, illusion, incapacitation, transcendence*\n\nYou skirt into the world of the dead, becoming invisible for 1 round, then Fly up to your Speed. Each enemy adjacent to you at any point during this movement must succeed at a Fortitude save against your class DC or become blinded for 1 minute (or permanently on a critical failure).\n\nFor each creature blinded by this effect, the duration of the granted invisibility extends by 1 round. Undead and other creatures with strong ties to the world of the dead, such as psychopomps, are immune to this effect.",
+   "cite": "War of Immortals — Class Actions: Skirt the Underworld",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.slip-and-sizzle",
+   "title": "Slip and Sizzle ◆◆",
+   "summary": "*commander, tactic*\n\nYour team executes a brutal technique designed to knock down an opponent and blast them with magical devastation. Signal up to two squadmates within the aura of your commander's banner; one of these squadmates must be adjacent to an opponent and the other must be capable of casting a spell that deals damage. The first squadmate can attempt to Trip the adjacent opponent as a reaction. If this Trip is successful, the second squadmate can cast a ranged spell that deals damage and takes 2 or fewer actions to cast. This spell is cast as a reaction and must either target the tripped opponent or include the tripped opponent in the spell's area.\n\nIf the second squadmate cast a spell using slots or Focus Points as part of this tactic, they are Slowed 1 until the end of their next turn and do not gain a reaction when they regain actions at the start of their next turn.",
+   "cite": "Battlecry! — Class Actions: Slip and Sizzle",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.spasm-of-the-berserker",
+   "title": "Spasm of the Berserker ◆",
+   "summary": "*transcendence*\n\nYour body warps beyond recognition into a powerful, one-eyed form. You're affected by a 4th-rank Enlarge spell and a 6th-rank Moon Frenzy spell, which both last until the end of your next turn. You can't attempt to end the moon frenzy early.\n\nIf this ikon becomes empowered again, you can extend Spasm of the Berserker's duration until the end of your next turn. While you're already affected by Spasm of the Berserker, the transcend action becomes a free action to extend its duration until the end of your next turn.",
+   "cite": "War of Immortals — Class Actions: Spasm of the Berserker",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.spellstrike",
+   "title": "Spellstrike ◆◆",
+   "summary": "*magus*\n\n**Frequency** until recharged (see below)\n\nYou channel a spell into a punch or sword thrust to deliver a combined attack. You cast a spell that takes 1 or 2 actions to cast and requires either a spell attack roll or a saving throw. You imbue its effects into an attack instead of executing the spell normally. Make a melee Strike with a weapon or unarmed attack. This counts as two attacks for your multiple attack penalty, but you don't apply the penalty until after you've completed the Spellstrike. The infusion of spell energy grants your Strike the arcane trait, making it magical. If the spell required a spell attack roll, use your Strike's results to determine the effects of both the Strike and the spell. If the spell required a save, the target of the Strike rolls its saving throw normally regardless of your attack roll's result unless your Strike was a critical failure, in which case your spell is disrupted. Combine the Strike and spell's damage for the purpose of resistances and weaknesses.\n\nAfter you use Spellstrike, you can't do so again until you recharge your Spellstrike as a single action, which has the concentrate trait. You also recharge your Spellstrike when you cast a conflux spell that takes at least 1 action to cast; casting a focus spell of another type doesn't recharge your Spellstrike.",
+   "cite": "Impossible Magic — Class Actions: Spellstrike",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.spinning-crush",
+   "title": "Spinning Crush ◆◆◆",
+   "summary": "*gunslinger*\n\n**Requirements** You're wielding a loaded firearm or loaded crossbow.\n\nYou go into a vicious spin, smashing your weapon into those nearby and increasing your momentum by firing. All creatures adjacent to you take 4d6 bludgeoning damage plus your Strength modifier; this increases to 6d6 if your firearm has a striking rune, 8d6 if it has a greater striking rune, and 10d6 if it has a major striking rune. This ability does not apply other effects that increase damage with your firearm Strikes such as weapon specialization. Creatures affected by this attack must attempt a basic Reflex save. A creature that fails its save is also pushed 10 feet directly away from you.",
+   "cite": "Guns & Gears (Remastered) — Class Actions: Spinning Crush",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.strike-hard",
+   "title": "Strike Hard! ◆◆",
+   "summary": "*brandish, commander, tactic*\n\nYou command an ally to attack. Signal a squadmate within the aura of your commander's banner. That ally immediately attempts a Strike as a reaction.",
+   "cite": "Battlecry! — Class Actions: Strike Hard!",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.strike-breathe-rend",
+   "title": "Strike, Breathe, Rend ◆",
+   "summary": "*spirit, transcendence*\n\n**Requirements** Your last action this turn was a successful Strike with the Noble Branch\n\n**Effect** You channel a rending pulse of energy down your weapon in the moment of contact. The target of the Strike takes spirit damage equal to the noble branch's weapon damage dice. This includes any extra dice from striking runes, but not from special abilities, property runes, or the like.",
+   "cite": "War of Immortals — Class Actions: Strike, Breathe, Rend",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.stupefying-raid",
+   "title": "Stupefying Raid ◆◆",
+   "summary": "*commander, tactic*\n\nYour team dashes about in a series of maneuvers that leave the enemy befuddled. Signal up to two squadmates within the aura of your commander's banner; these squadmates can Stride up to their Speed as a reaction. Each enemy they are adjacent to at any point during this movement must attempt a Will save against your class DC or become Stupefied 1 for 1 round (Stupefied 2 on a critical failure); this is a mental effect.",
+   "cite": "Battlecry! — Class Actions: Stupefying Raid",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.surprising-anatomy",
+   "title": "Surprising Anatomy ↺",
+   "summary": "*eidolon*\n\n**Trigger** An enemy adjacent to your eidolon deals damage to your eidolon\n\n**Effect** Your eidolon's form shifts horribly to retaliate against the attacker. Your eidolon makes a melee unarmed Strike against the triggering enemy.",
+   "cite": "Impossible Magic — Class Actions: Surprising Anatomy",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.survive-the-wilds",
+   "title": "Survive the Wilds ◆",
+   "summary": "*aura, manipulate, transcendence*\n\nYou wrap the pelt around yourself. You can choose to change the damage type the pelt is attuned to. The pelt shines gold, drawing the offending energies into itself.\n\nUntil the start of your next turn, this shine creates an aura in a 15-foot emanation. You and all allies in the emanation gain a +2 circumstance bonus to AC and saving throws against effects with that trait.",
+   "cite": "War of Immortals — Class Actions: Survive the Wilds",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.swarming-assault",
+   "title": "Swarming Assault ◆◆",
+   "summary": "*eidolon*\n\n**Requirements** Your eidolon is dispersed.\n\nYour eidolon swarms over each creature occupying its space, biting, pecking, clawing, or making similar attacks with its component bodies. It deals (1d6 per 2 levels) damage to each creature in the area, with a basic Reflex save against your spell DC. You choose each time your eidolon uses Swarming Assault whether it deals piercing or slashing damage. Your eidolon then can't use Swarming Assault again for the next 1d4 rounds.\n\nAt 3rd level and every 2 levels thereafter, the damage increases by 1d6.",
+   "cite": "Battlecry! — Class Actions: Swarming Assault",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.tactical-takedown",
+   "title": "Tactical Takedown ◆◆",
+   "summary": "*commander, tactic*\n\nYou direct a coordinated maneuver that sends an enemy tumbling down. Signal up to two squadmates within the aura of your commander's banner. Each of those allies can Stride up to half their Speed as a reaction. If they both end this movement adjacent to an enemy, that enemy must succeed at a Reflex save against your class DC or fall prone.",
+   "cite": "Battlecry! — Class Actions: Tactical Takedown",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.take-the-high-ground",
+   "title": "Take the High Ground ◆",
+   "summary": "*commander, tactic*\n\nYour ally leaps to secure the high ground with a little help from the squad. Signal a squadmate within the aura of your commander's banner; as a free action, that squadmate can Stride directly toward any other squadmate you are both observing. If the first squadmate ends this movement adjacent to another squadmate, the first squadmate can immediately Leap up to 25 feet horizontally or 15 feet vertically as a reaction, boosted by the other squadmate. This distance increases to 40 feet horizontally or 25 feet vertically if you have legendary proficiency in Warfare Lore.",
+   "cite": "Battlecry! — Class Actions: Take the High Ground",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.taunt",
+   "title": "Taunt ◆",
+   "summary": "*concentrate, guardian*\n\nWith an attention-grabbing gesture, noise, cutting remark, or threatening shout, you attempt to draw an enemy to you instead of your allies. Taunt gains the auditory trait, visual trait, or both, depending on how you draw the target's attention. Even mindless creatures are drawn to your taunts. Choose an enemy within 30 feet to be your taunted enemy. If your taunted enemy takes a hostile action that includes at least one of your allies but doesn't include you, they take a –1 circumstance penalty to their attack rolls and DCs for that action, and they also become off-guard until the start of their next turn.\n\nYour enemy remains taunted until the start of your next turn, and you can have only one Taunt in effect at a time. Taunting a new enemy ends this effect on any current target.\n\nEffect: Taunt",
+   "cite": "Battlecry! — Class Actions: Taunt",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.ten-paces",
+   "title": "Ten Paces ◇",
+   "summary": "*gunslinger*\n\n**Trigger** You roll initiative.\n\nYou react to trouble with lightning speed, positioning yourself just right. You gain a +2 circumstance bonus to your initiative roll, and you can Interact to draw a one-handed firearm or one-handed crossbow. As your first action on your first turn, you can Step up to 10 feet as a free action.",
+   "cite": "Guns & Gears (Remastered) — Class Actions: Ten Paces",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.tendril-strike",
+   "title": "Tendril Strike ◆",
+   "summary": "*eidolon*\n\nStretching to extend their body to its limits, your eidolon attacks a foe that would normally be beyond their reach. Your eidolon makes a melee unarmed Strike, increasing their reach by 5 feet for that Strike. If the unarmed attack has the disarm, shove, or trip trait, the eidolon can use the corresponding action instead of a Strike.",
+   "cite": "Impossible Magic — Class Actions: Tendril Strike",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.the-bigger-they-are",
+   "title": "The Bigger They Are ◆",
+   "summary": "*brandish, commander, tactic*\n\nRegardless of your individual strengths, collectively your squad has the power to move mountains and topple giants. Signal a squadmate within the aura of your commander's banner. That squadmate can attempt to Reposition, Shove, or Trip a target within their reach. Each other squadmate who is adjacent to the original squadmate or the target can attempt to assist with the maneuver as a reaction\n\nFor each squadmate who assists in this way, the original squadmate increases the maximum size of creature they can target (for example, if a total of two squadmates participated in this maneuver, the initial squadmate could target a creature up to two sizes larger than them.) The original squadmate gains a circumstance bonus on their check to Reposition, Shove, or Trip equal to the number of additional squadmates who assisted in the maneuver (maximum +4).\n\nEffect: The Bigger They Are (Commander)",
+   "cite": "Battlecry! — Class Actions: The Bigger They Are",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.thoughtful-reload",
+   "title": "Thoughtful Reload ◆",
+   "summary": "*gunslinger*\n\nAs you sink deep into a state of analytical calm and focus on the foe before you, your hands reload a bullet instinctively. Attempt a Recall Knowledge check against an opponent you can see and then Interact to reload.",
+   "cite": "Guns & Gears (Remastered) — Class Actions: Thoughtful Reload",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.topple-the-pillar-of-heaven",
+   "title": "Topple the Pillar of Heaven ◆◆",
+   "summary": "*transcendence*\n\nYour ikon extends to an impossible length, striking all in its way. You deal level-based untyped damage to all creatures in a 60-foot line, with a basic Reflex save against your class DC. The damage type matches that of your weapon. At 14th level and every two levels thereafter, the damage increases by 1d8.",
+   "cite": "War of Immortals — Class Actions: Topple the Pillar of Heaven",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.trace-rune",
+   "title": "Trace Rune ◆",
+   "summary": "*concentrate, magical, manipulate, runesmith*\n\n◆ or ◆◆\n\nYour fingers dance, glowing light leaving behind the image of a rune. You apply one rune to an adjacent target matching the rune's Usage entry. You can have any number of runes traced at a time, but each rune remains only until the end of your next turn.\n\nIf you spend 2 actions to Trace a Rune, you draw the rune in the air, causing it to appear on a target within 30 feet.",
+   "cite": "Impossible Magic — Class Actions: Trace Rune",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.unleash-psyche",
+   "title": "Unleash Psyche ◇",
+   "summary": "*psychic*\n\n**Trigger** Your turn begins.\n\n**Requirements** You're in an encounter, you Cast a Spell on your previous turn, and you aren't stupefied.\n\nYou call on the depths of your mind and let psychic power flood through. Your Psyche remains Unleashed for 2 rounds or until your fall unconscious, whichever comes first. You can't voluntarily quell your unleashed psyche. While your Psyche is Unleashed, the following effects occur.\n\n- You're constantly surrounded by the visual manifestation of your psychic magic.\n- When you cast a damaging spell using your psychic spellcasting, you gain a status bonus to its damage equal to double the spell's rank. This applies only to the initial damage the spell deals when cast, and an individual creature takes this damage only once per spell, even if the spell would damage that creature multiple times.\n- You can use actions that have the psyche trait. After your unleashed psyche subsides, your mind must recover from the strain of channeling its full power. You can't use Unleash Psyche again for 2 rounds, and you're Stupefied 1 for 2 rounds.",
+   "cite": "Dark Archive (Remastered) — Class Actions: Unleash Psyche",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.valkyries-charge",
+   "title": "Valkyrie's Charge ◆◆◆",
+   "summary": "*brandish, commander, tactic*\n\n**Frequency** once per day\n\nYou and your allies defy death and defeat to make a glorious final charge. You restore 80 Hit Points to each squadmate within the aura of your commander's banner; this effect has the healing trait. If an affected ally was unconscious due to their Hit Points being reduced to 0, they can immediately Stand and pick up any dropped weapons as a free action. Then, each affected squadmate can, as a free action, Stride up to twice their Speed directly toward an enemy they are observing; if they end this movement with an enemy within their reach, they can attempt to Strike that enemy as a reaction.\n\nSquadmates can use Valkyrie's Charge while Burrowing, Climbing, Flying, or Swimming instead of Striding if they have the corresponding movement type.",
+   "cite": "Battlecry! — Class Actions: Valkyrie's Charge",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.visions-of-sin",
+   "title": "Visions of Sin ◆◆",
+   "summary": "*divine, eidolon, emotion, mental*\n\n**Frequency** once per 10 minutes\n\n**Effect** Your eidolon summons images of their sin into the mind of a target creature within 30 feet, tormenting and confusing the target. The target must attempt a Will save against your spell DC with the following effects. The effects last until the end of your next turn, but your eidolon can Sustain the effects to a maximum duration of 1 minute. If the target is unholy, it takes a –2 circumstance penalty to its save. Regardless of whether it succeeds, the target becomes temporarily immune for 1 day.\n\n**Critical Success** The target is unaffected.\n\n**Success** The target can't use reactions.\n\n**Failure** The target is Slowed 1 and can't use reactions.\n\n**Critical Failure** As failure, and the target is also confused for 1 round. The confusion can't be extended, but the other effects can.",
+   "cite": "Impossible Magic — Class Actions: Visions of Sin",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.vital-shot",
+   "title": "Vital Shot ◆◆",
+   "summary": "*gunslinger*\n\nYour careful shot against an unsuspecting opponent pierces a vital artery or organ. Make a ranged Strike. If the target is off-guard, the Strike deals an extra die of weapon damage, and the foe takes persistent bleed damage equal to the amount of precision damage from your One Shot, One Kill.",
+   "cite": "Guns & Gears (Remastered) — Class Actions: Vital Shot",
+   "tags": [
+    "action",
+    "class actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.grow",
+   "title": "Grow",
+   "summary": "*downtime, manipulate*\n\nYou can grow an item from a living thing, most commonly a plant. You need the Alchemical Crafting skill feat to Grow an alchemical item, the Magical Crafting skill feat to Grow a magic item, and the Snare Crafting feat to Grow a snare. To Grow an item, you must meet the following requirements.\n\n- The item is your level or lower. An item that doesn't list a level is level 0. If the item is 9th level or higher, you must be a master in Crafting, and if it's 16th or higher, you must be legendary.\n- You have the formula for the item; see Getting Formulas for more information.\n- You have an appropriate set of tools for growing the item. While cultivation and gardening tools are typical for plants, you might also use a different technique that requires a different set of tools. For instance, if you play music to help your plants grow, you might use a musical instrument instead.\n- You must supply special fertilizers or other magical nutrients worth at least half the item's Price. You always expend at least that quantity of fertilizers and magical nutrients when you Grow successfully. If you're in a settlement, you can usually spend currency to get the amount of magical nutrients you need, except in the case of rarer precious materials. You can also bring them with you in advance or forage for them with a skill like Herbalism Lore, gaining an amount of value based on the rules for Earn Income.\n\nYou must spend 4 days at work, at which point you attempt a Crafting check. The GM determines the DC to Grow the item based on its level, rarity, and other circumstances. Depending on the specifics of the type of item, it might be easier to Grow than it is to Craft, or vice versa; typically, the GM can represent that by making an easy or hard DC adjustment.\n\nIf your attempt to create the item is successful, you expend the fertilizers and other magical nutrients you supplied. You can pay the remaining portion of the item's Price in additional growth accelerants to complete the item immediately, or you can spend additional downtime days cultivating the item. For each additional day taken, reduce the value of the accelerants you need to complete the item. This amount is determined using the Income Earned table, based on your proficiency rank in Crafting and using your own level instead of a task level. After any of these downtime days, you can complete the item by spending the remaining portion of its Price in accelerants. If the downtime days you spend are interrupted, you can return to finish the item later, continuing where you left off.\n\nYou also have the option to allow the item to grow mostly untended, only stopping to supervise it occasionally, though the pace is much slower without your direct intervention. At the end of each season in which you spent at least 1 day of downtime to Grow the item, roll an additional Crafting check and reduce the value of accelerants you need to expend to complete the item by the corresponding amount.\n\n**Critical Success** Your attempt is successful. Each additional day spent Growing reduces the materials needed to complete the item by an amount based on your level + 1 and your proficiency rank in Crafting.\n\n**Success** Your attempt is successful. Each additional day spent Growing reduces the materials needed to complete the item by an amount based on your level and your proficiency rank.\n\n**Failure** You fail to complete the item. You can salvage the raw materials you supplied for their full value. If you want to try again, you must start over.\n\n**Critical Failure** You fail to complete the item. You ruin 10% of the fertilizers and nutrients you supplied, but you can salvage the rest. If you want to try again, you must start over.",
+   "cite": "Treasure Vault (Remastered) — Downtime Activities: Grow",
+   "tags": [
+    "action",
+    "downtime activities"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.compose-missive",
+   "title": "Compose Missive",
+   "summary": "*exploration, manipulate*\n\nYou spend 10 minutes drawing, writing, or inscribing, covering the missive's surface with text, images, or embossing.",
+   "cite": "Treasure Vault (Remastered) — Exploration Activities: Compose Missive",
+   "tags": [
+    "action",
+    "exploration activities"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.find-fault",
+   "title": "Find Fault ↺",
+   "summary": "*concentrate*\n\n**Trigger** You attempt a saving throw against a spell or magic effect but haven't rolled yet\n\n**Effect** You find some kind of fault with the magic, using that flaw to protect yourself from the effect. You gain a +1 circumstance bonus to your saving throw against the triggering effect, which increases to a +2 circumstance bonus if the effect is divine and originates from a worshipper of the deity you chose for your grudge.",
+   "cite": "War of Immortals — Heritage Actions: Find Fault",
+   "tags": [
+    "action",
+    "heritage actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.divert-lightning",
+   "title": "Divert Lightning ↺",
+   "summary": "*electricity*\n\n**Requirements** You aren't immune to electricity\n\n**Trigger** A creature within 30 feet of you is targeted by an electricity effect or is in the area of an electricity effect.\n\n**Effect** You draw the electricity to yourself like a lightning rod in order to shield the target. If the triggering effect was targeted, it targets you instead of the triggering creature. If it was an area effect, it leaps from the triggering creature's space to fill your space instead. This doesn't divert lightning from any other creatures targeted by or in the area of the lightning. You're automatically hit by or automatically fail your save against the effect. You then can't Divert Lightning for 1d4 rounds.",
+   "cite": "Impossible Magic — Item Actions: Divert Lightning",
+   "tags": [
+    "action",
+    "item actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.accept-echo",
+   "title": "Accept Echo ◆",
+   "summary": "*concentrate, occult*\n\n**Frequency** once per day\n\n**Effect** You allow the echo to inhabit your body, gaining a glowing aura around you, shining pale-green irises, a resonating voice, and the silhouette of the spirit around your own body, all of which can be seen clearly by others. While in this state, you become trained in the weapon you chose and an expert in the skill you chose. Additionally, while you're in this state, the echo can speak and interact with the universe using your body, and you gain a +4 status bonus to all saves against possession effects, as the possessing spirit protects you from other possessions.\n\nThis state lasts for 10 minutes, after which the echo disappears completely until the next time you make your daily preparations. You can Dismiss this effect.\n\nAt 7th level you become a master of the skill you chose, at 13th level you become an expert with the weapon you chose, and at 15th level you become legendary with the skill you chose.",
+   "cite": "Dark Archive (Remastered) — Other Actions: Accept Echo",
+   "tags": [
+    "action",
+    "other actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.fuel-impossible-spell",
+   "title": "Fuel Impossible Spell ◆",
+   "summary": "*concentrate, manipulate*\n\n**Frequency** once per round\n\nYou put more of yourself on the line to draw forth the hidden potentials behind an impossible spell. You empower the effect of one of your active impossible spells further as detailed under the spell's description. Every time you Fuel an Impossible Spell, you become Doomed 1 or increase your doomed condition by 1 if you're already doomed.",
+   "cite": "Impossible Magic — Other Actions: Fuel Impossible Spell",
+   "tags": [
+    "action",
+    "other actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.objection",
+   "title": "Objection ↺",
+   "summary": "*fortune*\n\n**Frequency** once per minute\n\n**Trigger** You're about to attempt a saving throw against a linguistic effect\n\n**Effect** Your devil's eye crackles with infernal glee as you discover a loophole in the wording of the triggering effect. You roll your saving throw twice, taking the higher result.",
+   "cite": "Dark Archive (Remastered) — Other Actions: Objection",
+   "tags": [
+    "action",
+    "other actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.rewrite-fate",
+   "title": "Rewrite Fate ◇",
+   "summary": "*fortune, mythic*\n\n**Trigger** You roll a skill check or saving throw and don't like the result.\n\nDestiny, fate, or some other force bends around you as your mythic power swells, manifesting in a flash of light or visible surge of energy emanating from your body as you cast aside the chains of fate. You expend a Mythic Point and reroll the check or save with mythic proficiency, taking the new result.",
+   "cite": "War of Immortals — Other Actions: Rewrite Fate",
+   "tags": [
+    "action",
+    "other actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.set-free",
+   "title": "Set Free ↺",
+   "summary": "*fortune*\n\n**Frequency** once per hour\n\n**Trigger** You attempt a check to remove or counteract an effect with the confused, controlled, fascinated, immobilized, paralyzed, or restrained conditions\n\n**Effect** You roll twice and use the better result.",
+   "cite": "Dark Archive (Remastered) — Other Actions: Set Free",
+   "tags": [
+    "action",
+    "other actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.thermal-eruption",
+   "title": "Thermal Eruption ◆◆",
+   "summary": "*fire, primal*\n\n**Frequency** once per day\n\n**Effect** You concentrate your thermal energy and explode it outward. All creatures in a 20-foot emanation take 14d6 fire damage with a basic Reflex save. Afterward, you lose all effects of the Dormant Eruption feat until your next daily preparations.",
+   "cite": "Dark Archive (Remastered) — Other Actions: Thermal Eruption",
+   "tags": [
+    "action",
+    "other actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.water-transfer",
+   "title": "Water Transfer ◆◆",
+   "summary": "*primal, teleportation, water*\n\n**Frequency** once per minute\n\n**Requirements** You're on land and adjacent to a body of water\n\n**Effect** You sink into the water and emerge back onto land in another space within 120 feet that's adjacent to the same body of water. You can transport yourself, any items you're wearing and holding, and up to one other willing creature.",
+   "cite": "Dark Archive (Remastered) — Other Actions: Water Transfer",
+   "tags": [
+    "action",
+    "other actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.deconstruct",
+   "title": "Deconstruct",
+   "summary": "*downtime*\n\nYou deconstruct an item to provide the starting point to convert it into a new item. You need the Alchemical Crafting skill feat to deconstruct alchemical items and the Magical Crafting skill feat to deconstruct magic items.\n\nTo Deconstruct an item, you must meet the following requirements.\n\n- The item is your level or lower. An item that doesn't list a level is level 0. If the item is 9th level or higher, you must be a master in Crafting, and if it's 16th or higher, you must be legendary.\n- The item isn't a cursed item, artifact, or other item that is similarly hard to destroy. The item isn't a consumable item.\n- The item has a listed Price.\n- You must have an appropriate set of tools and, in many cases, a workshop. For example, you need access to a smithy to deconstruct a metal shield or an alchemist's lab to de-concoct alchemical items.\n\nAt the start of this process, you must decide if you're using the deconstructed item to build a new, similar item, of if you are simply breaking it down for raw ingredients that can be used at a later date for any item. In either case, this activity takes 1 day to perform, but if you're using the item to create a new, similar item, that day can be counted as one of the crafting days for the new item.\n\nAt the end of the activity, you must attempt a Crafting check. The GM sets the DC of this check based on the level of the item you are attempting to deconstruct, its rarity, and other circumstances.\n\n**Critical Success** If you are deconstructing the item to make a new, similar item, you can apply 80% of the cost of the deconstructed item to the new item. If you are deconstructing the item for raw materials alone, you can apply 55% of the cost of the deconstructed item to a single new item. In either case, if this is in excess of the new item's cost, the remainder is lost.\n\n**Success** As critical success, but you can only apply 75% of the deconstructed item's cost to the new similar item and 50% of the deconstructed item's cost to any single item.\n\n**Failure** You fail to deconstruct the item, wasting your time. You can try again.\n\n**Critical Failure** You fail to deconstruct the item and damage it in the process. You must either repair it before attempting again, or you can attempt to deconstruct it again but lose 5% of the value of the item.",
+   "cite": "Treasure Vault (Remastered) — Skill Actions: Deconstruct",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.psychometric-assessment",
+   "title": "Psychometric Assessment",
+   "summary": "*concentrate, emotion, exploration, mental, occult*\n\n**Requirements** Your bare hands are touching an object in which you detected psychometric resonance\n\n**Effect** You spend 1 minute concentrating on the object to get a vision of the face of the person who imbued the item with such emotion in the first place. If the associated emotion is painfully negative, you might take 1d6 mental damage, as determined by the GM.",
+   "cite": "Dark Archive (Remastered) — Skill Actions: Psychometric Assessment",
+   "tags": [
+    "action",
+    "skill actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.defend-life",
+   "title": "Defend Life ↺",
+   "summary": "*concentrate*\n\n**Trigger** The target takes damage\n\n**Requirements** You're within 1 mile of the target\n\n**Effect** After calculating the amount of damage the target would take (applying weaknesses, resistances, and the like), you lose an equal number of Hit Points, and the target doesn't take any of the damage. You can't reduce the amount of Hit Points you lose in this way. The target still takes any effects that would come with the damage, however, such as the venom on a viper's fangs Strike.",
+   "cite": "Impossible Magic — Spell Actions: Defend Life",
+   "tags": [
+    "action",
+    "spell actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.fight-with-fear",
+   "title": "Fight with Fear ↺",
+   "summary": "*concentrate, emotion, fear, mental*\n\n**Trigger** A creature that you can see uses a mental effect against you\n\n**Effect** The triggering creature must attempt a Will save, which has the following effects.\n\n**Success** The creature is unaffected.\n\n**Failure** The creature is Frightened 2, and you gain a +2 status bonus to your saving throw or other defense against the triggering mental effect.\n\n**Critical Failure** The creature is frightened 2, and you're unaffected by the triggering mental effect.",
+   "cite": "Impossible Magic — Spell Actions: Fight with Fear",
+   "tags": [
+    "action",
+    "spell actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.thundering-roar",
+   "title": "Thundering Roar ◆",
+   "summary": "*auditory, concentrate, emotion, fear, flourish, mental, sonic*\n\nThe target unleashes a powerful vocalization. Each enemy in a 10-foot emanation takes 4d8 sonic damage with a basic Will save against your spell DC. A creature that fails its Will save is also Frightened 1.",
+   "cite": "Impossible Magic — Spell Actions: Thundering Roar",
+   "tags": [
+    "action",
+    "spell actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.psychic-defense",
+   "title": "Psychic Defense ↺",
+   "summary": "*concentrate, magical*\n\n**Trigger** Your opponent uses a psychic manifestation against you.\n\n**Requirements** You're in a psychic duel and are psychically centered.\n\nYou gain the benefit matching your psychic center against the triggering manifestation. Then your psychic center is expended.\n\n**Armor of Insight (Perception)** Sensing the incoming attack, you make your mind resist psychic harm. You gain resistance equal to half your level (minimum 1) to mental damage against the triggering effect. This resistance is doubled if you're a master in Perception and tripled if you're legendary.\n\n**Empathic Orbit (Diplomacy)** Displaying empathy, you sow doubt in your attacker to diminish their resolve for psychic combat. The opponent is Stupefied 1 until the end of their next turn or Stupefied 2 if you're legendary in Diplomacy.\n\n**Ire's Spear (Intimidation)** Blazing anger surges in your mind, causing backlash to anyone who harms you. If the manifestation damages you, the opponent takes damage equal to the counteract rank of the manifestation it used against you. This damage is doubled if you're a master of Intimidation or tripled if you're legendary.\n\n**Rational Labyrinth (Occultism)** Analytically breaking down the attack, you realign your mind's defenses into a puzzle designed to confound it. You gain a +2 status bonus to your Will save or Will DC, or a +4 status bonus if the effect has the emotion trait.\n\n**Sensory Phantasm (Deception)** Using your guile, you send psychic illusions through your mental link to your foe, making yourself harder to pinpoint. You're concealed against the opponent until the end of its next turn.",
+   "cite": "Dark Archive (Remastered) — Subsystem Actions: Psychic Defense",
+   "tags": [
+    "action",
+    "subsystem actions"
+   ]
+  },
+  {
+   "id": "pf2e-orc-books.rule.action.recenter",
+   "title": "Recenter ◆",
+   "summary": "*concentrate*\n\n**Requirements** You're in a psychic duel and are trained in the statistic matching the psychic center you are changing to.\n\nYou adopt the psychic center matching the emotion of your choice. If you were already psychically centered, you lose your old psychic center when you adopt the new one.",
+   "cite": "Dark Archive (Remastered) — Subsystem Actions: Recenter",
+   "tags": [
+    "action",
+    "subsystem actions"
+   ]
+  }
+ ]
+}

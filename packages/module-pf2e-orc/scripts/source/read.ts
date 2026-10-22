@@ -6,8 +6,9 @@
  * automation), flags and ids are never copied.
  *
  * Only entries whose `publication` is ORC-licensed, remastered, and from one
- * of the four core books are kept; every other entry is counted as an
- * exclusion with its reason.
+ * of the allowed books are kept (the four core books for the module, the
+ * supplement's allow-list for the supplement); every other entry is counted
+ * as an exclusion with its reason.
  */
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
@@ -92,11 +93,20 @@ export function publicationOf(system: Raw): { title: string; license: string; re
   return { title: str(pub.title), license: str(pub.license), remaster: pub.remaster === true };
 }
 
+/** Which books to keep: publication title → the book as cited, and how the exclusion reason names them. */
+export interface BookFilter {
+  books: Record<string, string>;
+  label: string;
+}
+
+export const CORE_BOOKS: BookFilter = { books: BOOKS, label: "Player Core, Player Core 2, GM Core or Monster Core" };
+
 /**
- * Every ORC, remastered core-book entry in `packs/pf2e/<folder>`, sorted by
- * file path. Other entries are logged as exclusions with the reason.
+ * Every ORC, remastered entry from one of the books in `filter` (by default
+ * the four core books) in `packs/pf2e/<folder>`, sorted by file path. Other
+ * entries are logged as exclusions with the reason.
  */
-export function readFolder(root: string, folder: string, log: ReadLog): Entry[] {
+export function readFolder(root: string, folder: string, log: ReadLog, filter: BookFilter = CORE_BOOKS): Entry[] {
   const dir = join(root, "packs", "pf2e", folder);
   const out: Entry[] = [];
   for (const path of walk(dir)) {
@@ -110,7 +120,7 @@ export function readFolder(root: string, folder: string, log: ReadLog): Entry[] 
       exclude(log, folder, "no publication data");
       continue;
     }
-    const book = BOOKS[pub.title];
+    const book = filter.books[pub.title];
     if (pub.license !== "ORC") {
       exclude(log, folder, `licence ${pub.license || "unknown"} (not ORC)`);
       continue;
@@ -120,7 +130,7 @@ export function readFolder(root: string, folder: string, log: ReadLog): Entry[] 
       continue;
     }
     if (!book) {
-      exclude(log, folder, "ORC, but not from Player Core, Player Core 2, GM Core or Monster Core");
+      exclude(log, folder, `ORC, but not from ${filter.label}`);
       continue;
     }
     const name = str(raw.name);

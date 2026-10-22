@@ -1,8 +1,9 @@
 /**
  * Game modules on this device: the built-in modules and the data packs the GM
  * imported, with version, licence and attribution, and under each module the
- * supplements that extend it. Import a pack (its main file plus any parts) or
- * a supplement, see why one fails validation, or remove one.
+ * supplements that extend it: the built-in ones, each with an on/off switch
+ * for this device, and the imported ones. Import a pack (its main file plus
+ * any parts) or a supplement, see why one fails validation, or remove one.
  */
 import { listCampaigns, type CampaignIndexEntry, type InstalledSupplementMeta } from "@campaign-forge/core";
 // Types only: the SDK (and its validator) loads when a pack is imported, not with the campaign list.
@@ -12,7 +13,17 @@ import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { Badge, Button, Dialog, pushToast } from "../../components/ui";
 import { errorMessage } from "../../lib/format";
 import { importFiles, isSupplementResult, PackImportError, readPackFiles } from "../../modules/importPack";
-import { listSupplements, removeImportedModule, removeSupplement, supplementProblems, type ModuleEntry } from "../../modules/registry";
+import {
+  builtinSupplementsFor,
+  isBuiltinSupplementEnabled,
+  listSupplements,
+  removeImportedModule,
+  removeSupplement,
+  setBuiltinSupplementEnabled,
+  supplementProblems,
+  type BuiltinSupplementEntry,
+  type ModuleEntry,
+} from "../../modules/registry";
 import { useModuleList } from "../../modules/useModules";
 import { ModuleLicenseView } from "./ModuleLicense";
 
@@ -79,7 +90,56 @@ function SupplementRow({ s, onRemove }: { s: InstalledSupplementMeta; onRemove: 
   );
 }
 
+/** A supplement built into the app: optional on this device, with a switch. */
+function BuiltinSupplementRow({ s, moduleName }: { s: BuiltinSupplementEntry; moduleName: string }) {
+  const on = isBuiltinSupplementEnabled(s.id);
+  const problems = on ? supplementProblems(s.extends.module).find((p) => p.id === s.id) : undefined;
+  return (
+    <li className="app-module app-module--supplement" data-testid={`supplement-${s.id}`}>
+      <div className="app-module__head">
+        <strong>{s.name}</strong>
+        <span className="cf-mono cf-muted">{s.version}</span>
+        <Badge>Built-in</Badge>
+        <Badge>Supplement</Badge>
+        {s.dataStatus && s.dataStatus !== "verified" && <Badge tone="warning">{s.dataStatus}</Badge>}
+        {problems && <Badge tone="warning">Not applied</Badge>}
+        <label className="app-module__switch">
+          <input
+            type="checkbox"
+            role="switch"
+            checked={on}
+            aria-label={`Use ${s.name} on this device`}
+            data-testid={`toggle-supplement-${s.id}`}
+            onChange={(e) => {
+              setBuiltinSupplementEnabled(s.id, e.target.checked);
+              pushToast(e.target.checked ? `${s.name} is on: ${moduleName} campaigns load it from the next time they open` : `${s.name} is off on this device`, { tone: "success" });
+            }}
+          />
+          <span>{on ? "On" : "Off"} on this device</span>
+        </label>
+      </div>
+      <p className="cf-muted app-module__meta">
+        <span className="cf-mono">{s.id}</span>
+        {` · extends ${s.extends.module}${s.extends.version ? ` ${s.extends.version}` : ""}`}
+        {Object.keys(s.counts).length > 0 ? ` · adds ${supplementCountText(s.counts)}` : ""}
+        {s.bytes ? ` · ${sizeText(s.bytes)}` : ""}
+      </p>
+      {s.description && <p className="app-module__meta">{s.description}</p>}
+      <p className="app-module__notice" data-testid={`supplement-notice-${s.id}`}>
+        {s.licenseNotice}
+      </p>
+      {s.license && <ModuleLicenseView license={s.license} testId={`supplement-licence-${s.id}`} />}
+      {problems && (
+        <p className="app-note app-note--warning" data-testid={`supplement-problems-${s.id}`}>
+          Left out when {s.extends.module} last loaded: {problems.issues.slice(0, 3).map(issueText).join("; ")}
+        </p>
+      )}
+    </li>
+  );
+}
+
 function ModuleRow({ entry, supplements, onRemove, onRemoveSupplement }: { entry: ModuleEntry; supplements: InstalledSupplementMeta[]; onRemove: (e: ModuleEntry) => void; onRemoveSupplement: (s: InstalledSupplementMeta) => void }) {
+  const builtins = builtinSupplementsFor(entry.id);
   return (
     <li className="app-module" data-testid={`module-${entry.id}`}>
       <div className="app-module__head">
@@ -104,8 +164,11 @@ function ModuleRow({ entry, supplements, onRemove, onRemoveSupplement }: { entry
         {entry.bytes ? ` · ${sizeText(entry.bytes)}` : ""}
       </p>
       {entry.license && <ModuleLicenseView license={entry.license} testId={`module-licence-${entry.id}`} />}
-      {supplements.length > 0 && (
+      {supplements.length + builtins.length > 0 && (
         <ul className="app-modules app-modules--supplements" aria-label={`Supplements for ${entry.name}`}>
+          {builtins.map((s) => (
+            <BuiltinSupplementRow key={s.id} s={s} moduleName={entry.name} />
+          ))}
           {supplements.map((s) => (
             <SupplementRow key={s.id} s={s} onRemove={onRemoveSupplement} />
           ))}
@@ -202,8 +265,9 @@ export function ModulesDialog({ open, onClose, onImported }: { open: boolean; on
       >
         <p className="cf-muted">
           A data pack adds a game system as JSON: entity types, sheets, tables, rule cards, generators. A supplement adds options to a module you already have (list items such as
-          backgrounds or subclasses, presets, tables, rule cards) and is listed under it. Both are checked before they are stored on this device, and nothing in them runs as code.
-          Choose a pack&apos;s main file together with its part files, or one supplement file.
+          backgrounds or subclasses, presets, tables, rule cards) and is listed under it; the built-in ones can be switched on or off for this device. Both are checked before they
+          are stored on this device, and nothing in them runs as code. Choose a pack&apos;s main file together with its part files, or a supplement&apos;s main file (with its parts
+          when it is split).
         </p>
         <input ref={fileRef} type="file" accept=".json,application/json" multiple hidden aria-label="Data pack files" data-testid="pack-file-input" onChange={(e) => void onFiles(e.target.files)} />
         {failure && (

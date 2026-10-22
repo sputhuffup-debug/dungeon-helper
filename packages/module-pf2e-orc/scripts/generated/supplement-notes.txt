@@ -1,0 +1,666 @@
+# Conversion notes for the supplement pf2e-orc-books
+
+## Allow-list
+Kept only entries with system.publication.license "ORC", remaster true, and a title in: Pathfinder Monster Core 2; Pathfinder NPC Core; Pathfinder Howl of the Wild; Pathfinder Rage of Elements; Pathfinder Treasure Vault (Remastered); Pathfinder Battlecry!; Pathfinder Impossible Magic; Pathfinder Guns & Gears (Remastered); Pathfinder Dark Archive (Remastered); Pathfinder War of Immortals.
+The source spells Guns & Gears (Remastered) as "Pathfinder Guns & Gears" (ORC, remastered; the original book is OGL); titles are compared trimmed.
+Folders never read: deities, journals, rollable-tables, iconics, paizo-pregens, criticaldeck.
+
+## Every entry of an allow-listed (or near) title in the folders that may be read, by book, folder and licence
+Battlecry!: 843
+  actions: 47 × ORC, remastered (read)
+  adventure-specific-actions: 1 × ORC, remastered (not used: adventure-specific actions (not relic gifts; one names setting characters))
+  ancestries: 1 × ORC, remastered (read)
+  ancestry-features: 1 × ORC, remastered (read)
+  backgrounds: 13 × ORC, remastered (read)
+  battlecry-bestiary: 55 × ORC, remastered (read)
+  bestiary-effects: 17 × ORC, remastered (not used: Foundry automation effects (not rules text))
+  bestiary-family-ability-glossary: 13 × ORC, remastered (read)
+  class-features: 29 × ORC, remastered (read)
+  classes: 2 × ORC, remastered (read)
+  equipment: 238 × ORC, remastered (read)
+  equipment-effects: 62 × ORC, remastered (not used: Foundry automation effects (not rules text))
+  feat-effects: 39 × ORC, remastered (not used: Foundry automation effects (not rules text))
+  feats: 238 × ORC, remastered (read)
+  heritages: 5 × ORC, remastered (read)
+  spell-effects: 13 × ORC, remastered (not used: Foundry automation effects (not rules text))
+  spells: 40 × ORC, remastered (read)
+  vehicles: 29 × ORC, remastered (read)
+Dark Archive (Remastered): 568
+  actions: 29 × ORC, remastered (read)
+  adventure-specific-actions: 1 × ORC, remastered (not used: adventure-specific actions (not relic gifts; one names setting characters))
+  backgrounds: 3 × ORC, remastered (read)
+  bestiary-family-ability-glossary: 28 × ORC, remastered (read)
+  class-features: 80 × ORC, remastered (read)
+  classes: 2 × ORC, remastered (read)
+  equipment: 49 × ORC, remastered (read)
+  equipment-effects: 1 × ORC, remastered (not used: Foundry automation effects (not rules text))
+  feat-effects: 29 × ORC, remastered (not used: Foundry automation effects (not rules text))
+  feats: 225 × ORC, remastered (read)
+  feats: 2 × licence OGL (excluded)
+  feats: 3 × not remastered (excluded)
+  heritages: 1 × ORC, remastered (read)
+  pathfinder-dark-archive: 26 × ORC, remastered (read)
+  spell-effects: 12 × ORC, remastered (not used: Foundry automation effects (not rules text))
+  spells: 77 × ORC, remastered (read)
+Guns & Gears (Remastered): 813
+  actions: 36 × ORC, remastered (read)
+  actions: 2 × licence OGL (excluded)
+  ancestries: 1 × ORC, remastered (read)
+  ancestry-features: 2 × ORC, remastered (read)
+  backgrounds: 39 × ORC, remastered (read)
+  class-features: 83 × ORC, remastered (read)
+  class-features: 4 × licence OGL (excluded)
+  classes: 2 × ORC, remastered (read)
+  equipment: 290 × ORC, remastered (read)
+  equipment: 18 × licence OGL (excluded)
+  equipment-effects: 15 × ORC, remastered (not used: Foundry automation effects (not rules text))
+  equipment-effects: 9 × licence OGL (excluded)
+  feat-effects: 27 × ORC, remastered (not used: Foundry automation effects (not rules text))
+  feat-effects: 3 × licence OGL (excluded)
+  feats: 249 × ORC, remastered (read)
+  feats: 3 × licence OGL (excluded)
+  hazards: 3 × ORC, remastered (read)
+  heritages: 4 × ORC, remastered (read)
+  spell-effects: 1 × licence OGL (excluded)
+  vehicles: 20 × ORC, remastered (read)
+  vehicles: 2 × licence OGL (excluded)
+Howl of the Wild: 645
+  actions: 20 × ORC, remastered (read)
+  ancestries: 6 × ORC, remastered (read)
+  ancestry-features: 9 × ORC, remastered (read)
+  bestiary-effects: 13 × ORC, remastered (not used: Foundry automation effects (not rules text))
+  bestiary-family-ability-glossary: 9 × ORC, remastered (read)
+  class-features: 7 × ORC, remastered (read)
+  equipment: 113 × ORC, remastered (read)
+  equipment-effects: 19 × ORC, remastered (not used: Foundry automation effects (not rules text))
+  familiar-abilities: 3 × ORC, remastered (read)
+  feat-effects: 18 × ORC, remastered (not used: Foundry automation effects (not rules text))
+  feats: 270 × ORC, remastered (read)
+  heritages: 29 × ORC, remastered (read)
+  howl-of-the-wild-bestiary: 76 × ORC, remastered (read)
+  spell-effects: 19 × ORC, remastered (not used: Foundry automation effects (not rules text))
+  spells: 34 × ORC, remastered (read)
+Impossible Magic: 1258
+  actions: 42 × ORC, remastered (read)
+  class-features: 76 × ORC, remastered (read)
+  classes: 4 × ORC, remastered (read)
+  equipment: 310 × ORC, remastered (read)
+  equipment-effects: 43 × ORC, remastered (not used: Foundry automation effects (not rules text))
+  feat-effects: 16 × ORC, remastered (not used: Foundry automation effects (not rules text))
+  feats: 365 × ORC, remastered (read)
+  heritages: 2 × ORC, remastered (read)
+  spell-effects: 69 × ORC, remastered (not used: Foundry automation effects (not rules text))
+  spells: 331 × ORC, remastered (read)
+Monster Core 2: 524
+  bestiary-effects: 40 × ORC, remastered (not used: Foundry automation effects (not rules text))
+  bestiary-family-ability-glossary: 34 × ORC, remastered (read)
+  equipment: 1 × ORC, remastered (read)
+  pathfinder-monster-core-2: 446 × ORC, remastered (read)
+  season-of-ghosts-bestiary: 1 × ORC, remastered (not used: a copy inside an adventure bestiary)
+  spells: 2 × ORC, remastered (read)
+NPC Core: 403
+  bestiary-ability-glossary-srd: 3 × ORC, remastered (read)
+  bestiary-effects: 97 × ORC, remastered (not used: Foundry automation effects (not rules text))
+  bestiary-family-ability-glossary: 17 × ORC, remastered (read)
+  equipment: 11 × ORC, remastered (read)
+  pathfinder-npc-core: 271 × ORC, remastered (read)
+  spells: 4 × ORC, remastered (read)
+Pathfinder Adventures: Dark Archive Web Supplement: In Darkness (Remastered) (not allow-listed): 4
+  pathfinder-dark-archive: 4 × ORC, remastered (excluded: title not on the allow-list)
+Pathfinder Dark Archive (not allow-listed): 24
+  actions: 1 × licence OGL (excluded)
+  backgrounds: 1 × licence OGL (excluded)
+  bestiary-family-ability-glossary: 1 × licence OGL (excluded)
+  class-features: 4 × licence OGL (excluded)
+  equipment: 1 × licence OGL (excluded)
+  feat-effects: 2 × ORC, remastered (not used: Foundry automation effects (not rules text))
+  feat-effects: 8 × licence OGL (excluded)
+  feats: 3 × licence OGL (excluded)
+  pathfinder-dark-archive: 1 × licence OGL (excluded)
+  spell-effects: 2 × licence OGL (excluded)
+Pathfinder Treasure Vault (not allow-listed): 44
+  adventure-specific-actions: 15 × ORC, remastered (not used: adventure-specific actions (not relic gifts; one names setting characters))
+  adventure-specific-actions: 2 × licence OGL (excluded)
+  equipment: 6 × ORC, remastered (excluded: title not on the allow-list)
+  equipment: 18 × licence OGL (excluded)
+  equipment-effects: 3 × licence OGL (excluded)
+Rage of Elements: 677
+  actions: 9 × licence OGL (excluded)
+  backgrounds: 10 × licence OGL (excluded)
+  bestiary-effects: 7 × licence OGL (excluded)
+  class-features: 30 × licence OGL (excluded)
+  classes: 1 × licence OGL (excluded)
+  equipment: 150 × licence OGL (excluded)
+  equipment-effects: 18 × licence OGL (excluded)
+  familiar-abilities: 9 × licence OGL (excluded)
+  feat-effects: 45 × licence OGL (excluded)
+  feats: 170 × licence OGL (excluded)
+  heritages: 2 × licence OGL (excluded)
+  rage-of-elements-bestiary: 81 × licence OGL (excluded)
+  spell-effects: 22 × licence OGL (excluded)
+  spells: 123 × licence OGL (excluded)
+Treasure Vault (Remastered): 1261
+  actions: 3 × ORC, remastered (read)
+  equipment: 1089 × ORC, remastered (read)
+  equipment: 8 × licence OGL (excluded)
+  equipment-effects: 135 × ORC, remastered (not used: Foundry automation effects (not rules text))
+  familiar-abilities: 1 × ORC, remastered (read)
+  feat-effects: 2 × ORC, remastered (not used: Foundry automation effects (not rules text))
+  feats: 22 × ORC, remastered (read)
+  spells: 1 × ORC, remastered (read)
+War of Immortals: 679
+  actions: 57 × ORC, remastered (read)
+  bestiary-family-ability-glossary: 25 × ORC, remastered (read)
+  class-features: 92 × ORC, remastered (read)
+  classes: 2 × ORC, remastered (read)
+  equipment: 35 × ORC, remastered (read)
+  equipment-effects: 3 × ORC, remastered (not used: Foundry automation effects (not rules text))
+  feat-effects: 79 × ORC, remastered (not used: Foundry automation effects (not rules text))
+  feats: 315 × ORC, remastered (read)
+  spell-effects: 11 × ORC, remastered (not used: Foundry automation effects (not rules text))
+  spells: 44 × ORC, remastered (read)
+  war-of-immortals-bestiary: 16 × ORC, remastered (read)
+
+## Kept, by book and content type
+Monster Core 2: 430 creatures, 1 equipment, 1 hazards, 32 monster-abilities, 2 spells
+NPC Core: 256 creatures, 6 equipment, 20 monster-abilities, 4 spells
+Howl of the Wild: 20 actions, 6 ancestries, 9 ancestry-features, 7 class-features, 71 creatures, 113 equipment, 3 familiar-abilities, 273 feats, 29 heritages, 9 monster-abilities, 20 rule cards, 34 spells
+Rage of Elements: nothing kept (the source marks every entry of it OGL, so none is ORC)
+Treasure Vault (Remastered): 3 actions, 1061 equipment, 1 familiar-abilities, 22 feats, 3 rule cards, 1 spells
+Battlecry!: 47 actions, 1 ancestries, 1 ancestry-features, 13 backgrounds, 29 class-features, 2 classes, 54 creatures, 226 equipment, 233 feats, 5 heritages, 13 monster-abilities, 47 rule cards, 39 spells, 29 vehicles
+Impossible Magic: 42 actions, 75 class-features, 4 classes, 307 equipment, 365 feats, 2 heritages, 42 rule cards, 325 spells
+Guns & Gears (Remastered): 36 actions, 1 ancestries, 2 ancestry-features, 36 backgrounds, 83 class-features, 2 classes, 283 equipment, 248 feats, 3 hazards, 4 heritages, 36 rule cards, 19 vehicles
+Dark Archive (Remastered): 28 actions, 3 backgrounds, 80 class-features, 2 classes, 4 creatures, 47 equipment, 231 feats, 18 hazards, 1 heritages, 28 monster-abilities, 28 rule cards, 77 spells
+War of Immortals: 57 actions, 91 class-features, 2 classes, 5 creatures, 28 equipment, 318 feats, 5 hazards, 25 monster-abilities, 57 rule cards, 42 spells
+
+## Entries read per folder (after the allow-list)
+actions: 234
+adventure-specific-actions: 0
+ancestries: 8
+ancestry-features: 12
+backgrounds: 55
+battlecry-bestiary: 55
+bestiary-ability-glossary-srd: 3
+bestiary-family-ability-glossary: 126
+class-features: 367
+classes: 12
+conditions: 0
+equipment: 2136
+familiar-abilities: 4
+feats: 1684
+hazards: 3
+heritages: 41
+howl-of-the-wild-bestiary: 76
+pathfinder-dark-archive: 26
+pathfinder-monster-core-2: 446
+pathfinder-npc-core: 271
+rage-of-elements-bestiary: 0
+spells: 533
+vehicles: 49
+war-of-immortals-bestiary: 16
+
+## Entries excluded by publication, per folder (all books)
+actions: 257 × ORC, but not from an allow-listed book
+actions: 92 × licence OGL (not ORC)
+adventure-specific-actions: 63 × ORC, but not from an allow-listed book
+adventure-specific-actions: 2 × adventure-specific actions (not relic gifts; one names setting characters)
+adventure-specific-actions: 143 × licence OGL (not ORC)
+ancestries: 26 × ORC, but not from an allow-listed book
+ancestries: 17 × licence OGL (not ORC)
+ancestry-features: 17 × ORC, but not from an allow-listed book
+ancestry-features: 26 × licence OGL (not ORC)
+backgrounds: 197 × ORC, but not from an allow-listed book
+backgrounds: 288 × licence OGL (not ORC)
+bestiary-ability-glossary-srd: 44 × ORC, but not from an allow-listed book
+bestiary-ability-glossary-srd: 8 × licence OGL (not ORC)
+bestiary-family-ability-glossary: 178 × ORC, but not from an allow-listed book
+bestiary-family-ability-glossary: 183 × licence OGL (not ORC)
+class-features: 418 × ORC, but not from an allow-listed book
+class-features: 96 × licence OGL (not ORC)
+classes: 16 × ORC, but not from an allow-listed book
+classes: 1 × licence OGL (not ORC)
+conditions: 43 × ORC, but not from an allow-listed book
+equipment: 2081 × ORC, but not from an allow-listed book
+equipment: 1733 × licence OGL (not ORC)
+equipment: 1 × not remastered
+familiar-abilities: 79 × ORC, but not from an allow-listed book
+familiar-abilities: 34 × licence OGL (not ORC)
+feats: 2997 × ORC, but not from an allow-listed book
+feats: 1680 × licence OGL (not ORC)
+feats: 5 × not remastered
+hazards: 32 × ORC, but not from an allow-listed book
+hazards: 18 × licence OGL (not ORC)
+heritages: 179 × ORC, but not from an allow-listed book
+heritages: 114 × licence OGL (not ORC)
+pathfinder-dark-archive: 4 × ORC, but not from an allow-listed book
+pathfinder-dark-archive: 1 × licence OGL (not ORC)
+rage-of-elements-bestiary: 81 × licence OGL (not ORC)
+spells: 954 × ORC, but not from an allow-listed book
+spells: 531 × licence OGL (not ORC)
+vehicles: 37 × ORC, but not from an allow-listed book
+vehicles: 14 × licence OGL (not ORC)
+total excluded: 12690
+
+## Reserved Material (denylist of 433 terms, shared with the module)
+Entries dropped:
+- actions: Expel Maelstrom (name is Reserved Material: Maelstrom)
+- backgrounds: Alkenstar Outlaw (name is Reserved Material: Alkenstar)
+- backgrounds: Alkenstar Sojourner (name is Reserved Material: Alkenstar)
+- backgrounds: Goldhand Arms Dealer (name is Reserved Material: Goldhand)
+- battlecry-bestiary: Qadiran Camel Corps (name is Reserved Material: Qadiran)
+- bestiary-family-ability-glossary: (Spawn of Rovagug) Absolute Regeneration (name is Reserved Material: Rovagug)
+- bestiary-family-ability-glossary: (Spawn of Rovagug) Slumbering Armageddon (name is Reserved Material: Rovagug)
+- class-features: Dominion Epithet (name is Reserved Material: Dominion)
+- class-features: School of Nexian Spaces (name is Reserved Material: Nexian)
+- equipment: Achaekek's Kiss (name is Reserved Material: Achaekek)
+- equipment: Aldori Dueling Sword (name is Reserved Material: Aldori)
+- equipment: Alkenstar Phalanx (name is Reserved Material: Alkenstar)
+- equipment: Arclord Eye (name is Reserved Material: Arclord)
+- equipment: Arclord's Codex (name is Reserved Material: Arclord)
+- equipment: Belkzen Deadsmasher (Greater) (name is Reserved Material: Belkzen)
+- equipment: Belkzen Deadsmasher (name is Reserved Material: Belkzen)
+- equipment: Bestiary of Metamorphosis (name is Reserved Material: Bestiary)
+- equipment: Book of Lost Days (unique: a named character or artifact of the setting)
+- equipment: Cayden's Brew (Double) (name is Reserved Material: Cayden)
+- equipment: Cayden's Brew (Triple) (name is Reserved Material: Cayden)
+- equipment: Cayden's Brew (name is Reserved Material: Cayden)
+- equipment: Cayden's Tankard (name is Reserved Material: Cayden)
+- equipment: Coldstar Pistols (unique: a named character or artifact of the setting)
+- equipment: Dawnflower Beads (name is Reserved Material: Dawnflower)
+- equipment: Digly's Oil of Sympathy (Greater) (name is Reserved Material: Digly)
+- equipment: Digly's Oil of Sympathy (Lesser) (name is Reserved Material: Digly)
+- equipment: Digly's Oil of Sympathy (Major) (name is Reserved Material: Digly)
+- equipment: Digly's Oil of Sympathy (Minor) (name is Reserved Material: Digly)
+- equipment: Digly's Oil of Sympathy (Moderate) (name is Reserved Material: Digly)
+- equipment: Draddeth's Edge (unique: a named character or artifact of the setting)
+- equipment: Dragon-Lotus Drum (unique: a named character or artifact of the setting)
+- equipment: Dullahan Codex (unique: a named character or artifact of the setting)
+- equipment: Final Scalecloak (unique: a named character or artifact of the setting)
+- equipment: Final Stand (unique: a named character or artifact of the setting)
+- equipment: Freedom's Flame (unique: a named character or artifact of the setting)
+- equipment: Ghosthand's Comet (unique: a named character or artifact of the setting)
+- equipment: Gut-Ripper (unique: a named character or artifact of the setting)
+- equipment: Harrow Spellcards (name is Reserved Material: Harrow)
+- equipment: Hellknight Breastplate (name is Reserved Material: Hellknight)
+- equipment: Hellknight Half Plate (name is Reserved Material: Hellknight)
+- equipment: Hellknight Plate (name is Reserved Material: Hellknight)
+- equipment: Hyldarf's Fang (unique: a named character or artifact of the setting)
+- equipment: Iris of the Sky (unique: a named character or artifact of the setting)
+- equipment: Jistkan Colossus Crusher (name is Reserved Material: Jistkan)
+- equipment: Jistkan War Crossbow (name is Reserved Material: Jistkan)
+- equipment: Kaldemash's Lament (unique: a named character or artifact of the setting)
+- equipment: Lamentation of the Faithless (unique: a named character or artifact of the setting)
+- equipment: Mountebank's Passage (unique: a named character or artifact of the setting)
+- equipment: Old Tillimaquin (unique: a named character or artifact of the setting)
+- equipment: Pathfinder's Mentor (name is Reserved Material: Pathfinder)
+- equipment: Pocket Watch of Stethelos (name is Reserved Material: Stethelos)
+- equipment: Power Suit (unique: a named character or artifact of the setting)
+- equipment: Reaper's Grasp (unique: a named character or artifact of the setting)
+- equipment: Rovagug's Mud (Greater) (name is Reserved Material: Rovagug)
+- equipment: Rovagug's Mud (name is Reserved Material: Rovagug)
+- equipment: Rowan Rifle (unique: a named character or artifact of the setting)
+- equipment: Scale of Igroon (name is Reserved Material: Igroon)
+- equipment: Shadowpiercer (unique: a named character or artifact of the setting)
+- equipment: Skinsaw Mask (name is Reserved Material: Skinsaw)
+- equipment: Subterfuge Suit (unique: a named character or artifact of the setting)
+- equipment: Ulfen Shieldbreaker (name is Reserved Material: Ulfen)
+- equipment: Unifying Emblem (Lyrune-Quah) (name is Reserved Material: Lyrune-Quah)
+- equipment: Unifying Emblem (Shadde-Quah) (name is Reserved Material: Shadde-Quah)
+- equipment: Unifying Emblem (Shriikirri-Quah) (name is Reserved Material: Shriikirri-Quah)
+- equipment: Unifying Emblem (Shundar-Quah) (name is Reserved Material: Shundar-Quah)
+- equipment: Unifying Emblem (Sklar-Quah) (name is Reserved Material: Sklar-Quah)
+- equipment: Unifying Emblem (Skoan-Quah) (name is Reserved Material: Skoan-Quah)
+- equipment: Unifying Emblem (Tamiir-Quah) (name is Reserved Material: Tamiir-Quah)
+- equipment: Ursine Avenger Hood (unique: a named character or artifact of the setting)
+- equipment: Vambrace of Gorum (name is Reserved Material: Gorum)
+- equipment: Wandering Pipe (unique: a named character or artifact of the setting)
+- equipment: Whisperer of Souls (unique: a named character or artifact of the setting)
+- equipment: Worldforge (unique: a named character or artifact of the setting)
+- feats: Aldori Duelist Dedication (name is Reserved Material: Aldori)
+- feats: Aldori Parry (name is Reserved Material: Aldori)
+- feats: Aldori Riposte (name is Reserved Material: Aldori)
+- feats: Aldori Swordlord (name is Reserved Material: Aldori)
+- feats: Aldori's Retort (name is Reserved Material: Aldori)
+- feats: Apocalypse Rider Dedication (name is Reserved Material: Apocalypse Rider)
+- feats: Curse Maelstrom Dedication (name is Reserved Material: Maelstrom)
+- feats: Dongun Education (name is Reserved Material: Dongun)
+- feats: Iridian Choirmaster Dedication (name is Reserved Material: Iridian)
+- feats: Stasian Smash (name is Reserved Material: Stasian)
+- feats: Thlipit Contestant Dedication (name is Reserved Material: Thlipit)
+- howl-of-the-wild-bestiary: Taldan Cave Squirrel (name is Reserved Material: Taldan)
+- howl-of-the-wild-bestiary: Warden of Caverns and Burrows (unique: a named character or artifact of the setting)
+- howl-of-the-wild-bestiary: Warden of Forests and Meadows (unique: a named character or artifact of the setting)
+- howl-of-the-wild-bestiary: Warden of Oceans and Rivers (unique: a named character or artifact of the setting)
+- howl-of-the-wild-bestiary: Warden of Peaks and Skies (unique: a named character or artifact of the setting)
+- pathfinder-dark-archive: Call of the Void (unique: a named character or artifact of the setting)
+- pathfinder-dark-archive: K. H. W.'s Echo (unique: a named character or artifact of the setting)
+- pathfinder-dark-archive: Mother Mitera (unique: a named character or artifact of the setting)
+- pathfinder-dark-archive: The Morrowkin (unique: a named character or artifact of the setting)
+- pathfinder-monster-core-2: Denizen of Leng (name is Reserved Material: Leng)
+- pathfinder-monster-core-2: Divine Warden of Pharasma (name is Reserved Material: Pharasma)
+- pathfinder-monster-core-2: Hound of Tindalos (name is Reserved Material: Tindalos)
+- pathfinder-monster-core-2: Munavri Spellblade (name is Reserved Material: Munavri)
+- pathfinder-monster-core-2: Shade (Abaddon) (name is Reserved Material: Abaddon)
+- pathfinder-monster-core-2: Shade (Axis) (name is Reserved Material: Axis)
+- pathfinder-monster-core-2: Shade (Boneyard) (name is Reserved Material: Boneyard)
+- pathfinder-monster-core-2: Shade (Creation's Forge) (name is Reserved Material: Creation's Forge)
+- pathfinder-monster-core-2: Shade (Dreamlands) (name is Reserved Material: Dreamlands)
+- pathfinder-monster-core-2: Shade (Maelstrom) (name is Reserved Material: Maelstrom)
+- pathfinder-monster-core-2: Shade (Netherworld) (name is Reserved Material: Netherworld)
+- pathfinder-monster-core-2: Shade (Outer Rifts) (name is Reserved Material: Rifts)
+- pathfinder-monster-core-2: Shade (Universe) (name is Reserved Material: Universe)
+- pathfinder-monster-core-2: Sorvuth-Ka (unique: a named character or artifact of the setting)
+- pathfinder-monster-core-2: Volnagur (unique: a named character or artifact of the setting)
+- pathfinder-npc-core: Abbot of Abadar (name is Reserved Material: Abadar)
+- pathfinder-npc-core: Acolyte of Iomedae (name is Reserved Material: Iomedae)
+- pathfinder-npc-core: Blasphemer of Zon-Kuthon (name is Reserved Material: Zon-Kuthon)
+- pathfinder-npc-core: Champion of Rovagug (name is Reserved Material: Rovagug)
+- pathfinder-npc-core: Champion of Shelyn (name is Reserved Material: Shelyn)
+- pathfinder-npc-core: Deific Champion of Iomedae (name is Reserved Material: Iomedae)
+- pathfinder-npc-core: Deific Vessel of Urgathoa (name is Reserved Material: Urgathoa)
+- pathfinder-npc-core: Harrow Reader (name is Reserved Material: Harrow)
+- pathfinder-npc-core: Hellknight Cavalry Brigade (name is Reserved Material: Hellknight)
+- pathfinder-npc-core: High Priest of Pharasma (name is Reserved Material: Pharasma)
+- pathfinder-npc-core: Penitent of Calistria (name is Reserved Material: Calistria)
+- pathfinder-npc-core: Pilgrim of Irori (name is Reserved Material: Irori)
+- pathfinder-npc-core: Priest of Sarenrae (name is Reserved Material: Sarenrae)
+- pathfinder-npc-core: Traveling Priest of Desna (name is Reserved Material: Desna)
+- pathfinder-npc-core: Zealot of Asmodeus (name is Reserved Material: Asmodeus)
+- spells: Asmodean Wager (name is Reserved Material: Asmodean)
+- spells: Beseech Arcanotheign (name is Reserved Material: Arcanotheign)
+- spells: Call of the Quenching (unique: a named character or artifact of the setting)
+- spells: Jassim's Allegiance (name is Reserved Material: Jassim)
+- spells: Pyroclastic Truth (unique: a named character or artifact of the setting)
+- spells: Summon Oliphaunt of Jandelay (name is Reserved Material: Jandelay)
+- spells: The Everfull Moon (unique: a named character or artifact of the setting)
+- spells: Under Sunless Skies (unique: a named character or artifact of the setting)
+- spells: Veil of Broken Reality (unique: a named character or artifact of the setting)
+- vehicles: Vonthos's Golden Bridge (unique: a named character or artifact of the setting)
+- war-of-immortals-bestiary: Agyra (name is Reserved Material: Agyra)
+- war-of-immortals-bestiary: Immortal Trickster (unique: a named character or artifact of the setting)
+- war-of-immortals-bestiary: Oliphaunt of Jandelay (name is Reserved Material: Jandelay)
+- war-of-immortals-bestiary: Verex-That-Was (name is Reserved Material: Verex)
+- war-of-immortals-bestiary: Vulot (unique: a named character or artifact of the setting)
+- war-of-immortals-bestiary: Weaver of Webs (unique: a named character or artifact of the setting)
+Sentences, list items or table rows removed, by term:
+- Absalom: 3
+- Acadamae: 1
+- Agmazar: 1
+- Agyra: 7
+- Ahriman: 8
+- Akkarok: 1
+- Alaznist: 1
+- Aldori: 21
+- Alkenstar: 37
+- Alseta: 1
+- Amiri: 4
+- Andoran: 3
+- Angazhan: 1
+- Angradd: 2
+- Apocalypse Rider: 17
+- Apocalypse Riders: 3
+- Arcadia: 9
+- Arcadian: 2
+- Aroden: 1
+- Ashava: 1
+- Asmodeus: 3
+- Atreia: 1
+- Avistan: 5
+- Avistani: 1
+- Azathoth: 1
+- Baalzebul: 1
+- Bastet: 1
+- Beachcomber: 1
+- Belkzen: 2
+- Bellflower Network: 2
+- Besmara: 2
+- Bezravnis: 1
+- Bleaching: 7
+- Brevoy: 2
+- Brigh: 2
+- Butterfly Blades: 1
+- Calistria: 2
+- Casandalee: 1
+- Casmaron: 2
+- Castrovel: 1
+- Cayden Cailean: 1
+- Chelaxian: 1
+- Cheliax: 3
+- Crimson Son: 1
+- Dagon: 5
+- Daikitsu: 1
+- Deskari: 5
+- Desna: 4
+- Desnans: 3
+- Dis: 1
+- Dominion of the Black: 2
+- Dominion: 2
+- Dongun: 8
+- Eagle Knights: 4
+- Earthfall: 1
+- Easivra: 1
+- Ebeshra: 1
+- Elder Mythos: 3
+- Eldest: 8
+- Embaral: 1
+- Empty Court: 1
+- Enkaar: 1
+- Erastil: 2
+- Erutaki: 3
+- Garund: 3
+- Geb: 3
+- Ghol-Gani: 1
+- Goka: 1
+- Gorum: 4
+- Gozreh: 3
+- Gozren: 3
+- Grobelarch: 1
+- Harrow: 3
+- Hazi: 1
+- Hellknight: 1
+- Hellknights: 1
+- Horseman: 1
+- Hwanggot: 1
+- Iblydos: 2
+- Impossible Lands: 1
+- Inner Sea: 10
+- Iomedae: 4
+- Iomedaean: 1
+- Iovett: 1
+- Irez: 1
+- Iridian: 13
+- Irori: 1
+- Irrisen: 1
+- Iudica: 1
+- Jandelay: 1
+- Jinin: 5
+- Jistka: 2
+- Jistkan: 3
+- Katapesh: 3
+- Ketephys: 2
+- Kevoth: 1
+- Kitharodian: 4
+- Knights of Lastwall: 4
+- Kortos: 1
+- Korvosa: 4
+- Lamashtu: 2
+- Leng: 1
+- Linnorm Kings: 2
+- Magaambya: 1
+- Mana Wastes: 7
+- Mendev: 1
+- Mendevian: 2
+- Mephistopheles: 4
+- Minata: 1
+- Minatan: 1
+- Minkai: 4
+- Mogaru: 1
+- Molthune: 2
+- Mudii'a: 2
+- Mwangi Expanse: 5
+- Mwangi: 1
+- Mzali: 1
+- Nalinivati: 1
+- Nessek: 1
+- Nethys: 3
+- Nex: 2
+- Nexian: 1
+- Nidal: 3
+- Nivi Rhombodazzle: 1
+- Nivian: 1
+- Norgorber: 1
+- Numeria: 1
+- Numerian: 1
+- Okaiyo: 1
+- Osirian: 3
+- Osiriani: 1
+- Osirion: 2
+- Outer Gods: 3
+- PFS: 14
+- Paizo: 3
+- Palatine Eye: 2
+- Pathfinder: 5
+- Pharasma: 30
+- Pharasmins: 1
+- Phlegethon: 1
+- Qadira: 1
+- Qi Zhong: 1
+- Quantium: 2
+- Ragathiel: 1
+- Ragdya: 1
+- Rahadoum: 2
+- Red Mantis: 4
+- Reshmit: 1
+- Reverient Empire: 2
+- Riddleport: 1
+- Ridonport: 1
+- Rovagug: 4
+- Rummbrrlar: 2
+- Sarenrae: 2
+- Sarkorian: 2
+- Sarkorians: 1
+- Sarkoris: 7
+- Segada: 1
+- Seltyiel: 1
+- Senghor: 2
+- Shackles: 4
+- Shelyn: 1
+- Shelynites: 2
+- Shoanti: 1
+- Skald: 1
+- Starstone: 1
+- Stasian: 16
+- Stetven: 1
+- Taldan: 2
+- Taldane: 1
+- Taldor: 1
+- Tasya: 1
+- Tehialai: 3
+- Thalaphyrr: 1
+- Thassilon: 2
+- Thassilonian: 3
+- Thlipit: 11
+- Thrune: 1
+- Thuvia: 1
+- Tian Xia: 18
+- Tian: 1
+- Tianjing: 1
+- Trelmarixian: 2
+- Tsukiyo: 1
+- Ulfen: 1
+- Ulfens: 1
+- Urgathoa: 1
+- Ustalav: 1
+- Ustalavic: 1
+- Valeros: 2
+- Varisia: 3
+- Varisian: 1
+- Varki: 6
+- Verex: 3
+- Vorgozen: 1
+- Vyriavaxus: 1
+- Whispering Tyrant: 4
+- Worldwound: 1
+- Xar-Azmak: 1
+- Xibalba: 1
+- Yarthoon: 1
+- Zalok: 1
+Rewritten to a generic phrase, by term:
+- Abaddon: 10
+- Axis: 10
+- Boneyard: 49
+- Creation's Forge: 24
+- Darklands: 13
+- Dreamlands: 3
+- First World: 46
+- Golarion: 81
+- Inner Sphere: 9
+- Maelstrom: 19
+- Netherworld: 40
+- Outer Rifts: 17
+- Outer Sphere: 12
+- River of Souls: 31
+- Universe: 128
+
+## Mapping onto the module
+Items added to the module's lists:
+- pf2e-orc.actions: 233
+- pf2e-orc.monster-abilities: 127
+- pf2e-orc.familiar-abilities: 4
+- pf2e-orc.vehicles: 48
+- pf2e-orc.ancestries: 8
+- pf2e-orc.heritages: 41
+- pf2e-orc.backgrounds: 52
+- pf2e-orc.classes: 12
+- pf2e-orc.class-features: 365
+- pf2e-orc.ancestry-features: 12
+- pf2e-orc.feats.ancestry: 234
+- pf2e-orc.feats.skill: 38
+- pf2e-orc.feats.class-barbarian: 4
+- pf2e-orc.feats.class-bard: 9
+- pf2e-orc.feats.class-champion: 5
+- pf2e-orc.feats.class-druid: 17
+- pf2e-orc.feats.class-fighter: 5
+- pf2e-orc.feats.class-oracle: 4
+- pf2e-orc.feats.class-ranger: 12
+- pf2e-orc.feats.class-rogue: 2
+- pf2e-orc.feats.class-witch: 3
+- pf2e-orc.feats.class-wizard: 9
+- pf2e-orc.feats.archetype: 560
+- pf2e-orc.spells.cantrips: 13
+- pf2e-orc.spells.rank-1-2: 94
+- pf2e-orc.spells.rank-3-4: 106
+- pf2e-orc.spells.rank-5-6: 67
+- pf2e-orc.spells.rank-7-10: 52
+- pf2e-orc.spells.focus: 129
+- pf2e-orc.spells.rituals: 63
+- pf2e-orc.equipment.weapons: 330
+- pf2e-orc.equipment.armor: 100
+- pf2e-orc.equipment.shields: 58
+- pf2e-orc.equipment.runes: 49
+- pf2e-orc.equipment.consumables: 524
+- pf2e-orc.equipment.alchemical: 287
+- pf2e-orc.equipment.items: 681
+- pf2e-orc.equipment.gear: 43
+New lists:
+- pf2e-orc-books.feats.class-animist: 36
+- pf2e-orc-books.feats.class-commander: 39
+- pf2e-orc-books.feats.class-exemplar: 41
+- pf2e-orc-books.feats.class-guardian: 57
+- pf2e-orc-books.feats.class-gunslinger: 63
+- pf2e-orc-books.feats.class-inventor: 46
+- pf2e-orc-books.feats.class-magus: 49
+- pf2e-orc-books.feats.class-necromancer: 75
+- pf2e-orc-books.feats.class-psychic: 42
+- pf2e-orc-books.feats.class-runesmith: 53
+- pf2e-orc-books.feats.class-summoner: 63
+- pf2e-orc-books.feats.class-thaumaturge: 37
+- pf2e-orc-books.feats.mythic: 163
+- pf2e-orc-books.feats.aftermath-deviant: 24
+
+## Text conversion
+- @Embed enricher dropped: 89
+- Foundry usage note removed: 1
+- damage formula scaling with level, written as text: 80
+- link without a label to an entry by id: dropped: 9
+- Tripkee Scout: the same name in two books; the pathfinder-npc-core one has the id preset.npc-core.tripkee-scout

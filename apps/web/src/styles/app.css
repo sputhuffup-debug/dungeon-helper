@@ -389,6 +389,15 @@ h3 {
 .app-module--supplement {
   background: var(--cf-surface);
 }
+/* A built-in supplement's on/off switch for this device, at the end of its row. */
+.app-module__switch {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--cf-space-1);
+  font-size: var(--cf-text-sm);
+  cursor: pointer;
+}
 .app-module__notice {
   margin: var(--cf-space-1) 0 0;
   font-size: var(--cf-text-sm);

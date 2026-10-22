@@ -1,6 +1,6 @@
 /** GM Core hazards (traps, environmental and haunts) as presets of the hazard entity type. */
 import type { EntityPreset } from "@campaign-forge/module-sdk";
-import { cite, HAZARD, preset } from "../ids.ts";
+import { cite, HAZARD, preset, slug as toSlug } from "../ids.ts";
 import { actionCost, frequencyText, line, md, traitText, traitsLine, usable, type Ctx } from "./common.ts";
 import { num, obj, objs, str, strs, type Entry } from "./read.ts";
 
@@ -37,7 +37,7 @@ export function convertHazards(entries: Entry[], ctx: Ctx): EntityPreset[] {
           };
         })
         .filter((a) => a.name.trim());
-      const slug = e.file.split("/").pop()!.replace(/\.json$/, "");
+      const slug = toSlug(e.file.split("/").pop()!.replace(/\.json$/, ""));
       const fields: Record<string, unknown> = {
         level,
         complexity: complex ? "complex" : "simple",

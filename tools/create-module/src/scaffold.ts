@@ -28,7 +28,10 @@ import {
 export const ENGINES: readonly DiceEngineId[] = ["d20", "pool", "2d6", "d100"];
 
 /** Ids of modules built into the app; a new module may not take one. */
-export const RESERVED_IDS = ["alien", "example", "example-pack", "dnd5e-srd", "pf2e-orc"];
+export const RESERVED_IDS = ["alien", "example", "example-pack", "dnd5e-srd", "pf2e-orc", "pf2e-orc-books"];
+/** The ids in RESERVED_IDS that are supplements built into the app (the rest are modules). */
+const BUILTIN_SUPPLEMENT_IDS = ["pf2e-orc-books"];
+const reservedProblem = (id: string) => `"${id}" is the id of a ${BUILTIN_SUPPLEMENT_IDS.includes(id) ? "supplement" : "module"} built into the app`;
 
 export interface ScaffoldOptions {
   /** Display name, e.g. "Sky Pirates". */
@@ -63,7 +66,7 @@ export function camelCase(id: string): string {
 export function idProblems(id: string): string[] {
   const out: string[] = [];
   if (!new RegExp(PACK_ID_PATTERN).test(id)) out.push(`"${id}" is not a valid module id: lower-case letters, digits and hyphens, starting with a letter, 2-48 characters`);
-  if (RESERVED_IDS.includes(id)) out.push(`"${id}" is the id of a module built into the app`);
+  if (RESERVED_IDS.includes(id)) out.push(reservedProblem(id));
   return out;
 }
 
@@ -539,7 +542,7 @@ export interface ScaffoldSupplementOptions {
 export function supplementIdProblems(id: string, base: string): string[] {
   const out: string[] = [];
   if (!new RegExp(PACK_ID_PATTERN).test(id)) out.push(`"${id}" is not a valid supplement id: lower-case letters, digits and hyphens, starting with a letter, 2-48 characters`);
-  if (RESERVED_IDS.includes(id)) out.push(`"${id}" is the id of a module built into the app`);
+  if (RESERVED_IDS.includes(id)) out.push(reservedProblem(id));
   if (id === base) out.push(`a supplement's id cannot be the id of the module it extends`);
   if (!new RegExp(PACK_ID_PATTERN).test(base)) out.push(`"${base}" is not a module id`);
   return out;

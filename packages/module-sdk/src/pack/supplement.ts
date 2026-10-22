@@ -30,8 +30,8 @@ import { validateAgainstSchema } from "../entities";
 import { checkModule, type ConformanceIssue } from "../module";
 import type { AppliedSupplement, EntityPreset, GameModule, ReferenceItem, ReferenceList } from "../types";
 import { conformanceToPackIssues, procedureFromPack, type PresetLookup } from "./loader";
-import { PACK_FORMAT, PACK_PART_FORMAT, SUPPLEMENT_COLLECTIONS, SUPPLEMENT_FORMAT, type ModulePack, type ModuleSupplement, type PackCollections } from "./types";
-import { checkLimits, finishValidation, jsonPath, schemaIssues, semanticChecks, supplementSchemaValidator, walkerFor, type PackIssue, type PackValidation } from "./validate";
+import { PACK_FORMAT, PACK_PART_FORMAT, SUPPLEMENT_COLLECTIONS, SUPPLEMENT_FORMAT, SUPPLEMENT_PART_FORMAT, type ModulePack, type ModuleSupplement, type ModuleSupplementPart, type PackCollections } from "./types";
+import { checkLimits, finishValidation, jsonPath, PACK_LIMITS, schemaIssues, semanticChecks, supplementPartSchemaValidator, supplementSchemaValidator, walkerFor, type PackIssue, type PackValidation } from "./validate";
 
 // ---------------------------------------------------------------------------
 // Semver ranges (the small subset supplements need)
@@ -144,7 +144,6 @@ const NOT_IN_SUPPLEMENTS: Record<string, string> = {
   trackers: "a supplement cannot add trackers",
   dice: "a supplement cannot change the dice; it uses the base module's",
   calendar: "a supplement cannot change the calendar",
-  parts: "a supplement is one file (no parts)",
   styleNotes: "a supplement has no style notes",
 };
 
@@ -157,7 +156,11 @@ export function validateSupplement(input: unknown): PackValidation<ModuleSupplem
   if (doc.format === PACK_FORMAT || doc.format === PACK_PART_FORMAT) {
     return { ok: false, issues: [{ severity: "error", path: "$.format", message: `this is a data pack, not a supplement (a supplement has "format": "${SUPPLEMENT_FORMAT}")`, source: "schema" }] };
   }
+  if (doc.format === SUPPLEMENT_PART_FORMAT) return { ok: false, issues: [{ severity: "error", path: "$.format", message: "this is a part of a split supplement; import it together with the supplement's main file", source: "schema" }] };
   if (doc.format !== SUPPLEMENT_FORMAT) return { ok: false, issues: [{ severity: "error", path: "$.format", message: `not a Campaign Forge supplement (format must be "${SUPPLEMENT_FORMAT}")`, source: "schema" }] };
+  if (Array.isArray(doc.parts) && doc.parts.length > 0) {
+    return { ok: false, issues: [{ severity: "error", path: "$.parts", message: `this supplement is split into parts (${doc.parts.map(String).join(", ")}); join them first (choose the main file together with its parts)`, source: "pack" }] };
+  }
   const early: PackIssue[] = [];
   for (const [key, why] of Object.entries(NOT_IN_SUPPLEMENTS)) if (key in doc) early.push({ severity: "error", path: jsonPath([key]), message: why, source: "schema" });
   const validate = supplementSchemaValidator();
@@ -197,6 +200,99 @@ export function validateSupplement(input: unknown): PackValidation<ModuleSupplem
     });
   }
   return finishValidation(issues, s);
+}
+
+// ---------------------------------------------------------------------------
+// Split supplements: a main file and its parts
+// ---------------------------------------------------------------------------
+
+/** Validate one part of a split supplement on its own: limits, schema, and the supplement it belongs to. */
+export function validateSupplementPart(input: unknown, expectedSupplement?: string): PackValidation<ModuleSupplementPart> {
+  const limits = checkLimits(input);
+  if (limits.length > 0) return { ok: false, issues: limits };
+  if (!input || typeof input !== "object" || (input as Record<string, unknown>).format !== SUPPLEMENT_PART_FORMAT) {
+    return { ok: false, issues: [{ severity: "error", path: "$.format", message: `not a supplement part (format must be "${SUPPLEMENT_PART_FORMAT}")`, source: "schema" }] };
+  }
+  const validate = supplementPartSchemaValidator();
+  if (!validate(input)) return { ok: false, issues: schemaIssues(input, validate.errors) };
+  const p = input as unknown as ModuleSupplementPart;
+  if (expectedSupplement !== undefined && p.supplement !== expectedSupplement) {
+    return { ok: false, issues: [{ severity: "error", path: "$.supplement", message: `part belongs to supplement "${p.supplement}", not "${expectedSupplement}"`, source: "pack" }] };
+  }
+  return { ok: true, issues: [], value: p };
+}
+
+/**
+ * Join a split supplement's main file and its parts into one self-contained
+ * supplement (no `parts`), in the order the main file lists them, so the
+ * result does not depend on file order. Every part the main file lists must be
+ * given, once, and belong to this supplement; issues name the file. The
+ * joined supplement still has to pass `validateSupplement` (namespacing,
+ * JSONLogic, citations), which looks at all of it at once. A supplement
+ * without parts is returned as it is.
+ */
+export function mergeSupplementParts(mainInput: unknown, partInputs: ReadonlyArray<{ name?: string; data: unknown }> = []): PackValidation<ModuleSupplement> {
+  const limits = checkLimits(mainInput);
+  if (limits.length > 0) return { ok: false, issues: limits };
+  const main = mainInput as Record<string, unknown> | null;
+  if (!main || typeof main !== "object" || Array.isArray(main) || main.format !== SUPPLEMENT_FORMAT) {
+    return { ok: false, issues: [{ severity: "error", path: "$.format", message: `not a Campaign Forge supplement (format must be "${SUPPLEMENT_FORMAT}")`, source: "schema" }] };
+  }
+  const declared = Array.isArray(main.parts) ? main.parts.filter((p): p is string => typeof p === "string") : [];
+  if (declared.length === 0 && partInputs.length === 0) return { ok: true, issues: [], value: main as unknown as ModuleSupplement };
+  const id = (main.manifest as { id?: unknown } | undefined)?.id;
+  if (typeof id !== "string") return { ok: false, issues: [{ severity: "error", path: "$.manifest.id", message: "the supplement has no id", source: "schema" }] };
+  if (partInputs.length > PACK_LIMITS.maxParts) return { ok: false, issues: [{ severity: "error", path: "$.parts", message: `more than ${PACK_LIMITS.maxParts} parts`, source: "limits" }] };
+  const issues: PackIssue[] = [];
+  const parts = new Map<string, ModuleSupplementPart>();
+  for (const input of partInputs) {
+    const file = input.name ?? (input.data as { name?: string } | undefined)?.name ?? "part";
+    const res = validateSupplementPart(input.data, id);
+    for (const i of res.issues) issues.push({ ...i, file });
+    if (!res.ok || !res.value) continue;
+    const part = res.value;
+    if (!declared.includes(part.name)) issues.push({ severity: "error", path: "$.name", message: `part "${part.name}" is not listed in the supplement's parts (${declared.join(", ") || "none"})`, source: "pack", file });
+    else if (parts.has(part.name)) issues.push({ severity: "error", path: "$.name", message: `part "${part.name}" was given twice`, source: "pack", file });
+    else parts.set(part.name, part);
+  }
+  for (const name of declared) if (!parts.has(name) && !issues.some((i) => i.file === name)) issues.push({ severity: "error", path: "$.parts", message: `part "${name}" is missing`, source: "pack" });
+  if (issues.some((i) => i.severity === "error")) return { ok: false, issues };
+  const merged: Record<string, unknown> = { ...main };
+  delete merged.parts;
+  const ordered = declared.map((n) => parts.get(n)!);
+  const items: Record<string, unknown[]> = {};
+  for (const src of [main as { referenceItems?: Record<string, unknown[]> }, ...ordered]) {
+    for (const [listId, list] of Object.entries(src.referenceItems ?? {})) items[listId] = [...(items[listId] ?? []), ...list];
+  }
+  if (Object.keys(items).length > 0) merged.referenceItems = items;
+  for (const c of SUPPLEMENT_COLLECTIONS) {
+    const all = [...((main[c] as unknown[] | undefined) ?? []), ...ordered.flatMap((p) => (p[c] as unknown[] | undefined) ?? [])];
+    if (all.length > 0) merged[c] = all;
+  }
+  return { ok: true, issues, value: merged as unknown as ModuleSupplement };
+}
+
+/**
+ * Where a built-in supplement's files come from: loaders for the main file
+ * and each part, typically dynamic JSON imports so a bundler gives every file
+ * its own lazily loaded chunk (as for a `PackSource`).
+ */
+export interface SupplementSource {
+  main: () => Promise<unknown>;
+  /** Part file name (as the supplement's `parts` lists it) -> loader. */
+  parts?: Record<string, () => Promise<unknown>>;
+}
+
+/** Load every file of a supplement source in parallel, join the parts and validate the result. Throws with the issues when it does not validate. */
+export async function supplementFromSource(source: SupplementSource): Promise<ModuleSupplement> {
+  const [main, ...parts] = await Promise.all([source.main(), ...Object.entries(source.parts ?? {}).map(async ([name, load]) => ({ name, data: await load() }))]);
+  const merged = mergeSupplementParts(main, parts as Array<{ name: string; data: unknown }>);
+  const v = merged.ok && merged.value ? validateSupplement(merged.value) : merged;
+  if (!v.ok || !v.value) {
+    const errors = v.issues.filter((i) => i.severity === "error");
+    throw new Error(`Supplement failed validation with ${errors.length} error(s):\n${errors.slice(0, 20).map((i) => `  ${i.file ? `${i.file}: ` : ""}${i.path}${i.item ? ` (${i.item})` : ""}: ${i.message}`).join("\n")}`);
+  }
+  return v.value as ModuleSupplement;
 }
 
 // ---------------------------------------------------------------------------

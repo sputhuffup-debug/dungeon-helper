@@ -62,6 +62,7 @@ import type {
   ModulePack,
   ModulePackPart,
   ModuleSupplement,
+  ModuleSupplementPart,
   PackCollections,
   PackManifest,
   PackProcedure,
@@ -71,7 +72,7 @@ import type {
   PackProducedRelationship,
   SupplementManifest,
 } from "./types";
-import { PACK_FORMAT, PACK_FORMAT_VERSION, PACK_PART_FORMAT, SUPPLEMENT_FORMAT, SUPPLEMENT_FORMAT_VERSION } from "./types";
+import { PACK_FORMAT, PACK_FORMAT_VERSION, PACK_PART_FORMAT, SUPPLEMENT_FORMAT, SUPPLEMENT_FORMAT_VERSION, SUPPLEMENT_PART_FORMAT } from "./types";
 
 // ---------------------------------------------------------------------------
 // Typed builders
@@ -574,6 +575,9 @@ export const MODULE_PACK_SCHEMA: JsonSchema = {
   definitions,
 };
 
+/** A part file name: no folders, ends in .json. */
+const PART_NAME_PATTERN = "^[A-Za-z0-9][A-Za-z0-9_.-]*\\.json$";
+
 /** JSON Schema of one part file of a split pack. */
 export const MODULE_PACK_PART_SCHEMA: JsonSchema = {
   $schema: "http://json-schema.org/draft-07/schema#",
@@ -614,8 +618,36 @@ export const MODULE_SUPPLEMENT_SCHEMA: JsonSchema = {
       templates: collections.templates,
       rules: collections.rules,
       playGuides: collections.playGuides,
+      parts: list(str({ pattern: PART_NAME_PATTERN }), { uniqueItems: true, description: "Part files that complete a split supplement, relative to this file." }),
     },
     ["format", "formatVersion", "manifest"],
+  ),
+  definitions,
+};
+
+/** JSON Schema of one part file of a split supplement. */
+export const MODULE_SUPPLEMENT_PART_SCHEMA: JsonSchema = {
+  $schema: "http://json-schema.org/draft-07/schema#",
+  $id: `${SCHEMA_BASE_URL}/module-supplement-part.schema.json`,
+  title: "Campaign Forge module supplement part",
+  description: "More additive data for a split supplement; the supplement's `parts` lists it by `name`. See docs/modules/supplements.md.",
+  ...object<ModuleSupplementPart>()(
+    {
+      $schema: str(),
+      format: { const: SUPPLEMENT_PART_FORMAT },
+      formatVersion: { const: SUPPLEMENT_FORMAT_VERSION },
+      supplement: str({ pattern: PACK_ID_PATTERN }),
+      name: str({ pattern: PART_NAME_PATTERN }),
+      referenceItems: { type: "object", additionalProperties: list(ref("referenceItem")), description: "Items to add to the base module's reference lists, keyed by list id." },
+      referenceLists: collections.referenceLists,
+      presets: collections.presets,
+      tables: collections.tables,
+      procedures: collections.procedures,
+      templates: collections.templates,
+      rules: collections.rules,
+      playGuides: collections.playGuides,
+    },
+    ["format", "formatVersion", "supplement", "name"],
   ),
   definitions,
 };

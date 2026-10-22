@@ -9,12 +9,15 @@
   "exports": {
     ".": "./src/index.ts",
     "./manifest": "./src/manifest.ts",
+    "./supplement": "./src/supplement.ts",
+    "./supplement-manifest": "./src/supplementManifest.ts",
     "./reserved": "./scripts/source/reserved.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
-    "build-pack": "node --experimental-strip-types --no-warnings scripts/build-pack.ts"
+    "build-pack": "node --experimental-strip-types --no-warnings scripts/build-pack.ts",
+    "build-supplement": "node --experimental-strip-types --no-warnings scripts/build-supplement.ts"
   },
   "dependencies": {
     "@campaign-forge/module-sdk": "workspace:*"

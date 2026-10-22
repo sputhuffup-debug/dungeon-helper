@@ -1,6 +1,6 @@
 # Supplements
 
-A **supplement** adds options to a module you already have: more backgrounds, subclasses, feats, spells or monsters for a fifth edition game, a house rule card, a rumour table, a generator. It is one JSON file, imported in the app like a data pack (*Game modules… → Import data pack or supplement…*), and it is listed under the module it extends.
+A **supplement** adds options to a module you already have: more backgrounds, subclasses, feats, spells or monsters for a fifth edition game, a house rule card, a rumour table, a generator. It is one JSON file (or a main file plus [parts](#split-supplements) when it is large), imported in the app like a data pack (*Game modules… → Import data pack or supplement…*), and it is listed under the module it extends. The app can also ship [built-in supplements](#built-in-supplements) that the GM switches on or off.
 
 A supplement is **additive data only**:
 
@@ -48,8 +48,9 @@ When a module loads, every installed supplement that extends it is checked again
 | `manifest` | required | see below |
 | `referenceItems` | optional | `{ "<module's list id>": [items] }`: items added to lists the module already has |
 | `referenceLists`, `presets`, `tables`, `procedures`, `templates`, `rules`, `playGuides` | optional | new entries, in the same shapes as a [data pack](pack-format.md)'s |
+| `parts` | optional | file names of the [part files](#split-supplements) that complete a split supplement |
 
-Unknown keys are errors. `entityTypes`, `relationshipTypes`, `trackers`, `dice`, `calendar` and `parts` are refused with the reason.
+Unknown keys are errors. `entityTypes`, `relationshipTypes`, `trackers`, `dice` and `calendar` are refused with the reason.
 
 ### Manifest
 
@@ -76,6 +77,30 @@ For `dnd5e-srd` the character-option lists are `dnd5e-srd.races`, `.subraces`, `
 
 Rule cards and tables cite their source with `cite` (free text, e.g. `"Harbour Guide, ch. 2"`) or say `"original": true`. A bare `page` would point at the base module's book, so it gets a warning. Reference items and presets may carry `cite` too.
 
+## Split supplements
+
+A supplement too large for one file (the limits are those of a [data pack](pack-format.md#limits-and-safety): 16 MB a file, and a bundler warns about a chunk over 500 kB) can be split. The main file lists its parts by file name, and each part carries more of the same collections:
+
+```json
+{ "format": "campaign-forge-supplement", "formatVersion": 1, "manifest": { "id": "harbour-homebrew", "…": "…" }, "parts": ["spells.json", "monsters.json"] }
+```
+
+```json
+{
+  "$schema": "https://campaign-forge.dev/schema/module-supplement-part.schema.json",
+  "format": "campaign-forge-supplement-part",
+  "formatVersion": 1,
+  "supplement": "harbour-homebrew",
+  "name": "spells.json",
+  "referenceItems": { "dnd5e-srd.spells": [{ "id": "harbour-homebrew.tidecall", "name": "Tidecall", "…": "…" }] }
+}
+```
+
+- A part has `referenceItems`, `referenceLists`, `presets`, `tables`, `procedures`, `templates`, `rules` and `playGuides`, no manifest; `supplement` is the main file's id and `name` its own file name. The published schema is `packages/module-sdk/schema/module-supplement-part.schema.json`.
+- The parts are joined in the order `parts` lists them (`mergeSupplementParts` in the SDK): collections are concatenated, and the items for one of the module's lists continue across parts, so a long list can be split anywhere. A new list stays whole in one part.
+- Every listed part must be there, once. The joined supplement is then validated as a whole, exactly like a one-file supplement; a main file checked without its parts is refused ("join them first").
+- In the app, choose the main file together with its parts; the joined supplement is what is stored on the device and embedded in bundles. `module-check` reads the parts from the main file's folder.
+
 ## Checking and importing
 
 ```sh
@@ -90,10 +115,19 @@ In the app the same checks run before the supplement is stored on the device (In
 
 ## Where supplements show up
 
-- **Game modules**: under the module they extend, with *Imported* and *Supplement* badges, what they add, their notice and licence, and *Remove*. One that no longer fits its module (after the module was updated, say) is marked *Not applied*, with the reason; the module still loads without it.
+- **Game modules**: under the module they extend, with *Imported* (or *Built-in*) and *Supplement* badges, what they add, their notice and licence, and *Remove* (or, for a built-in one, its on/off switch). One that no longer fits its module (after the module was updated, say) is marked *Not applied*, with the reason; the module still loads without it.
 - **Settings → Supplements**: the supplements active for the campaign's module. Installed supplements apply to every campaign that uses that module on the device.
 - **Reference, Rules, presets, tables**: a source badge (and an edition badge) on everything a supplement added.
-- **Bundles**: an exported campaign carries each active supplement (`module/supplements/<id>.json`, listed in the bundle manifest). Importing the bundle on another device installs the ones that device lacks; one already installed is never replaced, whatever its version.
+- **Bundles**: an exported campaign carries each active imported supplement (`module/supplements/<id>.json`, listed in the bundle manifest). Importing the bundle on another device installs the ones that device lacks; one already installed is never replaced, whatever its version. A built-in supplement is never embedded: the manifest names it (`builtinSupplements`), and importing the bundle switches it on where the app has it (the toast says so; a copy of the app without it reports it as skipped).
+
+## Built-in supplements
+
+A supplement can ship with the app, in the repository package of the module it extends: `packages/module-pf2e-orc/supplements/remaster-orc-books/` (the ORC content of nine more remaster books for the `pf2e-orc` module, "Remaster ORC books") is the worked example.
+
+- It is optional per device: *Game modules* lists it under its module with *Built-in* and *Supplement* badges and a switch. The switch is stored in the browser (`localStorage`, key `cf-builtin-supplements`); when it was never set, the entry's `defaultEnabled` applies. Switching it drops the module from the app's cache, so a campaign that opens next loads with (or without) it. While on, it is joined, validated, checked against the module and merged at module load exactly like an imported one (and left out, with the reason, if it does not fit).
+- It is never stored in IndexedDB and never embedded in a bundle (see above), and an imported supplement may not use its id.
+- Registering one: a `SupplementSource` (the main file and each part as a lazy JSON import, so each file is its own chunk; `supplementFromSource` joins and validates them) and its static metadata (name, version, `extends`, notice, licence, counts and size, so the module list never downloads it), added to `BUILTIN_SUPPLEMENTS` in `apps/web/src/modules/registry.ts`; its id in `RESERVED_IDS` of `tools/create-module` and in `BUILTIN_SUPPLEMENT_TARGETS` of `tools/module-check` (so `--all` checks it). The ORC books' converter (`scripts/build-supplement.ts`) writes all three files, and its tests check the metadata matches the data.
+- Offline: its chunks are precached by the PWA like every other chunk (keep each file under 2 MB, and under 500 kB minified), so it can be switched on without a connection. A supplement large enough to make the precache unreasonable would instead be left out of it (a `globIgnores` rule for its chunk names) and cached when first loaded; switched on offline before that, it is reported as *Not applied* ("could not be loaded") and the module loads without it.
 
 ## Determinism (rule 3)
 
@@ -106,4 +140,4 @@ A supplement is the natural place for content you do not have the right to publi
 - **Do not publish or share a supplement whose content you have no right to distribute.** That includes committing it to a public repository, attaching it to an issue, or posting a campaign bundle that embeds it (bundles carry the active supplements). Set its `licenseNotice` to say so, e.g. "Private reference compiled for personal use. Not for redistribution."
 - Summaries in your own words are still derived from the book: treat them as private too. Never put a book's text, a PDF's extracted text or a purchase watermark into a supplement you might share.
 - Openly licensed material (an SRD under CC-BY-4.0, ORC content without its Reserved Material) may be shared on its licence's terms: fill `license` with the attribution it requires, and the app shows it next to the supplement.
-- Supplements in this repository (the fixtures) are original content written for it.
+- Supplements in this repository are the fixtures (original content written for it) and the built-in "Remaster ORC books", which is ORC-licensed content without its Reserved Material, with the ORC Notice and each book's Attribution Notice in its `license` (see `packages/module-pf2e-orc/supplements/NOTICE`).

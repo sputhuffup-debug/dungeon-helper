@@ -459,6 +459,12 @@ export interface BundleManifest {
   moduleVersion: string;
   /** Supplements active for the module when the campaign was exported (each embedded in the bundle). */
   supplements?: Array<{ id: string; name: string; version: string }>;
+  /**
+   * Supplements built into the app that were switched on for the module when
+   * the campaign was exported. They are not embedded (the app ships them):
+   * importing the bundle switches them on where the app has them.
+   */
+  builtinSupplements?: Array<{ id: string; name: string; version: string }>;
   campaignId: Id;
   campaignName: string;
 }

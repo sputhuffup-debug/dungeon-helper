@@ -1,0 +1,52 @@
+{
+ "$schema": "../../../module-sdk/schema/module-supplement.schema.json",
+ "format": "campaign-forge-supplement",
+ "formatVersion": 1,
+ "manifest": {
+  "id": "pf2e-orc-books",
+  "name": "Remaster ORC books",
+  "version": "0.1.0",
+  "extends": {
+   "module": "pf2e-orc",
+   "version": "^0.1.0"
+  },
+  "licenseNotice": "ORC-licensed rules content (see attribution); JSON structure derived from the Foundry VTT pf2e system (Apache-2.0). Compatible with Pathfinder Second Edition (Remaster). Not affiliated with or endorsed by Paizo Inc. Pathfinder is a trademark of Paizo Inc.",
+  "license": {
+   "spdx": "LicenseRef-ORC",
+   "name": "ORC License",
+   "url": "https://paizo.com/orclicense",
+   "attribution": "ORC Notice: This product is licensed under the ORC License located at the Library of Congress at TX 9-307-067 and available online at various locations. All warranties are disclaimed as set forth therein.\n\nAttribution Notice: this supplement includes material from:\nPathfinder Monster Core 2 © 2025, Paizo Inc.\nPathfinder NPC Core © 2025, Paizo Inc.\nPathfinder Howl of the Wild © 2023, Paizo Inc.; Authors: Kate Baker, Rigby Bendele, Chris Bissette, Jeremy Blum, Logan Bonner, Dan Cascone, James Case, Jessica Catalan, Brite Cheney, Rue Dickey, Caryn DiMarco, Matthew Fu, Leo Glass, Steven Hammond, Patrick Hurley, Michelle Y. Kim, Dustin Knight, Kendra Leigh Speedling, Christiana Lewis, Jessie \"Aki\" Lo, Luis Loza, Letterio Mammoliti, Jonathan \"Ryomasa\" Mendoza, Quinn Murphy, Dave Nelson, Mikhail Rekun, Kai Revius, Ember Rose, Simone D. Sallé, Michael Sayre, Shay Snow, Levi Steadman, Kyle Tam, Ruvaid Virk, and Andrew White.\nPathfinder Treasure Vault (Remastered) © 2025, Paizo Inc.\nPathfinder Battlecry! © 2025, Paizo Inc.\nPathfinder Impossible Magic © 2025, Paizo Inc.\nPathfinder Guns & Gears Remastered © 2025, Paizo Inc.\nPathfinder Dark Archive (Remastered) © 2025, Paizo Inc.\nPathfinder War of Immortals © 2024 Paizo Inc., Authors: James Case, Liane Merciel, and Michael Sayre. Additional writing by Jessica Catalan, Matt Chapmond, Steven Hammond, Steven T. Helt, Brent Holtsberry, Jason Keeley, Michelle Y. Kim, Luis Loza, Erik Mona, AJ Neuro, Joaquin Kyle “Makapatag” Saavedra, Tony Saunders, Andrew Stoeckle, Greg A. Vaughan, and Ruvaid Virk.\n\nReserved Material: none of the publishers' Reserved Material (trademarks, and setting names such as deities, places, organizations and characters) is used. The converted rules text and statistics are Licensed Material under the ORC License. The JSON structure of the data is derived from the Foundry VTT pf2e system (Apache License 2.0; see the module's NOTICE).\n\nCompatible with Pathfinder Second Edition (Remaster). Not affiliated with or endorsed by Paizo Inc. Pathfinder is a trademark of Paizo Inc."
+  },
+  "authors": [
+   "Campaign Forge contributors (conversion)"
+  ],
+  "description": "More ORC content for the remaster rules from Monster Core 2, NPC Core, Howl of the Wild, Treasure Vault (Remastered), Battlecry!, Impossible Magic, Guns & Gears (Remastered), Dark Archive (Remastered) and War of Immortals: creatures, NPCs and hazards as presets, and ancestries, classes, feats, spells, items and actions in the module's lists. Reserved Material is left out.",
+  "dataStatus": "partially-verified"
+ },
+ "parts": [
+  "books-reference.json",
+  "books-rules.json",
+  "books-character-1.json",
+  "books-character-2.json",
+  "books-feats-1.json",
+  "books-feats-2.json",
+  "books-feats-3.json",
+  "books-feats-4.json",
+  "books-spells-1.json",
+  "books-spells-2.json",
+  "books-equipment-1.json",
+  "books-equipment-2.json",
+  "books-equipment-3.json",
+  "books-equipment-4.json",
+  "books-equipment-5.json",
+  "books-equipment-6.json",
+  "books-creatures-1.json",
+  "books-creatures-2.json",
+  "books-creatures-3.json",
+  "books-creatures-4.json",
+  "books-creatures-5.json",
+  "books-creatures-6.json",
+  "books-creatures-7.json",
+  "books-hazards.json"
+ ]
+}

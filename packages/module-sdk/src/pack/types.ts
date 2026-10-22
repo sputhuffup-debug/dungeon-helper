@@ -185,6 +185,7 @@ export interface ModulePackPart extends PackCollections {
 // ---------------------------------------------------------------------------
 
 export const SUPPLEMENT_FORMAT = "campaign-forge-supplement" as const;
+export const SUPPLEMENT_PART_FORMAT = "campaign-forge-supplement-part" as const;
 export const SUPPLEMENT_FORMAT_VERSION = 1 as const;
 
 /** The manifest of a supplement: what it extends, and its own notice. */
@@ -231,5 +232,24 @@ export interface ModuleSupplement extends SupplementCollections {
   formatVersion: typeof SUPPLEMENT_FORMAT_VERSION;
   manifest: SupplementManifest;
   /** Items added to the base module's own reference lists, by list id (e.g. "dnd5e-srd.backgrounds"). */
+  referenceItems?: Record<string, ReferenceItem[]>;
+  /**
+   * Names of the part files that complete this supplement (e.g. ["spells.json"]),
+   * relative to this file, for a supplement too large for one file. Every part
+   * must be present; `mergeSupplementParts` joins them into one supplement
+   * (without `parts`) before it is validated and applied.
+   */
+  parts?: string[];
+}
+
+/** One extra file of a split supplement: more of the same collections. */
+export interface ModuleSupplementPart extends SupplementCollections {
+  $schema?: string;
+  format: typeof SUPPLEMENT_PART_FORMAT;
+  formatVersion: typeof SUPPLEMENT_FORMAT_VERSION;
+  /** The manifest id of the supplement this part belongs to. */
+  supplement: string;
+  /** This part's name, as the supplement's `parts` lists it. */
+  name: string;
   referenceItems?: Record<string, ReferenceItem[]>;
 }

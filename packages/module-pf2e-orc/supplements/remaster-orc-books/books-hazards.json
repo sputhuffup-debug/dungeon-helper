@@ -1,0 +1,1276 @@
+{
+ "$schema": "../../../module-sdk/schema/module-supplement-part.schema.json",
+ "format": "campaign-forge-supplement-part",
+ "formatVersion": 1,
+ "supplement": "pf2e-orc-books",
+ "name": "books-hazards.json",
+ "presets": [
+  {
+   "id": "pf2e-orc-books.preset.hazard.boneburst",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Boneburst",
+   "summary": "Complex hazard 14. magical, unholy. Stealth DC 38.",
+   "cite": "War of Immortals — Hazards: Boneburst",
+   "tags": [
+    "hazard",
+    "complex"
+   ],
+   "fields": {
+    "level": 14,
+    "complexity": "complex",
+    "rarity": "rare",
+    "traits": [
+     "magical",
+     "unholy"
+    ],
+    "stealth": 28,
+    "stealthNote": "(master) to notice that clouds of debris are coalescing into swirling, faceless shapes held together by rust-red fog and spectral, dripping clots of gore",
+    "description": "A low howl rises from the ground, gathering strength as scraps of ancient armor, bone fragments, and clumps of earth rise into the air. Crimson vapor holds the faceless shape together, never coalescing into an identifiable form, but merely writhing through ever-changing images of torment and destruction.",
+    "disable": "If a boneburst takes 40 points of damage from a single source and it isn't destroyed, it is rendered dormant for 1 round.",
+    "ac": 33,
+    "saves": {
+     "fortitude": 30,
+     "reflex": 28,
+     "will": 0
+    },
+    "hardness": 20,
+    "hp": {
+     "max": 90,
+     "current": 90,
+     "temp": 0
+    },
+    "hpNote": "(BT 45)",
+    "immunities": [
+     "critical hits",
+     "object immunities",
+     "precision"
+    ],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Gathering Mist ↺",
+      "desc": "**Trigger** A living creature approaches within 50 feet of a dormant boneburst\n\n**Effect** The boneburst awakens, roiling up from the ground, and rolls initiative."
+     }
+    ],
+    "routine": "(2 actions) An awakened boneburst occupies a 20-foot square; it is reduced to a 10-foot square when it reaches its BT. It can occupy the same space as other creatures, but not other bonebursts. On its initiative, the boneburst Flies up to 30 feet toward the nearest living creature as its first action. As its second action, the boneburst then coalesces around any living creature within its space, invisible shards of bone tearing at their flesh. Each living creature in its space takes 2d10+18 slashing damage and 1d10 spirit damage (DC 35 basic Reflex save). If no living creatures are within its space, the boneburst can use its second action to Fly up to 30 feet.",
+    "reset": "If the boneburst spends 5 consecutive rounds without coalescing around a living creature, it falls dormant, sinking back into the earth. After it falls dormant or is disabled, the boneburst gathers energy over the course of the next hour, after which it can be triggered again."
+   }
+  },
+  {
+   "id": "pf2e-orc-books.preset.hazard.clone-mirrors",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Clone Mirrors",
+   "summary": "Complex hazard 6. magical, trap. Stealth DC 21.",
+   "cite": "Dark Archive (Remastered) — Hazards: Clone Mirrors",
+   "tags": [
+    "hazard",
+    "complex"
+   ],
+   "fields": {
+    "level": 6,
+    "complexity": "complex",
+    "rarity": "common",
+    "traits": [
+     "magical",
+     "trap"
+    ],
+    "stealth": 11,
+    "description": "Two opposing mirrors spawn endless illusory duplicates of creatures in the hall.",
+    "disable": "DC 28 Thievery (expert) to reposition each mirror, or Dispel Magic (3rd rank; counteract DC 25) to counteract each mirror",
+    "ac": 21,
+    "saves": {
+     "fortitude": 17,
+     "reflex": 11,
+     "will": 0
+    },
+    "hardness": 13,
+    "hp": {
+     "max": 54,
+     "current": 54,
+     "temp": 0
+    },
+    "hpNote": "per mirror",
+    "immunities": [],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Spawn Reflection ↺",
+      "desc": "(illusion) **Trigger** A creature is reflected in the mirror\n\n**Effect** The mirror creates a Reflection of the triggering creature, which Steps out of the mirror and into the hall. The trap then rolls initiative."
+     }
+    ],
+    "routine": "(2 actions) This trap loses 1 action for each mirror disabled. Each mirror uses 1 action to Spawn a Reflection of a creature reflected in the mirror. The hazard can have a maximum of four reflections spawned at once.",
+    "reset": "The trap resets after 1 day."
+   }
+  },
+  {
+   "id": "pf2e-orc-books.preset.hazard.confounding-portal",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Confounding Portal",
+   "summary": "Simple hazard 0. illusion, magical, mental, trap. Stealth DC 16.",
+   "cite": "Dark Archive (Remastered) — Hazards: Confounding Portal",
+   "tags": [
+    "hazard",
+    "simple"
+   ],
+   "fields": {
+    "level": 0,
+    "complexity": "simple",
+    "rarity": "common",
+    "traits": [
+     "illusion",
+     "magical",
+     "mental",
+     "trap"
+    ],
+    "stealth": 6,
+    "description": "Tiny runes carved around a doorframe or on a hall's walls surreptitiously confound creatures into circling the room or hallway they attempted to exit or pass through.",
+    "disable": "DC 17 Thievery to scratch out the runes, or DC 16 Arcana to destroy the runes",
+    "ac": 0,
+    "saves": {
+     "fortitude": 0,
+     "reflex": 0,
+     "will": 0
+    },
+    "hardness": 0,
+    "hp": {
+     "max": 0,
+     "current": 0,
+     "temp": 0
+    },
+    "immunities": [],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Confounding Misdirection ↺",
+      "desc": "(arcane, illusion, mental) **Trigger** A creature passes through the rune-carved doorway or hallway\n\n**Effect** The creature is confused by the illusions and directed back into the room they attempted to exit through another doorway or back to the hallway's beginning. This feels no different to the triggering creature than walking through the doorway or hallway, and onlookers are similarly befuddled. A creature who succeeds at a DC 19 Will save resists this illusion and exits the room or proceeds down the hall without being misdirected."
+     }
+    ],
+    "reset": "The trap resets after 1 round."
+   }
+  },
+  {
+   "id": "pf2e-orc-books.preset.hazard.constricting-hall",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Constricting Hall",
+   "summary": "Complex hazard 8. magical, trap. Stealth DC 31.",
+   "cite": "Dark Archive (Remastered) — Hazards: Constricting Hall",
+   "tags": [
+    "hazard",
+    "complex"
+   ],
+   "fields": {
+    "level": 8,
+    "complexity": "complex",
+    "rarity": "common",
+    "traits": [
+     "magical",
+     "trap"
+    ],
+    "stealth": 21,
+    "description": "A hall's four walls become fluid and elastic when a creature reaches the hall's midpoint.",
+    "disable": "DC 28 Thievery (trained) to stabilize each wall, or Dispel Magic (4th rank; counteract DC 26) to counteract each wall",
+    "ac": 0,
+    "saves": {
+     "fortitude": 0,
+     "reflex": 0,
+     "will": 0
+    },
+    "hardness": 0,
+    "hp": {
+     "max": 0,
+     "current": 0,
+     "temp": 0
+    },
+    "immunities": [],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Lose Form ↺",
+      "desc": "(occult) **Trigger** A creature reaches the hall's midpoint\n\n**Effect** The hall's walls lose their rigidity, becoming fluid and elastic. The hall becomes difficult terrain, and each creature in the hall is knocked prone unless they succeed at a DC 26 Reflex save. The trap then rolls initiative."
+     }
+    ],
+    "routine": "(4 actions) This trap loses 1 action each round for each wall that has been disabled. Each wall uses 1 action to slam back and forth rapidly, pummeling one creature in the hall with a wall Strike. On a hit, the target is additionally knocked prone. The walls distribute the attacks as evenly as possible among creatures in the hall, and the Strikes don't apply the trap's multiple attack penalty.",
+    "reset": "The trap resets after 1 hour."
+   }
+  },
+  {
+   "id": "pf2e-orc-books.preset.hazard.darkside-mirror",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Darkside Mirror",
+   "summary": "Complex hazard 14. magical, mechanical, trap. Stealth DC 34.",
+   "cite": "Dark Archive (Remastered) — Hazards: Darkside Mirror",
+   "tags": [
+    "hazard",
+    "complex"
+   ],
+   "fields": {
+    "level": 14,
+    "complexity": "complex",
+    "rarity": "common",
+    "traits": [
+     "magical",
+     "mechanical",
+     "trap"
+    ],
+    "stealth": 24,
+    "stealthNote": "(master) to notice it isn't a regular mirror",
+    "description": "A magic mirror replaces characters with malicious mirror duplicates from another dimension.",
+    "disable": "DC 34 Thievery (legendary) to retrieve a creature from the other dimension within 10 minutes of the switch (possible only if their mirror duplicate is dead), DC 39 Thievery (master) to permanently disable the mirror once all mirror duplicates are dead, or Dispel Magic (7th rank; counteract DC 32) to counteract the mirror for 1 minute and prevent additional replacements during that time.",
+    "ac": 34,
+    "saves": {
+     "fortitude": 25,
+     "reflex": 20,
+     "will": 0
+    },
+    "hardness": 1,
+    "hp": {
+     "max": 4,
+     "current": 4,
+     "temp": 0
+    },
+    "hpNote": "The mirror can't be damaged while any mirror duplicate is alive",
+    "immunities": [],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Reflection of Malice ↺",
+      "desc": "(arcane, teleportation) **Trigger** A creature is reflected in the mirror\n\n**Effect** The mirror absorbs the creature, replacing it with a malicious mirror duplicate (DC 34 Reflex to avoid being absorbed into the mirror), and rolls initiative."
+     }
+    ],
+    "routine": "(1 action) The mirror absorbs another reflected creature and replaces it with a mirror duplicate. A mirror duplicate attacks on their own initiative, using the same statistics as the original creature, but they hate all other non-duplicate creatures. A mirror duplicate can spend 3 actions in contact with the mirror to return to their original dimension and release the duplicated creature.",
+    "reset": "The mirror is always ready to absorb creatures into the other dimension. Ten minutes after a creature is sucked into the mirror, if an ally doesn't rescue the creature, it reaches the other dimension. In the mirror dimension, it counts as a mirror duplicate. These dimensions are alternate realities, not planes, so even spells like Interplanar Teleportcan't reach them."
+   }
+  },
+  {
+   "id": "pf2e-orc-books.preset.hazard.disorienting-illusions",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Disorienting Illusions",
+   "summary": "Simple hazard 1. illusion, magical, trap, visual. Stealth DC 20.",
+   "cite": "Dark Archive (Remastered) — Hazards: Disorienting Illusions",
+   "tags": [
+    "hazard",
+    "simple"
+   ],
+   "fields": {
+    "level": 1,
+    "complexity": "simple",
+    "rarity": "common",
+    "traits": [
+     "illusion",
+     "magical",
+     "trap",
+     "visual"
+    ],
+    "stealth": 10,
+    "description": "Illusions cloaking this chamber cause its walls and all its contents to appear tilted, irregular, and in motion.",
+    "disable": "DC 17 Crafting (trained) to calculate the room's dimensions despite the illusions, or Dispel Magic (1st rank; counteract DC 17) to counteract the illusions",
+    "ac": 0,
+    "saves": {
+     "fortitude": 0,
+     "reflex": 0,
+     "will": 0
+    },
+    "hardness": 0,
+    "hp": {
+     "max": 0,
+     "current": 0,
+     "temp": 0
+    },
+    "immunities": [],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Disorient ↺",
+      "desc": "(arcane, illusion, mental, visual) **Trigger** A creature enters the room\n\n**Effect** Illusions cause the appearance of the room and the objects inside it to constantly warp, shift, bend, and distort for 1 minute. Each creature in the room while it's distorting must attempt a DC 17 Perception check.\n\n**Critical Success** The creature disbelieves the illusions and is unaffected.\n\n**Success** The creature disbelieves the illusions but still sees them. It treats the room as difficult terrain.\n\n**Failure** The creature is fooled by the illusions. It treats the room as difficult terrain and becomes Sickened 1. As long as it remains in the room, it can't reduce its sickened value below 1.\n\n**Critical Failure** As failure, but each time the creature Archive attempts a move action, it must succeed at a DC 5 flat or they lose the action, and on a critical failure, it also falls prone."
+     }
+    ],
+    "reset": "The trap resets after 1 minute."
+   }
+  },
+  {
+   "id": "pf2e-orc-books.preset.hazard.distortion-mirror",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Distortion Mirror",
+   "summary": "Simple hazard 14. magical, trap. Stealth DC 38.",
+   "cite": "Dark Archive (Remastered) — Hazards: Distortion Mirror",
+   "tags": [
+    "hazard",
+    "simple"
+   ],
+   "fields": {
+    "level": 14,
+    "complexity": "simple",
+    "rarity": "common",
+    "traits": [
+     "magical",
+     "trap"
+    ],
+    "stealth": 28,
+    "stealthNote": "0 to notice the mirror",
+    "description": "Fun-house mirrors distort a viewer's reflection, painfully reshaping their body to match what appears in the reflected images.",
+    "disable": "DC 38 Thievery (master) to deface the mirror's pane, or Dispel Magic (7th rank; counteract DC 36) to dispel the mirror or counteract the transformation",
+    "ac": 33,
+    "saves": {
+     "fortitude": 28,
+     "reflex": 22,
+     "will": 0
+    },
+    "hardness": 24,
+    "hp": {
+     "max": 90,
+     "current": 90,
+     "temp": 0
+    },
+    "immunities": [],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Painful Transformation ↺",
+      "desc": "(attack) **Trigger** A creature is reflected in the mirror\n\n**Effect** The triggering creature's body is painfully squished, stretched, and distorted to match their reflection. The creature takes 6d10 + 30 force damage and must attempt a DC 39 Fortitude save.\n\n**Critical Success** The target is unaffected.\n\n**Success** The target takes half damage and is Clumsy 1 and Enfeebled 1 for 1 round.\n\n**Failure** The target takes full damage and is Clumsy 2 and Enfeebled 2 for 4 rounds.\n\n**Critical Failure** The target takes double damage and is clumsy 2 and enfeebled 2 for 1 minute. As long as the creature is clumsy or enfeebled, it additionally takes a –10-foot status penalty to its Speeds.\n\nWhen the effects of this trap end, the triggering creature's transformation ends, and its body reverts to its natural form."
+     }
+    ],
+    "reset": "The trap resets after 1 day."
+   }
+  },
+  {
+   "id": "pf2e-orc-books.preset.hazard.entrapping-chair",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Entrapping Chair",
+   "summary": "Simple hazard 5. mechanical, trap. Stealth DC 26.",
+   "cite": "Dark Archive (Remastered) — Hazards: Entrapping Chair",
+   "tags": [
+    "hazard",
+    "simple"
+   ],
+   "fields": {
+    "level": 5,
+    "complexity": "simple",
+    "rarity": "common",
+    "traits": [
+     "mechanical",
+     "trap"
+    ],
+    "stealth": 16,
+    "stealthNote": "(0 to notice the chair)",
+    "description": "A chair on concealed tracks surges forward, knocking a creature into the chair's seat and trapping them in place with clamping armrests.",
+    "disable": "DC 23 Thievery (expert) to disrupt the tracks",
+    "ac": 22,
+    "saves": {
+     "fortitude": 15,
+     "reflex": 9,
+     "will": 0
+    },
+    "hardness": 14,
+    "hp": {
+     "max": 54,
+     "current": 54,
+     "temp": 0
+    },
+    "immunities": [],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Take a Seat! ↺",
+      "desc": "**Trigger** A creature steps on the track\n\n**Effect** The chair rockets forward along the track and slams into the triggering creature, dealing 3d8 + 15 bludgeoning damage. A creature who succeeds at a DC 22 Reflex save takes no damage and moves out of the chair's path into a random adjacent square not containing the track. A creature who fails this saving throw is knocked into the chair's seat and captured by the armrests, becoming grabbed (restrained on a critical failure; Escape)."
+     }
+    ],
+    "reset": "The trap resets automatically over 2 rounds if the chair is unoccupied."
+   }
+  },
+  {
+   "id": "pf2e-orc-books.preset.hazard.exhaling-portal",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Exhaling Portal",
+   "summary": "Complex hazard 9. magical, trap. Stealth DC 33.",
+   "cite": "Dark Archive (Remastered) — Hazards: Exhaling Portal",
+   "tags": [
+    "hazard",
+    "complex"
+   ],
+   "fields": {
+    "level": 9,
+    "complexity": "complex",
+    "rarity": "common",
+    "traits": [
+     "magical",
+     "trap"
+    ],
+    "stealth": 23,
+    "description": "Magic runes carved into a doorframe connect a door to the Plane of Air when opened, blowing creatures down the connecting hall.",
+    "disable": "DC 30 Thievery (expert) twice to scratch out the runes, or Dispel Magic (5th rank; counteract DC 30) to counteract the planar runes; DC 32 Athletics to shut the door if it's open (using Athletics only stops the trap, it doesn't fully disable it)",
+    "ac": 0,
+    "saves": {
+     "fortitude": 0,
+     "reflex": 0,
+     "will": 0
+    },
+    "hardness": 0,
+    "hp": {
+     "max": 0,
+     "current": 0,
+     "temp": 0
+    },
+    "immunities": [],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Gust ↺",
+      "desc": "(air) **Trigger** A creature opens the door\n\n**Effect** The hall is buffeted by powerful winds for as long as the door remains open. A creature must succeed at a DC 32 Athletics check to move toward the door. A creature who fails at this check is pushed back 5 feet and falls prone.\n\nAdditionally, the triggering creature is blasted by a powerful gust of wind and must attempt a DC 32 Fortitude save. The trap then rolls initiative.\n\n**Critical Success** The creature is unaffected.\n\n**Success** The creature is pushed back 5 feet.\n\n**Failure** The creature is pushed back 10 feet.\n\n**Critical Failure** The creature is pushed back 10 feet and knocked prone."
+     }
+    ],
+    "routine": "(1 action) The trap uses 1 action to blow powerful winds down the hall. Each creature in the hall must attempt a DC 32 Fortitude save with the same results as Gust. If this forced movement would cause a creature to collide with a solid object or fall downstairs or out a window, that creature takes an additional 2d10 + 11 bludgeoning damage (or 20 bludgeoning damage due to a fall).",
+    "reset": "The trap resets when the door is shut."
+   }
+  },
+  {
+   "id": "pf2e-orc-books.preset.hazard.false-floor",
+   "entityType": "pf2e-orc.hazard",
+   "name": "False Floor",
+   "summary": "Simple hazard 3. illusion, magical, trap. Stealth DC 23.",
+   "cite": "Dark Archive (Remastered) — Hazards: False Floor",
+   "tags": [
+    "hazard",
+    "simple"
+   ],
+   "fields": {
+    "level": 3,
+    "complexity": "simple",
+    "rarity": "common",
+    "traits": [
+     "illusion",
+     "magical",
+     "trap"
+    ],
+    "stealth": 13,
+    "stealthNote": "(trained; or 0 if the illusory floor is dispelled)",
+    "description": "The floor in this chamber is an illusion, which conceals a 40-foot drop to the true floor below. Additionally, the area beneath the floor is magically silenced-no sound is audible within nor does sound leave this space.",
+    "disable": "Succeeding on a DC 21 Perception check against the Stealth DC of 21 (including the check to find the trap) disbelieves the illusory floor, or Dispel Magic (2nd rank; counteract DC 18) to dispel the illusory floor; *dispel magic* (2nd rank; counteract DC 20) to dispel the magical silence",
+    "ac": 0,
+    "saves": {
+     "fortitude": 0,
+     "reflex": 0,
+     "will": 0
+    },
+    "hardness": 0,
+    "hp": {
+     "max": 0,
+     "current": 0,
+     "temp": 0
+    },
+    "immunities": [],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Drop ↺",
+      "desc": "**Trigger** A creature walks onto the illusory floor\n\n**Effect** The triggering creature falls through the illusory floor and takes falling damage (typically 20 bludgeoning damage). That creature can use the Grab an Edge reaction to avoid falling. The DC to Climb the walls or Grab An Edge is 20."
+     }
+    ],
+    "reset": "The trap resets after 1 round."
+   }
+  },
+  {
+   "id": "pf2e-orc-books.preset.hazard.false-step-floor",
+   "entityType": "pf2e-orc.hazard",
+   "name": "False Step Floor",
+   "summary": "Simple hazard 6. magical, teleportation, trap. Stealth DC 25.",
+   "cite": "Dark Archive (Remastered) — Hazards: False Step Floor",
+   "tags": [
+    "hazard",
+    "simple"
+   ],
+   "fields": {
+    "level": 6,
+    "complexity": "simple",
+    "rarity": "common",
+    "traits": [
+     "magical",
+     "teleportation",
+     "trap"
+    ],
+    "stealth": 15,
+    "description": "Each time a creature enters the room, it slips through the floor, tumbles through an interdimensional void, and falls back into the room through the ceiling, landing on the floor.",
+    "disable": "DC 28 Thievery (trained) to disrupt the magical energy, or DC 27 Arcana or DC 27 Occultism (trained) to realign the magical energy",
+    "ac": 0,
+    "saves": {
+     "fortitude": 0,
+     "reflex": 0,
+     "will": 0
+    },
+    "hardness": 0,
+    "hp": {
+     "max": 0,
+     "current": 0,
+     "temp": 0
+    },
+    "immunities": [],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "False Step ↺",
+      "desc": "(arcane, teleportation) **Trigger** A creature enters the room and steps onto the floor\n\n**Effect** The creature slips through the floor; it tumbles through an interdimensional void before falling back into the room through the ceiling and landing on the floor. The triggering creature takes 40 bludgeoning damage from the fall. That creature can try to Grab An Edge to avoid falling."
+     }
+    ],
+    "reset": "The trap resets after 1 round."
+   }
+  },
+  {
+   "id": "pf2e-orc-books.preset.hazard.insistent-privacy-fence",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Insistent Privacy Fence",
+   "summary": "Simple hazard 8. electricity, mechanical, trap. Stealth DC 40.",
+   "cite": "Guns & Gears (Remastered) — Hazards: Insistent Privacy Fence",
+   "tags": [
+    "hazard",
+    "simple"
+   ],
+   "fields": {
+    "level": 8,
+    "complexity": "simple",
+    "rarity": "rare",
+    "traits": [
+     "electricity",
+     "mechanical",
+     "trap"
+    ],
+    "stealth": 30,
+    "stealthNote": "(expert)",
+    "disable": "DC 28 Thievery (expert) to carefully disconnect the coil from the fence or DC 30 Crafting (master) to jury-rig a grounding device to nullify the shock",
+    "ac": 25,
+    "saves": {
+     "fortitude": 20,
+     "reflex": 14,
+     "will": 0
+    },
+    "hardness": 15,
+    "hp": {
+     "max": 60,
+     "current": 60,
+     "temp": 0
+    },
+    "immunities": [],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Shock ↺",
+      "desc": "**Trigger** A creature touches the fence directly or with a tool or weapon\n\n**Effect** The fence deals 7d12 electricity damage to the triggering creature (DC 26 basic Reflex save)."
+     }
+    ],
+    "reset": "The trap deactivates and resets after 1 minute."
+   }
+  },
+  {
+   "id": "pf2e-orc-books.preset.hazard.lightnings-dance",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Lightning's Dance",
+   "summary": "Complex hazard 11. kaiju, mythic, primal. Stealth DC 20.",
+   "cite": "War of Immortals — Hazards: Lightning's Dance",
+   "tags": [
+    "hazard",
+    "complex"
+   ],
+   "fields": {
+    "level": 11,
+    "complexity": "complex",
+    "rarity": "rare",
+    "traits": [
+     "kaiju",
+     "mythic",
+     "primal"
+    ],
+    "stealth": 10,
+    "stealthNote": "(expert) or DC 33 Perception (master) to notice sparks dancing around normally non-conductive surfaces",
+    "disable": "DC 35 Crafting (master) to fashion a makeshift lightning rod, DC 33 Nature (expert) to dissipate the electrical charge harmlessly into the air.",
+    "ac": 0,
+    "saves": {
+     "fortitude": 0,
+     "reflex": 0,
+     "will": 0
+    },
+    "hardness": 0,
+    "hp": {
+     "max": 0,
+     "current": 0,
+     "temp": 0
+    },
+    "immunities": [],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Static Shock ↺",
+      "desc": "(electricity) **Trigger** A creature approaches within 10 feet of the hazard's center\n\n**Effect** Electricity wells up from the ground and nearby material. Each creature in the hazard's area must attempt a DC 33 Fortitude save, and the hazard then rolls initiative. A character wearing metal armor or wielding a metal shield or weapon of at least 1 Bulk treats the result of their saving throw as one step worse.\n\n**Critical Success** The creature is unaffected.\n\n**Success** The creature is Clumsy 1 for 1 round.\n\n**Failure** The creature is Clumsy 2 for 2 rounds.\n\n**Critical Failure** The creature is clumsy 2 for 4 rounds and Stunned 1 for 1 round."
+     }
+    ],
+    "routine": "(2 actions) Bolts of lightning flash out. The hazard makes two lightning bolt Strikes at two different creatures within 120 feet of the hazard's center. If only one creature is in range, the hazard makes only one Strike."
+   }
+  },
+  {
+   "id": "pf2e-orc-books.preset.hazard.malevolent-mannequins",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Malevolent Mannequins",
+   "summary": "Complex hazard 14. clockwork, haunt, mechanical. Stealth DC 37.",
+   "cite": "Guns & Gears (Remastered) — Hazards: Malevolent Mannequins",
+   "tags": [
+    "hazard",
+    "complex"
+   ],
+   "fields": {
+    "level": 14,
+    "complexity": "complex",
+    "rarity": "uncommon",
+    "traits": [
+     "clockwork",
+     "haunt",
+     "mechanical"
+    ],
+    "stealth": 27,
+    "description": "A host of violent spirits possess three clockwork mannequins, and each lashes out at any creatures that dare walk near.",
+    "disable": "Thievery (master) to jam a mannequin's clockwork mechanisms or a Religion (expert) twice to exorcise a spirit from a mannequin.",
+    "ac": 35,
+    "saves": {
+     "fortitude": 26,
+     "reflex": 28,
+     "will": 0
+    },
+    "hardness": 10,
+    "hp": {
+     "max": 70,
+     "current": 70,
+     "temp": 0
+    },
+    "immunities": [
+     "critical hits",
+     "precision"
+    ],
+    "weaknesses": [
+     "electricity 20"
+    ],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Awaken ↺",
+      "desc": "**Trigger** A creature comes within 30 feet of a mannequin\n\n**Effect** The mannequins all lurch towards the triggering creature, Striding up to 50 feet, then roll initiative."
+     }
+    ],
+    "routine": "(9 actions) Each of the mannequins uses three of the haunt's actions on each turn, and the haunt loses three actions each turn for every disabled or destroyed mannequin. Each mannequin uses its first action to Stride up to 50 feet and its remaining two actions to make clockwork fist Strikes. Each has its own separate multiple attack penalty.",
+    "reset": "The haunt deactivates after it has no target creatures and resets, usually over the course of 1 round, as the mannequins move to their original positions. If a mannequin is more than 150 feet from its original position, the haunt takes longer to reset, as the mannequin moves back 150 feet each round."
+   }
+  },
+  {
+   "id": "pf2e-orc-books.preset.hazard.mirror-door",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Mirror Door",
+   "summary": "Simple hazard -1. magical, trap, visual. Stealth DC 15.",
+   "cite": "Dark Archive (Remastered) — Hazards: Mirror Door",
+   "tags": [
+    "hazard",
+    "simple"
+   ],
+   "fields": {
+    "level": -1,
+    "complexity": "simple",
+    "rarity": "common",
+    "traits": [
+     "magical",
+     "trap",
+     "visual"
+    ],
+    "stealth": 5,
+    "description": "The reflection of a wall shows a phantom door where none exists. This door can only be manipulated while viewed through the mirror's reflection.",
+    "disable": "DC 18 Thievery to open the door while viewing the reflection",
+    "ac": 0,
+    "saves": {
+     "fortitude": 0,
+     "reflex": 0,
+     "will": 0
+    },
+    "hardness": 0,
+    "hp": {
+     "max": 0,
+     "current": 0,
+     "temp": 0
+    },
+    "immunities": [],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Appear ↺",
+      "desc": "(arcane, illusion) **Trigger** A creature views the wall through a mirror's reflection\n\n**Effect** A door appears in the mirror's reflection of the wall. The triggering creature can open and manipulate this door only as long as they view it through the mirror and only by succeeding at a DC 18 Thievery check to disable the trap."
+     }
+    ],
+    "reset": "The trap resets when the door is shut."
+   }
+  },
+  {
+   "id": "pf2e-orc-books.preset.hazard.primal-chaos-aura",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Primal Chaos Aura",
+   "summary": "Complex hazard 5. kaiju, magical, mythic, primal. Stealth DC 11.",
+   "cite": "War of Immortals — Hazards: Primal Chaos Aura",
+   "tags": [
+    "hazard",
+    "complex"
+   ],
+   "fields": {
+    "level": 5,
+    "complexity": "complex",
+    "rarity": "rare",
+    "traits": [
+     "kaiju",
+     "magical",
+     "mythic",
+     "primal"
+    ],
+    "stealth": 1,
+    "stealthNote": "or DC 26 Perception to feel a tingle in the air and smell a rich, chlorophyll-green fragrance with no discernible source",
+    "disable": "DC 22 Nature to negate the aura's effect for 1 round by temporarily drawing off the excess power and channeling it back into surrounding terrain, DC 26 Nature (expert) to completely disperse the lingering magic",
+    "ac": 0,
+    "saves": {
+     "fortitude": 0,
+     "reflex": 0,
+     "will": 0
+    },
+    "hardness": 0,
+    "hp": {
+     "max": 0,
+     "current": 0,
+     "temp": 0
+    },
+    "immunities": [],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Wild Surge ↺",
+      "desc": "(primal, vitality) **Trigger** A character casts a primal spell within the hazard's area\n\n**Effect** Each living creature in the area gains 2d4 temporary Hit Points that last for 1 minute as life energy wells up around them, and the hazard rolls initiative."
+     }
+    ],
+    "routine": "(2 actions) On its initiative, the hazard gathers primal energy from the surroundings as its first action. Roll 1d6 to determine the type of energy gathered. The hazard uses its second action to replicate the associated spell (2nd rank, DC 23, spell attack modifier +15). The spell's target or targets are chosen randomly from creatures in the area. Any spell cast by this hazard is primal. **1** air (Gust of Wind); **2** electricity (Thunderstrike); **3** fire (Blazing Bolt); **4** poison (Spider Sting); **5** sonic (Shatter); **6** water (Hydraulic Push)"
+   }
+  },
+  {
+   "id": "pf2e-orc-books.preset.hazard.reflected-desires",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Reflected Desires",
+   "summary": "Simple hazard 1. magical, mental, trap, visual. Stealth DC 17.",
+   "cite": "Dark Archive (Remastered) — Hazards: Reflected Desires",
+   "tags": [
+    "hazard",
+    "simple"
+   ],
+   "fields": {
+    "level": 1,
+    "complexity": "simple",
+    "rarity": "common",
+    "traits": [
+     "magical",
+     "mental",
+     "trap",
+     "visual"
+    ],
+    "stealth": 7,
+    "stealthNote": "(0 to notice the mirror)",
+    "description": "This mirror reflects the viewer's deepest desires.",
+    "disable": "DC 18 Thievery (trained) to shroud the mirror without looking at it, or DC 17 Occultism (trained) to erect mental barriers",
+    "ac": 13,
+    "saves": {
+     "fortitude": 10,
+     "reflex": 4,
+     "will": 0
+    },
+    "hardness": 6,
+    "hp": {
+     "max": 24,
+     "current": 24,
+     "temp": 0
+    },
+    "immunities": [],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Tempt ↺",
+      "desc": "(mental, occult, visual) **Trigger** A creature looks into the mirror\n\n**Effect** The triggering creature sees themselves enjoying their deepest desires in the mirror's reflection, becoming fascinated (DC 20 Will negates). This fascination ends automatically when the mirror is broken or covered up."
+     }
+    ],
+    "reset": "The trap resets after 1 round."
+   }
+  },
+  {
+   "id": "pf2e-orc-books.preset.hazard.shrinking-hall",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Shrinking Hall",
+   "summary": "Simple hazard 2. mechanical, trap. Stealth DC 18.",
+   "cite": "Dark Archive (Remastered) — Hazards: Shrinking Hall",
+   "tags": [
+    "hazard",
+    "simple"
+   ],
+   "fields": {
+    "level": 2,
+    "complexity": "simple",
+    "rarity": "common",
+    "traits": [
+     "mechanical",
+     "trap"
+    ],
+    "stealth": 8,
+    "description": "This hallway is designed to shrink as creatures traverse it, making access to the door at the hall's end impossible.",
+    "disable": "DC 21 Thievery (trained) to jam the scales built into the floor",
+    "ac": 0,
+    "saves": {
+     "fortitude": 0,
+     "reflex": 0,
+     "will": 0
+    },
+    "hardness": 0,
+    "hp": {
+     "max": 0,
+     "current": 0,
+     "temp": 0
+    },
+    "immunities": [],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Shrink ↺",
+      "desc": "**Trigger** 100 pounds of weight or more is placed on the hallway's floor\n\n**Effect** The hall's last 40 feet of walls angle inward, causing the hall to shrink and contract down, reaching 6 inches in height and width at the hall's far end and completely blocking access to the hall's exit door for anything but a Tiny creature Squeezing."
+     }
+    ],
+    "reset": "After 10 minutes without weight being placed on this hall's floor, this trap resets, returning the hall to its original size."
+   }
+  },
+  {
+   "id": "pf2e-orc-books.preset.hazard.shrouded-assailant",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Shrouded Assailant",
+   "summary": "Complex hazard 17. haunt. Stealth DC 43.",
+   "cite": "Dark Archive (Remastered) — Hazards: Shrouded Assailant",
+   "tags": [
+    "hazard",
+    "complex"
+   ],
+   "fields": {
+    "level": 17,
+    "complexity": "complex",
+    "rarity": "common",
+    "traits": [
+     "haunt"
+    ],
+    "stealth": 33,
+    "description": "A spirit steps out of a covered mirror, pulling off and becoming shrouded in the cloth, which reveals the mirror. The shrouded figure attacks the living until the cloth is yanked off, which banishes the formless spirit.",
+    "disable": "DC 43 Thievery (master) to steal the cloth before the spirit manifests, or DC 47 Athletics to pull the cloth off the spirit after it manifests",
+    "ac": 40,
+    "saves": {
+     "fortitude": 26,
+     "reflex": 32,
+     "will": 35
+    },
+    "hardness": 0,
+    "hp": {
+     "max": 230,
+     "current": 230,
+     "temp": 0
+    },
+    "hpNote": "spirit",
+    "immunities": [],
+    "weaknesses": [],
+    "resistances": [
+     "all damage 20"
+    ],
+    "actions": [
+     {
+      "name": "Don Shroud ↺",
+      "desc": "(occult) **Trigger** A creature enters the area\n\n**Effect** The spirit steps out of the mirror, wearing the cloth as a shroud and revealing the mirror. The triggering creature is Frightened 3 unless they succeed at a DC 38 Will save. The haunt then rolls initiative."
+     }
+    ],
+    "routine": "(3 actions) The spirit uses 3 actions to Step, fly 60 feet, or Strike, in any order. On a successful Strike the spirit's target is Frightened 1, and on a critical success, the target is Frightened 2.",
+    "reset": "The haunt is reset when the mirror is covered again."
+   }
+  },
+  {
+   "id": "pf2e-orc-books.preset.hazard.shuffling-hall",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Shuffling Hall",
+   "summary": "Simple hazard -1. mechanical, trap. Stealth DC 15.",
+   "cite": "Dark Archive (Remastered) — Hazards: Shuffling Hall",
+   "tags": [
+    "hazard",
+    "simple"
+   ],
+   "fields": {
+    "level": -1,
+    "complexity": "simple",
+    "rarity": "common",
+    "traits": [
+     "mechanical",
+     "trap"
+    ],
+    "stealth": 5,
+    "description": "Four pressure plates along this mirrored hall rotate vertically when stepped on, sending a creature on the pressure plate tipping into an adjacent featureless room while simultaneously replacing the pressure plate and walls in the hall. Each pressure plate dumps creatures into a different room.",
+    "disable": "DC 12 Thievery to deactivate one pressure plate",
+    "ac": 18,
+    "saves": {
+     "fortitude": 2,
+     "reflex": 5,
+     "will": 0
+    },
+    "hardness": 4,
+    "hp": {
+     "max": 12,
+     "current": 12,
+     "temp": 0
+    },
+    "immunities": [],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Flip ↺",
+      "desc": "**Trigger** A creature steps on a pressure plate\n\n**Effect** The floor and adjoining wall rotate up and over on a central axle, tipping the triggering creature into an adjacent featureless room and simultaneously replacing the pressure plate and wall with another set on the same axle. The triggering creature is pushed into an adjoining room, takes 1d8 bludgeoning damage, and lands prone. A creature who succeeds at a DC 19 Reflex save takes no damage and rolls out of the way of the trap, returning to the space they were in before stepping on the pressure plate."
+     }
+    ],
+    "reset": "The trap resets after 1 round."
+   }
+  },
+  {
+   "id": "pf2e-orc-books.preset.hazard.sigil-of-deepest-fears",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Sigil of Deepest Fears",
+   "summary": "Simple hazard 17. magical, trap. Stealth DC 43.",
+   "cite": "Dark Archive (Remastered) — Hazards: Sigil of Deepest Fears",
+   "tags": [
+    "hazard",
+    "simple"
+   ],
+   "fields": {
+    "level": 17,
+    "complexity": "simple",
+    "rarity": "common",
+    "traits": [
+     "magical",
+     "trap"
+    ],
+    "stealth": 33,
+    "stealthNote": "(master)",
+    "description": "An arcane sigil forces creatures to confront their greatest fear.",
+    "disable": "DC 43 Thievery (master) to drain the sigil's power harmlessly, or Dispel Magic (9th rank; counteract DC 42) to counteract the sigil",
+    "ac": 0,
+    "saves": {
+     "fortitude": 0,
+     "reflex": 0,
+     "will": 0
+    },
+    "hardness": 0,
+    "hp": {
+     "max": 0,
+     "current": 0,
+     "temp": 0
+    },
+    "immunities": [],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Face Your Fear ↺",
+      "desc": "(arcane, death, emotion, fear, illusion, mental) **Trigger** A creature moves within 10 feet of the sigil\n\n**Effect** All creatures within 120 feet of the sigil are affected by a Phantasmagoria spell (DC 40 Will save)."
+     }
+    ],
+    "reset": "The trap resets after 1 day."
+   }
+  },
+  {
+   "id": "pf2e-orc-books.preset.hazard.spirit-window",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Spirit Window",
+   "summary": "Simple hazard 20. haunt. Stealth DC 51.",
+   "cite": "Dark Archive (Remastered) — Hazards: Spirit Window",
+   "tags": [
+    "hazard",
+    "simple"
+   ],
+   "fields": {
+    "level": 20,
+    "complexity": "simple",
+    "rarity": "common",
+    "traits": [
+     "haunt"
+    ],
+    "stealth": 41,
+    "description": "Spirits trapped inside a haunted window harm those who touch the window.",
+    "disable": "DC 48 Occultism (legendary) to free the spirits from the mirror, or DC 48 Religion (legendary) to banish the spirits",
+    "ac": 45,
+    "saves": {
+     "fortitude": 36,
+     "reflex": 30,
+     "will": 0
+    },
+    "hardness": 35,
+    "hp": {
+     "max": 132,
+     "current": 132,
+     "temp": 0
+    },
+    "hpNote": "Hardness 35 (window)",
+    "immunities": [],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Siphon Soul ↺",
+      "desc": "(occult, void) **Trigger** A creature touches the window\n\n**Effect** The triggering creature takes 8d10+44 void damage with a DC 42 basic Will save as the window attempts to steal their soul. If this damage would kill the target, the target's soul is trapped inside the window with the effects of Seize Soul."
+     }
+    ],
+    "reset": "The trap resets after 1 round."
+   }
+  },
+  {
+   "id": "pf2e-orc-books.preset.hazard.sportlebore",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Sportlebore",
+   "summary": "Simple hazard 7. animal, environmental. Stealth DC 26.",
+   "cite": "Monster Core 2 — Hazards: Sportlebore",
+   "tags": [
+    "hazard",
+    "simple"
+   ],
+   "fields": {
+    "level": 7,
+    "complexity": "simple",
+    "rarity": "common",
+    "traits": [
+     "animal",
+     "environmental"
+    ],
+    "stealth": 16,
+    "stealthNote": "(expert)",
+    "description": "A sportlebore hides amid the victuals on a plate of food or within a pack of trail rations.",
+    "disable": "A creature that notices the sportlebore can remove it from the food it is hidden within automatically as an Interact action.",
+    "ac": 0,
+    "saves": {
+     "fortitude": 0,
+     "reflex": 0,
+     "will": 0
+    },
+    "hardness": 0,
+    "hp": {
+     "max": 10,
+     "current": 10,
+     "temp": 0
+    },
+    "immunities": [],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Mimic Food ↺",
+      "desc": "**Trigger** A creature eats food the sportlebore is hidden within\n\n**Effect** The sportlebore rapidly multiplies in the host's stomach, exposing the host to sportlebore infestation"
+     },
+     {
+      "name": "Sportlebore Infestation",
+      "desc": "(disease) **Saving Throw** DC 22 basic Fortitude\n\n**Stage 1** carrier with no ill effect (1 day)\n\n**Stage 2** Enfeebled 1 (1 hour)\n\n**Stage 3** Enfeebled 2 (1 hour)\n\n**Stage 4** 4d6 bludgeoning damage (DC 25 basic Fortitude save) as the host painfully vomits out a sportlebore swarm and returns to stage 1"
+     }
+    ]
+   }
+  },
+  {
+   "id": "pf2e-orc-books.preset.hazard.steam-vents",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Steam Vents",
+   "summary": "Simple hazard 4. mechanical, trap, steam. Stealth DC 22.",
+   "cite": "Guns & Gears (Remastered) — Hazards: Steam Vents",
+   "tags": [
+    "hazard",
+    "simple"
+   ],
+   "fields": {
+    "level": 4,
+    "complexity": "simple",
+    "rarity": "uncommon",
+    "traits": [
+     "mechanical",
+     "trap",
+     "steam"
+    ],
+    "stealth": 12,
+    "stealthNote": "(trained)",
+    "description": "Large pressurized pipes connected to a trip wire are rigged to release a blast of steam on trespassers.",
+    "disable": "Thievery (trained) to disconnect the trip wire or a Crafting (expert) to carefully reduce the pressure and prevent the blast",
+    "ac": 20,
+    "saves": {
+     "fortitude": 12,
+     "reflex": 12,
+     "will": 0
+    },
+    "hardness": 12,
+    "hp": {
+     "max": 48,
+     "current": 48,
+     "temp": 0
+    },
+    "immunities": [],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Steam Blast ↺",
+      "desc": "**Trigger** The trip wire is pulled or severed, typically because a creature walked through the square with the trip wire\n\n**Effect** Steam erupts from the pipes, dealing 3d6 bludgeoning damage and 3d6 fire damage (DC 24 basic Reflex) to all creatures within 15 feet. Creatures that critically fail their save are knocked prone."
+     }
+    ]
+   }
+  },
+  {
+   "id": "pf2e-orc-books.preset.hazard.thalassophobia-pool",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Thalassophobia Pool",
+   "summary": "Complex hazard 12. magical, trap. Stealth DC 25.",
+   "cite": "Dark Archive (Remastered) — Hazards: Thalassophobia Pool",
+   "tags": [
+    "hazard",
+    "complex"
+   ],
+   "fields": {
+    "level": 12,
+    "complexity": "complex",
+    "rarity": "common",
+    "traits": [
+     "magical",
+     "trap"
+    ],
+    "stealth": 15,
+    "stealthNote": "(trained)",
+    "description": "The pool sucks in creatures that fall into it, making them sink into its endless depths.",
+    "disable": "DC 32 Diplomacy (master) to quell the fear and calm the pool or DC 35 Intimidation to give the pool something worse to fear; three successes required.",
+    "ac": 0,
+    "saves": {
+     "fortitude": 0,
+     "reflex": 0,
+     "will": 0
+    },
+    "hardness": 0,
+    "hp": {
+     "max": 0,
+     "current": 0,
+     "temp": 0
+    },
+    "immunities": [],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Downpour ↺",
+      "desc": "**Trigger** A creature falls into the pool\n\n**Effect** More water pours forth from the chalice. Creatures in the pool become Clumsy 1, and they can't decrease their clumsy condition so long as they remain in the pool. The trap then rolls initiative."
+     }
+    ],
+    "routine": "(3 actions) Water from the chalice increases the depth of the water by 10 feet for each action. Each time this happens, creatures in the pool are pushed 10 feet down and take 1d6 bludgeoning damage. As the pool has no bottom, creatures in it can fall down indefinitely; they must Swim up to avoid drowning, but the water is especially choppy, so the Athletics DC is DC 25 Athletics. The pool never overflows. Each successful check to Disable reduces the pool's actions by 1, and once the pool is completely Disabled, the water becomes still and the Athletics DC to Swim becomes DC 10 Athletics.",
+    "reset": "The trap resets once there are no moving creatures in it."
+   }
+  },
+  {
+   "id": "pf2e-orc-books.preset.hazard.trump-of-the-oliphaunt",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Trump of the Oliphaunt",
+   "summary": "Complex hazard 12. environmental, mythic. Stealth DC 25.",
+   "cite": "War of Immortals — Hazards: Trump of the Oliphaunt",
+   "tags": [
+    "hazard",
+    "complex"
+   ],
+   "fields": {
+    "level": 12,
+    "complexity": "complex",
+    "rarity": "rare",
+    "traits": [
+     "environmental",
+     "mythic"
+    ],
+    "stealth": 15,
+    "stealthNote": "(master) to notice the tension of a low vibration forming in the area from the imminent release of the Oliphaunt's trumpet",
+    "description": "An overwhelming trumpeting sound vibrates and suffuses the area, causing everything to slow.",
+    "disable": "Four successes are needed to strengthen the area enough against the instability to end the hazard.",
+    "ac": 0,
+    "saves": {
+     "fortitude": 0,
+     "reflex": 0,
+     "will": 0
+    },
+    "hardness": 0,
+    "hp": {
+     "max": 0,
+     "current": 0,
+     "temp": 0
+    },
+    "immunities": [],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Bone-Shattering Rhythms ↺",
+      "desc": "**Trigger** Three or more characters enter the area of planar instability\n\n**Effect** Pent-up magical energy from another world begins to release in waves of overwhelming sound. The hazard rolls initiative."
+     }
+    ],
+    "routine": "(1 action) Each creature in the area must attempt a DC 36 Fortitude save. A creature with the slowed condition from this hazard takes a –2 circumstance penalty on further saves against this effect.\n\n**Critical Success** The creature is unaffected.\n\n**Success** The creature takes 2d6+6 sonic damage and is deafened for 1 round.\n\n**Failure** The creature takes 4d6+13 sonic damage and is Slowed 1 for 2 rounds.\n\n**Critical Failure** The creature takes 8d6+26 sonic damage and is Slowed 2 for 2 rounds.",
+    "reset": "The area becomes unstable again after 24 hours."
+   }
+  },
+  {
+   "id": "pf2e-orc-books.preset.hazard.wind-surge",
+   "entityType": "pf2e-orc.hazard",
+   "name": "Wind Surge",
+   "summary": "Simple hazard 7. kaiju, mythic, primal. Stealth DC 27.",
+   "cite": "War of Immortals — Hazards: Wind Surge",
+   "tags": [
+    "hazard",
+    "simple"
+   ],
+   "fields": {
+    "level": 7,
+    "complexity": "simple",
+    "rarity": "rare",
+    "traits": [
+     "kaiju",
+     "mythic",
+     "primal"
+    ],
+    "stealth": 17,
+    "stealthNote": "(expert) to note stirrings in the wind",
+    "disable": "DC 27 Athletics (expert) or DC 27 Acrobatics (expert) to crouch and contort out of the wind's way (disables the hazard for only yourself), DC 30 Survival to point out a safe space from the winds for up to 3 creatures.",
+    "ac": 0,
+    "saves": {
+     "fortitude": 0,
+     "reflex": 0,
+     "will": 0
+    },
+    "hardness": 0,
+    "hp": {
+     "max": 0,
+     "current": 0,
+     "temp": 0
+    },
+    "immunities": [],
+    "weaknesses": [],
+    "resistances": [],
+    "actions": [
+     {
+      "name": "Hurricane Flyby ↺",
+      "desc": "(air) **Effect** Supernaturally powerful winds batter the area in a line that is 120 feet long and 30 feet wide and 30 feet tall. Each creature in the line must attempt a DC 29 Reflex save. Moving above ground against the direction of the line is greater difficult terrain for 1 minute.\n\n**Critical Success** The creature is pushed 10 feet along the line.\n\n**Success** The creature takes 5d6 bludgeoning damage and is pushed 15 along the line.\n\n**Failure** The creatures takes 10d6 bludgeoning damage, is pushed 30 feet along the line, and is knocked prone.\n\n**Critical Failure** The creature takes 20d6 bludgeoning damage, is pushed 45 feet along the line, is knocked prone, and is Stunned 1 for 1 round.\n\nIf the line overlaps a body of water, the winds cause massive waves that deal 6d6 bludgeoning damage to creatures in the water or within 15 feet of the waterline (DC 29 basic Reflex save). On a critical failure, a creature is also swept 30 feet away from the waterline and 15 feet beneath the water's surface."
+     }
+    ]
+   }
+  }
+ ]
+}

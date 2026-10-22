@@ -291,7 +291,8 @@ function inline(html: string): string {
     return t ? `*${t}*` : "";
   });
   s = stripTags(s);
-  return decodeEntities(s).replace(/\s+/g, " ").trim();
+  // A doubly escaped non-breaking space ("&amp;nbsp;") decodes to "&nbsp;": one more pass for it.
+  return decodeEntities(s).replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim();
 }
 
 function tableToMarkdown(html: string): string {
