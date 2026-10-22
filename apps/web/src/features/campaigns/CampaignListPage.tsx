@@ -1,11 +1,16 @@
-/** `/`: campaigns on this device, create, import, delete. */
+/**
+ * `/`: campaigns on this device, create, import, delete. Everything that
+ * belongs to one game system (starting a campaign, its demos, its campaigns)
+ * sits in that system's section, so the page stays readable as modules are
+ * added; import and module management stay at the top.
+ */
 import { listCampaigns, type CampaignIndexEntry } from "@campaign-forge/core";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
-import { Badge, Button, Card, Dialog, EmptyState, IconButton, pushToast, useTheme } from "../../components/ui";
+import { Badge, Button, Card, Dialog, IconButton, pushToast, useTheme } from "../../components/ui";
 import { errorMessage, relativeTime } from "../../lib/format";
-import { loadModuleById, moduleEntry } from "../../modules/registry";
+import { loadModuleById, moduleEntry, type ModuleEntry } from "../../modules/registry";
 import { useModuleList } from "../../modules/useModules";
 import { ModuleLicenseView } from "../modules/ModuleLicense";
 import { ModulesDialog } from "../modules/ModulesDialog";
@@ -16,13 +21,37 @@ import type { DemoKind } from "../../state/tableActions";
 const actions = () => import("../../state/actions");
 const demoActions = () => import("../../state/tableActions");
 
+interface DemoLink {
+  kind: DemoKind;
+  label: string;
+  title: string;
+  testId: string;
+}
+
+/** The demo campaigns, by the module they are built with. */
+const DEMOS: Record<string, DemoLink[]> = {
+  alien: [
+    { kind: "campaign", label: "Skyfire Down demo", title: "Campaign play with a job, a crew and a running infection", testId: "load-demo" },
+    { kind: "cinematic", label: "Cold Harbor Relay demo", title: "A cinematic one-shot made with the guided builder, with a live site map", testId: "load-demo-cinematic" },
+  ],
+  "dnd5e-srd": [{ kind: "dnd5e", label: "Thornwick Crossing demo", title: "A one-shot with four level 3 characters and a goblin ambush", testId: "load-demo-5e" }],
+  "pf2e-orc": [{ kind: "pf2e", label: "Hollowmere demo", title: "A one-shot with the ORC core rules, four level 1 characters and kobold oil thieves", testId: "load-demo-pf2e" }],
+};
+
+/** One line under a module's name: ruleset, play modes, and where it came from. */
+function moduleLine(m: ModuleEntry): string {
+  const parts = [m.ruleset && m.ruleset !== m.name ? m.ruleset : undefined, m.modes.map((x) => x.name).join(", "), m.source === "imported" ? "imported" : undefined];
+  return parts.filter(Boolean).join(" · ");
+}
+
 export function CampaignListPage() {
   const [campaigns, setCampaigns] = useState<CampaignIndexEntry[] | undefined>();
   const [error, setError] = useState<string | undefined>();
-  const [creating, setCreating] = useState(false);
+  // false: closed; otherwise the module to preselect ("" for the first one)
+  const [creating, setCreating] = useState<string | false>(false);
   const [modulesOpen, setModulesOpen] = useState(false);
-  // re-render when imported packs are read, so campaign badges name them
-  useModuleList();
+  // re-render when imported packs are read, so their sections and campaigns show
+  const modules = useModuleList();
   const [toDelete, setToDelete] = useState<CampaignIndexEntry | undefined>();
   const [busy, setBusy] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -77,7 +106,7 @@ export function CampaignListPage() {
         <IconButton variant="ghost" label={resolved === "dark" ? "Switch to light theme" : "Switch to dark theme"} icon={resolved === "dark" ? "☀" : "☾"} onClick={toggle} />
       </header>
       <div className="app-row">
-        <Button variant="primary" onClick={() => setCreating(true)}>
+        <Button variant="primary" onClick={() => setCreating("")}>
           New campaign
         </Button>
         <Button onClick={() => fileRef.current?.click()} disabled={busy}>
@@ -86,47 +115,37 @@ export function CampaignListPage() {
         <Button onClick={() => setModulesOpen(true)} data-testid="open-modules">
           Game modules…
         </Button>
-        <Button onClick={() => void onLoadDemo("campaign")} disabled={busy} data-testid="load-demo" title="Skyfire Down: campaign play with a job, a crew and a running infection">
-          Load demo campaign
-        </Button>
-        <Button onClick={() => void onLoadDemo("cinematic")} disabled={busy} data-testid="load-demo-cinematic" title="Cold Harbor: a cinematic one-shot made with the guided builder, with a live site map">
-          Load cinematic demo
-        </Button>
-        <Button onClick={() => void onLoadDemo("dnd5e")} disabled={busy} data-testid="load-demo-5e" title="Thornwick Crossing: a fifth edition one-shot with the SRD 5.1 module, four level 3 characters and a goblin ambush">
-          Load 5e demo
-        </Button>
-        <Button onClick={() => void onLoadDemo("pf2e")} disabled={busy} data-testid="load-demo-pf2e" title="Hollowmere: a second edition remaster one-shot with the ORC core rules, four level 1 characters and kobold oil thieves">
-          Load PF2e demo
-        </Button>
         <input ref={fileRef} type="file" accept=".zip,application/zip" hidden aria-label="Import bundle file" onChange={(e) => void onImport(e.target.files?.[0])} />
       </div>
       {error && <p className="cf-field__error">{error}</p>}
       {campaigns === undefined ? (
         <p className="cf-muted">Loading…</p>
-      ) : campaigns.length === 0 ? (
-        <EmptyState title="No campaigns yet" text="Create one to start preparing: pick a game module and a play mode." action={<Button variant="primary" onClick={() => setCreating(true)}>Create a campaign</Button>} />
       ) : (
-        <ul className="app-cards" aria-label="Campaigns">
-          {campaigns.map((c) => (
-            <li key={c.id}>
-              <Card
-                title={
-                  <Link to="/c/$campaignId/home" params={{ campaignId: c.id }} className="app-link-strong">
-                    {c.name}
-                  </Link>
-                }
-                subtitle={`Updated ${relativeTime(c.updated)}`}
-                actions={<IconButton variant="ghost" label={`Delete ${c.name}`} icon="×" onClick={() => setToDelete(c)} />}
-              >
-                <Badge>{moduleEntry(c.moduleId)?.name ?? c.moduleId}</Badge>
-              </Card>
-            </li>
+        <>
+          {campaigns.length === 0 && <p className="cf-muted">No campaigns yet. Start one in a game system below, or load a demo to look around.</p>}
+          {modules.map((m) => (
+            <ModuleSection
+              key={m.id}
+              module={m}
+              campaigns={campaigns.filter((c) => c.moduleId === m.id)}
+              busy={busy}
+              onStart={() => setCreating(m.id)}
+              onDemo={(kind) => void onLoadDemo(kind)}
+              onDelete={setToDelete}
+            />
           ))}
-        </ul>
+          {(() => {
+            // campaigns whose module is not on this device (an imported pack that was removed)
+            const known = new Set(modules.map((m) => m.id));
+            const other = campaigns.filter((c) => !known.has(c.moduleId));
+            return other.length > 0 ? <CampaignSection title="Other game modules" subtitle="The game module these campaigns use is not on this device." campaigns={other} onDelete={setToDelete} /> : null;
+          })()}
+        </>
       )}
       <ModulesDialog open={modulesOpen} onClose={() => setModulesOpen(false)} />
       <CreateCampaignDialog
-        open={creating}
+        open={creating !== false}
+        initialModuleId={creating || undefined}
         onClose={() => setCreating(false)}
         onCreated={(id) => {
           setCreating(false);
@@ -162,7 +181,86 @@ export function CampaignListPage() {
   );
 }
 
-function CreateCampaignDialog({ open, onClose, onCreated }: { open: boolean; onClose: () => void; onCreated: (id: string) => void }) {
+/** One game system: start a campaign, its demos, and the campaigns that use it. */
+function ModuleSection({
+  module: m,
+  campaigns,
+  busy,
+  onStart,
+  onDemo,
+  onDelete,
+}: {
+  module: ModuleEntry;
+  campaigns: CampaignIndexEntry[];
+  busy: boolean;
+  onStart: () => void;
+  onDemo: (kind: DemoKind) => void;
+  onDelete: (c: CampaignIndexEntry) => void;
+}) {
+  const demos = DEMOS[m.id] ?? [];
+  const headingId = `module-${m.id}`;
+  return (
+    <section className="app-module-group" aria-labelledby={headingId} data-module={m.id} data-testid="module-group">
+      <header className="app-module-group__header">
+        <div>
+          <h2 id={headingId} className="app-subtitle app-module-group__title">
+            {m.name} {m.dev && <Badge>fixture</Badge>}
+          </h2>
+          <p className="cf-muted app-module-group__line">{moduleLine(m)}</p>
+        </div>
+        <div className="app-row">
+          <Button onClick={onStart} aria-label={`Start a ${m.name} campaign`}>
+            Start a campaign
+          </Button>
+          {demos.map((d) => (
+            <Button key={d.kind} variant="ghost" onClick={() => onDemo(d.kind)} disabled={busy} data-testid={d.testId} title={d.title}>
+              ▶ {d.label}
+            </Button>
+          ))}
+        </div>
+      </header>
+      {campaigns.length > 0 ? <CampaignCards campaigns={campaigns} label={`${m.name} campaigns`} onDelete={onDelete} /> : <p className="cf-muted app-module-group__empty">No campaigns with this module yet.</p>}
+    </section>
+  );
+}
+
+function CampaignSection({ title, subtitle, campaigns, onDelete }: { title: string; subtitle: string; campaigns: CampaignIndexEntry[]; onDelete: (c: CampaignIndexEntry) => void }) {
+  return (
+    <section className="app-module-group" aria-label={title} data-testid="module-group">
+      <header className="app-module-group__header">
+        <div>
+          <h2 className="app-subtitle app-module-group__title">{title}</h2>
+          <p className="cf-muted app-module-group__line">{subtitle}</p>
+        </div>
+      </header>
+      <CampaignCards campaigns={campaigns} label={title} onDelete={onDelete} />
+    </section>
+  );
+}
+
+function CampaignCards({ campaigns, label, onDelete }: { campaigns: CampaignIndexEntry[]; label: string; onDelete: (c: CampaignIndexEntry) => void }) {
+  return (
+    <ul className="app-cards" aria-label={label}>
+      {campaigns.map((c) => (
+        <li key={c.id}>
+          <Card
+            title={
+              <Link to="/c/$campaignId/home" params={{ campaignId: c.id }} className="app-link-strong">
+                {c.name}
+              </Link>
+            }
+            subtitle={`Updated ${relativeTime(c.updated)}`}
+            actions={<IconButton variant="ghost" label={`Delete ${c.name}`} icon="×" onClick={() => onDelete(c)} />}
+          >
+            {!moduleEntry(c.moduleId) && <Badge>{c.moduleId}</Badge>}
+          </Card>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function CreateCampaignDialog({ open, initialModuleId, onClose, onCreated }: { open: boolean; initialModuleId?: string | undefined; onClose: () => void; onCreated: (id: string) => void }) {
   const modules = useModuleList();
   const [modulesOpen, setModulesOpen] = useState(false);
   const [name, setName] = useState("");
@@ -173,6 +271,14 @@ function CreateCampaignDialog({ open, onClose, onCreated }: { open: boolean; onC
   const [busy, setBusy] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const entry = moduleEntry(moduleId);
+
+  // opened from a module's section: preselect that module and its default mode
+  useEffect(() => {
+    if (open && initialModuleId && moduleEntry(initialModuleId)) {
+      setModuleId(initialModuleId);
+      setMode(moduleEntry(initialModuleId)?.defaultMode ?? "");
+    }
+  }, [open, initialModuleId]);
 
   // The dialog shows the static manifest; the module itself starts loading in
   // the background so "Create campaign" is quick, and a failed load shows here.

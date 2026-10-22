@@ -24,7 +24,7 @@ test("cinematic demo: guided builder review, site map views, live map and infect
 
   // 1. load the cinematic demo from the campaign list
   await page.goto("/");
-  await expect(page.getByTestId("load-demo")).toHaveText("Load demo campaign");
+  await expect(page.getByTestId("load-demo")).toHaveText("▶ Skyfire Down demo");
   await page.getByTestId("load-demo-cinematic").click();
   await expect(page).toHaveURL(/\/c\/[0-9A-Z]{26}\/home$/, { timeout: 30_000 });
   await expect(page.getByTestId("campaign-name")).toHaveText("Cold Harbor Relay");
