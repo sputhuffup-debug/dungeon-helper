@@ -241,6 +241,7 @@ export function packToModule(input: ModulePack): GameModule {
   if (pack.styleNotes) module.styleNotes = pack.styleNotes;
   if (pack.playGuides) module.playGuides = pack.playGuides;
   if (pack.primer) module.primer = pack.primer;
+  if (pack.d20Combat) module.d20Combat = pack.d20Combat;
   return module;
 }
 
@@ -275,6 +276,7 @@ export function packPathOf(pack: ModulePack, where: string): { path: string; ite
   if (kind.startsWith("manifest")) return { path: "$.manifest" };
   if (kind === "dice") return { path: "$.dice" };
   if (kind === "calendar") return { path: "$.calendar" };
+  if (kind === "d20Combat") return { path: "$.d20Combat" };
   return { path: "$" };
 }
 

@@ -341,6 +341,23 @@ export function semanticChecks(doc: PackCollections & Record<string, unknown>, p
   });
 }
 
+/** JSONLogic in a pack's d20Combat: combatant rules, condition effect modifiers, 0 hit point rule values. */
+function d20CombatLogicChecks(def: Record<string, unknown>, w: Walker): void {
+  const at = (...rest: Array<string | number>) => ["d20Combat", ...rest];
+  asList(def.combatants).forEach((c, i) => {
+    checkLogicAt(c.ac, at("combatants", i, "ac"), w);
+    checkLogicAt((c.hp as Record<string, unknown> | undefined)?.max, at("combatants", i, "hp", "max"), w);
+    checkLogicAt(c.speed, at("combatants", i, "speed"), w);
+    for (const [k, rule] of Object.entries((c.saves as Record<string, unknown> | undefined) ?? {})) checkLogicAt(rule, at("combatants", i, "saves", k), w);
+  });
+  asList(def.conditions).forEach((c, i) => asList(c.effects).forEach((e, j) => checkLogicAt(e.modifier, at("conditions", i, "effects", j, "modifier"), w)));
+  asList(def.zeroHp).forEach((z, i) => {
+    checkLogicAt(z.when, at("zeroHp", i, "when"), w);
+    asList(z.conditions).forEach((c, j) => checkLogicAt(c.value, at("zeroHp", i, "conditions", j, "value"), w));
+    asList((z.recover as Record<string, unknown> | undefined)?.conditions).forEach((c, j) => checkLogicAt(c.value, at("zeroHp", i, "recover", "conditions", j, "value"), w));
+  });
+}
+
 export function walkerFor(issues: PackIssue[], doc: unknown, source: PackIssueSource = "pack"): Walker {
   const push = (severity: PackIssue["severity"], segments: Array<string | number>, message: string) => {
     const issue: PackIssue = { severity, path: jsonPath(segments), message, source };
@@ -382,6 +399,7 @@ export function validatePack(input: unknown): PackValidation<ModulePack> {
   } catch (e) {
     w.error(["dice"], (e as Error).message);
   }
+  if (p.d20Combat) d20CombatLogicChecks(p.d20Combat as unknown as Record<string, unknown>, w);
   if (!p.manifest.modes.some((m) => m.id === p.manifest.defaultMode)) w.error(["manifest", "defaultMode"], `"${p.manifest.defaultMode}" is not one of the declared modes`);
   return finishValidation(issues, p);
 }

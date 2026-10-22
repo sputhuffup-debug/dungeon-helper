@@ -1504,6 +1504,297 @@ export interface CombatDef {
 }
 
 // ---------------------------------------------------------------------------
+// Declarative d20 combat: attacks, defences and conditions (data packs too)
+// ---------------------------------------------------------------------------
+
+/** A melee or ranged weapon (or natural) attack, or a spell attack. */
+export type D20AttackKind = "melee" | "ranged" | "spell";
+
+/** Rolls and numbers a condition effect can change. `dc`: the DCs the creature sets (its save DCs); `damage`: its damage rolls. */
+export type D20EffectTarget = "attack" | "check" | "save" | "ac" | "dc" | "damage";
+
+/** What a condition stops a creature doing. Shown on its card; the app does not enforce it. */
+export type D20Restriction = "act" | "react" | "move" | "speak" | "see" | "hear";
+
+/** How damage of one type is changed: immune (none), resistant (halved, or less by `value`), vulnerable (doubled), weak (more by `value`). */
+export type D20DamageModifierKind = "immunity" | "resistance" | "vulnerability" | "weakness";
+
+/** One part of an attack's damage: "2d6+3 slashing". */
+export interface D20DamagePart {
+  /** Dice expression, e.g. "2d6+3", "1d8" or a flat "5". */
+  dice: string;
+  /** Damage type id from `D20CombatDef.damageTypes` (absent: untyped). */
+  type?: string;
+  /** Dealt later, as a condition (`D20CombatDef.persistentCondition`), not now (e.g. persistent fire). */
+  persistent?: boolean;
+}
+
+/** One entry of a combatant's damage modifiers: "fire resistance 5", "immune to poison", "cold iron weakness 3". */
+export interface D20DamageModifier {
+  kind: D20DamageModifierKind;
+  /** A damage type id, or a group of `D20CombatDef.damageGroups` (e.g. "physical", "all"). */
+  type: string;
+  /** Resistance or weakness amount; a resistance without one halves the damage. */
+  value?: number;
+  /** Attack traits that get past it (e.g. "magical", "silver", "adamantine"). */
+  except?: string[];
+  /** The stat block's own words, shown with it. */
+  note?: string;
+}
+
+/** When a condition an attack or the GM applies ends. Several may be combined (e.g. 10 rounds, or a save each turn). */
+export interface D20DurationSpec {
+  /** Lasts this many rounds, ending at the end of the affected creature's turn. */
+  rounds?: number;
+  /** Until the end of the source's next turn. */
+  sourceNextTurn?: boolean;
+  /** A save at the end of each of the affected creature's turns ends it. `dc` defaults to the effect's DC. */
+  save?: { save: string; dc?: number };
+}
+
+/** A condition an attack, a save effect or a rule applies. */
+export interface D20ConditionApply {
+  id: string;
+  /** For valued conditions (frightened 2). */
+  value?: number;
+  duration?: D20DurationSpec;
+}
+
+/** An effect that asks for a save: a breath weapon, a poisoned bite, a spell. */
+export interface D20SaveEffect {
+  /** The DC: a number, or JSONLogic over the attacker's `{ fields, computed }`. */
+  dc: number | JsonLogicRule;
+  /** Save id from `D20CombatDef.saves`. */
+  save: string;
+  damage?: D20DamagePart[] | string;
+  /**
+   * Half damage on a success. With four degrees of success (`rules.save: "degrees"`)
+   * the module's `rules.halfSave` multipliers apply instead (a basic save).
+   * Without it a success takes no damage.
+   */
+  half?: boolean;
+  /** Conditions on a failed save (and a critical failure). */
+  conditions?: D20ConditionApply[];
+  /** Conditions on a critical failure only (four degrees), instead of `conditions`. */
+  criticalConditions?: D20ConditionApply[];
+  /** What else happens, in the module's words. */
+  text?: string;
+}
+
+/**
+ * An attack as the app reads it from an entity (a monster's structured
+ * action, a stat block's Strike, a sheet's attack row), normalized: the
+ * attack roll bonus, damage parts with types, reach and range, traits, an
+ * optional save effect.
+ */
+export interface D20Attack {
+  name: string;
+  kind: D20AttackKind;
+  /** Attack roll modifier; absent when the attack makes no attack roll (a save effect only). */
+  bonus?: number;
+  damage: D20DamagePart[];
+  /** Damage text the parser could not read as dice (e.g. "plus Grab"), kept for the GM. */
+  damageNote?: string;
+  reach?: string;
+  range?: string;
+  /** Lower case trait words (e.g. "agile", "finesse", "magical"); also matched against damage modifiers' `except`. */
+  traits: string[];
+  save?: D20SaveEffect;
+  /** Conditions applied on a hit (e.g. grabbed). */
+  onHit?: D20ConditionApply[];
+  /** Other effects, in the module's words. */
+  effect?: string;
+  /** Ability the attack is based on (for conditions limited to abilities); defaults to `D20CombatDef.attackAbilities[kind]`. */
+  ability?: string;
+  /** Where it was read from: the entity field path and item index. */
+  source: { path: string; index: number };
+}
+
+/**
+ * Where an entity type keeps its attacks: a list field whose items follow
+ * the attack convention `{ name, kind, bonus, damage, damageType, traits,
+ * reach, range, save, onHit, effect, ability }`, or name their keys in `keys`.
+ * `bonus` may be a number, text such as "+5" or "+7 [+3/−1]" (the first
+ * number counts), or JSONLogic over `{ fields, computed, item }`; `damage`
+ * a list of parts or text such as "1d8 + 3 slashing plus 1d6 fire".
+ */
+export interface D20AttackSource {
+  path: string;
+  /** Kind for items that do not say (default "melee"). */
+  kind?: D20AttackKind;
+  /** Item keys that differ from the convention, e.g. `{ "kind": "type" }`. */
+  keys?: Partial<Record<"name" | "kind" | "bonus" | "damage" | "damageType" | "traits" | "reach" | "range" | "save" | "onHit" | "effect" | "ability", string>>;
+}
+
+/** How the app reads one or more entity types as combatants. Rules are JSONLogic over `{ fields, computed }`. */
+export interface D20CombatantDef {
+  entityTypes: string[];
+  /** Armor Class. */
+  ac: JsonLogicRule;
+  /**
+   * Hit points: `current` (a stored field the table writes) or `damage` (a
+   * stored damage-taken field; current is max − damage), `max` (JSONLogic)
+   * and an optional temporary hit point field.
+   */
+  hp: { current?: string; damage?: string; max: JsonLogicRule; temp?: string };
+  /** Save id -> save bonus. */
+  saves?: Record<string, JsonLogicRule>;
+  /** Field holding a list of `D20DamageModifier`. */
+  damageModifiers?: string;
+  /** Field holding the condition ids (or names) the creature is immune to. */
+  conditionImmunities?: string;
+  attacks?: D20AttackSource[];
+  /** Speed shown on the card (a number or text), with conditions' speed changes. */
+  speed?: JsonLogicRule;
+}
+
+/** A saving throw the module knows. */
+export interface D20SaveDef {
+  id: string;
+  name: string;
+  /** Ability it is based on, for conditions limited to abilities. */
+  ability?: string;
+  /** The roll id the sheet's skills widget uses for it (e.g. "dexterity-save"), so a save rolled from a sheet counts as a save. */
+  roll?: string;
+}
+
+/**
+ * One mechanical effect of a condition, applied automatically while it is
+ * active. Everything a condition does that this vocabulary cannot say stays
+ * in its `summary` and `manual` list.
+ */
+export interface D20ConditionEffect {
+  /** What it changes: the creature's own rolls and numbers, or (with `against`) attacks made against it. */
+  on: D20EffectTarget[];
+  /** Added to the roll or number: a number, or JSONLogic over `{ value }` (the condition's value), e.g. `{ "*": [-1, { "var": "value" }] }`. */
+  modifier?: number | JsonLogicRule;
+  /** Bonus type (e.g. "status", "circumstance"): with `rules.stacking: "typed"` only the worst penalty and best bonus of a type count. */
+  bonusType?: string;
+  /** Roll two d20 and keep the higher (advantage) or lower (disadvantage). */
+  roll?: "advantage" | "disadvantage";
+  /** The roll fails automatically (e.g. Strength and Dexterity saves while paralyzed). */
+  autoFail?: boolean;
+  /** Only rolls and numbers based on these abilities (and saves or attacks that use them). */
+  abilities?: string[];
+  /** Only these saves. */
+  saves?: string[];
+  /** Only these kinds of attack. */
+  attackKinds?: D20AttackKind[];
+  /** Only from this condition value up (e.g. exhaustion levels). */
+  minValue?: number;
+  /** Applies to attack rolls made against the creature (the attacker's roll), not its own. */
+  against?: boolean;
+  /** With `against`: only when the attacker is close (`D20CombatDef.closeLabel`), or only when it is not. */
+  range?: "close" | "far";
+  /** With `against`: a hit is a critical hit. */
+  critOnHit?: boolean;
+}
+
+/** A condition: its helper text, what the app applies by itself, and how it ends. */
+export interface D20ConditionDef {
+  id: string;
+  name: string;
+  /** Helper text: what the condition does, in plain words (short). */
+  summary: string;
+  page?: PageRef;
+  cite?: CiteRef;
+  original?: boolean;
+  /** Rule card with the full text. */
+  rule?: string;
+  /** The condition has a value (frightened 2, exhaustion 3). */
+  valued?: boolean;
+  /** Highest value. */
+  max?: number;
+  /**
+   * The value lives in this sheet field (a number; 0 means absent), when the
+   * entity's type has it, so sheet trackers and the combat panel agree.
+   */
+  field?: string;
+  effects?: D20ConditionEffect[];
+  /** Conditions it brings with it (paralyzed: incapacitated). */
+  implies?: string[];
+  /** Things it stops the creature doing (shown on the card). */
+  cannot?: D20Restriction[];
+  /** Speed while it lasts: set to a number, multiplied, or changed by an amount. */
+  speed?: { set?: number; multiply?: number; add?: number; minValue?: number };
+  /** The value drops by this much at the end of each of the affected creature's turns (frightened). */
+  endOfTurnDecrement?: number;
+  /** Per-value notes (e.g. exhaustion levels), cumulative: every level up to the value applies. */
+  levels?: Array<{ value: number; summary: string }>;
+  /** What the app does not apply by itself, in short phrases (shown as "not automated"). */
+  manual?: string[];
+}
+
+/** What happens to a combatant whose hit points drop to 0 (the first rule whose `when` matches applies). */
+export interface D20ZeroHpRule {
+  /** JSONLogic over `{ kind, type, fields, computed }` (`kind`: the entity type's core kind); absent: every combatant. */
+  when?: JsonLogicRule;
+  /** Conditions applied; a value may be JSONLogic over `{ critical, conditions, fields, computed }` (`conditions`: condition id -> current value). */
+  conditions?: Array<{ id: string; value?: number | JsonLogicRule }>;
+  /** The creature is out of the fight (dead or destroyed) at 0 hit points. */
+  defeated?: boolean;
+  /** When hit points rise above 0 again: conditions removed, conditions added (value as above), fields set. */
+  recover?: { remove?: string[]; conditions?: Array<{ id: string; value?: number | JsonLogicRule }>; setFields?: Record<string, number | string | boolean> };
+  /** The rule in the module's words (what the GM still does by hand: death saves, recovery checks). */
+  text: string;
+  page?: PageRef;
+  cite?: CiteRef;
+}
+
+/** How attack rolls, critical hits and saves resolve. */
+export interface D20ResolutionRules {
+  /**
+   * `natural20Doubles`: a total at or above AC hits; a natural 20 (the dice
+   * engine's `critOn`) always hits and is a critical hit, a natural 1 always
+   * misses. `degrees`: four degrees of success against AC from the dice
+   * engine (`critMargin`, `naturalShift`); a critical success is a critical hit.
+   */
+  crit: "natural20Doubles" | "degrees";
+  /** A critical hit rolls the damage dice twice (`dice`) or doubles the total (`total`). */
+  critDamage: "dice" | "total";
+  /** Saves: `total` (at or above the DC succeeds) or `degrees` (four degrees from the dice engine). */
+  save: "total" | "degrees";
+  /** Damage multipliers for `half` save effects by outcome (default: success 0.5, failure 1). Halved damage rounds down. */
+  halfSave?: { criticalSuccess?: number; success: number; failure: number; criticalFailure?: number };
+  /** `typed` (default): bonuses and penalties with the same `bonusType` do not stack; untyped ones do. `all`: everything stacks. */
+  stacking?: "typed" | "all";
+  /** Order damage modifiers apply in (default immunity, resistance, vulnerability, weakness). */
+  damageOrder?: D20DamageModifierKind[];
+}
+
+/**
+ * Combat for d20 games, as data (a pack can declare it): where each
+ * combatant's AC, hit points, saves, damage modifiers and attacks live, how
+ * an attack roll and a save resolve, the conditions with their helper text
+ * and the effects the app applies by itself, and what happens at 0 hit points.
+ */
+export interface D20CombatDef {
+  /** Damage types (id and name), e.g. from the module's damage type list. */
+  damageTypes: Array<{ id: string; name: string }>;
+  /** Named groups of damage types for damage modifiers (e.g. `{ "physical": ["bludgeoning", "piercing", "slashing"] }`); "all" always means every type. */
+  damageGroups?: Record<string, string[]>;
+  saves: D20SaveDef[];
+  /** Ability a melee, ranged or spell attack is based on when the attack does not say. */
+  attackAbilities?: Partial<Record<D20AttackKind, string>>;
+  /** Skill roll id -> ability, for checks the sheet does not tie to an ability (stat blocks). */
+  skillAbilities?: Record<string, string>;
+  combatants: D20CombatantDef[];
+  rules: D20ResolutionRules;
+  conditions: D20ConditionDef[];
+  zeroHp?: D20ZeroHpRule[];
+  /** How the module says "close" for effects that care (default "within 5 feet"). */
+  closeLabel?: string;
+  /** Condition id a persistent damage part applies (e.g. "persistent-damage"). */
+  persistentCondition?: string;
+  /** Show each combatant's hit point state (unhurt, wounded, down; never numbers for creatures) on the player screen. Default false. */
+  playerHealth?: boolean;
+  /** Rule cards shown with the combat panel. */
+  ruleCards?: string[];
+  page?: PageRef;
+  cite?: CiteRef;
+}
+
+// ---------------------------------------------------------------------------
 // Money: the campaign ledger
 // ---------------------------------------------------------------------------
 
@@ -1948,6 +2239,8 @@ export interface GameModule {
   primer?: PrimerDef;
   /** Damage taken, creature turns and special attacks at the table. */
   combat?: CombatDef;
+  /** Declarative d20 combat: attacks, AC and saves, damage modifiers, conditions with helper text and effects. Packs can declare it. */
+  d20Combat?: D20CombatDef;
   /** Money: currency, ledger categories and one-click payouts. */
   ledger?: LedgerDef;
   /** The group's own vehicle (a ship), shown with the ledger and travel planner. */

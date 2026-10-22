@@ -29,6 +29,20 @@ import type {
 import type {
   CalendarDef,
   CoreEntityKind,
+  D20AttackKind,
+  D20AttackSource,
+  D20CombatantDef,
+  D20CombatDef,
+  D20ConditionApply,
+  D20ConditionDef,
+  D20ConditionEffect,
+  D20DamageModifierKind,
+  D20DurationSpec,
+  D20EffectTarget,
+  D20ResolutionRules,
+  D20Restriction,
+  D20SaveDef,
+  D20ZeroHpRule,
   EntityPreset,
   EntityTypeDef,
   JsonSchema,
@@ -132,6 +146,10 @@ const VISIBILITY = ["gm", "players", "some_players", "revealed"] as const satisf
 const TEMPLATE_KINDS = ["campaign", "adventure", "act", "scene", "session", "checklist"] as const satisfies readonly TemplateKind[];
 const TRACKER_SCOPES = ["character", "session", "scene", "encounter", "campaign"] as const satisfies readonly TrackerScope[];
 const ROLL_TONES = ["critical", "success", "partial", "failure", "fumble", "neutral"] as const satisfies readonly RollTone[];
+const D20_ATTACK_KINDS = ["melee", "ranged", "spell"] as const satisfies readonly D20AttackKind[];
+const D20_TARGETS = ["attack", "check", "save", "ac", "dc", "damage"] as const satisfies readonly D20EffectTarget[];
+const D20_RESTRICTIONS = ["act", "react", "move", "speak", "see", "hear"] as const satisfies readonly D20Restriction[];
+const D20_MODIFIER_KINDS = ["immunity", "resistance", "vulnerability", "weakness"] as const satisfies readonly D20DamageModifierKind[];
 const CHECKLIST_PHASES = ["prep", "play", "wrap"] as const satisfies readonly SessionChecklistPhase[];
 const CHECKLIST_EVENTS = [
   "scenes-planned", "log-written", "revealed", "prompts-answered", "summary-saved", "loose-ends-carried", "timeline-confirmed", "next-session-planned", "awards-given",
@@ -481,6 +499,126 @@ const definitions: Record<string, JsonSchema> = {
     ["id", "title", "prompt"],
   ),
   primer: object<PrimerDef>()({ sections: list(ref("primerSection"), { minItems: 1 }) }, ["sections"]),
+
+  // Declarative d20 combat
+  d20Duration: object<D20DurationSpec>()(
+    { rounds: int({ minimum: 1, maximum: 10000 }), sourceNextTurn: bool, save: object<NonNullable<D20DurationSpec["save"]>>()({ save: text, dc: int({ minimum: 1, maximum: 100 }) }, ["save"]) },
+    [],
+  ),
+  d20ConditionApply: object<D20ConditionApply>()({ id: text, value: int({ minimum: 0, maximum: 100 }), duration: ref("d20Duration") }, ["id"]),
+  d20AttackSource: object<D20AttackSource>()(
+    {
+      path: text,
+      kind: oneOfValues<D20AttackKind>()(D20_ATTACK_KINDS),
+      keys: {
+        type: "object",
+        properties: Object.fromEntries(["name", "kind", "bonus", "damage", "damageType", "traits", "reach", "range", "save", "onHit", "effect", "ability"].map((k) => [k, text])),
+        additionalProperties: false,
+        description: "Item keys that differ from the attack convention.",
+      },
+    },
+    ["path"],
+  ),
+  d20Combatant: object<D20CombatantDef>()(
+    {
+      entityTypes: list(ref("id"), { minItems: 1 }),
+      ac: logic,
+      hp: object<D20CombatantDef["hp"]>()({ current: text, damage: text, max: logic, temp: text }, ["max"]),
+      saves: { type: "object", additionalProperties: logic },
+      damageModifiers: text,
+      conditionImmunities: text,
+      attacks: list(ref("d20AttackSource")),
+      speed: logic,
+    },
+    ["entityTypes", "ac", "hp"],
+  ),
+  d20Save: object<D20SaveDef>()({ id: text, name: text, ability: text, roll: text }, ["id", "name"]),
+  d20Effect: object<D20ConditionEffect>()(
+    {
+      on: list(oneOfValues<D20EffectTarget>()(D20_TARGETS), { minItems: 1 }),
+      modifier: logic,
+      bonusType: text,
+      roll: { enum: ["advantage", "disadvantage"] },
+      autoFail: bool,
+      abilities: list(text),
+      saves: list(text),
+      attackKinds: list(oneOfValues<D20AttackKind>()(D20_ATTACK_KINDS)),
+      minValue: int({ minimum: 0, maximum: 100 }),
+      against: bool,
+      range: { enum: ["close", "far"] },
+      critOnHit: bool,
+    },
+    ["on"],
+  ),
+  d20Condition: object<D20ConditionDef>()(
+    {
+      id: str({ pattern: "^[a-z][a-z0-9-]*$" }),
+      name: text,
+      summary: text,
+      page: ref("page"),
+      cite: ref("cite"),
+      original: bool,
+      rule: ref("id"),
+      valued: bool,
+      max: int({ minimum: 1, maximum: 100 }),
+      field: text,
+      effects: list(ref("d20Effect")),
+      implies: list(text),
+      cannot: list(oneOfValues<D20Restriction>()(D20_RESTRICTIONS)),
+      speed: object<NonNullable<D20ConditionDef["speed"]>>()({ set: int({ minimum: 0 }), multiply: { type: "number", minimum: 0, maximum: 10 }, add: int(), minValue: int({ minimum: 0 }) }, []),
+      endOfTurnDecrement: int({ minimum: 1, maximum: 100 }),
+      levels: list(object<NonNullable<D20ConditionDef["levels"]>[number]>()({ value: int({ minimum: 1, maximum: 100 }), summary: text }, ["value", "summary"])),
+      manual: list(text),
+    },
+    ["id", "name", "summary"],
+  ),
+  d20RuleCondition: object<{ id: string; value?: unknown }>()({ id: text, value: logic }, ["id"]),
+  d20ZeroHp: object<D20ZeroHpRule>()(
+    {
+      when: logic,
+      conditions: list(ref("d20RuleCondition")),
+      defeated: bool,
+      recover: object<NonNullable<D20ZeroHpRule["recover"]>>()(
+        { remove: list(text), conditions: list(ref("d20RuleCondition")), setFields: { type: "object", additionalProperties: { type: ["number", "string", "boolean"] } } },
+        [],
+      ),
+      text: text,
+      page: ref("page"),
+      cite: ref("cite"),
+    },
+    ["text"],
+  ),
+  d20Rules: object<D20ResolutionRules>()(
+    {
+      crit: { enum: ["natural20Doubles", "degrees"] },
+      critDamage: { enum: ["dice", "total"] },
+      save: { enum: ["total", "degrees"] },
+      halfSave: object<NonNullable<D20ResolutionRules["halfSave"]>>()({ criticalSuccess: { type: "number", minimum: 0, maximum: 4 }, success: { type: "number", minimum: 0, maximum: 4 }, failure: { type: "number", minimum: 0, maximum: 4 }, criticalFailure: { type: "number", minimum: 0, maximum: 4 } }, ["success", "failure"]),
+      stacking: { enum: ["typed", "all"] },
+      damageOrder: list(oneOfValues<D20DamageModifierKind>()(D20_MODIFIER_KINDS), { uniqueItems: true }),
+    },
+    ["crit", "critDamage", "save"],
+  ),
+  d20Combat: object<D20CombatDef>()(
+    {
+      damageTypes: list(object<D20CombatDef["damageTypes"][number]>()({ id: text, name: text }, ["id", "name"])),
+      damageGroups: { type: "object", additionalProperties: list(text) },
+      saves: list(ref("d20Save")),
+      attackAbilities: object<NonNullable<D20CombatDef["attackAbilities"]>>()({ melee: text, ranged: text, spell: text }, []),
+      skillAbilities: { type: "object", additionalProperties: text },
+      combatants: list(ref("d20Combatant")),
+      rules: ref("d20Rules"),
+      conditions: list(ref("d20Condition")),
+      zeroHp: list(ref("d20ZeroHp")),
+      closeLabel: text,
+      persistentCondition: text,
+      playerHealth: bool,
+      ruleCards: list(ref("id")),
+      page: ref("page"),
+      cite: ref("cite"),
+    },
+    ["damageTypes", "saves", "combatants", "rules", "conditions"],
+  ),
   playGuide: object<PlayGuideDef>()(
     {
       id: ref("id"),
@@ -583,6 +721,7 @@ export const MODULE_PACK_SCHEMA: JsonSchema = {
       calendar: ref("calendar"),
       styleNotes: list(str()),
       primer: ref("primer"),
+      d20Combat: ref("d20Combat"),
       parts: list(str({ pattern: "^[A-Za-z0-9][A-Za-z0-9_.-]*\\.json$" }), { uniqueItems: true }),
       ...collections,
     },

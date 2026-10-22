@@ -6,12 +6,13 @@
  * procedures differ, because the contract's procedures are functions.
  *
  * Not in the pack format (they need code; write a TypeScript module):
- * combat, crewShip, travel, ledger, progression, mapGenerators,
+ * combat (the armor rule; declarative d20 combat is in: `d20Combat`), crewShip, travel, ledger, progression, mapGenerators,
  * adventureBuilders, narrativeFields, hooks, migrations and dice operations.
  */
 import type { DiceEngineConfig } from "../engines/types";
 import type {
   CalendarDef,
+  D20CombatDef,
   EntityPreset,
   EntityTypeDef,
   JsonLogicRule,
@@ -165,6 +166,8 @@ export interface ModulePack extends PackCollections {
   styleNotes?: string[];
   /** Prompts and starter text for the campaign primer (session 0). */
   primer?: PrimerDef;
+  /** Declarative d20 combat: attacks, defences, conditions with helper text and effects (main file only). */
+  d20Combat?: D20CombatDef;
   /**
    * Names of the part files that complete this pack (e.g. ["tables.json"]),
    * relative to this file. Every part must be present when the pack loads.

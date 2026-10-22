@@ -1884,6 +1884,714 @@
       ],
       "additionalProperties": false
     },
+    "d20Duration": {
+      "type": "object",
+      "properties": {
+        "rounds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000
+        },
+        "sourceNextTurn": {
+          "type": "boolean"
+        },
+        "save": {
+          "type": "object",
+          "properties": {
+            "save": {
+              "type": "string",
+              "minLength": 1
+            },
+            "dc": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          "required": [
+            "save"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "d20ConditionApply": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "value": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "duration": {
+          "$ref": "#/definitions/d20Duration"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "additionalProperties": false
+    },
+    "d20AttackSource": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "melee",
+            "ranged",
+            "spell"
+          ]
+        },
+        "keys": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "kind": {
+              "type": "string",
+              "minLength": 1
+            },
+            "bonus": {
+              "type": "string",
+              "minLength": 1
+            },
+            "damage": {
+              "type": "string",
+              "minLength": 1
+            },
+            "damageType": {
+              "type": "string",
+              "minLength": 1
+            },
+            "traits": {
+              "type": "string",
+              "minLength": 1
+            },
+            "reach": {
+              "type": "string",
+              "minLength": 1
+            },
+            "range": {
+              "type": "string",
+              "minLength": 1
+            },
+            "save": {
+              "type": "string",
+              "minLength": 1
+            },
+            "onHit": {
+              "type": "string",
+              "minLength": 1
+            },
+            "effect": {
+              "type": "string",
+              "minLength": 1
+            },
+            "ability": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false,
+          "description": "Item keys that differ from the attack convention."
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "additionalProperties": false
+    },
+    "d20Combatant": {
+      "type": "object",
+      "properties": {
+        "entityTypes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          },
+          "minItems": 1
+        },
+        "ac": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "hp": {
+          "type": "object",
+          "properties": {
+            "current": {
+              "type": "string",
+              "minLength": 1
+            },
+            "damage": {
+              "type": "string",
+              "minLength": 1
+            },
+            "max": {
+              "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+            },
+            "temp": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "max"
+          ],
+          "additionalProperties": false
+        },
+        "saves": {
+          "type": "object",
+          "additionalProperties": {
+            "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+          }
+        },
+        "damageModifiers": {
+          "type": "string",
+          "minLength": 1
+        },
+        "conditionImmunities": {
+          "type": "string",
+          "minLength": 1
+        },
+        "attacks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/d20AttackSource"
+          }
+        },
+        "speed": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        }
+      },
+      "required": [
+        "entityTypes",
+        "ac",
+        "hp"
+      ],
+      "additionalProperties": false
+    },
+    "d20Save": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ability": {
+          "type": "string",
+          "minLength": 1
+        },
+        "roll": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "d20Effect": {
+      "type": "object",
+      "properties": {
+        "on": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "attack",
+              "check",
+              "save",
+              "ac",
+              "dc",
+              "damage"
+            ]
+          },
+          "minItems": 1
+        },
+        "modifier": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "bonusType": {
+          "type": "string",
+          "minLength": 1
+        },
+        "roll": {
+          "enum": [
+            "advantage",
+            "disadvantage"
+          ]
+        },
+        "autoFail": {
+          "type": "boolean"
+        },
+        "abilities": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "saves": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "attackKinds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "melee",
+              "ranged",
+              "spell"
+            ]
+          }
+        },
+        "minValue": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "against": {
+          "type": "boolean"
+        },
+        "range": {
+          "enum": [
+            "close",
+            "far"
+          ]
+        },
+        "critOnHit": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "on"
+      ],
+      "additionalProperties": false
+    },
+    "d20Condition": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "page": {
+          "$ref": "#/definitions/page"
+        },
+        "cite": {
+          "$ref": "#/definitions/cite"
+        },
+        "original": {
+          "type": "boolean"
+        },
+        "rule": {
+          "$ref": "#/definitions/id"
+        },
+        "valued": {
+          "type": "boolean"
+        },
+        "max": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "field": {
+          "type": "string",
+          "minLength": 1
+        },
+        "effects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/d20Effect"
+          }
+        },
+        "implies": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "cannot": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "act",
+              "react",
+              "move",
+              "speak",
+              "see",
+              "hear"
+            ]
+          }
+        },
+        "speed": {
+          "type": "object",
+          "properties": {
+            "set": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "multiply": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 10
+            },
+            "add": {
+              "type": "integer"
+            },
+            "minValue": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false
+        },
+        "endOfTurnDecrement": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "levels": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 100
+              },
+              "summary": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "value",
+              "summary"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "manual": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "summary"
+      ],
+      "additionalProperties": false
+    },
+    "d20RuleCondition": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "value": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "additionalProperties": false
+    },
+    "d20ZeroHp": {
+      "type": "object",
+      "properties": {
+        "when": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/d20RuleCondition"
+          }
+        },
+        "defeated": {
+          "type": "boolean"
+        },
+        "recover": {
+          "type": "object",
+          "properties": {
+            "remove": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "conditions": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/d20RuleCondition"
+              }
+            },
+            "setFields": {
+              "type": "object",
+              "additionalProperties": {
+                "type": [
+                  "number",
+                  "string",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "page": {
+          "$ref": "#/definitions/page"
+        },
+        "cite": {
+          "$ref": "#/definitions/cite"
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    "d20Rules": {
+      "type": "object",
+      "properties": {
+        "crit": {
+          "enum": [
+            "natural20Doubles",
+            "degrees"
+          ]
+        },
+        "critDamage": {
+          "enum": [
+            "dice",
+            "total"
+          ]
+        },
+        "save": {
+          "enum": [
+            "total",
+            "degrees"
+          ]
+        },
+        "halfSave": {
+          "type": "object",
+          "properties": {
+            "criticalSuccess": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 4
+            },
+            "success": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 4
+            },
+            "failure": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 4
+            },
+            "criticalFailure": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 4
+            }
+          },
+          "required": [
+            "success",
+            "failure"
+          ],
+          "additionalProperties": false
+        },
+        "stacking": {
+          "enum": [
+            "typed",
+            "all"
+          ]
+        },
+        "damageOrder": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "immunity",
+              "resistance",
+              "vulnerability",
+              "weakness"
+            ]
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "crit",
+        "critDamage",
+        "save"
+      ],
+      "additionalProperties": false
+    },
+    "d20Combat": {
+      "type": "object",
+      "properties": {
+        "damageTypes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "id",
+              "name"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "damageGroups": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "saves": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/d20Save"
+          }
+        },
+        "attackAbilities": {
+          "type": "object",
+          "properties": {
+            "melee": {
+              "type": "string",
+              "minLength": 1
+            },
+            "ranged": {
+              "type": "string",
+              "minLength": 1
+            },
+            "spell": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "skillAbilities": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "combatants": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/d20Combatant"
+          }
+        },
+        "rules": {
+          "$ref": "#/definitions/d20Rules"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/d20Condition"
+          }
+        },
+        "zeroHp": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/d20ZeroHp"
+          }
+        },
+        "closeLabel": {
+          "type": "string",
+          "minLength": 1
+        },
+        "persistentCondition": {
+          "type": "string",
+          "minLength": 1
+        },
+        "playerHealth": {
+          "type": "boolean"
+        },
+        "ruleCards": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          }
+        },
+        "page": {
+          "$ref": "#/definitions/page"
+        },
+        "cite": {
+          "$ref": "#/definitions/cite"
+        }
+      },
+      "required": [
+        "damageTypes",
+        "saves",
+        "combatants",
+        "rules",
+        "conditions"
+      ],
+      "additionalProperties": false
+    },
     "playGuide": {
       "type": "object",
       "properties": {
