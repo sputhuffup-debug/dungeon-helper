@@ -41,7 +41,7 @@ d20 + ability modifier + proficiency × skill + bonus + modifier, against an opt
 | `freeDice` | none | Other dice the table's free roll offers, by faces (e.g. `[4, 6, 8, 10, 12]` for damage); summed. |
 | `labels` | `Success` / `Failure` / `Critical success` / `Critical failure` | Outcome labels. |
 
-Roll panel options: **Roll** (normal, advantage: two d20 keep the higher, disadvantage: keep the lower; the other die is shown struck through), **DC**, **Modifier**, and one select per `modifierChoices` group. Without a DC the result has a total and no outcome. With two degrees `successes` is 1 on a pass, else 0; with four degrees it is 2 for a critical success, 1 for a success, 0 otherwise, and the outcome id is `critical-success`, `success`, `failure` or `critical-failure`.
+Roll panel options: **Roll** (normal, advantage: two d20 keep the higher, disadvantage: keep the lower; the other die is shown struck through), **DC**, **Modifier**, and one select per `modifierChoices` group. The app can also pass `adjustments`, labelled modifiers (`[{ "label": "Frightened 2 (status)", "value": -2 }]`) shown one by one in the breakdown: the combat panel builds attack rolls and saves from them, and a check rolled from a sheet carries the roller's condition modifiers this way. Without a DC the result has a total and no outcome. With two degrees `successes` is 1 on a pass, else 0; with four degrees it is 2 for a critical success, 1 for a success, 0 otherwise, and the outcome id is `critical-success`, `success`, `failure` or `critical-failure`.
 
 A game with four degrees, attribute modifiers written down, and proficiency by rank (untrained 0; trained, expert, master, legendary = level + 2, 4, 6, 8), a multiple attack penalty and fortune / misfortune:
 

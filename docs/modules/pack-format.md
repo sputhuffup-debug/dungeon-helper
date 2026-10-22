@@ -24,6 +24,7 @@ A data pack is a JSON object. The SDK validates it (`validatePack`), joins its p
   "calendar": {},           // optional; default twelve 30-day months
   "styleNotes": [],         // optional
   "primer": { "sections": [] }, // optional; campaign primer prompts and starter text (see Campaign primer)
+  "d20Combat": {},          // optional; attacks, AC, saves, damage modifiers and conditions (see d20 combat)
   "parts": ["tables.json"]  // optional; see Split packs
 }
 ```
@@ -125,9 +126,48 @@ Starter text is the pack author's own words (`original: true`), or openly licens
 - `initiative`: cards 1-10 drawn lowest first (default), or with `config.method: "roll"` a roll of `config.dice` (default `1d20`) plus `config.modifier` (a number or JSONLogic over `{ fields, computed }`, e.g. `{ "var": ["computed.initiative", 0] }`), highest first, ties to the higher modifier; the GM can type a total a player rolled. `config.label` names the roll button.
 - `clock`: `config.units` (`{ id, name, duration?, minutes?, per? }`), smallest first; `per` rolls the smaller unit over.
 
+## d20 combat
+
+`d20Combat` (main file only; it needs the `d20` dice engine) gives the app's combat panel everything it needs, as data: where each combatant keeps its numbers, how an attack roll and a save resolve, the conditions with their helper text and the effects the app applies by itself, and what happens at 0 hit points. Every rule is JSONLogic over `{ fields, computed }`. The contract is `D20CombatDef` in `packages/module-sdk/src/types.ts`; `packages/module-example/packs/example-pack/pack.json` has a small complete one, `packages/module-dnd5e-srd/scripts/authored/combat.ts` and `packages/module-pf2e-orc/scripts/authored/combat.ts` two large ones.
+
+```jsonc
+"d20Combat": {
+  "damageTypes": [{ "id": "fire", "name": "Fire" }, { "id": "cut", "name": "Cut" }],
+  "damageGroups": { "physical": ["cut"] },          // "all" is always every type
+  "saves": [{ "id": "grace-save", "name": "Grace save", "ability": "grace", "roll": "grace-save" }],
+  "attackAbilities": { "melee": "might", "ranged": "grace" },
+  "skillAbilities": { "sneak": "grace" },             // checks a stat block does not tie to an ability
+  "combatants": [{
+    "entityTypes": ["sky.monster"],
+    "ac": { "var": "fields.defense" },
+    "hp": { "current": "hpNow", "max": { "var": "fields.hp" }, "temp": "tempHp" },   // or "damage": a damage-taken field
+    "saves": { "grace-save": { "var": "computed.graceSave" } },
+    "damageModifiers": "resist",                      // a field holding [{ kind, type, value?, except?, note? }]
+    "conditionImmunities": "immune",                  // a field holding condition ids or names
+    "attacks": [{ "path": "attacks", "keys": { "kind": "type" } }]
+  }],
+  "rules": { "crit": "natural20Doubles", "critDamage": "dice", "save": "total", "halfSave": { "success": 0.5, "failure": 1 }, "stacking": "typed" },
+  "conditions": [{
+    "id": "dazed", "name": "Dazed", "summary": "−1 per level to checks and attack rolls; drops by 1 at the end of each of its turns.",
+    "cite": "Sky Pirates, Conditions", "valued": true, "max": 3, "field": "dazed",
+    "effects": [{ "on": ["check", "attack"], "modifier": { "*": [-1, { "var": "value" }] }, "bonusType": "status" }],
+    "endOfTurnDecrement": 1
+  }],
+  "zeroHp": [{ "when": { "==": [{ "var": "kind" }, "character"] }, "conditions": [{ "id": "knocked-out" }], "recover": { "remove": ["knocked-out"] }, "text": "Knocked out until healed." }, { "defeated": true, "text": "Monsters die at 0." }],
+  "closeLabel": "within reach", "persistentCondition": "burning", "playerHealth": true
+}
+```
+
+- **Attacks** are read from list fields. An item follows the attack convention `{ name, kind, bonus, damage, damageType, traits, reach, range, save, onHit, effect, ability }`, or `keys` maps those names to the item's own keys. `bonus` may be a number, text ("+5", "+7 [+3/−1]": the first number) or JSONLogic over `{ fields, computed, item }`; text such as "DC 13 Dex" makes the row a save effect. `damage` is a list of parts `{ dice, type?, persistent? }` or text ("1d8 + 3 slashing plus 2d6 fire", unknown words kept as a note). `save` is `{ dc, save, damage?, half?, conditions?, criticalConditions?, text? }`; `onHit` and a save's `conditions` are `{ id, value?, duration? }` with `duration` `{ rounds?, sourceNextTurn?, save?: { save, dc? } }`.
+- **Damage modifiers**: `immunity` (none), `resistance` (halved, rounded down, or less by `value`; the strongest applies), `vulnerability` (doubled), `weakness` (more by `value`; the highest applies), in `rules.damageOrder`. A `type` that is not a damage type or group is a trait or material the attack must have ("cold-iron"); `except` lists traits (or damage types) that get past it.
+- **Resolution**: `crit` `natural20Doubles` (total ≥ AC hits, a natural 20 always hits and is critical, a natural 1 misses) or `degrees` (the d20 engine's `critMargin` and `naturalShift` against AC); `critDamage` `dice` (roll the dice twice) or `total` (double it); `save` `total` or `degrees`; `halfSave` multipliers for `half` effects per outcome.
+- **Conditions**: `summary` is the helper text the app shows (what it does, in plain words); `effects` are applied by themselves while the condition is on: `on` (`attack`, `check`, `save`, `ac`, `dc`, `damage`), a `modifier` (number or JSONLogic over `{ value }`) with an optional `bonusType` (with `stacking: "typed"` only the best bonus and worst penalty of a type count), `roll` (`advantage`/`disadvantage`, which cancel out), `autoFail`, limited by `abilities`, `saves`, `skills`, `attackKinds` or `minValue`; `against: true` applies to attacks made against the creature, with `range` (`close`/`far`) and `critOnHit`. `implies` brings other conditions along, `cannot` (act, react, move, speak, see, hear) and `speed` show on the card, `endOfTurnDecrement` drops a valued condition each turn, `levels` notes each value, `field` keeps the value in a sheet field (so a sheet tracker and the panel agree), and `manual` lists what the app leaves to the GM (shown as "not automated").
+- **0 hit points**: the first `zeroHp` rule whose `when` (JSONLogic over `{ kind, type, fields, computed }`) matches: conditions to apply (a value may be JSONLogic over `{ critical, conditions, fields, computed }`), `defeated`, what `recover` does when healing brings the creature back, and the rule's `text`.
+- `module-check` checks the references (entity types, fields, saves, conditions, rule cards), every JSONLogic rule, that AC and maximum hit points give numbers for a new entity, and that every preset's attacks read cleanly.
+
 ## What a pack cannot do (yet)
 
-These parts of the contract need functions, so they are TypeScript-only: `combat` (hit resolution), `crewShip`, `travel`, `ledger`, `progression`, `mapGenerators`, `adventureBuilders` (review checks), `narrativeFields`, `hooks` (end-of-session prompts), `migrations`, and dice `operations` (special rolls such as a panic table). A pack that needs one of them becomes a [TypeScript module](typescript-modules.md); the data can stay JSON and be loaded from TypeScript.
+These parts of the contract need functions, so they are TypeScript-only: `combat` (an armor rule; declarative d20 combat is `d20Combat` above), `crewShip`, `travel`, `ledger`, `progression`, `mapGenerators`, `adventureBuilders` (review checks), `narrativeFields`, `hooks` (end-of-session prompts), `migrations`, and dice `operations` (special rolls such as a panic table). A pack that needs one of them becomes a [TypeScript module](typescript-modules.md); the data can stay JSON and be loaded from TypeScript.
 
 ## Split packs
 

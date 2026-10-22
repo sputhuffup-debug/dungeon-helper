@@ -13,6 +13,8 @@ Demo: *Hollowmere*, a one-shot with four level 1 characters, kobold oil thieves 
 - **Four degrees of success.** DC ± 10, with natural 20 and 1 shifting one step; fortune, misfortune and the multiple attack penalty in the roll panel.
 - **Encounter builder.** Spends GM Core's XP budgets on Monster Core creatures for the party's level and size.
 - **At the table.** Trackers for initiative, Hit Points, dying/wounded/doomed, Hero and Focus Points and valued conditions.
+- **Combat.** The table's combat panel rolls Strikes from Monster Core's numbers (every creature's attack modifier, damage dice and types, persistent damage, agile and other traits; the supplement's creatures too) and from a character's Strikes table, with the multiple attack penalty, four degrees against AC (a critical hit doubles the damage) and basic saves (none, half, full or double). Immunities, weaknesses and resistances apply in the rules' order, by damage type, group (physical, all) or material and trait (cold iron, holy), with their exceptions; immunities to conditions are kept apart. At 0 Hit Points a character is dying 1 (2 on a critical hit) plus its wounded value; healed, it loses dying and gains wounded.
+- **The 43 conditions with helper text.** Each says what it does (the ORC rules text, shortened, cited by book and section) and what the app applies by itself: status and circumstance penalties on checks, saves, attack rolls, DCs, AC and damage (frightened, sickened, clumsy, enfeebled, drained, stupefied, fatigued, fascinated, off-guard, prone, unconscious), where penalties of one type don't stack and the worst counts; frightened dropping by 1 at the end of each turn; and the conditions each one brings (grabbed: off-guard and immobilized; unconscious: blinded, off-guard and prone). The rest (flat checks, lost actions, attitudes) is listed as not automated.
 - **Remaster ORC books (optional).** A built-in supplement, switched on per device under *Game modules…*, adds the ORC content of nine more remaster books: 820 creatures and NPCs, 27 hazards, 12 classes, 8 ancestries, feats, spells and items, still without the setting's names.
 - Not affiliated with Paizo; see the [licence](#licence).
 
@@ -25,6 +27,10 @@ Demo: *Hollowmere*, a one-shot with four level 1 characters, kobold oil thieves 
 **Four degrees of success**: a Stealth check rolled with fortune against a DC and beaten by 10 or more: a critical success.
 
 ![Four-degree skill roll with fortune](../screenshots/pf2e-roll.png)
+
+**Remaster combat**: Garrick, frightened 2 (−2 status to his checks, DCs and AC, shown on the chip's helper text), strikes a kobold with his longsword: 19 + 9 − 2 = 26 against AC 16 is a critical hit, the damage is doubled and the kobold goes down. The dice were rolled at the table and typed in.
+
+![Remaster combat: a critical Strike and the frightened condition's helper text](../screenshots/orc-combat.png)
 
 **Encounter builder**: a severe encounter for four level 3 characters, GM Core's XP budget spent on Monster Core creatures by level.
 

@@ -8,7 +8,7 @@ For Alien, Campaign Forge is a companion to the rulebook, not a replacement. The
 
 - **Local-first.** Campaigns live in the browser, work offline at the table and export to a zip bundle. No server, no accounts.
 - **Prep.** Adventures, scenes, sessions, a timeline, handouts and linked notes; characters and places rendered from each game's sheet; seeded generators with full roll provenance; printed GM booklets.
-- **At the table.** Scene cards, clocks, initiative, trackers and a Hints tab that says what each stat is for in the story and who is best at it. Roll in the app or type in the physical dice your table rolled.
+- **At the table.** Scene cards, clocks, initiative, trackers and a Hints tab that says what each stat is for in the story and who is best at it. d20 combat with attacks, damage, saves and conditions whose helper text says what they do. Roll in the app or type in the physical dice your table rolled.
 - **For the players.** A session 0 campaign primer, and *Share with players*: the player view as phone cards or a PDF for the group chat, with nothing GM-only in it.
 - **Any game system.** Modules as TypeScript packages or JSON data packs, four dice engines, supplements for extra options, and tools to build and check your own ([author guide](docs/modules/README.md)).
 

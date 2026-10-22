@@ -9,7 +9,8 @@ Campaign Forge knows nothing about any one game. Everything a game system brings
 | Logic | JSONLogic only; nothing runs as code | Any TypeScript, as long as it stays deterministic |
 | Dice | One of the built-in engines (`d20`, `pool`, `2d6`, `d100`) | A built-in engine or your own `DiceSystem` |
 | Ships with the app | Yes, when registered as a built-in pack | Yes, when registered |
-| Combat, ship, travel, ledger, progression, map generators, adventure builders, hooks | No (needs code) | Yes |
+| d20 combat (attacks, AC and saves, damage modifiers, conditions with helper text) | Yes (`d20Combat`) | Yes |
+| Other combat rules, ship, travel, ledger, progression, map generators, adventure builders, hooks | No (needs code) | Yes |
 
 Both are checked by the same tools and loaded by the same registry. Start with a data pack; move to TypeScript when you need something only code can do. To add options to a module that already exists (a background, a subclass, a house rule), write a [supplement](supplements.md) instead.
 
