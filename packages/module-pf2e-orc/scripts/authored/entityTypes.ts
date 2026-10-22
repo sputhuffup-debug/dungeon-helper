@@ -6,7 +6,7 @@
  * spell DC and attack, Bulk, the encounter's XP budget) is `computed`
  * JSONLogic, never stored (rule 4).
  */
-import type { EntityTypeDef, JsonSchema, SheetField } from "@campaign-forge/module-sdk";
+import type { EntityTypeDef, JsonSchema, SheetField, SheetSection } from "@campaign-forge/module-sdk";
 import { ANCESTRIES, ATTRIBUTES, CHARACTER, CLASSES, CREATURE, ENCOUNTER, FACTION, HAZARD, ITEM, LIST, LOCATION, LORE_SLOTS, NPC, QUEST, RANKS, rule, SAVES, SKILLS, totalName, TRADITIONS } from "../ids.ts";
 import { add, floor, gt, ifs, lookup, max, min, proficiency, signedText, sub, v, type Rule } from "./logic.ts";
 
@@ -160,7 +160,11 @@ export function characterType(ancestryHp: HpTable, classHp: HpTable): EntityType
       spells: { ...tags, description: "Spells known or prepared (names from the spell lists)." },
       strikes: {
         type: "array",
-        items: { type: "object", properties: { name: text(80), bonus: text(30), damage: text(80), traits: text(200) }, required: ["name"] },
+        items: {
+          type: "object",
+          properties: { name: text(80), bonus: text(30), damage: text(80), traits: text(200), type: { type: "string", enum: ["melee", "ranged"], description: "Melee (the default) or ranged." } },
+          required: ["name"],
+        },
         default: [],
       },
       feats: {
@@ -267,7 +271,7 @@ export function characterType(ancestryHp: HpTable, classHp: HpTable): EntityType
             { path: "attacks", label: "Weapon proficiency (0 untrained ... 4 legendary)", widget: "object" },
           ],
         },
-        { id: "strikes", title: "Strikes", fields: [{ path: "strikes", label: "Strikes", widget: "table", config: { columns: ["name", { key: "bonus", label: "Attack" }, "damage", "traits"] } }] },
+        { id: "strikes", title: "Strikes", fields: [{ path: "strikes", label: "Strikes", widget: "table", config: { columns: ["name", { key: "bonus", label: "Attack" }, "damage", "traits", { key: "type", label: "Melee or ranged" }] } }] },
         {
           id: "conditions",
           title: "Conditions and dying",
@@ -333,11 +337,46 @@ export function characterType(ancestryHp: HpTable, classHp: HpTable): EntityType
 // ---------------------------------------------------------------------------
 
 const SIZES = ["Tiny", "Small", "Medium", "Large", "Huge", "Gargantuan"];
+const damagePart: JsonSchema = { type: "object", properties: { dice: text(40), type: text(40), persistent: { type: "boolean" } }, required: ["dice"], additionalProperties: false };
 const strikeTable: JsonSchema = {
   type: "array",
-  items: { type: "object", properties: { name: text(120), type: { type: "string", enum: ["melee", "ranged"] }, bonus: text(40), traits: text(400), damage: text(400) }, required: ["name"] },
+  items: {
+    type: "object",
+    properties: {
+      name: text(120),
+      type: { type: "string", enum: ["melee", "ranged"] },
+      bonus: text(40),
+      traits: text(400),
+      damage: text(400),
+      attack: { ...int(-20, 80), description: "Attack modifier, as the combat panel rolls it." },
+      damageParts: { type: "array", items: damagePart, description: "Damage dice and types, as the combat panel rolls them." },
+    },
+    required: ["name"],
+  },
   default: [],
 };
+/** Immunities, weaknesses and resistances as the combat panel applies them (the text lists stay for reading). */
+export const damageModifiersSchema: JsonSchema = {
+  type: "array",
+  description: "Immunities (to damage types), weaknesses and resistances by damage type, group (physical, all) or material and trait (cold-iron, holy), with exceptions.",
+  items: {
+    type: "object",
+    properties: { kind: { type: "string", enum: ["immunity", "weakness", "resistance"] }, type: text(60), value: int(0, 100), except: tags, note: text(200) },
+    required: ["kind", "type"],
+    additionalProperties: false,
+  },
+  default: [],
+};
+const combatDataSection = (strikes: boolean): SheetSection => ({
+  id: "combat",
+  title: "Combat panel data",
+  collapsed: true,
+  fields: [
+    ...(strikes ? [{ path: "strikes", label: "Strikes (numbers)", widget: "table" as const, config: { columns: ["name", { key: "attack", label: "Attack" }, { key: "damageParts", label: "Damage", readonly: true }] } }] : []),
+    { path: "damageModifiers", label: "Damage modifiers", widget: "table", config: { columns: ["kind", "type", "value", { key: "except", readonly: true }, "note"] } },
+    { path: "conditionImmunities", label: "Condition immunities", widget: "tags" },
+  ],
+});
 
 export function creatureType(): EntityTypeDef {
   const computed: Record<string, Rule> = {
@@ -369,6 +408,8 @@ export function creatureType(): EntityTypeDef {
       immunities: tags,
       weaknesses: tags,
       resistances: tags,
+      damageModifiers: damageModifiersSchema,
+      conditionImmunities: tags,
       speed: text(300),
       strikes: strikeTable,
       abilities: entryList,
@@ -457,6 +498,7 @@ export function creatureType(): EntityTypeDef {
           ],
         },
         { id: "conditions", title: "Conditions", collapsed: true, columns: 4, fields: VALUED_CONDITIONS.map((c): SheetField => ({ path: `conditions.${c}`, label: c.charAt(0).toUpperCase() + c.slice(1), widget: "number" })) },
+        combatDataSection(true),
         { id: "description", title: "Description", collapsed: true, fields: [{ path: "description", label: "Description", widget: "textarea" }] },
         { id: "notes", title: "GM notes", collapsed: true, fields: [{ path: "notes", label: "Notes", widget: "textarea" }] },
       ],
@@ -496,6 +538,8 @@ export function hazardType(): EntityTypeDef {
         immunities: tags,
         weaknesses: tags,
         resistances: tags,
+        damageModifiers: damageModifiersSchema,
+        conditionImmunities: tags,
         actions: entryList,
         routine: longText,
         reset: longText,
@@ -542,6 +586,7 @@ export function hazardType(): EntityTypeDef {
           fields: [{ path: "saves.*", label: "Saves", widget: "skills", config: { skills: SAVES.filter((s) => s.id !== "perception").map((s) => ({ id: s.id, name: s.name })), min: -10, max: 60, labels: { skill: "Save", attribute: "—", attributeValue: "—", value: "Modifier", pool: "Roll" } } }],
         },
         { id: "actions", title: "Actions and routine", fields: [{ path: "actions", label: "Actions", widget: "entries" }, { path: "routine", label: "Routine", widget: "textarea" }, { path: "reset", label: "Reset", widget: "textarea" }] },
+        combatDataSection(false),
         { id: "notes", title: "GM notes", collapsed: true, fields: [{ path: "notes", label: "Notes", widget: "textarea" }] },
       ],
       summary: ["level", "complexity", "stealthDc", "hp.current"],

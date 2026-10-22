@@ -61,6 +61,14 @@
     "resistances": [
      "poison 5"
     ],
+    "damageModifiers": [
+     {
+      "kind": "resistance",
+      "type": "poison",
+      "value": 5
+     }
+    ],
+    "conditionImmunities": [],
     "speed": "25 feet",
     "strikes": [
      {
@@ -68,20 +76,41 @@
       "type": "melee",
       "bonus": "+17 [+12/+7]",
       "traits": "reach",
-      "damage": "1d8+11 piercing"
+      "damage": "1d8+11 piercing",
+      "attack": 17,
+      "damageParts": [
+       {
+        "dice": "1d8+11",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Fangs",
       "type": "melee",
       "bonus": "+17 [+12/+7]",
-      "damage": "1d8+11 piercing plus Serpentfolk Venom"
+      "damage": "1d8+11 piercing plus Serpentfolk Venom",
+      "attack": 17,
+      "damageParts": [
+       {
+        "dice": "1d8+11",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Javelin",
       "type": "ranged",
       "bonus": "+16 [+11/+6]",
       "traits": "range increment 30 feet",
-      "damage": "1d6+11 piercing"
+      "damage": "1d6+11 piercing",
+      "attack": 16,
+      "damageParts": [
+       {
+        "dice": "1d6+11",
+        "type": "piercing"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -172,6 +201,14 @@
     "resistances": [
      "poison 5"
     ],
+    "damageModifiers": [
+     {
+      "kind": "resistance",
+      "type": "poison",
+      "value": 5
+     }
+    ],
+    "conditionImmunities": [],
     "speed": "25 feet",
     "strikes": [
      {
@@ -179,20 +216,41 @@
       "type": "melee",
       "bonus": "+11 [+6/+1]",
       "traits": "forceful, sweep",
-      "damage": "1d6+6 slashing"
+      "damage": "1d6+6 slashing",
+      "attack": 11,
+      "damageParts": [
+       {
+        "dice": "1d6+6",
+        "type": "slashing"
+       }
+      ]
      },
      {
       "name": "Fangs",
       "type": "melee",
       "bonus": "+11 [+6/+1]",
-      "damage": "1d8+6 piercing plus Serpentfolk Venom"
+      "damage": "1d8+6 piercing plus Serpentfolk Venom",
+      "attack": 11,
+      "damageParts": [
+       {
+        "dice": "1d8+6",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Tail",
       "type": "melee",
       "bonus": "+11 [+7/+3]",
       "traits": "agile",
-      "damage": "1d6+6 bludgeoning plus Knockdown"
+      "damage": "1d6+6 bludgeoning plus Knockdown",
+      "attack": 11,
+      "damageParts": [
+       {
+        "dice": "1d6+6",
+        "type": "bludgeoning"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -285,6 +343,11 @@
     ],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [
+     "paralyzed",
+     "petrified"
+    ],
     "speed": "30 feet, burrow 40 feet, fly 150 feet",
     "strikes": [
      {
@@ -292,28 +355,56 @@
       "type": "melee",
       "bonus": "+27 [+22/+17]",
       "traits": "magical, reach 15 feet, unarmed",
-      "damage": "3d12+14 piercing plus Grab"
+      "damage": "3d12+14 piercing plus Grab",
+      "attack": 27,
+      "damageParts": [
+       {
+        "dice": "3d12+14",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Claw",
       "type": "melee",
       "bonus": "+27 [+23/+19]",
       "traits": "agile, magical, reach 10 feet, unarmed",
-      "damage": "3d8+14 slashing plus Knockdown"
+      "damage": "3d8+14 slashing plus Knockdown",
+      "attack": 27,
+      "damageParts": [
+       {
+        "dice": "3d8+14",
+        "type": "slashing"
+       }
+      ]
      },
      {
       "name": "Tail",
       "type": "melee",
       "bonus": "+25 [+20/+15]",
       "traits": "magical, reach 20 feet",
-      "damage": "3d10+14 bludgeoning"
+      "damage": "3d10+14 bludgeoning",
+      "attack": 25,
+      "damageParts": [
+       {
+        "dice": "3d10+14",
+        "type": "bludgeoning"
+       }
+      ]
      },
      {
       "name": "Rock",
       "type": "ranged",
       "bonus": "+25 [+20/+15]",
       "traits": "brutal, range increment 120 feet",
-      "damage": "3d8+14 bludgeoning"
+      "damage": "3d8+14 bludgeoning",
+      "attack": 25,
+      "damageParts": [
+       {
+        "dice": "3d8+14",
+        "type": "bludgeoning"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -439,6 +530,11 @@
     ],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [
+     "paralyzed",
+     "petrified"
+    ],
     "speed": "30 feet, burrow 40 feet, fly 150 feet",
     "strikes": [
      {
@@ -446,28 +542,56 @@
       "type": "melee",
       "bonus": "+27 [+22/+17]",
       "traits": "magical, reach 15 feet, unarmed",
-      "damage": "3d12+14 piercing plus Grab"
+      "damage": "3d12+14 piercing plus Grab",
+      "attack": 27,
+      "damageParts": [
+       {
+        "dice": "3d12+14",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Claw",
       "type": "melee",
       "bonus": "+27 [+23/+19]",
       "traits": "agile, magical, reach 10 feet, unarmed",
-      "damage": "3d8+14 slashing plus Knockdown"
+      "damage": "3d8+14 slashing plus Knockdown",
+      "attack": 27,
+      "damageParts": [
+       {
+        "dice": "3d8+14",
+        "type": "slashing"
+       }
+      ]
      },
      {
       "name": "Tail",
       "type": "melee",
       "bonus": "+25 [+20/+15]",
       "traits": "magical, reach 20 feet",
-      "damage": "3d10+14 bludgeoning"
+      "damage": "3d10+14 bludgeoning",
+      "attack": 25,
+      "damageParts": [
+       {
+        "dice": "3d10+14",
+        "type": "bludgeoning"
+       }
+      ]
      },
      {
       "name": "Rock",
       "type": "ranged",
       "bonus": "+25 [+20/+15]",
       "traits": "brutal, range increment 120 feet",
-      "damage": "3d8+14 bludgeoning"
+      "damage": "3d8+14 bludgeoning",
+      "attack": 25,
+      "damageParts": [
+       {
+        "dice": "3d8+14",
+        "type": "bludgeoning"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -596,6 +720,11 @@
     ],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [
+     "paralyzed",
+     "petrified"
+    ],
     "speed": "40 feet, burrow 50 feet, fly 180 feet",
     "strikes": [
      {
@@ -603,28 +732,56 @@
       "type": "melee",
       "bonus": "+36 [+31/+26]",
       "traits": "magical, reach 20 feet, unarmed",
-      "damage": "3d12+18 piercing plus Improved Grab"
+      "damage": "3d12+18 piercing plus Improved Grab",
+      "attack": 36,
+      "damageParts": [
+       {
+        "dice": "3d12+18",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Claw",
       "type": "melee",
       "bonus": "+36 [+32/+28]",
       "traits": "agile, magical, reach 15 feet, unarmed",
-      "damage": "3d8+18 slashing plus Knockdown"
+      "damage": "3d8+18 slashing plus Knockdown",
+      "attack": 36,
+      "damageParts": [
+       {
+        "dice": "3d8+18",
+        "type": "slashing"
+       }
+      ]
      },
      {
       "name": "Tail",
       "type": "melee",
       "bonus": "+34 [+29/+24]",
       "traits": "magical, reach 25 feet",
-      "damage": "3d10+18 bludgeoning"
+      "damage": "3d10+18 bludgeoning",
+      "attack": 34,
+      "damageParts": [
+       {
+        "dice": "3d10+18",
+        "type": "bludgeoning"
+       }
+      ]
      },
      {
       "name": "Rock",
       "type": "ranged",
       "bonus": "+34 [+29/+24]",
       "traits": "brutal, range increment 150 feet",
-      "damage": "3d8+18 bludgeoning"
+      "damage": "3d8+18 bludgeoning",
+      "attack": 34,
+      "damageParts": [
+       {
+        "dice": "3d8+18",
+        "type": "bludgeoning"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -754,6 +911,11 @@
     ],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [
+     "paralyzed",
+     "petrified"
+    ],
     "speed": "40 feet, burrow 50 feet, fly 180 feet",
     "strikes": [
      {
@@ -761,28 +923,56 @@
       "type": "melee",
       "bonus": "+36 [+31/+26]",
       "traits": "magical, reach 20 feet, unarmed",
-      "damage": "3d12+18 piercing plus Improved Grab"
+      "damage": "3d12+18 piercing plus Improved Grab",
+      "attack": 36,
+      "damageParts": [
+       {
+        "dice": "3d12+18",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Claw",
       "type": "melee",
       "bonus": "+36 [+32/+28]",
       "traits": "agile, magical, reach 15 feet, unarmed",
-      "damage": "3d8+18 slashing plus Knockdown"
+      "damage": "3d8+18 slashing plus Knockdown",
+      "attack": 36,
+      "damageParts": [
+       {
+        "dice": "3d8+18",
+        "type": "slashing"
+       }
+      ]
      },
      {
       "name": "Tail",
       "type": "melee",
       "bonus": "+34 [+29/+24]",
       "traits": "magical, reach 25 feet",
-      "damage": "3d10+18 bludgeoning"
+      "damage": "3d10+18 bludgeoning",
+      "attack": 34,
+      "damageParts": [
+       {
+        "dice": "3d10+18",
+        "type": "bludgeoning"
+       }
+      ]
      },
      {
       "name": "Rock",
       "type": "ranged",
       "bonus": "+34 [+29/+24]",
       "traits": "brutal, range increment 150 feet",
-      "damage": "3d8+18 bludgeoning"
+      "damage": "3d8+18 bludgeoning",
+      "attack": 34,
+      "damageParts": [
+       {
+        "dice": "3d8+18",
+        "type": "bludgeoning"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -915,6 +1105,11 @@
     ],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [
+     "paralyzed",
+     "petrified"
+    ],
     "speed": "25 feet, burrow 30 feet, fly 90 feet",
     "strikes": [
      {
@@ -922,28 +1117,56 @@
       "type": "melee",
       "bonus": "+21 [+16/+11]",
       "traits": "magical, reach 10 feet, unarmed",
-      "damage": "2d12+9 piercing plus Grab"
+      "damage": "2d12+9 piercing plus Grab",
+      "attack": 21,
+      "damageParts": [
+       {
+        "dice": "2d12+9",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Claw",
       "type": "melee",
       "bonus": "+21 [+17/+13]",
       "traits": "agile, magical, unarmed",
-      "damage": "2d8+9 slashing plus Knockdown"
+      "damage": "2d8+9 slashing plus Knockdown",
+      "attack": 21,
+      "damageParts": [
+       {
+        "dice": "2d8+9",
+        "type": "slashing"
+       }
+      ]
      },
      {
       "name": "Tail",
       "type": "melee",
       "bonus": "+19 [+14/+9]",
       "traits": "magical, reach 15 feet",
-      "damage": "2d10+9 bludgeoning"
+      "damage": "2d10+9 bludgeoning",
+      "attack": 19,
+      "damageParts": [
+       {
+        "dice": "2d10+9",
+        "type": "bludgeoning"
+       }
+      ]
      },
      {
       "name": "Rock",
       "type": "ranged",
       "bonus": "+19 [+14/+9]",
       "traits": "brutal, range increment 90 feet",
-      "damage": "2d8+9 bludgeoning"
+      "damage": "2d8+9 bludgeoning",
+      "attack": 19,
+      "damageParts": [
+       {
+        "dice": "2d8+9",
+        "type": "bludgeoning"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -1069,6 +1292,11 @@
     ],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [
+     "paralyzed",
+     "petrified"
+    ],
     "speed": "25 feet, burrow 30 feet, fly 90 feet",
     "strikes": [
      {
@@ -1076,28 +1304,56 @@
       "type": "melee",
       "bonus": "+21 [+16/+11]",
       "traits": "magical, reach 10 feet, unarmed",
-      "damage": "2d12+9 piercing plus Grab"
+      "damage": "2d12+9 piercing plus Grab",
+      "attack": 21,
+      "damageParts": [
+       {
+        "dice": "2d12+9",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Claw",
       "type": "melee",
       "bonus": "+21 [+17/+13]",
       "traits": "agile, magical, unarmed",
-      "damage": "2d8+9 slashing plus Knockdown"
+      "damage": "2d8+9 slashing plus Knockdown",
+      "attack": 21,
+      "damageParts": [
+       {
+        "dice": "2d8+9",
+        "type": "slashing"
+       }
+      ]
      },
      {
       "name": "Tail",
       "type": "melee",
       "bonus": "+19 [+14/+9]",
       "traits": "magical, reach 15 feet",
-      "damage": "2d10+9 bludgeoning"
+      "damage": "2d10+9 bludgeoning",
+      "attack": 19,
+      "damageParts": [
+       {
+        "dice": "2d10+9",
+        "type": "bludgeoning"
+       }
+      ]
      },
      {
       "name": "Rock",
       "type": "ranged",
       "bonus": "+19 [+14/+9]",
       "traits": "brutal, range increment 90 feet",
-      "damage": "2d8+9 bludgeoning"
+      "damage": "2d8+9 bludgeoning",
+      "attack": 19,
+      "damageParts": [
+       {
+        "dice": "2d8+9",
+        "type": "bludgeoning"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -1227,6 +1483,19 @@
      "unholy 15"
     ],
     "resistances": [],
+    "damageModifiers": [
+     {
+      "kind": "weakness",
+      "type": "cold-iron",
+      "value": 15
+     },
+     {
+      "kind": "weakness",
+      "type": "unholy",
+      "value": 15
+     }
+    ],
+    "conditionImmunities": [],
     "speed": "25 feet, burrow 25 feet, earth glide",
     "strikes": [
      {
@@ -1234,7 +1503,14 @@
       "type": "melee",
       "bonus": "+25 [+20/+15]",
       "traits": "holy, magical, shove",
-      "damage": "2d8+12 bludgeoning"
+      "damage": "2d8+12 bludgeoning",
+      "attack": 25,
+      "damageParts": [
+       {
+        "dice": "2d8+12",
+        "type": "bludgeoning"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -1334,6 +1610,19 @@
     "resistances": [
      "fire 15"
     ],
+    "damageModifiers": [
+     {
+      "kind": "weakness",
+      "type": "unholy",
+      "value": 10
+     },
+     {
+      "kind": "resistance",
+      "type": "fire",
+      "value": 15
+     }
+    ],
+    "conditionImmunities": [],
     "speed": "30 feet, fly 60 feet",
     "strikes": [
      {
@@ -1341,14 +1630,36 @@
       "type": "melee",
       "bonus": "+18 [+13/+8]",
       "traits": "holy, magical, versatile P",
-      "damage": "1d6 fire plus 2d10+5 slashing plus Flame Of Justice"
+      "damage": "1d6 fire plus 2d10+5 slashing plus Flame Of Justice",
+      "attack": 18,
+      "damageParts": [
+       {
+        "dice": "1d6",
+        "type": "fire"
+       },
+       {
+        "dice": "2d10+5",
+        "type": "slashing"
+       }
+      ]
      },
      {
       "name": "Flame of Justice",
       "type": "ranged",
       "bonus": "+15 [+10/+5]",
       "traits": "holy, magical, versatile P, range increment 30 feet",
-      "damage": "1d6 fire plus 2d10+5 slashing plus Flame Of Justice"
+      "damage": "1d6 fire plus 2d10+5 slashing plus Flame Of Justice",
+      "attack": 15,
+      "damageParts": [
+       {
+        "dice": "1d6",
+        "type": "fire"
+       },
+       {
+        "dice": "2d10+5",
+        "type": "slashing"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -1451,6 +1762,19 @@
     ],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [
+     {
+      "kind": "immunity",
+      "type": "bleed"
+     },
+     {
+      "kind": "immunity",
+      "type": "poison"
+     }
+    ],
+    "conditionImmunities": [
+     "paralyzed"
+    ],
     "speed": "20 feet, fly 40 feet",
     "strikes": [
      {
@@ -1458,7 +1782,14 @@
       "type": "melee",
       "bonus": "+9 [+4/−1]",
       "traits": "finesse, unarmed",
-      "damage": "1d6+1 piercing"
+      "damage": "1d6+1 piercing",
+      "attack": 9,
+      "damageParts": [
+       {
+        "dice": "1d6+1",
+        "type": "piercing"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -1546,6 +1877,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "speed": "30 feet",
     "strikes": [
      {
@@ -1553,14 +1886,28 @@
       "type": "melee",
       "bonus": "+9 [+5/+1]",
       "traits": "agile, finesse, versatile S",
-      "damage": "1d4+3 piercing"
+      "damage": "1d4+3 piercing",
+      "attack": 9,
+      "damageParts": [
+       {
+        "dice": "1d4+3",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Dagger",
       "type": "melee",
       "bonus": "+9 [+5/+1]",
       "traits": "agile, thrown 10 feet, versatile S",
-      "damage": "1d4+3 piercing"
+      "damage": "1d4+3 piercing",
+      "attack": 9,
+      "damageParts": [
+       {
+        "dice": "1d4+3",
+        "type": "piercing"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -1642,6 +1989,22 @@
      "spirit 10"
     ],
     "resistances": [],
+    "damageModifiers": [
+     {
+      "kind": "immunity",
+      "type": "vitality"
+     },
+     {
+      "kind": "immunity",
+      "type": "void"
+     },
+     {
+      "kind": "weakness",
+      "type": "spirit",
+      "value": 10
+     }
+    ],
+    "conditionImmunities": [],
     "speed": "0 feet, fly 60 feet",
     "strikes": [
      {
@@ -1649,14 +2012,28 @@
       "type": "melee",
       "bonus": "+24 [+19/+14]",
       "traits": "magical, void",
-      "damage": "5d10 void plus Grab"
+      "damage": "5d10 void plus Grab",
+      "attack": 24,
+      "damageParts": [
+       {
+        "dice": "5d10",
+        "type": "void"
+       }
+      ]
      },
      {
       "name": "Fist",
       "type": "melee",
       "bonus": "+24 [+20/+16]",
       "traits": "agile, magical, unarmed",
-      "damage": "3d6+12 bludgeoning"
+      "damage": "3d6+12 bludgeoning",
+      "attack": 24,
+      "damageParts": [
+       {
+        "dice": "3d6+12",
+        "type": "bludgeoning"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -1757,6 +2134,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "speed": "35 feet",
     "strikes": [
      {
@@ -1764,14 +2143,28 @@
       "type": "melee",
       "bonus": "+14 [+9/+4]",
       "traits": "deadly d10, unarmed",
-      "damage": "2d8+4 piercing"
+      "damage": "2d8+4 piercing",
+      "attack": 14,
+      "damageParts": [
+       {
+        "dice": "2d8+4",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Talon",
       "type": "melee",
       "bonus": "+14 [+10/+6]",
       "traits": "agile, unarmed",
-      "damage": "2d6+4 piercing"
+      "damage": "2d6+4 piercing",
+      "attack": 14,
+      "damageParts": [
+       {
+        "dice": "2d6+4",
+        "type": "piercing"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -1837,6 +2230,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "speed": "20 feet",
     "strikes": [
      {
@@ -1844,14 +2239,28 @@
       "type": "melee",
       "bonus": "+10 [+5/+0]",
       "traits": "deadly d8, forceful, magical, reach 10 feet",
-      "damage": "1d8+4 slashing"
+      "damage": "1d8+4 slashing",
+      "attack": 10,
+      "damageParts": [
+       {
+        "dice": "1d8+4",
+        "type": "slashing"
+       }
+      ]
      },
      {
       "name": "Gauntlet",
       "type": "melee",
       "bonus": "+9 [+5/+1]",
       "traits": "agile, free hand, magical",
-      "damage": "1d6+4 bludgeoning"
+      "damage": "1d6+4 bludgeoning",
+      "attack": 9,
+      "damageParts": [
+       {
+        "dice": "1d6+4",
+        "type": "bludgeoning"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -1913,6 +2322,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "speed": "15 feet",
     "strikes": [
      {
@@ -1920,7 +2331,14 @@
       "type": "melee",
       "bonus": "+6 [+2/−2]",
       "traits": "agile, finesse, magical",
-      "damage": "1d4 bludgeoning plus Dust"
+      "damage": "1d4 bludgeoning plus Dust",
+      "attack": 6,
+      "damageParts": [
+       {
+        "dice": "1d4",
+        "type": "bludgeoning"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -1987,6 +2405,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "speed": "20 feet",
     "strikes": [
      {
@@ -1994,7 +2414,14 @@
       "type": "melee",
       "bonus": "+11 [+6/+1]",
       "traits": "magical, unarmed",
-      "damage": "1d8+6 bludgeoning plus Grab"
+      "damage": "1d8+6 bludgeoning plus Grab",
+      "attack": 11,
+      "damageParts": [
+       {
+        "dice": "1d8+6",
+        "type": "bludgeoning"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -2060,6 +2487,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "speed": "25 feet, burrow 20 feet",
     "strikes": [
      {
@@ -2067,14 +2496,32 @@
       "type": "melee",
       "bonus": "+13 [+8/+3]",
       "traits": "acid",
-      "damage": "1d8+4 piercing plus 1d6 acid"
+      "damage": "1d8+4 piercing plus 1d6 acid",
+      "attack": 13,
+      "damageParts": [
+       {
+        "dice": "1d8+4",
+        "type": "piercing"
+       },
+       {
+        "dice": "1d6",
+        "type": "acid"
+       }
+      ]
      },
      {
       "name": "Acid Spit",
       "type": "ranged",
       "bonus": "+10 [+5/+0]",
       "traits": "acid, range 30 feet",
-      "damage": "3d6 acid"
+      "damage": "3d6 acid",
+      "attack": 10,
+      "damageParts": [
+       {
+        "dice": "3d6",
+        "type": "acid"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -2145,6 +2592,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "speed": "25 feet, burrow 20 feet",
     "strikes": [
      {
@@ -2152,14 +2601,32 @@
       "type": "melee",
       "bonus": "+20 [+15/+10]",
       "traits": "acid",
-      "damage": "2d8+6 piercing plus 2d6 acid"
+      "damage": "2d8+6 piercing plus 2d6 acid",
+      "attack": 20,
+      "damageParts": [
+       {
+        "dice": "2d8+6",
+        "type": "piercing"
+       },
+       {
+        "dice": "2d6",
+        "type": "acid"
+       }
+      ]
      },
      {
       "name": "Acid Spit",
       "type": "ranged",
       "bonus": "+17 [+12/+7]",
       "traits": "acid, range 30 feet",
-      "damage": "5d6 acid"
+      "damage": "5d6 acid",
+      "attack": 17,
+      "damageParts": [
+       {
+        "dice": "5d6",
+        "type": "acid"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -2238,6 +2705,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "speed": "25 feet",
     "strikes": [
      {
@@ -2245,14 +2714,28 @@
       "type": "melee",
       "bonus": "+17 [+12/+7]",
       "traits": "backswing, reach 15 feet",
-      "damage": "2d8+7 bludgeoning plus Punishing Tail"
+      "damage": "2d8+7 bludgeoning plus Punishing Tail",
+      "attack": 17,
+      "damageParts": [
+       {
+        "dice": "2d8+7",
+        "type": "bludgeoning"
+       }
+      ]
      },
      {
       "name": "Foot",
       "type": "melee",
       "bonus": "+17 [+12/+7]",
       "traits": "reach 10 feet, unarmed",
-      "damage": "2d6+7 bludgeoning"
+      "damage": "2d6+7 bludgeoning",
+      "attack": 17,
+      "damageParts": [
+       {
+        "dice": "2d6+7",
+        "type": "bludgeoning"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -2319,6 +2802,21 @@
     "resistances": [
      "physical 15 (except adamantine)"
     ],
+    "damageModifiers": [
+     {
+      "kind": "immunity",
+      "type": "sonic"
+     },
+     {
+      "kind": "resistance",
+      "type": "physical",
+      "value": 15,
+      "except": [
+       "adamantine"
+      ]
+     }
+    ],
+    "conditionImmunities": [],
     "speed": "50 feet, Water Walk",
     "strikes": [
      {
@@ -2326,14 +2824,28 @@
       "type": "melee",
       "bonus": "+35 [+30/+25]",
       "traits": "magical, reach 20 feet, sweep, trip",
-      "damage": "5d10+17 bludgeoning plus Grab"
+      "damage": "5d10+17 bludgeoning plus Grab",
+      "attack": 35,
+      "damageParts": [
+       {
+        "dice": "5d10+17",
+        "type": "bludgeoning"
+       }
+      ]
      },
      {
       "name": "Foot",
       "type": "melee",
       "bonus": "+33 [+28/+23]",
       "traits": "magical, reach 10 feet, unarmed",
-      "damage": "5d8+15 bludgeoning"
+      "damage": "5d8+15 bludgeoning",
+      "attack": 33,
+      "damageParts": [
+       {
+        "dice": "5d8+15",
+        "type": "bludgeoning"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -2435,6 +2947,20 @@
     "resistances": [
      "electricity 3"
     ],
+    "damageModifiers": [
+     {
+      "kind": "immunity",
+      "type": "poison"
+     },
+     {
+      "kind": "resistance",
+      "type": "electricity",
+      "value": 3
+     }
+    ],
+    "conditionImmunities": [
+     "unconscious"
+    ],
     "speed": "20 feet, fly 40 feet",
     "strikes": [
      {
@@ -2442,7 +2968,14 @@
       "type": "melee",
       "bonus": "+7 [+3/−1]",
       "traits": "agile, finesse, magical, reach 0 feet, versatile S",
-      "damage": "1d6+1 piercing"
+      "damage": "1d6+1 piercing",
+      "attack": 7,
+      "damageParts": [
+       {
+        "dice": "1d6+1",
+        "type": "piercing"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -2529,6 +3062,29 @@
      "bludgeoning 5",
      "piercing 5"
     ],
+    "damageModifiers": [
+     {
+      "kind": "weakness",
+      "type": "axe-vulnerability",
+      "value": 5
+     },
+     {
+      "kind": "weakness",
+      "type": "fire",
+      "value": 10
+     },
+     {
+      "kind": "resistance",
+      "type": "bludgeoning",
+      "value": 5
+     },
+     {
+      "kind": "resistance",
+      "type": "piercing",
+      "value": 5
+     }
+    ],
+    "conditionImmunities": [],
     "speed": "25 feet",
     "strikes": [
      {
@@ -2536,21 +3092,42 @@
       "type": "melee",
       "bonus": "+19 [+14/+9]",
       "traits": "reach 15 feet",
-      "damage": "2d12+7 bludgeoning"
+      "damage": "2d12+7 bludgeoning",
+      "attack": 19,
+      "damageParts": [
+       {
+        "dice": "2d12+7",
+        "type": "bludgeoning"
+       }
+      ]
      },
      {
       "name": "Root",
       "type": "melee",
       "bonus": "+19 [+14/+9]",
       "traits": "trip",
-      "damage": "2d8+7 bludgeoning"
+      "damage": "2d8+7 bludgeoning",
+      "attack": 19,
+      "damageParts": [
+       {
+        "dice": "2d8+7",
+        "type": "bludgeoning"
+       }
+      ]
      },
      {
       "name": "Rock",
       "type": "ranged",
       "bonus": "+19 [+14/+9]",
       "traits": "brutal, range increment 120 feet",
-      "damage": "2d10+7 bludgeoning"
+      "damage": "2d10+7 bludgeoning",
+      "attack": 19,
+      "damageParts": [
+       {
+        "dice": "2d10+7",
+        "type": "bludgeoning"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -2640,6 +3217,29 @@
      "bludgeoning 5",
      "piercing 5"
     ],
+    "damageModifiers": [
+     {
+      "kind": "weakness",
+      "type": "axe-vulnerability",
+      "value": 5
+     },
+     {
+      "kind": "weakness",
+      "type": "fire",
+      "value": 10
+     },
+     {
+      "kind": "resistance",
+      "type": "bludgeoning",
+      "value": 5
+     },
+     {
+      "kind": "resistance",
+      "type": "piercing",
+      "value": 5
+     }
+    ],
+    "conditionImmunities": [],
     "speed": "25 feet",
     "strikes": [
      {
@@ -2647,13 +3247,27 @@
       "type": "melee",
       "bonus": "+13 [+8/+3]",
       "traits": "reach 10 feet",
-      "damage": "1d8+10 bludgeoning"
+      "damage": "1d8+10 bludgeoning",
+      "attack": 13,
+      "damageParts": [
+       {
+        "dice": "1d8+10",
+        "type": "bludgeoning"
+       }
+      ]
      },
      {
       "name": "Shield Bash",
       "type": "melee",
       "bonus": "+13 [+8/+3]",
-      "damage": "1d6+10 bludgeoning"
+      "damage": "1d6+10 bludgeoning",
+      "attack": 13,
+      "damageParts": [
+       {
+        "dice": "1d6+10",
+        "type": "bludgeoning"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -2733,6 +3347,38 @@
      "piercing 5",
      "slashing 5"
     ],
+    "damageModifiers": [
+     {
+      "kind": "immunity",
+      "type": "precision"
+     },
+     {
+      "kind": "weakness",
+      "type": "area-damage",
+      "value": 5
+     },
+     {
+      "kind": "weakness",
+      "type": "splash-damage",
+      "value": 5
+     },
+     {
+      "kind": "resistance",
+      "type": "bludgeoning",
+      "value": 2
+     },
+     {
+      "kind": "resistance",
+      "type": "piercing",
+      "value": 5
+     },
+     {
+      "kind": "resistance",
+      "type": "slashing",
+      "value": 5
+     }
+    ],
+    "conditionImmunities": [],
     "speed": "30 feet, climb 30 feet",
     "strikes": [],
     "abilities": [],
@@ -2816,6 +3462,18 @@
      "holy 15"
     ],
     "resistances": [],
+    "damageModifiers": [
+     {
+      "kind": "immunity",
+      "type": "void"
+     },
+     {
+      "kind": "weakness",
+      "type": "holy",
+      "value": 15
+     }
+    ],
+    "conditionImmunities": [],
     "speed": "60 feet, fly 60 feet",
     "strikes": [
      {
@@ -2823,21 +3481,42 @@
       "type": "melee",
       "bonus": "+32 [+27/+22]",
       "traits": "magical, reach 10 feet, unarmed, unholy",
-      "damage": "3d6+8 piercing plus Essence Drain plus Grab"
+      "damage": "3d6+8 piercing plus Essence Drain plus Grab",
+      "attack": 32,
+      "damageParts": [
+       {
+        "dice": "3d6+8",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Claw",
       "type": "melee",
       "bonus": "+32 [+28/+24]",
       "traits": "agile, magical, reach 10 feet, unarmed, unholy",
-      "damage": "2d6+8 slashing plus Essence Drain"
+      "damage": "2d6+8 slashing plus Essence Drain",
+      "attack": 32,
+      "damageParts": [
+       {
+        "dice": "2d6+8",
+        "type": "slashing"
+       }
+      ]
      },
      {
       "name": "Tail",
       "type": "melee",
       "bonus": "+32 [+27/+22]",
       "traits": "magical, reach 15 feet, unholy",
-      "damage": "3d10+8 bludgeoning plus Essence Drain"
+      "damage": "3d10+8 bludgeoning plus Essence Drain",
+      "attack": 32,
+      "damageParts": [
+       {
+        "dice": "3d10+8",
+        "type": "bludgeoning"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -2945,6 +3624,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "speed": "10 feet, swim 40 feet, smooth swimmer",
     "strikes": [
      {
@@ -2952,14 +3633,28 @@
       "type": "melee",
       "bonus": "+11 [+6/+1]",
       "traits": "reach 10 feet",
-      "damage": "1d8+4 piercing"
+      "damage": "1d8+4 piercing",
+      "attack": 11,
+      "damageParts": [
+       {
+        "dice": "1d8+4",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Crossbow",
       "type": "ranged",
       "bonus": "+10 [+5/+0]",
       "traits": "reload 1, range increment 120 feet",
-      "damage": "1d8 piercing plus Fan Bolt"
+      "damage": "1d8 piercing plus Fan Bolt",
+      "attack": 10,
+      "damageParts": [
+       {
+        "dice": "1d8",
+        "type": "piercing"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -3047,6 +3742,24 @@
      "mental 15",
      "physical 15 (except cold iron)"
     ],
+    "damageModifiers": [
+     {
+      "kind": "resistance",
+      "type": "mental",
+      "value": 15
+     },
+     {
+      "kind": "resistance",
+      "type": "physical",
+      "value": 15,
+      "except": [
+       "cold-iron"
+      ]
+     }
+    ],
+    "conditionImmunities": [
+     "controlled"
+    ],
     "speed": "40 feet, climb 40 feet, fly 40 feet",
     "strikes": [
      {
@@ -3054,14 +3767,38 @@
       "type": "melee",
       "bonus": "+28 [+23/+18]",
       "traits": "magical, reach 10 feet, unarmed, unholy",
-      "damage": "3d12+14 piercing plus 3d6 persistent bleed plus Rotting Curse"
+      "damage": "3d12+14 piercing plus 3d6 persistent bleed plus Rotting Curse",
+      "attack": 28,
+      "damageParts": [
+       {
+        "dice": "3d12+14",
+        "type": "piercing"
+       },
+       {
+        "dice": "3d6",
+        "type": "bleed",
+        "persistent": true
+       }
+      ]
      },
      {
       "name": "Sting",
       "type": "melee",
       "bonus": "+28 [+24/+20]",
       "traits": "agile, finesse, magical, reach 15 feet, unholy",
-      "damage": "3d8+14 slashing plus 3d6 persistent bleed"
+      "damage": "3d8+14 slashing plus 3d6 persistent bleed",
+      "attack": 28,
+      "damageParts": [
+       {
+        "dice": "3d8+14",
+        "type": "slashing"
+       },
+       {
+        "dice": "3d6",
+        "type": "bleed",
+        "persistent": true
+       }
+      ]
      }
     ],
     "abilities": [
@@ -3153,6 +3890,29 @@
      "bludgeoning 5",
      "piercing 5"
     ],
+    "damageModifiers": [
+     {
+      "kind": "weakness",
+      "type": "axe-vulnerability",
+      "value": 5
+     },
+     {
+      "kind": "weakness",
+      "type": "fire",
+      "value": 10
+     },
+     {
+      "kind": "resistance",
+      "type": "bludgeoning",
+      "value": 5
+     },
+     {
+      "kind": "resistance",
+      "type": "piercing",
+      "value": 5
+     }
+    ],
+    "conditionImmunities": [],
     "speed": "20 feet",
     "strikes": [
      {
@@ -3160,14 +3920,28 @@
       "type": "melee",
       "bonus": "+16 [+11/+6]",
       "traits": "reach 15 feet",
-      "damage": "2d8+6 bludgeoning"
+      "damage": "2d8+6 bludgeoning",
+      "attack": 16,
+      "damageParts": [
+       {
+        "dice": "2d8+6",
+        "type": "bludgeoning"
+       }
+      ]
      },
      {
       "name": "Root",
       "type": "melee",
       "bonus": "+16 [+11/+6]",
       "traits": "trip",
-      "damage": "2d6+6 bludgeoning"
+      "damage": "2d6+6 bludgeoning",
+      "attack": 16,
+      "damageParts": [
+       {
+        "dice": "2d6+6",
+        "type": "bludgeoning"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -3238,6 +4012,19 @@
      "electricity 10",
      "mental 10"
     ],
+    "damageModifiers": [
+     {
+      "kind": "resistance",
+      "type": "electricity",
+      "value": 10
+     },
+     {
+      "kind": "resistance",
+      "type": "mental",
+      "value": 10
+     }
+    ],
+    "conditionImmunities": [],
     "speed": "25 feet",
     "strikes": [
      {
@@ -3245,14 +4032,28 @@
       "type": "melee",
       "bonus": "+20 [+15/+10]",
       "traits": "magical, shove",
-      "damage": "2d8+11 bludgeoning"
+      "damage": "2d8+11 bludgeoning",
+      "attack": 20,
+      "damageParts": [
+       {
+        "dice": "2d8+11",
+        "type": "bludgeoning"
+       }
+      ]
      },
      {
       "name": "Fist",
       "type": "melee",
       "bonus": "+17 [+13/+9]",
       "traits": "agile, magical, unarmed",
-      "damage": "2d8+9 bludgeoning"
+      "damage": "2d8+9 bludgeoning",
+      "attack": 17,
+      "damageParts": [
+       {
+        "dice": "2d8+9",
+        "type": "bludgeoning"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -3336,6 +4137,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "speed": "25 feet, swim 25 feet",
     "strikes": [
      {
@@ -3343,14 +4146,28 @@
       "type": "melee",
       "bonus": "+7 [+3/−1]",
       "traits": "agile, finesse, versatile S",
-      "damage": "1d4+2 piercing"
+      "damage": "1d4+2 piercing",
+      "attack": 7,
+      "damageParts": [
+       {
+        "dice": "1d4+2",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Dagger",
       "type": "melee",
       "bonus": "+7 [+3/−1]",
       "traits": "agile, finesse, thrown 10 feet, versatile S",
-      "damage": "1d4+2 piercing"
+      "damage": "1d4+2 piercing",
+      "attack": 7,
+      "damageParts": [
+       {
+        "dice": "1d4+2",
+        "type": "piercing"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -3422,27 +4239,50 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "speed": "25 feet, swim 25 feet",
     "strikes": [
      {
       "name": "Trident",
       "type": "melee",
       "bonus": "+18 [+13/+8]",
-      "damage": "1d8+7 piercing"
+      "damage": "1d8+7 piercing",
+      "attack": 18,
+      "damageParts": [
+       {
+        "dice": "1d8+7",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Trident",
       "type": "melee",
       "bonus": "+18 [+13/+8]",
       "traits": "thrown 20 feet",
-      "damage": "1d8+7 piercing"
+      "damage": "1d8+7 piercing",
+      "attack": 18,
+      "damageParts": [
+       {
+        "dice": "1d8+7",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Hand Crossbow",
       "type": "ranged",
       "bonus": "+17 [+12/+7]",
       "traits": "reload 1, range increment 60 feet",
-      "damage": "1d6 piercing"
+      "damage": "1d6 piercing",
+      "attack": 17,
+      "damageParts": [
+       {
+        "dice": "1d6",
+        "type": "piercing"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -3524,6 +4364,19 @@
      "precision 5",
      "protean anatomy 8"
     ],
+    "damageModifiers": [
+     {
+      "kind": "resistance",
+      "type": "precision",
+      "value": 5
+     },
+     {
+      "kind": "resistance",
+      "type": "protean-anatomy",
+      "value": 8
+     }
+    ],
+    "conditionImmunities": [],
     "speed": "25 feet, fly 25 feet, swim 25 feet, unfettered movement",
     "strikes": [
      {
@@ -3531,21 +4384,42 @@
       "type": "melee",
       "bonus": "+15 [+10/+5]",
       "traits": "finesse, magical, unarmed",
-      "damage": "2d10+5 piercing"
+      "damage": "2d10+5 piercing",
+      "attack": 15,
+      "damageParts": [
+       {
+        "dice": "2d10+5",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Claw",
       "type": "melee",
       "bonus": "+15 [+11/+7]",
       "traits": "agile, finesse, magical, unarmed",
-      "damage": "2d8+5 slashing"
+      "damage": "2d8+5 slashing",
+      "attack": 15,
+      "damageParts": [
+       {
+        "dice": "2d8+5",
+        "type": "slashing"
+       }
+      ]
      },
      {
       "name": "Tail",
       "type": "melee",
       "bonus": "+13 [+8/+3]",
       "traits": "magical, reach 15 feet",
-      "damage": "2d12+5 bludgeoning plus Grab"
+      "damage": "2d12+5 bludgeoning plus Grab",
+      "attack": 13,
+      "damageParts": [
+       {
+        "dice": "2d12+5",
+        "type": "bludgeoning"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -3660,6 +4534,19 @@
     "resistances": [
      "fire 15"
     ],
+    "damageModifiers": [
+     {
+      "kind": "weakness",
+      "type": "unholy",
+      "value": 10
+     },
+     {
+      "kind": "resistance",
+      "type": "fire",
+      "value": 15
+     }
+    ],
+    "conditionImmunities": [],
     "speed": "30 feet, fly 40 feet",
     "strikes": [
      {
@@ -3667,7 +4554,18 @@
       "type": "melee",
       "bonus": "+20 [+15/+10]",
       "traits": "fire, forceful, holy, magical, sweep",
-      "damage": "2d6+8 slashing plus 1d6 fire"
+      "damage": "2d6+8 slashing plus 1d6 fire",
+      "attack": 20,
+      "damageParts": [
+       {
+        "dice": "2d6+8",
+        "type": "slashing"
+       },
+       {
+        "dice": "1d6",
+        "type": "fire"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -3766,6 +4664,10 @@
     ],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [
+     "confused"
+    ],
     "speed": "50 feet, climb 20 feet",
     "strikes": [
      {
@@ -3773,28 +4675,56 @@
       "type": "melee",
       "bonus": "+34 [+29/+24]",
       "traits": "magical, reach 15 feet, unarmed",
-      "damage": "3d12+19 piercing"
+      "damage": "3d12+19 piercing",
+      "attack": 34,
+      "damageParts": [
+       {
+        "dice": "3d12+19",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Claws",
       "type": "melee",
       "bonus": "+34 [+30/+26]",
       "traits": "agile, magical, reach 15 feet",
-      "damage": "3d8+19 slashing"
+      "damage": "3d8+19 slashing",
+      "attack": 34,
+      "damageParts": [
+       {
+        "dice": "3d8+19",
+        "type": "slashing"
+       }
+      ]
      },
      {
       "name": "Tail",
       "type": "melee",
       "bonus": "+34 [+29/+24]",
       "traits": "fatal d8, magical, reach 20 feet",
-      "damage": "3d4+19 piercing plus Pain"
+      "damage": "3d4+19 piercing plus Pain",
+      "attack": 34,
+      "damageParts": [
+       {
+        "dice": "3d4+19",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Quill",
       "type": "ranged",
       "bonus": "+30 [+25/+20]",
       "traits": "range increment 100 feet",
-      "damage": "3d4+19 piercing plus Pain"
+      "damage": "3d4+19 piercing plus Pain",
+      "attack": 30,
+      "damageParts": [
+       {
+        "dice": "3d4+19",
+        "type": "piercing"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -3911,6 +4841,37 @@
     "resistances": [
      "all damage 12 (except force, ghost touch, spirit, vitality; double resistance vs. non magical)"
     ],
+    "damageModifiers": [
+     {
+      "kind": "immunity",
+      "type": "bleed"
+     },
+     {
+      "kind": "immunity",
+      "type": "poison"
+     },
+     {
+      "kind": "immunity",
+      "type": "precision"
+     },
+     {
+      "kind": "resistance",
+      "type": "all",
+      "value": 12,
+      "except": [
+       "force",
+       "ghost-touch",
+       "spirit",
+       "vitality"
+      ],
+      "note": "double resistance vs. non magical"
+     }
+    ],
+    "conditionImmunities": [
+     "paralyzed",
+     "paralyzed",
+     "unconscious"
+    ],
     "speed": "0 feet, fly 60 feet",
     "strikes": [
      {
@@ -3918,7 +4879,14 @@
       "type": "melee",
       "bonus": "+32 [+27/+22]",
       "traits": "finesse, magical",
-      "damage": "4d10+14 void plus Terrifying Touch"
+      "damage": "4d10+14 void plus Terrifying Touch",
+      "attack": 32,
+      "damageParts": [
+       {
+        "dice": "4d10+14",
+        "type": "void"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -4011,6 +4979,22 @@
     "resistances": [
      "physical 5 (except cold iron)"
     ],
+    "damageModifiers": [
+     {
+      "kind": "weakness",
+      "type": "holy",
+      "value": 5
+     },
+     {
+      "kind": "resistance",
+      "type": "physical",
+      "value": 5,
+      "except": [
+       "cold-iron"
+      ]
+     }
+    ],
+    "conditionImmunities": [],
     "speed": "25 feet",
     "strikes": [
      {
@@ -4018,7 +5002,14 @@
       "type": "melee",
       "bonus": "+13 [+9/+5]",
       "traits": "agile, unarmed, unholy",
-      "damage": "2d6+5 slashing plus Unhealing Wound"
+      "damage": "2d6+5 slashing plus Unhealing Wound",
+      "attack": 13,
+      "damageParts": [
+       {
+        "dice": "2d6+5",
+        "type": "slashing"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -4099,6 +5090,10 @@
     ],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [
+     "petrified"
+    ],
     "speed": "20 feet",
     "strikes": [
      {
@@ -4106,7 +5101,14 @@
       "type": "melee",
       "bonus": "+15 [+10/+5]",
       "traits": "unarmed",
-      "damage": "2d8+4 piercing"
+      "damage": "2d8+4 piercing",
+      "attack": 15,
+      "damageParts": [
+       {
+        "dice": "2d8+4",
+        "type": "piercing"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -4173,6 +5175,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "speed": "40 feet, burrow 40 feet, swim 60 feet",
     "strikes": [
      {
@@ -4180,21 +5184,42 @@
       "type": "melee",
       "bonus": "+31 [+26/+21]",
       "traits": "deadly 2d10, reach 15 feet, unarmed",
-      "damage": "3d12+16 piercing plus Improved Grab"
+      "damage": "3d12+16 piercing plus Improved Grab",
+      "attack": 31,
+      "damageParts": [
+       {
+        "dice": "3d12+16",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Stinger",
       "type": "melee",
       "bonus": "+31 [+27/+23]",
       "traits": "agile, poison, reach 15 feet",
-      "damage": "4d6+16 piercing plus Azure Worm Venom"
+      "damage": "4d6+16 piercing plus Azure Worm Venom",
+      "attack": 31,
+      "damageParts": [
+       {
+        "dice": "4d6+16",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Body",
       "type": "melee",
       "bonus": "+29 [+24/+19]",
       "traits": "reach 15 feet",
-      "damage": "2d8+14 bludgeoning"
+      "damage": "2d8+14 bludgeoning",
+      "attack": 29,
+      "damageParts": [
+       {
+        "dice": "2d8+14",
+        "type": "bludgeoning"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -4289,6 +5314,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "speed": "40 feet",
     "strikes": [
      {
@@ -4296,7 +5323,14 @@
       "type": "melee",
       "bonus": "+10 [+5/+0]",
       "traits": "unarmed",
-      "damage": "2d6+4 piercing"
+      "damage": "2d6+4 piercing",
+      "attack": 10,
+      "damageParts": [
+       {
+        "dice": "2d6+4",
+        "type": "piercing"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -4368,6 +5402,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "speed": "20 feet, swim 25 feet, swamp passage",
     "strikes": [
      {
@@ -4375,21 +5411,37 @@
       "type": "melee",
       "bonus": "+8 [+3/−2]",
       "traits": "versatile P",
-      "damage": "1d6+3 bludgeoning"
+      "damage": "1d6+3 bludgeoning",
+      "attack": 8,
+      "damageParts": [
+       {
+        "dice": "1d6+3",
+        "type": "bludgeoning"
+       }
+      ]
      },
      {
       "name": "Tongue",
       "type": "melee",
       "bonus": "+8 [+3/−2]",
       "traits": "reach 10 feet",
-      "damage": "Tongue Grab"
+      "damage": "Tongue Grab",
+      "attack": 8,
+      "damageParts": []
      },
      {
       "name": "Sling",
       "type": "ranged",
       "bonus": "+7 [+2/−3]",
       "traits": "propulsive, reload 1, range increment 50 feet",
-      "damage": "1d6+1 bludgeoning"
+      "damage": "1d6+1 bludgeoning",
+      "attack": 7,
+      "damageParts": [
+       {
+        "dice": "1d6+1",
+        "type": "bludgeoning"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -4467,6 +5519,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "speed": "20 feet, swim 25 feet, swamp passage",
     "strikes": [
      {
@@ -4474,14 +5528,23 @@
       "type": "melee",
       "bonus": "+10 [+5/+0]",
       "traits": "two hand d8",
-      "damage": "1d4+6 bludgeoning"
+      "damage": "1d4+6 bludgeoning",
+      "attack": 10,
+      "damageParts": [
+       {
+        "dice": "1d4+6",
+        "type": "bludgeoning"
+       }
+      ]
      },
      {
       "name": "Tongue",
       "type": "melee",
       "bonus": "+10 [+5/+0]",
       "traits": "reach 10 feet",
-      "damage": "Tongue Grab"
+      "damage": "Tongue Grab",
+      "attack": 10,
+      "damageParts": []
      }
     ],
     "abilities": [],
@@ -4570,34 +5633,59 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "speed": "20 feet, swim 25 feet, swamp passage",
     "strikes": [
      {
       "name": "Club",
       "type": "melee",
       "bonus": "+10 [+5/+0]",
-      "damage": "1d6+6 bludgeoning"
+      "damage": "1d6+6 bludgeoning",
+      "attack": 10,
+      "damageParts": [
+       {
+        "dice": "1d6+6",
+        "type": "bludgeoning"
+       }
+      ]
      },
      {
       "name": "Tongue",
       "type": "melee",
       "bonus": "+10 [+5/+0]",
       "traits": "reach 10 feet",
-      "damage": "Tongue Grab"
+      "damage": "Tongue Grab",
+      "attack": 10,
+      "damageParts": []
      },
      {
       "name": "Javelin",
       "type": "melee",
       "bonus": "+6 [+1/−4]",
       "traits": "thrown 30 feet",
-      "damage": "1d6+4 piercing"
+      "damage": "1d6+4 piercing",
+      "attack": 6,
+      "damageParts": [
+       {
+        "dice": "1d6+4",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Club",
       "type": "melee",
       "bonus": "+6 [+1/−4]",
       "traits": "thrown 10 feet",
-      "damage": "1d6+6 bludgeoning"
+      "damage": "1d6+6 bludgeoning",
+      "attack": 6,
+      "damageParts": [
+       {
+        "dice": "1d6+6",
+        "type": "bludgeoning"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -4668,6 +5756,14 @@
      "cold 5"
     ],
     "resistances": [],
+    "damageModifiers": [
+     {
+      "kind": "weakness",
+      "type": "cold",
+      "value": 5
+     }
+    ],
+    "conditionImmunities": [],
     "speed": "25 feet, climb 20 feet, swim 20 feet",
     "strikes": [
      {
@@ -4675,14 +5771,29 @@
       "type": "melee",
       "bonus": "+15 [+10/+5]",
       "traits": "unarmed",
-      "damage": "2d8+8 bludgeoning plus Bogwid Fever"
+      "damage": "2d8+8 bludgeoning plus Bogwid Fever",
+      "attack": 15,
+      "damageParts": [
+       {
+        "dice": "2d8+8",
+        "type": "bludgeoning"
+       }
+      ]
      },
      {
       "name": "Larval Spit",
       "type": "ranged",
       "bonus": "+14 [+9/+4]",
       "traits": "range increment 10 feet",
-      "damage": "2d8 persistent bleed plus Ravenous Young"
+      "damage": "2d8 persistent bleed plus Ravenous Young",
+      "attack": 14,
+      "damageParts": [
+       {
+        "dice": "2d8",
+        "type": "bleed",
+        "persistent": true
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -4763,6 +5874,14 @@
     "resistances": [
      "poison 10"
     ],
+    "damageModifiers": [
+     {
+      "kind": "resistance",
+      "type": "poison",
+      "value": 10
+     }
+    ],
+    "conditionImmunities": [],
     "speed": "25 feet",
     "strikes": [
      {
@@ -4770,14 +5889,28 @@
       "type": "melee",
       "bonus": "+18 [+13/+8]",
       "traits": "magical, two hand d8",
-      "damage": "2d4+9 bludgeoning"
+      "damage": "2d4+9 bludgeoning",
+      "attack": 18,
+      "damageParts": [
+       {
+        "dice": "2d4+9",
+        "type": "bludgeoning"
+       }
+      ]
      },
      {
       "name": "Fangs",
       "type": "melee",
       "bonus": "+17 [+12/+7]",
       "traits": "finesse",
-      "damage": "2d6+9 piercing plus Serpentfolk Venom"
+      "damage": "2d6+9 piercing plus Serpentfolk Venom",
+      "attack": 17,
+      "damageParts": [
+       {
+        "dice": "2d6+9",
+        "type": "piercing"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -4860,20 +5993,36 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "speed": "0 feet, swim 60 feet",
     "strikes": [
      {
       "name": "Snout",
       "type": "melee",
       "bonus": "+6 [+1/−4]",
-      "damage": "1d6+2 bludgeoning"
+      "damage": "1d6+2 bludgeoning",
+      "attack": 6,
+      "damageParts": [
+       {
+        "dice": "1d6+2",
+        "type": "bludgeoning"
+       }
+      ]
      },
      {
       "name": "Jaws",
       "type": "melee",
       "bonus": "+6 [+1/−4]",
       "traits": "unarmed",
-      "damage": "1d6+2 piercing"
+      "damage": "1d6+2 piercing",
+      "attack": 6,
+      "damageParts": [
+       {
+        "dice": "1d6+2",
+        "type": "piercing"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -4954,6 +6103,23 @@
      "holy 5"
     ],
     "resistances": [],
+    "damageModifiers": [
+     {
+      "kind": "immunity",
+      "type": "fire"
+     },
+     {
+      "kind": "weakness",
+      "type": "cold-iron",
+      "value": 5
+     },
+     {
+      "kind": "weakness",
+      "type": "holy",
+      "value": 5
+     }
+    ],
+    "conditionImmunities": [],
     "speed": "30 feet",
     "strikes": [
      {
@@ -4961,14 +6127,36 @@
       "type": "melee",
       "bonus": "+15 [+10/+5]",
       "traits": "magical, unholy",
-      "damage": "2d8+4 slashing plus 1d6 fire"
+      "damage": "2d8+4 slashing plus 1d6 fire",
+      "attack": 15,
+      "damageParts": [
+       {
+        "dice": "2d8+4",
+        "type": "slashing"
+       },
+       {
+        "dice": "1d6",
+        "type": "fire"
+       }
+      ]
      },
      {
       "name": "Hoof",
       "type": "melee",
       "bonus": "+15 [+11/+7]",
       "traits": "agile, unholy",
-      "damage": "2d4+4 bludgeoning plus 1d6 fire"
+      "damage": "2d4+4 bludgeoning plus 1d6 fire",
+      "attack": 15,
+      "damageParts": [
+       {
+        "dice": "2d4+4",
+        "type": "bludgeoning"
+       },
+       {
+        "dice": "1d6",
+        "type": "fire"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -5072,6 +6260,24 @@
     "resistances": [
      "fire 5"
     ],
+    "damageModifiers": [
+     {
+      "kind": "immunity",
+      "type": "bleed"
+     },
+     {
+      "kind": "immunity",
+      "type": "poison"
+     },
+     {
+      "kind": "resistance",
+      "type": "fire",
+      "value": 5
+     }
+    ],
+    "conditionImmunities": [
+     "paralyzed"
+    ],
     "speed": "15 feet, swim 50 feet",
     "strikes": [
      {
@@ -5079,7 +6285,14 @@
       "type": "melee",
       "bonus": "+11 [+6/+1]",
       "traits": "unarmed",
-      "damage": "1d12+7 piercing plus Grab"
+      "damage": "1d12+7 piercing plus Grab",
+      "attack": 11,
+      "damageParts": [
+       {
+        "dice": "1d12+7",
+        "type": "piercing"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -5144,6 +6357,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "speed": "35 feet",
     "strikes": [
      {
@@ -5151,14 +6366,28 @@
       "type": "melee",
       "bonus": "+23 [+18/+13]",
       "traits": "reach 20 feet, sweep",
-      "damage": "2d10+13 bludgeoning plus Improved Knockdown"
+      "damage": "2d10+13 bludgeoning plus Improved Knockdown",
+      "attack": 23,
+      "damageParts": [
+       {
+        "dice": "2d10+13",
+        "type": "bludgeoning"
+       }
+      ]
      },
      {
       "name": "Foot",
       "type": "melee",
       "bonus": "+23 [+18/+13]",
       "traits": "reach 15 feet, unarmed",
-      "damage": "2d8+13 bludgeoning"
+      "damage": "2d8+13 bludgeoning",
+      "attack": 23,
+      "damageParts": [
+       {
+        "dice": "2d8+13",
+        "type": "bludgeoning"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -5232,6 +6461,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "speed": "25 feet",
     "strikes": [
      {
@@ -5239,21 +6470,42 @@
       "type": "melee",
       "bonus": "+10 [+5/+0]",
       "traits": "two hand d12",
-      "damage": "1d8+4 piercing"
+      "damage": "1d8+4 piercing",
+      "attack": 10,
+      "damageParts": [
+       {
+        "dice": "1d8+4",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Fist",
       "type": "melee",
       "bonus": "+10 [+6/+2]",
       "traits": "agile, nonlethal, unarmed",
-      "damage": "1d4+4 bludgeoning"
+      "damage": "1d4+4 bludgeoning",
+      "attack": 10,
+      "damageParts": [
+       {
+        "dice": "1d4+4",
+        "type": "bludgeoning"
+       }
+      ]
      },
      {
       "name": "Javelin",
       "type": "melee",
       "bonus": "+8 [+3/−2]",
       "traits": "thrown 30 feet",
-      "damage": "1d6+4 piercing"
+      "damage": "1d6+4 piercing",
+      "attack": 8,
+      "damageParts": [
+       {
+        "dice": "1d6+4",
+        "type": "piercing"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -5324,6 +6576,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "speed": "25 feet",
     "strikes": [
      {
@@ -5331,21 +6585,42 @@
       "type": "melee",
       "bonus": "+11 [+7/+3]",
       "traits": "agile, versatile S",
-      "damage": "1d4+6 piercing"
+      "damage": "1d4+6 piercing",
+      "attack": 11,
+      "damageParts": [
+       {
+        "dice": "1d4+6",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Sickle",
       "type": "melee",
       "bonus": "+11 [+7/+3]",
       "traits": "agile, trip",
-      "damage": "1d4+6 slashing"
+      "damage": "1d4+6 slashing",
+      "attack": 11,
+      "damageParts": [
+       {
+        "dice": "1d4+6",
+        "type": "slashing"
+       }
+      ]
      },
      {
       "name": "Dagger",
       "type": "melee",
       "bonus": "+10 [+6/+2]",
       "traits": "agile, thrown 10 feet, versatile S",
-      "damage": "1d4+6 piercing"
+      "damage": "1d4+6 piercing",
+      "attack": 10,
+      "damageParts": [
+       {
+        "dice": "1d4+6",
+        "type": "piercing"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -5420,6 +6695,14 @@
      "holy 3"
     ],
     "resistances": [],
+    "damageModifiers": [
+     {
+      "kind": "weakness",
+      "type": "holy",
+      "value": 3
+     }
+    ],
+    "conditionImmunities": [],
     "speed": "5 feet, fly 40 feet",
     "strikes": [
      {
@@ -5427,7 +6710,14 @@
       "type": "melee",
       "bonus": "+8 [+4/+0]",
       "traits": "agile, disease, finesse, magical, reach 0 feet, unarmed, unholy",
-      "damage": "1d8 piercing plus Cacodaemonia"
+      "damage": "1d8 piercing plus Cacodaemonia",
+      "attack": 8,
+      "damageParts": [
+       {
+        "dice": "1d8",
+        "type": "piercing"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -5525,6 +6815,18 @@
      "spirit 15"
     ],
     "resistances": [],
+    "damageModifiers": [
+     {
+      "kind": "immunity",
+      "type": "fire"
+     },
+     {
+      "kind": "weakness",
+      "type": "spirit",
+      "value": 15
+     }
+    ],
+    "conditionImmunities": [],
     "speed": "40 feet, fly 40 feet",
     "strikes": [
      {
@@ -5532,14 +6834,37 @@
       "type": "melee",
       "bonus": "+30 [+25/+20]",
       "traits": "deadly d8, magical, two hand d10, versatile P",
-      "damage": "2d6+14 slashing plus 2d6 fire"
+      "damage": "2d6+14 slashing plus 2d6 fire",
+      "attack": 30,
+      "damageParts": [
+       {
+        "dice": "2d6+14",
+        "type": "slashing"
+       },
+       {
+        "dice": "2d6",
+        "type": "fire"
+       }
+      ]
      },
      {
       "name": "Jaws",
       "type": "melee",
       "bonus": "+28 [+23/+18]",
       "traits": "magical, reach 10 feet, unarmed",
-      "damage": "2d6+14 piercing plus 1d8 persistent bleed"
+      "damage": "2d6+14 piercing plus 1d8 persistent bleed",
+      "attack": 28,
+      "damageParts": [
+       {
+        "dice": "2d6+14",
+        "type": "piercing"
+       },
+       {
+        "dice": "1d8",
+        "type": "bleed",
+        "persistent": true
+       }
+      ]
      }
     ],
     "abilities": [
@@ -5639,6 +6964,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "speed": "25 feet",
     "strikes": [
      {
@@ -5646,21 +6973,42 @@
       "type": "melee",
       "bonus": "+9 [+5/+1]",
       "traits": "agile, finesse, shove",
-      "damage": "1d4 bludgeoning"
+      "damage": "1d4 bludgeoning",
+      "attack": 9,
+      "damageParts": [
+       {
+        "dice": "1d4",
+        "type": "bludgeoning"
+       }
+      ]
      },
      {
       "name": "Dagger",
       "type": "melee",
       "bonus": "+9 [+5/+1]",
       "traits": "agile, finesse, versatile S",
-      "damage": "1d4 piercing"
+      "damage": "1d4 piercing",
+      "attack": 9,
+      "damageParts": [
+       {
+        "dice": "1d4",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Dagger",
       "type": "melee",
       "bonus": "+9 [+5/+1]",
       "traits": "agile, thrown 10 feet, versatile S",
-      "damage": "1d4 piercing"
+      "damage": "1d4 piercing",
+      "attack": 9,
+      "damageParts": [
+       {
+        "dice": "1d4",
+        "type": "piercing"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -5756,6 +7104,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "speed": "25 feet",
     "strikes": [
      {
@@ -5763,7 +7113,14 @@
       "type": "melee",
       "bonus": "+13 [+9/+5]",
       "traits": "agile, finesse, versatile S",
-      "damage": "1d6+7 piercing plus Darkening Poison"
+      "damage": "1d6+7 piercing plus Darkening Poison",
+      "attack": 13,
+      "damageParts": [
+       {
+        "dice": "1d6+7",
+        "type": "piercing"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -5862,6 +7219,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "speed": "25 feet",
     "strikes": [
      {
@@ -5869,14 +7228,28 @@
       "type": "melee",
       "bonus": "+10 [+6/+2]",
       "traits": "agile, finesse, versatile S",
-      "damage": "1d4+4 piercing plus Darkening Poison"
+      "damage": "1d4+4 piercing plus Darkening Poison",
+      "attack": 10,
+      "damageParts": [
+       {
+        "dice": "1d4+4",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Dagger",
       "type": "melee",
       "bonus": "+10 [+6/+2]",
       "traits": "agile, thrown 10 feet, versatile S",
-      "damage": "1d4 piercing plus Darkening Poison"
+      "damage": "1d4 piercing plus Darkening Poison",
+      "attack": 10,
+      "damageParts": [
+       {
+        "dice": "1d4",
+        "type": "piercing"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -5969,6 +7342,24 @@
      "cold 3",
      "fire 3"
     ],
+    "damageModifiers": [
+     {
+      "kind": "weakness",
+      "type": "unholy",
+      "value": 3
+     },
+     {
+      "kind": "resistance",
+      "type": "cold",
+      "value": 3
+     },
+     {
+      "kind": "resistance",
+      "type": "fire",
+      "value": 3
+     }
+    ],
+    "conditionImmunities": [],
     "speed": "0 feet, fly 40 feet",
     "strikes": [
      {
@@ -5976,7 +7367,14 @@
       "type": "melee",
       "bonus": "+6 [+2/−2]",
       "traits": "agile, finesse, holy, magical, reach 0 feet",
-      "damage": "1d6-1 bludgeoning"
+      "damage": "1d6-1 bludgeoning",
+      "attack": 6,
+      "damageParts": [
+       {
+        "dice": "1d6-1",
+        "type": "bludgeoning"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -6071,6 +7469,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "speed": "30 feet",
     "strikes": [
      {
@@ -6078,21 +7478,42 @@
       "type": "melee",
       "bonus": "+8 [+3/−2]",
       "traits": "sweep",
-      "damage": "1d12+3 slashing"
+      "damage": "1d12+3 slashing",
+      "attack": 8,
+      "damageParts": [
+       {
+        "dice": "1d12+3",
+        "type": "slashing"
+       }
+      ]
      },
      {
       "name": "Dagger",
       "type": "melee",
       "bonus": "+9 [+5/+1]",
       "traits": "agile, finesse, versatile S",
-      "damage": "1d4+3 piercing"
+      "damage": "1d4+3 piercing",
+      "attack": 9,
+      "damageParts": [
+       {
+        "dice": "1d4+3",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Dagger",
       "type": "melee",
       "bonus": "+9 [+5/+1]",
       "traits": "agile, thrown 10 feet, versatile S",
-      "damage": "1d4+3 piercing"
+      "damage": "1d4+3 piercing",
+      "attack": 9,
+      "damageParts": [
+       {
+        "dice": "1d4+3",
+        "type": "piercing"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -6160,6 +7581,14 @@
     "resistances": [
      "sonic 15"
     ],
+    "damageModifiers": [
+     {
+      "kind": "resistance",
+      "type": "sonic",
+      "value": 15
+     }
+    ],
+    "conditionImmunities": [],
     "speed": "35 feet",
     "strikes": [
      {
@@ -6167,7 +7596,14 @@
       "type": "melee",
       "bonus": "+26 [+22/+18]",
       "traits": "agile, deadly d12, reach 10 feet, unarmed",
-      "damage": "2d12+12 piercing"
+      "damage": "2d12+12 piercing",
+      "attack": 26,
+      "damageParts": [
+       {
+        "dice": "2d12+12",
+        "type": "piercing"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -6241,6 +7677,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "speed": "35 feet",
     "strikes": [
      {
@@ -6248,14 +7686,28 @@
       "type": "melee",
       "bonus": "+16 [+11/+6]",
       "traits": "unarmed",
-      "damage": "2d10+6 piercing"
+      "damage": "2d10+6 piercing",
+      "attack": 16,
+      "damageParts": [
+       {
+        "dice": "2d10+6",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Claw",
       "type": "melee",
       "bonus": "+16 [+12/+8]",
       "traits": "agile, unarmed",
-      "damage": "2d8+6 slashing plus Grab"
+      "damage": "2d8+6 slashing plus Grab",
+      "attack": 16,
+      "damageParts": [
+       {
+        "dice": "2d8+6",
+        "type": "slashing"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -6322,6 +7774,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "speed": "40 feet, burrow 40 feet, swim 20 feet",
     "strikes": [
      {
@@ -6329,28 +7783,51 @@
       "type": "melee",
       "bonus": "+28 [+23/+18]",
       "traits": "deadly 2d10, reach 15 feet, unarmed",
-      "damage": "3d10+15 piercing plus Improved Grab"
+      "damage": "3d10+15 piercing plus Improved Grab",
+      "attack": 28,
+      "damageParts": [
+       {
+        "dice": "3d10+15",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Stinger",
       "type": "melee",
       "bonus": "+28 [+24/+20]",
       "traits": "agile, poison, reach 15 feet",
-      "damage": "2d12+15 piercing plus Purple Worm Venom"
+      "damage": "2d12+15 piercing plus Purple Worm Venom",
+      "attack": 28,
+      "damageParts": [
+       {
+        "dice": "2d12+15",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Body",
       "type": "melee",
       "bonus": "+26 [+21/+16]",
       "traits": "reach 15 feet",
-      "damage": "1d10+13 bludgeoning"
+      "damage": "1d10+13 bludgeoning",
+      "attack": 26,
+      "damageParts": [
+       {
+        "dice": "1d10+13",
+        "type": "bludgeoning"
+       }
+      ]
      },
      {
       "name": "Regurgitate",
       "type": "ranged",
       "bonus": "+26 [+21/+16]",
       "traits": "brutal, range increment 60 feet",
-      "damage": "Regurgitate"
+      "damage": "Regurgitate",
+      "attack": 26,
+      "damageParts": []
      }
     ],
     "abilities": [
@@ -6457,6 +7934,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "speed": "40 feet",
     "strikes": [
      {
@@ -6464,14 +7943,28 @@
       "type": "melee",
       "bonus": "+9 [+5/+1]",
       "traits": "agile",
-      "damage": "1d10+4 bludgeoning"
+      "damage": "1d10+4 bludgeoning",
+      "attack": 9,
+      "damageParts": [
+       {
+        "dice": "1d10+4",
+        "type": "bludgeoning"
+       }
+      ]
      },
      {
       "name": "Sling",
       "type": "ranged",
       "bonus": "+8 [+3/−2]",
       "traits": "propulsive, reload 1, range increment 50 feet",
-      "damage": "1d6+1 bludgeoning"
+      "damage": "1d6+1 bludgeoning",
+      "attack": 8,
+      "damageParts": [
+       {
+        "dice": "1d6+1",
+        "type": "bludgeoning"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -6548,6 +8041,38 @@
      "piercing 5",
      "slashing 2"
     ],
+    "damageModifiers": [
+     {
+      "kind": "immunity",
+      "type": "precision"
+     },
+     {
+      "kind": "weakness",
+      "type": "area-damage",
+      "value": 5
+     },
+     {
+      "kind": "weakness",
+      "type": "splash-damage",
+      "value": 5
+     },
+     {
+      "kind": "resistance",
+      "type": "bludgeoning",
+      "value": 5
+     },
+     {
+      "kind": "resistance",
+      "type": "piercing",
+      "value": 5
+     },
+     {
+      "kind": "resistance",
+      "type": "slashing",
+      "value": 2
+     }
+    ],
+    "conditionImmunities": [],
     "speed": "30 feet, climb 30 feet",
     "strikes": [],
     "abilities": [
@@ -6631,6 +8156,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "speed": "25 feet",
     "strikes": [
      {
@@ -6638,21 +8165,42 @@
       "type": "melee",
       "bonus": "+11 [+7/+3]",
       "traits": "agile",
-      "damage": "1d4+4 slashing"
+      "damage": "1d4+4 slashing",
+      "attack": 11,
+      "damageParts": [
+       {
+        "dice": "1d4+4",
+        "type": "slashing"
+       }
+      ]
      },
      {
       "name": "Staff",
       "type": "melee",
       "bonus": "+11 [+6/+1]",
       "traits": "two hand d8",
-      "damage": "1d4+4 bludgeoning"
+      "damage": "1d4+4 bludgeoning",
+      "attack": 11,
+      "damageParts": [
+       {
+        "dice": "1d4+4",
+        "type": "bludgeoning"
+       }
+      ]
      },
      {
       "name": "Sickle",
       "type": "melee",
       "bonus": "+11 [+7/+3]",
       "traits": "agile, trip",
-      "damage": "1d4+4 slashing"
+      "damage": "1d4+4 slashing",
+      "attack": 11,
+      "damageParts": [
+       {
+        "dice": "1d4+4",
+        "type": "slashing"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -6727,6 +8275,29 @@
      "physical 5 (except adamantine)",
      "spells 5 (except fire)"
     ],
+    "damageModifiers": [
+     {
+      "kind": "immunity",
+      "type": "electricity"
+     },
+     {
+      "kind": "resistance",
+      "type": "physical",
+      "value": 5,
+      "except": [
+       "adamantine"
+      ]
+     },
+     {
+      "kind": "resistance",
+      "type": "spells",
+      "value": 5,
+      "except": [
+       "fire"
+      ]
+     }
+    ],
+    "conditionImmunities": [],
     "speed": "25 feet",
     "strikes": [
      {
@@ -6734,7 +8305,14 @@
       "type": "melee",
       "bonus": "+20 [+15/+10]",
       "traits": "magical, reach 10 feet, unarmed",
-      "damage": "2d10+7 bludgeoning"
+      "damage": "2d10+7 bludgeoning",
+      "attack": 20,
+      "damageParts": [
+       {
+        "dice": "2d10+7",
+        "type": "bludgeoning"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -6809,32 +8387,62 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "speed": "25 feet, fly 40 feet",
     "strikes": [
      {
       "name": "Dragon Jaws",
       "type": "melee",
       "bonus": "+20 [+15/+10]",
-      "damage": "2d6+9 piercing"
+      "damage": "2d6+9 piercing",
+      "attack": 20,
+      "damageParts": [
+       {
+        "dice": "2d6+9",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Lion Jaws",
       "type": "melee",
       "bonus": "+20 [+15/+10]",
-      "damage": "2d10+9 piercing"
+      "damage": "2d10+9 piercing",
+      "attack": 20,
+      "damageParts": [
+       {
+        "dice": "2d10+9",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Goat Horns",
       "type": "melee",
       "bonus": "+20 [+15/+10]",
-      "damage": "2d10+9 piercing"
+      "damage": "2d10+9 piercing",
+      "attack": 20,
+      "damageParts": [
+       {
+        "dice": "2d10+9",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Claw",
       "type": "melee",
       "bonus": "+20 [+16/+12]",
       "traits": "agile, unarmed",
-      "damage": "2d6+9 slashing"
+      "damage": "2d6+9 slashing",
+      "attack": 20,
+      "damageParts": [
+       {
+        "dice": "2d6+9",
+        "type": "slashing"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -6927,6 +8535,19 @@
     "resistances": [
      "sonic 5"
     ],
+    "damageModifiers": [
+     {
+      "kind": "weakness",
+      "type": "unholy",
+      "value": 5
+     },
+     {
+      "kind": "resistance",
+      "type": "sonic",
+      "value": 5
+     }
+    ],
+    "conditionImmunities": [],
     "speed": "30 feet, fly 40 feet",
     "strikes": [
      {
@@ -6934,14 +8555,28 @@
       "type": "melee",
       "bonus": "+14 [+10/+6]",
       "traits": "agile, finesse, holy, magical, unarmed",
-      "damage": "2d6+5 bludgeoning"
+      "damage": "2d6+5 bludgeoning",
+      "attack": 14,
+      "damageParts": [
+       {
+        "dice": "2d6+5",
+        "type": "bludgeoning"
+       }
+      ]
      },
      {
       "name": "Piercing Hymn",
       "type": "ranged",
       "bonus": "+17 [+12/+7]",
       "traits": "holy, magical, sonic, range 90 feet",
-      "damage": "4d6 sonic plus Deafening Aria"
+      "damage": "4d6 sonic plus Deafening Aria",
+      "attack": 17,
+      "damageParts": [
+       {
+        "dice": "4d6",
+        "type": "sonic"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -7030,6 +8665,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "speed": "25 feet",
     "strikes": [
      {
@@ -7037,14 +8674,28 @@
       "type": "melee",
       "bonus": "+11 [+6/+1]",
       "traits": "finesse, unarmed",
-      "damage": "1d10+5 piercing plus Grab"
+      "damage": "1d10+5 piercing plus Grab",
+      "attack": 11,
+      "damageParts": [
+       {
+        "dice": "1d10+5",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Claw",
       "type": "melee",
       "bonus": "+11 [+7/+3]",
       "traits": "agile, finesse, unarmed",
-      "damage": "1d6+5 slashing"
+      "damage": "1d6+5 slashing",
+      "attack": 11,
+      "damageParts": [
+       {
+        "dice": "1d6+5",
+        "type": "slashing"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -7124,6 +8775,33 @@
      "water 5"
     ],
     "resistances": [],
+    "damageModifiers": [
+     {
+      "kind": "immunity",
+      "type": "bleed"
+     },
+     {
+      "kind": "immunity",
+      "type": "fire"
+     },
+     {
+      "kind": "immunity",
+      "type": "poison"
+     },
+     {
+      "kind": "weakness",
+      "type": "cold",
+      "value": 5
+     },
+     {
+      "kind": "weakness",
+      "type": "water",
+      "value": 5
+     }
+    ],
+    "conditionImmunities": [
+     "paralyzed"
+    ],
     "speed": "40 feet",
     "strikes": [
      {
@@ -7131,7 +8809,19 @@
       "type": "melee",
       "bonus": "+10 [+5/+0]",
       "traits": "finesse, unarmed",
-      "damage": "1d8+4 fire plus 1d4 persistent fire"
+      "damage": "1d8+4 fire plus 1d4 persistent fire",
+      "attack": 10,
+      "damageParts": [
+       {
+        "dice": "1d8+4",
+        "type": "fire"
+       },
+       {
+        "dice": "1d4",
+        "type": "fire",
+        "persistent": true
+       }
+      ]
      }
     ],
     "abilities": [
@@ -7200,6 +8890,27 @@
      "physical 10 (except adamantine)",
      "spells 10 (except cold, earth, water)"
     ],
+    "damageModifiers": [
+     {
+      "kind": "resistance",
+      "type": "physical",
+      "value": 10,
+      "except": [
+       "adamantine"
+      ]
+     },
+     {
+      "kind": "resistance",
+      "type": "spells",
+      "value": 10,
+      "except": [
+       "cold",
+       "earth",
+       "water"
+      ]
+     }
+    ],
+    "conditionImmunities": [],
     "speed": "20 feet",
     "strikes": [
      {
@@ -7207,7 +8918,18 @@
       "type": "melee",
       "bonus": "+24 [+19/+14]",
       "traits": "magical, reach 10 feet, sanctified, unarmed",
-      "damage": "2d6 spirit plus 2d10+6 bludgeoning"
+      "damage": "2d6 spirit plus 2d10+6 bludgeoning",
+      "attack": 24,
+      "damageParts": [
+       {
+        "dice": "2d6",
+        "type": "spirit"
+       },
+       {
+        "dice": "2d10+6",
+        "type": "bludgeoning"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -7290,6 +9012,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "speed": "30 feet",
     "strikes": [
      {
@@ -7297,14 +9021,28 @@
       "type": "melee",
       "bonus": "+25 [+20/+15]",
       "traits": "disarm, magical, reach 20 feet",
-      "damage": "2d10+13 piercing"
+      "damage": "2d10+13 piercing",
+      "attack": 25,
+      "damageParts": [
+       {
+        "dice": "2d10+13",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Fist",
       "type": "melee",
       "bonus": "+24 [+20/+16]",
       "traits": "agile, reach 15 feet, unarmed",
-      "damage": "2d8+13 bludgeoning"
+      "damage": "2d8+13 bludgeoning",
+      "attack": 24,
+      "damageParts": [
+       {
+        "dice": "2d8+13",
+        "type": "bludgeoning"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -7401,6 +9139,31 @@
      "physical 5 (except silver)",
      "poison 5"
     ],
+    "damageModifiers": [
+     {
+      "kind": "immunity",
+      "type": "fire"
+     },
+     {
+      "kind": "weakness",
+      "type": "holy",
+      "value": 5
+     },
+     {
+      "kind": "resistance",
+      "type": "physical",
+      "value": 5,
+      "except": [
+       "silver"
+      ]
+     },
+     {
+      "kind": "resistance",
+      "type": "poison",
+      "value": 5
+     }
+    ],
+    "conditionImmunities": [],
     "speed": "25 feet, fly 40 feet",
     "strikes": [
      {
@@ -7408,14 +9171,36 @@
       "type": "melee",
       "bonus": "+18 [+13/+8]",
       "traits": "magical, unholy, versatile P",
-      "damage": "1d6+10 bludgeoning plus 1d6 spirit"
+      "damage": "1d6+10 bludgeoning plus 1d6 spirit",
+      "attack": 18,
+      "damageParts": [
+       {
+        "dice": "1d6+10",
+        "type": "bludgeoning"
+       },
+       {
+        "dice": "1d6",
+        "type": "spirit"
+       }
+      ]
      },
      {
       "name": "Wing",
       "type": "melee",
       "bonus": "+17 [+13/+9]",
       "traits": "agile, unholy, versatile P",
-      "damage": "1d6 fire plus 1d6+7 bludgeoning"
+      "damage": "1d6 fire plus 1d6+7 bludgeoning",
+      "attack": 17,
+      "damageParts": [
+       {
+        "dice": "1d6",
+        "type": "fire"
+       },
+       {
+        "dice": "1d6+7",
+        "type": "bludgeoning"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -7506,6 +9291,10 @@
     ],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [
+     "petrified"
+    ],
     "speed": "20 feet, fly 40 feet",
     "strikes": [
      {
@@ -7513,7 +9302,14 @@
       "type": "melee",
       "bonus": "+13 [+8/+3]",
       "traits": "finesse, magical, unarmed",
-      "damage": "1d8-2 piercing plus Calcification"
+      "damage": "1d8-2 piercing plus Calcification",
+      "attack": 13,
+      "damageParts": [
+       {
+        "dice": "1d8-2",
+        "type": "piercing"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -7586,6 +9382,14 @@
     "resistances": [
      "poison 5"
     ],
+    "damageModifiers": [
+     {
+      "kind": "resistance",
+      "type": "poison",
+      "value": 5
+     }
+    ],
+    "conditionImmunities": [],
     "speed": "25 feet",
     "strikes": [
      {
@@ -7593,28 +9397,56 @@
       "type": "melee",
       "bonus": "+14 [+10/+6]",
       "traits": "agile, finesse, versatile S",
-      "damage": "1d6+5 piercing plus Serpentfolk Venom"
+      "damage": "1d6+5 piercing plus Serpentfolk Venom",
+      "attack": 14,
+      "damageParts": [
+       {
+        "dice": "1d6+5",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Fangs",
       "type": "melee",
       "bonus": "+14 [+9/+4]",
       "traits": "finesse",
-      "damage": "1d6+5 piercing plus Serpentfolk Venom"
+      "damage": "1d6+5 piercing plus Serpentfolk Venom",
+      "attack": 14,
+      "damageParts": [
+       {
+        "dice": "1d6+5",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Hand Crossbow (Spider Venom)",
       "type": "ranged",
       "bonus": "+10 [+5/+0]",
       "traits": "reload 1, range increment 60 feet",
-      "damage": "1d6+3 piercing plus Spider Venom"
+      "damage": "1d6+3 piercing plus Spider Venom",
+      "attack": 10,
+      "damageParts": [
+       {
+        "dice": "1d6+3",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Hand Crossbow (Serpentfolk Venom)",
       "type": "ranged",
       "bonus": "+10 [+5/+0]",
       "traits": "reload 1, range increment 60 feet",
-      "damage": "1d6+3 piercing plus Serpentfolk Venom"
+      "damage": "1d6+3 piercing plus Serpentfolk Venom",
+      "attack": 10,
+      "damageParts": [
+       {
+        "dice": "1d6+3",
+        "type": "piercing"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -7705,6 +9537,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "speed": "30 feet, swim 15 feet",
     "strikes": [
      {
@@ -7712,7 +9546,14 @@
       "type": "melee",
       "bonus": "+7 [+3/−1]",
       "traits": "agile, finesse, reach 0 feet, unarmed",
-      "damage": "1d6 piercing plus Compsognathus Venom"
+      "damage": "1d6 piercing plus Compsognathus Venom",
+      "attack": 7,
+      "damageParts": [
+       {
+        "dice": "1d6",
+        "type": "piercing"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -7780,6 +9621,24 @@
      "slashing 5",
      "piercing 5"
     ],
+    "damageModifiers": [
+     {
+      "kind": "weakness",
+      "type": "bludgeoning",
+      "value": 5
+     },
+     {
+      "kind": "resistance",
+      "type": "slashing",
+      "value": 5
+     },
+     {
+      "kind": "resistance",
+      "type": "piercing",
+      "value": 5
+     }
+    ],
+    "conditionImmunities": [],
     "speed": "10 feet, swim 60 feet",
     "strikes": [
      {
@@ -7787,7 +9646,14 @@
       "type": "melee",
       "bonus": "+18 [+13/+8]",
       "traits": "reach 15 feet",
-      "damage": "2d10+8 piercing plus Con Rit Venom"
+      "damage": "2d10+8 piercing plus Con Rit Venom",
+      "attack": 18,
+      "damageParts": [
+       {
+        "dice": "2d10+8",
+        "type": "piercing"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -7871,6 +9737,11 @@
     ],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [
+     "controlled",
+     "paralyzed"
+    ],
     "speed": "40 feet, climb 40 feet, fly 140 feet",
     "strikes": [
      {
@@ -7878,28 +9749,56 @@
       "type": "melee",
       "bonus": "+25 [+20/+15]",
       "traits": "magical, reach 10 feet, unarmed",
-      "damage": "3d8+11 piercing"
+      "damage": "3d8+11 piercing",
+      "attack": 25,
+      "damageParts": [
+       {
+        "dice": "3d8+11",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Claw",
       "type": "melee",
       "bonus": "+25 [+21/+17]",
       "traits": "agile, magical, unarmed",
-      "damage": "3d6+11 slashing"
+      "damage": "3d6+11 slashing",
+      "attack": 25,
+      "damageParts": [
+       {
+        "dice": "3d6+11",
+        "type": "slashing"
+       }
+      ]
      },
      {
       "name": "Tail",
       "type": "melee",
       "bonus": "+23 [+18/+13]",
       "traits": "magical, reach 15 feet",
-      "damage": "2d10+11 bludgeoning"
+      "damage": "2d10+11 bludgeoning",
+      "attack": 23,
+      "damageParts": [
+       {
+        "dice": "2d10+11",
+        "type": "bludgeoning"
+       }
+      ]
      },
      {
       "name": "Mental Blast",
       "type": "ranged",
       "bonus": "+25 [+20/+15]",
       "traits": "mental, range 100 feet",
-      "damage": "3d6+6 mental"
+      "damage": "3d6+6 mental",
+      "attack": 25,
+      "damageParts": [
+       {
+        "dice": "3d6+6",
+        "type": "mental"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -8016,6 +9915,11 @@
     ],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [
+     "controlled",
+     "paralyzed"
+    ],
     "speed": "40 feet, climb 40 feet, fly 140 feet",
     "strikes": [
      {
@@ -8023,28 +9927,56 @@
       "type": "melee",
       "bonus": "+25 [+20/+15]",
       "traits": "magical, reach 10 feet, unarmed",
-      "damage": "3d8+11 piercing"
+      "damage": "3d8+11 piercing",
+      "attack": 25,
+      "damageParts": [
+       {
+        "dice": "3d8+11",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Claw",
       "type": "melee",
       "bonus": "+25 [+21/+17]",
       "traits": "agile, magical, unarmed",
-      "damage": "3d6+11 slashing"
+      "damage": "3d6+11 slashing",
+      "attack": 25,
+      "damageParts": [
+       {
+        "dice": "3d6+11",
+        "type": "slashing"
+       }
+      ]
      },
      {
       "name": "Tail",
       "type": "melee",
       "bonus": "+23 [+18/+13]",
       "traits": "magical, reach 15 feet",
-      "damage": "2d10+11 bludgeoning"
+      "damage": "2d10+11 bludgeoning",
+      "attack": 23,
+      "damageParts": [
+       {
+        "dice": "2d10+11",
+        "type": "bludgeoning"
+       }
+      ]
      },
      {
       "name": "Mental Blast",
       "type": "ranged",
       "bonus": "+25 [+20/+15]",
       "traits": "mental, range 100 feet",
-      "damage": "3d6+6 mental"
+      "damage": "3d6+6 mental",
+      "attack": 25,
+      "damageParts": [
+       {
+        "dice": "3d6+6",
+        "type": "mental"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -8165,6 +10097,11 @@
     ],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [
+     "controlled",
+     "paralyzed"
+    ],
     "speed": "50 feet, climb 50 feet, fly 200 feet",
     "strikes": [
      {
@@ -8172,28 +10109,56 @@
       "type": "melee",
       "bonus": "+32 [+27/+22]",
       "traits": "magical, reach 15 feet, unarmed",
-      "damage": "3d8+17 piercing"
+      "damage": "3d8+17 piercing",
+      "attack": 32,
+      "damageParts": [
+       {
+        "dice": "3d8+17",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Claw",
       "type": "melee",
       "bonus": "+32 [+28/+24]",
       "traits": "agile, magical, reach 10 feet, unarmed",
-      "damage": "3d6+17 slashing"
+      "damage": "3d6+17 slashing",
+      "attack": 32,
+      "damageParts": [
+       {
+        "dice": "3d6+17",
+        "type": "slashing"
+       }
+      ]
      },
      {
       "name": "Tail",
       "type": "melee",
       "bonus": "+30 [+25/+20]",
       "traits": "magical, reach 20 feet",
-      "damage": "2d10+17 bludgeoning"
+      "damage": "2d10+17 bludgeoning",
+      "attack": 30,
+      "damageParts": [
+       {
+        "dice": "2d10+17",
+        "type": "bludgeoning"
+       }
+      ]
      },
      {
       "name": "Mental Blast",
       "type": "ranged",
       "bonus": "+31 [+26/+21]",
       "traits": "mental, range 100 feet",
-      "damage": "6d6+6 mental"
+      "damage": "6d6+6 mental",
+      "attack": 31,
+      "damageParts": [
+       {
+        "dice": "6d6+6",
+        "type": "mental"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -8310,6 +10275,11 @@
     ],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [
+     "controlled",
+     "paralyzed"
+    ],
     "speed": "50 feet, climb 50 feet, fly 200 feet",
     "strikes": [
      {
@@ -8317,28 +10287,56 @@
       "type": "melee",
       "bonus": "+32 [+27/+22]",
       "traits": "magical, reach 15 feet, unarmed",
-      "damage": "3d8+17 piercing"
+      "damage": "3d8+17 piercing",
+      "attack": 32,
+      "damageParts": [
+       {
+        "dice": "3d8+17",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Claw",
       "type": "melee",
       "bonus": "+32 [+28/+24]",
       "traits": "agile, magical, reach 10 feet, unarmed",
-      "damage": "3d6+17 slashing"
+      "damage": "3d6+17 slashing",
+      "attack": 32,
+      "damageParts": [
+       {
+        "dice": "3d6+17",
+        "type": "slashing"
+       }
+      ]
      },
      {
       "name": "Tail",
       "type": "melee",
       "bonus": "+30 [+25/+20]",
       "traits": "magical, reach 20 feet",
-      "damage": "2d10+17 bludgeoning"
+      "damage": "2d10+17 bludgeoning",
+      "attack": 30,
+      "damageParts": [
+       {
+        "dice": "2d10+17",
+        "type": "bludgeoning"
+       }
+      ]
      },
      {
       "name": "Mental Blast",
       "type": "ranged",
       "bonus": "+31 [+26/+21]",
       "traits": "mental, range 100 feet",
-      "damage": "6d6+6 mental"
+      "damage": "6d6+6 mental",
+      "attack": 31,
+      "damageParts": [
+       {
+        "dice": "6d6+6",
+        "type": "mental"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -8459,6 +10457,11 @@
     ],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [
+     "controlled",
+     "paralyzed"
+    ],
     "speed": "30 feet, climb 30 feet, fly 120 feet",
     "strikes": [
      {
@@ -8466,28 +10469,56 @@
       "type": "melee",
       "bonus": "+19 [+14/+9]",
       "traits": "magical, reach 10 feet, unarmed",
-      "damage": "2d8+8 piercing"
+      "damage": "2d8+8 piercing",
+      "attack": 19,
+      "damageParts": [
+       {
+        "dice": "2d8+8",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Claw",
       "type": "melee",
       "bonus": "+19 [+15/+11]",
       "traits": "agile, magical, unarmed",
-      "damage": "2d6+8 slashing"
+      "damage": "2d6+8 slashing",
+      "attack": 19,
+      "damageParts": [
+       {
+        "dice": "2d6+8",
+        "type": "slashing"
+       }
+      ]
      },
      {
       "name": "Tail",
       "type": "melee",
       "bonus": "+17 [+12/+7]",
       "traits": "magical, reach 15 feet",
-      "damage": "1d10+8 bludgeoning"
+      "damage": "1d10+8 bludgeoning",
+      "attack": 17,
+      "damageParts": [
+       {
+        "dice": "1d10+8",
+        "type": "bludgeoning"
+       }
+      ]
      },
      {
       "name": "Mental Blast",
       "type": "ranged",
       "bonus": "+18 [+13/+8]",
       "traits": "mental, range 100 feet",
-      "damage": "3d6+3 mental"
+      "damage": "3d6+3 mental",
+      "attack": 18,
+      "damageParts": [
+       {
+        "dice": "3d6+3",
+        "type": "mental"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -8604,6 +10635,11 @@
     ],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [
+     "controlled",
+     "paralyzed"
+    ],
     "speed": "30 feet, climb 30 feet, fly 120 feet",
     "strikes": [
      {
@@ -8611,28 +10647,56 @@
       "type": "melee",
       "bonus": "+19 [+14/+9]",
       "traits": "magical, reach 10 feet, unarmed",
-      "damage": "2d8+8 piercing"
+      "damage": "2d8+8 piercing",
+      "attack": 19,
+      "damageParts": [
+       {
+        "dice": "2d8+8",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Claw",
       "type": "melee",
       "bonus": "+19 [+15/+11]",
       "traits": "agile, magical, unarmed",
-      "damage": "2d6+8 slashing"
+      "damage": "2d6+8 slashing",
+      "attack": 19,
+      "damageParts": [
+       {
+        "dice": "2d6+8",
+        "type": "slashing"
+       }
+      ]
      },
      {
       "name": "Tail",
       "type": "melee",
       "bonus": "+17 [+12/+7]",
       "traits": "magical, reach 15 feet",
-      "damage": "1d10+8 bludgeoning"
+      "damage": "1d10+8 bludgeoning",
+      "attack": 17,
+      "damageParts": [
+       {
+        "dice": "1d10+8",
+        "type": "bludgeoning"
+       }
+      ]
      },
      {
       "name": "Mental Blast",
       "type": "ranged",
       "bonus": "+18 [+13/+8]",
       "traits": "mental, range 100 feet",
-      "damage": "3d6+3 mental"
+      "damage": "3d6+3 mental",
+      "attack": 18,
+      "damageParts": [
+       {
+        "dice": "3d6+3",
+        "type": "mental"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -8749,6 +10813,20 @@
      "cold iron 10"
     ],
     "resistances": [],
+    "damageModifiers": [
+     {
+      "kind": "immunity",
+      "type": "fire"
+     },
+     {
+      "kind": "weakness",
+      "type": "cold-iron",
+      "value": 10
+     }
+    ],
+    "conditionImmunities": [
+     "paralyzed"
+    ],
     "speed": "35 feet, fly 100 feet, swim 60 feet, unfettered movement",
     "strikes": [
      {
@@ -8756,21 +10834,42 @@
       "type": "melee",
       "bonus": "+30 [+25/+20]",
       "traits": "magical, reach 20 feet, unarmed",
-      "damage": "3d12+14 piercing plus Crag Linnorm Venom"
+      "damage": "3d12+14 piercing plus Crag Linnorm Venom",
+      "attack": 30,
+      "damageParts": [
+       {
+        "dice": "3d12+14",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Claw",
       "type": "melee",
       "bonus": "+30 [+26/+22]",
       "traits": "agile, magical, reach 20 feet, unarmed",
-      "damage": "3d8+14 slashing"
+      "damage": "3d8+14 slashing",
+      "attack": 30,
+      "damageParts": [
+       {
+        "dice": "3d8+14",
+        "type": "slashing"
+       }
+      ]
      },
      {
       "name": "Tail",
       "type": "melee",
       "bonus": "+30 [+26/+22]",
       "traits": "agile, magical, reach 20 feet",
-      "damage": "3d6+14 bludgeoning plus Improved Grab"
+      "damage": "3d6+14 bludgeoning plus Improved Grab",
+      "attack": 30,
+      "damageParts": [
+       {
+        "dice": "3d6+14",
+        "type": "bludgeoning"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -8882,6 +10981,20 @@
     ],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [
+     {
+      "kind": "immunity",
+      "type": "poison"
+     },
+     {
+      "kind": "immunity",
+      "type": "bleed"
+     }
+    ],
+    "conditionImmunities": [
+     "paralyzed",
+     "unconscious"
+    ],
     "speed": "30 feet, climb 30 feet",
     "strikes": [
      {
@@ -8889,7 +11002,14 @@
       "type": "melee",
       "bonus": "+7 [+3/−1]",
       "traits": "agile, finesse, reach 0 feet, unarmed",
-      "damage": "1d4+1 slashing plus Grab"
+      "damage": "1d4+1 slashing plus Grab",
+      "attack": 7,
+      "damageParts": [
+       {
+        "dice": "1d4+1",
+        "type": "slashing"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -8967,6 +11087,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "speed": "20 feet, swim 25 feet",
     "strikes": [
      {
@@ -8974,14 +11096,28 @@
       "type": "melee",
       "bonus": "+10 [+5/+0]",
       "traits": "unarmed",
-      "damage": "1d10+4 piercing plus Grab"
+      "damage": "1d10+4 piercing plus Grab",
+      "attack": 10,
+      "damageParts": [
+       {
+        "dice": "1d10+4",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Tail",
       "type": "melee",
       "bonus": "+10 [+6/+2]",
       "traits": "agile",
-      "damage": "1d6+4 bludgeoning"
+      "damage": "1d6+4 bludgeoning",
+      "attack": 10,
+      "damageParts": [
+       {
+        "dice": "1d6+4",
+        "type": "bludgeoning"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -9070,6 +11206,19 @@
     "resistances": [
      "mental 10"
     ],
+    "damageModifiers": [
+     {
+      "kind": "weakness",
+      "type": "cold-iron",
+      "value": 10
+     },
+     {
+      "kind": "resistance",
+      "type": "mental",
+      "value": 10
+     }
+    ],
+    "conditionImmunities": [],
     "speed": "25 feet",
     "strikes": [
      {
@@ -9077,7 +11226,18 @@
       "type": "melee",
       "bonus": "+20 [+16/+12]",
       "traits": "agile, magical, unarmed",
-      "damage": "2d8+8 slashing plus 1d6 spirit"
+      "damage": "2d8+8 slashing plus 1d6 spirit",
+      "attack": 20,
+      "damageParts": [
+       {
+        "dice": "2d8+8",
+        "type": "slashing"
+       },
+       {
+        "dice": "1d6",
+        "type": "spirit"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -9173,6 +11333,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "speed": "30 feet",
     "strikes": [
      {
@@ -9180,14 +11342,28 @@
       "type": "melee",
       "bonus": "+14 [+9/+4]",
       "traits": "reach 10 feet, sweep",
-      "damage": "1d12+9 slashing"
+      "damage": "1d12+9 slashing",
+      "attack": 14,
+      "damageParts": [
+       {
+        "dice": "1d12+9",
+        "type": "slashing"
+       }
+      ]
      },
      {
       "name": "Heavy Crossbow",
       "type": "ranged",
       "bonus": "+8 [+3/−2]",
       "traits": "reload 2, range increment 120 feet",
-      "damage": "1d10+4 piercing"
+      "damage": "1d10+4 piercing",
+      "attack": 8,
+      "damageParts": [
+       {
+        "dice": "1d10+4",
+        "type": "piercing"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -9268,6 +11444,24 @@
      "mental 3",
      "physical 3 (except cold iron)"
     ],
+    "damageModifiers": [
+     {
+      "kind": "resistance",
+      "type": "mental",
+      "value": 3
+     },
+     {
+      "kind": "resistance",
+      "type": "physical",
+      "value": 3,
+      "except": [
+       "cold-iron"
+      ]
+     }
+    ],
+    "conditionImmunities": [
+     "controlled"
+    ],
     "speed": "30 feet, fly 40 feet",
     "strikes": [
      {
@@ -9275,7 +11469,14 @@
       "type": "melee",
       "bonus": "+8 [+4/+0]",
       "traits": "agile, finesse, magical, reach 0 feet, unholy",
-      "damage": "1d10+1 piercing plus Tangle Spores"
+      "damage": "1d10+1 piercing plus Tangle Spores",
+      "attack": 8,
+      "damageParts": [
+       {
+        "dice": "1d10+1",
+        "type": "piercing"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -9351,6 +11552,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "speed": "40 feet",
     "strikes": [
      {
@@ -9358,7 +11561,14 @@
       "type": "melee",
       "bonus": "+14 [+9/+4]",
       "traits": "unarmed",
-      "damage": "2d8+6 piercing"
+      "damage": "2d8+6 piercing",
+      "attack": 14,
+      "damageParts": [
+       {
+        "dice": "2d8+6",
+        "type": "piercing"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -9424,6 +11634,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "speed": "50 feet, climb 50 feet",
     "strikes": [
      {
@@ -9431,14 +11643,28 @@
       "type": "melee",
       "bonus": "+25 [+20/+15]",
       "traits": "reach 10 feet",
-      "damage": "2d12+14 piercing"
+      "damage": "2d12+14 piercing",
+      "attack": 25,
+      "damageParts": [
+       {
+        "dice": "2d12+14",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Leg",
       "type": "melee",
       "bonus": "+24 [+20/+16]",
       "traits": "agile, reach 20 feet",
-      "damage": "2d10+14 piercing plus Grab"
+      "damage": "2d10+14 piercing plus Grab",
+      "attack": 24,
+      "damageParts": [
+       {
+        "dice": "2d10+14",
+        "type": "piercing"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -9517,6 +11743,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "speed": "30 feet",
     "strikes": [
      {
@@ -9524,14 +11752,32 @@
       "type": "melee",
       "bonus": "+9 [+4/−1]",
       "traits": "unarmed",
-      "damage": "2d6+3 piercing"
+      "damage": "2d6+3 piercing",
+      "attack": 9,
+      "damageParts": [
+       {
+        "dice": "2d6+3",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Talon",
       "type": "melee",
       "bonus": "+9 [+5/+1]",
       "traits": "agile, unarmed",
-      "damage": "1d6+3 slashing plus 1d4 bleed"
+      "damage": "1d6+3 slashing plus 1d4 bleed",
+      "attack": 9,
+      "damageParts": [
+       {
+        "dice": "1d6+3",
+        "type": "slashing"
+       },
+       {
+        "dice": "1d4",
+        "type": "bleed"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -9595,6 +11841,8 @@
     "immunities": [],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [],
     "speed": "30 feet, swim 40 feet",
     "strikes": [
      {
@@ -9602,14 +11850,28 @@
       "type": "melee",
       "bonus": "+22 [+17/+12]",
       "traits": "reach 15 feet, unarmed",
-      "damage": "2d10+13 piercing plus Grab"
+      "damage": "2d10+13 piercing plus Grab",
+      "attack": 22,
+      "damageParts": [
+       {
+        "dice": "2d10+13",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Tail",
       "type": "melee",
       "bonus": "+20 [+16/+12]",
       "traits": "agile, reach 15 feet",
-      "damage": "1d10+11 bludgeoning"
+      "damage": "1d10+11 bludgeoning",
+      "attack": 20,
+      "damageParts": [
+       {
+        "dice": "1d10+11",
+        "type": "bludgeoning"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -9690,6 +11952,10 @@
     ],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [
+     "confused"
+    ],
     "speed": "20 feet",
     "strikes": [
      {
@@ -9697,7 +11963,14 @@
       "type": "melee",
       "bonus": "+10 [+5/+0]",
       "traits": "two hand d8",
-      "damage": "1d4+3 bludgeoning"
+      "damage": "1d4+3 bludgeoning",
+      "attack": 10,
+      "damageParts": [
+       {
+        "dice": "1d4+3",
+        "type": "bludgeoning"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -9784,27 +12057,52 @@
     ],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [
+     "confused"
+    ],
     "speed": "20 feet",
     "strikes": [
      {
       "name": "Club",
       "type": "melee",
       "bonus": "+8 [+3/−2]",
-      "damage": "1d6+2 bludgeoning"
+      "damage": "1d6+2 bludgeoning",
+      "attack": 8,
+      "damageParts": [
+       {
+        "dice": "1d6+2",
+        "type": "bludgeoning"
+       }
+      ]
      },
      {
       "name": "Club",
       "type": "melee",
       "bonus": "+10 [+5/+0]",
       "traits": "thrown 10 feet",
-      "damage": "1d6+2 bludgeoning"
+      "damage": "1d6+2 bludgeoning",
+      "attack": 10,
+      "damageParts": [
+       {
+        "dice": "1d6+2",
+        "type": "bludgeoning"
+       }
+      ]
      },
      {
       "name": "Hand Crossbow",
       "type": "ranged",
       "bonus": "+10 [+5/+0]",
       "traits": "reload 1, range increment 60 feet",
-      "damage": "1d6 piercing plus Lethargy Poison"
+      "damage": "1d6 piercing plus Lethargy Poison",
+      "attack": 10,
+      "damageParts": [
+       {
+        "dice": "1d6",
+        "type": "piercing"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -9891,6 +12189,10 @@
     ],
     "weaknesses": [],
     "resistances": [],
+    "damageModifiers": [],
+    "conditionImmunities": [
+     "confused"
+    ],
     "speed": "20 feet",
     "strikes": [
      {
@@ -9898,14 +12200,28 @@
       "type": "melee",
       "bonus": "+11 [+6/+1]",
       "traits": "disarm, trip",
-      "damage": "1d8+6 bludgeoning"
+      "damage": "1d8+6 bludgeoning",
+      "attack": 11,
+      "damageParts": [
+       {
+        "dice": "1d8+6",
+        "type": "bludgeoning"
+       }
+      ]
      },
      {
       "name": "Hand Crossbow",
       "type": "ranged",
       "bonus": "+10 [+5/+0]",
       "traits": "reload 1, range increment 60 feet",
-      "damage": "1d6+2 piercing plus Lethargy Poison"
+      "damage": "1d6+2 piercing plus Lethargy Poison",
+      "attack": 10,
+      "damageParts": [
+       {
+        "dice": "1d6+2",
+        "type": "piercing"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -9996,20 +12312,49 @@
      "cold 10",
      "fire 10"
     ],
+    "damageModifiers": [
+     {
+      "kind": "resistance",
+      "type": "cold",
+      "value": 10
+     },
+     {
+      "kind": "resistance",
+      "type": "fire",
+      "value": 10
+     }
+    ],
+    "conditionImmunities": [
+     "paralyzed"
+    ],
     "speed": "20 feet, burrow 20 feet, fly 50 feet, burrow sand only",
     "strikes": [
      {
       "name": "Fangs",
       "type": "melee",
       "bonus": "+19 [+14/+9]",
-      "damage": "2d12+10 piercing"
+      "damage": "2d12+10 piercing",
+      "attack": 19,
+      "damageParts": [
+       {
+        "dice": "2d12+10",
+        "type": "piercing"
+       }
+      ]
      },
      {
       "name": "Tail",
       "type": "melee",
       "bonus": "+19 [+14/+9]",
       "traits": "reach 10 feet",
-      "damage": "2d10+10 bludgeoning plus Push"
+      "damage": "2d10+10 bludgeoning plus Push",
+      "attack": 19,
+      "damageParts": [
+       {
+        "dice": "2d10+10",
+        "type": "bludgeoning"
+       }
+      ]
      }
     ],
     "abilities": [
@@ -10099,6 +12444,14 @@
     "resistances": [
      "acid 20"
     ],
+    "damageModifiers": [
+     {
+      "kind": "resistance",
+      "type": "acid",
+      "value": 20
+     }
+    ],
+    "conditionImmunities": [],
     "speed": "25 feet, climb 30 feet",
     "strikes": [
      {
@@ -10106,14 +12459,32 @@
       "type": "melee",
       "bonus": "+21 [+17/+13]",
       "traits": "acid, agile",
-      "damage": "3d6+8 bludgeoning plus 3d6 acid plus Grab"
+      "damage": "3d6+8 bludgeoning plus 3d6 acid plus Grab",
+      "attack": 21,
+      "damageParts": [
+       {
+        "dice": "3d6+8",
+        "type": "bludgeoning"
+       },
+       {
+        "dice": "3d6",
+        "type": "acid"
+       }
+      ]
      },
      {
       "name": "Acid Glob",
       "type": "ranged",
       "bonus": "+23 [+18/+13]",
       "traits": "acid, range 30 feet",
-      "damage": "4d8 acid plus Amnesia Venom"
+      "damage": "4d8 acid plus Amnesia Venom",
+      "attack": 23,
+      "damageParts": [
+       {
+        "dice": "4d8",
+        "type": "acid"
+       }
+      ]
      }
     ],
     "abilities": [],
@@ -10147,550 +12518,6 @@
     ],
     "spells": [],
     "description": "Dezullons are dangerous, carnivorous pitcher plants that dwell in forested regions with thick canopies or deep in marshes where few other plants can grow. They hunt for meat along the forest's understory when not sunning themselves in the boughs above. Dezullons are smart enough to notice that some creatures are attracted by shiny things, and sometimes use such objects to set up ambushes. To assume that the dezullon's ambulations are slow simply because the creature has a root structure is a foolish mistake; many an adventurer has been crushed to death by this surprisingly agile plant. In addition, dezullons are expert climbers, which makes escaping them in a forest even more difficult.\n\nA hungry dezullon keeps prey off-balance by spilling its putrid, psychoactive digestive juices from its central pitcher. In addition to being highly acidic, the enzymes in a dezullon's digestive tract, once expelled, inflicts powerful hallucinations and amnesia. This secondary effect makes dezullons highly sought after in some circles, including avid drug users, experimental doctors, and criminals who deal in poisons.\n\nAttempts to cultivate dezullons typically end in disaster, although druids and fey who can communicate with plants have found measured success. Meanwhile, horned dragons looking for breakthroughs in their research or groups of marsh giants seeking visions from their esoteric gods trust their power to hunt and overwhelm the plants.\n\nMany varieties of dezullon exist, including lumbering giants of incredible size, dezullons with tiny, cup-shaped pitchers that proliferate along lengths of creeping ivy like suckers on a squid's tentacles, and a variant with hundreds of blood-red, razor-sharp leaves that protrude from the inside of their pitchers like a leech's teeth. This latter variety is especially dangerous, since the leaves can all but eviscerate creatures that become trapped inside their pitchers."
-   }
-  },
-  {
-   "id": "pf2e-orc.preset.dhampir-wizard",
-   "entityType": "pf2e-orc.creature",
-   "name": "Dhampir Wizard",
-   "summary": "Creature 2. Medium dhampir, human, humanoid. AC 17, HP 22.",
-   "cite": "Monster Core — Creatures: Dhampir Wizard",
-   "tags": [
-    "monster core",
-    "dhampir",
-    "human",
-    "humanoid"
-   ],
-   "fields": {
-    "level": 2,
-    "rarity": "common",
-    "size": "Medium",
-    "traits": [
-     "dhampir",
-     "human",
-     "humanoid"
-    ],
-    "saves": {
-     "perception": 4,
-     "fortitude": 4,
-     "reflex": 7,
-     "will": 6
-    },
-    "senses": "darkvision",
-    "languages": "Common, Necril",
-    "skills": {
-     "acrobatics": 7,
-     "arcana": 8,
-     "deception": 5,
-     "intimidation": 5,
-     "society": 8,
-     "stealth": 7
-    },
-    "lore": "Vampire Lore +8",
-    "attributes": {
-     "strength": 2,
-     "dexterity": 3,
-     "constitution": 0,
-     "intelligence": 4,
-     "wisdom": 0,
-     "charisma": 1
-    },
-    "items": "Dagger, Staff, Spellbook Containing Their Prepared Spells",
-    "ac": 17,
-    "saveNote": "+2 circumstance to all saves vs. disease",
-    "hp": {
-     "max": 22,
-     "current": 22,
-     "temp": 0
-    },
-    "hpNote": "void healing",
-    "immunities": [],
-    "weaknesses": [],
-    "resistances": [],
-    "speed": "25 feet",
-    "strikes": [
-     {
-      "name": "Staff",
-      "type": "melee",
-      "bonus": "+6 [+1/−4]",
-      "traits": "two hand d8",
-      "damage": "1d6+2 bludgeoning"
-     },
-     {
-      "name": "Fist",
-      "type": "melee",
-      "bonus": "+7 [+3/−1]",
-      "traits": "agile, finesse, nonlethal, unarmed",
-      "damage": "1d4+2 bludgeoning"
-     },
-     {
-      "name": "Dagger",
-      "type": "melee",
-      "bonus": "+7 [+3/−1]",
-      "traits": "agile, finesse, versatile S",
-      "damage": "1d4+2 piercing"
-     },
-     {
-      "name": "Dagger",
-      "type": "melee",
-      "bonus": "+7 [+3/−1]",
-      "traits": "agile, thrown 10 feet, versatile S",
-      "damage": "1d4+2 piercing"
-     }
-    ],
-    "abilities": [],
-    "defenses": [
-     {
-      "name": "+2 Circumstance to All Saves vs. Disease"
-     },
-     {
-      "name": "Blood of the Night",
-      "desc": "The dhampir's penalty and Hit Point reduction from the drained condition are reduced as though the condition value were 1 lower."
-     },
-     {
-      "name": "Void Healing",
-      "desc": "(See the universal monster ability Negative Healing.)"
-     }
-    ],
-    "actions": [],
-    "spells": [
-     {
-      "name": "Arcane Prepared Spells",
-      "desc": "DC 18, attack +8; **1st** Command, Force Barrage, Grim Tendrils, Grim Tendrils; **Cantrips (1st)** Detect Magic, Frostbite, Prestidigitation, Shield, Void Warp"
-     }
-    ],
-    "description": "This dhampir is a svetocher, the child of a moroi vampire.\n\nAs the mortal offspring of a vampire and a living parent, dhampirs occupy an unusual place among the living. Their vampiric parentage lends them elongated incisors, an unearthly beauty and physical grace, ghostly pallor, and a piercing gaze. Perhaps their most distinctive feature, however, is their connection to energy from the Void, which heals them, leaving them as vulnerable to life energy as any undead creature. Though they don't suffer the full range of a vampire's vulnerabilities, they do share certain characteristics with their vampire parent, leading to several distinct dhampir heritages across the world. By far the most common dhampirs are svetochers, the children of the more common moroi vampires.\n\nMany dhampirs grow up as orphans because their mortal parent perished as a result of a difficult childbirth, or else they believed their child to be cursed and abandoned them. Often outcast, some dhampirs leverage their charisma and personal magnetism to manipulate those around them, while others struggle to form even basic relationships. Mistrust of a dhampir's ancestry presents further challenges when dhampirs attempt to integrate into mortal society. Those who seek out their vampiric parent often find themselves judged as inferior, rejected as they were by mortals but for different reasons.\n\nDhampirs fill countless roles within many communities. Some prefer to blend in as best they can, holding regular jobs and building families (most children born to dhampirs share an ancestry with the dhampir's mortal parent, but a rare few are born as dhampirs themselves). Those who learn to make the most of their inherited charm can achieve high societal status, whether leveraging traditional avenues of power or gathering followers enamored by the dhampir's abilities. With a lifespan rivaling that of an elf, a dhampir can develop extensive influence and engage in long-reaching schemes of massive scope. Further, their ancestry lends them a proclivity to necromancy and the occult arts.",
-    "focusPoints": 1
-   }
-  },
-  {
-   "id": "pf2e-orc.preset.diabolic-dragon-adult-spellcaster",
-   "entityType": "pf2e-orc.creature",
-   "name": "Diabolic Dragon (Adult, Spellcaster)",
-   "summary": "Creature 15. Huge divine, dragon, unholy. AC 36, HP 285.",
-   "cite": "Monster Core — Creatures: Diabolic Dragon (Adult, Spellcaster)",
-   "tags": [
-    "monster core",
-    "divine",
-    "dragon",
-    "unholy"
-   ],
-   "fields": {
-    "level": 15,
-    "rarity": "common",
-    "size": "Huge",
-    "traits": [
-     "divine",
-     "dragon",
-     "unholy"
-    ],
-    "saves": {
-     "perception": 26,
-     "fortitude": 29,
-     "reflex": 25,
-     "will": 26
-    },
-    "senses": "greater darkvision, scent (imprecise) 60 feet, smoke vision",
-    "languages": "Common, Diabolic, Draconic, Pyric, Empyrean, Necril",
-    "skills": {
-     "acrobatics": 27,
-     "athletics": 30,
-     "deception": 26,
-     "diplomacy": 28,
-     "intimidation": 26,
-     "religion": 26,
-     "society": 24,
-     "thievery": 27
-    },
-    "lore": "Hell Lore +24, Legal Lore +26",
-    "attributes": {
-     "strength": 8,
-     "dexterity": 4,
-     "constitution": 6,
-     "intelligence": 3,
-     "wisdom": 5,
-     "charisma": 5
-    },
-    "ac": 36,
-    "saveNote": "+2 status to all saves vs. divine",
-    "hp": {
-     "max": 285,
-     "current": 285,
-     "temp": 0
-    },
-    "immunities": [
-     "fire",
-     "paralyzed",
-     "sleep"
-    ],
-    "weaknesses": [
-     "holy 10"
-    ],
-    "resistances": [],
-    "speed": "60 feet, fly 150 feet",
-    "strikes": [
-     {
-      "name": "Jaws",
-      "type": "melee",
-      "bonus": "+30 [+25/+20]",
-      "traits": "fire, magical, reach 15 feet, unarmed, unholy",
-      "damage": "2d6 fire plus 3d12+11 piercing"
-     },
-     {
-      "name": "Claws",
-      "type": "melee",
-      "bonus": "+30 [+26/+22]",
-      "traits": "agile, fire, magical, reach 10 feet, unholy",
-      "damage": "2d6 fire plus 3d8+11 piercing plus Grab"
-     },
-     {
-      "name": "Tail",
-      "type": "melee",
-      "bonus": "+28 [+23/+18]",
-      "traits": "fire, magical, reach 20 feet, unholy",
-      "damage": "3d8+11 bludgeoning plus 2d6 fire plus Knockdown"
-     }
-    ],
-    "abilities": [
-     {
-      "name": "Smoke Vision",
-      "desc": "Smoke doesn't impair the dragon's vision; they ignore the concealed condition from smoke."
-     }
-    ],
-    "defenses": [
-     {
-      "name": "+2 Status to All Saves vs. Divine"
-     },
-     {
-      "name": "Frightful Presence",
-      "desc": "(aura, emotion, fear, mental) 90 feet. DC 34 Will\n\n(See the universal monster ability Frightful Presence.)"
-     },
-     {
-      "name": "Hell's Sting ↺",
-      "desc": "(divine, mental, unholy) **Trigger** The dragon is critically hit with a melee attack\n\n**Effect** The dragon channels the rancor of Hell back through the body of their foe, overwhelming it with an infernal assault on the mind. The triggering creature takes 8d6 mental damage with a DC 36 basic Will save. Holy creatures use an outcome one degree of success worse than they roll on their saving throw."
-     },
-     {
-      "name": "Reactive Strike ↺",
-      "desc": "(See the universal monster ability Reactive Strike.)"
-     }
-    ],
-    "actions": [
-     {
-      "name": "Diabolic Fire",
-      "desc": "Any fire damage that a diabolic dragon deals, including fire damage from spells, is imbued with the unholy power of Hell to scorch the spirit as well. A creature takes spirit damage instead of fire damage if that would be more detrimental to the creature (as determined by the GM). A diabolic dragon is immune to the diabolic fire of other diabolic dragons, the fire from divine immolation, and similar effects."
-     },
-     {
-      "name": "Hellfire Breath ◆◆",
-      "desc": "(divine, fire, unholy) The dragon unleashes a blast of infernal fire that deals 16d6 fire damage in a 50-foot cone (DC 36 basic Reflex save).\n\nThe dragon can't use Hellfire Breath again for 1d4 rounds."
-     },
-     {
-      "name": "Grab ◆",
-      "desc": "(See the universal monster ability Grab.)"
-     },
-     {
-      "name": "Knockdown ◆",
-      "desc": "(See the universal monster ability Knockdown.)"
-     }
-    ],
-    "spells": [
-     {
-      "name": "Divine Prepared Spells",
-      "desc": "DC 36, attack +30; **6th** Banishment, Blessed Boundary, Dominate; **5th** Sending, Translocate, Truespeech; **4th** Dispelling Globe, Divine Wrath, Planar Tether; **3rd** Blindness, Chilling Darkness, Harm; **2nd** Blood Vendetta, Darkness, Translate; **1st** Command, Command, Fear; **Cantrips (6th)** Detect Magic, Divine Lance, Message, Sigil, Void Warp"
-     },
-     {
-      "name": "Divine Innate Spells",
-      "desc": "DC 34, attack +26; **7th** Divine Immolation, Interplanar Teleport (At Will, Self Only), Wall of Fire (At Will); **Cantrips (8th)** Ignition"
-     }
-    ],
-    "description": "Hell, according to some theologians, is a living entity in and of itself. Diabolic dragons, these scholars argue, are just extensions of the plane, living creatures that break off from Hell to enact its will. Whether this is true or whether diabolical dragons are simply the reborn souls of dragons sent to Hell, the fact remains that these dragons are powerful, cunning, and tyrannical. Every diabolic dragon's goal is to further Hell's will, though how this happens can vary. Regardless of their goals, these dragons always approach newcomers with an unsettling calmness.\n\nDragons come in myriad forms, with many having magical abilities or connections to magic. Some dragons draw greater power from magic than others, allowing them to manifest abilities or alter their physiques with prolonged exposure to magic. These dragons become more powerful as they age and strengthen their connections with their magical origins. Scholars debate the classification of these dragons, with some preferring the name magical dragons and others using traditional dragons due to their connection to specific magical traditions. Regardless of their names, these dragons share a number of characteristics: their ability to tap into magical energies, intensified might and cunning as they grow older, and an inclination to hoard vast amounts of treasure and wealth.\n\n### Draconic Spellcasters\n\nEach dragon features a sidebar on spellcasting dragons of that type. To make a dragon spellcaster, remove the dragon's Draconic Frenzy and Draconic Momentum abilities, and give them the spells outlined in their sidebar. You can swap out any number of these with other spells, provided you keep the same number of spells for each rank. You might also want to increase the dragon's Intelligence, Wisdom, or Charisma modifier by 1 or 2 to reflect their mastery of magic."
-   }
-  },
-  {
-   "id": "pf2e-orc.preset.diabolic-dragon-adult",
-   "entityType": "pf2e-orc.creature",
-   "name": "Diabolic Dragon (Adult)",
-   "summary": "Creature 15. Huge divine, dragon, unholy. AC 36, HP 285.",
-   "cite": "Monster Core — Creatures: Diabolic Dragon (Adult)",
-   "tags": [
-    "monster core",
-    "divine",
-    "dragon",
-    "unholy"
-   ],
-   "fields": {
-    "level": 15,
-    "rarity": "common",
-    "size": "Huge",
-    "traits": [
-     "divine",
-     "dragon",
-     "unholy"
-    ],
-    "saves": {
-     "perception": 26,
-     "fortitude": 29,
-     "reflex": 25,
-     "will": 26
-    },
-    "senses": "greater darkvision, scent (imprecise) 60 feet, smoke vision",
-    "languages": "Common, Diabolic, Draconic, Pyric, Empyrean, Necril",
-    "skills": {
-     "acrobatics": 27,
-     "athletics": 30,
-     "deception": 26,
-     "diplomacy": 28,
-     "intimidation": 26,
-     "religion": 26,
-     "society": 24,
-     "thievery": 27
-    },
-    "lore": "Hell Lore +24, Legal Lore +26",
-    "attributes": {
-     "strength": 8,
-     "dexterity": 4,
-     "constitution": 6,
-     "intelligence": 3,
-     "wisdom": 5,
-     "charisma": 5
-    },
-    "ac": 36,
-    "saveNote": "+2 status to all saves vs. divine",
-    "hp": {
-     "max": 285,
-     "current": 285,
-     "temp": 0
-    },
-    "immunities": [
-     "fire",
-     "paralyzed",
-     "sleep"
-    ],
-    "weaknesses": [
-     "holy 10"
-    ],
-    "resistances": [],
-    "speed": "60 feet, fly 150 feet",
-    "strikes": [
-     {
-      "name": "Jaws",
-      "type": "melee",
-      "bonus": "+30 [+25/+20]",
-      "traits": "fire, magical, reach 15 feet, unarmed, unholy",
-      "damage": "2d6 fire plus 3d12+11 piercing"
-     },
-     {
-      "name": "Claws",
-      "type": "melee",
-      "bonus": "+30 [+26/+22]",
-      "traits": "agile, fire, magical, reach 10 feet, unholy",
-      "damage": "2d6 fire plus 3d8+11 piercing plus Grab"
-     },
-     {
-      "name": "Tail",
-      "type": "melee",
-      "bonus": "+28 [+23/+18]",
-      "traits": "fire, magical, reach 20 feet, unholy",
-      "damage": "3d8+11 bludgeoning plus 2d6 fire plus Knockdown"
-     }
-    ],
-    "abilities": [
-     {
-      "name": "Smoke Vision",
-      "desc": "Smoke doesn't impair the dragon's vision; they ignore the concealed condition from smoke."
-     }
-    ],
-    "defenses": [
-     {
-      "name": "+2 Status to All Saves vs. Divine"
-     },
-     {
-      "name": "Frightful Presence",
-      "desc": "(aura, emotion, fear, mental) 90 feet. DC 34 Will\n\n(See the universal monster ability Frightful Presence.)"
-     },
-     {
-      "name": "Hell's Sting ↺",
-      "desc": "(divine, mental, unholy) **Trigger** The dragon is critically hit with a melee attack\n\n**Effect** The dragon channels the rancor of Hell back through the body of their foe, overwhelming it with an infernal assault on the mind. The triggering creature takes 8d6 mental damage with a DC 36 basic Will save. Holy creatures use an outcome one degree of success worse than they roll on their saving throw."
-     },
-     {
-      "name": "Reactive Strike ↺",
-      "desc": "(See the universal monster ability Reactive Strike.)"
-     }
-    ],
-    "actions": [
-     {
-      "name": "Diabolic Fire",
-      "desc": "Any fire damage that a diabolic dragon deals, including fire damage from spells, is imbued with the unholy power of Hell to scorch the spirit as well. A creature takes spirit damage instead of fire damage if that would be more detrimental to the creature (as determined by the GM). A diabolic dragon is immune to the diabolic fire of other diabolic dragons, the fire from divine immolation, and similar effects."
-     },
-     {
-      "name": "Draconic Frenzy ◆◆",
-      "desc": "The dragon makes two claw Strikes and one tail Strike in any order."
-     },
-     {
-      "name": "Draconic Momentum",
-      "desc": "The dragon recharges their Hellfire Breath whenever they score a critical hit with a Strike."
-     },
-     {
-      "name": "Hellfire Breath ◆◆",
-      "desc": "(divine, fire, unholy) The dragon unleashes a blast of infernal fire that deals 16d6 fire damage in a 50-foot cone (DC 36 basic Reflex save).\n\nThe dragon can't use Hellfire Breath again for 1d4 rounds."
-     },
-     {
-      "name": "Grab ◆",
-      "desc": "(See the universal monster ability Grab.)"
-     },
-     {
-      "name": "Knockdown ◆",
-      "desc": "(See the universal monster ability Knockdown.)"
-     }
-    ],
-    "spells": [
-     {
-      "name": "Divine Innate Spells",
-      "desc": "DC 34, attack +26; **7th** Divine Immolation, Interplanar Teleport (At Will, Self Only), Wall of Fire (At Will); **Cantrips (8th)** Ignition"
-     }
-    ],
-    "description": "Hell, according to some theologians, is a living entity in and of itself. Diabolic dragons, these scholars argue, are just extensions of the plane, living creatures that break off from Hell to enact its will. Whether this is true or whether diabolical dragons are simply the reborn souls of dragons sent to Hell, the fact remains that these dragons are powerful, cunning, and tyrannical. Every diabolic dragon's goal is to further Hell's will, though how this happens can vary. Regardless of their goals, these dragons always approach newcomers with an unsettling calmness.\n\nDragons come in myriad forms, with many having magical abilities or connections to magic. Some dragons draw greater power from magic than others, allowing them to manifest abilities or alter their physiques with prolonged exposure to magic. These dragons become more powerful as they age and strengthen their connections with their magical origins. Scholars debate the classification of these dragons, with some preferring the name magical dragons and others using traditional dragons due to their connection to specific magical traditions. Regardless of their names, these dragons share a number of characteristics: their ability to tap into magical energies, intensified might and cunning as they grow older, and an inclination to hoard vast amounts of treasure and wealth."
-   }
-  },
-  {
-   "id": "pf2e-orc.preset.diabolic-dragon-ancient-spellcaster",
-   "entityType": "pf2e-orc.creature",
-   "name": "Diabolic Dragon (Ancient, Spellcaster)",
-   "summary": "Creature 20. Uncommon Gargantuan divine, dragon, unholy. AC 44, HP 390.",
-   "cite": "Monster Core — Creatures: Diabolic Dragon (Ancient, Spellcaster)",
-   "tags": [
-    "monster core",
-    "divine",
-    "dragon",
-    "unholy"
-   ],
-   "fields": {
-    "level": 20,
-    "rarity": "uncommon",
-    "size": "Gargantuan",
-    "traits": [
-     "divine",
-     "dragon",
-     "unholy"
-    ],
-    "saves": {
-     "perception": 33,
-     "fortitude": 36,
-     "reflex": 32,
-     "will": 32
-    },
-    "senses": "greater darkvision, scent (imprecise) 60 feet, smoke vision",
-    "languages": "Common, Diabolic, Draconic, Empyrean, Necril, Pyric, Aklo, Chthonian",
-    "skills": {
-     "acrobatics": 33,
-     "athletics": 38,
-     "deception": 34,
-     "diplomacy": 36,
-     "intimidation": 34,
-     "religion": 35,
-     "society": 33,
-     "thievery": 33
-    },
-    "lore": "Hell Lore +33, Legal Lore +35",
-    "attributes": {
-     "strength": 10,
-     "dexterity": 5,
-     "constitution": 8,
-     "intelligence": 5,
-     "wisdom": 7,
-     "charisma": 8
-    },
-    "ac": 44,
-    "saveNote": "+2 status to all saves vs. divine",
-    "hp": {
-     "max": 390,
-     "current": 390,
-     "temp": 0
-    },
-    "immunities": [
-     "fire",
-     "paralyzed",
-     "sleep"
-    ],
-    "weaknesses": [
-     "holy 15"
-    ],
-    "resistances": [],
-    "speed": "70 feet, fly 180 feet",
-    "strikes": [
-     {
-      "name": "Jaws",
-      "type": "melee",
-      "bonus": "+38 [+33/+28]",
-      "traits": "fire, magical, reach 20 feet, unarmed, unholy",
-      "damage": "2d6 fire plus 4d12+18 piercing"
-     },
-     {
-      "name": "Claws",
-      "type": "melee",
-      "bonus": "+38 [+34/+30]",
-      "traits": "agile, fire, magical, reach 15 feet, unholy",
-      "damage": "2d6 fire plus 4d8+18 piercing plus Improved Grab"
-     },
-     {
-      "name": "Tail",
-      "type": "melee",
-      "bonus": "+36 [+31/+26]",
-      "traits": "fire, magical, reach 25 feet, unholy",
-      "damage": "4d8+18 bludgeoning plus 2d6 fire plus Improved Knockdown"
-     }
-    ],
-    "abilities": [
-     {
-      "name": "Smoke Vision",
-      "desc": "Smoke doesn't impair the dragon's vision; they ignore the concealed condition from smoke."
-     }
-    ],
-    "defenses": [
-     {
-      "name": "+2 Status to All Saves vs. Divine"
-     },
-     {
-      "name": "Frightful Presence",
-      "desc": "(aura, emotion, fear, mental) 90 feet. DC 40 Will\n\n(See the universal monster ability Frightful Presence.)"
-     },
-     {
-      "name": "Hell's Sting ↺",
-      "desc": "(divine, mental, unholy) **Trigger** The dragon is critically hit with a melee attack\n\n**Effect** The dragon channels the rancor of Hell back through the body of their foe, overwhelming it with an infernal assault on the mind. The triggering creature takes 10d6 mental damage with a DC 42 basic Will save. Holy creatures use an outcome one degree of success worse than they roll on their saving throw."
-     },
-     {
-      "name": "Reactive Strike ↺",
-      "desc": "(See the universal monster ability Reactive Strike.)"
-     }
-    ],
-    "actions": [
-     {
-      "name": "Diabolic Fire",
-      "desc": "Any fire damage that a diabolic dragon deals, including fire damage from spells, is imbued with the unholy power of Hell to scorch the spirit as well. A creature takes spirit damage instead of fire damage if that would be more detrimental to the creature (as determined by the GM). A diabolic dragon is immune to the diabolic fire of other diabolic dragons, the fire from divine immolation, and similar effects."
-     },
-     {
-      "name": "Hellfire Breath ◆◆",
-      "desc": "(divine, fire, unholy) The dragon unleashes a blast of infernal fire that deals 21d6 fire damage in a 60-foot cone (DC 42 basic Reflex save).\n\nThe dragon can't use Hellfire Breath again for 1d4 rounds."
-     },
-     {
-      "name": "Improved Grab ◇",
-      "desc": "(See the universal monster ability Improved Grab.)"
-     },
-     {
-      "name": "Improved Knockdown ◇",
-      "desc": "(See the universal monster ability Improved Knockdown.)"
-     }
-    ],
-    "spells": [
-     {
-      "name": "Divine Prepared Spells",
-      "desc": "DC 42, attack +38; **9th** Harm, Massacre, Wails of the Damned; **8th** Canticle of Everlasting Grief, Execute, Pinpoint; **7th** Eclipse Burst, Planar Seal, Truespeech; **6th** Banishment, Blessed Boundary, Dominate; **5th** Sending, Translocate, Truespeech; **4th** Dispelling Globe, Divine Wrath, Planar Tether; **3rd** Blindness, Chilling Darkness, Harm; **2nd** Blood Vendetta, Darkness, Translate; **1st** Command, Command, Fear; **Cantrips (9th)** Detect Magic, Divine Lance, Message, Sigil, Void Warp"
-     },
-     {
-      "name": "Divine Innate Spells",
-      "desc": "DC 40, attack +32; **9th** Divine Immolation (At Will), Falling Stars (Fire Only), Wall of Fire (At Will); **8th** Summon Fiend (Phistophilus Only, At Will); **7th** Interplanar Teleport (At Will, Self Only); **Cantrips (10th)** Ignition"
-     }
-    ],
-    "description": "Hell, according to some theologians, is a living entity in and of itself. Diabolic dragons, these scholars argue, are just extensions of the plane, living creatures that break off from Hell to enact its will. Whether this is true or whether diabolical dragons are simply the reborn souls of dragons sent to Hell, the fact remains that these dragons are powerful, cunning, and tyrannical. Every diabolic dragon's goal is to further Hell's will, though how this happens can vary. Regardless of their goals, these dragons always approach newcomers with an unsettling calmness.\n\nDragons come in myriad forms, with many having magical abilities or connections to magic. Some dragons draw greater power from magic than others, allowing them to manifest abilities or alter their physiques with prolonged exposure to magic. These dragons become more powerful as they age and strengthen their connections with their magical origins. Scholars debate the classification of these dragons, with some preferring the name magical dragons and others using traditional dragons due to their connection to specific magical traditions. Regardless of their names, these dragons share a number of characteristics: their ability to tap into magical energies, intensified might and cunning as they grow older, and an inclination to hoard vast amounts of treasure and wealth.\n\n### Draconic Spellcasters\n\nEach dragon features a sidebar on spellcasting dragons of that type. To make a dragon spellcaster, remove the dragon's Draconic Frenzy and Draconic Momentum abilities, and give them the spells outlined in their sidebar. You can swap out any number of these with other spells, provided you keep the same number of spells for each rank. You might also want to increase the dragon's Intelligence, Wisdom, or Charisma modifier by 1 or 2 to reflect their mastery of magic."
    }
   }
  ]

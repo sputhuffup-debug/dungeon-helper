@@ -209,6 +209,21 @@ describe("damage", () => {
     expect(out.lines).toEqual(["fire weakness 5: 4 → 9", "fire (all) resistance 1: 9 → 8", "cut (physical) resistance 3: 10 → 7"]);
   });
 
+  it("a modifier keyed on a material or trait counts once per attack; exceptions can be damage types", () => {
+    const mods = [
+      { kind: "weakness" as const, type: "cold-iron", value: 5 },
+      { kind: "resistance" as const, type: "all", value: 3, except: ["fire"] },
+    ];
+    const out = applyD20DamageModifiers(def, mods, [
+      { type: "cut", amount: 6 },
+      { type: "fire", amount: 4 },
+    ], ["cold iron"]);
+    // the example's order: resistance before weakness
+    expect(out.lines).toEqual(["cut (all) resistance 3: 6 → 3", "cold iron weakness 5: 3 → 8"]);
+    expect(out.parts.map((p) => p.after)).toEqual([8, 4]);
+    expect(applyD20DamageModifiers(def, mods, [{ type: "cut", amount: 6 }]).total).toBe(3);
+  });
+
   it("temporary hit points go first", () => {
     expect(d20TakeDamage({ current: 10, max: 10, temp: 3 }, 5)).toEqual({ current: 8, max: 10, temp: 0, fromTemp: 3 });
     expect(d20TakeDamage({ current: 2, max: 10, temp: 0 }, 9)).toMatchObject({ current: 0 });

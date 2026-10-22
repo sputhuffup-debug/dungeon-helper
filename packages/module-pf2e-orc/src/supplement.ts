@@ -36,6 +36,7 @@ export const pf2eOrcBooksSource: SupplementSource = {
     "books-creatures-5.json": json(() => import("../supplements/remaster-orc-books/books-creatures-5.json", { with: { type: "json" } })),
     "books-creatures-6.json": json(() => import("../supplements/remaster-orc-books/books-creatures-6.json", { with: { type: "json" } })),
     "books-creatures-7.json": json(() => import("../supplements/remaster-orc-books/books-creatures-7.json", { with: { type: "json" } })),
+    "books-creatures-8.json": json(() => import("../supplements/remaster-orc-books/books-creatures-8.json", { with: { type: "json" } })),
     "books-hazards.json": json(() => import("../supplements/remaster-orc-books/books-hazards.json", { with: { type: "json" } })),
   },
 };

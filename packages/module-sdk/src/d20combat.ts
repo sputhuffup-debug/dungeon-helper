@@ -292,6 +292,17 @@ export function readD20Attack(def: D20CombatDef, source: D20AttackSource, item: 
   if (ability) attack.ability = ability;
   const save = saveEffect(def, at("save"));
   if (save) attack.save = save;
+  // A sheet row whose "bonus" is a save DC ("DC 13 Dex") is a save effect with the row's damage.
+  const bonusText = at("bonus");
+  const dcText = typeof bonusText === "string" ? /^\s*DC\s*(\d+)\s+([A-Za-z]+)/i.exec(bonusText) : null;
+  if (!attack.save && dcText) {
+    const word = dcText[2]!.toLowerCase();
+    const s = def.saves.find((x) => x.id.toLowerCase().startsWith(word) || x.name.toLowerCase().startsWith(word) || (x.ability ?? "").toLowerCase().startsWith(word));
+    if (s) {
+      attack.save = { dc: Number(dcText[1]), save: s.id, ...(attack.damage.length ? { damage: attack.damage } : {}) };
+      attack.damage = [];
+    }
+  }
   const onHit = conditionApplies(at("onHit"));
   if (onHit) attack.onHit = onHit;
   return attack;
@@ -412,6 +423,8 @@ export interface D20RollContext {
   ability?: string;
   /** Save id, for saves. */
   save?: string;
+  /** The check's roll id (skill), for checks. */
+  skill?: string;
   /** Kind of attack, for attack rolls (own or against). */
   attackKind?: D20AttackKind;
 }
@@ -463,6 +476,7 @@ export function d20ConditionAdjustment(def: D20CombatDef, active: readonly Activ
       if (e.minValue !== undefined && value < e.minValue) continue;
       if (e.abilities && !(ctx.ability && e.abilities.includes(ctx.ability))) continue;
       if (e.saves && !(ctx.save && e.saves.includes(ctx.save))) continue;
+      if (e.skills && !(ctx.skill && e.skills.includes(ctx.skill))) continue;
       if (e.attackKinds && !(ctx.attackKind && e.attackKinds.includes(ctx.attackKind))) continue;
       if (e.range && opts.close !== undefined && (e.range === "close") !== opts.close) continue;
       if (e.range && opts.close === undefined) continue;
@@ -547,7 +561,7 @@ export function d20ConditionAutomation(def: D20CombatDef, cd: D20ConditionDef): 
   const save = (id: string) => def.saves.find((s) => s.id === id)?.name ?? id;
   for (const e of cd.effects ?? []) {
     const what = e.on
-      .map((o) => (o === "attack" ? (e.attackKinds ? `${e.attackKinds.join(" and ")} attack rolls` : "attack rolls") : o === "check" ? "checks" : o === "save" ? (e.saves ? `${e.saves.map(save).join(" and ")} saves` : "saves") : o === "ac" ? "AC" : o === "dc" ? "DCs" : "damage rolls"))
+      .map((o) => (o === "attack" ? (e.attackKinds ? `${e.attackKinds.join(" and ")} attack rolls` : "attack rolls") : o === "check" ? (e.skills ? `${e.skills.join(" and ")} checks` : "checks") : o === "save" ? (e.saves ? `${e.saves.map(save).join(" and ")} saves` : "saves") : o === "ac" ? "AC" : o === "dc" ? "DCs" : "damage rolls"))
       .join(", ");
     const scope = [e.abilities ? `${e.abilities.join("/")}-based` : "", e.minValue !== undefined ? `from ${e.minValue}` : ""].filter(Boolean).join(", ");
     const who = e.against ? `attack rolls against it${e.range ? (e.range === "close" ? ` (attacker ${close})` : ` (attacker not ${close})`) : ""}` : what;
@@ -748,6 +762,13 @@ function modifierCovers(def: D20CombatDef, m: D20DamageModifier, type: string | 
   return (def.damageGroups?.[m.type] ?? []).includes(type);
 }
 
+const normTrait = (s: string) => s.trim().toLowerCase().replace(/[\s_]+/g, "-");
+
+/** A damage modifier keyed on an attack trait or material rather than a damage type ("cold-iron", "holy", "silver"). */
+export function d20IsTraitModifier(def: D20CombatDef, m: Pick<D20DamageModifier, "type">): boolean {
+  return m.type !== "all" && !def.damageTypes.some((t) => t.id === m.type) && !(m.type in (def.damageGroups ?? {}));
+}
+
 /**
  * Apply damage modifiers to typed amounts, part by part, in the module's
  * order: immunity (0), resistance (halved, rounded down, or less by its
@@ -757,15 +778,17 @@ function modifierCovers(def: D20CombatDef, m: D20DamageModifier, type: string | 
  */
 export function applyD20DamageModifiers(def: D20CombatDef, modifiers: readonly D20DamageModifier[], parts: ReadonlyArray<{ type?: string; amount: number }>, attackTraits: readonly string[] = []): D20DamageApplied {
   const order = def.rules.damageOrder ?? ["immunity", "resistance", "vulnerability", "weakness"];
-  const traits = new Set(attackTraits.map((t) => t.toLowerCase()));
+  const traits = new Set(attackTraits.map(normTrait));
   const lines: string[] = [];
   const out: D20DamageApplied["parts"] = [];
   for (const p of parts) {
     const before = Math.max(0, Math.floor(p.amount));
     let a = before;
     const typeName = d20DamageTypeName(def, p.type);
-    const applicable = modifiers.filter((m) => modifierCovers(def, m, p.type) && !(m.except ?? []).some((e) => traits.has(e)));
-    const label = (m: D20DamageModifier) => `${m.type === p.type || !p.type ? typeName : `${typeName} (${d20DamageTypeName(def, m.type)})`}`;
+    // a modifier keyed on a trait or material counts once per attack, on its first damage part
+    const index = out.length;
+    const applicable = modifiers.filter((m) => (d20IsTraitModifier(def, m) ? index === 0 && traits.has(normTrait(m.type)) : modifierCovers(def, m, p.type)) && !(m.except ?? []).some((e) => traits.has(normTrait(e)) || normTrait(e) === p.type));
+    const label = (m: D20DamageModifier) => (d20IsTraitModifier(def, m) ? m.type.replace(/-/g, " ") : m.type === p.type || !p.type ? typeName : `${typeName} (${d20DamageTypeName(def, m.type)})`);
     for (const kind of order) {
       const ms = applicable.filter((m) => m.kind === kind);
       if (!ms.length || a <= 0) continue;

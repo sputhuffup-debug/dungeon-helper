@@ -159,8 +159,8 @@ describe("Fantasy d20 Remaster (ORC) data pack", () => {
     expect(goblin.fields.skills).toEqual({ acrobatics: 5, athletics: 2, nature: 1, stealth: 5 });
     expect(goblin.fields.attributes).toEqual({ strength: 0, dexterity: 3, constitution: 1, intelligence: 0, wisdom: -1, charisma: 1 });
     expect(goblin.fields.strikes).toEqual([
-      { name: "Dogslicer", type: "melee", bonus: "+7 [+3/−1]", traits: "agile, backstabber, finesse", damage: "1d6 slashing" },
-      { name: "Shortbow", type: "ranged", bonus: "+7 [+2/−3]", traits: "deadly d10, reload 0, range increment 60 feet", damage: "1d6 piercing" },
+      { name: "Dogslicer", type: "melee", bonus: "+7 [+3/−1]", traits: "agile, backstabber, finesse", damage: "1d6 slashing", attack: 7, damageParts: [{ dice: "1d6", type: "slashing" }] },
+      { name: "Shortbow", type: "ranged", bonus: "+7 [+2/−3]", traits: "deadly d10, reload 0, range increment 60 feet", damage: "1d6 piercing", attack: 7, damageParts: [{ dice: "1d6", type: "piercing" }] },
     ]);
     expect((goblin.fields.defenses as Array<{ name: string }>)[0]!.name).toBe("Goblin Scuttle ↺");
     const dragon = preset("Adamantine Dragon (Adult, Spellcaster)");

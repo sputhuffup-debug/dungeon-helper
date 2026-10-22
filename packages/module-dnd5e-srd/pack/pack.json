@@ -707,6 +707,34 @@
          "type": "string",
          "maxLength": 80
         },
+        "type": {
+         "type": "string",
+         "enum": [
+          "acid",
+          "bludgeoning",
+          "cold",
+          "fire",
+          "force",
+          "lightning",
+          "necrotic",
+          "piercing",
+          "poison",
+          "psychic",
+          "radiant",
+          "slashing",
+          "thunder"
+         ],
+         "description": "Damage type, when the damage text does not say."
+        },
+        "kind": {
+         "type": "string",
+         "enum": [
+          "melee",
+          "ranged",
+          "spell"
+         ],
+         "description": "Melee (the default), ranged or spell attack."
+        },
         "notes": {
          "type": "string",
          "maxLength": 200
@@ -4031,6 +4059,14 @@
            "label": "Attack bonus"
           },
           "damage",
+          {
+           "key": "type",
+           "label": "Damage type"
+          },
+          {
+           "key": "kind",
+           "label": "Attack"
+          },
           "notes"
          ]
         }
@@ -4684,6 +4720,58 @@
       },
       "default": []
      },
+     "damageModifiers": {
+      "type": "array",
+      "description": "Damage immunities, resistances and vulnerabilities by damage type, as the combat panel applies them.",
+      "items": {
+       "type": "object",
+       "properties": {
+        "kind": {
+         "type": "string",
+         "enum": [
+          "immunity",
+          "resistance",
+          "vulnerability"
+         ]
+        },
+        "type": {
+         "type": "string",
+         "enum": [
+          "acid",
+          "bludgeoning",
+          "cold",
+          "fire",
+          "force",
+          "lightning",
+          "necrotic",
+          "piercing",
+          "poison",
+          "psychic",
+          "radiant",
+          "slashing",
+          "thunder"
+         ]
+        },
+        "except": {
+         "type": "array",
+         "items": {
+          "type": "string"
+         },
+         "default": []
+        },
+        "note": {
+         "type": "string",
+         "maxLength": 200
+        }
+       },
+       "required": [
+        "kind",
+        "type"
+       ],
+       "additionalProperties": false
+      },
+      "default": []
+     },
      "senses": {
       "type": "string",
       "maxLength": 400
@@ -4777,6 +4865,269 @@
        "required": [
         "name"
        ]
+      },
+      "default": []
+     },
+     "attacks": {
+      "type": "array",
+      "description": "Attacks as the combat panel reads them: attack bonus, damage parts with types, reach and range, save effects.",
+      "items": {
+       "type": "object",
+       "properties": {
+        "name": {
+         "type": "string",
+         "maxLength": 120
+        },
+        "kind": {
+         "type": "string",
+         "enum": [
+          "melee",
+          "ranged",
+          "spell"
+         ]
+        },
+        "bonus": {
+         "type": "integer",
+         "minimum": -10,
+         "maximum": 40
+        },
+        "damage": {
+         "type": "array",
+         "items": {
+          "type": "object",
+          "properties": {
+           "dice": {
+            "type": "string",
+            "maxLength": 40
+           },
+           "type": {
+            "type": "string",
+            "enum": [
+             "acid",
+             "bludgeoning",
+             "cold",
+             "fire",
+             "force",
+             "lightning",
+             "necrotic",
+             "piercing",
+             "poison",
+             "psychic",
+             "radiant",
+             "slashing",
+             "thunder"
+            ]
+           },
+           "persistent": {
+            "type": "boolean"
+           }
+          },
+          "required": [
+           "dice"
+          ],
+          "additionalProperties": false
+         }
+        },
+        "reach": {
+         "type": "string",
+         "maxLength": 40
+        },
+        "range": {
+         "type": "string",
+         "maxLength": 40
+        },
+        "traits": {
+         "type": "array",
+         "items": {
+          "type": "string"
+         },
+         "default": []
+        },
+        "save": {
+         "type": "object",
+         "properties": {
+          "dc": {
+           "type": "integer",
+           "minimum": 1,
+           "maximum": 40
+          },
+          "save": {
+           "type": "string",
+           "enum": [
+            "strength-save",
+            "dexterity-save",
+            "constitution-save",
+            "intelligence-save",
+            "wisdom-save",
+            "charisma-save"
+           ]
+          },
+          "half": {
+           "type": "boolean"
+          },
+          "damage": {
+           "type": "array",
+           "items": {
+            "type": "object",
+            "properties": {
+             "dice": {
+              "type": "string",
+              "maxLength": 40
+             },
+             "type": {
+              "type": "string",
+              "enum": [
+               "acid",
+               "bludgeoning",
+               "cold",
+               "fire",
+               "force",
+               "lightning",
+               "necrotic",
+               "piercing",
+               "poison",
+               "psychic",
+               "radiant",
+               "slashing",
+               "thunder"
+              ]
+             },
+             "persistent": {
+              "type": "boolean"
+             }
+            },
+            "required": [
+             "dice"
+            ],
+            "additionalProperties": false
+           }
+          },
+          "conditions": {
+           "type": "array",
+           "items": {
+            "type": "object",
+            "properties": {
+             "id": {
+              "type": "string",
+              "maxLength": 40
+             },
+             "value": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 20
+             },
+             "duration": {
+              "type": "object",
+              "properties": {
+               "rounds": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 10000
+               },
+               "sourceNextTurn": {
+                "type": "boolean"
+               },
+               "save": {
+                "type": "object",
+                "properties": {
+                 "save": {
+                  "type": "string",
+                  "maxLength": 40
+                 },
+                 "dc": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 40
+                 }
+                },
+                "required": [
+                 "save"
+                ],
+                "additionalProperties": false
+               }
+              },
+              "additionalProperties": false
+             }
+            },
+            "required": [
+             "id"
+            ],
+            "additionalProperties": false
+           }
+          },
+          "text": {
+           "type": "string",
+           "maxLength": 400
+          }
+         },
+         "required": [
+          "dc",
+          "save"
+         ],
+         "additionalProperties": false
+        },
+        "onHit": {
+         "type": "array",
+         "items": {
+          "type": "object",
+          "properties": {
+           "id": {
+            "type": "string",
+            "maxLength": 40
+           },
+           "value": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 20
+           },
+           "duration": {
+            "type": "object",
+            "properties": {
+             "rounds": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000
+             },
+             "sourceNextTurn": {
+              "type": "boolean"
+             },
+             "save": {
+              "type": "object",
+              "properties": {
+               "save": {
+                "type": "string",
+                "maxLength": 40
+               },
+               "dc": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 40
+               }
+              },
+              "required": [
+               "save"
+              ],
+              "additionalProperties": false
+             }
+            },
+            "additionalProperties": false
+           }
+          },
+          "required": [
+           "id"
+          ],
+          "additionalProperties": false
+         }
+        },
+        "effect": {
+         "type": "string",
+         "maxLength": 400
+        }
+       },
+       "required": [
+        "name"
+       ],
+       "additionalProperties": false
       },
       "default": []
      },
@@ -6082,6 +6433,59 @@
         "path": "legendaryActions",
         "label": "Legendary actions",
         "widget": "entries"
+       }
+      ]
+     },
+     {
+      "id": "combat",
+      "title": "Combat panel data",
+      "collapsed": true,
+      "fields": [
+       {
+        "path": "attacks",
+        "label": "Attacks",
+        "widget": "table",
+        "config": {
+         "columns": [
+          "name",
+          {
+           "key": "kind",
+           "label": "Attack"
+          },
+          {
+           "key": "bonus",
+           "label": "To hit"
+          },
+          {
+           "key": "damage",
+           "readonly": true
+          },
+          "reach",
+          "range",
+          {
+           "key": "save",
+           "readonly": true
+          },
+          "effect"
+         ]
+        }
+       },
+       {
+        "path": "damageModifiers",
+        "label": "Damage modifiers",
+        "widget": "table",
+        "rule": "dnd5e-srd.rule.damage-and-healing.damage-resistance-and-vulnerability",
+        "config": {
+         "columns": [
+          "kind",
+          "type",
+          {
+           "key": "except",
+           "readonly": true
+          },
+          "note"
+         ]
+        }
        }
       ]
      },
@@ -7972,6 +8376,753 @@
     "prompt": "Where the party is when the first session starts, and the trouble that brings them together.",
     "original": true
    }
+  ]
+ },
+ "d20Combat": {
+  "cite": "SRD 5.1 — Combat",
+  "damageTypes": [
+   {
+    "id": "acid",
+    "name": "Acid"
+   },
+   {
+    "id": "bludgeoning",
+    "name": "Bludgeoning"
+   },
+   {
+    "id": "cold",
+    "name": "Cold"
+   },
+   {
+    "id": "fire",
+    "name": "Fire"
+   },
+   {
+    "id": "force",
+    "name": "Force"
+   },
+   {
+    "id": "lightning",
+    "name": "Lightning"
+   },
+   {
+    "id": "necrotic",
+    "name": "Necrotic"
+   },
+   {
+    "id": "piercing",
+    "name": "Piercing"
+   },
+   {
+    "id": "poison",
+    "name": "Poison"
+   },
+   {
+    "id": "psychic",
+    "name": "Psychic"
+   },
+   {
+    "id": "radiant",
+    "name": "Radiant"
+   },
+   {
+    "id": "slashing",
+    "name": "Slashing"
+   },
+   {
+    "id": "thunder",
+    "name": "Thunder"
+   }
+  ],
+  "saves": [
+   {
+    "id": "strength-save",
+    "name": "Strength save",
+    "ability": "strength",
+    "roll": "strength-save"
+   },
+   {
+    "id": "dexterity-save",
+    "name": "Dexterity save",
+    "ability": "dexterity",
+    "roll": "dexterity-save"
+   },
+   {
+    "id": "constitution-save",
+    "name": "Constitution save",
+    "ability": "constitution",
+    "roll": "constitution-save"
+   },
+   {
+    "id": "intelligence-save",
+    "name": "Intelligence save",
+    "ability": "intelligence",
+    "roll": "intelligence-save"
+   },
+   {
+    "id": "wisdom-save",
+    "name": "Wisdom save",
+    "ability": "wisdom",
+    "roll": "wisdom-save"
+   },
+   {
+    "id": "charisma-save",
+    "name": "Charisma save",
+    "ability": "charisma",
+    "roll": "charisma-save"
+   }
+  ],
+  "attackAbilities": {
+   "melee": "strength",
+   "ranged": "dexterity"
+  },
+  "skillAbilities": {
+   "acrobatics": "dexterity",
+   "animal-handling": "wisdom",
+   "arcana": "intelligence",
+   "athletics": "strength",
+   "deception": "charisma",
+   "history": "intelligence",
+   "insight": "wisdom",
+   "intimidation": "charisma",
+   "investigation": "intelligence",
+   "medicine": "wisdom",
+   "nature": "intelligence",
+   "perception": "wisdom",
+   "performance": "charisma",
+   "persuasion": "charisma",
+   "religion": "intelligence",
+   "sleight-of-hand": "dexterity",
+   "stealth": "dexterity",
+   "survival": "wisdom"
+  },
+  "combatants": [
+   {
+    "entityTypes": [
+     "dnd5e-srd.character"
+    ],
+    "ac": {
+     "var": [
+      "fields.ac",
+      10
+     ]
+    },
+    "hp": {
+     "current": "hp.current",
+     "max": {
+      "var": [
+       "fields.hp.max",
+       1
+      ]
+     },
+     "temp": "hp.temp"
+    },
+    "saves": {
+     "strength-save": {
+      "var": [
+       "computed.strengthSave",
+       0
+      ]
+     },
+     "dexterity-save": {
+      "var": [
+       "computed.dexteritySave",
+       0
+      ]
+     },
+     "constitution-save": {
+      "var": [
+       "computed.constitutionSave",
+       0
+      ]
+     },
+     "intelligence-save": {
+      "var": [
+       "computed.intelligenceSave",
+       0
+      ]
+     },
+     "wisdom-save": {
+      "var": [
+       "computed.wisdomSave",
+       0
+      ]
+     },
+     "charisma-save": {
+      "var": [
+       "computed.charismaSave",
+       0
+      ]
+     }
+    },
+    "attacks": [
+     {
+      "path": "attacks",
+      "keys": {
+       "damageType": "type"
+      }
+     }
+    ],
+    "speed": {
+     "var": [
+      "fields.speed",
+      30
+     ]
+    }
+   },
+   {
+    "entityTypes": [
+     "dnd5e-srd.monster"
+    ],
+    "ac": {
+     "var": [
+      "fields.ac",
+      10
+     ]
+    },
+    "hp": {
+     "current": "hp.current",
+     "max": {
+      "var": [
+       "fields.hp.max",
+       1
+      ]
+     },
+     "temp": "hp.temp"
+    },
+    "saves": {
+     "strength-save": {
+      "var": [
+       "computed.strengthSave",
+       0
+      ]
+     },
+     "dexterity-save": {
+      "var": [
+       "computed.dexteritySave",
+       0
+      ]
+     },
+     "constitution-save": {
+      "var": [
+       "computed.constitutionSave",
+       0
+      ]
+     },
+     "intelligence-save": {
+      "var": [
+       "computed.intelligenceSave",
+       0
+      ]
+     },
+     "wisdom-save": {
+      "var": [
+       "computed.wisdomSave",
+       0
+      ]
+     },
+     "charisma-save": {
+      "var": [
+       "computed.charismaSave",
+       0
+      ]
+     }
+    },
+    "damageModifiers": "damageModifiers",
+    "conditionImmunities": "conditionImmunities",
+    "attacks": [
+     {
+      "path": "attacks"
+     }
+    ],
+    "speed": {
+     "var": [
+      "fields.speed",
+      ""
+     ]
+    }
+   }
+  ],
+  "rules": {
+   "crit": "natural20Doubles",
+   "critDamage": "dice",
+   "save": "total",
+   "halfSave": {
+    "success": 0.5,
+    "failure": 1
+   },
+   "stacking": "typed",
+   "damageOrder": [
+    "immunity",
+    "resistance",
+    "vulnerability"
+   ]
+  },
+  "conditions": [
+   {
+    "id": "blinded",
+    "name": "Blinded",
+    "summary": "Can't see, and automatically fails any ability check that needs sight. Attack rolls against it have advantage; its own attack rolls have disadvantage.",
+    "cannot": [
+     "see"
+    ],
+    "effects": [
+     {
+      "on": [
+       "attack"
+      ],
+      "roll": "disadvantage"
+     },
+     {
+      "on": [
+       "attack"
+      ],
+      "against": true,
+      "roll": "advantage"
+     }
+    ],
+    "manual": [
+     "automatic failure of checks that need sight"
+    ],
+    "cite": "SRD 5.1 — Conditions: Blinded",
+    "rule": "dnd5e-srd.rule.conditions.blinded"
+   },
+   {
+    "id": "charmed",
+    "name": "Charmed",
+    "summary": "Can't attack the charmer or target it with harmful abilities or magic. The charmer has advantage on ability checks to interact socially with it.",
+    "manual": [
+     "can't attack or harm the charmer",
+     "the charmer's advantage on social checks"
+    ],
+    "cite": "SRD 5.1 — Conditions: Charmed",
+    "rule": "dnd5e-srd.rule.conditions.charmed"
+   },
+   {
+    "id": "deafened",
+    "name": "Deafened",
+    "summary": "Can't hear, and automatically fails any ability check that needs hearing.",
+    "cannot": [
+     "hear"
+    ],
+    "manual": [
+     "automatic failure of checks that need hearing"
+    ],
+    "cite": "SRD 5.1 — Conditions: Deafened",
+    "rule": "dnd5e-srd.rule.conditions.deafened"
+   },
+   {
+    "id": "exhaustion",
+    "name": "Exhaustion",
+    "summary": "Six levels, each adding to the ones below: 1 disadvantage on ability checks; 2 speed halved; 3 disadvantage on attack rolls and saving throws; 4 hit point maximum halved; 5 speed 0; 6 death. A long rest with food and drink lowers it by 1.",
+    "valued": true,
+    "max": 6,
+    "field": "exhaustion",
+    "effects": [
+     {
+      "on": [
+       "check"
+      ],
+      "roll": "disadvantage",
+      "minValue": 1
+     },
+     {
+      "on": [
+       "attack",
+       "save"
+      ],
+      "roll": "disadvantage",
+      "minValue": 3
+     }
+    ],
+    "speed": {
+     "multiply": 0.5,
+     "minValue": 2
+    },
+    "levels": [
+     {
+      "value": 1,
+      "summary": "Disadvantage on ability checks"
+     },
+     {
+      "value": 2,
+      "summary": "Speed halved"
+     },
+     {
+      "value": 3,
+      "summary": "Disadvantage on attack rolls and saving throws"
+     },
+     {
+      "value": 4,
+      "summary": "Hit point maximum halved"
+     },
+     {
+      "value": 5,
+      "summary": "Speed reduced to 0"
+     },
+     {
+      "value": 6,
+      "summary": "Death"
+     }
+    ],
+    "manual": [
+     "hit point maximum halved (level 4)",
+     "speed 0 (level 5)",
+     "death (level 6)",
+     "lowering it after a long rest"
+    ],
+    "cite": "SRD 5.1 — Conditions: Exhaustion",
+    "rule": "dnd5e-srd.rule.conditions.exhaustion"
+   },
+   {
+    "id": "frightened",
+    "name": "Frightened",
+    "summary": "Disadvantage on ability checks and attack rolls while the source of its fear is in sight; can't willingly move closer to the source.",
+    "effects": [
+     {
+      "on": [
+       "check",
+       "attack"
+      ],
+      "roll": "disadvantage"
+     }
+    ],
+    "manual": [
+     "only while the source is in line of sight",
+     "can't move closer to the source"
+    ],
+    "cite": "SRD 5.1 — Conditions: Frightened",
+    "rule": "dnd5e-srd.rule.conditions.frightened"
+   },
+   {
+    "id": "grappled",
+    "name": "Grappled",
+    "summary": "Speed 0, and it can't benefit from bonuses to speed. Ends if the grappler is incapacitated or it is moved out of the grappler's reach.",
+    "speed": {
+     "set": 0
+    },
+    "manual": [
+     "ends when the grappler is incapacitated or out of reach"
+    ],
+    "cite": "SRD 5.1 — Conditions: Grappled",
+    "rule": "dnd5e-srd.rule.conditions.grappled"
+   },
+   {
+    "id": "incapacitated",
+    "name": "Incapacitated",
+    "summary": "Can't take actions or reactions.",
+    "cannot": [
+     "act",
+     "react"
+    ],
+    "cite": "SRD 5.1 — Conditions: Incapacitated",
+    "rule": "dnd5e-srd.rule.conditions.incapacitated"
+   },
+   {
+    "id": "invisible",
+    "name": "Invisible",
+    "summary": "Impossible to see without magic or a special sense (heavily obscured for hiding), though noise and tracks can give it away. Attack rolls against it have disadvantage; its attack rolls have advantage.",
+    "effects": [
+     {
+      "on": [
+       "attack"
+      ],
+      "roll": "advantage"
+     },
+     {
+      "on": [
+       "attack"
+      ],
+      "against": true,
+      "roll": "disadvantage"
+     }
+    ],
+    "manual": [
+     "hiding and being located by noise or tracks"
+    ],
+    "cite": "SRD 5.1 — Conditions: Invisible",
+    "rule": "dnd5e-srd.rule.conditions.invisible"
+   },
+   {
+    "id": "paralyzed",
+    "name": "Paralyzed",
+    "summary": "Incapacitated; can't move or speak. Automatically fails Strength and Dexterity saves. Attack rolls against it have advantage, and a hit from within 5 feet is a critical hit.",
+    "implies": [
+     "incapacitated"
+    ],
+    "cannot": [
+     "move",
+     "speak"
+    ],
+    "effects": [
+     {
+      "on": [
+       "save"
+      ],
+      "saves": [
+       "strength-save",
+       "dexterity-save"
+      ],
+      "autoFail": true
+     },
+     {
+      "on": [
+       "attack"
+      ],
+      "against": true,
+      "roll": "advantage"
+     },
+     {
+      "on": [
+       "attack"
+      ],
+      "against": true,
+      "range": "close",
+      "critOnHit": true
+     }
+    ],
+    "cite": "SRD 5.1 — Conditions: Paralyzed",
+    "rule": "dnd5e-srd.rule.conditions.paralyzed"
+   },
+   {
+    "id": "petrified",
+    "name": "Petrified",
+    "summary": "Turned to stone with what it wears and carries: incapacitated, can't move or speak, unaware of its surroundings. Attack rolls against it have advantage; it fails Strength and Dexterity saves, resists all damage and is immune to poison and disease.",
+    "implies": [
+     "incapacitated"
+    ],
+    "cannot": [
+     "move",
+     "speak"
+    ],
+    "effects": [
+     {
+      "on": [
+       "save"
+      ],
+      "saves": [
+       "strength-save",
+       "dexterity-save"
+      ],
+      "autoFail": true
+     },
+     {
+      "on": [
+       "attack"
+      ],
+      "against": true,
+      "roll": "advantage"
+     }
+    ],
+    "manual": [
+     "resistance to all damage",
+     "immunity to poison and disease"
+    ],
+    "cite": "SRD 5.1 — Conditions: Petrified",
+    "rule": "dnd5e-srd.rule.conditions.petrified"
+   },
+   {
+    "id": "poisoned",
+    "name": "Poisoned",
+    "summary": "Disadvantage on attack rolls and ability checks.",
+    "effects": [
+     {
+      "on": [
+       "attack",
+       "check"
+      ],
+      "roll": "disadvantage"
+     }
+    ],
+    "cite": "SRD 5.1 — Conditions: Poisoned",
+    "rule": "dnd5e-srd.rule.conditions.poisoned"
+   },
+   {
+    "id": "prone",
+    "name": "Prone",
+    "summary": "Can only crawl until it stands up, which ends the condition. Disadvantage on its attack rolls. Attack rolls against it have advantage from within 5 feet, disadvantage from farther away.",
+    "effects": [
+     {
+      "on": [
+       "attack"
+      ],
+      "roll": "disadvantage"
+     },
+     {
+      "on": [
+       "attack"
+      ],
+      "against": true,
+      "range": "close",
+      "roll": "advantage"
+     },
+     {
+      "on": [
+       "attack"
+      ],
+      "against": true,
+      "range": "far",
+      "roll": "disadvantage"
+     }
+    ],
+    "manual": [
+     "crawling and standing up"
+    ],
+    "cite": "SRD 5.1 — Conditions: Prone",
+    "rule": "dnd5e-srd.rule.conditions.prone"
+   },
+   {
+    "id": "restrained",
+    "name": "Restrained",
+    "summary": "Speed 0. Attack rolls against it have advantage; its attack rolls have disadvantage; disadvantage on Dexterity saves.",
+    "speed": {
+     "set": 0
+    },
+    "effects": [
+     {
+      "on": [
+       "attack"
+      ],
+      "roll": "disadvantage"
+     },
+     {
+      "on": [
+       "attack"
+      ],
+      "against": true,
+      "roll": "advantage"
+     },
+     {
+      "on": [
+       "save"
+      ],
+      "saves": [
+       "dexterity-save"
+      ],
+      "roll": "disadvantage"
+     }
+    ],
+    "cite": "SRD 5.1 — Conditions: Restrained",
+    "rule": "dnd5e-srd.rule.conditions.restrained"
+   },
+   {
+    "id": "stunned",
+    "name": "Stunned",
+    "summary": "Incapacitated, can't move, and can speak only falteringly. Automatically fails Strength and Dexterity saves. Attack rolls against it have advantage.",
+    "implies": [
+     "incapacitated"
+    ],
+    "cannot": [
+     "move"
+    ],
+    "effects": [
+     {
+      "on": [
+       "save"
+      ],
+      "saves": [
+       "strength-save",
+       "dexterity-save"
+      ],
+      "autoFail": true
+     },
+     {
+      "on": [
+       "attack"
+      ],
+      "against": true,
+      "roll": "advantage"
+     }
+    ],
+    "cite": "SRD 5.1 — Conditions: Stunned",
+    "rule": "dnd5e-srd.rule.conditions.stunned"
+   },
+   {
+    "id": "unconscious",
+    "name": "Unconscious",
+    "summary": "Incapacitated, can't move or speak, unaware of its surroundings; drops what it holds and falls prone. Automatically fails Strength and Dexterity saves. Attack rolls against it have advantage, and a hit from within 5 feet is a critical hit.",
+    "implies": [
+     "incapacitated",
+     "prone"
+    ],
+    "cannot": [
+     "move",
+     "speak"
+    ],
+    "effects": [
+     {
+      "on": [
+       "save"
+      ],
+      "saves": [
+       "strength-save",
+       "dexterity-save"
+      ],
+      "autoFail": true
+     },
+     {
+      "on": [
+       "attack"
+      ],
+      "against": true,
+      "roll": "advantage"
+     },
+     {
+      "on": [
+       "attack"
+      ],
+      "against": true,
+      "range": "close",
+      "critOnHit": true
+     }
+    ],
+    "manual": [
+     "dropping what it holds"
+    ],
+    "cite": "SRD 5.1 — Conditions: Unconscious",
+    "rule": "dnd5e-srd.rule.conditions.unconscious"
+   }
+  ],
+  "zeroHp": [
+   {
+    "when": {
+     "==": [
+      {
+       "var": "type"
+      },
+      "dnd5e-srd.character"
+     ]
+    },
+    "conditions": [
+     {
+      "id": "unconscious"
+     }
+    ],
+    "recover": {
+     "remove": [
+      "unconscious"
+     ],
+     "setFields": {
+      "deathSaves.successes": 0,
+      "deathSaves.failures": 0
+     }
+    },
+    "text": "A character at 0 hit points falls unconscious and makes a death saving throw at the start of each of its turns (the death save tracker): 10 or higher is a success, three successes stabilize it, three failures kill it, a natural 20 brings it back with 1 hit point. Damage at 0 hit points is a failed death save (two on a critical hit), and damage that leaves the rest equal to its hit point maximum kills it outright. Any healing wakes it.",
+    "cite": "SRD 5.1 — Combat: Damage and Healing, Dropping to 0 Hit Points"
+   },
+   {
+    "defeated": true,
+    "text": "Most monsters die at 0 hit points; an attacker who brings one down with a melee attack can knock it out instead.",
+    "cite": "SRD 5.1 — Combat: Damage and Healing, Dropping to 0 Hit Points"
+   }
+  ],
+  "closeLabel": "within 5 feet",
+  "playerHealth": true,
+  "ruleCards": [
+   "dnd5e-srd.rule.damage-and-healing.damage-rolls",
+   "dnd5e-srd.rule.damage-and-healing.damage-resistance-and-vulnerability",
+   "dnd5e-srd.rule.damage-and-healing.dropping-to-0-hit-points",
+   "dnd5e-srd.rule.damage-and-healing.temporary-hit-points"
   ]
  },
  "templates": [

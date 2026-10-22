@@ -45,8 +45,51 @@ function iwr(list: unknown, withValue: boolean): string[] {
   });
 }
 
-/** One Strike: "+7 [+3/−1]" with the multiple attack penalty (agile −4/−8, otherwise −5/−10). */
-function strike(ctx: Ctx, it: Raw): Record<string, string> {
+/** The damage types the combat panel knows (the source's own type ids). */
+export const DAMAGE_TYPES = ["acid", "bludgeoning", "cold", "electricity", "fire", "force", "mental", "piercing", "poison", "slashing", "sonic", "spirit", "vitality", "void", "bleed", "precision"];
+
+/** Condition ids a creature can be immune to (the rest of its immunities are effects and damage). */
+const CONDITION_IDS = new Set(["blinded", "clumsy", "confused", "controlled", "dazzled", "deafened", "doomed", "drained", "enfeebled", "fascinated", "fatigued", "fleeing", "frightened", "grabbed", "immobilized", "off-guard", "paralyzed", "persistent-damage", "petrified", "prone", "restrained", "sickened", "slowed", "stunned", "stupefied", "unconscious", "wounded", "dying"]);
+
+/**
+ * Immunities, weaknesses and resistances as the combat panel applies them:
+ * one entry each, `all-damage` as "all", exceptions kept (materials, traits
+ * or damage types that get past). Immunities to effects (sleep, death
+ * effects) stay in the text lists; immunities to conditions go to
+ * `conditionImmunities`.
+ */
+export function damageModifiers(attrs: Raw): { modifiers: Array<Record<string, unknown>>; conditionImmunities: string[] } {
+  const modifiers: Array<Record<string, unknown>> = [];
+  const conditionImmunities: string[] = [];
+  const kinds: Array<[string, string]> = [
+    ["immunities", "immunity"],
+    ["weaknesses", "weakness"],
+    ["resistances", "resistance"],
+  ];
+  for (const [key, kind] of kinds) {
+    for (const x of objs(attrs[key])) {
+      const raw = str(x.type);
+      const type = raw === "all-damage" ? "all" : raw;
+      if (kind === "immunity") {
+        if (CONDITION_IDS.has(type)) conditionImmunities.push(type);
+        if (!DAMAGE_TYPES.includes(type)) continue;
+      }
+      const except = strs(x.exceptions);
+      const doubleVs = strs(x.doubleVs).map(words);
+      modifiers.push({
+        kind,
+        type,
+        ...(kind !== "immunity" && x.value !== undefined ? { value: num(x.value) } : {}),
+        ...(except.length ? { except } : {}),
+        ...(doubleVs.length ? { note: `double resistance vs. ${doubleVs.join(", ")}` } : {}),
+      });
+    }
+  }
+  return { modifiers, conditionImmunities };
+}
+
+/** One Strike: "+7 [+3/−1]" with the multiple attack penalty (agile −4/−8, otherwise −5/−10), and the structured numbers the combat panel rolls. */
+function strike(ctx: Ctx, it: Raw): Record<string, unknown> {
   const s = obj(it.system);
   const bonus = num(obj(s.bonus).value);
   const traits = strs(obj(s.traits).value);
@@ -64,12 +107,21 @@ function strike(ctx: Ctx, it: Raw): Record<string, string> {
     })
     .join(" plus ");
   const effects = [...strs(obj(s.attackEffects).value).map((x) => titleCase(words(x))), line(ctx, obj(s.attackEffects).custom)].filter(Boolean);
+  const damageParts = Object.values(obj(s.damageRolls)).flatMap((d) => {
+    const r = obj(d);
+    const dice = str(r.damage).replace(/\s+/g, "");
+    if (!dice) return [];
+    const type = str(r.damageType);
+    return [{ dice, ...(DAMAGE_TYPES.includes(type) ? { type } : {}), ...(str(r.category) === "persistent" ? { persistent: true } : {}) }];
+  });
   return {
     name: str(it.name),
     type: ranged ? "ranged" : "melee",
     bonus: `${signed(bonus)} [${signed(bonus - map[0]!)}/${signed(bonus - map[1]!)}]`,
     traits: traitList.join(", "),
     damage: [damage, ...effects].filter(Boolean).join(" plus "),
+    attack: bonus,
+    damageParts,
   };
 }
 
@@ -185,6 +237,7 @@ export function convertCreatures(entries: Entry[], ctx: Ctx, opts: CreatureOptio
     const saveVal = (k: string) => num(obj(obj(s.saves)[k]).value);
     const saveNotes = [line(ctx, obj(attrs.allSaves).value), ...["fortitude", "reflex", "will"].map((k) => line(ctx, obj(obj(s.saves)[k]).saveDetail)).filter(Boolean)].filter(Boolean);
     const hp = obj(attrs.hp);
+    const dm = damageModifiers(attrs);
     const description = [md(ctx, details.blurb), md(ctx, details.publicNotes)].filter(Boolean).join("\n\n");
     const fields: Record<string, unknown> = {
       level,
@@ -207,6 +260,8 @@ export function convertCreatures(entries: Entry[], ctx: Ctx, opts: CreatureOptio
       immunities: iwr(attrs.immunities, false),
       weaknesses: iwr(attrs.weaknesses, true),
       resistances: iwr(attrs.resistances, true),
+      damageModifiers: dm.modifiers,
+      conditionImmunities: dm.conditionImmunities,
       speed: speedText(ctx, obj(attrs.speed)),
       strikes: items.filter((i) => i.type === "melee").map((i) => strike(ctx, i)),
       abilities: byCategory("interaction"),

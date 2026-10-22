@@ -1678,6 +1678,8 @@ export interface D20ConditionEffect {
   abilities?: string[];
   /** Only these saves. */
   saves?: string[];
+  /** Only these checks, by the roll id the sheet uses (e.g. "perception"). */
+  skills?: string[];
   /** Only these kinds of attack. */
   attackKinds?: D20AttackKind[];
   /** Only from this condition value up (e.g. exhaustion levels). */

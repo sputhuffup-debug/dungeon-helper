@@ -542,6 +542,7 @@ const definitions: Record<string, JsonSchema> = {
       autoFail: bool,
       abilities: list(text),
       saves: list(text),
+      skills: list(text),
       attackKinds: list(oneOfValues<D20AttackKind>()(D20_ATTACK_KINDS)),
       minValue: int({ minimum: 0, maximum: 100 }),
       against: bool,

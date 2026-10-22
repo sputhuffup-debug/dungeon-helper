@@ -350,6 +350,7 @@ export function applyD20Damage(store: CampaignStore, module: D20Module, entityId
           const values = conditionValues(m, entity);
           for (const c of rule.conditions ?? []) {
             const value = d20RuleValue(c.value, { critical: !!opts.critical, conditions: values, fields: entity.fields, computed: computedFor(m, entity) });
+            if (value !== undefined && value <= 0) continue;
             const res = addD20Condition(store, m, entityId, { id: c.id, ...(value !== undefined ? { value, replace: true } : {}), source: "0 hit points", force: true });
             if (res.applied) out.conditionsAdded.push(d20Condition(m.d20Combat, c.id)?.name ?? c.id);
           }
@@ -388,6 +389,7 @@ export function healD20(store: CampaignStore, module: D20Module, entityId: Id, a
       for (const id of rule.recover.remove ?? []) if (removeD20Condition(store, m, entityId, id)) out.removed.push(d20Condition(m.d20Combat, id)?.name ?? id);
       for (const c of rule.recover.conditions ?? []) {
         const value = d20RuleValue(c.value, { critical: false, conditions: values, fields: entity.fields, computed: computedFor(m, entity) });
+        if (value !== undefined && value <= 0) continue;
         const res = addD20Condition(store, m, entityId, { id: c.id, ...(value !== undefined ? { value, replace: true } : {}), source: "recovered from 0 hit points", force: true });
         if (res.applied) out.added.push(d20Condition(m.d20Combat, c.id)?.name ?? c.id);
       }

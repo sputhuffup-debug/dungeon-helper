@@ -121,7 +121,9 @@ function registerOps(): void {
     return false;
   });
   addOperation("lookup", (obj: unknown, path: unknown, fallback?: unknown) => {
-    const v = getPath(obj, String(path ?? ""));
+    // an empty key (an unset select) finds nothing, not the whole table
+    if (path === undefined || path === null || path === "") return fallback;
+    const v = getPath(obj, String(path));
     return v === undefined ? fallback : v;
   });
   addOperation("max", (...args: unknown[]) => {

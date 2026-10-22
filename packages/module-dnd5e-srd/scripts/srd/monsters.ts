@@ -35,6 +35,184 @@ const SKILL_FIXES: Record<string, Record<string, number>> = {
 export interface MonsterConversion {
   presets: EntityPreset[];
   notes: string[];
+  /** How many presets got structured attacks, and the actions left as text only. */
+  coverage: { monsters: number; withAttacks: number; attacks: number; saveEffects: number; textOnly: number; multiattack: number };
+}
+
+/** The SRD's conditions, as the combat conditions name them (lower case ids). */
+const CONDITION_WORDS = ["blinded", "charmed", "deafened", "frightened", "grappled", "incapacitated", "invisible", "paralyzed", "petrified", "poisoned", "prone", "restrained", "stunned", "unconscious"];
+
+const ABILITY_SAVES: Record<string, string> = { str: "strength-save", dex: "dexterity-save", con: "constitution-save", int: "intelligence-save", wis: "wisdom-save", cha: "charisma-save" };
+
+interface AttackItem {
+  name: string;
+  kind?: "melee" | "ranged" | "spell";
+  bonus?: number;
+  damage: Array<{ dice: string; type: string }>;
+  reach?: string;
+  range?: string;
+  traits?: string[];
+  save?: { dc: number; save: string; half?: boolean; damage?: Array<{ dice: string; type: string }>; conditions?: Array<{ id: string; duration?: Record<string, unknown> }> };
+  onHit?: Array<{ id: string }>;
+  effect?: string;
+}
+
+const compactDice = (d: string) => d.replace(/\s+/g, "");
+
+function damageList(list: unknown): { parts: Array<{ dice: string; type: string }>; alternatives: string[] } {
+  const parts: Array<{ dice: string; type: string }> = [];
+  const alternatives: string[] = [];
+  for (const d of objs(list)) {
+    if (d.choose !== undefined) {
+      // a choice (one-handed or two-handed): the first option, the others noted
+      const options = objs(obj(d.from).options);
+      const first = options[0];
+      if (first) parts.push({ dice: compactDice(str(first.damage_dice)), type: refIndex(first.damage_type) });
+      for (const o of options.slice(1)) alternatives.push(`${str(o.notes) || "or"}: ${compactDice(str(o.damage_dice))} ${refIndex(o.damage_type)}`);
+      continue;
+    }
+    const dice = compactDice(str(d.damage_dice));
+    if (dice) parts.push({ dice, type: refIndex(d.damage_type) });
+  }
+  return { parts, alternatives };
+}
+
+/** Conditions a save effect's text applies on a failure, with a duration when the text gives one. */
+function conditionsIn(full: string): Array<{ id: string; duration?: Record<string, unknown> }> {
+  const found: string[] = [];
+  // what happens at 0 hit points is not what a failed save does
+  const text = full
+    .split(/(?<=\.)\s+/)
+    .filter((sentence) => !/0 hit points/.test(sentence))
+    .join(" ");
+  const re = /\b(?:be|become|becomes|is|are|fall|falls|be knocked|is knocked)\s+(?:magically\s+)?(blinded|charmed|deafened|frightened|grappled|incapacitated|paralyzed|petrified|poisoned|prone|restrained|stunned|unconscious)\b/gi;
+  for (const m of text.matchAll(re)) {
+    const id = m[1]!.toLowerCase();
+    if (!found.includes(id)) found.push(id);
+  }
+  if (/knocked prone/i.test(text) && !found.includes("prone")) found.push("prone");
+  const duration: Record<string, unknown> = {};
+  const minutes = /\bfor (1|\d+) minutes?\b/i.exec(text);
+  if (minutes) duration.rounds = Number(minutes[1]) * 10;
+  else if (/until the end of (?:its|the target's) next turn/i.test(text)) duration.rounds = 1;
+  if (/repeat the saving throw at the end of each of its turns/i.test(text)) duration.save = true;
+  return found.filter((id) => CONDITION_WORDS.includes(id)).map((id) => (Object.keys(duration).length && id !== "prone" && id !== "grappled" ? { id, duration: { ...duration } } : { id }));
+}
+
+/** One action (or one option of an action) as a structured attack, when the source gives the numbers. */
+function attackOf(name: string, desc: string, a: Raw, magical: boolean): AttackItem | undefined {
+  const hasAttack = a.attack_bonus !== undefined && /Weapon Attack|Spell Attack/.test(desc);
+  let dc = obj(a.dc);
+  // An attack whose hit asks for a save the source leaves in the text only ("must succeed on a DC 10 Constitution saving throw").
+  const textDc = /DC (\d+) (Strength|Dexterity|Constitution|Intelligence|Wisdom|Charisma) saving throw/.exec(desc);
+  const textDamage = /taking \d+ \((\d+d\d+(?: [+-] \d+)?)\) (\w+) damage/.exec(desc);
+  const inferred = Object.keys(dc).length === 0 && a.attack_bonus !== undefined && !!textDc;
+  if (inferred) dc = { dc_type: { index: textDc![2]!.slice(0, 3).toLowerCase() }, dc_value: Number(textDc![1]), success_type: /half as much/.test(desc) ? "half" : "none" };
+  const hasDc = Object.keys(dc).length > 0;
+  if (!hasAttack && !hasDc) return undefined;
+  const { parts, alternatives } = damageList(a.damage);
+  const item: AttackItem = { name, damage: [] };
+  const extra: string[] = [...alternatives];
+  if (hasAttack) {
+    const kind = /^(Melee or Ranged|Melee|Ranged) (Weapon|Spell) Attack/.exec(desc.trim());
+    item.kind = kind?.[2] === "Spell" ? "spell" : kind?.[1] === "Ranged" ? "ranged" : "melee";
+    item.bonus = num(a.attack_bonus);
+    const reach = /reach (\d+ ft\.)/.exec(desc);
+    if (reach) item.reach = reach[1];
+    const range = /range (\d+(?:\/\d+)? ft\.)/.exec(desc);
+    if (range) item.range = range[1];
+    if (magical && /Weapon Attack/.test(desc)) item.traits = ["magical"];
+    item.damage = hasDc && !inferred ? parts.slice(0, 1) : parts;
+    const grab = /(?:the target|it) is (grappled|restrained)/i.exec(desc.split(/must (?:succeed|make)/)[0] ?? desc);
+    if (grab) item.onHit = [{ id: grab[1]!.toLowerCase() }];
+  }
+  if (hasDc) {
+    const save = ABILITY_SAVES[refIndex(dc.dc_type)];
+    if (!save) return item.kind ? item : undefined;
+    const saveDamage = inferred ? (textDamage ? [{ dice: compactDice(textDamage[1]!), type: textDamage[2]!.toLowerCase() }] : []) : hasAttack ? parts.slice(1) : parts;
+    // the source marks a few half-damage saves "none"; the text says half
+    const half = str(dc.success_type) === "half" || (saveDamage.length > 0 && /half as much damage on a successful one/.test(desc));
+    const conditions = conditionsIn(desc).map((c) => (c.duration?.save ? { ...c, duration: { ...c.duration, save: { save } } } : c));
+    const sentence = desc.split(/(?<=\.)\s+/).find((x) => /saving throw/.test(x))?.trim();
+    item.save = {
+      dc: num(dc.dc_value),
+      save,
+      ...(half ? { half: true } : {}),
+      ...(saveDamage.length ? { damage: saveDamage } : {}),
+      ...(conditions.length ? { conditions } : {}),
+      ...(sentence ? { text: sentence.length > 400 ? `${sentence.slice(0, 397)}...` : sentence } : {}),
+    };
+  }
+  if (extra.length) item.effect = extra.join("; ");
+  return item;
+}
+
+/** The paragraph of a multi-option action that describes one option ("Fire Breath. The dragon exhales..."). */
+function optionText(desc: string, name: string): string {
+  return desc.split(/\n+/).find((l) => l.trim().startsWith(`${name}.`)) ?? desc;
+}
+
+function attacksOf(m: Raw, notes: string[]): { attacks: AttackItem[]; textOnly: number; multiattack: number } {
+  const magical = objs(m.special_abilities).some((t) => /weapon attacks are magical/i.test(text(t.desc)));
+  const attacks: AttackItem[] = [];
+  let textOnly = 0;
+  let multiattack = 0;
+  for (const a of objs(m.actions)) {
+    const name = str(a.name);
+    const desc = text(a.desc);
+    if (a.multiattack_type !== undefined || /^Multiattack/.test(name)) {
+      multiattack++;
+      continue;
+    }
+    const options = [...objs(obj(obj(a.options).from).options), ...objs(a.attacks)];
+    if (options.length) {
+      for (const o of options) {
+        const item = attackOf(`${name}: ${str(o.name)}`, optionText(desc, str(o.name)), o, magical);
+        if (item) attacks.push(item);
+      }
+      continue;
+    }
+    const item = attackOf(name, desc, a, magical);
+    if (item) attacks.push(item);
+    else {
+      textOnly++;
+      notes.push(`${str(m.name)}: action "${name}" kept as text only (no attack bonus or save DC in the source)`);
+    }
+  }
+  return { attacks, textOnly, multiattack };
+}
+
+/**
+ * The stat block's resistances, immunities and vulnerabilities as structured
+ * entries: one per damage type, with the attack traits that get past it
+ * ("from nonmagical weapons that aren't silvered": magical, silvered).
+ */
+function damageModifiersOf(m: Raw, notes: string[]): Array<Record<string, unknown>> {
+  const out: Array<Record<string, unknown>> = [];
+  const kinds: Array<[string, string]> = [
+    ["damage_immunities", "immunity"],
+    ["damage_resistances", "resistance"],
+    ["damage_vulnerabilities", "vulnerability"],
+  ];
+  const types = ["acid", "bludgeoning", "cold", "fire", "force", "lightning", "necrotic", "piercing", "poison", "psychic", "radiant", "slashing", "thunder"];
+  for (const [key, kind] of kinds) {
+    for (const entry of strs(m[key])) {
+      const low = entry.toLowerCase();
+      const words = types.filter((t) => new RegExp(`\\b${t}\\b`).test(low));
+      const qualified = low !== words.join(", ") && words.length > 0;
+      const except: string[] = [];
+      if (/nonmagical/.test(low)) except.push("magical");
+      if (/silvered/.test(low)) except.push("silvered");
+      if (/adamantine/.test(low)) except.push("adamantine");
+      const understood = words.length > 0 && (!qualified || (/from nonmagical (weapons|attacks)/.test(low) && !/wielded|spells/.test(low)));
+      if (!understood) {
+        notes.push(`${str(m.name)}: ${kind} "${entry}" kept as text only`);
+        continue;
+      }
+      for (const t of words) out.push({ kind, type: t, ...(except.length ? { except } : {}), ...(qualified ? { note: entry } : {}) });
+    }
+  }
+  return out;
 }
 
 const mod = (score: number) => Math.floor((score - 10) / 2);
@@ -103,6 +281,7 @@ function acOf(list: Raw[]): { ac: number; note: string } {
 
 export function convertMonsters(raw: Raw[]): MonsterConversion {
   const notes: string[] = [];
+  const coverage = { monsters: raw.length, withAttacks: 0, attacks: 0, saveEffects: 0, textOnly: 0, multiattack: 0 };
   const skillAbility = new Map(SKILLS.map((s) => [s.id, s.ability]));
   const presets = raw.map((m): EntityPreset => {
     const idx = index(m.index);
@@ -181,6 +360,7 @@ export function convertMonsters(raw: Raw[]): MonsterConversion {
       damageResistances: strs(m.damage_resistances),
       damageImmunities: strs(m.damage_immunities),
       conditionImmunities: objs(m.condition_immunities).map((c) => refName(c).toLowerCase()),
+      damageModifiers: damageModifiersOf(m, notes),
       senses: sensesText(obj(m.senses)),
       languages: str(m.languages) || "—",
       cr,
@@ -190,6 +370,13 @@ export function convertMonsters(raw: Raw[]): MonsterConversion {
       reactions: entries(m.reactions),
       legendaryActions: entries(m.legendary_actions),
     };
+    const { attacks, textOnly, multiattack } = attacksOf(m, notes);
+    fields.attacks = attacks;
+    coverage.attacks += attacks.length;
+    coverage.saveEffects += attacks.filter((a) => a.save).length;
+    coverage.textOnly += textOnly;
+    coverage.multiattack += multiattack;
+    if (attacks.length) coverage.withAttacks++;
     const desc = text(m.desc);
     if (desc) fields.description = desc;
     const typeLine = `${str(m.size)} ${type}${subtype ? ` (${subtype})` : ""}, ${str(m.alignment)}`;
@@ -209,5 +396,8 @@ export function convertMonsters(raw: Raw[]): MonsterConversion {
     if (seen.has(p.id)) throw new Error(`duplicate monster ${p.id}`);
     seen.add(p.id);
   }
-  return { presets, notes: [...notes, ...(arr(raw).length !== 334 ? [`expected 334 monsters, got ${raw.length}`] : [])] };
+  notes.push(
+    `attacks: ${coverage.withAttacks} of ${coverage.monsters} monsters have structured attacks (${coverage.attacks} attacks, ${coverage.saveEffects} with a save effect); ${coverage.multiattack} Multiattack actions and ${coverage.textOnly} other actions stay text only`,
+  );
+  return { presets, coverage, notes: [...notes, ...(arr(raw).length !== 334 ? [`expected 334 monsters, got ${raw.length}`] : [])] };
 }

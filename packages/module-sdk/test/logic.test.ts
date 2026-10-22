@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { evaluateLogic, evaluateNumber, getPath, setPath } from "../src/logic";
 
+describe("lookup", () => {
+  it("finds a key, and gives the fallback for a missing or empty key", () => {
+    const table = { elf: 6, dwarf: 10 };
+    expect(evaluateLogic({ lookup: [table, "elf", 0] })).toBe(6);
+    expect(evaluateLogic({ lookup: [table, "orc", 0] })).toBe(0);
+    expect(evaluateLogic({ lookup: [table, "", 0] })).toBe(0);
+  });
+});
+
 describe("evaluateLogic", () => {
   it("evaluates standard json-logic", () => {
     expect(evaluateLogic({ "+": [{ var: "a" }, 2] }, { a: 3 })).toBe(5);

@@ -856,7 +856,7 @@ function checkD20Combat(module: GameModule, c: Collector): void {
   });
   for (const i of issues) (i.severity === "error" ? c.error.bind(c) : c.warn.bind(c))(i.where, i.message);
   // Presets of combatant types: their attacks and damage modifiers must read cleanly.
-  const known = new Set([...def.damageTypes.map((t) => t.id), ...Object.keys(def.damageGroups ?? {}), "all"]);
+  const kinds = new Set(["immunity", "resistance", "vulnerability", "weakness"]);
   for (const p of module.presets) {
     const cb = def.combatants.find((x) => x.entityTypes.includes(p.entityType));
     if (!cb) continue;
@@ -870,7 +870,7 @@ function checkD20Combat(module: GameModule, c: Collector): void {
     for (const a of d20Attacks(def, cb, { fields: p.fields, computed })) for (const m of d20AttackIssues(def, a)) c.error(`preset:${p.id}`, `attack "${a.name}": ${m}`);
     if (cb.damageModifiers) {
       const mods = p.fields[cb.damageModifiers];
-      if (Array.isArray(mods)) for (const m of mods as Array<Record<string, unknown>>) if (typeof m?.type === "string" && !known.has(m.type)) c.error(`preset:${p.id}`, `damage modifier type "${m.type}" is not a damage type or group`);
+      if (Array.isArray(mods)) for (const m of mods as Array<Record<string, unknown>>) if (typeof m?.type !== "string" || !m.type || !kinds.has(String(m?.kind))) c.error(`preset:${p.id}`, `damage modifier ${JSON.stringify(m)} needs a kind (immunity, resistance, vulnerability, weakness) and a type`);
     }
   }
 }
