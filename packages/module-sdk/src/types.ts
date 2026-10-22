@@ -1315,6 +1315,41 @@ export interface PlayGuideDef {
 }
 
 // ---------------------------------------------------------------------------
+// Campaign primer (session 0)
+// ---------------------------------------------------------------------------
+
+/**
+ * The standard sections of a campaign primer, in order. A module's primer
+ * gives prompts and starter text for any of them (by id) and may add its own
+ * sections, which come after these.
+ */
+export const PRIMER_SECTION_IDS = ["welcome", "setting", "lore", "places", "tone", "house-rules", "characters", "opening"] as const;
+export type PrimerSectionId = (typeof PRIMER_SECTION_IDS)[number];
+
+/** One section of the campaign primer: the player-facing introduction the GM prepares for session 0. */
+export interface PrimerSectionDef {
+  /** A standard id (PRIMER_SECTION_IDS) or the module's own (lower case letters, digits and hyphens). */
+  id: string;
+  title: string;
+  /** What the GM writes here; shown to the GM only, never shared. */
+  prompt: string;
+  /** Starter text (Markdown) the GM edits before it goes to the players. */
+  starter?: string;
+  /**
+   * The starter text is the module author's own words (no source text). A
+   * module without an open licence must set it on every section with starter
+   * text; openly licensed text cites its source with `cite` or `page`.
+   */
+  original?: boolean;
+  page?: PageRef;
+  cite?: CiteRef;
+}
+
+export interface PrimerDef {
+  sections: PrimerSectionDef[];
+}
+
+// ---------------------------------------------------------------------------
 // Combat at the table (damage taken, creature turns, special attacks)
 // ---------------------------------------------------------------------------
 
@@ -1870,6 +1905,8 @@ export interface GameModule {
   mapGenerators?: MapGeneratorDef[];
   /** GM hints at the table for each rollable stat and skill. */
   playGuides?: PlayGuideDef[];
+  /** Prompts and starter text for the campaign primer (the players' session 0 introduction). */
+  primer?: PrimerDef;
   /** Damage taken, creature turns and special attacks at the table. */
   combat?: CombatDef;
   /** Money: currency, ledger categories and one-click payouts. */

@@ -76,6 +76,7 @@ export function docIdsOf(maps: CampaignMaps): Id[] {
   for (const s of Object.values(maps.sessions)) add(s.logDoc);
   for (const h of Object.values(maps.handouts)) add(h.bodyDoc);
   for (const n of Object.values(maps.notes)) add(n.bodyDoc);
+  for (const s of maps.meta.primer?.sections ?? []) add(s.doc);
   return [...ids];
 }
 

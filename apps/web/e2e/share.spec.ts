@@ -114,3 +114,46 @@ test("the session page shares too", async ({ page }) => {
   await page.getByTestId("share-players").click();
   await expect(page.getByTestId("share-dialog").getByTestId("share-preview-item").first()).toBeVisible();
 });
+
+test("campaign primer: open it from home, share it as a PDF with its section titles and no GM secret", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.addInitScript(() => {
+    delete (Navigator.prototype as { share?: unknown }).share;
+    delete (Navigator.prototype as { canShare?: unknown }).canShare;
+  });
+  await page.goto("/");
+  await page.getByTestId("load-demo-cinematic").click();
+  await expect(page).toHaveURL(/\/c\/[0-9A-Z]{26}\/home$/, { timeout: 30_000 });
+  await page.getByTestId("open-primer").click();
+  const primer = page.getByTestId("primer-page");
+  await expect(primer).toBeVisible();
+  await expect(primer.locator('[data-section="tone"]')).toContainText("X-card");
+  await expect(primer.locator('[data-section="places"]')).toContainText("Docking Ring");
+  await expect(primer.locator(".app-primer__section")).toHaveCount(8);
+
+  await primer.getByTestId("primer-share").click();
+  const dialog = page.getByTestId("share-dialog");
+  await expect(dialog.getByTestId("share-include-primer")).toBeChecked();
+  await expect(dialog.getByTestId("share-include-handouts")).not.toBeChecked();
+  // one phone card per section
+  await expect(dialog.getByTestId("share-preview-item")).toHaveCount(8);
+  await expect(dialog.getByTestId("share-message")).toHaveValue("Cold Harbor Relay, Session 0 update: the campaign primer.");
+  await dialog.getByTestId("share-format-pdf").check();
+  await expect(dialog.getByTestId("share-send")).toHaveText("Download");
+  const download = page.waitForEvent("download");
+  await dialog.getByTestId("share-send").click();
+  const pdf = await bytesOf(await download);
+  const text = pdfText(pdf);
+  for (const title of ["Welcome", "The frontier", "What everyone knows", "Tone and content", "House rules", "Making your character", "Where we begin"]) expect(text).toContain(title);
+  expect(text).not.toContain("synthetic");
+  expect(text).not.toContain("Lindqvist");
+
+  // session 0 links to the primer
+  await page.getByRole("navigation", { name: "Campaign" }).getByRole("link", { name: "Sessions", exact: true }).click();
+  await page.getByRole("link", { name: "Pitch and safety" }).click();
+  await expect(page.getByTestId("session-primer")).toBeVisible();
+  await page.getByTestId("session-primer-link").click();
+  await expect(page.getByTestId("primer-page")).toBeVisible();
+  expect(errors).toEqual([]);
+});

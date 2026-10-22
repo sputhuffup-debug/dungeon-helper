@@ -58,6 +58,7 @@ import {
 import { loadModule } from "@campaign-forge/module-sdk";
 import { CINEMATIC, CINEMATIC_BUILDER_ID, DEFAULT_YEAR, MAP_GENERATOR_ID, alienModule, careerItems, type CareerItem } from "@campaign-forge/module-alien";
 import { startInfection } from "./infection";
+import { writeDemoPrimer } from "./primer";
 
 export const CINEMATIC_DEMO_SEED = "cold-harbor";
 export const CINEMATIC_DEMO_NAME = "Cold Harbor Relay";
@@ -828,6 +829,34 @@ export function buildCinematicDemo(opts: BuildCinematicDemoOptions = {}): Cinema
       "- **Session checklist**: session 0 is done and fully ticked; session 1 is partly prepared.",
     ].join("\n"),
   );
+
+  // -- the campaign primer sent out before session 0 (original text) ------------
+  writeDemoPrimer(store, registry, alienModule, {
+    welcome: [
+      "**Cold Harbor** is a one-shot for four players: a relief team sent to a company relay that has gone silent above an ice moon.",
+      "Expect one long, tense evening: creeping dread, hard choices under pressure, and a crew that may not all make it home.",
+    ].join("\n\n"),
+    setting: null,
+    lore: null,
+    places: null,
+    tone: [
+      "This is a game of dread and hard choices. The characters are working people, not heroes, and they are right to be afraid.",
+      "- **Lines** (never in the game): harm to children.",
+      "- **Veils** (happen off screen): anything you ask for, at any time.",
+      "- **In**: body horror, crew deaths, betrayal by someone you trust.",
+      "- **Safety tools**: the X-card is on the table; anyone can pause or rewind a scene, no reason needed.",
+    ].join("\n\n"),
+    "house-rules": [
+      "- Cinematic play: Story Points each act, no experience.",
+      "- A pushed roll always costs stress; say it out loud when you push.",
+      "- Phones face down while the lights are low.",
+    ].join("\n"),
+    characters: [
+      "Four pregenerated characters, chosen at session 0: Rosa Ilunga, Ana Kovac, Teo Marsh and Jun Akiyama. Each gets a secret agenda card at the start of every act. Keep yours to yourself.",
+      "Read your character's background before the session and pick one thing they would never tell the others.",
+    ].join("\n\n"),
+    opening: null,
+  });
 
   const maps = store.toJSON();
   const resolve = nameResolver(store);

@@ -21,6 +21,7 @@ import {
   updateSession,
   wrapUpOf,
 } from "../../state/tableActions";
+import { isSessionZero } from "../../lib/sessionZero";
 import { useSessionTrackerState } from "../table/hooks";
 import { ChecklistSummary, SessionChecklist } from "./SessionChecklist";
 
@@ -103,6 +104,7 @@ export function SessionPage() {
         </div>
       </header>
 
+      {isSessionZero(session) && <PrimerCard />}
       {session.status === "done" ? <DoneSession session={session} /> : <PlanSession session={session} />}
       {sharing && <ShareDialog open onClose={() => setSharing(false)} sessionId={sessionId} sceneId={shareScene} />}
     </div>
@@ -119,6 +121,45 @@ function useShareScene(session: Session | undefined): Id | undefined {
 // ---------------------------------------------------------------------------
 // planning
 // ---------------------------------------------------------------------------
+
+/** Session 0: the campaign primer, and the module's session zero questions when it has them. */
+function PrimerCard() {
+  const ctx = useCampaign();
+  const meta = useMeta();
+  const campaignId = ctx.campaignId;
+  const questions = ctx.module.module.templates
+    .filter((t) => t.kind === "checklist" && t.appliesTo === "session-zero")
+    .flatMap((t) => {
+      const items = (t.scaffold as { items?: unknown } | undefined)?.items;
+      return Array.isArray(items) ? items.map((i) => (i && typeof i === "object" && typeof (i as { text?: unknown }).text === "string" ? (i as { text: string }).text : "")).filter(Boolean) : [];
+    });
+  const filled = meta.primer?.sections.length ?? 0;
+  return (
+    <Card
+      title="Campaign primer"
+      subtitle="What the players should know before you start: the pitch, the setting, tone and safety, house rules, making characters."
+      actions={
+        <Link to="/c/$campaignId/primer" params={{ campaignId }} className="cf-btn cf-btn--primary cf-btn--sm" data-testid="session-primer-link">
+          {filled ? "Open the primer" : "Start the primer"}
+        </Link>
+      }
+      data-testid="session-primer"
+    >
+      {questions.length > 0 ? (
+        <>
+          <p className="cf-muted">This game's session zero questions, to settle at the table and note in the primer:</p>
+          <ul className="app-bullets">
+            {questions.map((q, i) => (
+              <li key={i}>{q}</li>
+            ))}
+          </ul>
+        </>
+      ) : (
+        <p className="cf-muted">Share it with the players before the session, then go through it together.</p>
+      )}
+    </Card>
+  );
+}
 
 function PlanSession({ session }: { session: Session }) {
   const ctx = useCampaign();

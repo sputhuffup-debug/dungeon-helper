@@ -24,6 +24,7 @@ import {
   type GameModule,
   type PageRef,
   type PlayGuideDef,
+  type PrimerDef,
   type PlayModeId,
   type Procedure,
   type ProgressionPoolDef,
@@ -621,6 +622,26 @@ function checkPlayGuide(g: PlayGuideDef, declaredModes: Set<PlayModeId>, c: Coll
   }
 }
 
+const PRIMER_ID = /^[a-z][a-z0-9-]*$/;
+
+function checkPrimer(primer: PrimerDef, c: Collector): void {
+  if (typeof primer !== "object" || primer === null || !Array.isArray(primer.sections)) {
+    c.error("primer", "primer.sections must be a list");
+    return;
+  }
+  checkUnique(primer.sections, (s) => s.id, (s) => `primer:${s.id}`, "primer section", c);
+  for (const s of primer.sections) {
+    const where = `primer:${s.id}`;
+    if (typeof s.id !== "string" || !PRIMER_ID.test(s.id)) c.error(where, "section id must be lower case letters, digits and hyphens");
+    if (typeof s.title !== "string" || !s.title.trim()) c.error(where, "section has no title");
+    if (typeof s.prompt !== "string" || !s.prompt.trim()) c.error(where, "section has no prompt for the GM");
+    if (s.starter !== undefined && typeof s.starter !== "string") c.error(where, "starter must be text");
+    if (typeof s.starter === "string" && s.starter.trim() && s.original !== true && s.page === undefined && s.cite === undefined) c.warn(where, "starter text is neither marked original nor cited");
+    if (s.page !== undefined && !validPage(s.page)) c.error(where, "invalid page reference");
+    checkCite(s, where, c);
+  }
+}
+
 function majorOf(version: string): number | undefined {
   const m = /(\d+)\.(\d+)\.(\d+)/.exec(version) ?? /(\d+)/.exec(version);
   return m && m[1] !== undefined ? Number(m[1]) : undefined;
@@ -889,6 +910,9 @@ export function checkModule(module: GameModule, options: CheckModuleOptions = {}
     checkUnique(module.playGuides ?? [], (g) => g.id, (g) => `playGuide:${g.id}`, "play guide", c);
     for (const g of module.playGuides ?? []) checkPlayGuide(g, declaredModes, c);
   }
+
+  // Campaign primer.
+  if (module.primer !== undefined) checkPrimer(module.primer, c);
 
   // Procedures.
   checkUnique(module.procedures, (p) => p.id, (p) => `procedure:${p.id}`, "procedure", c);

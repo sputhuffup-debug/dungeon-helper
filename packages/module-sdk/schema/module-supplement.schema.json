@@ -1833,6 +1833,60 @@
       ],
       "additionalProperties": false
     },
+    "primerSection": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "description": "A standard section id (welcome, setting, lore, places, tone, house-rules, characters, opening) or the pack's own."
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "prompt": {
+          "type": "string",
+          "minLength": 1,
+          "description": "What the GM writes in this section; shown to the GM only."
+        },
+        "starter": {
+          "type": "string",
+          "description": "Starter text (Markdown) the GM edits before sharing it."
+        },
+        "original": {
+          "type": "boolean"
+        },
+        "page": {
+          "$ref": "#/definitions/page"
+        },
+        "cite": {
+          "$ref": "#/definitions/cite"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "prompt"
+      ],
+      "additionalProperties": false
+    },
+    "primer": {
+      "type": "object",
+      "properties": {
+        "sections": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/primerSection"
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "sections"
+      ],
+      "additionalProperties": false
+    },
     "playGuide": {
       "type": "object",
       "properties": {

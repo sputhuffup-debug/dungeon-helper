@@ -23,6 +23,7 @@ A data pack is a JSON object. The SDK validates it (`validatePack`), joins its p
   "playGuides": [],         // GM hints per rollable stat or skill
   "calendar": {},           // optional; default twelve 30-day months
   "styleNotes": [],         // optional
+  "primer": { "sections": [] }, // optional; campaign primer prompts and starter text (see Campaign primer)
   "parts": ["tables.json"]  // optional; see Split packs
 }
 ```
@@ -102,6 +103,21 @@ Each collection uses the contract's own shape from `packages/module-sdk/src/type
 | `trackers` | `TrackerDef` | Kinds the app draws: `clock`, `countdown`, `initiative`, `counter`, `stress`, `story-points`, `supply`, `stealth`; anything else gets a generic editor. See [Trackers](#trackers). |
 | `playGuides` | `PlayGuideDef` | Roll ids are a skill id or `attr:<attribute id>`. |
 | `calendar` | `CalendarDef` | Its id is prefixed too. |
+
+## Campaign primer
+
+`primer` gives the app's campaign primer (the players' session 0 introduction: pitch, setting, lore, places, tone, house rules, making characters, where we begin) its prompts and starter text. Each section has an `id`, a `title`, a `prompt` for the GM (never shared) and optionally `starter` text in Markdown that the GM edits before sharing. The standard ids are `welcome`, `setting`, `lore`, `places`, `tone`, `house-rules`, `characters` and `opening`; a section with one of them replaces the app's default prompt for it, any other id is added after them.
+
+```json
+"primer": {
+  "sections": [
+    { "id": "setting", "title": "The setting", "prompt": "Two or three paragraphs on the world.", "starter": "A river valley of toll bridges and old barrows...", "original": true },
+    { "id": "house-rules", "title": "House rules", "prompt": "Optional rules you use at this table." }
+  ]
+}
+```
+
+Starter text is the pack author's own words (`original: true`), or openly licensed text cited with `cite` or `page`. A pack for a game without an open licence must not quote its book: write starter text in your own words or leave it out. The conformance check warns about starter text that is neither original nor cited.
 
 ## Trackers
 

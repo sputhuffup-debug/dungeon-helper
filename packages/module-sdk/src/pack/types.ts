@@ -21,6 +21,7 @@ import type {
   PageRef,
   PlayGuideDef,
   PlayModeId,
+  PrimerDef,
   ReferenceItem,
   ReferenceList,
   RelationshipTypeDef,
@@ -162,6 +163,8 @@ export interface ModulePack extends PackCollections {
   /** In-world calendar (default: twelve 30-day months). */
   calendar?: CalendarDef;
   styleNotes?: string[];
+  /** Prompts and starter text for the campaign primer (session 0). */
+  primer?: PrimerDef;
   /**
    * Names of the part files that complete this pack (e.g. ["tables.json"]),
    * relative to this file. Every part must be present when the pack loads.

@@ -30,8 +30,6 @@ export interface ShareLayoutInput {
   passable?: (mapId: string) => MapGeneratorDef["passable"] | undefined;
   /** Map ids shown as "updated" since the last share. */
   updatedMaps?: ReadonlySet<string>;
-  /** Extra sections after the session's (the campaign primer). */
-  extra?: ShareSection[];
   /**
    * "images": a handout's own image is sent as it is, next to its card, so the
    * card holds only its text (and an image-only handout has no card). "pdf":
@@ -140,7 +138,7 @@ const slugOf = (s: string) =>
     .replace(/^-+|-+$/g, "")
     .slice(0, 40) || "item";
 
-/** The share as sections, in reading order: briefing, maps, handouts, party, then any extra sections. */
+/** The share as sections, in reading order: briefing, maps, handouts, party. */
 export function shareSections(input: ShareLayoutInput): ShareSection[] {
   const { share } = input;
   const out: ShareSection[] = [];
@@ -184,7 +182,6 @@ export function shareSections(input: ShareLayoutInput): ShareSection[] {
     const blocks: Block[] = share.party.map((m) => ({ kind: "member", member: m, portrait: m.portrait ? input.images?.get(m.portrait.asset) : undefined }));
     out.push({ id: "party", kind: "party", eyebrow: "The party", title: "Who's who", blocks, file: "party" });
   }
-  out.push(...(input.extra ?? []));
   return out;
 }
 
@@ -613,7 +610,7 @@ export function packetPages(sections: ShareSection[], share: Pick<PlayerShare, "
   // page one opens with what is inside
   const contents: Block[] = [{ kind: "para", text: `For the players of ${share.campaign}: ${share.session.label}.`, style: "lead" }];
   for (const s of sections) contents.push({ kind: "para", text: `${s.eyebrow}: ${s.title}`, style: "bullet" });
-  rows.push(heading("Player packet", share.campaign, true));
+  rows.push(heading(sections.length > 0 && sections.every((x) => x.kind === "primer") ? "Campaign primer" : "Player packet", share.campaign, true));
   contents.forEach((b, i) => rows.push(...blockRows(b, th, inner, room, `pk-c${i}-`, opts.passable)));
   // figures may take a page less its heading
   const figureRoom = room - (th.eyebrow * th.line + th.title * 1.15 + th.gap * 1.2) - th.gap * 2;

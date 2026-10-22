@@ -41,6 +41,15 @@ export interface CampaignMeta extends BaseRecord {
   settings: Record<string, unknown>;
   /** Members: GM plus players. v1 is GM-only but the shape is kept. */
   members: Array<{ id: Id; name: string; role: "gm" | "player"; characterId?: Id }>;
+  /** The campaign primer: the players' session 0 introduction (see primer.ts). */
+  primer?: CampaignPrimer;
+}
+
+/** The campaign primer's sections, in order; each section's text is a rich-text body. */
+export interface CampaignPrimer {
+  sections: Array<{ id: string; title: string; doc: Id }>;
+  /** When "Draft from campaign" last wrote it. */
+  drafted?: string;
 }
 
 // ---------------------------------------------------------------------------

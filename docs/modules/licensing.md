@@ -31,7 +31,7 @@ Two rules from the project's `CLAUDE.md` apply to every module:
 | `cite: "SRD 5.1, Combat: Cover"` | A source cited by section (a web SRD, a numbered rule): one line, at most 200 characters. Set `manifest.citationStyle` to `section`. |
 | `original: true` | Content the module author wrote (advice, summaries, invented tables): nothing to cite. |
 
-`page` and `cite` are accepted on tables and their rows, rule cards, reference lists and items, presets, procedures and their steps, templates, trackers, play modes and play guide entries; `original` on tables, rule cards, reference lists, presets, procedures, templates and play guides. Rule cards and tables must carry one of the three: the conformance suite (rule cards) and table-lint (tables) report the ones that do not. The app shows "p. 42", the section citation, or "Original" next to each.
+`page` and `cite` are accepted on tables and their rows, rule cards, reference lists and items, presets, procedures and their steps, templates, trackers, play modes and play guide entries; `original` on tables, rule cards, reference lists, presets, procedures, templates, play guides and campaign primer sections. Primer starter text goes to players: for a game without an open licence it must be your own words (`original: true`); the conformance suite warns about starter text that is neither original nor cited. Rule cards and tables must carry one of the three: the conformance suite (rule cards) and table-lint (tables) report the ones that do not. The app shows "p. 42", the section citation, or "Original" next to each.
 
 ## Keeping data honest
 

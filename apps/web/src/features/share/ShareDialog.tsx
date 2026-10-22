@@ -28,6 +28,7 @@ import { PAPER_LABELS, usePaper, type Paper } from "../../lib/paper";
 import { useCampaign, useMapVersion } from "../../state/hooks";
 import type { CampaignContextValue } from "../../state/CampaignProvider";
 import { logTable } from "../../state/tableActions";
+import { primerShareSections } from "./primerShare";
 import { buildShareFiles, canShareFiles, cardPreviewUrl, loadShareImages, sendFiles, type LoadedImages } from "./shareExport";
 import { packetPages, phoneCards, shareSections, shareTime, type ShareSection } from "./shareLayout";
 import "./share.css";
@@ -38,8 +39,12 @@ export interface ShareDialogProps {
   sessionId: Id;
   /** The scene the table is on: its briefing and map. */
   sceneId?: Id | undefined;
-  /** Sections added after the session's (the campaign primer), and whether they are on by default. */
-  extra?: { label: string; sections: ShareSection[]; defaultOn: boolean } | undefined;
+  /**
+   * Offer the campaign primer: `defaultOn` ticks it, `only` starts with the
+   * session's own items unticked (the primer page and session 0). Without it
+   * the primer is still offered, unticked, when it has text.
+   */
+  primer?: { defaultOn?: boolean; only?: boolean } | undefined;
 }
 
 type ShareCtx = Pick<CampaignContextValue, "store" | "registry" | "whenDocSynced" | "module">;
@@ -84,15 +89,15 @@ const INCLUDE: Array<{ key: keyof Omit<ShareOptions, "onlyNew">; label: string }
   { key: "party", label: "Party card" },
 ];
 
-export function ShareDialog({ open, onClose, sessionId, sceneId, extra }: ShareDialogProps) {
+export function ShareDialog({ open, onClose, sessionId, sceneId, primer }: ShareDialogProps) {
   return (
     <Dialog open={open} onClose={onClose} title="Share with players" className="app-share">
-      {open && <ShareBody onClose={onClose} sessionId={sessionId} sceneId={sceneId} extra={extra} />}
+      {open && <ShareBody onClose={onClose} sessionId={sessionId} sceneId={sceneId} primer={primer} />}
     </Dialog>
   );
 }
 
-function ShareBody({ onClose, sessionId, sceneId, extra }: Omit<ShareDialogProps, "open">) {
+function ShareBody({ onClose, sessionId, sceneId, primer }: Omit<ShareDialogProps, "open">) {
   const ctx = useCampaign();
   const version = useMapVersion("*");
   const docsVersion = useMapVersion("docs");
@@ -100,8 +105,9 @@ function ShareBody({ onClose, sessionId, sceneId, extra }: Omit<ShareDialogProps
   const [format, setFormat] = useState<"images" | "pdf">("images");
   const sessions = useMemo(() => ctx.store.list("sessions"), [ctx.store, version]); // eslint-disable-line react-hooks/exhaustive-deps
   const baseline = useMemo(() => shareBaseline(sessions), [sessions]);
-  const [opts, setOpts] = useState<ShareOptions>(() => defaultShareOptions(baseline));
-  const [withExtra, setWithExtra] = useState(extra?.defaultOn ?? false);
+  const [opts, setOpts] = useState<ShareOptions>(() => (primer?.only ? { ...defaultShareOptions(baseline), briefing: false, maps: false, handouts: false, party: false } : defaultShareOptions(baseline)));
+  const [withPrimer, setWithPrimer] = useState(primer?.defaultOn ?? false);
+  const [primerSections, setPrimerSections] = useState<ShareSection[] | undefined>();
   const [at] = useState(() => new Date().toISOString());
   const [snapshot, setSnapshot] = useState<PlayerShare | undefined>();
   const [images, setImages] = useState<LoadedImages>({ ready: new Map(), originals: new Map() });
@@ -113,6 +119,10 @@ function ShareBody({ onClose, sessionId, sceneId, extra }: Omit<ShareDialogProps
   // the share as it stands (recomputed when the campaign changes)
   useEffect(() => {
     let alive = true;
+    primerShareSections(ctx).then(
+      (p) => alive && setPrimerSections(p),
+      () => alive && setPrimerSections([]),
+    );
     sessionShare(ctx, sessionId, sceneId, at).then(
       async (s) => {
         if (!alive) return;
@@ -128,7 +138,7 @@ function ShareBody({ onClose, sessionId, sceneId, extra }: Omit<ShareDialogProps
   }, [ctx, sessionId, sceneId, at, version, docsVersion]);
 
   const plan = useMemo(() => (snapshot ? planShare(snapshot, baseline, opts) : undefined), [snapshot, baseline, opts]);
-  const extraOn = !!extra && withExtra && extra.sections.length > 0;
+  const primerOn = withPrimer && !!primerSections?.length;
   const passable = useMemo(() => {
     const byId = new Map(ctx.store.list("maps").map((m) => [m.id, generatorFor(m, ctx.module.module)?.passable] as const));
     return (id: string) => byId.get(id);
@@ -136,10 +146,12 @@ function ShareBody({ onClose, sessionId, sceneId, extra }: Omit<ShareDialogProps
   const sections = useMemo(() => {
     if (!plan) return [];
     const updatedMaps = new Set(Object.entries(plan.mapStatus).filter(([, s]) => s === "updated").map(([id]) => id));
-    return shareSections({ share: plan.share, images: images.ready, format, updatedMaps, extra: extraOn ? extra!.sections : [] });
-  }, [plan, images, format, extraOn, extra]);
+    // the primer comes first: it introduces the campaign, and "only what's new" never filters it
+    const primerPart = primerOn ? primerSections! : [];
+    return [...primerPart, ...shareSections({ share: plan.share, images: images.ready, format, updatedMaps })];
+  }, [plan, images, format, primerOn, primerSections]);
   const empty = sections.length === 0;
-  const message = plan ? shareMessage(plan, { primer: extraOn }) : "";
+  const message = plan ? shareMessage(plan, { primer: primerOn }) : "";
 
   // build the files ahead of the click: the share sheet needs the click's user activation, which a slow build would lose
   useEffect(() => {
@@ -164,7 +176,7 @@ function ShareBody({ onClose, sessionId, sceneId, extra }: Omit<ShareDialogProps
     try {
       const result = await sendFiles(files, { title, text: message, zipName: `${slugName(snapshot)}.zip` });
       if (result === "cancelled") return;
-      recordShare(ctx.store, sessionId, shareRecordOf(plan, { format, primer: extraOn }));
+      recordShare(ctx.store, sessionId, shareRecordOf(plan, { format, primer: primerOn }));
       logTable(ctx, sessionId, `Shared with players: ${message}`);
       pushToast(result === "shared" ? "Shared. Next time only what is new goes out." : `Saved ${files.length === 1 ? files[0]!.name : `${files.length} files as a zip`}. Send it to the group chat.`, { tone: "success" });
       onClose();
@@ -225,10 +237,11 @@ function ShareBody({ onClose, sessionId, sceneId, extra }: Omit<ShareDialogProps
         </fieldset>
         <fieldset className="app-fieldset">
           <legend className="app-label">What to include</legend>
-          {extra && (
+          {(primer || !!primerSections?.length) && (
             <label className="app-toggle">
-              <input type="checkbox" className="cf-checkbox" checked={withExtra} disabled={extra.sections.length === 0} onChange={() => setWithExtra((v) => !v)} data-testid="share-include-extra" />
-              {extra.label}
+              <input type="checkbox" className="cf-checkbox" checked={primerOn} disabled={!primerSections?.length} onChange={() => setWithPrimer((v) => !v)} data-testid="share-include-primer" />
+              Campaign primer
+              {primerSections && primerSections.length === 0 ? <span className="cf-muted"> (empty)</span> : primerSections ? <span className="cf-muted"> ({primerSections.length} sections)</span> : null}
             </label>
           )}
           {INCLUDE.map(({ key, label }) => (

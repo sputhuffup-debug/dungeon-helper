@@ -25,6 +25,7 @@ import {
   timerElapsedMs,
   type OperationRoll,
 } from "../../state/tableActions";
+import { isSessionZero } from "../../lib/sessionZero";
 import { routeStoryPointEffects, type SessionAct } from "../../state/progressionActions";
 import { SessionChecklist, useLogNotesAutoTick } from "../sessions/SessionChecklist";
 import { CreatureTurnCard, TakeHitDialog, useInitiativeCurrent, type CombatHandlers } from "./Combat";
@@ -85,7 +86,7 @@ function GmTable({ sessionId }: { sessionId: Id }) {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [roll, setRoll] = useState<OperationRoll | undefined>();
   const [wrapping, setWrapping] = useState(false);
-  const [sharing, setSharing] = useState(false);
+  const [sharing, setSharing] = useState<"session" | "primer" | undefined>();
   const [tab, setTab] = useState("trackers");
   const hasGuide = usePlayGuides().length > 0;
   const resolveName = useCallback((id: string) => ctx.store.get("entities", id)?.name ?? id, [ctx.store]);
@@ -212,7 +213,12 @@ function GmTable({ sessionId }: { sessionId: Id }) {
         <Timer sessionId={sessionId} running={!!table.timer?.running} timer={table.timer} />
         <span className="app-grow" />
         <Button onClick={openPlayerScreen}>Player screen</Button>
-        <Button onClick={() => setSharing(true)} data-testid="share-players" title="Send the player view to the group chat: images or a PDF">
+        {session && isSessionZero(session) && (
+          <Button onClick={() => setSharing("primer")} data-testid="share-primer" title="Send the campaign primer to the group chat">
+            Share primer
+          </Button>
+        )}
+        <Button onClick={() => setSharing("session")} data-testid="share-players" title="Send the player view to the group chat: images or a PDF">
           Share with players
         </Button>
         {session.status === "planned" && (
@@ -291,7 +297,7 @@ function GmTable({ sessionId }: { sessionId: Id }) {
       {specials.length > 0 && (
         <SpecialAttackDialog key={specialPc ?? "none"} open={!!specialPc} onClose={() => setSpecialPc(undefined)} sessionId={sessionId} pcs={pcs} others={others} {...(specialPc ? { initialPc: specialPc } : {})} />
       )}
-      {sharing && <ShareDialog open onClose={() => setSharing(false)} sessionId={sessionId} sceneId={table.sceneId} />}
+      {sharing && <ShareDialog open onClose={() => setSharing(undefined)} sessionId={sessionId} sceneId={table.sceneId} {...(sharing === "primer" ? { primer: { defaultOn: true, only: true } } : {})} />}
       <RollResultDialog roll={roll} onClose={() => setRoll(undefined)} resolveName={resolveName} />
       <PromptDialog prompt={roll ? undefined : prompts[0]} onAnswer={onAnswer} onCancel={() => setPrompts((p) => p.slice(1))} resolveEntityName={(id) => ctx.store.get("entities", id)?.name} />
     </div>

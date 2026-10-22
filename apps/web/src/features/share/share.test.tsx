@@ -7,6 +7,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { createCampaign, createEntity } from "../../state/actions";
 import { CampaignContext, openCampaign, type CampaignContextValue } from "../../state/CampaignProvider";
 import { planNextSession } from "../../state/tableActions";
+import { applyPrimerDraft, draftConflicts, primerDraft, startPrimer } from "../../state/primerActions";
+import { primerShareSections } from "./primerShare";
 import { ShareDialog, sessionShare } from "./ShareDialog";
 import { buildShareFiles, canShareFiles, sendFiles } from "./shareExport";
 import { markdownBlocks, packetPages, phoneCards, shareSections, cardSvg } from "./shareLayout";
@@ -205,5 +207,52 @@ describe("ShareDialog", () => {
     expect(screen.getByTestId<HTMLButtonElement>("share-send").disabled).toBe(true);
     fireEvent.click(screen.getByTestId("share-only-new"));
     await waitFor(() => expect(screen.queryByTestId("share-empty")).toBeNull());
+  });
+});
+
+describe("campaign primer", () => {
+  it("drafts from player-visible data only, and its PDF holds the section titles but no GM secret", async () => {
+    const s = await seed();
+    const { ctx } = s;
+    createEntity(ctx, { type: "example.place", name: "Ferry landing", fields: { terrain: "hills" } });
+    ctx.store.update("entities", ctx.store.list("entities").find((e) => e.name === "Ferry landing")!.id, { visibility: { level: "players" }, summary: "Where the barges tie up." });
+    createEntity(ctx, { type: "example.place", name: "SECRET-GM-PLACE", fields: { terrain: "swamp" } });
+    const primer = await startPrimer(ctx);
+    expect(primer.sections.map((x) => x.id)).toEqual(["welcome", "setting", "lore", "places", "tone", "house-rules", "characters", "opening", "oaths"]);
+    const draft = await primerDraft(ctx);
+    expect(JSON.stringify(draft)).not.toMatch(/SECRET/);
+    // the starter text in "setting" is not drafted over; "places" is new
+    expect(await draftConflicts(ctx, draft)).toEqual([]);
+    expect(await applyPrimerDraft(ctx, draft)).toEqual(expect.arrayContaining(["welcome", "places", "characters", "opening"]));
+    const sections = await primerShareSections(ctx);
+    expect(sections.map((x) => x.title)).toEqual(expect.arrayContaining(["Welcome", "The marches", "Places and factions you've heard of", "Tone and content", "Making your character", "Where we begin"]));
+    const share = await sessionShare(ctx, s.sessionId, s.sceneId, "2026-10-22T20:00:00.000Z");
+    const text = pdfText(svgPagesToPdf(packetPages(sections, { ...share }, "letter").pages));
+    for (const title of ["Welcome", "The marches", "Where we begin"]) expect(text).toContain(title);
+    expect(text).toContain("Ferry landing");
+    expect(text).toContain("Find the lost bell.");
+    for (const x of [...SECRETS, "SECRET-GM-PLACE"]) expect(text, x).not.toContain(x);
+    // one phone card per section
+    expect(phoneCards(sections, share).map((c) => c.section)).toEqual(sections.map((x) => x.id));
+  });
+
+  it("is offered in the share dialog and recorded with the share", async () => {
+    const s = await seed();
+    await startPrimer(s.ctx);
+    vi.spyOn(URL, "createObjectURL").mockImplementation(() => "blob:x");
+    vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => undefined);
+    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
+    render(
+      <CampaignContext.Provider value={s.ctx}>
+        <ShareDialog open onClose={() => undefined} sessionId={s.sessionId} primer={{ defaultOn: true, only: true }} />
+      </CampaignContext.Provider>,
+    );
+    await waitFor(() => expect(screen.getByTestId<HTMLInputElement>("share-include-primer").checked).toBe(true));
+    expect(screen.getByTestId<HTMLInputElement>("share-include-handouts").checked).toBe(false);
+    fireEvent.click(screen.getByTestId("share-format-pdf"));
+    await waitFor(() => expect(screen.getByTestId<HTMLTextAreaElement>("share-message").value).toBe("Share test, Session 1 update: the campaign primer."));
+    await waitFor(() => expect(screen.getByTestId("share-send").textContent).toBe("Download"));
+    await act(async () => fireEvent.click(screen.getByTestId("share-send")));
+    await waitFor(() => expect(s.ctx.store.get("sessions", s.sessionId)!.shares?.[0]).toMatchObject({ primer: true, handouts: [], format: "pdf" }));
   });
 });

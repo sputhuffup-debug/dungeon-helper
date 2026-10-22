@@ -734,6 +734,12 @@ export const exampleModule: GameModule = {
   },
   dice: exampleDice,
   entityTypes: [heroType, placeType, beastType, wagonType],
+  primer: {
+    sections: [
+      { id: "setting", title: "The marches", prompt: "The borderland the heroes travel.", starter: "A cold march of ruined keeps and toll roads.", original: true },
+      { id: "oaths", title: "Oaths", prompt: "What each hero has sworn.", original: true },
+    ],
+  },
   relationshipTypes: [
     { id: "example.guards", forward: "guards", reverse: "guarded by", fromKinds: ["character"], toKinds: ["location"] },
     { id: "example.risen_from", forward: "risen from", reverse: "raised", fromKinds: ["character"], toKinds: ["character"] },
