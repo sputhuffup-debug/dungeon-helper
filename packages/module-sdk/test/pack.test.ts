@@ -9,6 +9,7 @@ import {
   packToModule,
   parsePackJson,
   PACK_LIMITS,
+  procedureContext,
   runProcedure,
   validatePack,
   type ModulePack,
@@ -129,7 +130,7 @@ describe("example data pack", () => {
     expect(lucky.rolls.filter((r) => r.step === "loot").every((r) => r.table === "example-pack.loot.rare")).toBe(true);
     const chain = proc.chains![0]!;
     // the chain reads the inputs of the run
-    const ctx = { inputs: { depth: 2 }, results: {}, rolls: [], tables: { get: () => undefined, all: () => [] }, get: () => undefined, data: () => ({ depth: 2 }) };
+    const ctx = procedureContext({ depth: 2 }, {}, [], { get: () => undefined, all: () => [] });
     expect(chain.inputs!(ctx)).toEqual({ depth: 3 });
   });
 });
@@ -294,5 +295,37 @@ describe("determinism check", () => {
     expect(checkDeterminism(leaky, { seeds: 2 }).map((i) => i.message)).toEqual(['two runs with seed "determinism-0" gave different results (rule 3: same seed, same output)']);
     const leakyDice = { ...m, procedures: [], dice: { ...m.dice, roll: m.dice.roll.bind(m.dice), buildPool: (input: Record<string, unknown>) => ({ ...m.dice.buildPool(input), meta: { at: ++calls } }) } };
     expect(checkDeterminism(leakyDice).some((i) => i.where === "dice" && /not stable/.test(i.message))).toBe(true);
+  });
+});
+
+describe("campaign inputs in a pack procedure", () => {
+  it("accepts x-campaign and x-adventure hints and reads the snapshot from JSONLogic", () => {
+    const pack = clone(mainFile()) as unknown as ModulePack;
+    pack.procedures = [
+      ...(pack.procedures ?? []),
+      {
+        id: "example-pack.proc.whos-here",
+        name: "Who is here",
+        original: true,
+        inputs: {
+          type: "object",
+          properties: {
+            campaign: { type: "object", "x-campaign": { kinds: ["character"] } },
+            adventure: { type: "object", "x-adventure": {} },
+          },
+        },
+        steps: [{ id: "people", value: { count: [{ var: ["inputs.campaign.entities", []] }] }, display: { cat: [{ var: "result" }, " people in ", { var: ["inputs.adventure.title", "no adventure"] }] } }],
+        produce: { entities: [], relationships: [] },
+      } as unknown as NonNullable<ModulePack["procedures"]>[number],
+    ];
+    const res = loadPack(pack, { parts: parts(), seeds: 5 });
+    expect(res.issues.filter((i) => i.severity === "error").map(formatPackIssue)).toEqual([]);
+    const proc = res.module!.procedures.find((p) => p.id === "example-pack.proc.whos-here")!;
+    const g = runProcedure(proc, res.module!, {
+      seed: "s",
+      inputs: { campaign: { entities: [{ id: "a", name: "Ada", type: "x", tags: [] }, { id: "b", name: "Bo", type: "x", tags: [] }], relationships: [] }, adventure: { id: "adv", title: "Bell Night" } },
+    });
+    expect(g.results.people).toBe(2);
+    expect(g.display?.people).toBe("2 people in Bell Night");
   });
 });

@@ -125,7 +125,7 @@ The crew's ship is the entity id in `meta.settings.ship` (session zero question 
 Host conditions it sets: `xx121:facehugged`, `xx121:implanted` (set by the `inseminationCheck` dice operation), `xx121:embryo`, `xx121:killed-by-chestburster`, `xx121:killed-by-removal`, `xx121:died-in-surgery`, `xx121:cocooned`, `xx121:ovomorphed`.
 
 ## Procedure ids
-`alien.world.create`, `alien.system.create`, `alien.job.create`, `alien.lifepath`, `alien.encounter.check`, `alien.shore-leave`, `alien.between-jobs`, `alien.session-end` (the last is implemented as a hook, not a procedure).
+`alien.world.create`, `alien.system.create`, `alien.job.create`, `alien.lifepath`, `alien.encounter.check`, `alien.shore-leave`, `alien.between-jobs`, `alien.agendas` (cinematic agenda drafts, `src/procedures/agendas.ts`), `alien.session-end` (the last is implemented as a hook, not a procedure).
 
 ## Table id convention
 `alien.<family>.<name>` e.g. `alien.world.atmosphere`, `alien.character.panic`, `alien.jobs.truckers.employer`, `alien.encounters.colony.general`, `alien.lifepath.origin`.

@@ -6,7 +6,7 @@
 import type { GeneratorRun } from "@campaign-forge/core";
 import {
   dependentSteps,
-  getPath,
+  procedureContext,
   procedureStepGraph,
   runProcedure,
   type GeneratedGraph,
@@ -27,6 +27,17 @@ export interface GeneratorRequest {
   stepDice?: Record<string, number[]>;
   pinned?: Record<string, unknown>;
   includeOptional?: string[];
+  /** Re-rolled parts of steps ("<step>/<key>" -> seed) and pinned part values. */
+  partSeeds?: Record<string, string>;
+  pinnedParts?: Record<string, unknown>;
+}
+
+/** The part options of a request, when it has any. */
+function partOptions(req: GeneratorRequest): { partSeeds?: Record<string, string>; pinnedParts?: Record<string, unknown> } {
+  const out: { partSeeds?: Record<string, string>; pinnedParts?: Record<string, unknown> } = {};
+  if (req.partSeeds && Object.keys(req.partSeeds).length > 0) out.partSeeds = req.partSeeds;
+  if (req.pinnedParts && Object.keys(req.pinnedParts).length > 0) out.pinnedParts = req.pinnedParts;
+  return out;
 }
 
 export class UnknownProcedureError extends Error {
@@ -47,6 +58,7 @@ export function runGenerator(module: Pick<LoadedModule, "procedure" | "module">,
     ...(req.stepDice && Object.keys(req.stepDice).length > 0 ? { stepDice: req.stepDice } : {}),
     pinned: req.pinned ?? {},
     includeOptional: req.includeOptional ?? [],
+    ...partOptions(req),
   });
 }
 
@@ -69,6 +81,7 @@ export function stepRun(module: Pick<LoadedModule, "procedure" | "module">, req:
       stepDice,
       pinned,
       includeOptional: req.includeOptional ?? [],
+      ...partOptions(req),
       stepRng: (id) => (id === stepId ? rng : undefined),
     });
 }
@@ -230,26 +243,14 @@ export function requestFromRun(procedure: Procedure, run: GeneratorRun): Generat
     ...(run.stepDice ? { stepDice: { ...run.stepDice } } : {}),
     pinned: { ...(run.pinned ?? {}) },
     includeOptional: includedOptional(procedure, run.results),
+    ...(run.partSeeds ? { partSeeds: { ...run.partSeeds } } : {}),
+    ...(run.pinnedParts ? { pinnedParts: { ...run.pinnedParts } } : {}),
   };
 }
 
 /** A procedure context rebuilt from a stored run, for `chain.inputs(ctx)`. */
 export function contextFromRun(module: Pick<LoadedModule, "tables">, run: Pick<GeneratorRun, "inputs" | "results" | "rolls">): ProcedureContext {
-  const inputs = { ...run.inputs };
-  const results = { ...run.results };
-  return {
-    inputs,
-    results,
-    rolls: [...run.rolls],
-    tables: module.tables,
-    get<T = unknown>(stepId: string): T | undefined {
-      if (Object.prototype.hasOwnProperty.call(results, stepId)) return results[stepId] as T;
-      return getPath(results, stepId) as T | undefined;
-    },
-    data() {
-      return { ...inputs, ...results };
-    },
-  };
+  return procedureContext({ ...run.inputs }, { ...run.results }, [...run.rolls], module.tables);
 }
 
 export interface ChainOption {

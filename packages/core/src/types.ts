@@ -327,6 +327,9 @@ export interface GeneratorRun extends BaseRecord {
    */
   stepDice?: Record<string, number[]>;
   pinned?: Record<string, unknown>;
+  /** Re-rolled parts of steps ("<step id>/<key>" -> seed) and pinned part values; see the sdk's `ProcedureContext.part`. */
+  partSeeds?: Record<string, string>;
+  pinnedParts?: Record<string, unknown>;
   rolls: RollRecord[];
   results: Record<string, unknown>;
   /** Entity ids created on accept. */

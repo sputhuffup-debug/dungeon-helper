@@ -5,16 +5,17 @@
  * whole run step by step), a preview of what will be created, accept into
  * the campaign, chained procedures and recent runs.
  */
-import type { GeneratorRun, Id } from "@campaign-forge/core";
-import { isDieRequest, probeDice, type GeneratedGraph, type Procedure, type RollRecord } from "@campaign-forge/module-sdk";
+import { loadAdventureSnapshot, plainText, type GeneratorRun, type Id } from "@campaign-forge/core";
+import { isDieRequest, probeDice, type AgendaDraftCharacter, type GeneratedGraph, type Procedure, type RollRecord } from "@campaign-forge/module-sdk";
 import { Link, useNavigate, useParams, useSearch } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Badge, Button, Card, EmptyState, PageRef, pushToast } from "../../components/ui";
 import { errorMessage, relativeTime } from "../../lib/format";
 import { acceptGenerated } from "../../state/prepActions";
 import { useCampaign, useList, useMeta } from "../../state/hooks";
 import { InputForm } from "./InputForm";
-import { initialInputs, inputProperties, pickedInputs } from "./prefill";
+import { AgendaAccept, AgendaDraftCards, agendaDraftsOf, AgendaReportCard, type AgendaEdits } from "./AgendaDrafts";
+import { initialInputs, inputProperties, isAdventureInput, pickedInputs } from "./prefill";
 import { PreviewPanel } from "./PreviewPanel";
 import { ResultsPanel } from "./ResultsPanel";
 import { changedSteps, contextFromRun, newSeed, requestFromRun, runGenerator, stepRun, stepViews, withoutDependentDice, type GeneratorRequest } from "./runner";
@@ -63,7 +64,9 @@ interface Initial {
 function useInitial(procedure: Procedure, search: ProcedureSearch): Initial {
   const ctx = useCampaign();
   return useMemo(() => {
-    const inputs0 = { ...initialInputs(procedure, ctx.store, ctx.module), ...pickedInputs(procedure, ctx.store, search.pick) };
+    const docText = (id: Id) => (ctx.registry.has(id) ? plainText(ctx.registry.open(id)) : "");
+    const picked = pickedInputs(procedure, ctx.store, search.pick, docText);
+    const inputs0 = initialInputs(procedure, ctx.store, ctx.module, { docText, picked });
     const base: GeneratorRequest = { procedureId: procedure.id, seed: newSeed(), inputs: inputs0, stepSeeds: {}, pinned: {}, includeOptional: [] };
     if (search.run) {
       const run = ctx.store.get("generatorRuns", search.run);
@@ -121,15 +124,43 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
   const [within, setWithin] = useState<Id | undefined>(initial.within);
   const [compareTo, setCompareTo] = useState<GeneratedGraph | undefined>();
   const [accepted, setAccepted] = useState<GeneratorRun | undefined>();
+  /** One part of a step re-rolled or pinned on its own (agenda slots). */
+  const [partSeeds, setPartSeeds] = useState<Record<string, string>>(initial.request.partSeeds ?? {});
+  const [pinnedParts, setPinnedParts] = useState<Record<string, unknown>>(initial.request.pinnedParts ?? {});
+  /** The GM's own text for agenda drafts. */
+  const [edits, setEdits] = useState<AgendaEdits>({});
 
   const outcome = useMemo((): { graph?: GeneratedGraph; error?: string } => {
     try {
-      return { graph: runGenerator(ctx.module, { procedureId: procedure.id, seed, inputs, stepSeeds, stepDice, pinned, includeOptional }) };
+      return { graph: runGenerator(ctx.module, { procedureId: procedure.id, seed, inputs, stepSeeds, stepDice, pinned, includeOptional, partSeeds, pinnedParts }) };
     } catch (e) {
       return { error: errorMessage(e) };
     }
-  }, [ctx.module, procedure.id, seed, inputs, stepSeeds, stepDice, pinned, includeOptional]);
+  }, [ctx.module, procedure.id, seed, inputs, stepSeeds, stepDice, pinned, includeOptional, partSeeds, pinnedParts]);
   const graph = outcome.graph;
+  const drafts = useMemo(() => agendaDraftsOf(graph), [graph]);
+
+  // An adventure input reads the adventure's rich text (its hidden situation) once the docs have loaded.
+  const adventureKeys = useMemo(() => Object.entries(inputProperties(procedure)).filter(([, s]) => isAdventureInput(s)).map(([k]) => k), [procedure]);
+  const adventureIds = adventureKeys.map((k) => (inputs[k] as { id?: string } | undefined)?.id ?? "").join("|");
+  useEffect(() => {
+    if (adventureKeys.length === 0 || initial.restoredFrom) return;
+    let alive = true;
+    void (async () => {
+      for (const key of adventureKeys) {
+        const id = (inputs[key] as { id?: unknown } | undefined)?.id;
+        if (typeof id !== "string") continue;
+        const snap = await loadAdventureSnapshot(ctx.store, ctx.registry, id, ctx.whenDocSynced).catch(() => undefined);
+        if (!alive || !snap) continue;
+        setInputs((cur) => ((cur[key] as { id?: unknown } | undefined)?.id === id && JSON.stringify(cur[key]) !== JSON.stringify(snap) ? { ...cur, [key]: snap } : cur));
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+    // re-read when another adventure is picked
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [adventureIds]);
 
   const steps = useMemo(() => stepViews(procedure, graph, { stepSeeds, pinned }), [procedure, graph, stepSeeds, pinned]);
   const changed = useMemo(() => changedSteps(compareTo, graph), [compareTo, graph]);
@@ -211,13 +242,56 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
     setAccepted(undefined);
     setStepSeeds({});
     setStepDice({});
+    // pinned slots stay; re-rolled ones roll with the new seed
+    setPartSeeds({});
     setSeed(newSeed());
   };
+  const partControls = {
+    partSeeds,
+    pinnedParts,
+    onReroll: (key: string) => {
+      setCompareTo(graph);
+      setPartSeeds((p) => ({ ...p, [key]: newSeed() }));
+    },
+    onPin: (key: string) => {
+      if (!graph?.parts || !Object.prototype.hasOwnProperty.call(graph.parts, key)) return;
+      const value = graph.parts[key];
+      setPinnedParts((p) => ({ ...p, [key]: value }));
+    },
+    onUnpin: (key: string) =>
+      setPinnedParts((p) => {
+        const n = { ...p };
+        delete n[key];
+        return n;
+      }),
+  };
+  /** Lock (or free) a character's arc: the input the drafts name for it. */
+  const lockArc = (c: AgendaDraftCharacter) => {
+    const lock = c.lock;
+    if (!lock) return;
+    setCompareTo(graph);
+    setInputs((cur) => {
+      const next: Record<string, unknown> = JSON.parse(JSON.stringify(cur));
+      let node: unknown = next;
+      for (const seg of lock.path.slice(0, -1)) node = (node as Record<string | number, unknown> | undefined)?.[seg];
+      const last = lock.path[lock.path.length - 1];
+      if (node && typeof node === "object" && last !== undefined) (node as Record<string | number, unknown>)[last] = lock.locked ? "random" : lock.value;
+      return next;
+    });
+  };
+  const editDraft = (key: string, text: string | undefined) =>
+    setEdits((e) => {
+      const next = { ...e };
+      if (text === undefined) delete next[key];
+      else next[key] = text;
+      return next;
+    });
+  const adventureId = adventureKeys.map((k) => (inputs[k] as { id?: string } | undefined)?.id).find((x): x is string => typeof x === "string");
 
   const accept = () => {
     if (!graph) return;
     try {
-      const res = acceptGenerated(ctx, { graph, stepSeeds, pinned, names, within });
+      const res = acceptGenerated(ctx, { graph, stepSeeds, pinned, names, within, partSeeds, pinnedParts });
       setEnterQueue([]);
       const root = res.entities[0];
       if (root) {
@@ -261,11 +335,18 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
         </p>
       )}
 
-      <div className="prep-workbench__grid">
+      <div className={`prep-workbench__grid${drafts ? " has-agendas" : ""}`}>
         <div className="app-stack prep-workbench__main">
           <Card title="Inputs">
             <div className="app-stack">
-              <InputForm properties={inputProperties(procedure)} value={inputs} onChange={edit(setInputs)} store={ctx.store} module={ctx.module} />
+              <InputForm
+                properties={inputProperties(procedure)}
+                value={inputs}
+                onChange={edit(setInputs)}
+                store={ctx.store}
+                module={ctx.module}
+                docText={(id) => (ctx.registry.has(id) ? plainText(ctx.registry.open(id)) : "")}
+              />
               <div className="app-row prep-seed">
                 <label className="app-label">
                   <span>Seed</span>
@@ -280,6 +361,8 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
                   </span>
                 )}
                 {Object.keys(pinned).length > 0 && <Badge tone="warning">{Object.keys(pinned).length} pinned</Badge>}
+                {Object.keys(partSeeds).length > 0 && <Badge tone="accent">{Object.keys(partSeeds).length} slots re-rolled</Badge>}
+                {Object.keys(pinnedParts).length > 0 && <Badge tone="warning">{Object.keys(pinnedParts).length} slots pinned</Badge>}
                 {Object.keys(stepDice).length > 0 && (
                   <Badge tone="accent" data-testid="entered-steps">
                     {Object.keys(stepDice).length} entered
@@ -312,6 +395,14 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
               )}
             </div>
           ) : (
+            drafts && (
+              <>
+                {drafts.report && <AgendaReportCard report={drafts.report} />}
+                <AgendaDraftCards drafts={drafts} controls={partControls} edits={edits} onEdit={editDraft} onLock={lockArc} />
+              </>
+            )
+          )}
+          {!outcome.error && (
             <section aria-label="Steps" className="app-stack">
               <h2 className="app-subtitle">Steps</h2>
               <StepList
@@ -338,12 +429,20 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
         </div>
 
         <aside className="app-stack prep-workbench__side">
-          {graph && <PreviewPanel graph={graph} names={names} onRename={(tempId, name) => setNames((n) => ({ ...n, [tempId]: name }))} />}
-          <div className="app-row">
-            <Button variant="primary" size="lg" disabled={!graph || !!accepted} onClick={accept} data-testid="accept">
-              {accepted ? "Accepted" : "Accept into campaign"}
-            </Button>
-          </div>
+          {graph && drafts ? (
+            <>
+              <AgendaAccept drafts={drafts} edits={edits} graph={graph} adventureId={adventureId} run={{ stepSeeds, pinned, partSeeds, pinnedParts }} />
+            </>
+          ) : (
+            <>
+              {graph && <PreviewPanel graph={graph} names={names} onRename={(tempId, name) => setNames((n) => ({ ...n, [tempId]: name }))} />}
+              <div className="app-row">
+                <Button variant="primary" size="lg" disabled={!graph || !!accepted} onClick={accept} data-testid="accept">
+                  {accepted ? "Accepted" : "Accept into campaign"}
+                </Button>
+              </div>
+            </>
+          )}
           {accepted && (
             <>
               <ResultsPanel results={accepted.results} runId={accepted.id} />

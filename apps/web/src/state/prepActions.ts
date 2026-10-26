@@ -358,6 +358,9 @@ export interface AcceptGeneratedInput {
   names?: Record<string, string>;
   /** Parent for the graph's root entities (chained generation). */
   within?: Id;
+  /** Re-rolled parts and pinned part values, recorded on the run. */
+  partSeeds?: Record<string, string>;
+  pinnedParts?: Record<string, unknown>;
 }
 
 /**
@@ -382,6 +385,8 @@ export function acceptGenerated(ctx: StoreCtx & { module: Pick<LoadedModule, "ma
     if (input.stepSeeds && Object.keys(input.stepSeeds).length) opts.stepSeeds = input.stepSeeds;
     if (input.pinned && Object.keys(input.pinned).length) opts.pinned = input.pinned;
     if (input.within && ctx.store.has("entities", input.within)) opts.within = input.within;
+    if (input.partSeeds && Object.keys(input.partSeeds).length) opts.partSeeds = input.partSeeds;
+    if (input.pinnedParts && Object.keys(input.pinnedParts).length) opts.pinnedParts = input.pinnedParts;
     const result = acceptGeneratedGraph(ctx.store, graph, opts);
     for (const tempId of renamed) {
       const id = result.idMap[tempId];

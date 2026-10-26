@@ -470,8 +470,30 @@ export function AgendasPanel({ adventure, role }: { adventure: Adventure; role: 
     if (missing.length) ensureCastAgendas(ctx, adventure.id, missing.map((m) => m.id));
   }, [ctx, adventure.id, members, acts, handoutsVersion]);
 
+  // a module procedure that drafts agendas from the adventure, if the module has one
+  const drafter = ctx.module.module.procedures.find((p) => p.agendaDrafts === true);
+
   return (
-    <Card title={`${role.label}: agendas`} subtitle="One agenda per act for each character, revealed only to that player." className="guided-panel" data-panel="agendas">
+    <Card
+      title={`${role.label}: agendas`}
+      subtitle="One agenda per act for each character, revealed only to that player."
+      className="guided-panel"
+      data-panel="agendas"
+      actions={
+        drafter && members.length > 0 ? (
+          <Link
+            to="/c/$campaignId/generate/$procedureId"
+            params={{ campaignId: ctx.campaignId, procedureId: drafter.id }}
+            search={{ pick: `adventure:${adventure.id}` }}
+            className="cf-btn cf-btn--sm"
+            data-testid="guided-agenda-drafts"
+            title={drafter.description}
+          >
+            Generate agenda drafts
+          </Link>
+        ) : undefined
+      }
+    >
       {members.length === 0 && <p className="cf-muted">Add {role.label.toLowerCase()} first; each gets one agenda per act.</p>}
       <div className="guided-agendas">
         {members.map((m) => (

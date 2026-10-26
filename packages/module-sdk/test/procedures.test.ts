@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dependentSteps, procedureStepGraph, runProcedure } from "../src/procedures";
+import { dependentSteps, procedureContext, procedureStepGraph, runProcedure } from "../src/procedures";
 import type { GameModule, Procedure, RollTable } from "../src/types";
 
 const sizeTable: RollTable = {
@@ -176,5 +176,62 @@ describe("step graph helpers", () => {
     expect(dependentSteps(proc, "size")).toEqual(["climate", "features", "count", "label"]);
     expect(dependentSteps(proc, "climate")).toEqual(["features", "count"]);
     expect(dependentSteps(proc, "label")).toEqual([]);
+  });
+});
+
+describe("parts: one slot of a step, re-rolled or pinned on its own", () => {
+  const names = ["Ash", "Bly", "Cole", "Dane", "Eve", "Finn", "Gail", "Hob"];
+  const slots: Procedure = {
+    id: "p.slots",
+    name: "Slots",
+    steps: [
+      { id: "base", compute: (_ctx, rng) => rng.int(1, 100) },
+      {
+        id: "cards",
+        reads: ["base"],
+        compute: (ctx) =>
+          ["a", "b", "c"].map((k) => ({
+            who: ctx.part(`${k}/who`, (rng) => names[rng.int(0, names.length - 1)]!),
+            fixed: ctx.part(`${k}/fixed`, (rng) => rng.int(1, 6), { initial: 7 }),
+          })),
+      },
+    ],
+    produce: () => ({ entities: [], relationships: [] }),
+  };
+  const who = (g: ReturnType<typeof runProcedure>) => (g.results.cards as Array<{ who: string }>).map((c) => c.who);
+
+  it("records every part under step/key and is deterministic", () => {
+    const g = runProcedure(slots, module, { seed: "s1" });
+    expect(Object.keys(g.parts ?? {}).sort()).toEqual(["cards/a/fixed", "cards/a/who", "cards/b/fixed", "cards/b/who", "cards/c/fixed", "cards/c/who"]);
+    expect(g.parts?.["cards/a/fixed"]).toBe(7);
+    expect(runProcedure(slots, module, { seed: "s1" })).toEqual(g);
+  });
+
+  it("re-rolls one part without moving the others", () => {
+    const base = runProcedure(slots, module, { seed: "s1" });
+    let changed = 0;
+    for (let i = 0; i < 20; i++) {
+      const g = runProcedure(slots, module, { seed: "s1", partSeeds: { "cards/b/who": `r${i}` } });
+      expect(who(g)[0]).toBe(who(base)[0]);
+      expect(who(g)[2]).toBe(who(base)[2]);
+      expect(g.results.base).toBe(base.results.base);
+      if (who(g)[1] !== who(base)[1]) changed++;
+    }
+    expect(changed).toBeGreaterThan(0);
+    // a re-rolled part with an initial value rolls instead
+    const fixed = runProcedure(slots, module, { seed: "s1", partSeeds: { "cards/c/fixed": "x" } });
+    expect((fixed.results.cards as Array<{ fixed: number }>)[2]!.fixed).toBeLessThanOrEqual(6);
+  });
+
+  it("keeps a pinned part through a new seed", () => {
+    const g = runProcedure(slots, module, { seed: "other", pinnedParts: { "cards/a/who": "Zed" } });
+    expect(who(g)[0]).toBe("Zed");
+    expect(g.parts?.["cards/a/who"]).toBe("Zed");
+  });
+
+  it("a rebuilt context returns the initial value or rolls a fixed stream", () => {
+    const ctx = procedureContext({}, {}, [], { get: () => undefined, all: () => [] });
+    expect(ctx.part("k", () => 1, { initial: 5 })).toBe(5);
+    expect(ctx.part("k", (rng) => rng.int(1, 1000))).toBe(ctx.part("k", (rng) => rng.int(1, 1000)));
   });
 });

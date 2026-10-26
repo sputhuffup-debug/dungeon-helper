@@ -1,10 +1,22 @@
 /**
  * Initial procedure inputs: JSON Schema defaults, then values the campaign
  * already knows (the frame from campaign settings, the number of player
- * characters, a characters array built from the PCs).
+ * characters, a characters array built from the PCs, a snapshot of the
+ * campaign's entities, the adventure and its PCs).
  */
-import { clone, type CampaignStore, type Entity } from "@campaign-forge/core";
-import { ENTITY_INPUT_HINT, type EntityInputHint, type EntitySnapshot, type JsonSchema, type LoadedModule, type Procedure } from "@campaign-forge/module-sdk";
+import { adventureSnapshot, campaignSnapshot, clone, type CampaignStore, type Entity, type Id } from "@campaign-forge/core";
+import {
+  ADVENTURE_INPUT_HINT,
+  CAMPAIGN_INPUT_HINT,
+  ENTITY_INPUT_HINT,
+  type AdventureSnapshot,
+  type CampaignInputHint,
+  type EntityInputHint,
+  type EntitySnapshot,
+  type JsonSchema,
+  type LoadedModule,
+  type Procedure,
+} from "@campaign-forge/module-sdk";
 
 export type Schema = JsonSchema & {
   type?: string | string[];
@@ -98,13 +110,47 @@ export function snapshotFor(store: CampaignStore, hint: EntityInputHint, id: unk
   return e && hint.types.includes(e.type) ? entitySnapshot(e) : undefined;
 }
 
-/** "job:ID,ship:ID" (the procedure page's `pick` search) as input overrides. */
-export function pickedInputs(procedure: Procedure | undefined, store: CampaignStore, pick: string | undefined): Record<string, unknown> {
+/** The campaign-snapshot hint on an input schema (`"x-campaign"`), if any. */
+export function campaignHint(s: Schema | undefined): CampaignInputHint | undefined {
+  const h = (s as Record<string, unknown> | undefined)?.[CAMPAIGN_INPUT_HINT];
+  return h && typeof h === "object" ? (h as CampaignInputHint) : undefined;
+}
+
+/** Whether an input schema is an adventure picker (`"x-adventure"`). */
+export function isAdventureInput(s: Schema | undefined): boolean {
+  const h = (s as Record<string, unknown> | undefined)?.[ADVENTURE_INPUT_HINT];
+  return !!h && typeof h === "object";
+}
+
+/** Plain text of a rich-text doc, "" when it has not loaded. */
+export type DocText = (id: Id) => string;
+
+/** The adventure as an input value (rich text read through `docText`). */
+export function adventureInput(store: CampaignStore, adventureId: unknown, docText: DocText = () => ""): AdventureSnapshot | undefined {
+  return typeof adventureId === "string" ? adventureSnapshot(store, adventureId, docText) : undefined;
+}
+
+/** The adventure's player characters (its cast members that are PCs), in cast order. */
+export function adventurePcs(store: CampaignStore, module: Pick<LoadedModule, "entityType">, adventureId: unknown): Entity[] {
+  if (typeof adventureId !== "string") return [];
+  const pcs = new Set(playerCharacters(store, module).map((e) => e.id));
+  const cast = store.get("adventures", adventureId)?.cast ?? {};
+  const ids = [...new Set(Object.values(cast).flat())].filter((id) => pcs.has(id));
+  return ids.map((id) => store.get("entities", id)).filter((e): e is Entity => !!e);
+}
+
+/** "job:ID,ship:ID,adventure:ID" (the procedure page's `pick` search) as input overrides. */
+export function pickedInputs(procedure: Procedure | undefined, store: CampaignStore, pick: string | undefined, docText?: DocText): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   if (!pick) return out;
   const props = inputProperties(procedure);
   for (const part of pick.split(",")) {
     const [key, id] = part.split(":");
+    if (key && isAdventureInput(props[key])) {
+      const snap = adventureInput(store, id, docText);
+      if (snap) out[key] = snap;
+      continue;
+    }
     const hint = key ? entityHint(props[key]) : undefined;
     const snap = hint ? snapshotFor(store, hint, id) : undefined;
     if (key && snap) out[key] = snap;
@@ -112,13 +158,52 @@ export function pickedInputs(procedure: Procedure | undefined, store: CampaignSt
   return out;
 }
 
+/** Per-character input arrays rebuilt for these PCs (keeping what was set for those already listed). */
+export function characterArraysFor(properties: Record<string, Schema>, inputs: Record<string, unknown>, pcs: Entity[]): Record<string, unknown> {
+  const out = { ...inputs };
+  for (const [key, s] of Object.entries(properties)) {
+    if (!isCharacterArray(s)) continue;
+    const before = Array.isArray(out[key]) ? (out[key] as Array<Record<string, unknown>>) : [];
+    out[key] = pcs.map((pc) => before.find((it) => it.id === pc.id) ?? characterItem(s.items, pc));
+  }
+  return out;
+}
+
+export interface InitialInputOptions {
+  /** Plain text of rich-text docs already loaded (for adventure inputs). */
+  docText?: DocText;
+  /** Inputs fixed by the page (e.g. a picked adventure); per-character arrays follow a picked adventure. */
+  picked?: Record<string, unknown>;
+}
+
 /** Schema defaults plus what the campaign knows. */
-export function initialInputs(procedure: Procedure | undefined, store: CampaignStore, module: Pick<LoadedModule, "entityType">): Record<string, unknown> {
+export function initialInputs(procedure: Procedure | undefined, store: CampaignStore, module: Pick<LoadedModule, "entityType">, opts: InitialInputOptions = {}): Record<string, unknown> {
   const inputs = schemaDefaultInputs(procedure);
   const props = inputProperties(procedure);
   const settings = store.meta().settings ?? {};
-  const pcs = playerCharacters(store, module);
+  const picked = opts.picked ?? {};
+  // an adventure input: the picked one, or the campaign's only adventure; its PCs fill per-character inputs
+  let adventureId: string | undefined;
   for (const [key, s] of Object.entries(props)) {
+    if (!isAdventureInput(s)) continue;
+    const pickedId = (picked[key] as { id?: unknown } | undefined)?.id;
+    const adventures = store.list("adventures");
+    adventureId = typeof pickedId === "string" ? pickedId : adventures.length === 1 ? adventures[0]!.id : undefined;
+  }
+  const castPcs = adventurePcs(store, module, adventureId);
+  const pcs = castPcs.length > 0 ? castPcs : playerCharacters(store, module);
+  for (const [key, s] of Object.entries(props)) {
+    if (isAdventureInput(s)) {
+      const snap = adventureInput(store, adventureId, opts.docText);
+      if (snap) inputs[key] = snap;
+      else delete inputs[key];
+      continue;
+    }
+    const ch = campaignHint(s);
+    if (ch) {
+      inputs[key] = campaignSnapshot(store, ch, (type) => module.entityType(type)?.kind);
+      continue;
+    }
     const hint = entityHint(s);
     if (hint) {
       const snap = hint.setting ? snapshotFor(store, hint, settings[hint.setting]) : undefined;
@@ -132,5 +217,5 @@ export function initialInputs(procedure: Procedure | undefined, store: CampaignS
     if (key === "pcCount" && pcs.length > 0) inputs[key] = pcs.length;
     if (isCharacterArray(s) && pcs.length > 0) inputs[key] = pcs.map((pc) => characterItem(s.items, pc));
   }
-  return inputs;
+  return { ...inputs, ...picked };
 }

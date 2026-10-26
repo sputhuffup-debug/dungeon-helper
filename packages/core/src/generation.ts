@@ -10,6 +10,9 @@ export interface AcceptOptions {
   moduleId: string;
   stepSeeds?: Record<string, string>;
   pinned?: Record<string, unknown>;
+  /** Re-rolled parts ("<step id>/<key>" -> seed) and pinned part values of the run. */
+  partSeeds?: Record<string, string>;
+  pinnedParts?: Record<string, unknown>;
   /** Parent for the graph's root entities (those without a `within` of their own). */
   within?: Id;
   /** Tags added to every created entity. */
@@ -43,6 +46,8 @@ export function acceptGeneratedGraph(store: CampaignStore, graph: GeneratedGraph
     // Steps rolled with physical dice keep the faces typed, so the run can be replayed.
     if (graph.entered && Object.keys(graph.entered).length > 0) runInput.stepDice = clone(graph.entered);
     if (opts.pinned) runInput.pinned = clone(opts.pinned);
+    if (opts.partSeeds && Object.keys(opts.partSeeds).length > 0) runInput.partSeeds = clone(opts.partSeeds);
+    if (opts.pinnedParts && Object.keys(opts.pinnedParts).length > 0) runInput.pinnedParts = clone(opts.pinnedParts);
     const run = store.insert("generatorRuns", runInput);
 
     const idMap: Record<string, Id> = {};

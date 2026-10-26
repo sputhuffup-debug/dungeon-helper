@@ -27,7 +27,7 @@ import {
   addDaysToDate,
   createRng,
   createTableRegistry,
-  getPath,
+  procedureContext,
   loadModule,
   runProcedure,
   type EntityPreset,
@@ -143,18 +143,7 @@ function requireProcedure(mod: LoadedModule, id: string): Procedure {
 
 /** Rebuild a ProcedureContext from a finished run so a chain's `inputs(ctx)` can read it. */
 function contextOf(graph: GeneratedGraph): ProcedureContext {
-  const tables = createTableRegistry(alienModule.tables);
-  return {
-    inputs: graph.inputs,
-    results: graph.results,
-    rolls: graph.rolls,
-    tables,
-    get<T = unknown>(stepId: string): T | undefined {
-      if (Object.prototype.hasOwnProperty.call(graph.results, stepId)) return graph.results[stepId] as T;
-      return getPath(graph.results, stepId) as T | undefined;
-    },
-    data: () => ({ ...graph.inputs, ...graph.results }),
-  };
+  return procedureContext(graph.inputs, graph.results, graph.rolls, createTableRegistry(alienModule.tables));
 }
 
 /** Run a procedure with every optional step included. */
