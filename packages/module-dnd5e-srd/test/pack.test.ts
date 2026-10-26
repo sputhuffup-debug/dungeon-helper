@@ -221,7 +221,7 @@ describe("SRD 5.1 data pack", () => {
 
   it("marks everything it wrote itself as original, and cites everything from the SRD by section", () => {
     for (const t of module.tables) expect(t.original === true || /^SRD 5\.1 — /.test(t.cite ?? ""), t.id).toBe(true);
-    for (const r of module.rules) expect(r.original === true || /^SRD 5\.1 — /.test(r.cite ?? ""), r.id).toBe(true);
+    for (const r of module.rules) expect(r.original === true || /^SRD 5\.[12] — /.test(r.cite ?? ""), r.id).toBe(true);
     for (const p of module.presets) expect(p.cite, p.id).toMatch(/^SRD 5\.1 — Monsters: /);
     for (const t of module.templates) expect(t.original, t.id).toBe(true);
     for (const l of module.referenceLists) expect(l.cite, l.id).toMatch(/^SRD 5\.1 — /);

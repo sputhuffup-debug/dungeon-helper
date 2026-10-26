@@ -8,6 +8,7 @@
  */
 import type { EntityPreset, ReferenceList } from "@campaign-forge/module-sdk";
 import { LIST, PACK } from "../ids.ts";
+import { builderRules, characterBuilder } from "./builder.ts";
 import { d20Combat } from "./combat.ts";
 import { gmScreen } from "./gmScreen.ts";
 import { characterType, encounterType, factionType, itemType, locationType, monsterType, npcType, questType } from "./entityTypes.ts";
@@ -25,6 +26,8 @@ export interface GeneratedData {
   monsters: EntityPreset[];
   /** The basic and character-option reference lists. */
   lists: ReferenceList[];
+  /** Weapons, armor, adventuring gear, tools and mounts (not magic items). */
+  equipment: ReferenceList[];
   spellSlots: Record<string, number[][]>;
 }
 
@@ -46,6 +49,7 @@ export function buildAuthored(data: GeneratedData): Record<string, unknown> {
     primer,
     d20Combat: d20Combat(data.lists),
     gmScreen,
+    characterBuilders: [characterBuilder({ lists: data.lists, equipment: data.equipment, spellSlots: data.spellSlots })],
     templates,
     calendar,
     styleNotes: [
@@ -59,7 +63,7 @@ export function buildAuthored(data: GeneratedData): Record<string, unknown> {
     formatVersion: 1,
     pack: PACK,
     name: "tables.json",
-    rules: adviceRules,
+    rules: [...adviceRules, ...builderRules()],
     tables,
     procedures,
   };

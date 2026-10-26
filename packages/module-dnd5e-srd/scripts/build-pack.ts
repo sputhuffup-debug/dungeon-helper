@@ -102,7 +102,8 @@ function readPart(name: string): Record<string, unknown> {
 export function generatedData(readJson: (name: string) => Record<string, unknown>, spellSlots: Record<string, number[][]>): GeneratedData {
   const monsters = [...(readJson("srd-monsters-1.json").presets as EntityPreset[]), ...(readJson("srd-monsters-2.json").presets as EntityPreset[])];
   const lists = [...(readJson("srd-basics.json").referenceLists as ReferenceList[]), ...(readJson("srd-character.json").referenceLists as ReferenceList[])];
-  return { monsters, lists, spellSlots };
+  const equipment = (readJson("srd-equipment.json").referenceLists as ReferenceList[]).filter((l) => l.id !== `${PACK}.magic-items`);
+  return { monsters, lists, equipment, spellSlots };
 }
 
 function main(argv: string[]): void {
