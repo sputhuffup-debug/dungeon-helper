@@ -30,6 +30,7 @@ import { combat } from "./combat";
 import { crewShip, ledger } from "./economy";
 import { travel } from "./travel";
 import { progression } from "./progression";
+import { gmScreen } from "./gmScreen";
 
 export { manifest, ALIEN_MODULE_ID, ALIEN_MODULE_VERSION } from "./manifest";
 export { modes, CAMPAIGN, CINEMATIC } from "./modes";
@@ -55,6 +56,7 @@ export * from "./combat";
 export * from "./economy";
 export { travel, FATIGUED_CONDITION } from "./travel";
 export * from "./progression";
+export { gmScreen } from "./gmScreen";
 export { shipTables, travelTables, MINOR_DAMAGE_TABLE, MAJOR_DAMAGE_TABLE, NDD_TABLE } from "./tables/ships";
 export { BETWEEN_JOBS_ID } from "./procedures/between-jobs";
 export { AGENDAS_ID, agendaDraftsProcedure, actText, STORY_POINT_PAGE } from "./procedures/agendas";
@@ -90,6 +92,7 @@ export const alienModule: GameModule = {
   crewShip,
   travel,
   progression,
+  gmScreen,
   migrations: [],
 };
 

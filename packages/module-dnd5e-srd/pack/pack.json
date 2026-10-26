@@ -9125,6 +9125,326 @@
    "dnd5e-srd.rule.damage-and-healing.temporary-hit-points"
   ]
  },
+ "gmScreen": {
+  "title": "GM screen",
+  "panels": [
+   {
+    "id": "checks",
+    "title": "Checks and DCs",
+    "blocks": [
+     {
+      "kind": "rule",
+      "rule": "dnd5e-srd.rule.ability-checks.typical-difficulty-classes",
+      "title": "Typical DCs",
+      "parts": [
+       0
+      ]
+     },
+     {
+      "kind": "text",
+      "title": "Advantage and disadvantage",
+      "text": "Roll two d20s: **advantage** keeps the higher, **disadvantage** the lower. Several sources still give only one extra d20, and having both cancels them out: roll one d20.",
+      "original": true,
+      "rules": [
+       "dnd5e-srd.rule.advantage-and-disadvantage"
+      ]
+     },
+     {
+      "kind": "rule",
+      "rule": "dnd5e-srd.rule.ability-checks.passive-checks",
+      "title": "Passive checks",
+      "parts": [
+       2,
+       3
+      ]
+     },
+     {
+      "kind": "rule",
+      "rule": "dnd5e-srd.rule.ability-checks.working-together",
+      "title": "Group checks",
+      "section": "Group Checks",
+      "parts": [
+       1
+      ]
+     },
+     {
+      "kind": "rule",
+      "rule": "dnd5e-srd.rule.casting-a-spell.duration",
+      "title": "Concentration",
+      "section": "Concentration",
+      "parts": [
+       0,
+       2,
+       3
+      ]
+     },
+     {
+      "kind": "guide",
+      "title": "Calling for rolls",
+      "tips": [
+       0,
+       1,
+       3,
+       5
+      ]
+     }
+    ]
+   },
+   {
+    "id": "combat",
+    "title": "Combat rulings",
+    "blocks": [
+     {
+      "kind": "rule",
+      "rule": "dnd5e-srd.rule.the-order-of-combat.surprise",
+      "title": "Surprise",
+      "parts": [
+       2
+      ]
+     },
+     {
+      "kind": "rule",
+      "rule": "dnd5e-srd.rule.making-an-attack.attack-rolls",
+      "title": "Rolling 1 or 20",
+      "section": "Rolling 1 or 20",
+      "parts": [
+       1,
+       2
+      ]
+     },
+     {
+      "kind": "rule",
+      "rule": "dnd5e-srd.rule.making-an-attack.unseen-attackers-and-targets",
+      "title": "Unseen attackers and targets",
+      "parts": [
+       1,
+       2
+      ]
+     },
+     {
+      "kind": "rule",
+      "rule": "dnd5e-srd.rule.damage-and-healing.damage-resistance-and-vulnerability",
+      "title": "Resistance and vulnerability",
+      "parts": [
+       1
+      ]
+     },
+     {
+      "kind": "rule",
+      "rule": "dnd5e-srd.rule.damage-and-healing.dropping-to-0-hit-points",
+      "title": "Death saving throws",
+      "section": "Death Saving Throws"
+     },
+     {
+      "kind": "rule",
+      "rule": "dnd5e-srd.rule.damage-and-healing.dropping-to-0-hit-points",
+      "title": "Instant death",
+      "section": "Instant Death",
+      "parts": [
+       0
+      ]
+     },
+     {
+      "kind": "rule",
+      "rule": "dnd5e-srd.rule.damage-and-healing.dropping-to-0-hit-points",
+      "title": "Stabilizing a creature",
+      "section": "Stabilizing a Creature",
+      "parts": [
+       1,
+       2
+      ]
+     }
+    ]
+   },
+   {
+    "id": "adventuring",
+    "title": "Adventuring",
+    "blocks": [
+     {
+      "kind": "rule",
+      "rule": "dnd5e-srd.rule.movement.speed",
+      "title": "Travel pace",
+      "section": "Travel Pace",
+      "parts": [
+       7,
+       1,
+       2
+      ]
+     },
+     {
+      "kind": "rule",
+      "rule": "dnd5e-srd.rule.the-environment.vision-and-light",
+      "title": "Light and vision",
+      "parts": [
+       1,
+       2,
+       4,
+       6,
+       7
+      ]
+     },
+     {
+      "kind": "rule",
+      "rule": "dnd5e-srd.rule.the-environment.vision-and-light",
+      "title": "Darkvision",
+      "section": "Darkvision"
+     },
+     {
+      "kind": "rule",
+      "rule": "dnd5e-srd.rule.resting.short-rest",
+      "title": "Short rest"
+     },
+     {
+      "kind": "rule",
+      "rule": "dnd5e-srd.rule.resting.long-rest",
+      "title": "Long rest",
+      "parts": [
+       1,
+       2
+      ]
+     },
+     {
+      "kind": "conditions",
+      "title": "Exhaustion",
+      "conditions": [
+       "exhaustion"
+      ]
+     },
+     {
+      "kind": "rule",
+      "rule": "dnd5e-srd.rule.the-environment.falling",
+      "title": "Falling"
+     }
+    ]
+   },
+   {
+    "id": "actions",
+    "title": "Actions in combat",
+    "side": "players",
+    "blocks": [
+     {
+      "kind": "rule",
+      "rule": "dnd5e-srd.rule.the-order-of-combat.your-turn",
+      "title": "Your turn",
+      "parts": [
+       0,
+       6,
+       11
+      ]
+     },
+     {
+      "kind": "text",
+      "title": "Actions",
+      "text": "- **Attack:** a melee or ranged attack.\n- **Cast a Spell:** casting time of 1 action.\n- **Dash:** extra movement equal to your speed.\n- **Disengage:** no opportunity attacks against you this turn.\n- **Dodge:** attacks against you have disadvantage; Dexterity saves with advantage.\n- **Help:** an ally gets advantage on its next check, or its next attack on a foe within 5 feet of you.\n- **Hide:** a Dexterity (Stealth) check.\n- **Ready:** choose a trigger and an action; take it as your reaction.\n- **Search:** a Perception or Investigation check.\n- **Use an Object:** a second object, or one that takes an action.",
+      "original": true,
+      "rules": [
+       "dnd5e-srd.rule.actions-in-combat"
+      ]
+     },
+     {
+      "kind": "rule",
+      "rule": "dnd5e-srd.rule.the-order-of-combat.reactions",
+      "title": "Reactions and opportunity attacks"
+     }
+    ]
+   },
+   {
+    "id": "position",
+    "title": "Cover and position",
+    "side": "players",
+    "blocks": [
+     {
+      "kind": "rule",
+      "rule": "dnd5e-srd.rule.cover",
+      "title": "Cover",
+      "parts": [
+       2,
+       3,
+       4
+      ]
+     },
+     {
+      "kind": "rule",
+      "rule": "dnd5e-srd.rule.movement-and-position.difficult-terrain",
+      "title": "Difficult terrain",
+      "parts": [
+       1
+      ]
+     },
+     {
+      "kind": "rule",
+      "rule": "dnd5e-srd.rule.movement-and-position.being-prone",
+      "title": "Being prone",
+      "parts": [
+       1,
+       2,
+       3
+      ]
+     },
+     {
+      "kind": "rule",
+      "rule": "dnd5e-srd.rule.making-an-attack.ranged-attacks",
+      "title": "Ranged attacks in close combat",
+      "section": "Ranged Attacks in Close Combat"
+     },
+     {
+      "kind": "list",
+      "list": "dnd5e-srd.damage-types",
+      "title": "Damage types",
+      "summary": false
+     }
+    ]
+   },
+   {
+    "id": "conditions",
+    "title": "Conditions",
+    "side": "players",
+    "blocks": [
+     {
+      "kind": "conditions"
+     }
+    ]
+   },
+   {
+    "id": "damage-types",
+    "title": "Damage types",
+    "optional": true,
+    "blocks": [
+     {
+      "kind": "list",
+      "list": "dnd5e-srd.damage-types"
+     }
+    ]
+   },
+   {
+    "id": "spellcasting",
+    "title": "Spellcasting",
+    "optional": true,
+    "blocks": [
+     {
+      "kind": "rule",
+      "rule": "dnd5e-srd.rule.casting-a-spell.components",
+      "title": "Components"
+     },
+     {
+      "kind": "rule",
+      "rule": "dnd5e-srd.rule.casting-a-spell.spell-saving-throws",
+      "title": "Spell saving throws"
+     },
+     {
+      "kind": "rule",
+      "rule": "dnd5e-srd.rule.casting-a-spell.spell-attack-rolls",
+      "title": "Spell attack rolls"
+     },
+     {
+      "kind": "rule",
+      "rule": "dnd5e-srd.rule.casting-a-spell.combining-magical-effects",
+      "title": "Combining magical effects"
+     }
+    ]
+   }
+  ]
+ },
  "templates": [
   {
    "id": "dnd5e-srd.template.one-shot",
