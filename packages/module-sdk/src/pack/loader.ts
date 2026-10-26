@@ -242,6 +242,7 @@ export function packToModule(input: ModulePack): GameModule {
   if (pack.playGuides) module.playGuides = pack.playGuides;
   if (pack.primer) module.primer = pack.primer;
   if (pack.d20Combat) module.d20Combat = pack.d20Combat;
+  if (pack.gmScreen) module.gmScreen = pack.gmScreen;
   return module;
 }
 
@@ -277,6 +278,12 @@ export function packPathOf(pack: ModulePack, where: string): { path: string; ite
   if (kind === "dice") return { path: "$.dice" };
   if (kind === "calendar") return { path: "$.calendar" };
   if (kind === "d20Combat") return { path: "$.d20Combat" };
+  if (kind === "gmScreen") {
+    const panel = /^gmScreen:([^#]+)(?:#(\d+))?$/.exec(where);
+    const i = panel ? (pack.gmScreen?.panels ?? []).findIndex((p) => p.id === panel[1]) : -1;
+    if (i === -1) return { path: "$.gmScreen" };
+    return { path: panel![2] !== undefined ? `$.gmScreen.panels[${i}].blocks[${panel![2]}]` : `$.gmScreen.panels[${i}]` };
+  }
   return { path: "$" };
 }
 

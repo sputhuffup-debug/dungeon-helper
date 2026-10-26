@@ -978,6 +978,124 @@ export interface RuleCard {
 }
 
 // ---------------------------------------------------------------------------
+// GM screen: a printable quick reference built from the module's own content
+// ---------------------------------------------------------------------------
+
+/** How much of a page side a GM screen panel may take: one fold of a tri-fold, two folds, or the whole side. */
+export type GmScreenSize = "third" | "half" | "full";
+
+/** Which side of the screen a panel goes on: the GM's side, or the side that faces the players. */
+export type GmScreenSide = "gm" | "players";
+
+interface GmScreenBlockBase {
+  /** Heading over the block (default: the referenced card's, table's or list's own name). */
+  title?: string;
+  /** Only in these play modes. */
+  mode?: PlayModeId[];
+}
+
+/** A rule card, whole or a named excerpt: one `section` (a heading inside the card) and/or some of its `parts`. */
+export interface GmScreenRuleBlock extends GmScreenBlockBase {
+  kind: "rule";
+  rule: string;
+  /** Only the part of the card under this heading (its text, without the `#` marks). */
+  section?: string;
+  /** Only these parts (0-based paragraphs, lists, tables and headings of the card, or of its `section`). */
+  parts?: number[];
+}
+
+/** A roll table, compactly: the dice, then one line per row (range, label and its result). */
+export interface GmScreenTableBlock extends GmScreenBlockBase {
+  kind: "table";
+  table: string;
+  /** Keys of an object result shown after the label (default: the first of effect, summary, text, description). */
+  columns?: string[];
+  /** Print the table's notes under it (default false). */
+  notes?: boolean;
+}
+
+/** A reference list: item names with some of their columns and their summaries. */
+export interface GmScreenListBlock extends GmScreenBlockBase {
+  kind: "list";
+  list: string;
+  /** Only these item ids, in this order. */
+  items?: string[];
+  /** JSONLogic over each item: keep the item when true (e.g. `{ "==": [{ "var": "group" }, "Basic Actions"] }`). */
+  where?: JsonLogicRule;
+  /** Item keys shown next to the name (e.g. ["actions"]). */
+  columns?: string[];
+  /** Print each item's summary (default true). */
+  summary?: boolean;
+}
+
+/** The declarative d20 conditions (`d20Combat.conditions`) with their helper text. */
+export interface GmScreenConditionsBlock extends GmScreenBlockBase {
+  kind: "conditions";
+  /** Only these condition ids, in this order (default every condition). */
+  conditions?: string[];
+}
+
+/** From a play guide: its tips (dice and rolling notes) and entries (what a stat or skill is for, with cues). */
+export interface GmScreenGuideBlock extends GmScreenBlockBase {
+  kind: "guide";
+  /** Play guide id (default the module's first). */
+  guide?: string;
+  /** Tips to print: `true` for all, or their 0-based indexes. */
+  tips?: boolean | number[];
+  /** Entry ids to print (label, summary and the first `cues` cues). */
+  entries?: string[];
+  /** Cues printed per entry (default 1). */
+  cues?: number;
+}
+
+/**
+ * A short quick-rules note in the module author's own words (`original`
+ * must be true). When it summarizes rules it cites them: a page, a section
+ * or the rule cards it condenses. Prefer a reference to a card, table or
+ * list whenever one will do: no rule text twice.
+ */
+export interface GmScreenTextBlock extends GmScreenBlockBase {
+  kind: "text";
+  /** Markdown: short paragraphs, bullets or a small table. */
+  text: string;
+  original: true;
+  page?: PageRef;
+  cite?: CiteRef;
+  /** Rule card ids this note summarizes. */
+  rules?: string[];
+}
+
+export type GmScreenBlock = GmScreenRuleBlock | GmScreenTableBlock | GmScreenListBlock | GmScreenConditionsBlock | GmScreenGuideBlock | GmScreenTextBlock;
+
+export interface GmScreenPanel {
+  /** Unique within the screen; the app remembers a campaign's choices by it. */
+  id: string;
+  title: string;
+  /** Room it may take on a page side (default "third": one fold). */
+  size?: GmScreenSize;
+  /** Default "gm". Player-facing panels go on the back of the tri-fold. */
+  side?: GmScreenSide;
+  /** Offered in the picker but left out until the GM adds it. */
+  optional?: boolean;
+  /** Only in these play modes. */
+  mode?: PlayModeId[];
+  blocks: GmScreenBlock[];
+}
+
+/**
+ * The module's GM screen: panels of references to its own rule cards,
+ * tables, reference lists, conditions and play guide tips, plus short
+ * original quick-rules notes. The app lays them out as a printable tri-fold
+ * (GM side and player side) or as cards. Modules without one get a screen
+ * built from their rule cards by tag.
+ */
+export interface GmScreenDef {
+  /** Default "GM screen". */
+  title?: string;
+  panels: GmScreenPanel[];
+}
+
+// ---------------------------------------------------------------------------
 // Trackers
 // ---------------------------------------------------------------------------
 
@@ -2482,6 +2600,8 @@ export interface GameModule {
   travel?: TravelDef;
   /** Experience, story points and spending them: award checklist, spend options, pools. */
   progression?: ProgressionDef;
+  /** A printable GM screen built from the module's own content. Packs can declare it. */
+  gmScreen?: GmScreenDef;
   /** Upgrade stored entity fields from an older module version. */
   migrations?: Array<{ from: string; to: string; migrate: (entity: { type: string; fields: Record<string, unknown> }) => Record<string, unknown> }>;
 }

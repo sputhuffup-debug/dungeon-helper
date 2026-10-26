@@ -25,6 +25,7 @@ A data pack is a JSON object. The SDK validates it (`validatePack`), joins its p
   "styleNotes": [],         // optional
   "primer": { "sections": [] }, // optional; campaign primer prompts and starter text (see Campaign primer)
   "d20Combat": {},          // optional; attacks, AC, saves, damage modifiers and conditions (see d20 combat)
+  "gmScreen": { "panels": [] }, // optional; the printable GM screen (see GM screen)
   "parts": ["tables.json"]  // optional; see Split packs
 }
 ```
@@ -164,6 +165,10 @@ Starter text is the pack author's own words (`original: true`), or openly licens
 - **Conditions**: `summary` is the helper text the app shows (what it does, in plain words); `effects` are applied by themselves while the condition is on: `on` (`attack`, `check`, `save`, `ac`, `dc`, `damage`), a `modifier` (number or JSONLogic over `{ value }`) with an optional `bonusType` (with `stacking: "typed"` only the best bonus and worst penalty of a type count), `roll` (`advantage`/`disadvantage`, which cancel out), `autoFail`, limited by `abilities`, `saves`, `skills`, `attackKinds` or `minValue`; `against: true` applies to attacks made against the creature, with `range` (`close`/`far`) and `critOnHit`. `implies` brings other conditions along, `cannot` (act, react, move, speak, see, hear) and `speed` show on the card, `endOfTurnDecrement` drops a valued condition each turn, `levels` notes each value, `field` keeps the value in a sheet field (so a sheet tracker and the panel agree), and `manual` lists what the app leaves to the GM (shown as "not automated").
 - **0 hit points**: the first `zeroHp` rule whose `when` (JSONLogic over `{ kind, type, fields, computed }`) matches: conditions to apply (a value may be JSONLogic over `{ critical, conditions, fields, computed }`), `defeated`, what `recover` does when healing brings the creature back, and the rule's `text`.
 - `module-check` checks the references (entity types, fields, saves, conditions, rule cards), every JSONLogic rule, that AC and maximum hit points give numbers for a new entity, and that every preset's attacks read cleanly.
+
+## GM screen
+
+`gmScreen` (main file only) is the pack's printable GM screen: panels of references to its own rule cards (whole or an excerpt), tables, reference lists, d20 conditions and play guide tips, plus short original quick-rules notes. The app prints it as a tri-fold (GM side and player side) or as cards. Without one, the app builds a screen from the rule cards by tag. See [GM screen](gm-screen.md) for every block kind.
 
 ## What a pack cannot do (yet)
 

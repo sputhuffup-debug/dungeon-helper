@@ -630,5 +630,44 @@
       { "id": "setting", "title": "Lanternlight", "prompt": "The lamp-lit streets the game is set in.", "starter": "A city of narrow streets where every door keeps a lantern burning.", "original": true },
       { "id": "house-rules", "title": "House rules", "prompt": "Anything you play differently." }
     ]
+  },
+  "gmScreen": {
+    "title": "Lantern screen",
+    "panels": [
+      {
+        "id": "checks",
+        "title": "Checks",
+        "blocks": [
+          { "kind": "rule", "rule": "example-pack.rule.checks" },
+          { "kind": "rule", "rule": "example-pack.rule.advantage" },
+          { "kind": "guide", "tips": true }
+        ]
+      },
+      {
+        "id": "delving",
+        "title": "Delving",
+        "blocks": [
+          { "kind": "rule", "rule": "example-pack.rule.lantern" },
+          { "kind": "table", "table": "example-pack.encounter.rumor" },
+          { "kind": "text", "title": "Light and dark", "text": "When the **lantern** goes out, count the rolls with disadvantage until it is lit again.", "original": true, "rules": ["example-pack.rule.lantern"] }
+        ]
+      },
+      {
+        "id": "saga-notes",
+        "title": "Between villages",
+        "mode": ["saga"],
+        "optional": true,
+        "blocks": [{ "kind": "list", "list": "example-pack.backgrounds" }]
+      },
+      {
+        "id": "conditions",
+        "title": "Conditions",
+        "side": "players",
+        "blocks": [
+          { "kind": "conditions" },
+          { "kind": "list", "list": "example-pack.skills", "title": "Skills", "where": { "==": [{ "var": "attribute" }, "might"] } }
+        ]
+      }
+    ]
   }
 }

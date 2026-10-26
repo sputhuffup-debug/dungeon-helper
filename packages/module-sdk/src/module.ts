@@ -4,6 +4,7 @@
  * dangling references, declared modes, procedure termination.
  */
 import { d20AttackIssues, d20Attacks, d20CombatIssues } from "./d20combat";
+import { gmScreenIssues } from "./gmScreen";
 import { diceOutcomes, parseDiceExpression } from "./dice";
 import { computeFields, defaultFieldsFor, fieldSchemaAt, schemaDefaults, validateAgainstSchema, validateEntityFields } from "./entities";
 import { runProcedure } from "./procedures";
@@ -1033,6 +1034,9 @@ export function checkModule(module: GameModule, options: CheckModuleOptions = {}
 
   // Declarative d20 combat.
   checkD20Combat(module, c);
+
+  // GM screen.
+  for (const i of gmScreenIssues(module)) (i.severity === "error" ? c.error.bind(c) : c.warn.bind(c))(i.where, i.message);
 
   // Calendar.
   const cal = module.calendar;
