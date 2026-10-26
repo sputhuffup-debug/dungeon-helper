@@ -95,4 +95,35 @@ The lines are worked out once the run is done (also for pinned steps) and land i
 
 `relationships[]`: `{ type, from, to, note?, when? }` between tempIds. A relationship (or `within`) pointing at an entity that a `when` left out is dropped with it.
 
+### Inputs from the campaign
+
+A procedure's `inputs` is a JSON Schema; the workbench builds its form from it and fills what the campaign already knows. Three hints (keys starting with `x-`, allowed in packs) ask for campaign data instead of a typed value:
+
+| Hint | The app passes |
+|---|---|
+| `"x-entity": { "types": ["my-pack.ship"], "setting": "ship" }` | One entity picked from a list, as `{ id, name, type, fields }`, pre-filled from the campaign setting `setting`. |
+| `"x-campaign": { "kinds"?, "types"?, "fields"?, "relationships"? }` | A snapshot of the campaign: `{ entities: [{ id, name, type, kind, subtype?, pc?, tags, fields? }], relationships: [{ type, from, to }] }`, sorted by name. Only ids, names, kinds, tags and the scalar `fields` you list (e.g. `["career", "android"]`) are copied, never text; `kinds`/`types` and `relationships` filter it. It is read when the page opens. |
+| `"x-adventure": {}` | An adventure picked from a list (the campaign's only one by default, or the one the page was opened for): `{ id, title, premise, situation, fields, acts: [{ number, title, goal, fields }], cast: { role: [ids] }, rooms }`, with the hidden situation as plain text, string narrative fields only and the named rooms of the adventure's site maps. Per-character inputs (arrays whose items have `id` and `name`) are filled from that adventure's PCs. |
+
+Values are stored with the run, so re-opening it replays the same result even after the campaign changed. Pack steps read them like any input, e.g. `{ "count": [{ "var": ["inputs.campaign.entities", []] }] }`; module-check runs a procedure with no campaign at all, so give every lookup a default.
+
+```json
+"inputs": {
+  "type": "object",
+  "properties": {
+    "adventure": { "type": "object", "title": "Adventure", "x-adventure": {} },
+    "campaign": { "type": "object", "x-campaign": { "kinds": ["character", "location"], "fields": ["career"], "relationships": ["my-pack.rival_of"] } },
+    "pcs": { "type": "array", "items": { "type": "object", "properties": { "id": { "type": "string" }, "name": { "type": "string" } } } }
+  }
+}
+```
+
+### Parts: re-rolling one slot (TypeScript modules)
+
+A `compute` step can build its result from named parts: `ctx.part(key, (rng) => value, { initial })` draws the part on its own RNG (derived from the step seed and the key), so the GM can re-roll or pin that one part (one slot of one card) without moving the rest. The run options carry `partSeeds` and `pinnedParts` keyed `"<step id>/<key>"`, the graph records every part's value in `parts`, and accepted runs keep both. `initial` passes a value an earlier step already decided (re-rolling the part then rolls instead).
+
+### Agenda drafts (TypeScript modules)
+
+A procedure marked `agendaDrafts: true` returns per-character, per-act agenda drafts as `results.agendaDrafts` (an `AgendaDraftSet`: the character `field` to write, each character's slots and acts with their draft text, an optional `report`). The workbench shows them as editable cards with re-roll and pin on each slot (each slot's `key` is its part key) and an arc lock (`lock.path` into the inputs), and *Accept agendas* writes each act's text into the character field (one `{ act, text }` row per act) and the picked adventure's agenda handouts, asking before it replaces text the GM wrote. The guided builder's agendas panel links to the procedure. The Alien module's `alien.agendas` is the example (`packages/module-alien/src/procedures/agendas.ts`).
+
 The conformance suite runs every procedure with its default inputs against many seeds (`module-check`, 100 by default), and the determinism check runs each twice per seed. A procedure that throws, produces an unknown entity type or a dangling relationship fails there.

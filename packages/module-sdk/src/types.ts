@@ -412,6 +412,17 @@ export interface ProcedureContext {
   get<T = unknown>(stepId: string): T | undefined;
   /** Derived context exposed to table modifiers (inputs + results flattened). */
   data(): Record<string, unknown>;
+  /**
+   * A named part of the current step's result that the GM can re-roll or pin
+   * on its own (one slot of one card, say), without touching the rest of the
+   * step. Returns, in order: the pinned value (`pinnedParts`), a fresh roll
+   * when the part was re-rolled (`partSeeds`), `opts.initial` when given (a
+   * value an earlier step already decided), else a roll. Each part rolls on
+   * its own RNG derived from the step seed and its key, so parts never shift
+   * one another. Keys are recorded as "<step id>/<key>" in the graph's
+   * `parts`. Meant for `compute` steps; outside a step it just rolls.
+   */
+  part<T>(key: string, roll: (rng: Rng) => T, opts?: { initial?: T }): T;
 }
 
 export interface ProcedureStep {
@@ -462,6 +473,13 @@ export interface Procedure {
   produce: (ctx: ProcedureContext) => GeneratedGraph["produced"];
   /** Which procedure to chain into after acceptance, if any (e.g. world after job). */
   chains?: Array<{ procedure: string; label: string; inputs?: (ctx: ProcedureContext) => Record<string, unknown> }>;
+  /**
+   * The procedure drafts per-act agendas: its `results.agendaDrafts` is an
+   * `AgendaDraftSet` the app shows as editable cards and writes into each
+   * character's agendas (and the adventure's agenda handouts) on accept. The
+   * app offers it from an adventure's agendas.
+   */
+  agendaDrafts?: boolean;
 }
 
 export interface ProducedEntity {
@@ -506,6 +524,8 @@ export interface GeneratedGraph {
   display?: Record<string, string>;
   /** Step id -> the faces of dice rolled at the table for it (entered by the GM), in roll order. */
   entered?: Record<string, number[]>;
+  /** "<step id>/<key>" -> the value of every part a step drew with `ctx.part` (re-roll or pin them one by one). */
+  parts?: Record<string, unknown>;
 }
 
 export interface ProcedureRunOptions {
@@ -528,6 +548,10 @@ export interface ProcedureRunOptions {
   stepDice?: Record<string, number[]>;
   /** A step's Rng supplied by the caller (e.g. to find out which dice it asks for); wins over `stepDice` and the seed. */
   stepRng?: (stepId: string) => Rng | undefined;
+  /** Per-part seed overrides ("<step id>/<key>"): re-rolling one part of a step (see `ProcedureContext.part`). */
+  partSeeds?: Record<string, string>;
+  /** GM-pinned part values ("<step id>/<key>"); the part is not rolled. */
+  pinnedParts?: Record<string, unknown>;
 }
 
 // ---------------------------------------------------------------------------
@@ -2120,6 +2144,118 @@ export interface EntitySnapshot {
   name: string;
   type: string;
   fields: Record<string, unknown>;
+}
+
+/**
+ * Procedure input hint: a property whose schema carries `"x-campaign"` is
+ * filled by the app with a `CampaignSnapshot` of the campaign's entities
+ * (ids, names, types and tags, plus the scalar fields asked for; no text) and
+ * their relationships, so a procedure can aim at what the campaign already
+ * holds. The snapshot is stored with the run, so runs stay reproducible.
+ */
+export const CAMPAIGN_INPUT_HINT = "x-campaign" as const;
+export interface CampaignInputHint {
+  /** Entity kinds to include (character, location, item...); all when absent. */
+  kinds?: string[];
+  /** Entity types to include; all when absent. */
+  types?: string[];
+  /** Scalar fields (string, number, boolean) copied onto each summary, e.g. ["android"]. */
+  fields?: string[];
+  /** Relationship types to include; all when absent. */
+  relationships?: string[];
+}
+/** One entity in a `CampaignSnapshot`. */
+export interface CampaignEntitySummary {
+  id: string;
+  name: string;
+  type: string;
+  /** The entity type's kind (character, location, item, faction...). */
+  kind?: string;
+  subtype?: string;
+  /** A player character (flagged as a PC or owned by a member). */
+  pc?: boolean;
+  tags: string[];
+  /** The scalar fields the hint asked for, when set. */
+  fields?: Record<string, string | number | boolean>;
+}
+/** The value an `x-campaign` input carries. */
+export interface CampaignSnapshot {
+  entities: CampaignEntitySummary[];
+  relationships: Array<{ type: string; from: string; to: string }>;
+}
+
+/**
+ * Procedure input hint: a property whose schema carries `"x-adventure"` is an
+ * adventure picker. The app passes an `AdventureSnapshot`: the premise, the
+ * hidden situation and the act texts as plain text, the cast by role and the
+ * named rooms of its site maps. A per-character input of the same procedure
+ * is filled from the adventure's player characters.
+ */
+export const ADVENTURE_INPUT_HINT = "x-adventure" as const;
+export type AdventureInputHint = Record<string, never>;
+/** The value an `x-adventure` input carries. */
+export interface AdventureSnapshot {
+  id: string;
+  title: string;
+  premise: string;
+  /** What is really going on: the GM situation, as plain text. */
+  situation: string;
+  /** The adventure's string narrative fields (module-defined, e.g. a countdown). */
+  fields: Record<string, string>;
+  acts: Array<{ number: number; title: string; goal: string; fields: Record<string, string> }>;
+  /** Entity ids by the builder's cast role (e.g. pcs, npcs, locations). */
+  cast: Record<string, string[]>;
+  /** Named rooms of the adventure's site maps. */
+  rooms: string[];
+}
+
+// ---------------------------------------------------------------------------
+// Agenda drafts (a procedure's `results.agendaDrafts`)
+// ---------------------------------------------------------------------------
+
+/** One slot of a draft the GM can re-roll or pin: `key` is the part key ("<step id>/<key>"). */
+export interface AgendaDraftSlot {
+  key: string;
+  label: string;
+  text: string;
+}
+export interface AgendaDraftAct {
+  act: number;
+  /** The draft text, as written into the character's agenda for the act. */
+  text: string;
+  slots: AgendaDraftSlot[];
+  /** A short note shown with the act (e.g. how pursuing it earns the act's reward), with its page. */
+  hint?: { label: string; text: string; page?: PageRef };
+}
+export interface AgendaDraftCharacter {
+  /** Entity id; a placeholder id when `inCampaign` is false. */
+  id: string;
+  name: string;
+  inCampaign: boolean;
+  /** The arc dealt: a name and a one-line summary. */
+  title?: string;
+  summary?: string;
+  /** The procedure input that fixes this character's arc: the path into the inputs and the value that locks it. */
+  lock?: { path: Array<string | number>; value: string; locked: boolean };
+  /** Slots that hold for every act (e.g. who they answer to, and why). */
+  slots: AgendaDraftSlot[];
+  acts: AgendaDraftAct[];
+}
+export interface AgendaDraftReport {
+  ok: boolean;
+  summary: string;
+  lines: Array<{ tone: "ok" | "info" | "warning" | "danger"; text: string }>;
+  /** Pairwise scores, highest first (character names). */
+  pairs?: Array<{ a: string; b: string; score: number; reasons: string[] }>;
+}
+export interface AgendaDraftSet {
+  /** Character field holding one `{ act, text }` row per act. */
+  field: string;
+  acts: number[];
+  characters: AgendaDraftCharacter[];
+  report?: AgendaDraftReport;
+  /** Shown above the drafts (e.g. "Drafts: revise them to fit your story"). */
+  note?: string;
 }
 
 // ---------------------------------------------------------------------------

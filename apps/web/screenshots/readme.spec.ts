@@ -423,6 +423,22 @@ test("guided-builder", async ({ page }) => {
   await shot(page, "guided-builder");
 });
 
+test("agenda-generator", async ({ page }) => {
+  // Cold Harbor's guided builder, PCs step: "Generate agenda drafts" deals the four PCs their arcs (no reload, so the seed is the harness's)
+  await page.setViewportSize({ width: 1440, height: 1080 });
+  await loadDemo(page, "cinematic");
+  await nav(page, "Adventures").click();
+  await page.getByTestId("adventure-card").filter({ hasText: "Cold Harbor" }).click();
+  await page.getByTestId("step-pcs").click();
+  await page.getByTestId("guided-agenda-drafts").click();
+  const drafts = page.getByTestId("agenda-drafts");
+  await expect(drafts.getByTestId("agenda-character")).toHaveCount(4);
+  await expect(page.getByTestId("agenda-report")).toContainText("Friction");
+  // the conflict report, then the first drafts
+  await page.getByTestId("agenda-report").evaluate((e) => window.scrollTo(0, e.getBoundingClientRect().top + window.scrollY - 72));
+  await shot(page, "agenda-generator");
+});
+
 test("map-generator", async ({ page }) => {
   await loadDemo(page, "cinematic");
   const mapPage = await openSiteMap(page);

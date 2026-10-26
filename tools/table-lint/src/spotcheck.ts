@@ -140,6 +140,8 @@ export function spotCheck(module: GameModule, opts: SpotCheckOptions): SpotCheck
 
   const byFamily = new Map<string, RollTable[]>();
   for (const t of module.tables) {
+    // the module's own tables have no book to check them against
+    if (t.original) continue;
     const fam = tableFamily(t);
     byFamily.set(fam, [...(byFamily.get(fam) ?? []), t]);
   }

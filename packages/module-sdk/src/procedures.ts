@@ -31,7 +31,24 @@ export interface ProcedureStepInfo {
   kind: "table" | "compute" | "none";
 }
 
-function makeContext(inputs: Record<string, unknown>, results: Record<string, unknown>, rolls: RollRecord[], tables: TableRegistry): ProcedureContext {
+/** How `ctx.part` draws: the running step and the run's part seeds, pins and record. */
+interface PartScope {
+  /** The step running now (parts are keyed "<step>/<key>"), or undefined outside a step. */
+  step?: string;
+  /** Seed of the running step (its own override or the run's). */
+  seed: string;
+  procedure: string;
+  partSeeds: Record<string, string>;
+  pinnedParts: Record<string, unknown>;
+  parts: Record<string, unknown>;
+}
+
+/**
+ * A procedure context over plain inputs and results (as `runProcedure` builds
+ * it, or rebuilt from a stored run for `chain.inputs`). Without a part scope,
+ * `part` returns its initial value or rolls on a fixed stream.
+ */
+export function procedureContext(inputs: Record<string, unknown>, results: Record<string, unknown>, rolls: RollRecord[], tables: TableRegistry, scope?: PartScope): ProcedureContext {
   return {
     inputs,
     results,
@@ -43,6 +60,17 @@ function makeContext(inputs: Record<string, unknown>, results: Record<string, un
     },
     data(): Record<string, unknown> {
       return { ...inputs, ...results };
+    },
+    part<T>(key: string, roll: (rng: Rng) => T, opts?: { initial?: T }): T {
+      if (!scope) return opts && opts.initial !== undefined ? opts.initial : roll(createRng("part").fork(key));
+      const full = scope.step === undefined ? key : `${scope.step}/${key}`;
+      let value: T;
+      if (Object.prototype.hasOwnProperty.call(scope.pinnedParts, full)) value = scope.pinnedParts[full] as T;
+      else if (scope.partSeeds[full] !== undefined) value = roll(createRng(scope.partSeeds[full]!).fork(`${scope.procedure}/${full}`));
+      else if (opts && opts.initial !== undefined) value = opts.initial;
+      else value = roll(createRng(scope.seed).fork(`${scope.procedure}/${full}`));
+      scope.parts[full] = value;
+      return value;
     },
   };
 }
@@ -69,7 +97,8 @@ export function runProcedure(
   const results: Record<string, unknown> = {};
   const rolls: RollRecord[] = [];
   const skipped: GeneratedGraph["skipped"] = [];
-  const ctx = makeContext(inputs, results, rolls, tables);
+  const scope: PartScope = { seed: options.seed, procedure: procedure.id, partSeeds: options.partSeeds ?? {}, pinnedParts: options.pinnedParts ?? {}, parts: {} };
+  const ctx = procedureContext(inputs, results, rolls, tables, scope);
   const pinned = options.pinned ?? {};
   const includeOptional = new Set(options.includeOptional ?? []);
 
@@ -83,6 +112,8 @@ export function runProcedure(
     const faces = custom ? undefined : options.stepDice?.[step.id];
     const enteredRng = faces ? createEnteredRng(faces, { fallback: seeded }) : undefined;
     const stepRng: Rng = custom ?? enteredRng ?? seeded;
+    scope.step = step.id;
+    scope.seed = stepSeed;
 
     if (step.optional && !includeOptional.has(step.id)) {
       skipped.push({ step: step.id, reason: "optional" });
@@ -136,6 +167,8 @@ export function runProcedure(
     }
     results[step.id] = repeat === undefined ? values[0] : values;
   }
+  delete scope.step;
+  scope.seed = options.seed;
 
   const produced = procedure.produce(ctx);
   const graph: GeneratedGraph = {
@@ -150,6 +183,7 @@ export function runProcedure(
   };
   const supplements = module.manifest.supplements;
   if (Object.keys(entered).length > 0) graph.entered = entered;
+  if (Object.keys(scope.parts).length > 0) graph.parts = scope.parts;
   if (supplements && supplements.length > 0) graph.supplements = supplements.map((s) => ({ id: s.id, version: s.version }));
   const display = stepDisplays(procedure, ctx);
   if (display) graph.display = display;

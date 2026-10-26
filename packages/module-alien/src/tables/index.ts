@@ -1,5 +1,6 @@
 /** All Alien module random tables, flat across families. */
 import type { RollTable } from "@campaign-forge/module-sdk";
+import { agendaTables } from "./agendas";
 import { characterTables } from "./character";
 import { creatureTables } from "./creatures";
 import { encounterTables } from "./encounters";
@@ -23,6 +24,7 @@ export const tablesByFamily: Record<string, RollTable[]> = {
   travel: travelTables,
   creatures: creatureTables,
   maps: mapTables,
+  agendas: agendaTables,
 };
 
 export const tables: RollTable[] = Object.values(tablesByFamily).flat();

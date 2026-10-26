@@ -3,7 +3,7 @@ import type { CampaignStore } from "@campaign-forge/core";
 import type { LoadedModule } from "@campaign-forge/module-sdk";
 import { Button, IconButton } from "../../components/ui";
 import { humanize } from "../../lib/format";
-import { characterItem, entityHint, entitySnapshot, isCharacterArray, playerCharacters, schemaTypeOf, type Schema } from "./prefill";
+import { adventureInput, adventurePcs, campaignHint, characterArraysFor, characterItem, entityHint, entitySnapshot, isAdventureInput, isCharacterArray, playerCharacters, schemaTypeOf, type DocText, type Schema } from "./prefill";
 
 export interface InputFormProps {
   properties: Record<string, Schema>;
@@ -11,9 +11,11 @@ export interface InputFormProps {
   onChange: (next: Record<string, unknown>) => void;
   store: CampaignStore;
   module: Pick<LoadedModule, "entityType">;
+  /** Plain text of loaded rich-text docs, for adventure inputs. */
+  docText?: DocText;
 }
 
-export function InputForm({ properties, value, onChange, store, module }: InputFormProps) {
+export function InputForm({ properties, value, onChange, store, module, docText }: InputFormProps) {
   const keys = Object.keys(properties);
   const extra = Object.keys(value).filter((k) => !(k in properties));
   const set = (key: string, v: unknown) => {
@@ -29,6 +31,49 @@ export function InputForm({ properties, value, onChange, store, module }: InputF
         const s = properties[key] as Schema;
         if (isCharacterArray(s)) {
           return <CharacterArrayInput key={key} name={key} schema={s} value={value[key]} onChange={(v) => set(key, v)} store={store} module={module} />;
+        }
+        if (isAdventureInput(s)) {
+          const current = value[key] && typeof value[key] === "object" ? (value[key] as { id?: string }).id : undefined;
+          const options = [...store.list("adventures")].sort((a, b) => a.title.localeCompare(b.title));
+          return (
+            <label key={key} className="app-label prep-form__field">
+              <span>{s.title ?? humanize(key)}</span>
+              <select
+                className="cf-select"
+                aria-label={s.title ?? humanize(key)}
+                value={current ?? ""}
+                onChange={(e) => {
+                  const snap = adventureInput(store, e.target.value || undefined, docText);
+                  const next = { ...value };
+                  if (snap) next[key] = snap;
+                  else delete next[key];
+                  // the adventure's PCs fill the per-character inputs
+                  const pcs = snap ? adventurePcs(store, module, snap.id) : [];
+                  onChange(characterArraysFor(properties, next, pcs.length ? pcs : playerCharacters(store, module)));
+                }}
+                data-testid={`input-${key}`}
+              >
+                <option value="">None</option>
+                {options.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {o.title || "Untitled adventure"}
+                  </option>
+                ))}
+              </select>
+              {s.description && <span className="cf-muted prep-form__help">{s.description}</span>}
+            </label>
+          );
+        }
+        if (campaignHint(s)) {
+          const snap = value[key] as { entities?: unknown[]; relationships?: unknown[] } | undefined;
+          return (
+            <p key={key} className="app-label prep-form__field prep-form__note" data-testid={`input-${key}`}>
+              <span>{s.title ?? humanize(key)}</span>
+              <span className="cf-muted">
+                {snap?.entities?.length ?? 0} entities and {snap?.relationships?.length ?? 0} links, read when the page opened{s.description ? `. ${s.description}` : ""}
+              </span>
+            </p>
+          );
         }
         const hint = entityHint(s);
         if (hint) {

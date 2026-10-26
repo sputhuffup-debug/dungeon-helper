@@ -116,7 +116,7 @@ describe("spotCheck", () => {
   it("picks perFile rows per family and presets per type, and renders one checkbox per pick", () => {
     const perFile = 10;
     const sheet = spotCheck(alienModule, { seed: "render", perFile });
-    const families = new Set(alienModule.tables.map((t) => t.family ?? t.id.split(".")[1]));
+    const families = new Set(alienModule.tables.filter((t) => !t.original).map((t) => t.family ?? t.id.split(".")[1]));
     expect(sheet.families.map((f) => f.family).sort()).toEqual([...families].sort());
     for (const f of sheet.families) {
       expect(f.picks).toHaveLength(Math.min(perFile, f.rows));

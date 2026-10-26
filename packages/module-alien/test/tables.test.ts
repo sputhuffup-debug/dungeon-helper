@@ -10,7 +10,7 @@ import { tables, tablesByFamily } from "../src/tables/index";
 
 const registry = createTableRegistry(tables);
 const ID_CONVENTION = /^alien\.[a-z0-9-]+(\.[a-z0-9-]+)+$/;
-const FAMILIES = ["character", "lifepath", "world", "system", "jobs", "encounters", "shore-leave", "creatures"];
+const FAMILIES = ["character", "lifepath", "world", "system", "jobs", "encounters", "shore-leave", "creatures", "agendas"];
 
 /** Every subset sum of the table's numeric modifiers (each one on or off), as checkModule does. */
 function modifierOffsets(table: RollTable): number[] {
@@ -45,11 +45,15 @@ describe("alien tables: identity", () => {
     }
   });
 
-  it("has a page reference and a name on every table; unverified flags, where kept, are true", () => {
+  it("has a page reference (or is the module's own) and a name on every table; unverified flags, where kept, are true", () => {
     for (const t of tables) {
       expect([true, undefined], t.id).toContain(t.unverified);
       expect(t.name, t.id).toBeTruthy();
-      expect(t.page, `${t.id} page`).toBeDefined();
+      if (t.original) {
+        // module-original tables cite nothing, on the table or its rows
+        expect(t.page, `${t.id} page`).toBeUndefined();
+        for (const r of t.rows) expect(r.page, `${t.id} row ${r.range.join("-")} page`).toBeUndefined();
+      } else expect(t.page, `${t.id} page`).toBeDefined();
       expect(t.rows.length, t.id).toBeGreaterThan(0);
       for (const r of t.rows) expect([true, undefined], `${t.id} row ${r.range.join("-")}`).toContain(r.unverified);
     }

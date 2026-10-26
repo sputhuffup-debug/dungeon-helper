@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  createRng,
   createTableRegistry,
   runProcedure,
   type Effect,
@@ -37,10 +38,11 @@ function fakeCtx(inputs: Record<string, unknown>, results: Record<string, unknow
     tables: registry,
     get: <T,>(id: string) => results[id] as T | undefined,
     data: () => ({ ...inputs, ...results }),
+    part: (_key, roll, opts) => (opts?.initial !== undefined ? opts.initial : roll(createRng("fake"))),
   };
 }
 
-const EXPECTED_IDS = ["alien.world.create", "alien.system.create", "alien.job.create", "alien.lifepath", "alien.encounter.check", "alien.shore-leave", "alien.between-jobs"];
+const EXPECTED_IDS = ["alien.world.create", "alien.system.create", "alien.job.create", "alien.lifepath", "alien.encounter.check", "alien.shore-leave", "alien.between-jobs", "alien.agendas"];
 
 describe("alien procedures: static shape", () => {
   it("exports exactly the procedures from the field doc", () => {
