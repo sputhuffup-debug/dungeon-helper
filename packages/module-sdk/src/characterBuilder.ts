@@ -648,6 +648,8 @@ class Resolver {
           value = g.object ? Object.fromEntries(Object.entries(g.object).map(([k, r]) => [k, this.eval(r, c, at, issues)])) : this.eval(g.value, c, at, issues);
         }
         if (value === undefined && op !== "set") continue;
+        // appending nothing changes nothing: no review line for it
+        if ((op === "append" || op === "remove") && (value === null || value === "" || (Array.isArray(value) && value.length === 0))) continue;
         const next = applyOp(op, current, value, g, field, this.def);
         if (field.startsWith("$")) this.vars = setPath(this.vars, field.slice(1), next);
         else if (field === "core.name") this.name = asText(next);
@@ -1080,7 +1082,7 @@ function stepSummary(res: Resolver, step: CharacterBuilderStep, state: StepState
 // ---------------------------------------------------------------------------
 
 /** Toggle an option of a choice: single-pick choices replace the pick, multi-pick ones add or remove it (up to `max`). */
-export function togglePick(draft: CharacterBuilderDraft, choice: Pick<ChoiceState, "path" | "max">, optionId: string): CharacterBuilderDraft {
+export function togglePick<D extends CharacterBuilderDraft>(draft: D, choice: Pick<ChoiceState, "path" | "max">, optionId: string): D {
   const cur = draft.picks[choice.path] ?? [];
   let next: string[];
   if (choice.max <= 1) next = cur.includes(optionId) && cur.length === 1 ? [] : [optionId];

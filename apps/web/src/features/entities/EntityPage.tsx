@@ -18,6 +18,7 @@ import { SheetTab } from "./SheetTab";
 import { TimelineTab } from "./TimelineTab";
 import { EntityPrepPanels } from "../generate/EntityPrepPanels";
 import { LifecycleStart } from "../table/LifecycleStart";
+import { LevelUpButton } from "../builder/entry";
 import { PayoutButton } from "../ship/PayoutButton";
 import { applyGeneratorEffects } from "../../state/prepActions";
 import { entityAdvances } from "../../state/progressionActions";
@@ -183,6 +184,7 @@ function EntityHeader({ entity, def }: { entity: Entity; def: EntityTypeDef | un
           />
       </div>
       <div className="app-entity__actions">
+        <LevelUpButton entity={entity} />
         <LifecycleStart entity={entity} onPrompts={(raised) => setPrompts((p) => [...p, ...raised])} />
         <PayoutButton entity={entity} />
         <Button variant="ghost" onClick={() => setConfirmDelete(true)}>

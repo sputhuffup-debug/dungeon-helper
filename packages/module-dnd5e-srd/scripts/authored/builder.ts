@@ -973,8 +973,8 @@ export function characterBuilder(input: BuilderInput): CharacterBuilderDef {
   const notKnown = not(isIn(v("option.name"), v("fields.spells", [])));
 
   const skillNames = SKILLS.map((s) => s.id);
-  const skillsList = cat(...skillNames.map((s) => ifs(gte(v(`fields.skills.${s}`, 0), 1), cat(SKILLS.find((x) => x.id === s)!.name, ifs(eq(v(`fields.skills.${s}`, 0), 2), " (expertise)", ""), ", "), "")));
-  const savesList = cat(...ABILITIES.map((a) => ifs(gte(v(`fields.saves.${a.id}-save`, 0), 1), cat(a.name, " "), "")));
+  const skillsList: Rule = { merge: skillNames.map((s) => ifs(gte(v(`fields.skills.${s}`, 0), 1), [cat(SKILLS.find((x) => x.id === s)!.name, ifs(eq(v(`fields.skills.${s}`, 0), 2), " (expertise)", ""))] as unknown as Rule, lit([]))) };
+  const savesList: Rule = { merge: ABILITIES.map((a) => ifs(gte(v(`fields.saves.${a.id}-save`, 0), 1), lit([a.name]), lit([]))) };
 
   // hit points: average (the sheet's suggested maximum) or the dice rolled, plus Dwarven Toughness
   const hpRolled = eq(v("choices.level.sub.hp.id", "average"), "roll");
@@ -1477,7 +1477,7 @@ export function characterBuilder(input: BuilderInput): CharacterBuilderDef {
       { path: "hp.max", value: max(1, hpMax), label: cat("Hit point maximum ", max(1, hpMax), ifs(hpRolled, " (rolled)", " (average)"), ifs(v("vars.hpPerLevel"), " with Dwarven Toughness", "")) },
       { path: "hp.current", value: v("fields.hp.max", 1), hidden: true },
       { path: "ac", value: ac, label: cat("Armor Class ", ac) },
-      { path: "core.summary", value: cat(ifs(v("fields.subrace", ""), v("fields.subrace"), v("fields.race", "")), " ", v("choices.class.item.name", ""), " ", v("fields.level", 1)), hidden: true },
+      { path: "core.summary", value: cat(ifs(and(v("fields.subrace", ""), not(isIn(":", v("fields.subrace", "")))), v("fields.subrace"), v("fields.race", "")), " ", v("choices.class.item.name", ""), " ", v("fields.level", 1)), when: v("choices.class.item"), hidden: true },
     ],
     preview: [
       { label: "Hit points", value: v("fields.hp.max") },
@@ -1496,6 +1496,14 @@ export function characterBuilder(input: BuilderInput): CharacterBuilderDef {
       when: lt(v("fields.level", 1), 20),
       whenText: "Already level 20.",
       steps: [luClass, luHp, luFeatures, luSpells, { kind: "review", id: "review", title: "Review", intro: "What the new level adds.", todo: CB("todo", []) }],
+      finally: [
+        {
+          path: "core.summary",
+          value: cat(ifs(and(v("fields.subrace", ""), not(isIn(":", v("fields.subrace", "")))), v("fields.subrace"), v("fields.race", "")), " ", ifs(v("computed.classSummary", ""), v("computed.classSummary"), cat(v("choices.class.item.name", ""), " ", v("fields.level", 1)))),
+          when: v("choices.class.item"),
+          hidden: true,
+        },
+      ],
     },
   };
 }

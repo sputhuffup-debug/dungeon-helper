@@ -195,3 +195,20 @@ describe("buildDnd5eDemo", async () => {
     expect(signature(json.maps, json.docs)).toEqual(signature(maps, docs));
   });
 });
+
+describe("the 5e demo's unfinished character", async () => {
+  const { resolveCharacterBuilder } = await import("@campaign-forge/module-sdk");
+  const game = await dnd5eDemoModule();
+  const demo = await buildDnd5eDemo({ module: game });
+  it("is a draft the builder resolves with no errors, half-way through", () => {
+    const drafts = Object.values(demo.maps.meta.settings.characterDrafts as Record<string, Parameters<typeof resolveCharacterBuilder>[2] & { step: string }>);
+    expect(drafts).toHaveLength(1);
+    const draft = drafts[0]!;
+    expect(draft.step).toBe("background");
+    const res = resolveCharacterBuilder(game, game.characterBuilders![0]!, draft);
+    expect(res.issues.filter((i) => i.level === "error")).toEqual([]);
+    expect(res.complete).toBe(false);
+    expect((res.fields.abilities as Record<string, number>).intelligence).toBe(17);
+    expect(res.name).toBe("Elowen Brightwater");
+  });
+});

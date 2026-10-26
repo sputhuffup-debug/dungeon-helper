@@ -26348,9 +26348,26 @@
        {
         "if": [
          {
-          "var": [
-           "fields.subrace",
-           ""
+          "and": [
+           {
+            "var": [
+             "fields.subrace",
+             ""
+            ]
+           },
+           {
+            "!": {
+             "in": [
+              ":",
+              {
+               "var": [
+                "fields.subrace",
+                ""
+               ]
+              }
+             ]
+            }
+           }
           ]
          },
          {
@@ -26379,6 +26396,9 @@
         ]
        }
       ]
+     },
+     "when": {
+      "var": "choices.class.item"
      },
      "hidden": true
     }
@@ -26441,7 +26461,7 @@
     {
      "label": "Saving throws",
      "value": {
-      "cat": [
+      "merge": [
        {
         "if": [
          {
@@ -26455,13 +26475,10 @@
            1
           ]
          },
-         {
-          "cat": [
-           "Strength",
-           " "
-          ]
-         },
-         ""
+         [
+          "Strength"
+         ],
+         []
         ]
        },
        {
@@ -26477,13 +26494,10 @@
            1
           ]
          },
-         {
-          "cat": [
-           "Dexterity",
-           " "
-          ]
-         },
-         ""
+         [
+          "Dexterity"
+         ],
+         []
         ]
        },
        {
@@ -26499,13 +26513,10 @@
            1
           ]
          },
-         {
-          "cat": [
-           "Constitution",
-           " "
-          ]
-         },
-         ""
+         [
+          "Constitution"
+         ],
+         []
         ]
        },
        {
@@ -26521,13 +26532,10 @@
            1
           ]
          },
-         {
-          "cat": [
-           "Intelligence",
-           " "
-          ]
-         },
-         ""
+         [
+          "Intelligence"
+         ],
+         []
         ]
        },
        {
@@ -26543,13 +26551,10 @@
            1
           ]
          },
-         {
-          "cat": [
-           "Wisdom",
-           " "
-          ]
-         },
-         ""
+         [
+          "Wisdom"
+         ],
+         []
         ]
        },
        {
@@ -26565,13 +26570,10 @@
            1
           ]
          },
-         {
-          "cat": [
-           "Charisma",
-           " "
-          ]
-         },
-         ""
+         [
+          "Charisma"
+         ],
+         []
         ]
        }
       ]
@@ -26580,7 +26582,7 @@
     {
      "label": "Skills",
      "value": {
-      "cat": [
+      "merge": [
        {
         "if": [
          {
@@ -26594,30 +26596,31 @@
            1
           ]
          },
-         {
-          "cat": [
-           "Acrobatics",
-           {
-            "if": [
-             {
-              "==": [
-               {
-                "var": [
-                 "fields.skills.acrobatics",
-                 0
-                ]
-               },
-               2
-              ]
-             },
-             " (expertise)",
-             ""
-            ]
-           },
-           ", "
-          ]
-         },
-         ""
+         [
+          {
+           "cat": [
+            "Acrobatics",
+            {
+             "if": [
+              {
+               "==": [
+                {
+                 "var": [
+                  "fields.skills.acrobatics",
+                  0
+                 ]
+                },
+                2
+               ]
+              },
+              " (expertise)",
+              ""
+             ]
+            }
+           ]
+          }
+         ],
+         []
         ]
        },
        {
@@ -26633,30 +26636,31 @@
            1
           ]
          },
-         {
-          "cat": [
-           "Animal Handling",
-           {
-            "if": [
-             {
-              "==": [
-               {
-                "var": [
-                 "fields.skills.animal-handling",
-                 0
-                ]
-               },
-               2
-              ]
-             },
-             " (expertise)",
-             ""
-            ]
-           },
-           ", "
-          ]
-         },
-         ""
+         [
+          {
+           "cat": [
+            "Animal Handling",
+            {
+             "if": [
+              {
+               "==": [
+                {
+                 "var": [
+                  "fields.skills.animal-handling",
+                  0
+                 ]
+                },
+                2
+               ]
+              },
+              " (expertise)",
+              ""
+             ]
+            }
+           ]
+          }
+         ],
+         []
         ]
        },
        {
@@ -26672,30 +26676,31 @@
            1
           ]
          },
-         {
-          "cat": [
-           "Arcana",
-           {
-            "if": [
-             {
-              "==": [
-               {
-                "var": [
-                 "fields.skills.arcana",
-                 0
-                ]
-               },
-               2
-              ]
-             },
-             " (expertise)",
-             ""
-            ]
-           },
-           ", "
-          ]
-         },
-         ""
+         [
+          {
+           "cat": [
+            "Arcana",
+            {
+             "if": [
+              {
+               "==": [
+                {
+                 "var": [
+                  "fields.skills.arcana",
+                  0
+                 ]
+                },
+                2
+               ]
+              },
+              " (expertise)",
+              ""
+             ]
+            }
+           ]
+          }
+         ],
+         []
         ]
        },
        {
@@ -26711,30 +26716,31 @@
            1
           ]
          },
-         {
-          "cat": [
-           "Athletics",
-           {
-            "if": [
-             {
-              "==": [
-               {
-                "var": [
-                 "fields.skills.athletics",
-                 0
-                ]
-               },
-               2
-              ]
-             },
-             " (expertise)",
-             ""
-            ]
-           },
-           ", "
-          ]
-         },
-         ""
+         [
+          {
+           "cat": [
+            "Athletics",
+            {
+             "if": [
+              {
+               "==": [
+                {
+                 "var": [
+                  "fields.skills.athletics",
+                  0
+                 ]
+                },
+                2
+               ]
+              },
+              " (expertise)",
+              ""
+             ]
+            }
+           ]
+          }
+         ],
+         []
         ]
        },
        {
@@ -26750,30 +26756,31 @@
            1
           ]
          },
-         {
-          "cat": [
-           "Deception",
-           {
-            "if": [
-             {
-              "==": [
-               {
-                "var": [
-                 "fields.skills.deception",
-                 0
-                ]
-               },
-               2
-              ]
-             },
-             " (expertise)",
-             ""
-            ]
-           },
-           ", "
-          ]
-         },
-         ""
+         [
+          {
+           "cat": [
+            "Deception",
+            {
+             "if": [
+              {
+               "==": [
+                {
+                 "var": [
+                  "fields.skills.deception",
+                  0
+                 ]
+                },
+                2
+               ]
+              },
+              " (expertise)",
+              ""
+             ]
+            }
+           ]
+          }
+         ],
+         []
         ]
        },
        {
@@ -26789,30 +26796,31 @@
            1
           ]
          },
-         {
-          "cat": [
-           "History",
-           {
-            "if": [
-             {
-              "==": [
-               {
-                "var": [
-                 "fields.skills.history",
-                 0
-                ]
-               },
-               2
-              ]
-             },
-             " (expertise)",
-             ""
-            ]
-           },
-           ", "
-          ]
-         },
-         ""
+         [
+          {
+           "cat": [
+            "History",
+            {
+             "if": [
+              {
+               "==": [
+                {
+                 "var": [
+                  "fields.skills.history",
+                  0
+                 ]
+                },
+                2
+               ]
+              },
+              " (expertise)",
+              ""
+             ]
+            }
+           ]
+          }
+         ],
+         []
         ]
        },
        {
@@ -26828,30 +26836,31 @@
            1
           ]
          },
-         {
-          "cat": [
-           "Insight",
-           {
-            "if": [
-             {
-              "==": [
-               {
-                "var": [
-                 "fields.skills.insight",
-                 0
-                ]
-               },
-               2
-              ]
-             },
-             " (expertise)",
-             ""
-            ]
-           },
-           ", "
-          ]
-         },
-         ""
+         [
+          {
+           "cat": [
+            "Insight",
+            {
+             "if": [
+              {
+               "==": [
+                {
+                 "var": [
+                  "fields.skills.insight",
+                  0
+                 ]
+                },
+                2
+               ]
+              },
+              " (expertise)",
+              ""
+             ]
+            }
+           ]
+          }
+         ],
+         []
         ]
        },
        {
@@ -26867,30 +26876,31 @@
            1
           ]
          },
-         {
-          "cat": [
-           "Intimidation",
-           {
-            "if": [
-             {
-              "==": [
-               {
-                "var": [
-                 "fields.skills.intimidation",
-                 0
-                ]
-               },
-               2
-              ]
-             },
-             " (expertise)",
-             ""
-            ]
-           },
-           ", "
-          ]
-         },
-         ""
+         [
+          {
+           "cat": [
+            "Intimidation",
+            {
+             "if": [
+              {
+               "==": [
+                {
+                 "var": [
+                  "fields.skills.intimidation",
+                  0
+                 ]
+                },
+                2
+               ]
+              },
+              " (expertise)",
+              ""
+             ]
+            }
+           ]
+          }
+         ],
+         []
         ]
        },
        {
@@ -26906,30 +26916,31 @@
            1
           ]
          },
-         {
-          "cat": [
-           "Investigation",
-           {
-            "if": [
-             {
-              "==": [
-               {
-                "var": [
-                 "fields.skills.investigation",
-                 0
-                ]
-               },
-               2
-              ]
-             },
-             " (expertise)",
-             ""
-            ]
-           },
-           ", "
-          ]
-         },
-         ""
+         [
+          {
+           "cat": [
+            "Investigation",
+            {
+             "if": [
+              {
+               "==": [
+                {
+                 "var": [
+                  "fields.skills.investigation",
+                  0
+                 ]
+                },
+                2
+               ]
+              },
+              " (expertise)",
+              ""
+             ]
+            }
+           ]
+          }
+         ],
+         []
         ]
        },
        {
@@ -26945,30 +26956,31 @@
            1
           ]
          },
-         {
-          "cat": [
-           "Medicine",
-           {
-            "if": [
-             {
-              "==": [
-               {
-                "var": [
-                 "fields.skills.medicine",
-                 0
-                ]
-               },
-               2
-              ]
-             },
-             " (expertise)",
-             ""
-            ]
-           },
-           ", "
-          ]
-         },
-         ""
+         [
+          {
+           "cat": [
+            "Medicine",
+            {
+             "if": [
+              {
+               "==": [
+                {
+                 "var": [
+                  "fields.skills.medicine",
+                  0
+                 ]
+                },
+                2
+               ]
+              },
+              " (expertise)",
+              ""
+             ]
+            }
+           ]
+          }
+         ],
+         []
         ]
        },
        {
@@ -26984,30 +26996,31 @@
            1
           ]
          },
-         {
-          "cat": [
-           "Nature",
-           {
-            "if": [
-             {
-              "==": [
-               {
-                "var": [
-                 "fields.skills.nature",
-                 0
-                ]
-               },
-               2
-              ]
-             },
-             " (expertise)",
-             ""
-            ]
-           },
-           ", "
-          ]
-         },
-         ""
+         [
+          {
+           "cat": [
+            "Nature",
+            {
+             "if": [
+              {
+               "==": [
+                {
+                 "var": [
+                  "fields.skills.nature",
+                  0
+                 ]
+                },
+                2
+               ]
+              },
+              " (expertise)",
+              ""
+             ]
+            }
+           ]
+          }
+         ],
+         []
         ]
        },
        {
@@ -27023,30 +27036,31 @@
            1
           ]
          },
-         {
-          "cat": [
-           "Perception",
-           {
-            "if": [
-             {
-              "==": [
-               {
-                "var": [
-                 "fields.skills.perception",
-                 0
-                ]
-               },
-               2
-              ]
-             },
-             " (expertise)",
-             ""
-            ]
-           },
-           ", "
-          ]
-         },
-         ""
+         [
+          {
+           "cat": [
+            "Perception",
+            {
+             "if": [
+              {
+               "==": [
+                {
+                 "var": [
+                  "fields.skills.perception",
+                  0
+                 ]
+                },
+                2
+               ]
+              },
+              " (expertise)",
+              ""
+             ]
+            }
+           ]
+          }
+         ],
+         []
         ]
        },
        {
@@ -27062,30 +27076,31 @@
            1
           ]
          },
-         {
-          "cat": [
-           "Performance",
-           {
-            "if": [
-             {
-              "==": [
-               {
-                "var": [
-                 "fields.skills.performance",
-                 0
-                ]
-               },
-               2
-              ]
-             },
-             " (expertise)",
-             ""
-            ]
-           },
-           ", "
-          ]
-         },
-         ""
+         [
+          {
+           "cat": [
+            "Performance",
+            {
+             "if": [
+              {
+               "==": [
+                {
+                 "var": [
+                  "fields.skills.performance",
+                  0
+                 ]
+                },
+                2
+               ]
+              },
+              " (expertise)",
+              ""
+             ]
+            }
+           ]
+          }
+         ],
+         []
         ]
        },
        {
@@ -27101,30 +27116,31 @@
            1
           ]
          },
-         {
-          "cat": [
-           "Persuasion",
-           {
-            "if": [
-             {
-              "==": [
-               {
-                "var": [
-                 "fields.skills.persuasion",
-                 0
-                ]
-               },
-               2
-              ]
-             },
-             " (expertise)",
-             ""
-            ]
-           },
-           ", "
-          ]
-         },
-         ""
+         [
+          {
+           "cat": [
+            "Persuasion",
+            {
+             "if": [
+              {
+               "==": [
+                {
+                 "var": [
+                  "fields.skills.persuasion",
+                  0
+                 ]
+                },
+                2
+               ]
+              },
+              " (expertise)",
+              ""
+             ]
+            }
+           ]
+          }
+         ],
+         []
         ]
        },
        {
@@ -27140,30 +27156,31 @@
            1
           ]
          },
-         {
-          "cat": [
-           "Religion",
-           {
-            "if": [
-             {
-              "==": [
-               {
-                "var": [
-                 "fields.skills.religion",
-                 0
-                ]
-               },
-               2
-              ]
-             },
-             " (expertise)",
-             ""
-            ]
-           },
-           ", "
-          ]
-         },
-         ""
+         [
+          {
+           "cat": [
+            "Religion",
+            {
+             "if": [
+              {
+               "==": [
+                {
+                 "var": [
+                  "fields.skills.religion",
+                  0
+                 ]
+                },
+                2
+               ]
+              },
+              " (expertise)",
+              ""
+             ]
+            }
+           ]
+          }
+         ],
+         []
         ]
        },
        {
@@ -27179,30 +27196,31 @@
            1
           ]
          },
-         {
-          "cat": [
-           "Sleight of Hand",
-           {
-            "if": [
-             {
-              "==": [
-               {
-                "var": [
-                 "fields.skills.sleight-of-hand",
-                 0
-                ]
-               },
-               2
-              ]
-             },
-             " (expertise)",
-             ""
-            ]
-           },
-           ", "
-          ]
-         },
-         ""
+         [
+          {
+           "cat": [
+            "Sleight of Hand",
+            {
+             "if": [
+              {
+               "==": [
+                {
+                 "var": [
+                  "fields.skills.sleight-of-hand",
+                  0
+                 ]
+                },
+                2
+               ]
+              },
+              " (expertise)",
+              ""
+             ]
+            }
+           ]
+          }
+         ],
+         []
         ]
        },
        {
@@ -27218,30 +27236,31 @@
            1
           ]
          },
-         {
-          "cat": [
-           "Stealth",
-           {
-            "if": [
-             {
-              "==": [
-               {
-                "var": [
-                 "fields.skills.stealth",
-                 0
-                ]
-               },
-               2
-              ]
-             },
-             " (expertise)",
-             ""
-            ]
-           },
-           ", "
-          ]
-         },
-         ""
+         [
+          {
+           "cat": [
+            "Stealth",
+            {
+             "if": [
+              {
+               "==": [
+                {
+                 "var": [
+                  "fields.skills.stealth",
+                  0
+                 ]
+                },
+                2
+               ]
+              },
+              " (expertise)",
+              ""
+             ]
+            }
+           ]
+          }
+         ],
+         []
         ]
        },
        {
@@ -27257,30 +27276,31 @@
            1
           ]
          },
-         {
-          "cat": [
-           "Survival",
-           {
-            "if": [
-             {
-              "==": [
-               {
-                "var": [
-                 "fields.skills.survival",
-                 0
-                ]
-               },
-               2
-              ]
-             },
-             " (expertise)",
-             ""
-            ]
-           },
-           ", "
-          ]
-         },
-         ""
+         [
+          {
+           "cat": [
+            "Survival",
+            {
+             "if": [
+              {
+               "==": [
+                {
+                 "var": [
+                  "fields.skills.survival",
+                  0
+                 ]
+                },
+                2
+               ]
+              },
+              " (expertise)",
+              ""
+             ]
+            }
+           ]
+          }
+         ],
+         []
         ]
        }
       ]
@@ -32856,6 +32876,86 @@
         []
        ]
       }
+     }
+    ],
+    "finally": [
+     {
+      "path": "core.summary",
+      "value": {
+       "cat": [
+        {
+         "if": [
+          {
+           "and": [
+            {
+             "var": [
+              "fields.subrace",
+              ""
+             ]
+            },
+            {
+             "!": {
+              "in": [
+               ":",
+               {
+                "var": [
+                 "fields.subrace",
+                 ""
+                ]
+               }
+              ]
+             }
+            }
+           ]
+          },
+          {
+           "var": "fields.subrace"
+          },
+          {
+           "var": [
+            "fields.race",
+            ""
+           ]
+          }
+         ]
+        },
+        " ",
+        {
+         "if": [
+          {
+           "var": [
+            "computed.classSummary",
+            ""
+           ]
+          },
+          {
+           "var": "computed.classSummary"
+          },
+          {
+           "cat": [
+            {
+             "var": [
+              "choices.class.item.name",
+              ""
+             ]
+            },
+            " ",
+            {
+             "var": [
+              "fields.level",
+              1
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      "when": {
+       "var": "choices.class.item"
+      },
+      "hidden": true
      }
     ]
    }
