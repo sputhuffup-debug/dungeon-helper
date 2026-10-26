@@ -11,6 +11,7 @@ import { visibilityLabel, visibilityTone } from "../../components/VisibilitySele
 import { Badge, EmptyState, Tabs } from "../../components/ui";
 import { useCampaign, useList, useMapVersion } from "../../state/hooks";
 import { summaryLine } from "../entities/summary";
+import { BuildCharacterButton, DraftList, useCharacterBuilder } from "../builder/entry";
 import { RelationshipGraph } from "./RelationshipGraph";
 
 const PLAYER: Viewer = { role: "player" };
@@ -93,7 +94,15 @@ export function AtlasPage() {
       .map((g) => ({
       id: g.id,
       label: `${g.label} (${groupEntities(g).length})`,
-      content: <EntityTable entities={groupEntities(g)} typeById={typeById} kind={g.kind} pc={g.pc} />,
+      content:
+        g.id === "pcs" ? (
+          <>
+            <DraftList />
+            <EntityTable entities={groupEntities(g)} typeById={typeById} kind={g.kind} pc={g.pc} />
+          </>
+        ) : (
+          <EntityTable entities={groupEntities(g)} typeById={typeById} kind={g.kind} pc={g.pc} />
+        ),
     })),
     {
       id: "graph",
@@ -102,6 +111,7 @@ export function AtlasPage() {
     },
   ];
 
+  const pcBuilder = useCharacterBuilder();
   const typesForTab = (() => {
     const g = groups.find((x) => x.id === tab);
     if (g) return types.filter((t) => t.kind === g.kind);
@@ -118,7 +128,8 @@ export function AtlasPage() {
             <input type="checkbox" checked={asPlayer} onChange={(e) => setAsPlayer(e.target.checked)} data-testid="preview-as-player" />
             Preview as player
           </label>
-          <Link to="/c/$campaignId/entities/new" params={{ campaignId: ctx.campaignId }} search={typesForTab.length === 1 && typesForTab[0] ? { type: typesForTab[0].id, ...(tab === "pcs" ? { pc: 1 as const } : {}) } : {}} className="cf-btn cf-btn--primary">
+          {tab === "pcs" && pcBuilder && <BuildCharacterButton entityType={pcBuilder.entityType} />}
+          <Link to="/c/$campaignId/entities/new" params={{ campaignId: ctx.campaignId }} search={typesForTab.length === 1 && typesForTab[0] ? { type: typesForTab[0].id, ...(tab === "pcs" ? { pc: 1 as const } : {}) } : {}} className={`cf-btn${tab === "pcs" && pcBuilder ? "" : " cf-btn--primary"}`}>
             + New
           </Link>
         </div>

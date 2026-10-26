@@ -4,12 +4,13 @@
 
 The `dnd5e-srd` module (`packages/module-dnd5e-srd`), a built-in JSON data pack built from the openly licensed System Reference Documents 5.1 and 5.2.
 
-Demo: *Thornwick Crossing*, a one-shot with four level 3 characters (SRD 5.1), SRD monsters and a goblin ambush ready for table mode, plus an original homebrew supplement.
+Demo: *Thornwick Crossing*, a one-shot with four level 3 characters (SRD 5.1), SRD monsters and a goblin ambush ready for table mode, an original homebrew supplement, and a fifth character half-way through the builder.
 
 ## What it adds
 
 - **The whole SRD 5.1.** 334 monster stat blocks as presets, 319 spells, magic items, equipment, classes and races as reference lists, rule cards cited by section, and the SRD's dice tables.
 - **SRD 5.2 character options.** 4 backgrounds (ability scores, origin feat, skills, tool, equipment), 9 species with 24 lineages and their traits, 12 subclasses with their features and 17 feats, each badged *2024* and *SRD 5.2*, named "Elf (2024)" where SRD 5.1 has an option of the same name.
+- **Character builder.** *Build a character* (Atlas PCs tab, or *New*) walks through edition (SRD 5.1 rules, SRD 5.2 rules, or mixed), species or race with its subrace or lineage, class, background (with SRD 5.2 rules its +2/+1 or +1/+1/+1 and origin feat), ability scores (standard array, 27-point buy, 4d6 drop lowest rolled in the app or typed from the table, or typed scores), starting level 1 to 20 (subclass, ability score improvements or feats with their prerequisites, fighting styles and other class options, expertise, average or rolled hit points), spells, equipment packages and details. Options show their source and edition badges (supplement ones too) and their full text; a side summary keeps scores, hit points, AC, saves, skills and slots up to date; the review lists every grant with its source ("+2 Intelligence from background Sage") and what is left to do by hand. Drafts are kept in the campaign until finished. *Level up* on a character's sheet adds a class level, multiclassing included: prerequisites, proficiencies, hit points, new features, subclass, spells, and spell slots on the Multiclass Spellcaster table.
 - **Character sheets.** Ability modifiers, proficiency bonus, saves, skills (with expertise), passive scores, initiative and spellcasting numbers are all derived. Race, subrace, background and subclass suggest options from both editions (and any supplement) and show a picked background's ability scores and feat.
 - **d20 rolls.** From a sheet or the table, with advantage, disadvantage and a DC; the Hints tab ranks the party by bonus for every check and save.
 - **At the table.** Initiative, hit point, death save, spell slot, exhaustion and other trackers.
@@ -40,6 +41,10 @@ Demo: *Thornwick Crossing*, a one-shot with four level 3 characters (SRD 5.1), S
 **Fifth edition hints**: each ability check, skill and saving throw with its story cues, and the party ranked by their d20 bonus (ability, proficiency and expertise), best and worst marked.
 
 ![Fifth edition hints](../screenshots/dnd5e-hints.png)
+
+**Character builder**: the demo's half-built SRD 5.2 character at the background step: the Sage picked (badged *2024* and *SRD 5.2*, beside the supplement's Ferrywright) with its full text and its "+2 and +1" choice, the stepper with each step's picks and status, and the side summary with the scores after the Sage's increases, hit points, AC, saves, skills and spell slots.
+
+![Fifth edition character builder, background step with the side summary](../screenshots/character-builder.png)
 
 **SRD 5.1 and 5.2 options**: the SRD 5.1 Acolyte, the SRD 5.2 backgrounds with their ability scores and origin feats (badged *2024* and *SRD 5.2*, with "(2024)" where a name repeats) and the demo supplement's Ferrywright in one list.
 

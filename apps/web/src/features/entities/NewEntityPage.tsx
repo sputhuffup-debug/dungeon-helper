@@ -12,6 +12,7 @@ import { Badge, Button, Card, PageRef, SheetRenderer } from "../../components/ui
 import { humanize } from "../../lib/format";
 import { createEntity, createEntityFromPreset } from "../../state/actions";
 import { useCampaign, useMeta, useSheetSources } from "../../state/hooks";
+import { BuildCharacterButton, useCharacterBuilder } from "../builder/entry";
 
 /** Values the form starts with for the creation fields: `isPC` from the PCs tab, when the type has it. */
 function initialDraft(def: EntityTypeDef | undefined, pc: number | undefined): Record<string, unknown> {
@@ -33,6 +34,7 @@ export function NewEntityPage() {
   const [query, setQuery] = useState("");
 
   const def = ctx.module.entityType(typeId);
+  const builder = useCharacterBuilder(typeId);
   const presets = useMemo(() => ctx.module.presetsFor(typeId), [ctx.module, typeId]);
   const preset = presetId ? ctx.module.preset(presetId) : undefined;
   const sources = useSheetSources();
@@ -119,6 +121,15 @@ export function NewEntityPage() {
           )}
         </div>
 
+        {builder && (
+          <div className="cb-callout" data-testid="builder-callout">
+            <div>
+              <strong>{builder.name}</strong>
+              <p className="cf-muted">{builder.description ?? "Step by step: every choice the rules ask for, with its source."}</p>
+            </div>
+            <BuildCharacterButton entityType={typeId} label="Build step by step" />
+          </div>
+        )}
         <fieldset className="app-fieldset">
           <legend className="app-label">Start from</legend>
           <label className={`app-preset${presetId === "" ? " is-selected" : ""}`}>

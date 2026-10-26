@@ -2559,6 +2559,289 @@ export interface ProgressionDef {
 }
 
 // ---------------------------------------------------------------------------
+// Character builder: a step-by-step wizard that writes a character's fields
+// ---------------------------------------------------------------------------
+
+/**
+ * How a grant changes a field:
+ * - `set`: write the value;
+ * - `add`: add a number to the number there (0 when unset);
+ * - `append`: add to a list (a value that is a list adds each element; equal
+ *   elements are not added twice), or to a text field (joined with `separator`);
+ * - `remove`: take elements out of a list;
+ * - `max` / `min`: keep the larger / smaller of the number there and the value;
+ * - `upsert`: in a list of objects, replace the object whose `key` equals the
+ *   value's (merging their keys), or add the value when there is none; the
+ *   object it replaces is `current` in the value's context.
+ */
+export type CharacterBuilderGrantOp = "set" | "add" | "append" | "remove" | "max" | "min" | "upsert";
+
+/**
+ * What a choice writes into the character. Every rule is JSONLogic over the
+ * builder context (see `CharacterBuilderContext`). A path starting with `$`
+ * is a builder variable (`vars.<name>` to later rules), never stored; `core.name`
+ * and `core.summary` are the new entity's name and one-line summary.
+ */
+export interface CharacterBuilderGrant {
+  /** Field path, e.g. "abilities.dexterity" or "languages"; JSONLogic for a path worked out from the choice (e.g. `{ "cat": ["skills.", { "var": "item.id" }] }`). */
+  path: string | JsonLogicRule;
+  /** Default "set". */
+  op?: CharacterBuilderGrantOp;
+  /** The value (JSONLogic; a literal is itself). */
+  value?: JsonLogicRule;
+  /** Build an object value instead, each key JSONLogic (e.g. a feature `{ name, desc }`). */
+  object?: Record<string, JsonLogicRule>;
+  /**
+   * Apply the grant once per element (`entry` in the context): a JSONLogic
+   * list, or the items of a reference list for which `where` holds.
+   */
+  each?: JsonLogicRule | { list: string; where?: JsonLogicRule };
+  /** Only when this holds (evaluated per element with `each`). */
+  when?: JsonLogicRule;
+  /** `upsert`: the key list objects are matched on. */
+  key?: string;
+  /** `append` to a text field: what joins the parts (default ", "). */
+  separator?: string;
+  /** How the review page names the grant ("+2 Dexterity"); text or JSONLogic. Default: worked out from the field and value. */
+  label?: JsonLogicRule;
+  /** Not shown on the review page (bookkeeping such as a builder variable). */
+  hidden?: boolean;
+}
+
+/** A fixed option of a choice. Extra keys are data for the choice's rules (`item.<key>`). */
+export interface CharacterBuilderOption {
+  id: string;
+  name: string;
+  summary?: string;
+  /** Markdown shown in the details panel. */
+  description?: string;
+  /** The option's value in `choices.<id>.value` (default its id). */
+  value?: unknown;
+  /**
+   * Picking it means rolling these dice (JSONLogic giving a dice expression,
+   * e.g. "1d8"): the app rolls or takes dice entered from the table, and the
+   * total is `item.rolled` to the choice's rules.
+   */
+  roll?: JsonLogicRule;
+  page?: PageRef;
+  cite?: CiteRef;
+  original?: boolean;
+  [key: string]: unknown;
+}
+
+/**
+ * Where a choice's options come from: the items of a reference list
+ * (supplement items included) that `where` keeps; fixed `options`; `values`
+ * worked out from earlier choices (ids of `list` items, plain strings, or
+ * objects with an `id` and `name`); a `range` of whole numbers; or presets.
+ * `where` (and the choice's `available`) sees the candidate as `option`.
+ */
+export type CharacterBuilderSource =
+  | { list: string; where?: JsonLogicRule }
+  | { options: CharacterBuilderOption[] }
+  | { values: JsonLogicRule; list?: string }
+  | { range: { min: number | JsonLogicRule; max: number | JsonLogicRule; label?: string } }
+  | { presets: { entityType?: string; tags?: string[] }; where?: JsonLogicRule };
+
+/** A check on a step or choice: `rule` true means fine; otherwise `message` (text or JSONLogic) is shown. */
+export interface CharacterBuilderCheck {
+  rule: JsonLogicRule;
+  message: JsonLogicRule;
+  /** "error" (default) keeps the character from being finished; "warning" is shown only. */
+  level?: "error" | "warning";
+}
+
+/** Picking from options, with what each pick writes and the choices a pick brings with it. */
+export interface CharacterBuilderChoice {
+  /**
+   * Options; see `CharacterBuilderSource`. A step without one has nothing to
+   * pick itself: its grants apply once and it asks only its sub-choices (one
+   * equipment choice per line of the class's list, say).
+   */
+  source?: CharacterBuilderSource;
+  /** How many to pick: at least `min` and at most `max` (numbers or JSONLogic; default 1 and 1). */
+  min?: number | JsonLogicRule;
+  max?: number | JsonLogicRule;
+  /** Options for which this is false are shown but cannot be picked; `availableText` says why (JSONLogic with `option`). */
+  available?: JsonLogicRule;
+  availableText?: JsonLogicRule;
+  /** What each pick writes (`item` is the pick, `picks` every pick of the choice). */
+  grants?: CharacterBuilderGrant[];
+  /** Choices a pick brings with it (a background's ability scores, a class's skills). */
+  subChoices?: CharacterBuilderSubChoice[];
+  /** How a pick is named as the source of its grants on the review page, e.g. "background" gives "background Criminal (2024)". */
+  noun?: string;
+  /** The same as JSONLogic with `item` (the pick), when a word is not enough. Without either, a sub-choice's picks take the source of the pick they belong to. */
+  sourceLabel?: JsonLogicRule;
+  validate?: CharacterBuilderCheck[];
+  /** Item keys shown on the option cards beside the summary (e.g. ["hitDie", "savingThrows"]). */
+  columns?: string[];
+}
+
+/**
+ * A choice brought by a pick of its parent choice. With `each` (a JSONLogic
+ * list) there is one such choice per element, the element being `entry`
+ * (e.g. one equipment choice per "(a) or (b)" line of a class).
+ */
+export interface CharacterBuilderSubChoice extends CharacterBuilderChoice {
+  id: string;
+  source: CharacterBuilderSource;
+  label: JsonLogicRule;
+  /** Only when this holds (e.g. the starting level has reached the subclass level). */
+  when?: JsonLogicRule;
+  each?: JsonLogicRule;
+  /** One line of help under the label. */
+  help?: JsonLogicRule;
+}
+
+interface CharacterBuilderStepBase {
+  /** Unique within the builder; earlier rules read its picks as `choices.<id>`. */
+  id: string;
+  title: string;
+  /** One line under the step title: what the step is for. */
+  intro?: string;
+  /** Short tips for the side panel, in the module's own words. */
+  guide?: string[];
+  /** The step's line in the stepper and the summary (text or JSONLogic). */
+  summary?: JsonLogicRule;
+  /** Skip the step unless this holds. */
+  when?: JsonLogicRule;
+  validate?: CharacterBuilderCheck[];
+  page?: PageRef;
+  cite?: CiteRef;
+  original?: boolean;
+}
+
+export interface CharacterBuilderChoiceStep extends CharacterBuilderStepBase, CharacterBuilderChoice {
+  kind: "choice";
+}
+
+/** Ways to get the base ability scores. Costs and arrays are data, cited like any rule. */
+export type CharacterBuilderAbilityMethod =
+  | { id: string; kind: "array"; name: string; values: number[]; summary?: string; page?: PageRef; cite?: CiteRef; original?: boolean }
+  | {
+      id: string;
+      kind: "pointBuy";
+      name: string;
+      budget: number;
+      /** Score -> points it costs (every score from `min` to `max`). */
+      costs: Record<string, number>;
+      min: number;
+      max: number;
+      summary?: string;
+      page?: PageRef;
+      cite?: CiteRef;
+      original?: boolean;
+    }
+  | {
+      id: string;
+      kind: "roll";
+      name: string;
+      /** Dice rolled per score, e.g. "4d6". */
+      dice: string;
+      /** Keep this many of the highest dice (e.g. 3: drop the lowest of 4d6). Default all. */
+      keep?: number;
+      /** Scores rolled (default one per ability), then assigned to abilities. */
+      count?: number;
+      summary?: string;
+      page?: PageRef;
+      cite?: CiteRef;
+      original?: boolean;
+    }
+  | { id: string; kind: "manual"; name: string; min: number; max: number; summary?: string; page?: PageRef; cite?: CiteRef; original?: boolean };
+
+/**
+ * The base ability scores. They are written before any grant, wherever the
+ * step sits, so bonuses from steps before and after it add to them; the
+ * step shows base, bonuses and the final score with its modifier.
+ */
+export interface CharacterBuilderAbilityStep extends CharacterBuilderStepBase {
+  kind: "abilities";
+  /** Object field holding the scores, e.g. "abilities". */
+  path: string;
+  abilities: Array<{ id: string; name: string; abbr?: string }>;
+  methods: CharacterBuilderAbilityMethod[];
+  /** The modifier shown beside a score: JSONLogic over `{ score }`. */
+  modifier?: JsonLogicRule;
+  /** Highest final score allowed (a warning past it). */
+  max?: number;
+}
+
+/** Fields typed in directly (a name, an alignment, personality). `core.name` is the entity's name. */
+export interface CharacterBuilderFieldsStep extends CharacterBuilderStepBase {
+  kind: "fields";
+  fields: Array<{ path: string; label?: string; widget?: "text" | "textarea" | "number" | "select"; options?: string[] | { ref: string }; required?: boolean; help?: string }>;
+}
+
+/** The last page: the sheet preview and every grant with its source. */
+export interface CharacterBuilderReviewStep extends CharacterBuilderStepBase {
+  kind: "review";
+  /** What the builder leaves to the player, listed under "Still to do" (JSONLogic giving a list of text). */
+  todo?: JsonLogicRule;
+}
+
+export type CharacterBuilderStep = CharacterBuilderChoiceStep | CharacterBuilderAbilityStep | CharacterBuilderFieldsStep | CharacterBuilderReviewStep;
+
+/** Steps run against an existing character (adding a level), and what they write after. */
+export interface CharacterBuilderLevelUp {
+  title?: string;
+  /** Which characters can use it (JSONLogic over `{ fields, computed }`), e.g. below level 20. */
+  when?: JsonLogicRule;
+  /** Shown when `when` is false. */
+  whenText?: string;
+  steps: CharacterBuilderStep[];
+  finally?: CharacterBuilderGrant[];
+}
+
+/**
+ * A step-by-step character builder for one entity type (the player
+ * character). Each step offers choices whose picks write the character's
+ * stored fields through grants; computed values stay computed. Rules are
+ * JSONLogic, so data packs can declare one. See docs/modules/character-builder.md.
+ *
+ * Every rule sees the builder context:
+ * - `choices`: each choice's picks by step id (sub-choices under `.sub.<id>`):
+ *   `{ id, ids, item, items, value, rolled, sub }`, for every step, also later
+ *   ones (the builder resolves until the picks settle);
+ * - `item`: the pick a grant or sub-choice belongs to (`item.builder` holds the
+ *   builder's `itemData` for it); `parent`: the pick of the parent choice;
+ *   `picks`: every pick of the choice; `entry`: the element of an `each`;
+ *   `option`: the candidate a source's `where` or a choice's `available` looks at;
+ * - `fields`: the character as the grants so far left it; `computed`: its
+ *   computed values; `base`: the fields before the builder ran (the default
+ *   fields, or the character being levelled up); `vars`: builder variables;
+ *   `data`: the builder's `data`; `mode`: "create" or "levelUp".
+ */
+export interface CharacterBuilderDef {
+  id: string;
+  /** The entity type it builds. */
+  entityType: string;
+  name: string;
+  description?: string;
+  page?: PageRef;
+  cite?: CiteRef;
+  original?: boolean;
+  /** Fields set before any grant (e.g. `{ isPC: true }`). */
+  defaults?: Record<string, unknown>;
+  /** Lookup tables for the rules (`data`). */
+  data?: Record<string, unknown>;
+  /**
+   * Structured data the builder attaches to reference list items as
+   * `item.builder` (list id -> item id -> data), for lists whose items carry
+   * their rules as text. An item's own `builder` key wins (a supplement can
+   * give its items one).
+   */
+  itemData?: Record<string, Record<string, Record<string, unknown>>>;
+  steps: CharacterBuilderStep[];
+  /** Grants applied after every step (e.g. hit points from the final scores). */
+  finally?: CharacterBuilderGrant[];
+  /** Values the side summary shows while building (JSONLogic over the context), e.g. hit points and AC. */
+  preview?: Array<{ label: string; value: JsonLogicRule }>;
+  /** Adding a level to a character the builder (or the GM) made. */
+  levelUp?: CharacterBuilderLevelUp;
+}
+
+// ---------------------------------------------------------------------------
 // The module
 // ---------------------------------------------------------------------------
 
@@ -2602,6 +2885,8 @@ export interface GameModule {
   progression?: ProgressionDef;
   /** A printable GM screen built from the module's own content. Packs can declare it. */
   gmScreen?: GmScreenDef;
+  /** Step-by-step character builders (one per entity type) and their level-up steps. Packs can declare them. */
+  characterBuilders?: CharacterBuilderDef[];
   /** Upgrade stored entity fields from an older module version. */
   migrations?: Array<{ from: string; to: string; migrate: (entity: { type: string; fields: Record<string, unknown> }) => Record<string, unknown> }>;
 }

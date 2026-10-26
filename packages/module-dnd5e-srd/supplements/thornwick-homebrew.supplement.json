@@ -29,7 +29,15 @@
         "speed": "25 ft.",
         "traits": "Rootsense, Soak It Up, Slow to Rouse",
         "languages": "Common, one language of your choice",
-        "description": "Mossborn are found where rivers flood and drain each year. They remember the banks they grew on, keep long and careful grudges against anyone who poisons water, and are rarely in a hurry.\n\n**Size.** Mossborn stand about 3 feet tall. Your size is Small.\n\n**Speed.** Your base walking speed is 25 feet."
+        "description": "Mossborn are found where rivers flood and drain each year. They remember the banks they grew on, keep long and careful grudges against anyone who poisons water, and are rarely in a hurry.\n\n**Size.** Mossborn stand about 3 feet tall. Your size is Small.\n\n**Speed.** Your base walking speed is 25 feet.",
+        "builder": {
+          "asi": { "wisdom": 2, "constitution": 1 },
+          "size": "Small",
+          "speed": 25,
+          "languages": ["Common"],
+          "languageChoice": 1,
+          "traits": ["thornwick-homebrew.rootsense", "thornwick-homebrew.soak-it-up", "thornwick-homebrew.slow-to-rouse"]
+        }
       }
     ],
     "dnd5e-srd.racial-traits": [
@@ -61,7 +69,19 @@
         "languages": "One of your choice",
         "equipment": "Carpenter's tools, a coil of hempen rope (50 feet), a ferry token from your home crossing, common clothes, 10 gp",
         "feature": "Right of Passage",
-        "description": "Every crossing has a ferrywright: the one who knows which planks are rotten, which passengers pay late and which river spirits like a coin in the water.\n\n**Right of Passage.** Ferry folk, bargees and bridge keepers give you and your companions passage for free or for a favour, and they tell you what they have seen on the water."
+        "description": "Every crossing has a ferrywright: the one who knows which planks are rotten, which passengers pay late and which river spirits like a coin in the water.\n\n**Right of Passage.** Ferry folk, bargees and bridge keepers give you and your companions passage for free or for a favour, and they tell you what they have seen on the water.",
+        "builder": {
+          "skills": ["athletics", "insight"],
+          "languageChoice": 1,
+          "equipment": [
+            { "name": "Carpenter's Tools", "quantity": 1, "weight": 6 },
+            { "name": "Rope, hempen (50 feet)", "quantity": 1, "weight": 10 },
+            { "name": "Ferry token", "quantity": 1 },
+            { "name": "Clothes, common", "quantity": 1, "weight": 3 }
+          ],
+          "gp": 10,
+          "feature": "Right of Passage"
+        }
       }
     ],
     "dnd5e-srd.subclasses": [

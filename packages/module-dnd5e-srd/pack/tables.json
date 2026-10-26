@@ -51,6 +51,25 @@
      "dnd5e-srd.encounter.activity"
     ]
    }
+  },
+  {
+   "id": "dnd5e-srd.rule.multiclassing",
+   "title": "Multiclassing",
+   "cite": "SRD 5.1 — Multiclassing",
+   "tags": [
+    "character",
+    "advancement"
+   ],
+   "summary": "A summary of the SRD 5.1's multiclassing rules, as the character builder applies them.\n\n**Prerequisites.** To take a level in a new class you need a score of 13 in its prime ability, and in your current classes' too: Barbarian Strength; Bard Charisma; Cleric Wisdom; Druid Wisdom; Fighter Strength or Dexterity; Monk Dexterity and Wisdom; Paladin Strength and Charisma; Ranger Dexterity and Wisdom; Rogue Dexterity; Sorcerer Charisma; Warlock Charisma; Wizard Intelligence.\n\n**Proficiencies.** A new class gives only some of its starting proficiencies: Barbarian shields, simple and martial weapons; Bard light armor, one skill, one musical instrument; Cleric and Druid light and medium armor, shields; Fighter, Paladin and Ranger light and medium armor, shields, simple and martial weapons (a ranger also one skill from its list); Monk simple weapons and shortswords; Rogue light armor, one skill from its list, thieves' tools; Warlock light armor and simple weapons; Sorcerer and Wizard none.\n\n**Hit points and dice.** Only your first class gives its full hit die at 1st level; each later level adds that class's die (or its average) and your Constitution modifier. Your proficiency bonus follows your total character level.\n\n**Spell slots.** With the Spellcasting feature from more than one class, add your bard, cleric, druid, sorcerer and wizard levels, half your paladin and ranger levels (rounded down), and read your slots from the Multiclass Spellcaster table (the same as a full caster's). Pact Magic slots stay separate. Spells known and prepared are counted per class."
+  },
+  {
+   "id": "dnd5e-srd.rule.character-creation",
+   "title": "Ability scores at character creation",
+   "cite": "SRD 5.2 — Character Creation: Determine Ability Scores",
+   "tags": [
+    "character"
+   ],
+   "summary": "The three ways the SRD 5.2 gives to determine ability scores, as the builder offers them.\n\n- **Standard array:** 15, 14, 13, 12, 10, 8, each assigned to one ability.\n- **Random generation:** roll four d6 and add the highest three, six times, then assign the totals.\n- **Point cost:** 27 points; every score starts at 8 and costs 8: 0, 9: 1, 10: 2, 11: 3, 12: 4, 13: 5, 14: 7, 15: 9.\n\nThen apply the increases your background (SRD 5.2) or race (SRD 5.1) gives; no score can go above 20."
   }
  ],
  "tables": [

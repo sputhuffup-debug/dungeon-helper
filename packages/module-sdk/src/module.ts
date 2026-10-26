@@ -5,6 +5,7 @@
  */
 import { d20AttackIssues, d20Attacks, d20CombatIssues } from "./d20combat";
 import { gmScreenIssues } from "./gmScreen";
+import { characterBuilderIssues } from "./characterBuilder";
 import { diceOutcomes, parseDiceExpression } from "./dice";
 import { computeFields, defaultFieldsFor, fieldSchemaAt, schemaDefaults, validateAgainstSchema, validateEntityFields } from "./entities";
 import { runProcedure } from "./procedures";
@@ -15,6 +16,7 @@ import { attackRanges, planWeaponAttack, weaponListConfig, weaponPresets, weapon
 import { CORE_NARRATIVE_FIELDS, REVIEW_COLLECTIONS, REVIEW_CONTEXT_KEYS, narrativeEntityType } from "./review";
 import {
   type AdventureBuilderDef,
+  type CharacterBuilderDef,
   type NarrativeFieldsDef,
   type NarrativeKind,
   type TemplateAdventure,
@@ -1038,6 +1040,9 @@ export function checkModule(module: GameModule, options: CheckModuleOptions = {}
   // GM screen.
   for (const i of gmScreenIssues(module)) (i.severity === "error" ? c.error.bind(c) : c.warn.bind(c))(i.where, i.message);
 
+  // Character builders (the dry run is one of the slow checks).
+  for (const i of characterBuilderIssues(module, { dryRun: !options.skipProcedureRuns })) (i.severity === "error" ? c.error.bind(c) : c.warn.bind(c))(i.where, i.message);
+
   // Calendar.
   const cal = module.calendar;
   if (!cal) c.error("calendar", "calendar is missing");
@@ -1092,6 +1097,10 @@ export interface LoadedModule {
   /** The module's fields for a narrative kind in a mode (the first def that applies), if any. */
   narrativeFieldsFor(kind: NarrativeKind, mode?: PlayModeId): NarrativeFieldsDef | undefined;
   builder(id: string): AdventureBuilderDef | undefined;
+  /** A character builder by id. */
+  characterBuilder(id: string): CharacterBuilderDef | undefined;
+  /** The character builders for an entity type (all without one). */
+  characterBuildersFor(entityType?: string): CharacterBuilderDef[];
   /** Adventure builders, filtered by mode when one is given. */
   buildersFor(mode?: PlayModeId): AdventureBuilderDef[];
 }
@@ -1172,6 +1181,8 @@ export function loadModule(module: GameModule, options: CheckModuleOptions = {})
       return (mode === undefined ? ofKind : filterByMode(ofKind, mode))[0];
     },
     builder: (id) => builders.get(id),
+    characterBuilder: (id) => (module.characterBuilders ?? []).find((b) => b.id === id),
+    characterBuildersFor: (entityType) => (module.characterBuilders ?? []).filter((b) => entityType === undefined || b.entityType === entityType),
     buildersFor: (mode) => (mode === undefined ? [...(module.adventureBuilders ?? [])] : filterByMode(module.adventureBuilders ?? [], mode)),
   };
 }

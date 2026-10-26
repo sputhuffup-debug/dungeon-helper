@@ -4,6 +4,7 @@ export * from "./rng";
 export * from "./dice";
 export * from "./d20combat";
 export * from "./gmScreen";
+export * from "./characterBuilder";
 export * from "./entered";
 export * from "./logic";
 export * from "./tables";

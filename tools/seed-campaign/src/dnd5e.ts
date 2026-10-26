@@ -774,6 +774,38 @@ export async function buildDnd5eDemo(opts: BuildDnd5eDemoOptions = {}): Promise<
     opening: null,
   });
 
+  // -- a character half-way through the builder (the app's "Unfinished characters"; resume it from the PCs tab) --
+  const builder = game.characterBuilders?.[0];
+  if (builder) {
+    const at = new Date().toISOString();
+    const draftId = newId();
+    const draft = {
+      id: draftId,
+      builder: builder.id,
+      mode: "create" as const,
+      created: at,
+      updated: at,
+      seed: `${seed}/draft`,
+      step: "background",
+      visited: ["edition", "species", "class", "background"],
+      picks: {
+        edition: ["2024"],
+        species: ["elf-2024"],
+        "species/lineage": ["elven-lineage-high-elf-2024"],
+        "species/skills": ["perception"],
+        class: ["wizard"],
+        "class/skills": ["investigation", "insight"],
+        background: ["sage-2024"],
+        "background/abilities": ["two-one"],
+        "background/abilities/plus2": ["intelligence"],
+        "background/abilities/plus1": ["constitution"],
+      },
+      abilities: { abilities: { method: "standard", scores: { strength: 8, dexterity: 14, constitution: 13, intelligence: 15, wisdom: 12, charisma: 10 } } },
+      values: { details: { "core.name": "Elowen Brightwater" } },
+    };
+    store.updateMeta({ settings: { ...store.meta().settings, characterDrafts: { [draftId]: draft } } });
+  }
+
   const maps = store.toJSON();
   const resolve = nameResolver(store);
   const docs: Record<Id, string> = {};

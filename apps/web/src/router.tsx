@@ -68,6 +68,22 @@ const newEntityRoute = createRoute({
   component: lazyRouteComponent(() => import("./features/entities/NewEntityPage"), "NewEntityPage"),
 });
 
+export interface BuildSearch {
+  draft?: string;
+  step?: string;
+}
+
+const buildRoute = createRoute({
+  getParentRoute: () => campaignRoute,
+  path: "build",
+  validateSearch: (search: Record<string, unknown>): BuildSearch => {
+    const out: BuildSearch = {};
+    for (const k of ["draft", "step"] as const) if (typeof search[k] === "string" && search[k] !== "") out[k] = search[k] as string;
+    return out;
+  },
+  component: lazyRouteComponent(() => import("./features/builder/CharacterBuilderPage"), "CharacterBuilderPage"),
+});
+
 export interface EntitySearch {
   tab?: string;
 }
@@ -140,6 +156,7 @@ export const routeTree = rootRoute.addChildren([
     homeRoute,
     atlasRoute,
     newEntityRoute,
+    buildRoute,
     entityRoute,
     noteRoute,
     rulesRoute,

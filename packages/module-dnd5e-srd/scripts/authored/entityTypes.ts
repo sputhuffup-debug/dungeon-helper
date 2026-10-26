@@ -123,6 +123,10 @@ const passives = (): Record<string, Rule> => ({
   passiveInsight: add(10, v(`computed.${skillBonusName("insight")}`)),
 });
 
+/** Classes whose levels count fully, or by half (rounded down), toward a multiclass spellcaster's slots (SRD 5.1, Multiclassing: Spell Slots). */
+export const FULL_CASTERS = ["bard", "cleric", "druid", "sorcerer", "wizard"];
+export const HALF_CASTERS = ["paladin", "ranger"];
+
 /** Character advancement: XP needed for each level (SRD 5.1, Beyond 1st Level). */
 const XP_FOR_LEVEL = [0, 300, 900, 2700, 6500, 14000, 23000, 34000, 48000, 64000, 85000, 100000, 120000, 140000, 165000, 195000, 225000, 265000, 305000, 355000];
 
@@ -190,7 +194,17 @@ export function characterType(classes: ReferenceList, spellSlots: Record<string,
   }
   const classAbility: Rule = ifs(...[...byAbility.entries()].flatMap(([a, list]) => [inList(cls, list), a]), "");
 
-  // Spell slots: classes with the same table share one rule branch.
+  // Multiclassing (SRD 5.1, Multiclassing): a character with more than one class lists them in `classLevels`.
+  const classLevels = v("fields.classLevels", []);
+  const multi = gt({ count: classLevels }, 1);
+  const facesOf = (c: Rule): Rule => ifs(...[...byDie.entries()].flatMap(([die, list]) => [inList(c, list), die]), 0);
+  const casters = [...FULL_CASTERS, ...HALF_CASTERS];
+  const cur = (k: string): Rule => v(`current.${k}`);
+  const reduce = (step: Rule, init: unknown): Rule => ({ reduce: [classLevels, step, init as Rule] });
+
+  // Spell slots: classes with the same table share one rule branch. A multiclass character with one
+  // spellcasting class uses that class's table at its class level; with two or more, the Multiclass
+  // Spellcaster table (the full casters' table) at the combined caster level.
   const groups = new Map<string, { classes: string[]; table: number[][] }>();
   for (const [c, table] of Object.entries(spellSlots).sort(([a], [b]) => a.localeCompare(b))) {
     const key = JSON.stringify(table);
@@ -198,16 +212,41 @@ export function characterType(classes: ReferenceList, spellSlots: Record<string,
     g.classes.push(c);
     groups.set(key, g);
   }
+  const multiTable = spellSlots.wizard;
+  if (!multiTable) throw new Error("the wizard spell slot table is missing");
+  const slotIndex = max(0, min(19, sub(v("computed.slotLevel", 1), 1)));
+  const casterIndex = max(0, min(19, sub(v("computed.casterLevel", 0), 1)));
   const slotRules: Record<string, Rule> = {};
   for (let lvl = 1; lvl <= 9; lvl++) {
     const branches = [...groups.values()].flatMap((g) => {
       const column = g.table.map((row) => row[lvl - 1] ?? 0);
-      return column.some((n) => n > 0) ? [inList(cls, g.classes), lookup(column, levelIndex, 0)] : [];
+      return column.some((n) => n > 0) ? [inList(v("computed.slotClass", ""), g.classes), lookup(column, slotIndex, 0)] : [];
     });
-    slotRules[`slotMax${lvl}`] = branches.length ? ifs(...branches, 0) : 0;
+    const single: Rule = branches.length ? ifs(...branches, 0) : 0;
+    const multiColumn = multiTable.map((row) => row[lvl - 1] ?? 0);
+    slotRules[`slotMax${lvl}`] = ifs({ and: [multi, { ">=": [v("computed.casterClasses", 0), 2] }] }, ifs(gt(v("computed.casterLevel", 0), 0), lookup(multiColumn, casterIndex, 0), 0), single);
   }
+  // Pact Magic stays apart from the other slots when a warlock multiclasses.
+  const pact = (spellSlots.warlock ?? []).map((row) => ({ count: row.reduce((s, n) => s + n, 0), level: row.findIndex((n) => n > 0) + 1 }));
   const ord = ["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th"];
-  const slotSummary: Rule = cat(...ord.map((o, i) => ifs(gt(v(`computed.slotMax${i + 1}`, 0), 0), cat(o, ": ", v(`computed.slotMax${i + 1}`), "  "), "")));
+  const slotSummary: Rule = cat(
+    ...ord.map((o, i) => ifs(gt(v(`computed.slotMax${i + 1}`, 0), 0), cat(o, ": ", v(`computed.slotMax${i + 1}`), "  "), "")),
+    ifs(v("computed.pactSlots", ""), cat("Pact Magic: ", v("computed.pactSlots")), ""),
+  );
+  const multiclass: Record<string, Rule> = {
+    classSummary: ifs(multi, reduce(cat(v("accumulator"), ifs(v("accumulator"), " / ", ""), ifs(...CLASSES.flatMap((c) => [eq(cur("class"), c), String(classItems.get(c)!.name)]), cur("class")), " ", cur("level")), ""), ""),
+    casterClasses: reduce(add(v("accumulator"), ifs(inList(cur("class"), casters), 1, 0)), 0),
+    casterLevel: reduce(add(v("accumulator"), ifs(inList(cur("class"), FULL_CASTERS), cur("level"), inList(cur("class"), HALF_CASTERS), floor({ "/": [cur("level"), 2] }), 0)), 0),
+    slotClass: ifs(multi, reduce(ifs(inList(cur("class"), casters), cur("class"), v("accumulator")), ""), cls),
+    slotLevel: ifs(multi, reduce(ifs(inList(cur("class"), casters), cur("level"), v("accumulator")), 0), level),
+    warlockLevel: ifs(multi, reduce(add(v("accumulator"), ifs(eq(cur("class"), "warlock"), cur("level"), 0)), 0), 0),
+    pactSlots: ifs(
+      gt(v("computed.warlockLevel", 0), 0),
+      cat(lookup(pact.map((p) => p.count), max(0, min(19, sub(v("computed.warlockLevel"), 1))), 0), " × ", lookup(pact.map((p) => ord[p.level - 1] ?? ""), max(0, min(19, sub(v("computed.warlockLevel"), 1))), ""), " level"),
+      "",
+    ),
+  };
+  const avgOf = (faces: Rule): Rule => ifs(gt(faces, 0), add(floor({ "/": [faces, 2] }), 1), 0);
 
   const computed: Record<string, Rule> = {
     ...abilityMods(),
@@ -216,10 +255,13 @@ export function characterType(classes: ReferenceList, spellSlots: Record<string,
     ...passives(),
     initiative: add(v("computed.dexterityMod"), v("fields.initiativeBonus", 0)),
     hitDieFaces,
-    hitDie: ifs(gt(v("computed.hitDieFaces"), 0), cat("d", v("computed.hitDieFaces")), "—"),
+    hitDie: ifs(multi, reduce(cat(v("accumulator"), ifs(v("accumulator"), " + ", ""), cur("level"), "d", facesOf(cur("class"))), ""), gt(v("computed.hitDieFaces"), 0), cat("d", v("computed.hitDieFaces")), "—"),
     hitDiceLeft: max(0, sub(level, v("fields.hitDiceSpent", 0))),
     // First level: the hit die's maximum; later levels: its average rounded up (half + 1); Constitution each level.
+    // Multiclass: the first class's die at 1st level, every other level its own class's average.
     suggestedHpMax: ifs(
+      multi,
+      max(1, add(reduce(add(v("accumulator"), mul(cur("level"), avgOf(facesOf(cur("class"))))), 0), sub(v("computed.hitDieFaces", 0), avgOf(v("computed.hitDieFaces", 0))), mul(level, v("computed.constitutionMod")))),
       gt(v("computed.hitDieFaces"), 0),
       max(1, add(v("computed.hitDieFaces"), v("computed.constitutionMod"), mul(sub(level, 1), add(floor({ "/": [v("computed.hitDieFaces"), 2] }), 1, v("computed.constitutionMod"))))),
       null,
@@ -230,6 +272,7 @@ export function characterType(classes: ReferenceList, spellSlots: Record<string,
     spellcastingMod: ifs(v("computed.spellAbility"), v({ cat: ["computed.", v("computed.spellAbility"), "Mod"] } as unknown as string, 0), null),
     spellSaveDc: ifs(v("computed.spellAbility"), add(8, v("computed.proficiencyBonus"), v("computed.spellcastingMod", 0)), null),
     spellAttack: ifs(v("computed.spellAbility"), signedText(add(v("computed.proficiencyBonus"), v("computed.spellcastingMod", 0))), null),
+    ...multiclass,
     ...slotRules,
     spellSlots: slotSummary,
   };
@@ -243,7 +286,13 @@ export function characterType(classes: ReferenceList, spellSlots: Record<string,
       // and slots are computed for the SRD classes; others leave those to the GM.
       class: { type: "string", maxLength: 120, description: `A class id from the Classes list (${CLASSES.join(", ")}, or one a supplement adds).` },
       subclass: text(120),
-      level: int(1, 20, 1),
+      level: { ...int(1, 20, 1), description: "Character level (all classes together)." },
+      classLevels: {
+        type: "array",
+        description: "A multiclass character's classes: class id, level in it and subclass. The first is the class in Class.",
+        items: { type: "object", properties: { class: { type: "string", maxLength: 120, title: "Class" }, level: { ...int(1, 20), title: "Level" }, subclass: { ...text(120), title: "Subclass" } }, required: ["class", "level"], additionalProperties: false },
+        default: [],
+      },
       race: text(120),
       subrace: text(120),
       background: text(120),
@@ -256,6 +305,8 @@ export function characterType(classes: ReferenceList, spellSlots: Record<string,
       ac: int(0, 40, 10),
       initiativeBonus: int(-10, 20, 0),
       speed: int(0, 200, 30),
+      size: { type: "string", enum: ["Tiny", "Small", "Medium", "Large"], default: "Medium" },
+      darkvision: { ...int(0, 300), description: "Darkvision range in feet (0 or empty: none)." },
       hp: hpSchema,
       hitDiceSpent: int(0, 20, 0),
       deathSaves: { type: "object", properties: { successes: int(0, 3, 0), failures: int(0, 3, 0) }, additionalProperties: false, default: { successes: 0, failures: 0 } },
@@ -328,6 +379,16 @@ export function characterType(classes: ReferenceList, spellSlots: Record<string,
             { path: "isPC", label: "Player character", widget: "checkbox" },
           ],
         },
+        {
+          id: "multiclass",
+          title: "Multiclass",
+          collapsed: true,
+          fields: [
+            { path: "classSummary", label: "Classes", widget: "computed", rule: rule("multiclassing") },
+            { path: "classLevels", label: "Class levels", widget: "table", config: { columns: ["class", "level", "subclass"] } },
+            { path: "pactSlots", label: "Pact Magic slots", widget: "computed" },
+          ],
+        },
         { id: "abilities", title: "Ability scores", columns: 6, fields: abilityFields() },
         {
           id: "combat",
@@ -337,6 +398,8 @@ export function characterType(classes: ReferenceList, spellSlots: Record<string,
             { path: "ac", label: "Armor Class", widget: "number" },
             { path: "initiative", label: "Initiative", widget: "computed", rule: rule("the-order-of-combat.initiative") },
             { path: "speed", label: "Speed (ft.)", widget: "number" },
+            { path: "size", label: "Size", widget: "select" },
+            { path: "darkvision", label: "Darkvision (ft.)", widget: "number" },
             { path: "initiativeBonus", label: "Initiative bonus", widget: "number" },
             { path: "hp.max", label: "Hit point maximum", widget: "number", rule: rule("damage-and-healing.hit-points") },
             { path: "hp.current", label: "Current hit points", widget: "number" },
