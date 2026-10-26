@@ -139,7 +139,7 @@ const freeObject: JsonSchema = { type: "object" };
 
 export const SHEET_WIDGETS = [
   "text", "textarea", "richtext", "number", "checkbox", "select", "multiselect", "tags", "attribute", "skill", "skills", "talents", "conditions",
-  "gear", "dicepool", "supply", "stress", "computed", "ref", "reflist", "statblock", "table", "list", "entries", "object", "image", "zonemap",
+  "gear", "weapons", "dicepool", "supply", "stress", "computed", "ref", "reflist", "statblock", "table", "list", "entries", "object", "image", "zonemap",
 ] as const satisfies readonly SheetWidget[];
 const CORE_KINDS = ["character", "creature", "location", "faction", "item", "vehicle", "clue", "job", "encounter"] as const satisfies readonly CoreEntityKind[];
 const VISIBILITY = ["gm", "players", "some_players", "revealed"] as const satisfies readonly VisibilityLevel[];
@@ -336,7 +336,7 @@ const definitions: Record<string, JsonSchema> = {
     { id: ref("id"), title: text, mode: ref("modes"), columns: int({ minimum: 1, maximum: 12 }), fields: list(ref("sheetField")), collapsed: bool },
     ["id", "title", "fields"],
   ),
-  sheet: object<SheetLayout>()({ sections: list(ref("sheetSection")), summary: list(str()) }, ["sections"]),
+  sheet: object<SheetLayout>()({ sections: list(ref("sheetSection")), summary: list(str()), create: list(str()) }, ["sections"]),
   subtype: object<NonNullable<EntityTypeDef["subtypes"]>[number]>()({ id: ref("id"), name: text, sheet: ref("sheet"), schema: schemaSlot }, ["id", "name"]),
   entityType: object<EntityTypeDef>()(
     {

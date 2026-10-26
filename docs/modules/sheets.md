@@ -32,7 +32,7 @@ Never store what can be derived. `computed` maps a name to JSONLogic over `{ fie
 
 ## Layout
 
-`sheet.sections[]`: `{ id, title, columns?, collapsed?, mode?, fields[] }`. `sheet.summary`: paths shown in list rows and quick-stat cards.
+`sheet.sections[]`: `{ id, title, columns?, collapsed?, mode?, fields[] }`. `sheet.summary`: paths shown in list rows and quick-stat cards. `sheet.create`: paths the new-entity form asks for before the entity is saved, with the sheet's own widgets (the Alien character sheet asks for `isPC` and `weapons`, so a PC can get starting weapons as it is created).
 
 A field: `{ path, label?, widget?, rule?, mode?, readonly?, span?, options?, entityTypes?, config? }`.
 
@@ -52,7 +52,8 @@ A field: `{ path, label?, widget?, rule?, mode?, readonly?, span?, options?, ent
 | `select`, `multiselect`, `tags` | enums, lists of strings | `ref` (reference list) |
 | `skills` | an object of skill ratings | `ref` (reference list whose items have `attribute`), `attributesPath` (default `attributes`), `min`, `max`, or an inline `skills` list; `levels` (named ratings shown as a select, e.g. `[{ "value": 0, "label": "—" }, { "value": 1, "label": "Proficient" }, { "value": 2, "label": "Expertise" }]`), `labels` (column headings: `skill`, `attribute`, `attributeValue`, `value`, `pool`), `hideZero` (list only rated skills, with a "Show all" toggle) |
 | `talents` | a list of `{ id, count }` picked from a reference list | `ref`, `maxStack` |
-| `conditions`, `gear` | conditions; a gear list with weights | `limitComputed`, `qty` |
+| `conditions`, `gear` | conditions; a gear list with weights | `limitComputed` (a computed limit), `totalComputed` (a computed total shown instead of the gear's own weight, e.g. gear plus weapons), `qty` |
+| `weapons` | a list of weapons with their stats as columns, an "Add weapon" picker over the module's presets, "From campaign items", "Custom weapon" and inline editing | see [The weapons widget](#the-weapons-widget) |
 | `supply`, `stress` | pips | `supplyMax`, `warnAt` |
 | `computed` | a computed value (read-only) | |
 | `dicepool` | a pool shown as a breakdown | `computed` |
@@ -72,3 +73,16 @@ The skills widget is what makes a character rollable. Each row shows the skill, 
 A sheet may have several skills widgets, each with its own storage path and list: a d20 sheet keeps skills at `skills.*` and saving throws at `saves.*` (a list of "Strength save"... items whose `attribute` is the ability). Table mode's skill roller offers every widget's items, grouped by the widget's label, so skill ids must be unique across a type's widgets. It also offers the creatures and NPCs in the current scene whose sheet has a skills widget. The roll button passes the row's name to the app, so the roll is titled "Stealth", not "stealth".
 
 For a 2d6 game without skills, put the stats in `attributes` and roll "attribute only".
+
+### The weapons widget
+
+A `weapons` field holds a list of rows (`{ name, ... }`, the row schema is the array's `items`). Its `config` is a `WeaponListConfig` (`module-sdk` `src/types.ts`):
+
+- `presets`: `{ entityType, subtype?, tags?, excludeTags?, groups? }`: the presets the "Add weapon" picker offers (e.g. leave out vehicle-mounted weapons with `excludeTags`), grouped by tag in the order of `groups` (`{ tag, label }`; the rest under "Other"). The picker is searchable and shows each preset's `pickerColumns` (default `columns`) and its page.
+- `items`: `{ entityType, subtype? }`: entities in the campaign that "From campaign items" can link.
+- `copy`: the row keys copied from a preset's or an item's fields; `presetKey` (default `presetId`) and `itemKey` (default `itemId`) record where a row came from. "Custom weapon" adds a blank row with the row schema's defaults.
+- `columns`: `{ key?, label, display?, numeric? }`: what the table shows after the name; `display` is JSONLogic over the row (e.g. `{ "cat": [{ "var": "damage" }, { "if": [{ "var": "explosive" }, "E", ""] }] }`). `edit`: the keys a row's editor offers (labels from the row schema's `title`).
+- `weightKey` (default `weight`), `totalComputed`, `limitComputed`: the weapons' weight under the table, and the computed total carried against its limit. Make the type's computed total include the weapons (rule 4: derived, never stored).
+- `attack` (optional): how a row attacks in table mode. `ranges` (nearest first), `minRangeKey`/`maxRangeKey`, and JSONLogic over `{ weapon, range, rangeIndex, minIndex, maxIndex, closer, beyond }` for the `skill` rolled (one the sheet's skills widget offers), extra `pool` input numbers for the dice system (a gear bonus, a range penalty), the base `damage`, `extraSuccessesAddDamage`, `armorPiercing` and the hit `source` passed to the module's armor rule, and `notes`. Table mode then offers "Attack with …" in the Dice tab's skill roll and an Attack button on the PC's card: pick the range, roll (or enter the dice), read the damage and apply it to a target that has combat health.
+
+`pnpm module-check` checks the config: copied, edited and column keys exist in the row schema, sources and computed values exist, and an attack with every offered preset at every band it reaches rolls a skill the sheet has.

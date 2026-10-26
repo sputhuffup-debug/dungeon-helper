@@ -110,7 +110,9 @@ describe("buildCinematicDemo", () => {
       expect(pcCreationIssues({ name: pc.name, fields: pc.fields })).toEqual([]);
       for (const k of ["career", "signatureItem", "background", "appearance"]) expect(pc.fields[k], `${pc.name} ${k}`).toBeTruthy();
       expect((pc.fields["talents"] as unknown[]).length).toBe(1);
-      expect((pc.fields["gear"] as unknown[]).length).toBe(2);
+      // two career gear picks; a weapon among them is on the Weapons list, besides the weapons the PC brings
+      expect((pc.fields["gear"] as unknown[]).length).toBeLessThanOrEqual(2);
+      expect((pc.fields["weapons"] as unknown[]).length).toBeGreaterThanOrEqual(1);
     }
   });
 

@@ -1031,6 +1031,7 @@
             "talents",
             "conditions",
             "gear",
+            "weapons",
             "dicepool",
             "supply",
             "stress",
@@ -1142,6 +1143,12 @@
           }
         },
         "summary": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "create": {
           "type": "array",
           "items": {
             "type": "string"

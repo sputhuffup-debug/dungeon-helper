@@ -6,13 +6,14 @@ import { EntityPicker } from "../../components/EntityPicker";
 import { RuleDrawer } from "../../components/RulePanel";
 import { Badge, DiceRollPanel, Drawer, EmptyState, SheetRenderer, pushToast, valuePathOf } from "../../components/ui";
 import { updateEntityFields } from "../../state/actions";
-import { useCampaign, useComputed, useMeta } from "../../state/hooks";
+import { useCampaign, useComputed, useMeta, useSheetSources } from "../../state/hooks";
 import { isPlayerCharacter } from "../atlas/AtlasPage";
 
 export function SheetTab({ entity, def }: { entity: Entity; def: EntityTypeDef | undefined }) {
   const ctx = useCampaign();
   const meta = useMeta();
   const computed = useComputed(entity);
+  const sources = useSheetSources();
   const [asPlayer, setAsPlayer] = useState(false);
   const [rule, setRule] = useState<string | undefined>();
   const [picking, setPicking] = useState<SheetField | undefined>();
@@ -96,6 +97,8 @@ export function SheetTab({ entity, def }: { entity: Entity; def: EntityTypeDef |
           resolveEntityName={resolveEntityName}
           onRoll={onRoll}
           dice={ctx.module.module.dice}
+          presetsFor={sources.presetsFor}
+          entitiesOf={sources.entitiesOf}
         />
       )}
       <RuleDrawer ruleId={rule} onClose={() => setRule(undefined)} onOpenRule={setRule} />

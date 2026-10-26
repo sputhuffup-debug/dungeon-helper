@@ -562,6 +562,7 @@ export type SheetWidget =
   | "talents"
   | "conditions"
   | "gear"
+  | "weapons"
   | "dicepool"
   | "supply"
   | "stress"
@@ -609,6 +610,100 @@ export interface SheetLayout {
   sections: SheetSection[];
   /** Fields shown in list rows and quick-stat cards at the table. */
   summary?: string[];
+  /**
+   * Field paths the new-entity form asks for before the entity is saved
+   * (e.g. a character's starting weapons), rendered with the same widgets as
+   * the sheet. Absent: the form asks only for a name and a preset.
+   */
+  create?: string[];
+}
+
+// ---------------------------------------------------------------------------
+// Weapons on a sheet (the `weapons` widget's config)
+// ---------------------------------------------------------------------------
+
+/** One column of a weapons table: a row key, shown and edited, or a display rule. */
+export interface WeaponColumn {
+  /** Row key the column shows and edits. */
+  key?: string;
+  label: string;
+  /** JSONLogic over the row (or, in the picker, the preset's fields) for the text shown; default the value at `key`. */
+  display?: JsonLogicRule;
+  /** A narrow, right-aligned number column. */
+  numeric?: boolean;
+}
+
+/** Where the "Add weapon" picker finds presets. */
+export interface WeaponPresetSource {
+  entityType: string;
+  subtype?: string;
+  /** Keep only presets carrying at least one of these tags. */
+  tags?: string[];
+  /** Leave out presets carrying any of these tags (e.g. vehicle-mounted weapons). */
+  excludeTags?: string[];
+  /** Picker groups in order: the presets carrying `tag`. Presets in no group are listed under "Other". */
+  groups?: Array<{ tag: string; label: string }>;
+}
+
+/**
+ * Config of a `weapons` sheet field: a list of weapon rows with stats as
+ * columns, filled from the module's presets ("Add weapon"), from item
+ * entities in the campaign, or blank. With `attack`, table mode can roll an
+ * attack with a row.
+ */
+export interface WeaponListConfig {
+  presets?: WeaponPresetSource;
+  /** Campaign entities that can be linked as weapons. */
+  items?: { entityType: string; subtype?: string };
+  /** Row keys copied from a preset's or an item's fields. */
+  copy: string[];
+  /** Row key that records the preset a row was copied from (default `presetId`). */
+  presetKey?: string;
+  /** Row key that records the linked campaign entity (default `itemId`). */
+  itemKey?: string;
+  /** Columns after the name, in order. */
+  columns: WeaponColumn[];
+  /** Row keys a row's editor offers after the name, in order (default `copy`); labels come from the row schema's `title`. */
+  edit?: string[];
+  /** Stats the picker shows for each preset (default `columns`). */
+  pickerColumns?: WeaponColumn[];
+  /** Row key holding the weight (default `weight`), summed under the table. */
+  weightKey?: string;
+  /** Computed value with the total carried (gear and weapons), shown with `limitComputed`. */
+  totalComputed?: string;
+  limitComputed?: string;
+  attack?: WeaponAttackConfig;
+}
+
+/**
+ * How a weapon row attacks (table mode). Every rule is JSONLogic over
+ * `{ weapon, range, rangeIndex, minIndex, maxIndex, closer, beyond }`:
+ * the row, the range band picked, the band indexes (0 = nearest) of the
+ * pick and of the weapon's minimum and maximum range, the number of bands
+ * the pick is closer than the minimum, and whether it is beyond the maximum.
+ */
+export interface WeaponAttackConfig {
+  /** Range bands, nearest first. */
+  ranges: Array<{ id: string; label: string }>;
+  /** Row keys with the weapon's minimum and maximum band (default `rangeMin`, `range`). */
+  minRangeKey?: string;
+  maxRangeKey?: string;
+  /** The skill id rolled (one the sheet's skills widget offers). */
+  skill: JsonLogicRule;
+  /** Extra numbers for the dice system's pool input (e.g. a gear bonus, a range penalty). */
+  pool?: Record<string, JsonLogicRule>;
+  /** Base damage of a hit. */
+  damage: JsonLogicRule;
+  /** Each success beyond the first adds one damage. */
+  extraSuccessesAddDamage?: boolean;
+  /** The hit ignores one step of armor (passed to the module's armor rule). */
+  armorPiercing?: JsonLogicRule;
+  /** Hit source for the module's armor rule (e.g. "fire"); empty for an ordinary hit. */
+  source?: JsonLogicRule;
+  /** Notes shown with the attack when `when` holds. */
+  notes?: Array<{ when: JsonLogicRule; text: string }>;
+  /** Rule cards shown with the attack. */
+  rules?: string[];
 }
 
 export interface EntityTypeDef {

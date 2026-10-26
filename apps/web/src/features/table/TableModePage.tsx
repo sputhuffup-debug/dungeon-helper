@@ -43,6 +43,7 @@ import { RollResultDialog } from "./RollResultDialog";
 import { SceneCard } from "./SceneCard";
 import { SceneMap, useSceneMap } from "./SceneMap";
 import { SpecialAttackDialog, useSpecialAttacks } from "./SpecialAttacks";
+import { WeaponAttackDialog } from "./WeaponAttack";
 import { EventFeed, SessionLog } from "./SessionLog";
 import { BoundTracker, TrackersPanel, useModeTrackers, type TrackerHandlers } from "./TrackersPanel";
 
@@ -101,6 +102,7 @@ function GmTable({ sessionId }: { sessionId: Id }) {
   const specials = useSpecialAttacks();
   const [hitTarget, setHitTarget] = useState<Id | undefined>();
   const [specialPc, setSpecialPc] = useState<Id | undefined>();
+  const [attackPc, setAttackPc] = useState<Id | undefined>();
   const [turnId, setTurnId] = useState<Id | undefined>();
   const [dismissedTurn, setDismissedTurn] = useState<string | undefined>();
   const initiative = useInitiativeCurrent(sessionId);
@@ -281,7 +283,7 @@ function GmTable({ sessionId }: { sessionId: Id }) {
               />
             )}
             {ctx.module.module.d20Combat && <D20CombatPanel sessionId={sessionId} pcs={pcs} others={others} onOpen={setDrawer} />}
-            <Participants pcs={pcs} others={others} onOpen={setDrawer} onRoll={(op, id) => handlers.onRollOperation(op, id)} lifecycle={{ sessionId, onPrompts: handlers.onPrompts }} combat={combat} act={currentAct} />
+            <Participants pcs={pcs} others={others} onOpen={setDrawer} onRoll={(op, id) => handlers.onRollOperation(op, id)} lifecycle={{ sessionId, onPrompts: handlers.onPrompts }} combat={combat} act={currentAct} onWeaponAttack={setAttackPc} />
             <RevealPanel sessionId={sessionId} scene={scene} />
             {map && <SceneMap sessionId={sessionId} map={map} scene={scene} participants={[...pcs, ...others]} />}
           </div>
@@ -317,6 +319,7 @@ function GmTable({ sessionId }: { sessionId: Id }) {
       {specials.length > 0 && (
         <SpecialAttackDialog key={specialPc ?? "none"} open={!!specialPc} onClose={() => setSpecialPc(undefined)} sessionId={sessionId} pcs={pcs} others={others} {...(specialPc ? { initialPc: specialPc } : {})} />
       )}
+      <WeaponAttackDialog key={attackPc ?? "none"} sessionId={sessionId} attackerId={attackPc} targets={everyone} onClose={() => setAttackPc(undefined)} />
       {sharing && <ShareDialog open onClose={() => setSharing(undefined)} sessionId={sessionId} sceneId={table.sceneId} {...(sharing === "primer" ? { primer: { defaultOn: true, only: true } } : {})} />}
       <RollResultDialog roll={roll} onClose={() => setRoll(undefined)} resolveName={resolveName} />
       <PromptDialog prompt={roll ? undefined : prompts[0]} onAnswer={onAnswer} onCancel={() => setPrompts((p) => p.slice(1))} resolveEntityName={(id) => ctx.store.get("entities", id)?.name} />

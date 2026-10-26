@@ -5,7 +5,7 @@
  */
 
 // Context
-export { SheetContext, SheetContextProvider, useSheetContext, type SheetContextValue } from "./context";
+export { SheetContext, SheetContextProvider, useSheetContext, type SheetContextValue, type SheetEntityRef } from "./context";
 
 // Sheet
 export { SheetRenderer, defaultWidgetFor, normalizeErrors, type SheetRendererProps, type SheetErrors } from "./sheet/SheetRenderer";
@@ -22,6 +22,7 @@ export { SkillsField } from "./widgets/skills";
 export { TalentsField, normalizeTalents, type TalentEntry } from "./widgets/talents";
 export { ConditionsField, normalizeConditions, type ConditionEntry } from "./widgets/conditions";
 export { GearField, gearTotalWeight } from "./widgets/gear";
+export { WeaponsField } from "./widgets/weapons";
 export { SupplyField, StressField } from "./widgets/pips";
 export { DicePoolField, DicePoolView, asDicePool } from "./widgets/dicepool";
 export { RefField, RefListField } from "./widgets/ref";

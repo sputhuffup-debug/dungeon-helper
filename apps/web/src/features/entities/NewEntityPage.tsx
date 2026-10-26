@@ -1,12 +1,23 @@
-/** `/entities/new?type=&preset=`: choose a type, optional subtype, a preset (or blank) and a name. */
-import type { EntityPreset } from "@campaign-forge/module-sdk";
+/**
+ * `/entities/new?type=&preset=&pc=`: choose a type, optional subtype, a preset
+ * (or blank) and a name, then the fields the type's sheet asks for at
+ * creation (`sheet.create`, e.g. starting weapons), with the sheet's widgets.
+ */
+import { defaultFieldsFor, getPath, setPath, type EntityPreset, type EntityTypeDef, type ReferenceList } from "@campaign-forge/module-sdk";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { EntityIcon } from "../../components/EntityIcon";
-import { Badge, Button, Card, PageRef } from "../../components/ui";
+import { RuleDrawer } from "../../components/RulePanel";
+import { Badge, Button, Card, PageRef, SheetRenderer } from "../../components/ui";
 import { humanize } from "../../lib/format";
 import { createEntity, createEntityFromPreset } from "../../state/actions";
-import { useCampaign, useMeta } from "../../state/hooks";
+import { useCampaign, useMeta, useSheetSources } from "../../state/hooks";
+
+/** Values the form starts with for the creation fields: `isPC` from the PCs tab, when the type has it. */
+function initialDraft(def: EntityTypeDef | undefined, pc: number | undefined): Record<string, unknown> {
+  const props = def?.schema.properties as Record<string, unknown> | undefined;
+  return pc === 1 && props && "isPC" in props && def?.sheet.create?.includes("isPC") ? { isPC: true } : {};
+}
 
 export function NewEntityPage() {
   const ctx = useCampaign();
@@ -24,6 +35,23 @@ export function NewEntityPage() {
   const def = ctx.module.entityType(typeId);
   const presets = useMemo(() => ctx.module.presetsFor(typeId), [ctx.module, typeId]);
   const preset = presetId ? ctx.module.preset(presetId) : undefined;
+  const sources = useSheetSources();
+  const [rule, setRule] = useState<string | undefined>();
+  const referenceLists = useMemo<Record<string, ReferenceList>>(() => Object.fromEntries(ctx.module.module.referenceLists.map((l) => [l.id, l])), [ctx.module]);
+
+  // the creation fields: edits are kept per path (`draft`) and laid over the preset's (or the schema's) values
+  const createPaths = useMemo(() => def?.sheet.create ?? [], [def]);
+  const [draft, setDraft] = useState<Record<string, unknown>>(() => initialDraft(ctx.module.entityType(typeId), search.pc));
+  const base = useMemo<Record<string, unknown>>(() => (def ? { ...defaultFieldsFor(def), ...(preset ? structuredClone(preset.fields) : {}) } : {}), [def, preset]);
+  const draftFields = useMemo(() => Object.entries(draft).reduce<Record<string, unknown>>((f, [p, v]) => setPath(f, p, v), base), [base, draft]);
+  const onDraftChange = (next: Record<string, unknown>) => {
+    const out = { ...draft };
+    for (const p of createPaths) {
+      const v = getPath(next, p);
+      if (p in out || JSON.stringify(v) !== JSON.stringify(getPath(base, p))) out[p] = v;
+    }
+    setDraft(out);
+  };
 
   const grouped = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -38,9 +66,10 @@ export function NewEntityPage() {
 
   const create = () => {
     if (!def) return;
+    const fields = Object.keys(draft).length > 0 ? { fields: draftFields } : {};
     const entity = preset
-      ? createEntityFromPreset(ctx, preset, { name: name.trim() || preset.name, subtype: subtype || preset.subtype })
-      : createEntity(ctx, { type: def.id, name: name.trim() || `New ${def.name.toLowerCase()}`, subtype: subtype || undefined });
+      ? createEntityFromPreset(ctx, preset, { name: name.trim() || preset.name, subtype: subtype || preset.subtype, ...fields })
+      : createEntity(ctx, { type: def.id, name: name.trim() || `New ${def.name.toLowerCase()}`, subtype: subtype || undefined, ...fields });
     void navigate({ to: "/c/$campaignId/entities/$entityId", params: { campaignId: ctx.campaignId, entityId: entity.id } });
   };
 
@@ -64,6 +93,7 @@ export function NewEntityPage() {
                 setTypeId(e.target.value);
                 setSubtype("");
                 setPresetId("");
+                setDraft(initialDraft(ctx.module.entityType(e.target.value), search.pc));
               }}
               data-testid="entity-type"
             >
@@ -142,6 +172,23 @@ export function NewEntityPage() {
             <PresetFields preset={preset} />
           </Card>
         )}
+        {def && createPaths.length > 0 && (
+          <fieldset className="app-fieldset" data-testid="create-fields">
+            <legend className="app-label">Starting details</legend>
+            <SheetRenderer
+              def={def}
+              subtype={subtype || preset?.subtype || undefined}
+              mode={meta.mode}
+              fields={draftFields}
+              onChange={onDraftChange}
+              paths={createPaths}
+              referenceLists={referenceLists}
+              onOpenRule={setRule}
+              presetsFor={sources.presetsFor}
+              entitiesOf={sources.entitiesOf}
+            />
+          </fieldset>
+        )}
         <div className="app-row">
           <Button variant="primary" type="submit" disabled={!def} data-testid="create-entity">
             Create {def?.name.toLowerCase() ?? "entity"}
@@ -151,6 +198,7 @@ export function NewEntityPage() {
           </Button>
         </div>
       </form>
+      <RuleDrawer ruleId={rule} onClose={() => setRule(undefined)} onOpenRule={setRule} />
     </div>
   );
 }

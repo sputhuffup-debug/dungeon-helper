@@ -1,5 +1,13 @@
 import { createContext, useContext } from "react";
-import type { DiceSystem, SheetField, PlayModeId } from "@campaign-forge/module-sdk";
+import type { DiceSystem, EntityPreset, SheetField, PlayModeId } from "@campaign-forge/module-sdk";
+
+/** A campaign entity as widgets that copy from one see it. */
+export interface SheetEntityRef {
+  id: string;
+  name: string;
+  subtype?: string;
+  fields: Record<string, unknown>;
+}
 
 /** Callbacks and services the sheet widgets can reach without prop drilling. */
 export interface SheetContextValue {
@@ -30,6 +38,10 @@ export interface SheetContextValue {
    * attribute + skill.
    */
   dice?: DiceSystem;
+  /** The module's presets of an entity type (the weapons widget's "Add weapon" picker). Without it the picker is not offered. */
+  presetsFor?: (entityType: string) => EntityPreset[];
+  /** The campaign's entities of a type (the weapons widget's "From campaign items"). Without it that choice is not offered. */
+  entitiesOf?: (entityType: string) => SheetEntityRef[];
 }
 
 export const SheetContext = createContext<SheetContextValue>({ tableMode: false });

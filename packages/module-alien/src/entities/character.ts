@@ -1,12 +1,15 @@
-import type { EntityTypeDef, JsonLogicRule, SheetSection } from "@campaign-forge/module-sdk";
+import { weaponRowFrom, type EntityPreset, type EntityTypeDef, type JsonLogicRule, type SheetSection, type WeaponAttackConfig, type WeaponListConfig } from "@campaign-forge/module-sdk";
 import { CAMPAIGN, CINEMATIC } from "../modes";
 import { OVERWHELMED_TRAUMA } from "../reference/mentalTraumas";
 import {
   ATTRIBUTE_IDS,
   CAREER_IDS,
+  RANGE_IDS,
+  RANGE_LABELS,
   SKILL_BINDINGS,
   SKILL_IDS,
   checkbox,
+  enumField,
   intField,
   number,
   objectSchema,
@@ -17,6 +20,7 @@ import {
   text,
   textarea,
 } from "./common";
+import { DAMAGE_TYPES } from "./item";
 
 /** Talent ids the computed rules look for (reference/talents.ts, p. 51). */
 export const HARDENED_TALENT = "hardened";
@@ -46,6 +50,34 @@ const conditionList = (description: string) => ({
     },
   },
 });
+
+/**
+ * Weapon stats a row copies from an `alien.item` weapon preset or entity:
+ * the same keys and meanings as the item schema (gear tables, p. 82-89).
+ */
+export const WEAPON_STAT_KEYS = ["bonus", "damage", "damageType", "explosive", "rangeMin", "range", "ammo", "power", "special", "weight"] as const;
+
+/** One weapon a character carries. Stats are copied (not linked), so the sheet works offline and can be edited. */
+export const weaponRowSchema = {
+  type: "object",
+  required: ["name"],
+  properties: {
+    name: { type: "string", title: "Weapon" },
+    presetId: { type: "string", description: "Module preset the stats were copied from (e.g. alien.item.knife)." },
+    itemId: { type: "string", description: "Linked alien.item entity id in the campaign." },
+    bonus: { ...intField(undefined, undefined, 0, "Modifier: extra dice for CLOSE COMBAT or RANGED COMBAT (p. 82); \"–\" is 0."), title: "Modifier" },
+    damage: { ...intField(0, undefined, 1, "Base damage; +1 per extra success (p. 62, 64)."), title: "Damage" },
+    damageType: { ...enumField(DAMAGE_TYPES, "normal", "Stun or fire damage (p. 71, 76); normal otherwise."), title: "Damage type" },
+    explosive: { type: "boolean", default: false, title: "Explosive", description: "The E after the damage: hits everyone in the target's zone (p. 76)." },
+    rangeMin: { ...enumField(RANGE_IDS, "adjacent", "Minimum range: -2 dice per band closer than this (p. 64)."), title: "Min range" },
+    range: { ...enumField(RANGE_IDS, "adjacent", "Maximum range band (p. 55, 82)."), title: "Max range" },
+    ammo: { type: ["integer", "string"], title: "Ammo", description: "Ammo supply rating, or \"Single-shot\" / \"Single use\" (p. 66)." },
+    power: { ...intField(0, undefined, undefined, "Power supply rating of electrical weapons (p. 29)."), title: "Power" },
+    special: { ...stringArray("Weapon features as the tables name them, e.g. Armor piercing, Full auto (p. 82)."), title: "Special" },
+    weight: { type: "number", minimum: 0, default: 1, title: "Weight", description: "Counts toward encumbrance with the gear: 1 normal, 0.5 light, 0.25, 0 tiny (p. 28, 82)." },
+    notes: { type: "string", title: "Notes" },
+  },
+};
 
 export const characterSchema = objectSchema(
   {
@@ -103,6 +135,12 @@ export const characterSchema = objectSchema(
           itemId: { type: "string", description: "Linked alien.item entity id." },
         },
       },
+    },
+    weapons: {
+      type: "array",
+      default: [],
+      description: "Weapons carried, with their stats (p. 82-89); their weight counts toward encumbrance with the gear (p. 28).",
+      items: weaponRowSchema,
     },
     signatureItem: stringField("A tiny keepsake of sentimental, not practical, value (p. 28)."),
     cash: { type: "number", minimum: 0, default: 0 },
@@ -186,7 +224,8 @@ const coverHalf = (a: string, b: string): JsonLogicRule => ({
  * Derived at render time, never stored (p. 26, 28, 51, 74):
  * maximum Health = ceil((Strength + Agility) / 2) + Hardened (max 3);
  * Resolve = ceil((Wits + Empathy) / 2) + Seen It All (max 3) − 2 per Overwhelmed trauma;
- * encumbrance limit = Strength × 2 regular items (doubled by Pack Mule); over-encumbered up to twice that.
+ * encumbrance limit = Strength × 2 regular items (doubled by Pack Mule); over-encumbered up to twice that;
+ * encumbrance = gear weight × quantity plus the weapons' weight.
  */
 export const characterComputed: Record<string, JsonLogicRule> = {
   hardened: talentCount(HARDENED_TALENT, TALENT_STACK_CAP),
@@ -200,8 +239,12 @@ export const characterComputed: Record<string, JsonLogicRule> = {
   },
   encumbranceLimit,
   maxEncumbrance: { "*": [encumbranceLimit, 2] },
+  /** Gear rows (weight × quantity) plus weapon rows (weight each). */
   encumbrance: {
-    sum: [{ map: [{ var: "fields.gear" }, { "*": [{ var: "weight" }, { var: "qty" }] }] }],
+    "+": [
+      { sum: [{ map: [{ var: "fields.gear" }, { "*": [{ var: "weight" }, { var: "qty" }] }] }] },
+      { sum: [{ map: [{ var: "fields.weapons" }, { var: "weight" }] }] },
+    ],
   },
   /**
    * Secret androids: the Health shown to players is the larger of the cover and the true
@@ -212,6 +255,103 @@ export const characterComputed: Record<string, JsonLogicRule> = {
   /** Health left after the damage taken; zero means broken (p. 68). */
   healthRemaining: { max: [0, { "-": [{ var: "computed.health" }, { var: ["fields.damage", 0] }] }] },
 };
+
+/** "A", "S", "M", "L", "E": the gear tables' range letters (p. 82). */
+const bandLetter = (key: string): JsonLogicRule => ({
+  if: [...RANGE_IDS.flatMap((id) => [{ "==": [{ var: key }, id] }, RANGE_LABELS[id].charAt(0)]), ""],
+});
+
+/** Signed modifier as the tables print it: +2, -1, "–" for none. */
+const signedBonus: JsonLogicRule = { if: [{ ">": [{ var: "bonus" }, 0] }, { cat: ["+", { var: "bonus" }] }, { "<": [{ var: "bonus" }, 0] }, { var: "bonus" }, "–"] };
+
+const damageText: JsonLogicRule = {
+  cat: [
+    { var: "damage" },
+    { if: [{ var: "explosive" }, "E", ""] },
+    { if: [{ "==": [{ var: "damageType" }, "stun"] }, " (stun)", { "==": [{ var: "damageType" }, "fire"] }, " (fire)", ""] },
+  ],
+};
+
+const rangeText: JsonLogicRule = {
+  if: [{ "==": [{ var: "rangeMin" }, { var: "range" }] }, bandLetter("range"), { cat: [bandLetter("rangeMin"), "/", bandLetter("range")] }],
+};
+
+const ammoText: JsonLogicRule = { if: [{ var: "ammo" }, { var: "ammo" }, { var: "power" }, { cat: ["Power ", { var: "power" }] }, "–"] };
+
+/**
+ * Attacks with a weapon row (p. 62-67): any attack at Adjacent range is
+ * rolled with CLOSE COMBAT, firearms included; Short and beyond with RANGED
+ * COMBAT. The weapon's modifier adds dice (as gear), and each band closer
+ * than its minimum range costs 2 dice. A hit deals the weapon's damage plus
+ * 1 per extra success; armor piercing lowers armor one step; stun and fire
+ * go to the armor rule as hit sources (combat.ts).
+ */
+export const WEAPON_ATTACK: WeaponAttackConfig = {
+  ranges: RANGE_IDS.map((id) => ({ id, label: RANGE_LABELS[id] })),
+  minRangeKey: "rangeMin",
+  maxRangeKey: "range",
+  skill: { if: [{ "==": [{ var: "range" }, "adjacent"] }, "closeCombat", "rangedCombat"] },
+  pool: {
+    gear: { var: ["weapon.bonus", 0] },
+    modifier: { "*": [-2, { var: "closer" }] },
+  },
+  damage: { var: ["weapon.damage", 0] },
+  extraSuccessesAddDamage: true,
+  armorPiercing: { in: ["Armor piercing", { var: ["weapon.special", []] }] },
+  source: { if: [{ in: [{ var: "weapon.damageType" }, ["stun", "fire"]] }, { var: "weapon.damageType" }, ""] },
+  notes: [
+    { when: { ">": [{ var: "closer" }, 0] }, text: "Closer than the weapon's minimum range: −2 dice per band (p. 64)." },
+    { when: { var: "weapon.explosive" }, text: "Explosive: a hit also strikes everyone else in the target's zone, who may dodge; a miss hurts no one (p. 76)." },
+    { when: { "==": [{ var: "weapon.damageType" }, "stun"] }, text: "Stun: no Health is lost; the target rolls STAMINA at minus the damage or loses its next turn (p. 71)." },
+    { when: { "==": [{ var: "weapon.damageType" }, "fire"] }, text: "Fire: armor works as normal; see the weapon's fire effect (p. 76, 86)." },
+    { when: { ">": [{ var: "weapon.ammo" }, 0] }, text: "Afterwards, make an ammo supply roll unless an extra success is spent to save ammo (p. 66)." },
+  ],
+  rules: ["alien.rule.attack-close", "alien.rule.attack-ranged", "alien.rule.damage-armor", "alien.rule.weapons"],
+};
+
+/** The Weapons section's list: presets from the gear tables (vehicle-mounted weapons left out), campaign items, or blank rows. */
+export const WEAPONS_CONFIG: WeaponListConfig = {
+  presets: {
+    entityType: "alien.item",
+    subtype: "weapon",
+    excludeTags: ["weapon:vehicle"],
+    groups: [
+      { tag: "weapon:ranged", label: "Ranged" },
+      { tag: "weapon:melee", label: "Melee" },
+      { tag: "weapon:explosive", label: "Explosive" },
+    ],
+  },
+  items: { entityType: "alien.item", subtype: "weapon" },
+  copy: [...WEAPON_STAT_KEYS],
+  edit: [...WEAPON_STAT_KEYS, "notes"],
+  presetKey: "presetId",
+  itemKey: "itemId",
+  columns: [
+    { label: "Mod", display: signedBonus, numeric: true },
+    { label: "Damage", display: damageText },
+    { label: "Range", display: rangeText },
+    { label: "Ammo", display: ammoText },
+    { key: "special", label: "Special" },
+    { key: "weight", label: "Weight", numeric: true },
+    { key: "notes", label: "Notes" },
+  ],
+  pickerColumns: [
+    { label: "Mod", display: signedBonus, numeric: true },
+    { label: "Damage", display: damageText },
+    { label: "Range", display: rangeText },
+    { key: "weight", label: "Weight", numeric: true },
+    { label: "Cost", display: { if: [{ var: "costText" }, { var: "costText" }, { cat: ["$", { var: "cost" }] }] }, numeric: true },
+  ],
+  weightKey: "weight",
+  totalComputed: "encumbrance",
+  limitComputed: "encumbranceLimit",
+  attack: WEAPON_ATTACK,
+};
+
+/** A weapon row copied from an `alien.item` weapon preset (the picker's copy, for builders and demos). */
+export function weaponRowFromPreset(preset: EntityPreset): Record<string, unknown> {
+  return weaponRowFrom(WEAPONS_CONFIG, preset, { presetId: preset.id });
+}
 
 const sections: SheetSection[] = [
   {
@@ -310,7 +450,23 @@ const sections: SheetSection[] = [
           maxEncumbrance: "computed.maxEncumbrance",
           supplyOperation: "supplyRoll",
           itemEntityType: "alien.item",
+          totalComputed: "encumbrance",
+          limitComputed: "encumbranceLimit",
         },
+      },
+    ],
+  },
+  {
+    id: "weapons",
+    title: "Weapons",
+    fields: [
+      {
+        path: "weapons",
+        label: "Weapons",
+        widget: "weapons",
+        span: 12,
+        rule: "alien.rule.weapons",
+        config: WEAPONS_CONFIG as unknown as Record<string, unknown>,
       },
     ],
   },
@@ -395,6 +551,7 @@ export const characterType: EntityTypeDef = {
   sheet: {
     sections,
     summary: ["career", "stress", "health", "resolve", "android"],
+    create: ["isPC", "weapons"],
   },
   computed: characterComputed,
   defaultVisibility: {
@@ -416,5 +573,5 @@ export const characterType: EntityTypeDef = {
     secretOrders: "gm",
     coverAttributes: "players",
   },
-  playerEditable: ["stress", "damage", "gear", "cash", "talents", "skills", "personalAgenda", "agendas", "storyPoints", "xp", "signatureItem", "buddy", "rival", "background"],
+  playerEditable: ["stress", "damage", "gear", "weapons", "cash", "talents", "skills", "personalAgenda", "agendas", "storyPoints", "xp", "signatureItem", "buddy", "rival", "background"],
 };

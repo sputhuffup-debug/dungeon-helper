@@ -1196,6 +1196,122 @@
   font-weight: 700;
 }
 
+/* Weapons: stats as columns, an inline row editor, and the Add weapon picker */
+.cf-weapons__scroll {
+  overflow-x: auto;
+}
+.cf-weapons {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--cf-text-sm);
+}
+.cf-weapons th,
+.cf-weapons td {
+  padding: var(--cf-space-1);
+  border-bottom: 1px solid var(--cf-border);
+  vertical-align: middle;
+  text-align: left;
+}
+.cf-weapons thead th {
+  color: var(--cf-muted);
+  font-size: var(--cf-text-xs);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.cf-weapons tbody th {
+  font-weight: 600;
+}
+.cf-weapons__num {
+  text-align: right !important;
+  font-family: var(--cf-font-mono);
+  white-space: nowrap;
+}
+.cf-weapons td[data-column] {
+  white-space: nowrap;
+}
+.cf-weapons__name {
+  display: block;
+}
+.cf-weapons__summary {
+  display: block;
+  font-weight: 400;
+  font-size: var(--cf-text-xs);
+}
+.cf-weapons__actions {
+  white-space: nowrap;
+  text-align: right !important;
+}
+.cf-weapons tr.is-editing > * {
+  border-bottom-color: transparent;
+}
+.cf-weapons__editor > td {
+  background: var(--cf-elevated);
+}
+.cf-weapons__form {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: var(--cf-space-2);
+}
+.cf-weapons__input {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: var(--cf-text-xs);
+  color: var(--cf-muted);
+}
+.cf-weapons__input--wide {
+  grid-column: span 2;
+}
+.cf-weapons__add {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cf-space-2);
+}
+.cf-weapons__dialog {
+  width: min(920px, 92vw);
+  max-width: min(920px, 92vw);
+}
+/* the picker's list scrolls under a fixed title and search */
+.cf-weapons__dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+.cf-weapons__dialog .cf-dialog__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding-top: 0;
+}
+.cf-weapons__search {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: var(--cf-space-4) 0 var(--cf-space-2);
+  background: var(--cf-surface);
+}
+.cf-weapons__picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cf-space-3);
+}
+.cf-weapons__group {
+  overflow-x: auto;
+}
+.cf-weapons__group-title {
+  margin: 0;
+  font-size: var(--cf-text-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--cf-muted);
+}
+.cf-weapons--picker td[data-column] {
+  white-space: nowrap;
+}
+@media (max-width: 640px) {
+  .cf-weapons--picker .cf-weapons__summary {
+    display: none;
+  }
+}
+
 .cf-dicepool {
   display: flex;
   flex-wrap: wrap;

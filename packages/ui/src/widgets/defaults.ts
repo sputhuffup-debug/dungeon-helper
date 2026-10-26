@@ -3,6 +3,7 @@ import { ComputedField } from "./computed";
 import { ConditionsField } from "./conditions";
 import { DicePoolField } from "./dicepool";
 import { EntriesField } from "./entries";
+import { WeaponsField } from "./weapons";
 import { GearField } from "./gear";
 import { ImageField, ZoneMapField } from "./media";
 import { AttributeField, CheckboxField, NumberField } from "./number";
@@ -30,6 +31,7 @@ export function registerDefaultWidgets(): void {
   registerWidget("talents", TalentsField);
   registerWidget("conditions", ConditionsField);
   registerWidget("gear", GearField);
+  registerWidget("weapons", WeaponsField);
   registerWidget("dicepool", DicePoolField);
   registerWidget("supply", SupplyField);
   registerWidget("stress", StressField);

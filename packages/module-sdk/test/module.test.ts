@@ -358,3 +358,64 @@ describe("citations and licences", () => {
     expect(where(m).filter((e) => e.startsWith("manifest"))).toEqual([]);
   });
 });
+
+describe("checkModule: weapons fields and create paths", () => {
+  const withWeapons = (config: Record<string, unknown>, create: string[] = ["arms"]): GameModule => {
+    const m = minimalModule();
+    m.presets.push({ id: "min.club", entityType: "min.thing", name: "Club", tags: ["hand"], fields: { weight: 1 } });
+    m.entityTypes.push({
+      id: "min.hero",
+      kind: "character",
+      name: "Hero",
+      plural: "Heroes",
+      schema: {
+        type: "object",
+        properties: {
+          skills: { type: "object", properties: { fight: { type: "integer" }, shoot: { type: "integer" } } },
+          arms: { type: "array", items: { type: "object", properties: { name: { type: "string" }, weight: { type: "number" }, reach: { type: "string" } } } },
+        },
+      },
+      computed: { load: { sum: [{ map: [{ var: "fields.arms" }, { var: "weight" }] }] } },
+      sheet: {
+        sections: [
+          { id: "s", title: "S", fields: [{ path: "skills", widget: "skills", config: { skills: [{ id: "fight" }, { id: "shoot" }] } }] },
+          { id: "w", title: "W", fields: [{ path: "arms", widget: "weapons", config }] },
+        ],
+        create,
+      },
+    });
+    return m;
+  };
+  const good = {
+    presets: { entityType: "min.thing", tags: ["hand"] },
+    copy: ["weight"],
+    columns: [{ key: "weight", label: "Weight" }],
+    totalComputed: "load",
+    attack: { ranges: [{ id: "near", label: "Near" }, { id: "far", label: "Far" }], minRangeKey: "reach", maxRangeKey: "reach", skill: { if: [{ "==": [{ var: "range" }, "near"] }, "fight", "shoot"] }, damage: 1 },
+  };
+
+  it("passes a sound config", () => {
+    expect(errorsOf(withWeapons(good))).toEqual([]);
+  });
+
+  it("catches a missing config, unknown keys and sources, a bad create path, and an attack rolling a skill the sheet lacks", () => {
+    expect(errorsOf(withWeapons({})).map((e) => e.message)).toContain("weapons widget needs config.copy and config.columns lists");
+    const msgs = errorsOf(
+      withWeapons(
+        { ...good, copy: ["weight", "colour"], edit: ["size"], columns: [{ key: "heft", label: "Heft" }], items: { entityType: "min.nope" }, limitComputed: "cap", attack: { ...good.attack, skill: "dance" } },
+        ["arms", "nothing"],
+      ),
+    ).map((e) => e.message);
+    expect(msgs).toEqual(
+      expect.arrayContaining([
+        'copy key "colour" is not a property of the weapon rows',
+        'edit key "size" is not a property of the weapon rows',
+        'column key "heft" is not a property of the weapon rows',
+        'weapons source references unknown entity type "min.nope"',
+        'limitComputed "cap" is not a computed value',
+        'create path "nothing" does not exist',
+        `an attack at Near rolls "dance", which the sheet's skills widget does not offer`,
+      ]),
+    );
+  });
+});

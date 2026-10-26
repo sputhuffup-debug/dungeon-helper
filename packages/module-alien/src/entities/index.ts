@@ -11,7 +11,7 @@ import { jobType } from "./job";
 import { encounterType } from "./encounter";
 
 export * from "./common";
-export { characterType, characterComputed, characterSchema, HARDENED_TALENT, SEEN_IT_ALL_TALENT } from "./character";
+export { characterType, characterComputed, characterSchema, weaponRowSchema, weaponRowFromPreset, WEAPON_STAT_KEYS, WEAPON_ATTACK, WEAPONS_CONFIG, HARDENED_TALENT, SEEN_IT_ALL_TALENT } from "./character";
 export { creatureType } from "./creature";
 export { locationType } from "./location";
 export { factionType } from "./faction";

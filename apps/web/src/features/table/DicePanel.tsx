@@ -16,6 +16,7 @@ import { checkConditionInput } from "../../state/d20Actions";
 import { DICE_LOG, applySessionEffects, diceCounter, enteredField, recordPoolRoll, withRollRng, type DiceLogData } from "../../state/tableActions";
 import { useSessionTrackerState } from "./hooks";
 import { SpecialAttackCard, useSpecialAttacks } from "./SpecialAttacks";
+import { WeaponAttackPanel, weaponChoices } from "./WeaponAttack";
 
 const isRecordLike = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
 
@@ -291,16 +292,25 @@ export function SkillRoll({ sessionId, pcs, others = [] }: { sessionId: Id; pcs:
   const skills = skillOptions(ctx.module, def, mode);
   const groups = [...new Set(skills.map((s) => s.group))];
   const attrs = pc ? attributeIds(ctx.module, pc) : [];
+  const weapons = weaponChoices(ctx.module, pc);
 
   const pick = (nextPc: string, nextChoice: string) => {
+    const samePc = nextPc === pcId;
     setPcId(nextPc);
     const nextDef = everyone.find((p) => p.id === nextPc);
-    // Keep the skill when the new roller has it too.
-    const keep = nextDef && (nextChoice.startsWith("attr:") ? attributeIds(ctx.module, nextDef).includes(nextChoice.slice(5)) : skillOptions(ctx.module, ctx.module.entityType(nextDef.type), mode).some((s) => s.id === nextChoice));
+    // Keep the skill when the new roller has it too (a weapon only for the same roller).
+    const keep =
+      nextDef &&
+      (nextChoice.startsWith("weapon:")
+        ? samePc
+        : nextChoice.startsWith("attr:")
+          ? attributeIds(ctx.module, nextDef).includes(nextChoice.slice(5))
+          : skillOptions(ctx.module, ctx.module.entityType(nextDef.type), mode).some((s) => s.id === nextChoice));
     if (!keep) nextChoice = "";
     setChoice(nextChoice);
     const entity = everyone.find((p) => p.id === nextPc);
     if (!entity || !nextChoice) return setPicked(undefined);
+    if (nextChoice.startsWith("weapon:")) return setPicked({ key: `${nextPc}:${nextChoice}:${Date.now()}`, label: nextChoice, input: {} });
     const built = skillInput(ctx.module, entity, nextChoice);
     setPicked({ key: `${nextPc}:${nextChoice}:${Date.now()}`, ...built });
   };
@@ -349,6 +359,15 @@ export function SkillRoll({ sessionId, pcs, others = [] }: { sessionId: Id; pcs:
                 ))}
             </optgroup>
           ))}
+          {weapons.length > 0 && (
+            <optgroup label="Weapons">
+              {weapons.map((w) => (
+                <option key={w.value} value={w.value}>
+                  {w.label}
+                </option>
+              ))}
+            </optgroup>
+          )}
           {attrs.length > 0 && (
             <optgroup label="Attribute only">
               {attrs.map((a) => (
@@ -360,7 +379,15 @@ export function SkillRoll({ sessionId, pcs, others = [] }: { sessionId: Id; pcs:
           )}
         </select>
       </div>
-      {pc && picked ? <SessionRollPanel key={picked.key} sessionId={sessionId} entity={pc} label={picked.label} input={picked.input} /> : <p className="cf-muted">Pick a character and a skill.</p>}
+      {pc && picked ? (
+        choice.startsWith("weapon:") ? (
+          <WeaponAttackPanel key={picked.key} sessionId={sessionId} attackerId={pc.id} index={Number(choice.slice("weapon:".length))} targets={[...pcs, ...others]} />
+        ) : (
+          <SessionRollPanel key={picked.key} sessionId={sessionId} entity={pc} label={picked.label} input={picked.input} />
+        )
+      ) : (
+        <p className="cf-muted">Pick a character and a skill.</p>
+      )}
     </Card>
   );
 }

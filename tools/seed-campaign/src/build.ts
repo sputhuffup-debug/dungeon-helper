@@ -58,8 +58,24 @@ import {
   type Id,
   type Visibility,
 } from "@campaign-forge/core";
-import { alienModule } from "@campaign-forge/module-alien";
+import { alienModule, weaponRowFromPreset } from "@campaign-forge/module-alien";
 import { startInfection } from "./infection";
+
+/**
+ * What each career carries aboard a hauler on this run (original demo
+ * choices; the stats are copied from the module's weapon presets).
+ */
+const CREW_WEAPONS: Record<string, string[]> = {
+  "colonial-marine": ["armat-m41a-pulse-rifle", "knife"],
+  "colonial-marshal": ["357-magnum-revolver", "stun-baton"],
+  "company-agent": ["weyland-es-4-electrostatic-pistol"],
+  kid: ["blunt-instrument"],
+  medic: ["stun-baton"],
+  officer: ["m4a3-service-pistol"],
+  pilot: ["vp-70ma6-service-pistol"],
+  roughneck: ["cutting-torch-weapon", "fire-axe"],
+  scientist: ["knife"],
+};
 
 export const DEMO_SEED = "skyfire-down";
 export const DEMO_NAME = "Skyfire Down";
@@ -248,6 +264,9 @@ export function buildDemoCampaign(opts: BuildDemoOptions = {}): DemoCampaign {
       fields["signatureItem"] = pick(prng.fork("signature"), signature);
       edited.push("signatureItem");
     }
+    const weaponIds = CREW_WEAPONS[str(pc.fields["career"])] ?? ["knife"];
+    fields["weapons"] = weaponIds.map((id) => weaponRowFromPreset(requirePreset(mod, `alien.item.${id}`)));
+    edited.push("weapons");
     const updated = store.update("entities", pc.id, { name: pcName, fields, tags: [...pc.tags, "crew"] });
     for (const path of ["name", ...edited]) recordEdit(store, accepted.run.id, pc.id, path);
     pcs.push(updated);

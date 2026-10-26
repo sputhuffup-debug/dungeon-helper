@@ -56,7 +56,7 @@ import {
   type Visibility,
 } from "@campaign-forge/core";
 import { loadModule } from "@campaign-forge/module-sdk";
-import { CINEMATIC, CINEMATIC_BUILDER_ID, DEFAULT_YEAR, MAP_GENERATOR_ID, alienModule, careerItems, type CareerItem } from "@campaign-forge/module-alien";
+import { CINEMATIC, CINEMATIC_BUILDER_ID, DEFAULT_YEAR, MAP_GENERATOR_ID, alienModule, careerItems, weaponRowFromPreset, type CareerItem } from "@campaign-forge/module-alien";
 import { startInfection } from "./infection";
 import { writeDemoPrimer } from "./primer";
 
@@ -126,11 +126,33 @@ function gearLine(mod: LoadedModule, name: string): Record<string, unknown> {
   return line;
 }
 
+/** The career's gear picks, with any weapon among them moved to the Weapons list (stats copied from its preset). */
+function gearAndWeapons(mod: LoadedModule, lines: Array<Record<string, unknown>>): { gear: Array<Record<string, unknown>>; weapons: Array<Record<string, unknown>> } {
+  const gear: Array<Record<string, unknown>> = [];
+  const weapons: Array<Record<string, unknown>> = [];
+  for (const line of lines) {
+    const preset = typeof line.itemId === "string" ? mod.preset(line.itemId) : undefined;
+    if (preset?.subtype === "weapon") weapons.push(weaponRowFromPreset(preset));
+    else gear.push(line);
+  }
+  return { gear, weapons };
+}
+
+/** Weapon rows from item preset ids (without the `alien.item.` prefix). */
+function weaponRows(mod: LoadedModule, ids: string[]): Array<Record<string, unknown>> {
+  return ids.map((id) => {
+    const preset = mod.preset(`alien.item.${id}`);
+    if (!preset) throw new Error(`cinematic demo: no weapon preset "${id}"`);
+    return weaponRowFromPreset(preset);
+  });
+}
+
 /**
  * Starting stats by the creation rules (p. 25-26), from the career's data: the
  * key attribute at 5 and the other three at 3 (14 points); 3, 3 and 2 in the
  * three key skills plus 1 in two other skills (10 points); one of the
- * career's three talents, two of its gear items, a signature item and a look.
+ * career's three talents, two of its gear items (a weapon among them goes to
+ * the Weapons list), a signature item and a look.
  */
 function pregenFields(mod: LoadedModule, career: CareerItem, rng: Rng, skillIds: readonly string[]): Record<string, unknown> {
   const attributes: Record<string, number> = { strength: 3, agility: 3, wits: 3, empathy: 3 };
@@ -144,7 +166,7 @@ function pregenFields(mod: LoadedModule, career: CareerItem, rng: Rng, skillIds:
     attributes,
     skills,
     talents: [{ id: pick(rng.fork("talent"), career.talents), count: 1 }],
-    gear: sample(rng.fork("gear"), career.gear.filter((g) => !/^D6 doses/i.test(g)), 2).map((g) => gearLine(mod, g)),
+    ...gearAndWeapons(mod, sample(rng.fork("gear"), career.gear.filter((g) => !/^D6 doses/i.test(g)), 2).map((g) => gearLine(mod, g))),
     signatureItem: pick(rng.fork("signature"), career.signatureItems),
     appearance: sample(rng.fork("appearance"), career.appearances, 2).join("; "),
   };
@@ -161,6 +183,8 @@ interface PcSpec {
   background: string;
   agendas: [string, string, string];
   signOff: string;
+  /** Item preset ids (without `alien.item.`) of the weapons the PC brings besides the career gear. */
+  weapons: string[];
 }
 
 const PCS: PcSpec[] = [
@@ -175,6 +199,7 @@ const PCS: PcSpec[] = [
       "Get every survivor onto the shuttle, even if it means leaving the specimen and the bonus behind.",
     ],
     signOff: "This is Rosa Ilunga, relief lead. Cold Harbor is lost. If you find this, do not dock. End of report.",
+    weapons: ["m4a3-service-pistol"],
   },
   {
     key: "ana",
@@ -187,6 +212,7 @@ const PCS: PcSpec[] = [
       "Get Lindqvist's research off the station, even if the people who carry it do not make it.",
     ],
     signOff: "Ana Kovac, medical. I signed the waiver. I am sorry. I kept her notes; they are on this drive.",
+    weapons: ["stun-baton"],
   },
   {
     key: "teo",
@@ -199,6 +225,7 @@ const PCS: PcSpec[] = [
       "Expose Brandt to the others and stop him from reaching the shuttle with the specimen, by force if needed.",
     ],
     signOff: "Teo Marsh. The heat never failed. Somebody turned it off. Check the synthetic's logs.",
+    weapons: ["fire-axe"],
   },
   {
     key: "jun",
@@ -211,6 +238,7 @@ const PCS: PcSpec[] = [
       "Get the specimen aboard the company shuttle; if a crewmate stands in the way, shoot them.",
     ],
     signOff: "Akiyama, Weyland-Yutani liaison. Specimen status: lost. Recommend a full survey team. Personal note: I would not come.",
+    weapons: [],
   },
 ];
 
@@ -634,7 +662,9 @@ export function buildCinematicDemo(opts: BuildCinematicDemoOptions = {}): Cinema
     const career = careerItems.find((c) => c.id === spec.career);
     if (!career) throw new Error(`cinematic demo: no career "${spec.career}"`);
     const e = createCastMember(store, mod, adventureId, role(builder, "pcs"), spec.name);
-    const fields = { ...e.fields, ...pregenFields(mod, career, rng.fork(`pc/${spec.key}`), skillIds), background: spec.background, isPC: true };
+    const pregen = pregenFields(mod, career, rng.fork(`pc/${spec.key}`), skillIds);
+    const weapons = [...(pregen.weapons as Array<Record<string, unknown>>), ...weaponRows(mod, spec.weapons)];
+    const fields = { ...e.fields, ...pregen, weapons, background: spec.background, isPC: true };
     const pc = store.update("entities", e.id, { fields, summary: `${career.name}. ${spec.background}`, visibility: PLAYERS, tags: ["pc", "pregenerated"] });
     people.set(spec.key, pc);
     pcs.push(pc);

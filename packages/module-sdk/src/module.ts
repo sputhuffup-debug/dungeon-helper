@@ -10,6 +10,7 @@ import { runProcedure } from "./procedures";
 import { createTableRegistry } from "./tables";
 import { lifecycleConfig, lifecycleConfigIssues } from "./lifecycle";
 import { logicIssues } from "./logic";
+import { attackRanges, planWeaponAttack, weaponListConfig, weaponPresets, weaponRowFrom } from "./weapons";
 import { CORE_NARRATIVE_FIELDS, REVIEW_COLLECTIONS, REVIEW_CONTEXT_KEYS, narrativeEntityType } from "./review";
 import {
   type AdventureBuilderDef,
@@ -35,6 +36,7 @@ import {
   type RelationshipTypeDef,
   type RollTable,
   type RuleCard,
+  type SheetField,
   type TableRegistry,
   type Template,
   type TemplateChecklist,
@@ -251,6 +253,7 @@ function checkEntityType(def: EntityTypeDef, module: GameModule, declaredModes: 
         for (const t of field.entityTypes ?? []) {
           if (!module.entityTypes.some((et) => et.id === t)) c.error(fw, `entityTypes references unknown entity type "${t}"`);
         }
+        if (field.widget === "weapons") checkWeaponsField(field, schemaOwner, module, fw, c);
       }
     }
   };
@@ -260,6 +263,9 @@ function checkEntityType(def: EntityTypeDef, module: GameModule, declaredModes: 
   }
   for (const path of def.sheet.summary ?? []) {
     if (!fieldPathExists(def, path)) c.error(where, `summary path "${path}" does not exist`);
+  }
+  for (const path of def.sheet.create ?? []) {
+    if (!fieldPathExists(def, path)) c.error(where, `create path "${path}" does not exist`);
   }
   for (const path of Object.keys(def.defaultVisibility ?? {})) {
     if (!fieldPathExists(def, path)) c.error(where, `defaultVisibility path "${path}" does not exist`);
@@ -277,6 +283,63 @@ function checkEntityType(def: EntityTypeDef, module: GameModule, declaredModes: 
     validateEntityFields(def, {});
   } catch (e) {
     c.error(where, `schema does not compile: ${(e as Error).message}`);
+  }
+}
+
+/** Skill ids a type's skills widgets offer (inline `config.skills`, else the reference list's items). */
+function sheetSkillIds(def: EntityTypeDef, module: GameModule): Set<string> {
+  const out = new Set<string>();
+  for (const section of def.sheet.sections) {
+    for (const f of section.fields) {
+      if (f.widget !== "skills") continue;
+      const cfg = f.config ?? {};
+      if (Array.isArray(cfg.skills)) for (const s of cfg.skills) if (s && typeof s === "object" && typeof (s as { id?: unknown }).id === "string") out.add((s as { id: string }).id);
+      const ref = f.options && !Array.isArray(f.options) ? f.options.ref : typeof cfg.ref === "string" ? cfg.ref : undefined;
+      for (const i of module.referenceLists.find((l) => l.id === ref)?.items ?? []) out.add(i.id);
+    }
+  }
+  return out;
+}
+
+/** A `weapons` field: its config, the presets it offers, and that an attack with each rolls a skill the sheet has. */
+function checkWeaponsField(field: SheetField, def: EntityTypeDef, module: GameModule, fw: string, c: Collector): void {
+  const cfg = weaponListConfig(field);
+  if (!cfg) {
+    c.error(fw, "weapons widget needs config.copy and config.columns lists");
+    return;
+  }
+  const rowSchema = fieldSchemaAt(def, `${field.path}.0`);
+  const rowKeys = rowSchema && typeof rowSchema.properties === "object" ? new Set(Object.keys(rowSchema.properties as object)) : undefined;
+  if (rowKeys) {
+    for (const k of cfg.copy) if (!rowKeys.has(k)) c.error(fw, `copy key "${k}" is not a property of the weapon rows`);
+    for (const k of cfg.edit ?? []) if (!rowKeys.has(k)) c.error(fw, `edit key "${k}" is not a property of the weapon rows`);
+    for (const col of [...cfg.columns, ...(cfg.pickerColumns ?? [])]) if (col.key && !rowKeys.has(col.key)) c.error(fw, `column key "${col.key}" is not a property of the weapon rows`);
+  }
+  for (const col of [...cfg.columns, ...(cfg.pickerColumns ?? [])]) if (col.display !== undefined) checkLogic(col.display, fw, `column "${col.label}"`, c);
+  for (const src of [cfg.presets?.entityType, cfg.items?.entityType]) {
+    if (src && !module.entityTypes.some((t) => t.id === src)) c.error(fw, `weapons source references unknown entity type "${src}"`);
+  }
+  for (const k of ["totalComputed", "limitComputed"] as const) {
+    const key = cfg[k];
+    if (key && !Object.prototype.hasOwnProperty.call(def.computed ?? {}, key)) c.error(fw, `${k} "${key}" is not a computed value`);
+  }
+  const offered = weaponPresets(cfg, module.presets);
+  if (cfg.presets && offered.length === 0) c.warn(fw, "the weapons picker matches no preset");
+  const attack = cfg.attack;
+  if (!attack) return;
+  if (!Array.isArray(attack.ranges) || attack.ranges.length === 0) {
+    c.error(fw, "attack.ranges is empty");
+    return;
+  }
+  for (const k of ["skill", "damage", "armorPiercing", "source"] as const) if (attack[k] !== undefined) checkLogic(attack[k], fw, `attack.${k}`, c);
+  for (const [k, rule] of Object.entries(attack.pool ?? {})) checkLogic(rule, fw, `attack.pool.${k}`, c);
+  const skills = sheetSkillIds(def, module);
+  for (const p of offered) {
+    const row = weaponRowFrom(cfg, p);
+    for (const band of attackRanges(attack, row)) {
+      const plan = planWeaponAttack(attack, row, band.id);
+      if (!skills.has(plan.skillId)) c.error(`preset:${p.id}`, `an attack at ${band.label} rolls "${plan.skillId}", which the sheet's skills widget does not offer`);
+    }
   }
 }
 
