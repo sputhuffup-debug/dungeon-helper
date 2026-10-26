@@ -810,6 +810,21 @@ test("gm-screen", async ({ page }) => {
   await shot(page, "gm-screen");
 });
 
+test("character-builder", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1180 });
+  await loadDemo(page, "dnd5e");
+  // the demo's half-built SRD 5.2 elf wizard, resumed from the PCs tab (no reload, so ids stay put)
+  await page.getByRole("navigation", { name: "Campaign" }).getByRole("link", { name: "Atlas", exact: true }).click();
+  await page.getByRole("tab", { name: /^PCs/ }).click();
+  const draft = page.getByTestId("character-drafts").getByRole("listitem").filter({ hasText: "Elowen Brightwater" });
+  await draft.getByTestId("draft-resume").click();
+  await expect(page.locator(".cb__main")).toHaveAttribute("data-step", "background");
+  await expect(page.getByTestId("opt:background:sage-2024")).toHaveClass(/is-on/);
+  await expect(page.getByTestId("summary-intelligence")).toContainText("17");
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await shot(page, "character-builder");
+});
+
 // ---------------------------------------------------------------------------
 // Hollowmere (second edition remaster, ORC core rules)
 // ---------------------------------------------------------------------------
