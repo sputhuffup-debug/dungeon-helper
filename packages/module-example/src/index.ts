@@ -734,6 +734,13 @@ export const exampleModule: GameModule = {
   },
   dice: exampleDice,
   entityTypes: [heroType, placeType, beastType, wagonType],
+  gmScreen: {
+    panels: [
+      { id: "core", title: "Core rules", blocks: [{ kind: "rule", rule: "example.rule.push" }, { kind: "rule", rule: "example.rule.wounds" }, { kind: "table", table: "example.table.danger" }] },
+      { id: "doom", title: "Doom", mode: ["hardcore"], blocks: [{ kind: "rule", rule: "example.rule.doom" }] },
+      { id: "origins", title: "Origins", side: "players", blocks: [{ kind: "list", list: "example.origins", columns: ["bonus"] }] },
+    ],
+  },
   primer: {
     sections: [
       { id: "setting", title: "The marches", prompt: "The borderland the heroes travel.", starter: "A cold march of ruined keeps and toll roads.", original: true },

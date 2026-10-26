@@ -2614,6 +2614,318 @@
       ],
       "additionalProperties": false
     },
+    "gmScreenRuleBlock": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "rule"
+        },
+        "rule": {
+          "$ref": "#/definitions/id"
+        },
+        "section": {
+          "type": "string",
+          "minLength": 1
+        },
+        "parts": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "minItems": 1
+        },
+        "title": {
+          "type": "string"
+        },
+        "mode": {
+          "$ref": "#/definitions/modes"
+        }
+      },
+      "required": [
+        "kind",
+        "rule"
+      ],
+      "additionalProperties": false,
+      "description": "A rule card, whole or an excerpt: the part under a heading (`section`) and/or some of its parts."
+    },
+    "gmScreenTableBlock": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "table"
+        },
+        "table": {
+          "$ref": "#/definitions/id"
+        },
+        "columns": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "notes": {
+          "type": "boolean"
+        },
+        "title": {
+          "type": "string"
+        },
+        "mode": {
+          "$ref": "#/definitions/modes"
+        }
+      },
+      "required": [
+        "kind",
+        "table"
+      ],
+      "additionalProperties": false,
+      "description": "A roll table printed compactly: the dice, then one line per row."
+    },
+    "gmScreenListBlock": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "list"
+        },
+        "list": {
+          "$ref": "#/definitions/id"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "where": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "columns": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "summary": {
+          "type": "boolean"
+        },
+        "title": {
+          "type": "string"
+        },
+        "mode": {
+          "$ref": "#/definitions/modes"
+        }
+      },
+      "required": [
+        "kind",
+        "list"
+      ],
+      "additionalProperties": false,
+      "description": "Items of a reference list: names, chosen columns and summaries; `where` is JSONLogic over each item."
+    },
+    "gmScreenConditionsBlock": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "conditions"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "title": {
+          "type": "string"
+        },
+        "mode": {
+          "$ref": "#/definitions/modes"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "additionalProperties": false,
+      "description": "The d20Combat conditions with their helper text."
+    },
+    "gmScreenGuideBlock": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "guide"
+        },
+        "guide": {
+          "$ref": "#/definitions/id"
+        },
+        "tips": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          ]
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "cues": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "title": {
+          "type": "string"
+        },
+        "mode": {
+          "$ref": "#/definitions/modes"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "additionalProperties": false,
+      "description": "A play guide's tips (dice and rolling notes) and entries."
+    },
+    "gmScreenTextBlock": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "text"
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "original": {
+          "const": true
+        },
+        "page": {
+          "$ref": "#/definitions/page"
+        },
+        "cite": {
+          "$ref": "#/definitions/cite"
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          }
+        },
+        "title": {
+          "type": "string"
+        },
+        "mode": {
+          "$ref": "#/definitions/modes"
+        }
+      },
+      "required": [
+        "kind",
+        "text",
+        "original"
+      ],
+      "additionalProperties": false,
+      "description": "A short quick-rules note in the author's own words; cites the page, section or rule cards it summarizes."
+    },
+    "gmScreenPanel": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]*$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "size": {
+          "type": "string",
+          "enum": [
+            "third",
+            "half",
+            "full"
+          ]
+        },
+        "side": {
+          "type": "string",
+          "enum": [
+            "gm",
+            "players"
+          ]
+        },
+        "optional": {
+          "type": "boolean"
+        },
+        "mode": {
+          "$ref": "#/definitions/modes"
+        },
+        "blocks": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/definitions/gmScreenRuleBlock"
+              },
+              {
+                "$ref": "#/definitions/gmScreenTableBlock"
+              },
+              {
+                "$ref": "#/definitions/gmScreenListBlock"
+              },
+              {
+                "$ref": "#/definitions/gmScreenConditionsBlock"
+              },
+              {
+                "$ref": "#/definitions/gmScreenGuideBlock"
+              },
+              {
+                "$ref": "#/definitions/gmScreenTextBlock"
+              }
+            ]
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "blocks"
+      ],
+      "additionalProperties": false
+    },
+    "gmScreen": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "panels": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/gmScreenPanel"
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "panels"
+      ],
+      "additionalProperties": false,
+      "description": "A printable GM screen: panels of references to the pack's rule cards, tables, lists, conditions and play guide. See docs/modules/gm-screen.md."
+    },
     "playGuide": {
       "type": "object",
       "properties": {

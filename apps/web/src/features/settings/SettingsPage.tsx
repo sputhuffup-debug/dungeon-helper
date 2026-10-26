@@ -1,6 +1,6 @@
-/** Settings: campaign name, mode, in-world date, members, dice on this device, session checklist, export/import, delete, module info. */
+/** Settings: campaign name, mode, in-world date, members, dice on this device, session checklist, printouts (GM screen), export/import, delete, module info. */
 import { exportMarkdown } from "@campaign-forge/core";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { Badge, Button, Card, usePhysicalDicePreference } from "../../components/ui";
@@ -107,6 +107,15 @@ export function SettingsPage() {
       <DiceSettings />
 
       <ChecklistSettings />
+
+      <Card title="Print" subtitle="Quick references from the game module, for the table.">
+        <div className="app-row">
+          <Link to="/c/$campaignId/gm-screen" params={{ campaignId: ctx.campaignId }} className="cf-btn" data-testid="settings-gm-screen">
+            GM screen…
+          </Link>
+          <span className="cf-muted">A tri-fold screen or cards in Letter, A4, 11×17 or A3.</span>
+        </div>
+      </Card>
 
       <Card title="Export and import">
         <div className="app-stack">

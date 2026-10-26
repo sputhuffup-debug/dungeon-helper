@@ -33,6 +33,7 @@ Then open the app, choose **Game modules… → Import data pack…** on the cam
 6. [Licensing and citations](licensing.md): `license`, attribution, `page` / `cite` / `original`.
 7. [Testing with module-check](testing.md): what the checker runs and how to read its output.
 8. [Supplements](supplements.md): additive JSON for an existing module (more backgrounds, subclasses, presets, tables, rule cards), imported like a pack or built into the app as an optional extra; split supplements; and how to keep private ones private.
-9. [TypeScript modules](typescript-modules.md): when you need code, and how to register a built-in module or pack (including large ones such as the 5th Edition SRD 5.1 & 5.2 in `packages/module-dnd5e-srd` and the ORC core rules for the second edition remaster in `packages/module-pf2e-orc`).
+9. [GM screen](gm-screen.md): the printable quick reference a module (or pack) builds from its own rule cards, tables, lists, conditions and play guide, and the fallback for modules without one.
+10. [TypeScript modules](typescript-modules.md): when you need code, and how to register a built-in module or pack (including large ones such as the 5th Edition SRD 5.1 & 5.2 in `packages/module-dnd5e-srd` and the ORC core rules for the second edition remaster in `packages/module-pf2e-orc`).
 
 The published JSON Schemas are in `packages/module-sdk/schema/` (`module-pack.schema.json`, `module-pack-part.schema.json`, `module-supplement.schema.json`, `module-supplement-part.schema.json`). Point your editor at them with `"$schema"` for completion and inline errors. The contract they describe is `packages/module-sdk/src/types.ts`; the fixture pack `packages/module-example/packs/example-pack/` uses every feature of the format.

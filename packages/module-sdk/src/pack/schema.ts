@@ -45,6 +45,16 @@ import type {
   D20ZeroHpRule,
   EntityPreset,
   EntityTypeDef,
+  GmScreenConditionsBlock,
+  GmScreenDef,
+  GmScreenGuideBlock,
+  GmScreenListBlock,
+  GmScreenPanel,
+  GmScreenRuleBlock,
+  GmScreenSide,
+  GmScreenSize,
+  GmScreenTableBlock,
+  GmScreenTextBlock,
   JsonSchema,
   ModuleLicense,
   ModuleManifest,
@@ -150,6 +160,8 @@ const D20_ATTACK_KINDS = ["melee", "ranged", "spell"] as const satisfies readonl
 const D20_TARGETS = ["attack", "check", "save", "ac", "dc", "damage"] as const satisfies readonly D20EffectTarget[];
 const D20_RESTRICTIONS = ["act", "react", "move", "speak", "see", "hear"] as const satisfies readonly D20Restriction[];
 const D20_MODIFIER_KINDS = ["immunity", "resistance", "vulnerability", "weakness"] as const satisfies readonly D20DamageModifierKind[];
+const GM_SCREEN_SIZES = ["third", "half", "full"] as const satisfies readonly GmScreenSize[];
+const GM_SCREEN_SIDES = ["gm", "players"] as const satisfies readonly GmScreenSide[];
 const CHECKLIST_PHASES = ["prep", "play", "wrap"] as const satisfies readonly SessionChecklistPhase[];
 const CHECKLIST_EVENTS = [
   "scenes-planned", "log-written", "revealed", "prompts-answered", "summary-saved", "loose-ends-carried", "timeline-confirmed", "next-session-planned", "awards-given",
@@ -620,6 +632,54 @@ const definitions: Record<string, JsonSchema> = {
     },
     ["damageTypes", "saves", "combatants", "rules", "conditions"],
   ),
+  // GM screen
+  gmScreenRuleBlock: object<GmScreenRuleBlock>()(
+    { kind: { const: "rule" }, rule: ref("id"), section: text, parts: list(int({ minimum: 0 }), { minItems: 1 }), title: str(), mode: ref("modes") },
+    ["kind", "rule"],
+    { description: "A rule card, whole or an excerpt: the part under a heading (`section`) and/or some of its parts." },
+  ),
+  gmScreenTableBlock: object<GmScreenTableBlock>()(
+    { kind: { const: "table" }, table: ref("id"), columns: list(text), notes: bool, title: str(), mode: ref("modes") },
+    ["kind", "table"],
+    { description: "A roll table printed compactly: the dice, then one line per row." },
+  ),
+  gmScreenListBlock: object<GmScreenListBlock>()(
+    { kind: { const: "list" }, list: ref("id"), items: list(text), where: logic, columns: list(text), summary: bool, title: str(), mode: ref("modes") },
+    ["kind", "list"],
+    { description: "Items of a reference list: names, chosen columns and summaries; `where` is JSONLogic over each item." },
+  ),
+  gmScreenConditionsBlock: object<GmScreenConditionsBlock>()(
+    { kind: { const: "conditions" }, conditions: list(text), title: str(), mode: ref("modes") },
+    ["kind"],
+    { description: "The d20Combat conditions with their helper text." },
+  ),
+  gmScreenGuideBlock: object<GmScreenGuideBlock>()(
+    { kind: { const: "guide" }, guide: ref("id"), tips: { anyOf: [bool, list(int({ minimum: 0 }))] }, entries: list(text), cues: int({ minimum: 0, maximum: 10 }), title: str(), mode: ref("modes") },
+    ["kind"],
+    { description: "A play guide's tips (dice and rolling notes) and entries." },
+  ),
+  gmScreenTextBlock: object<GmScreenTextBlock>()(
+    { kind: { const: "text" }, text: text, original: { const: true }, page: ref("page"), cite: ref("cite"), rules: list(ref("id")), title: str(), mode: ref("modes") },
+    ["kind", "text", "original"],
+    { description: "A short quick-rules note in the author's own words; cites the page, section or rule cards it summarizes." },
+  ),
+  gmScreenPanel: object<GmScreenPanel>()(
+    {
+      id: str({ pattern: "^[A-Za-z0-9][A-Za-z0-9_.-]*$" }),
+      title: text,
+      size: oneOfValues<GmScreenSize>()(GM_SCREEN_SIZES),
+      side: oneOfValues<GmScreenSide>()(GM_SCREEN_SIDES),
+      optional: bool,
+      mode: ref("modes"),
+      blocks: list(
+        { oneOf: [ref("gmScreenRuleBlock"), ref("gmScreenTableBlock"), ref("gmScreenListBlock"), ref("gmScreenConditionsBlock"), ref("gmScreenGuideBlock"), ref("gmScreenTextBlock")] },
+        { minItems: 1 },
+      ),
+    },
+    ["id", "title", "blocks"],
+  ),
+  gmScreen: object<GmScreenDef>()({ title: text, panels: list(ref("gmScreenPanel"), { minItems: 1 }) }, ["panels"], { description: "A printable GM screen: panels of references to the pack's rule cards, tables, lists, conditions and play guide. See docs/modules/gm-screen.md." }),
+
   playGuide: object<PlayGuideDef>()(
     {
       id: ref("id"),
@@ -723,6 +783,7 @@ export const MODULE_PACK_SCHEMA: JsonSchema = {
       styleNotes: list(str()),
       primer: ref("primer"),
       d20Combat: ref("d20Combat"),
+      gmScreen: ref("gmScreen"),
       parts: list(str({ pattern: "^[A-Za-z0-9][A-Za-z0-9_.-]*\\.json$" }), { uniqueItems: true }),
       ...collections,
     },

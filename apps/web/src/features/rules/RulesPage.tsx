@@ -37,6 +37,9 @@ export function RulesPage() {
           <Link to="/c/$campaignId/reference" params={{ campaignId: ctx.campaignId }} className="cf-btn">
             Reference data
           </Link>
+          <Link to="/c/$campaignId/gm-screen" params={{ campaignId: ctx.campaignId }} className="cf-btn" data-testid="open-gm-screen">
+            GM screen
+          </Link>
         </div>
       </header>
       <p className="cf-muted">

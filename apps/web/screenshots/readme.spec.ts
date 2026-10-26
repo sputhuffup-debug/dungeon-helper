@@ -795,6 +795,21 @@ test("dnd5e-combat", async ({ page }) => {
   await shot(page, "dnd5e-combat", { clip: await combatClip(page, wren) });
 });
 
+test("gm-screen", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1240 });
+  const base = await loadDemo(page, "dnd5e");
+  // from the Rules page, as a GM would get there; no reload, so the campaign keeps its id
+  await page.getByRole("navigation", { name: "Campaign" }).getByRole("link", { name: "Rules", exact: true }).click();
+  await page.getByTestId("open-gm-screen").click();
+  await expect(page).toHaveURL(`${base}/gm-screen`);
+  const preview = page.getByTestId("gm-screen-preview");
+  await expect(preview.getByTestId("gm-screen-page-preview")).toHaveCount(2);
+  await expect(preview.getByRole("img").first()).toHaveAttribute("alt", /GM side: .*CHECKS AND DCS/);
+  await expect(page.getByTestId("gm-screen-overflow")).toHaveCount(0);
+  await page.evaluate(() => Promise.all([...document.querySelectorAll("img")].map((i) => i.decode().catch(() => undefined))));
+  await shot(page, "gm-screen");
+});
+
 // ---------------------------------------------------------------------------
 // Hollowmere (second edition remaster, ORC core rules)
 // ---------------------------------------------------------------------------

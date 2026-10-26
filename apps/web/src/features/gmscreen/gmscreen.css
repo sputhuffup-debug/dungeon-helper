@@ -1,0 +1,75 @@
+/* GM screen: options beside a preview of both sides */
+.app-gmscreen {
+  display: grid;
+  grid-template-columns: minmax(340px, 420px) 1fr;
+  align-items: start;
+  gap: var(--cf-space-4);
+}
+@media (max-width: 960px) {
+  .app-gmscreen {
+    grid-template-columns: 1fr;
+  }
+}
+.app-gmscreen__options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cf-space-3);
+}
+.app-gmscreen__side + .app-gmscreen__side {
+  margin-top: var(--cf-space-2);
+}
+.app-gmscreen__hint {
+  margin: 0 0 var(--cf-space-1);
+  font-size: var(--cf-text-xs);
+}
+.app-gmscreen__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cf-space-3);
+}
+.app-gmscreen__panel {
+  flex-wrap: nowrap;
+  gap: var(--cf-space-1);
+}
+.app-gmscreen__panel .app-toggle {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.app-gmscreen__panel .cf-badge {
+  flex: none;
+}
+.app-gmscreen__panel .cf-select {
+  flex: none;
+  width: 7.5em;
+  padding-left: var(--cf-space-2);
+  padding-right: var(--cf-space-1);
+}
+.app-gmscreen__overflow {
+  border: 1px solid var(--cf-danger, #b3261e);
+  border-radius: var(--cf-radius, 6px);
+  padding: var(--cf-space-2) var(--cf-space-3);
+  font-size: var(--cf-text-sm);
+}
+.app-gmscreen__overflow ul {
+  margin: var(--cf-space-1) 0 0;
+  padding-left: 1.2em;
+}
+.app-gmscreen__preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cf-space-3);
+  min-width: 0;
+}
+.app-gmscreen__page {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cf-space-1);
+}
+.app-gmscreen__page img {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
