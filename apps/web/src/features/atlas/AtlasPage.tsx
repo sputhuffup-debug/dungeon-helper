@@ -118,7 +118,7 @@ export function AtlasPage() {
             <input type="checkbox" checked={asPlayer} onChange={(e) => setAsPlayer(e.target.checked)} data-testid="preview-as-player" />
             Preview as player
           </label>
-          <Link to="/c/$campaignId/entities/new" params={{ campaignId: ctx.campaignId }} search={typesForTab.length === 1 && typesForTab[0] ? { type: typesForTab[0].id } : {}} className="cf-btn cf-btn--primary">
+          <Link to="/c/$campaignId/entities/new" params={{ campaignId: ctx.campaignId }} search={typesForTab.length === 1 && typesForTab[0] ? { type: typesForTab[0].id, ...(tab === "pcs" ? { pc: 1 as const } : {}) } : {}} className="cf-btn cf-btn--primary">
             + New
           </Link>
         </div>
@@ -215,7 +215,7 @@ function EntityTable({ entities, typeById, kind, pc }: { entities: Entity[]; typ
         text={pc ? "Player characters are characters marked as PCs." : "Create one from a preset or from scratch."}
         action={
           def && (
-            <Link to="/c/$campaignId/entities/new" params={{ campaignId }} search={{ type: def.id }} className="cf-btn">
+            <Link to="/c/$campaignId/entities/new" params={{ campaignId }} search={{ type: def.id, ...(pc ? { pc: 1 as const } : {}) }} className="cf-btn">
               + {def.name}
             </Link>
           )

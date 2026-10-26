@@ -203,6 +203,24 @@ test("character-sheet", async ({ page }) => {
   await shot(page, "character-sheet");
 });
 
+test("alien-weapons", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1100 });
+  const base = await loadDemo(page, "skyfire");
+  await page.goto(`${base}/atlas`);
+  await page.getByRole("tab", { name: /^PCs/ }).click();
+  // the colonial marshal: a revolver and a stun baton from the gear tables
+  await page.getByRole("tabpanel").getByRole("link", { name: "Lee-Ann Jenkins" }).click();
+  const weapons = page.locator('[data-section="weapons"]');
+  await expect(weapons.getByTestId("weapons-table").getByRole("rowheader")).toHaveText([".357 Magnum Revolver", "Stun Baton"]);
+  await weapons.evaluate((e) => e.scrollIntoView({ block: "start" }));
+  await weapons.getByRole("button", { name: "Add weapon" }).click();
+  const picker = page.getByTestId("weapon-picker");
+  await expect(picker.getByRole("heading")).toHaveText(["Ranged", "Melee", "Explosive"]);
+  // scroll the list to its end: the last rifles and launchers, then the melee and explosive groups, under the search
+  await picker.locator('[data-group="weapon:explosive"]').evaluate((e) => e.scrollIntoView({ block: "end" }));
+  await shot(page, "alien-weapons");
+});
+
 test("generator", async ({ page }) => {
   const base = await loadDemo(page, "skyfire");
   await page.goto(`${base}/generate`);

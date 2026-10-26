@@ -22,14 +22,21 @@ export function gearTotalWeight(items: GearRow[]): number {
   return items.reduce((sum, r) => sum + asNumber(r.weight, 0) * Math.max(1, asNumber(r.qty, 1)), 0);
 }
 
-/** Rows of name / qty / weight / supply with the total weight against a computed limit. */
+/**
+ * Rows of name / qty / weight / supply with the total weight against a
+ * computed limit (`limitComputed`); with `totalComputed` the total shown is
+ * that computed value (everything carried, e.g. gear and weapons).
+ */
 export function GearField(props: WidgetProps) {
   const { value, onChange, readonly, field, computed, id } = props;
   const items = rows(value);
   const limitKey = configString(field, "limitComputed");
   const limit = limitKey ? asNumber(computed[limitKey], NaN) : NaN;
   const total = gearTotalWeight(items);
-  const over = Number.isFinite(limit) && total > limit;
+  // `totalComputed`: everything carried (e.g. gear and weapons), as the type computes it
+  const totalKey = configString(field, "totalComputed");
+  const carried = totalKey ? asNumber(computed[totalKey], NaN) : NaN;
+  const over = Number.isFinite(limit) && (Number.isFinite(carried) ? carried : total) > limit;
   const supplyMax = configNumber(field, "supplyMax", 6) as number;
   const showSupply = field.config?.supply !== false;
   const showQty = field.config?.qty !== false;
@@ -118,7 +125,7 @@ export function GearField(props: WidgetProps) {
         </tbody>
       </table>
       <div className={cx("cf-gear__total", over && "cf-gear__total--over")} data-testid="gear-total">
-        <span>Total weight {total}</span>
+        <span>{Number.isFinite(carried) ? `Encumbrance ${carried}` : `Total weight ${total}`}</span>
         {Number.isFinite(limit) && <span>/ {limit}</span>}
         {over && <span>(encumbered)</span>}
       </div>

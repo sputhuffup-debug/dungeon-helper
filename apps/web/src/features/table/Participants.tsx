@@ -6,12 +6,13 @@ import { EntityIcon } from "../../components/EntityIcon";
 import { RuleDrawer } from "../../components/RulePanel";
 import { Badge, Button, Card, Drawer, SheetRenderer, humanize, labelFromPath } from "../../components/ui";
 import { updateEntityFields } from "../../state/actions";
-import { useCampaign, useMeta, useRecord } from "../../state/hooks";
+import { useCampaign, useMeta, useRecord, useSheetSources } from "../../state/hooks";
 import { computedOf } from "../../state/tableActions";
 import { changedPaths } from "../entities/SheetTab";
 import { ParticipantHealth, type CombatHandlers } from "./Combat";
 import { SessionRollPanel, skillInput } from "./DicePanel";
 import { LifecycleStart } from "./LifecycleStart";
+import { weaponsOf } from "./WeaponAttack";
 import { StoryPointCard } from "../progression/StoryPointControl";
 import { entityAdvances, poolOf, type SessionAct } from "../../state/progressionActions";
 
@@ -71,6 +72,7 @@ export function ParticipantCard({
   lifecycle,
   combat,
   act,
+  onWeaponAttack,
 }: {
   entity: Entity;
   onOpen: (id: Id) => void;
@@ -80,6 +82,8 @@ export function ParticipantCard({
   combat?: CombatHandlers;
   /** The act being played, for end-of-act awards on the PC card. */
   act?: SessionAct;
+  /** A PC with weapons on its sheet: open the weapon attack. */
+  onWeaponAttack?: (entityId: Id) => void;
 }) {
   const { module } = useCampaign();
   const { mode } = useMeta();
@@ -88,6 +92,7 @@ export function ParticipantCard({
   const specials = !!combat?.hasSpecialAttacks && role === "PC";
   const def = module.entityType(entity.type);
   const rolls = onRoll ? characterRolls(module, def) : [];
+  const attacks = !!onWeaponAttack && role === "PC" && (weaponsOf(module, entity)?.rows.length ?? 0) > 0;
   const computed = useMemo(() => computedOf(module, entity), [module, entity]);
   const stats = quickStats(module, def, entity, computed);
   return (
@@ -118,7 +123,7 @@ export function ParticipantCard({
       {combat && <ParticipantHealth entity={entity} combat={combat} />}
       {storyPoints && lifecycle && <StoryPointCard entity={entity} sessionId={lifecycle.sessionId} {...(act ? { act } : {})} />}
       {lifecycle && <LifecycleStart entity={entity} sessionId={lifecycle.sessionId} onPrompts={lifecycle.onPrompts} />}
-      {(rolls.length > 0 || takesTurns || specials) && (
+      {(rolls.length > 0 || takesTurns || specials || attacks) && (
         <span className="app-participant__rolls">
           {rolls.map((r) => (
             <Button key={r.id} size="sm" onClick={() => onRoll?.(r.id, entity.id)} aria-label={`${r.name} for ${entity.name}`}>
@@ -128,6 +133,11 @@ export function ParticipantCard({
           {takesTurns && (
             <Button size="sm" variant="primary" onClick={() => combat!.onCreatureTurn(entity.id)} aria-label={`Creature turn: ${entity.name}`}>
               Creature turn
+            </Button>
+          )}
+          {attacks && (
+            <Button size="sm" onClick={() => onWeaponAttack!(entity.id)} aria-label={`Attack with a weapon: ${entity.name}`}>
+              Attack
             </Button>
           )}
           {specials && (
@@ -149,6 +159,7 @@ export function Participants({
   lifecycle,
   combat,
   act,
+  onWeaponAttack,
 }: {
   pcs: Entity[];
   others: Entity[];
@@ -157,6 +168,7 @@ export function Participants({
   lifecycle?: ParticipantLifecycle;
   combat?: CombatHandlers;
   act?: SessionAct;
+  onWeaponAttack?: (entityId: Id) => void;
 }) {
   return (
     <Card title="Participants" className="app-table__participants">
@@ -164,7 +176,7 @@ export function Participants({
       {pcs.length > 0 && (
         <ul className="app-participants" aria-label="Player characters">
           {pcs.map((e) => (
-            <ParticipantCard key={e.id} entity={e} onOpen={onOpen} role="PC" onRoll={onRoll} lifecycle={lifecycle} combat={combat} {...(act ? { act } : {})} />
+            <ParticipantCard key={e.id} entity={e} onOpen={onOpen} role="PC" onRoll={onRoll} lifecycle={lifecycle} combat={combat} {...(act ? { act } : {})} {...(onWeaponAttack ? { onWeaponAttack } : {})} />
           ))}
         </ul>
       )}
@@ -185,6 +197,7 @@ export function EntityDrawer({ entityId, sessionId, onClose }: { entityId: Id | 
   const meta = useMeta();
   const entity = useRecord("entities", entityId);
   const def = entity ? ctx.module.entityType(entity.type) : undefined;
+  const sources = useSheetSources();
   const [rule, setRule] = useState<string | undefined>();
   const [roll, setRoll] = useState<{ key: number; label: string; input: Record<string, unknown> } | undefined>();
   const referenceLists = useMemo<Record<string, ReferenceList>>(() => Object.fromEntries(ctx.module.module.referenceLists.map((l) => [l.id, l])), [ctx.module]);
@@ -218,6 +231,8 @@ export function EntityDrawer({ entityId, sessionId, onClose }: { entityId: Id | 
             onOpenRule={setRule}
             resolveEntityName={(id) => ctx.store.get("entities", id)?.name}
             onRoll={(skillId) => setRoll({ key: Date.now(), label: skillId, input: skillInput(ctx.module, entity, skillId).input })}
+            presetsFor={sources.presetsFor}
+            entitiesOf={sources.entitiesOf}
           />
           {roll && (
             <Card title={`Roll: ${labelFromPath(roll.label)}`} elevated>

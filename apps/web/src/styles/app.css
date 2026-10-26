@@ -2616,6 +2616,46 @@ a.cf-btn {
 .app-combat__fields {
   align-items: flex-end;
 }
+/* attack with a weapon from the sheet */
+.app-weapon-attack {
+  padding: var(--cf-space-3);
+  border: 1px solid var(--cf-border);
+  border-radius: var(--cf-radius);
+  background: var(--cf-surface);
+}
+.app-weapon-attack__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cf-space-1) var(--cf-space-4);
+  margin: 0;
+}
+.app-weapon-attack__stat {
+  display: flex;
+  gap: var(--cf-space-1);
+  align-items: baseline;
+}
+.app-weapon-attack__stat dt {
+  color: var(--cf-muted);
+  font-size: var(--cf-text-xs);
+  text-transform: uppercase;
+}
+.app-weapon-attack__stat dd {
+  margin: 0;
+  font-weight: 600;
+}
+.app-weapon-attack__notes {
+  margin: 0;
+  padding-left: var(--cf-space-4);
+  color: var(--cf-muted);
+  font-size: var(--cf-text-sm);
+}
+.app-weapon-attack__result {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cf-space-2);
+  align-items: center;
+  margin: 0;
+}
 .app-combat__armor {
   display: flex;
   flex-wrap: wrap;

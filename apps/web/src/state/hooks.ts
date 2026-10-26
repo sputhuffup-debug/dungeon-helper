@@ -4,7 +4,8 @@
  * the record changes and never tears.
  */
 import type { CampaignMeta, Entity, Id, MapName, RecordOf } from "@campaign-forge/core";
-import { computeFields, type EntityTypeDef } from "@campaign-forge/module-sdk";
+import { computeFields, type EntityPreset, type EntityTypeDef } from "@campaign-forge/module-sdk";
+import type { SheetEntityRef } from "@campaign-forge/ui";
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { useCampaign, type VersionKey } from "./CampaignProvider";
 
@@ -128,4 +129,25 @@ export function useEntityName(id: Id | undefined): string | undefined {
 export function useNameResolver(): (id: Id) => string {
   const { store } = useCampaign();
   return useCallback((id: Id) => store.get("entities", id)?.name ?? id, [store]);
+}
+
+/**
+ * What sheet widgets that copy from the module or the campaign need (the
+ * weapons widget's "Add weapon" and "From campaign items"): the module's
+ * presets of a type, and the campaign's entities of a type, read when asked.
+ */
+export function useSheetSources(): { presetsFor: (entityType: string) => EntityPreset[]; entitiesOf: (entityType: string) => SheetEntityRef[] } {
+  const { store, module } = useCampaign();
+  return useMemo(
+    () => ({
+      presetsFor: (entityType: string) => module.presetsFor(entityType),
+      entitiesOf: (entityType: string) =>
+        store
+          .list("entities")
+          .filter((e) => e.type === entityType)
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .map((e) => ({ id: e.id, name: e.name, fields: e.fields, ...(e.subtype ? { subtype: e.subtype } : {}) })),
+    }),
+    [store, module],
+  );
 }

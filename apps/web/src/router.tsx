@@ -52,6 +52,8 @@ export interface NewEntitySearch {
   preset?: string;
   subtype?: string;
   name?: string;
+  /** 1: a player character (the Atlas's PCs tab), for types whose schema has `isPC`. */
+  pc?: 1;
 }
 
 const newEntityRoute = createRoute({
@@ -60,6 +62,7 @@ const newEntityRoute = createRoute({
   validateSearch: (search: Record<string, unknown>): NewEntitySearch => {
     const out: NewEntitySearch = {};
     for (const k of ["type", "preset", "subtype", "name"] as const) if (typeof search[k] === "string") out[k] = search[k] as string;
+    if (search.pc === 1 || search.pc === "1" || search.pc === true) out.pc = 1;
     return out;
   },
   component: lazyRouteComponent(() => import("./features/entities/NewEntityPage"), "NewEntityPage"),

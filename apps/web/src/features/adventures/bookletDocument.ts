@@ -487,7 +487,7 @@ function locationEntry(ctx: BookletDocCtx, fmt: Formatter, role: CastRoleDef, en
 
 /** Widgets that hold numbers worth a stat line. */
 const STAT_WIDGETS = new Set(["number", "attribute", "skill", "supply", "stress", "select", "checkbox"]);
-const LIST_WIDGETS = new Set(["skills", "talents", "gear", "tags", "multiselect", "reflist", "object"]);
+const LIST_WIDGETS = new Set(["skills", "talents", "gear", "weapons", "tags", "multiselect", "reflist", "object"]);
 
 function statBlock(ctx: BookletDocCtx, fmt: Formatter, entity: Entity): StatBlock {
   const def = entityDef(ctx.module, entity);
