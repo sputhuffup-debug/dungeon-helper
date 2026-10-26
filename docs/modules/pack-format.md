@@ -26,6 +26,7 @@ A data pack is a JSON object. The SDK validates it (`validatePack`), joins its p
   "primer": { "sections": [] }, // optional; campaign primer prompts and starter text (see Campaign primer)
   "d20Combat": {},          // optional; attacks, AC, saves, damage modifiers and conditions (see d20 combat)
   "gmScreen": { "panels": [] }, // optional; the printable GM screen (see GM screen)
+  "characterBuilders": [],  // optional; step-by-step character builders (see Character builder)
   "parts": ["tables.json"]  // optional; see Split packs
 }
 ```
@@ -169,6 +170,10 @@ Starter text is the pack author's own words (`original: true`), or openly licens
 ## GM screen
 
 `gmScreen` (main file only) is the pack's printable GM screen: panels of references to its own rule cards (whole or an excerpt), tables, reference lists, d20 conditions and play guide tips, plus short original quick-rules notes. The app prints it as a tri-fold (GM side and player side) or as cards. Without one, the app builds a screen from the rule cards by tag. See [GM screen](gm-screen.md) for every block kind.
+
+## Character builder
+
+`characterBuilders` (main file only) are step-by-step wizards that make a player character and level one up: choice steps over reference lists, fixed options or values worked out from earlier picks, with grants that write the character's fields and sub-choices a pick brings; an ability score step with arrays, point buy, rolls or typed scores; typed fields; a review page. Every rule is JSONLogic. See [Character builder](character-builder.md).
 
 ## What a pack cannot do (yet)
 

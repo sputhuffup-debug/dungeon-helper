@@ -15,6 +15,7 @@ import type {
   D20CombatDef,
   EntityPreset,
   EntityTypeDef,
+  CharacterBuilderDef,
   GmScreenDef,
   JsonLogicRule,
   JsonSchema,
@@ -171,6 +172,8 @@ export interface ModulePack extends PackCollections {
   d20Combat?: D20CombatDef;
   /** A printable GM screen built from the pack's own content (main file only). */
   gmScreen?: GmScreenDef;
+  /** Step-by-step character builders (main file only). */
+  characterBuilders?: CharacterBuilderDef[];
   /**
    * Names of the part files that complete this pack (e.g. ["tables.json"]),
    * relative to this file. Every part must be present when the pack loads.

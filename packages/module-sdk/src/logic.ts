@@ -126,6 +126,11 @@ function registerOps(): void {
     const v = getPath(obj, String(path));
     return v === undefined ? fallback : v;
   });
+  // The first object of a list whose `key` equals `value` (rules inside `filter` and `some` only see the element, so a lookup by an outer value needs this).
+  addOperation("find", (list: unknown, key: unknown, value: unknown) => {
+    if (!Array.isArray(list)) return undefined;
+    return list.find((x) => x !== null && typeof x === "object" && (x as Record<string, unknown>)[String(key)] === value);
+  });
   addOperation("max", (...args: unknown[]) => {
     const list = flatten(args).map(toNumber);
     return list.length === 0 ? undefined : Math.max(...list);

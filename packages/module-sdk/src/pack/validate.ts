@@ -13,8 +13,9 @@
  */
 import Ajv, { type ErrorObject, type ValidateFunction } from "ajv";
 import { createDiceEngine } from "../engines";
+import { characterBuilderLogicSlots } from "../characterBuilder";
 import { logicIssues } from "../logic";
-import type { JsonLogicRule } from "../types";
+import type { CharacterBuilderDef, JsonLogicRule } from "../types";
 import { MODULE_PACK_PART_SCHEMA, MODULE_PACK_SCHEMA, MODULE_SUPPLEMENT_PART_SCHEMA, MODULE_SUPPLEMENT_SCHEMA } from "./schema";
 import { PACK_COLLECTIONS, PACK_FORMAT, PACK_PART_FORMAT, type ModulePack, type ModulePackPart, type PackCollections } from "./types";
 
@@ -358,6 +359,13 @@ function d20CombatLogicChecks(def: Record<string, unknown>, w: Walker): void {
   });
 }
 
+/** JSONLogic in a pack's character builders: every rule slot (see `characterBuilderLogicSlots`). */
+function characterBuilderLogicChecks(defs: unknown, w: Walker): void {
+  asList(defs).forEach((b, i) => {
+    for (const slot of characterBuilderLogicSlots(b as unknown as CharacterBuilderDef)) checkLogicAt(slot.rule, ["characterBuilders", i, ...slot.segments], w);
+  });
+}
+
 /** JSONLogic in a pack's GM screen: list blocks' `where`. */
 function gmScreenLogicChecks(def: Record<string, unknown>, w: Walker): void {
   asList(def.panels).forEach((p, i) => asList(p.blocks).forEach((b, j) => checkLogicAt(b.where, ["gmScreen", "panels", i, "blocks", j, "where"], w)));
@@ -406,6 +414,7 @@ export function validatePack(input: unknown): PackValidation<ModulePack> {
   }
   if (p.d20Combat) d20CombatLogicChecks(p.d20Combat as unknown as Record<string, unknown>, w);
   if (p.gmScreen) gmScreenLogicChecks(p.gmScreen as unknown as Record<string, unknown>, w);
+  if (p.characterBuilders) characterBuilderLogicChecks(p.characterBuilders, w);
   if (!p.manifest.modes.some((m) => m.id === p.manifest.defaultMode)) w.error(["manifest", "defaultMode"], `"${p.manifest.defaultMode}" is not one of the declared modes`);
   return finishValidation(issues, p);
 }

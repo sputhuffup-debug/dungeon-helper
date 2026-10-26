@@ -2,7 +2,7 @@
 
 Every expression in a pack is [JSONLogic](https://jsonlogic.com): a JSON object whose single key is an operator. Literals (`3`, `"text"`, `true`) evaluate to themselves. The SDK evaluates it with `json-logic-js` plus a few operators of its own; `method` (which calls arbitrary object methods) is not allowed, and the validator rejects any operator not listed below.
 
-**Operators**: `==` `===` `!=` `!==` `>` `>=` `<` `<=` `!!` `!` `%` `log` `in` `cat` `substr` `+` `*` `-` `/` `min` `max` `merge` `var` `missing` `missing_some` `if` `?:` `and` `or` `filter` `map` `reduce` `all` `none` `some`, plus the SDK's `floor` `ceil` `round` `sum` `count` `has` `lookup` `len` `words` `trim` `matches` `startsWith` `endsWith`.
+**Operators**: `==` `===` `!=` `!==` `>` `>=` `<` `<=` `!!` `!` `%` `log` `in` `cat` `substr` `+` `*` `-` `/` `min` `max` `merge` `var` `missing` `missing_some` `if` `?:` `and` `or` `filter` `map` `reduce` `all` `none` `some`, plus the SDK's `floor` `ceil` `round` `sum` `count` `has` `lookup` `find` `len` `words` `trim` `matches` `startsWith` `endsWith`.
 
 ## Where expressions appear and what they see
 
@@ -76,6 +76,7 @@ Text checks (`matches` takes a pattern and optional flags `i`, `m`, `s`, `u`):
 ## Tips
 
 - `{ "var": ["path", fallback] }` gives a default when the path is missing. `lookup` gives its fallback for a missing or empty key (an unset select).
+- Inside `filter`, `map`, `some`, `all` and `reduce` a `var` sees only the element (or `current` and `accumulator`), not the rest of the data. To pick an object out of a list by an outer value, use `{ "find": [list, "key", value] }`: the first object whose `key` equals `value`.
 - An object with more than one key is plain data, not an operator; to build an object in `produce`, set its fields one by one with dotted paths instead (`"abilities.might": 12`).
 - A missing value in `+` or `*` gives `NaN`; give every `var` in arithmetic a fallback. The SDK's own operators (`floor`, `sum`, `max`...) read a missing value as 0. `if` treats `[]`, `0`, `""` and `null` as false.
 - `module-check` evaluates every computed rule against default fields and runs every procedure with many seeds, so a rule that throws or reads a missing path shows up there, not at the table.

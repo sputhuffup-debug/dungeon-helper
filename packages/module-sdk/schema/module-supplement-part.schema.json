@@ -2918,6 +2918,855 @@
       "additionalProperties": false,
       "description": "A printable GM screen: panels of references to the pack's rule cards, tables, lists, conditions and play guide. See docs/modules/gm-screen.md."
     },
+    "builderGrant": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "description": "Field path (a string), or JSONLogic giving one. `$name` is a builder variable; `core.name` and `core.summary` are the entity's name and summary."
+        },
+        "op": {
+          "type": "string",
+          "enum": [
+            "set",
+            "add",
+            "append",
+            "remove",
+            "max",
+            "min",
+            "upsert"
+          ]
+        },
+        "value": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "object": {
+          "type": "object",
+          "additionalProperties": {
+            "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+          }
+        },
+        "each": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "when": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "separator": {
+          "type": "string"
+        },
+        "label": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "hidden": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "additionalProperties": false,
+      "description": "What a pick writes into the character's fields."
+    },
+    "builderOption": {
+      "type": "object",
+      "required": [
+        "id",
+        "name"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "summary": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "value": {},
+        "roll": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "page": {
+          "$ref": "#/definitions/page"
+        },
+        "cite": {
+          "$ref": "#/definitions/cite"
+        },
+        "original": {
+          "type": "boolean"
+        }
+      },
+      "description": "A fixed option; extra keys are data for the choice's rules (`item.<key>`)."
+    },
+    "builderSource": {
+      "description": "Where a choice's options come from: a reference list, fixed options, values worked out by JSONLogic, a range of numbers, or presets.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "list"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "list": {
+              "$ref": "#/definitions/id"
+            },
+            "where": {
+              "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "options"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "options": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/builderOption"
+              },
+              "minItems": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "values"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "values": {
+              "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+            },
+            "list": {
+              "$ref": "#/definitions/id"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "range"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "range": {
+              "type": "object",
+              "required": [
+                "min",
+                "max"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "min": {
+                  "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+                },
+                "max": {
+                  "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+                },
+                "label": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "presets"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "presets": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "entityType": {
+                  "$ref": "#/definitions/id"
+                },
+                "tags": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "where": {
+              "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+            }
+          }
+        }
+      ]
+    },
+    "builderCheck": {
+      "type": "object",
+      "properties": {
+        "rule": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "message": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "level": {
+          "type": "string",
+          "enum": [
+            "error",
+            "warning"
+          ]
+        }
+      },
+      "required": [
+        "rule",
+        "message"
+      ],
+      "additionalProperties": false
+    },
+    "builderSubChoice": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "when": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "each": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "help": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "source": {
+          "$ref": "#/definitions/builderSource"
+        },
+        "min": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "max": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "available": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "availableText": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "grants": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/builderGrant"
+          }
+        },
+        "subChoices": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/builderSubChoice"
+          }
+        },
+        "noun": {
+          "type": "string"
+        },
+        "sourceLabel": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "validate": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/builderCheck"
+          }
+        },
+        "columns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "source"
+      ],
+      "additionalProperties": false
+    },
+    "builderChoiceStep": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "choice"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "intro": {
+          "type": "string"
+        },
+        "guide": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "summary": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "when": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "validate": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/builderCheck"
+          }
+        },
+        "page": {
+          "$ref": "#/definitions/page"
+        },
+        "cite": {
+          "$ref": "#/definitions/cite"
+        },
+        "original": {
+          "type": "boolean"
+        },
+        "source": {
+          "$ref": "#/definitions/builderSource"
+        },
+        "min": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "max": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "available": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "availableText": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "grants": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/builderGrant"
+          }
+        },
+        "subChoices": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/builderSubChoice"
+          }
+        },
+        "noun": {
+          "type": "string"
+        },
+        "sourceLabel": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "columns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "kind",
+        "id",
+        "title"
+      ],
+      "additionalProperties": false
+    },
+    "builderAbilityStep": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "abilities"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "intro": {
+          "type": "string"
+        },
+        "guide": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "summary": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "when": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "validate": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/builderCheck"
+          }
+        },
+        "page": {
+          "$ref": "#/definitions/page"
+        },
+        "cite": {
+          "$ref": "#/definitions/cite"
+        },
+        "original": {
+          "type": "boolean"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "abilities": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "abbr": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "methods": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "kind",
+              "name"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "array",
+                  "pointBuy",
+                  "roll",
+                  "manual"
+                ]
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "summary": {
+                "type": "string"
+              },
+              "values": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                }
+              },
+              "budget": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "costs": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "integer"
+                }
+              },
+              "min": {
+                "type": "integer"
+              },
+              "max": {
+                "type": "integer"
+              },
+              "dice": {
+                "type": "string",
+                "minLength": 1
+              },
+              "keep": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "count": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "page": {
+                "$ref": "#/definitions/page"
+              },
+              "cite": {
+                "$ref": "#/definitions/cite"
+              },
+              "original": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false,
+            "description": "array (values), pointBuy (budget, costs, min, max), roll (dice, keep, count) or manual (min, max)."
+          },
+          "minItems": 1
+        },
+        "modifier": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "max": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "id",
+        "title",
+        "path",
+        "abilities",
+        "methods"
+      ],
+      "additionalProperties": false
+    },
+    "builderFieldsStep": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "fields"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "intro": {
+          "type": "string"
+        },
+        "guide": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "summary": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "when": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "validate": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/builderCheck"
+          }
+        },
+        "page": {
+          "$ref": "#/definitions/page"
+        },
+        "cite": {
+          "$ref": "#/definitions/cite"
+        },
+        "original": {
+          "type": "boolean"
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "label": {
+                "type": "string"
+              },
+              "widget": {
+                "type": "string",
+                "enum": [
+                  "text",
+                  "textarea",
+                  "number",
+                  "select"
+                ]
+              },
+              "options": {
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "ref"
+                    ],
+                    "properties": {
+                      "ref": {
+                        "$ref": "#/definitions/id"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                ]
+              },
+              "required": {
+                "type": "boolean"
+              },
+              "help": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "path"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "kind",
+        "id",
+        "title",
+        "fields"
+      ],
+      "additionalProperties": false
+    },
+    "builderReviewStep": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "review"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "intro": {
+          "type": "string"
+        },
+        "guide": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "summary": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "when": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "validate": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/builderCheck"
+          }
+        },
+        "page": {
+          "$ref": "#/definitions/page"
+        },
+        "cite": {
+          "$ref": "#/definitions/cite"
+        },
+        "original": {
+          "type": "boolean"
+        },
+        "todo": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        }
+      },
+      "required": [
+        "kind",
+        "id",
+        "title"
+      ],
+      "additionalProperties": false
+    },
+    "builderStep": {
+      "oneOf": [
+        {
+          "$ref": "#/definitions/builderChoiceStep"
+        },
+        {
+          "$ref": "#/definitions/builderAbilityStep"
+        },
+        {
+          "$ref": "#/definitions/builderFieldsStep"
+        },
+        {
+          "$ref": "#/definitions/builderReviewStep"
+        }
+      ]
+    },
+    "builderLevelUp": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "when": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "whenText": {
+          "type": "string"
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/builderStep"
+          },
+          "minItems": 1
+        },
+        "finally": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/builderGrant"
+          }
+        }
+      },
+      "required": [
+        "steps"
+      ],
+      "additionalProperties": false
+    },
+    "characterBuilder": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "entityType": {
+          "$ref": "#/definitions/id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string"
+        },
+        "page": {
+          "$ref": "#/definitions/page"
+        },
+        "cite": {
+          "$ref": "#/definitions/cite"
+        },
+        "original": {
+          "type": "boolean"
+        },
+        "defaults": {
+          "type": "object"
+        },
+        "data": {
+          "type": "object"
+        },
+        "itemData": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object"
+            }
+          }
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/builderStep"
+          },
+          "minItems": 1
+        },
+        "finally": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/builderGrant"
+          }
+        },
+        "preview": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string",
+                "minLength": 1
+              },
+              "value": {
+                "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+              }
+            },
+            "required": [
+              "label",
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "levelUp": {
+          "$ref": "#/definitions/builderLevelUp"
+        }
+      },
+      "required": [
+        "id",
+        "entityType",
+        "name",
+        "steps"
+      ],
+      "additionalProperties": false,
+      "description": "A step-by-step character builder for one entity type. See docs/modules/character-builder.md."
+    },
     "playGuide": {
       "type": "object",
       "properties": {

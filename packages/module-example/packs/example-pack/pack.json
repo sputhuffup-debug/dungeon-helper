@@ -669,5 +669,265 @@
         ]
       }
     ]
-  }
+  },
+  "characterBuilders": [
+    {
+      "id": "example-pack.builder",
+      "entityType": "example-pack.adventurer",
+      "name": "Build an adventurer",
+      "description": "Background, scores, a trained skill and a name.",
+      "original": true,
+      "defaults": {
+        "isPC": true
+      },
+      "itemData": {
+        "example-pack.backgrounds": {
+          "miner": {
+            "skill": "climb"
+          },
+          "scribe": {
+            "skill": "lore"
+          },
+          "wanderer": {
+            "skill": "sneak"
+          }
+        }
+      },
+      "steps": [
+        {
+          "kind": "choice",
+          "id": "background",
+          "title": "Background",
+          "noun": "background",
+          "source": {
+            "list": "example-pack.backgrounds"
+          },
+          "grants": [
+            {
+              "path": "background",
+              "value": {
+                "var": "item.id"
+              }
+            },
+            {
+              "path": {
+                "cat": [
+                  "skills.",
+                  {
+                    "var": "item.builder.skill"
+                  }
+                ]
+              },
+              "value": 1,
+              "when": {
+                "var": "item.builder.skill"
+              }
+            }
+          ]
+        },
+        {
+          "kind": "abilities",
+          "id": "abilities",
+          "title": "Abilities",
+          "path": "abilities",
+          "abilities": [
+            {
+              "id": "might",
+              "name": "Might",
+              "abbr": "MIG"
+            },
+            {
+              "id": "grace",
+              "name": "Grace",
+              "abbr": "GRA"
+            },
+            {
+              "id": "wits",
+              "name": "Wits",
+              "abbr": "WIT"
+            }
+          ],
+          "modifier": {
+            "floor": {
+              "/": [
+                {
+                  "-": [
+                    {
+                      "var": "score"
+                    },
+                    10
+                  ]
+                },
+                2
+              ]
+            }
+          },
+          "max": 18,
+          "methods": [
+            {
+              "id": "array",
+              "kind": "array",
+              "name": "Fixed scores",
+              "values": [
+                14,
+                12,
+                10
+              ],
+              "cite": "LRD, Heroes"
+            },
+            {
+              "id": "points",
+              "kind": "pointBuy",
+              "name": "Point buy",
+              "budget": 9,
+              "min": 8,
+              "max": 14,
+              "costs": {
+                "8": 0,
+                "9": 1,
+                "10": 2,
+                "11": 3,
+                "12": 4,
+                "13": 5,
+                "14": 7
+              },
+              "cite": "LRD, Heroes"
+            },
+            {
+              "id": "roll",
+              "kind": "roll",
+              "name": "3d6 each",
+              "dice": "3d6",
+              "cite": "LRD, Heroes"
+            }
+          ]
+        },
+        {
+          "kind": "choice",
+          "id": "skill",
+          "title": "Trained skill",
+          "intro": "One skill your background did not give you.",
+          "source": {
+            "list": "example-pack.skills"
+          },
+          "available": {
+            "!": {
+              "var": [
+                {
+                  "cat": [
+                    "fields.skills.",
+                    {
+                      "var": "option.id"
+                    }
+                  ]
+                },
+                0
+              ]
+            }
+          },
+          "availableText": "Already trained.",
+          "grants": [
+            {
+              "path": {
+                "cat": [
+                  "skills.",
+                  {
+                    "var": "item.id"
+                  }
+                ]
+              },
+              "value": 1
+            }
+          ]
+        },
+        {
+          "kind": "fields",
+          "id": "details",
+          "title": "Name",
+          "fields": [
+            {
+              "path": "core.name",
+              "label": "Name",
+              "required": true
+            },
+            {
+              "path": "notes",
+              "label": "Notes",
+              "widget": "textarea"
+            }
+          ]
+        },
+        {
+          "kind": "review",
+          "id": "review",
+          "title": "Review"
+        }
+      ],
+      "preview": [
+        {
+          "label": "Hit points",
+          "value": {
+            "var": "computed.maxHp"
+          }
+        }
+      ],
+      "levelUp": {
+        "title": "Level up",
+        "when": {
+          "<": [
+            {
+              "var": [
+                "fields.level",
+                1
+              ]
+            },
+            20
+          ]
+        },
+        "whenText": "Already level 20.",
+        "steps": [
+          {
+            "kind": "choice",
+            "id": "ability",
+            "title": "Raise an ability",
+            "source": {
+              "options": [
+                {
+                  "id": "might",
+                  "name": "Might"
+                },
+                {
+                  "id": "grace",
+                  "name": "Grace"
+                },
+                {
+                  "id": "wits",
+                  "name": "Wits"
+                }
+              ]
+            },
+            "grants": [
+              {
+                "path": "level",
+                "op": "add",
+                "value": 1
+              },
+              {
+                "path": {
+                  "cat": [
+                    "abilities.",
+                    {
+                      "var": "item.id"
+                    }
+                  ]
+                },
+                "op": "add",
+                "value": 1
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
 }
