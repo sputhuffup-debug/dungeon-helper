@@ -102,6 +102,12 @@ const referenceRoute = createRoute({
   component: lazyRouteComponent(() => import("./features/reference/ReferencePage"), "ReferencePage"),
 });
 
+const gmScreenRoute = createRoute({
+  getParentRoute: () => campaignRoute,
+  path: "gm-screen",
+  component: lazyRouteComponent(() => import("./features/gmscreen/GmScreenPage"), "GmScreenPage"),
+});
+
 const settingsRoute = createRoute({
   getParentRoute: () => campaignRoute,
   path: "settings",
@@ -138,6 +144,7 @@ export const routeTree = rootRoute.addChildren([
     noteRoute,
     rulesRoute,
     referenceRoute,
+    gmScreenRoute,
     settingsRoute,
     adventuresRoute,
     adventureRoute,
