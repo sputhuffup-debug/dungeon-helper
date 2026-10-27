@@ -161,12 +161,12 @@ export function baseContext(config: DungeonConfig, inputs: DungeonInputs): Recor
 export function dungeonLegend(config: DungeonConfig): MapLegendEntry[] {
   const L = (k: string) => labelOf(config, k);
   const base: MapLegendEntry[] = [
-    { target: { border: "open" }, label: "Opening or archway" },
-    { target: { border: "door" }, label: "Door (a red dot: locked)" },
-    { target: { border: "door" }, label: "Secret door (dashed): the players see it once found", gmOnly: true },
-    { target: { border: "bars" }, label: "Portcullis, gate or grate" },
-    { target: { border: "rubble" }, label: "Collapsed passage (impassable until cleared)" },
-    { target: { border: "stairs" }, label: "Stairs to another level" },
+    { target: { border: "open" }, label: "Opening", rule: "An archway or a gap in the wall." },
+    { target: { border: "door" }, label: "Door", rule: "A red dot: locked." },
+    { target: { border: "door" }, label: "Secret door", rule: "Dashed: the players see it once they find it.", gmOnly: true },
+    { target: { border: "bars" }, label: "Portcullis or grate" },
+    { target: { border: "rubble" }, label: "Collapse", rule: "Impassable until it is cleared." },
+    { target: { border: "stairs" }, label: "Stairs", rule: "To another level." },
     { target: { kind: "exterior" }, label: L("outside") },
     { target: { marker: "start" }, label: L("entrance") },
     { target: { marker: "spawn" }, label: L("encounter"), gmOnly: true },

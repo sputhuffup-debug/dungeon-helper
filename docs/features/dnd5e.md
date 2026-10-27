@@ -4,7 +4,7 @@
 
 The `dnd5e-srd` module (`packages/module-dnd5e-srd`), a built-in JSON data pack built from the openly licensed System Reference Documents 5.1 and 5.2.
 
-Demo: *Thornwick Crossing*, a one-shot with four level 3 characters (SRD 5.1), SRD monsters and a goblin ambush ready for table mode, an original homebrew supplement, and a fifth character half-way through the builder.
+Demo: *Thornwick Crossing*, a one-shot with four level 3 characters (SRD 5.1), SRD monsters and a goblin ambush ready for table mode, the goblins' sunken watchtower as a generated two-storey dungeon, an original homebrew supplement, and a fifth character half-way through the builder.
 
 ## What it adds
 
@@ -17,6 +17,7 @@ Demo: *Thornwick Crossing*, a one-shot with four level 3 characters (SRD 5.1), S
 - **Combat.** The table's combat panel runs fights from the SRD's own numbers: every monster's attacks as structured data (330 of 334 stat blocks: attack bonus, damage dice and types, reach and range, and 195 save effects such as a dragon's breath or a ghoul's paralyzing claws, with their DC, half damage and conditions), resistances, immunities and vulnerabilities by damage type (with "nonmagical", "silvered" and "adamantine" exceptions), and the attack rows on a character sheet (now with a damage type and melee, ranged or spell). A natural 20 hits and rolls the damage dice twice, a natural 1 misses; a character at 0 hit points falls unconscious (death saves on the tracker), a monster is defeated.
 - **The 15 conditions with helper text.** Each says what it does (the SRD's words, shortened) and what the app applies by itself: advantage and disadvantage on attack rolls, checks and saves (poisoned, prone, restrained, blinded, invisible, frightened, exhaustion by level), attacks against it (prone within 5 feet or farther away, paralyzed and unconscious close hits made critical), automatic failure of Strength and Dexterity saves, speed 0 or halved, and the conditions each one brings (unconscious: incapacitated and prone); the rest is listed as not automated.
 - **GM screen.** Typical DCs, advantage, passive and group checks and concentration; surprise, critical hits, unseen attackers, death saves and stabilizing; travel pace, light and vision, resting and exhaustion; and on the player side actions, cover and position, damage types and the 15 conditions, in the SRD's words with the CC-BY attributions.
+- **Dungeon generator.** *Generate → Site maps → Dungeon* draws a crypt or tomb, cave, keep or castle (with towers that go up), sewer or aqueduct, ruined temple or mine of one to three levels on a 5-foot grid, from a brief (site type, size, levels, the party's level and size, a threat dial from quiet to deadly, a theme such as the dead, goblinoids, a cult or marsh things, a faction, and key rooms read from the adventure's scenes). Doors, locked doors (the SRD's Lock, DC 15), secret doors, portcullises and collapses; room purposes, read-aloud lines and dressing (original); encounters from the pack's original encounter tables by terrain and level band, sized by the threat dial and the party (SRD monsters; the SRD 5.1 has no encounter-building rules); the SRD's sample traps with their DCs and damage scaled by the SRD's trap tables; treasure as coins and SRD magic items by rarity (an original stocking table). Each stage re-rolls on its own seed, and saving adds the dungeon, its rooms, encounters and monsters to the campaign and shows the map on the adventure's scenes there. The GM map has a room key; the players see only the rooms you reveal at the table.
 - **Original GM tools.** Encounter, NPC, settlement and tavern generators, tables and a one-shot template, marked *Original*.
 - Not affiliated with Wizards of the Coast; see the [licence](#licence).
 
@@ -41,6 +42,10 @@ Demo: *Thornwick Crossing*, a one-shot with four level 3 characters (SRD 5.1), S
 **Fifth edition hints**: each ability check, skill and saving throw with its story cues, and the party ranked by their d20 bonus (ability, proficiency and expertise), best and worst marked.
 
 ![Fifth edition hints](../screenshots/dnd5e-hints.png)
+
+**Generated dungeon**: the demo's sunken watchtower, a two-storey keep generated for the adventure from a fixed seed: the GM map with numbered rooms, doors, encounter, trap and treasure marks, and the barracks' entry from the room key: read-aloud line, five goblins, the SRD's spiked pit with its DCs, exits and dressing.
+
+![Generated dungeon: GM map with the room key](../screenshots/dnd5e-dungeon.png)
 
 **Character builder**: the demo's half-built SRD 5.2 character at the background step: the Sage picked (badged *2024* and *SRD 5.2*, beside the supplement's Ferrywright) with its full text and its "+2 and +1" choice, the stepper with each step's picks and status, and the side summary with the scores after the Sage's increases, hit points, AC, saves, skills and spell slots.
 

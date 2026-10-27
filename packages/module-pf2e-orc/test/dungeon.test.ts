@@ -19,7 +19,7 @@ const run = (mod: GameModule, inputs: Record<string, unknown>, seed: string) => 
 
 beforeAll(async () => {
   m = await moduleFromPackSource(pf2eOrcSource);
-});
+}, 60_000);
 
 describe("the remaster dungeon generator", { timeout: 180_000 }, () => {
   it("passes conformance, with a dry run of every site type", () => {

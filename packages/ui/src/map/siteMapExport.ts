@@ -51,6 +51,7 @@ export function composeSiteMap(layout: SiteLayout, options: Omit<RenderSvgOption
       scale: tb.scale ?? scaleLine,
       zoneKey: options.view === "gm" ? zoneKeyEntries(layout, d.deck) : undefined,
       callouts: d.callouts.length ? d.callouts : undefined,
+      zoneWord: layout.numbering === "key" ? "room" : undefined,
     },
     { x: margin, y: d.height, width: Math.max(1, d.width - 2 * margin), pt: EXPORT_PT, perMetre: 1 / gridM(layout), unit: scaleUnitFor(layout, 1 / gridM(layout)) },
   );

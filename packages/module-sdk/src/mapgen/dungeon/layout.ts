@@ -287,7 +287,7 @@ function spanningPairs(rng: Rng, ids: number[], at: Map<number, [number, number]
 /** An irregular chamber: overlapping blocks inside a w×h box, holes filled. */
 function blobCells(rng: Rng, x0: number, y0: number, w: number, h: number, gw: number, gh: number): number[] {
   const set = new Set<number>();
-  const core = { w: Math.max(2, Math.round(w * 0.6)), h: Math.max(2, Math.round(h * 0.6)) };
+  const core = { w: Math.max(2, Math.round(w * 0.7)), h: Math.max(2, Math.round(h * 0.7)) };
   const cx = x0 + Math.floor((w - core.w) / 2);
   const cy = y0 + Math.floor((h - core.h) / 2);
   const add = (x: number, y: number, bw: number, bh: number) => {
@@ -338,7 +338,7 @@ interface ScatterParams {
 }
 
 const SCATTER: Record<"caverns" | "tunnels", ScatterParams> = {
-  caverns: { roomW: [4, 8], roomH: [4, 7], lair: [8, 10], blob: true, aspect: 1.25, loops: 0.3, wiggle: 2.4, spacing: 2, passageCap: 16 },
+  caverns: { roomW: [5, 9], roomH: [5, 8], lair: [9, 12], blob: true, aspect: 1.25, loops: 0.3, wiggle: 2.4, spacing: 2, passageCap: 16 },
   tunnels: { roomW: [3, 5], roomH: [3, 4], lair: [6, 7], blob: false, aspect: 2.2, loops: 0.12, wiggle: 1.6, spacing: 3, passageCap: 14 },
 };
 

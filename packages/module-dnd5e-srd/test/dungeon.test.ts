@@ -17,7 +17,7 @@ beforeAll(async () => {
   m = await moduleFromPackSource(dnd5eSrdSource);
   g = m.mapGenerators!.find((x) => x.id === "dnd5e-srd.map.dungeon")!;
   tables = createTableRegistry(m.tables);
-});
+}, 60_000);
 
 describe("the fifth edition dungeon generator", { timeout: 120_000 }, () => {
   it("passes conformance, with a dry run of every site type", () => {

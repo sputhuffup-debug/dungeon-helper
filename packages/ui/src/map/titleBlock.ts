@@ -116,6 +116,8 @@ export interface TitleBlockInput {
   zoneKey?: Array<{ number: number; name: string; key?: boolean | undefined }> | undefined;
   /** Marker texts moved off the map. */
   callouts?: SiteMapCallout[] | undefined;
+  /** What a numbered zone is called in the key ("room" on a dungeon numbered by its rooms; default "zone"). */
+  zoneWord?: string | undefined;
   /** A small note (print instructions). */
   note?: string | undefined;
   /** The print is turned 90° clockwise from the screen map: show a compass note. */
@@ -209,7 +211,7 @@ export function titleBlock(input: TitleBlockInput, f: TitleBlockFrame): TitleBlo
   // section 3: key entries and callouts as short lines in columns
   const entries: Array<{ n: string; s: string; bold?: boolean }> = [];
   for (const k of input.zoneKey ?? []) entries.push({ n: String(k.number), s: k.name, bold: !!k.key });
-  for (const c of input.callouts ?? []) entries.push({ n: c.ref, s: `${c.label}${c.number !== undefined ? `, zone ${c.number}` : ""}`, bold: true });
+  for (const c of input.callouts ?? []) entries.push({ n: c.ref, s: `${c.label}${c.number !== undefined ? `, ${input.zoneWord ?? "zone"} ${c.number}` : ""}`, bold: true });
   const keySize = 7.5 * pt;
   const lh = keySize * 1.3;
   const numW = Math.max(textWidth("00", keySize, true), ...entries.map((e) => textWidth(e.n, keySize, true))) + 3 * pt;
@@ -281,7 +283,8 @@ export function titleBlock(input: TitleBlockInput, f: TitleBlockFrame): TitleBlo
     const capacity = rows * cols;
     const shown = entries.length > capacity ? entries.slice(0, capacity - 1) : entries;
     omitted = entries.length - shown.length;
-    const title = input.callouts?.length && input.zoneKey?.length ? "Zone key and notes" : input.callouts?.length ? "Notes" : "Zone key";
+    const word = input.zoneWord ? input.zoneWord[0]!.toUpperCase() + input.zoneWord.slice(1) : "Zone";
+    const title = input.callouts?.length && input.zoneKey?.length ? `${word} key and notes` : input.callouts?.length ? "Notes" : `${word} key`;
     nodes.push(txt(f.x + x, f.y + rowY + 7 * pt, 7 * pt, title, { fill: MUTED }));
     const list = [...shown.map((e) => ({ ...e })), ...(omitted ? [{ n: "", s: `+${omitted} more in the zone key`, bold: false }] : [])];
     list.forEach((e, i) => {

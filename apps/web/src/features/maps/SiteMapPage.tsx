@@ -123,7 +123,7 @@ export function SiteMapPage({ record, onDelete, scenesCard }: { record: SiteMap;
                 {callouts.map((c) => (
                   <span key={c.ref} data-callout-note={c.ref}>
                     <strong>{c.ref}</strong> {c.label}
-                    {c.number !== undefined ? `, zone ${c.number}` : ""}
+                    {c.number !== undefined ? `, ${layout.numbering === "key" ? "room" : "zone"} ${c.number}` : ""}
                   </span>
                 ))}
               </p>

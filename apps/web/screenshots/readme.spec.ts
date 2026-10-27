@@ -709,6 +709,22 @@ test("dnd5e-table", async ({ page }) => {
   await shot(page, "dnd5e-table");
 });
 
+test("dnd5e-dungeon", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1150 });
+  await loadDemo(page, "dnd5e");
+  // the demo's generated tower: the GM map, and the barracks' entry from the room key beside it
+  await nav(page, "Generate").click();
+  await page.getByRole("region", { name: "Site maps" }).getByRole("link", { name: "The Sunken Watchtower" }).click();
+  const mapPage = page.getByTestId("map-page");
+  await expect(mapPage).toHaveAttribute("data-layout", "generated");
+  await expect(mapPage.getByTestId("zone-key")).toContainText("Room key");
+  await refit(mapPage);
+  await mapPage.getByTestId("sitemap").locator('[data-hit="zone"][aria-label*="Barracks"]').click({ force: true });
+  await expect(mapPage.getByTestId("zone-detail")).toContainText("Barracks");
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await shot(page, "dnd5e-dungeon");
+});
+
 test("dnd5e-origins", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 760 });
   const base = await loadDemo(page, "dnd5e");
@@ -837,6 +853,25 @@ async function openPf2ePc(page: Page, name: string) {
   await page.getByRole("tabpanel").getByRole("link", { name, exact: true }).click();
   await expect(page.getByTestId("entity-page")).toBeVisible();
 }
+
+test("orc-dungeon", async ({ page, context }) => {
+  await loadDemo(page, "pf2e");
+  await startSession1(page);
+  // the xulgath den scene: the generated cave, live, with the first rooms found
+  const scenes = page.getByRole("combobox", { name: "Scene" });
+  const value = await scenes.locator("option", { hasText: "The xulgath den" }).getAttribute("value");
+  await scenes.selectOption(value!);
+  await expect(page.getByTestId("live-map")).toBeVisible();
+  const popup = context.waitForEvent("page");
+  await page.getByRole("button", { name: "Player screen" }).click();
+  const players = await popup;
+  await players.setViewportSize({ width: 1440, height: 1100 });
+  const playerMap = players.getByTestId("player-map");
+  await expect(playerMap).toBeVisible();
+  await expect(playerMap.locator("[data-number]")).toHaveCount(0);
+  await refit(playerMap);
+  await shot(players, "orc-dungeon");
+});
 
 test("pf2e-sheet", async ({ page }) => {
   // tall enough for Perception, saves and skills under the defense numbers

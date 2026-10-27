@@ -583,14 +583,40 @@ export function zoneLabel(z: MapZoneData, opts: { number?: number | undefined; f
   return parts.join(", ");
 }
 
+/** The squares around a deck's zones (three squares of ground beyond them), within the deck; undefined when it has none. */
+function cropToZones(layout: SiteLayout, deck: SiteLayout["decks"][number]): { x: number; y: number; w: number; h: number } | undefined {
+  let x0 = Infinity;
+  let y0 = Infinity;
+  let x1 = -Infinity;
+  let y1 = -Infinity;
+  for (const z of layout.zones) {
+    if (z.deck !== deck.id) continue;
+    for (const [x, y] of z.poly) {
+      x0 = Math.min(x0, x);
+      y0 = Math.min(y0, y);
+      x1 = Math.max(x1, x);
+      y1 = Math.max(y1, y);
+    }
+  }
+  if (!Number.isFinite(x0)) return undefined;
+  const pad = 3;
+  const x = Math.max(0, Math.floor(x0) - pad);
+  const y = Math.max(0, Math.floor(y0) - pad);
+  return { x, y, w: Math.min(deck.width, Math.ceil(x1) + pad) - x, h: Math.min(deck.height, Math.ceil(y1) + pad) - y };
+}
+
 /** Draw one deck of a layout. */
 export function drawSiteMap(layout: SiteLayout, opts: SiteMapDrawOptions): SiteMapDrawing {
   const p = resolvePalette(opts.palette);
   const id = (s: string) => `${opts.idPrefix ?? "sm"}-${s}`;
   const deck = layout.decks.find((d) => d.id === opts.deck) ?? layout.decks[0];
   const margin = opts.margin ?? 1;
-  const width = (deck?.width ?? 0) + margin * 2;
-  const height = (deck?.height ?? 0) + margin * 2;
+  // a "hide" fog map for the players is cropped to what they have found (plus a little), so the sheet neither dwarfs it nor shows the dungeon's extent
+  const crop = opts.view === "player" && layout.fog === "hide" && deck ? cropToZones(layout, deck) : undefined;
+  const ox = crop?.x ?? 0;
+  const oy = crop?.y ?? 0;
+  const width = (crop?.w ?? deck?.width ?? 0) + margin * 2;
+  const height = (crop?.h ?? deck?.height ?? 0) + margin * 2;
   const view = opts.view;
   const gm = view === "gm";
   const tracking = view === "tracking";
@@ -647,10 +673,10 @@ export function drawSiteMap(layout: SiteLayout, opts: SiteMapDrawOptions): SiteM
   ]);
 
   const layers: SvgNode[] = [];
-  layers.push(el("rect", { x: -margin, y: -margin, width, height, fill: tracking ? "#ffffff" : sheet ? p.ductSheet : p.background, "data-sheet": sheet ? "duct" : undefined }));
+  layers.push(el("rect", { x: ox - margin, y: oy - margin, width, height, fill: tracking ? "#ffffff" : sheet ? p.ductSheet : p.background, "data-sheet": sheet ? "duct" : undefined }));
   // a duct sheet always shows its grid: the sheet's own background
-  if (sheet && !tracking && deck) layers.push(el("rect", { x: -margin, y: -margin, width, height, fill: `url(#${id("dgrid")})`, "data-layer": "duct-grid" }));
-  else if (opts.grid && deck) layers.push(el("rect", { x: 0, y: 0, width: deck.width, height: deck.height, fill: `url(#${id("grid")})`, "data-layer": "grid" }));
+  if (sheet && !tracking && deck) layers.push(el("rect", { x: ox - margin, y: oy - margin, width, height, fill: `url(#${id("dgrid")})`, "data-layer": "duct-grid" }));
+  else if (opts.grid && deck) layers.push(el("rect", { x: ox, y: oy, width: crop?.w ?? deck.width, height: crop?.h ?? deck.height, fill: `url(#${id("grid")})`, "data-layer": "grid" }));
   // the players' duct sheet is fog wherever they have not crawled: the projection leaves those zones out
   if (sheet && view === "player" && deck) layers.push(el("rect", { x: 0, y: 0, width: deck.width, height: deck.height, fill: `url(#${id("fog")})`, "fill-opacity": 0.85, "data-sheet-fog": deck.id }));
 
@@ -1293,7 +1319,7 @@ export function drawSiteMap(layout: SiteLayout, opts: SiteMapDrawOptions): SiteM
     layers.push(el("g", { "data-layer": "hits" }, hits));
   }
 
-  const node = el("g", { transform: `translate(${margin} ${margin})`, "data-deck": deck?.id, "data-view": view }, [defs, ...layers]);
+  const node = el("g", { transform: `translate(${margin - ox} ${margin - oy})`, "data-deck": deck?.id, "data-view": view }, [defs, ...layers]);
   return { node, width, height, deck: deck?.id, callouts, labels: placer.boxes };
 }
 

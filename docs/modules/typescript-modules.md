@@ -2,7 +2,7 @@
 
 ## When you need TypeScript
 
-Write a TypeScript module when the game needs something a data pack cannot express (see [the pack format](pack-format.md#what-a-pack-cannot-do-yet)): a custom dice system or dice operations (a panic table rolled from the stress dice), combat with an armour rule, a crew ship, travel, a ledger, character progression, site map generators, guided adventure builders with code checks, end-of-session hooks, or data migrations. `packages/module-alien` uses all of them; `packages/module-example` is a small fixture of every contract feature.
+Write a TypeScript module when the game needs something a data pack cannot express (see [the pack format](pack-format.md#what-a-pack-cannot-do-yet)): a custom dice system or dice operations (a panic table rolled from the stress dice), combat with an armour rule, a crew ship, travel, a ledger, character progression, site map generators other than the built-in [dungeon engine](map-generators.md), guided adventure builders with code checks, end-of-session hooks, or data migrations. `packages/module-alien` uses all of them; `packages/module-example` is a small fixture of every contract feature.
 
 A TypeScript module is a workspace package that exports a `GameModule` (`packages/module-sdk/src/types.ts` is the contract):
 

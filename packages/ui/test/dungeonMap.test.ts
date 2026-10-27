@@ -69,6 +69,16 @@ describe("drawing a dungeon", () => {
     expect(svg).not.toContain('data-marker-kind="treasure"');
   });
 
+  it("the players' map is cropped to the rooms they have found, the GM's is the whole level", () => {
+    const shown = playerLayout(dungeon(), { act: 1, revealed: ["R01"] });
+    const player = drawSiteMap(shown, { view: "player", fogged: shown.fogged });
+    // R01 spans x 1..7 (its door into the passage at x 7), y 1..7: three squares around it, within the deck, plus the margin
+    expect([player.width, player.height]).toEqual([10 + 2, 10 + 2]);
+    expect(nodeToString(player.node)).toContain('transform="translate(1 1)"');
+    const gm = drawSiteMap(dungeon(), { view: "gm" });
+    expect([gm.width, gm.height]).toEqual([22, 12]);
+  });
+
   it("legend swatches exist for the new borders and marks", () => {
     for (const target of [{ border: "bars" as const }, { border: "rubble" as const }, { marker: "trap" as const }, { marker: "treasure" as const }]) {
       expect(nodeToString(legendSwatch({ target, label: "x" }, "light")).length).toBeGreaterThan(80);

@@ -174,6 +174,7 @@ function titleInput(layout: SiteLayout, o: RollPrintOptions, callouts: ReturnTyp
     strip,
     zoneKey: o.view === "gm" ? zoneKeyEntries(layout, o.deck) : undefined,
     callouts: callouts.length ? callouts : undefined,
+    zoneWord: layout.numbering === "key" ? "room" : undefined,
     note: "Print at 100% (actual size): do not scale to fit.",
     rotated,
   };

@@ -191,7 +191,8 @@ export function dungeonGenerator(): PackMapGenerator {
       doors: {
         lock: { lists: [LIST.gear], id: "lock" },
         notes: {
-          locked: cat("Locked. ", v("lock.description", "A creature proficient with thieves' tools can pick it with a DC 15 Dexterity check.")),
+          // the SRD's Lock: DC 15 to pick with thieves' tools (its description, shortened)
+          locked: cat("Locked (", v("lock.name", "Lock"), "): a creature proficient with thieves' tools picks it with a DC 15 Dexterity check; the key opens it."),
           secret: "Secret door: found by searching, with Wisdom (Perception) or Intelligence (Investigation); a medium task is DC 15, a hard one DC 20.",
           bars: "A portcullis or grate: raising or bending it is a Strength (Athletics) check.",
           rubble: "Collapsed: impassable until it is dug out.",

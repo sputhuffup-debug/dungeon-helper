@@ -6,5 +6,7 @@ export default defineConfig({
     setupFiles: ["./test/setup.ts"],
     include: ["test/**/*.test.{ts,tsx}"],
     css: false,
+    // some suites load whole data packs; that runs slowly when turbo runs every suite at once
+    testTimeout: 20_000,
   },
 });
