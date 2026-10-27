@@ -112,7 +112,7 @@ export { planRollPrint, rollPrintPages, zoneKeyEntries, sheetTitle, formatInches
 export { renderRollPdf } from "./map/rollPdf";
 export { svgPagesToPdf, parsePathData, parseTransform, parseColor, jpegInfo, jpegFromDataUrl, PDF_MAX_UNITS, type PdfPage, type PdfInfo, type JpegInfo } from "./map/sitePdf";
 export { rotateLayout, type QuarterTurn } from "./map/rotateLayout";
-export { titleBlock, scaleBar, scaleText, isMiniatureScale, defaultGridSquares, PRINT_SCALES, DEFAULT_MM_PER_METRE, VIEW_NAMES, type PrintScale, type TitleBlockInput, type TitleBlockFrame, type TitleBlock } from "./map/titleBlock";
+export { titleBlock, scaleBar, scaleText, scaleTextFor, scaleUnitFor, squareName, printScalesFor, defaultMmPerMetre, isMiniatureScale, defaultGridSquares, PRINT_SCALES, DEFAULT_MM_PER_METRE, VIEW_NAMES, type PrintScale, type ScaleUnit, type TitleBlockInput, type TitleBlockFrame, type TitleBlock } from "./map/titleBlock";
 export { LabelPlacer, boxesOverlap, boxInside, boxInPolygon, insetBox, boxAround, scanPositions, overlappingPairs, placementProblems, type LabelBox, type PlacedLabel, type PlaceRequest, type ScanFrom } from "./map/labelPlacement";
 export { textWidth, ellipsize, wrapText, winAnsiBytes, MAP_FONT } from "./map/textMetrics";
 

@@ -126,9 +126,9 @@ export function effectiveBorder(border: MapBorderData, act: number, override?: L
   return b;
 }
 
-/** Generic passability: walls, sealed borders and borders locked in this act block movement. */
+/** Generic passability: walls, rubble, sealed borders and borders locked in this act block movement. */
 export function defaultPassable(border: MapBorderData, act: number): boolean {
-  if (border.kind === "wall") return false;
+  if (border.kind === "wall" || border.kind === "rubble") return false;
   if (border.sealed) return false;
   if (lockedInAct(border, act)) return false;
   return true;
@@ -248,12 +248,17 @@ export function rangeBandFor(distance: number | undefined, bands: RangeBandDef[]
 // numbering and legend lookups
 // ---------------------------------------------------------------------------
 
-/** Map numbers: playable zones in layout order, floor zones first, then ducts. Out-of-bounds zones get none. */
-export function zoneNumbers(layout: Pick<SiteLayout, "zones">): Map<string, number> {
+/**
+ * Map numbers: playable zones in layout order, floor zones first, then ducts.
+ * Out-of-bounds zones get none; with `numbering: "key"` only key zones are
+ * numbered (rooms, not the passages between them).
+ */
+export function zoneNumbers(layout: Pick<SiteLayout, "zones" | "numbering">): Map<string, number> {
   const out = new Map<string, number>();
   let n = 1;
-  for (const z of layout.zones) if (z.kind !== "out-of-bounds" && z.layer !== "duct") out.set(z.id, n++);
-  for (const z of layout.zones) if (z.kind !== "out-of-bounds" && z.layer === "duct") out.set(z.id, n++);
+  const numbered = (z: MapZoneData) => z.kind !== "out-of-bounds" && (layout.numbering !== "key" || z.key === true);
+  for (const z of layout.zones) if (numbered(z) && z.layer !== "duct") out.set(z.id, n++);
+  for (const z of layout.zones) if (numbered(z) && z.layer === "duct") out.set(z.id, n++);
   return out;
 }
 
@@ -435,7 +440,7 @@ export function shaftLabel(link: ShaftLink, withId = true): string {
 // ---------------------------------------------------------------------------
 
 /** Marker kinds that never reach a player output, whatever their `gmOnly` says. */
-export const GM_MARKER_KINDS: ReadonlySet<MapMarker["kind"]> = new Set(["spawn", "clue", "npc", "waypoint"]);
+export const GM_MARKER_KINDS: ReadonlySet<MapMarker["kind"]> = new Set(["spawn", "clue", "npc", "waypoint", "trap", "treasure"]);
 
 /** Border flags the renderer draws and players can see (wall weight). */
 const PLAYER_BORDER_FLAGS = new Set(["outerHull"]);
@@ -496,14 +501,26 @@ export function playerFlagNames(legend: MapLegendEntry[] | undefined): Set<strin
  * - hidden borders are dropped unless the live state marks them `known`;
  *   locks show only when `known`; armor, hit points and GM flags are dropped;
  * - markers keep only player kinds (start, win, label, hazard) that are not
- *   `gmOnly`, without their act or data, and only in visible zones;
+ *   `gmOnly`, without their act, detail or data, and only in visible zones;
+ * - hidden zones (secret rooms) are left out until revealed, prints
+ *   included, with every border into them;
+ * - with `fog: "hide"` (a dungeon the players explore) unseen zones are left
+ *   out instead of fogged: only revealed zones are drawn, plus the doors and
+ *   openings in their walls (a border kept with one end missing); without a
+ *   `revealed` list, only the start zone is seen. Prints show the whole plan;
+ * - GM notes on borders, zone entity links and module meta are dropped;
  * - checks are dropped.
  */
 export function playerLayout(layout: SiteLayout, opts: PlayerLayoutOptions): PlayerLayout {
   const visibleFlags = playerFlagNames(opts.legend);
-  const seen = new Set(opts.revealed ?? []);
-  const revealed = opts.revealed && !opts.print ? seen : undefined;
+  const hideFog = layout.fog === "hide";
+  // a dungeon without a reveal list: the players have seen the way in, nothing else
+  const seenList = opts.revealed ?? (hideFog && !opts.print && layout.start ? [layout.start] : undefined);
+  const seen = new Set(seenList ?? []);
+  const revealed = seenList && !opts.print ? seen : undefined;
   const fogged = new Set<string>();
+  // unseen zones of a "hide" fog map: left out, but the doors in a seen room's walls still show
+  const unseen = new Set<string>();
   const borderLive = opts.live?.borders ?? {};
 
   // duct sheets: a zone is found when revealed, known when a border into it is known
@@ -526,6 +543,11 @@ export function playerLayout(layout: SiteLayout, opts: PlayerLayoutOptions): Pla
   }
   const secret = new Set<string>();
   for (const z of layout.zones) {
+    // a secret room stays off every player output until the players find it
+    if (z.hidden && !seen.has(z.id)) {
+      secret.add(z.id);
+      continue;
+    }
     // on a duct sheet, zones the crew has neither found nor heard of are left out, outlines and all
     if (sheets.has(z.deck) && (!shownSheets.has(z.deck) || (!seen.has(z.id) && !knownZones.has(z.id)))) {
       secret.add(z.id);
@@ -543,6 +565,10 @@ export function playerLayout(layout: SiteLayout, opts: PlayerLayoutOptions): Pla
     if (secret.has(z.id)) continue;
     const onSheet = sheets.has(z.deck);
     const isFogged = z.kind !== "out-of-bounds" && (onSheet ? !seen.has(z.id) : !!revealed && !revealed.has(z.id));
+    if (isFogged && hideFog && !onSheet) {
+      unseen.add(z.id);
+      continue;
+    }
     const base: MapZoneData = { id: z.id, deck: z.deck, kind: z.kind, poly: z.poly.map((p) => [p[0], p[1]] as [number, number]), cluttered: false };
     if (z.layer) base.layer = z.layer;
     if (isFogged) {
@@ -575,7 +601,11 @@ export function playerLayout(layout: SiteLayout, opts: PlayerLayoutOptions): Pla
 
   const borders: MapBorderData[] = [];
   for (const b of shownBorders) {
-    if (!zoneIds.has(b.a) || !zoneIds.has(b.b)) continue;
+    if (!zoneIds.has(b.a) || !zoneIds.has(b.b)) {
+      // "hide" fog: a door or opening from a seen zone into one the players have not seen yet
+      const edge = b.segment && b.kind !== "wall" && ((zoneIds.has(b.a) && unseen.has(b.b)) || (zoneIds.has(b.b) && unseen.has(b.a)));
+      if (!edge) continue;
+    }
     // walls deep in the fog stay hidden
     if (fogged.has(b.a) && fogged.has(b.b)) continue;
     const live = borderLive[b.id];
@@ -616,6 +646,12 @@ export function playerLayout(layout: SiteLayout, opts: PlayerLayoutOptions): Pla
   const out: PlayerLayout = { decks, zones, borders, markers, checks: [], fogged: [...fogged] };
   if (layout.start && zoneIds.has(layout.start)) out.start = layout.start;
   if (layout.gridM !== undefined) out.gridM = layout.gridM;
+  // presentation only: how the map reads (scale, fog, numbering), never GM content
+  if (layout.gridUnit) out.gridUnit = { size: layout.gridUnit.size, unit: layout.gridUnit.unit };
+  if (layout.fog !== undefined) out.fog = layout.fog;
+  if (layout.numbering !== undefined) out.numbering = layout.numbering;
+  if (layout.acts === false) out.acts = false;
+  if (layout.cover === false) out.cover = false;
   return out;
 }
 
@@ -843,6 +879,32 @@ export interface ZoneKeyRow {
   salvage: string[];
   clues: string[];
   gmNote: string;
+  /** What the players can be told on entering (the zone's player note): a read-aloud slot. */
+  readAloud: string;
+  /** The zone's GM marks other than clues (encounters, NPCs, traps, treasure, hazards), with their detail and linked entity. */
+  marks: ZoneKeyMark[];
+}
+
+export interface ZoneKeyMark {
+  id: string;
+  kind: MapMarker["kind"];
+  label: string;
+  detail?: string | undefined;
+  /** The campaign entity the mark was accepted as (an encounter, a creature, a hazard). */
+  entity?: string | undefined;
+}
+
+/** "Encounters", "Traps", "Treasure": which key column a mark belongs to. */
+export function markGroup(kind: MapMarker["kind"]): "encounters" | "traps" | "treasure" | undefined {
+  if (kind === "spawn" || kind === "npc") return "encounters";
+  if (kind === "trap" || kind === "hazard") return "traps";
+  if (kind === "treasure") return "treasure";
+  return undefined;
+}
+
+/** A mark as one line of the key: "4 × Goblin: shortbows from the gallery". */
+export function markText(m: Pick<ZoneKeyMark, "label" | "detail">): string {
+  return m.detail ? `${m.label}: ${m.detail}` : m.label;
 }
 
 function zoneName(z: MapZoneData | undefined, fallback: string): string {
@@ -857,7 +919,10 @@ export function zoneKeyRows(map: Pick<SiteMap, "layout" | "generator"> & { live?
   const numbers = zoneNumbers(layout);
   const byId = new Map(layout.zones.map((z) => [z.id, z]));
   const rows: ZoneKeyRow[] = [];
-  const ordered = [...numbers.keys()].map((id) => byId.get(id)!);
+  // key numbering: numbered rooms, plus any passage with something in it (a trap, a note), in layout order
+  const keyed = (z: MapZoneData) => z.details?.length || z.gmNote || layout.markers.some((m) => m.zone === z.id && m.kind !== "start" && m.kind !== "label");
+  const ordered = layout.numbering === "key" ? layout.zones.filter((z) => numbers.has(z.id) || (z.kind !== "out-of-bounds" && keyed(z))) : [...numbers.keys()].map((id) => byId.get(id)!);
+  const noActs = layout.acts === false;
   const decks = new Map(layout.decks.map((d) => [d.id, d]));
   const def = generatorFor(map, module);
   const stateOpts: BorderStateOptions = { act: map.live?.act ?? 1, passable: def?.passable };
@@ -870,13 +935,14 @@ export function zoneKeyRows(map: Pick<SiteMap, "layout" | "generator"> & { live?
       const other = b.a === z.id ? b.b : b.a;
       const oz = byId.get(other);
       const notes: string[] = [];
-      if (b.lock && b.lock !== "none") notes.push(`${b.lock} lock`);
-      if (b.lockedInActs?.length) notes.push(`locked in act ${b.lockedInActs.join(", ")}`);
+      if (b.lock && b.lock !== "none" && !noActs) notes.push(`${b.lock} lock`);
+      if (b.lockedInActs?.length) notes.push(noActs ? "locked" : `locked in act ${b.lockedInActs.join(", ")}`);
       if (b.sealed) notes.push("sealed");
       if (b.hidden) notes.push("hidden");
       if (typeof b.armor === "number") notes.push(`armor ${b.armor}`);
       if (typeof b.hp === "number") notes.push(`${b.hp} HP`);
       notes.push(...flagLabels(b.flags, legend));
+      if (b.note) notes.push(b.note);
       let label: string | undefined;
       const shaft = shafts.get(b.id);
       if (shaft) label = shaftLabel(shaft);
@@ -901,6 +967,13 @@ export function zoneKeyRows(map: Pick<SiteMap, "layout" | "generator"> & { live?
       salvage: z.salvage ?? [],
       clues: layout.markers.filter((m) => m.kind === "clue" && m.zone === z.id).map((m) => m.label),
       gmNote: z.gmNote ?? "",
+      readAloud: z.playerNote ?? "",
+      marks: layout.markers
+        .filter((m) => m.zone === z.id && markGroup(m.kind) !== undefined)
+        .map((m) => {
+          const entity = typeof m.data?.entity === "string" ? m.data.entity : undefined;
+          return { id: m.id, kind: m.kind, label: m.label, ...(m.detail ? { detail: m.detail } : {}), ...(entity ? { entity } : {}) };
+        }),
     });
   }
   return rows;
@@ -916,9 +989,25 @@ function mdCell(s: string): string {
   return s.replace(/\\/g, "\\\\").replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
 }
 
+/** The marks of a row in one key column, as text. */
+export function marksText(row: Pick<ZoneKeyRow, "marks">, group: "encounters" | "traps" | "treasure"): string[] {
+  return row.marks.filter((m) => markGroup(m.kind) === group).map(markText);
+}
+
+/** The key of a map numbered by rooms (`numbering: "key"`): rooms with read-aloud text, encounters, traps and treasure. */
+function roomKeyMarkdown(map: Pick<SiteMap, "layout" | "generator" | "name">, rows: ZoneKeyRow[]): string {
+  const lines = [`# ${map.name}: room key`, "", "| # | Room | Flags | Exits | Read-aloud | Description | Encounters | Traps | Treasure | GM note |", "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |"];
+  for (const r of rows) {
+    const cells = [r.number !== undefined ? String(r.number) : "", `${r.name} (${r.id})`, r.flags.join(", "), r.exits.map(exitText).join("; "), r.readAloud, r.details.join("; "), marksText(r, "encounters").join("; "), marksText(r, "traps").join("; "), marksText(r, "treasure").join("; "), r.gmNote];
+    lines.push(`| ${cells.map(mdCell).join(" | ")} |`);
+  }
+  return `${lines.join("\n")}\n`;
+}
+
 /** The zone key as a Markdown table. */
 export function zoneKeyMarkdown(map: Pick<SiteMap, "layout" | "generator" | "name">, module?: MapModule): string {
   const rows = zoneKeyRows(map, module);
+  if (map.layout?.numbering === "key") return roomKeyMarkdown(map, rows);
   const lines = [
     `# ${map.name}: zone key`,
     "",
@@ -953,6 +1042,11 @@ export function toCsv(rows: unknown[][]): string {
 
 /** The zone key as CSV (one row per zone). */
 export function zoneKeyCsv(map: Pick<SiteMap, "layout" | "generator">, module?: MapModule): string {
+  if (map.layout?.numbering === "key") {
+    const rows: unknown[][] = [["number", "id", "name", "kind", "level", "flags", "exits", "read_aloud", "description", "encounters", "traps", "treasure", "gm_note"]];
+    for (const r of zoneKeyRows(map, module)) rows.push([r.number ?? "", r.id, r.name, r.kind, r.deckName, r.flags.join("; "), r.exits.map(exitText).join("; "), r.readAloud, r.details.join("; "), marksText(r, "encounters").join("; "), marksText(r, "traps").join("; "), marksText(r, "treasure").join("; "), r.gmNote]);
+    return toCsv(rows);
+  }
   const rows: unknown[][] = [["number", "id", "name", "kind", "deck", "cover", "flags", "exits", "details", "salvage", "clues", "gm_note"]];
   for (const r of zoneKeyRows(map, module)) {
     rows.push([r.number ?? "", r.id, r.name, r.kind, r.deck, r.cover, r.flags.join("; "), r.exits.map(exitText).join("; "), r.details.join("; "), r.salvage.join("; "), r.clues.join("; "), r.gmNote]);

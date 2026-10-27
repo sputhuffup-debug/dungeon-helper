@@ -9,6 +9,7 @@
  * typographic point and `perMetre` the length of one metre, so the same
  * block serves PDF pages (points) and SVG exports (grid units).
  */
+import type { SiteLayout } from "@campaign-forge/module-sdk";
 import { MAP_FONT, ellipsize, textWidth } from "./textMetrics";
 import { el, type SiteMapCallout, type SiteMapViewKind, type SvgNode } from "./siteMapDraw";
 
@@ -36,6 +37,58 @@ export function scaleText(mmPerMetre: number): string {
   const preset = PRINT_SCALES.find((s) => Math.abs(s.mmPerMetre - mmPerMetre) < 1e-6);
   if (preset) return preset.text;
   return `1 m = ${Math.round(mmPerMetre * 10) / 10} mm`;
+}
+
+/** The layout's grid unit in metres (`gridM`, default 1). */
+function unitMetres(layout: Pick<SiteLayout, "gridM">): number {
+  return layout.gridM && layout.gridM > 0 ? layout.gridM : 1;
+}
+
+/** "5 ft": one grid square of a layout measured in its own unit. */
+export function squareName(layout: Pick<SiteLayout, "gridUnit">): string {
+  return layout.gridUnit ? `${layout.gridUnit.size} ${layout.gridUnit.unit}` : "1 m";
+}
+
+/**
+ * Print scales for a layout: metric maps get PRINT_SCALES; a map measured in
+ * squares of its own unit (5-foot squares) gets one square per inch for
+ * miniatures, 28mm true scale and one square per centimetre.
+ */
+export function printScalesFor(layout: Pick<SiteLayout, "gridM" | "gridUnit">): PrintScale[] {
+  if (!layout.gridUnit) return PRINT_SCALES;
+  const m = unitMetres(layout);
+  const sq = squareName(layout);
+  const true28 = Math.round((1000 / 56) * m * 10) / 10;
+  return [
+    { id: "inch", mmPerMetre: 25.4 / m, label: `1 in = ${sq} (28mm miniatures)`, text: `1 in = ${sq} · 28mm miniatures` },
+    { id: "true-28mm", mmPerMetre: 1000 / 56, label: `28mm true scale (1:56, ${sq} ≈ ${true28} mm)`, text: `1:56 · ${sq} = ${true28} mm · 28mm true scale` },
+    { id: "overview", mmPerMetre: 10 / m, label: `1 cm = ${sq} (overview)`, text: `1 cm = ${sq} · overview` },
+  ];
+}
+
+/** The default print scale of a layout: one inch per metre, or per square for a map in squares. */
+export function defaultMmPerMetre(layout: Pick<SiteLayout, "gridM" | "gridUnit">): number {
+  return printScalesFor(layout)[0]!.mmPerMetre;
+}
+
+/** Title-block text for a scale on a layout (the metric texts for metric maps). */
+export function scaleTextFor(layout: Pick<SiteLayout, "gridM" | "gridUnit">, mmPerMetre: number): string {
+  if (!layout.gridUnit) return scaleText(mmPerMetre);
+  const preset = printScalesFor(layout).find((s) => Math.abs(s.mmPerMetre - mmPerMetre) < 1e-6);
+  if (preset) return preset.text;
+  return `${squareName(layout)} = ${Math.round(mmPerMetre * unitMetres(layout) * 10) / 10} mm`;
+}
+
+/** The scale bar's unit for a layout measured in squares: one square's length in the target units, and its name. */
+export function scaleUnitFor(layout: Pick<SiteLayout, "gridM" | "gridUnit">, perMetre: number): ScaleUnit | undefined {
+  return layout.gridUnit ? { per: perMetre * unitMetres(layout), size: layout.gridUnit.size, name: layout.gridUnit.unit } : undefined;
+}
+
+/** A scale bar step that is not a metre: `per` target units long, labelled in multiples of `size` `name`. */
+export interface ScaleUnit {
+  per: number;
+  size: number;
+  name: string;
 }
 
 /** Scales at which a 1 m square holds a miniature's base. */
@@ -77,6 +130,8 @@ export interface TitleBlockFrame {
   pt: number;
   /** One metre in the target units. */
   perMetre: number;
+  /** A map in squares of its own unit: the scale bar counts squares (0, 5, 10… ft) instead of metres. */
+  unit?: ScaleUnit | undefined;
   /** Largest number of key rows (default 9). */
   maxKeyRows?: number | undefined;
 }
@@ -96,22 +151,28 @@ function txt(x: number, y: number, size: number, s: string, a: Record<string, st
   return el("text", { x, y, "font-size": size, "font-family": MAP_FONT, fill: INK, ...a }, [s]);
 }
 
-/** A 5 m scale bar with 1 m ticks: alternating filled metres and labels 0 to 5 m. */
-export function scaleBar(x: number, y: number, perMetre: number, pt: number, metres = 5): { node: SvgNode; width: number; height: number } {
+/**
+ * A 5 m scale bar with 1 m ticks: alternating filled metres and labels 0 to 5 m.
+ * With a `unit` (a map in squares) it counts five squares instead: 0, 5, 10… 25 ft.
+ */
+export function scaleBar(x: number, y: number, perMetre: number, pt: number, metres = 5, unit?: ScaleUnit): { node: SvgNode; width: number; height: number } {
   const h = 5 * pt;
   const label = 7 * pt;
   const parts: SvgNode[] = [];
+  const step = unit ? unit.per : perMetre;
+  const name = unit ? unit.name : "m";
+  const at = (i: number) => String(unit ? i * unit.size : i);
   for (let i = 0; i < metres; i++) {
-    parts.push(el("rect", { x: x + i * perMetre, y, width: perMetre, height: h, fill: i % 2 === 0 ? INK : "#ffffff", stroke: INK, "stroke-width": 0.6 * pt }));
+    parts.push(el("rect", { x: x + i * step, y, width: step, height: h, fill: i % 2 === 0 ? INK : "#ffffff", stroke: INK, "stroke-width": 0.6 * pt }));
   }
   for (let i = 0; i <= metres; i++) {
-    const tx = x + i * perMetre;
+    const tx = x + i * step;
     parts.push(el("line", { x1: tx, y1: y + h, x2: tx, y2: y + h + 2.5 * pt, stroke: INK, "stroke-width": 0.6 * pt }));
-    const s = i === metres ? `${i} m` : String(i);
-    parts.push(txt(tx, y + h + 2.5 * pt + label, label, s, { "text-anchor": i === metres ? "start" : "middle", ...(i === metres ? { x: tx - textWidth(String(i), label) / 2 } : {}) }));
+    const s = i === metres ? `${at(i)} ${name}` : at(i);
+    parts.push(txt(tx, y + h + 2.5 * pt + label, label, s, { "text-anchor": i === metres ? "start" : "middle", ...(i === metres ? { x: tx - textWidth(at(i), label) / 2 } : {}) }));
   }
-  const width = metres * perMetre + textWidth(` ${metres} m`, label);
-  return { node: el("g", { "data-scale-bar": metres }, parts), width, height: h + 2.5 * pt + label * 1.25 };
+  const width = metres * step + textWidth(` ${at(metres)} ${name}`, label);
+  return { node: el("g", { "data-scale-bar": metres, ...(unit ? { "data-scale-unit": unit.name } : {}) }, parts), width, height: h + 2.5 * pt + label * 1.25 };
 }
 
 /**
@@ -141,7 +202,7 @@ export function titleBlock(input: TitleBlockInput, f: TitleBlockFrame): TitleBlo
   // section 2: scale bar
   const bar = { w: 0, h: 0 };
   const barTitle = 7 * pt;
-  const sb = scaleBar(0, 0, f.perMetre, pt);
+  const sb = scaleBar(0, 0, f.perMetre, pt, 5, f.unit);
   bar.w = Math.max(sb.width, textWidth("Scale bar", barTitle));
   bar.h = barTitle * 1.4 + sb.height;
 
@@ -181,7 +242,7 @@ export function titleBlock(input: TitleBlockInput, f: TitleBlockFrame): TitleBlo
 
   const [bx, by] = placeSection(bar.w, bar.h);
   nodes.push(txt(f.x + bx, f.y + by + barTitle, barTitle, "Scale bar", { fill: MUTED }));
-  nodes.push(scaleBar(f.x + bx, f.y + by + barTitle * 1.4, f.perMetre, pt).node);
+  nodes.push(scaleBar(f.x + bx, f.y + by + barTitle * 1.4, f.perMetre, pt, 5, f.unit).node);
 
   // section 2b: compass note for turned prints (the screen map's top is to the right)
   if (input.rotated) {

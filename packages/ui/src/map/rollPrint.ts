@@ -21,7 +21,7 @@ import type { PdfPage } from "./sitePdf";
 import { LIGHT_PALETTE, drawSiteMap, el, type SiteMapDrawOptions, type SiteMapPalette, type SiteMapViewKind, type SvgNode } from "./siteMapDraw";
 import { MAP_FONT, textWidth } from "./textMetrics";
 import { rotateLayout } from "./rotateLayout";
-import { DEFAULT_MM_PER_METRE, VIEW_NAMES, defaultGridSquares, scaleText, titleBlock, type TitleBlockInput } from "./titleBlock";
+import { DEFAULT_MM_PER_METRE, VIEW_NAMES, defaultGridSquares, scaleTextFor, scaleUnitFor, titleBlock, type TitleBlockInput } from "./titleBlock";
 
 /** Roll widths offered, in inches. */
 export const ROLL_WIDTHS = [24, 36] as const;
@@ -170,7 +170,7 @@ function titleInput(layout: SiteLayout, o: RollPrintOptions, callouts: ReturnTyp
     title: o.title ?? "Site map",
     deck: sheetTitle(layout, o.deck),
     view: o.view,
-    scale: scaleText(mm),
+    scale: scaleTextFor(layout, mm),
     strip,
     zoneKey: o.view === "gm" ? zoneKeyEntries(layout, o.deck) : undefined,
     callouts: callouts.length ? callouts : undefined,
@@ -204,7 +204,7 @@ export function planRollPrint(layout: SiteLayout, o: RollPrintOptions): RollPrin
   // the title block's height: a split print adds the strip line
   const band = (split: boolean, rotated: boolean) => {
     if (o.titleBlock === false) return 0;
-    const t = titleBlock(titleInput(layout, o, (rotated ? dTurned : d).callouts, split ? { index: 1, count: 2 } : undefined, rotated), { x: 0, y: 0, width: printable * 72, pt: 1, perMetre: (mm / 25.4) * 72 });
+    const t = titleBlock(titleInput(layout, o, (rotated ? dTurned : d).callouts, split ? { index: 1, count: 2 } : undefined, rotated), { x: 0, y: 0, width: printable * 72, pt: 1, perMetre: (mm / 25.4) * 72, unit: scaleUnitFor(layout, (mm / 25.4) * 72) });
     return round2(t.height / 72);
   };
   const fixed = (tb: number) => 2 * marginIn + (tb > 0 ? tb + GAP_IN : 0);
@@ -293,7 +293,7 @@ export function rollPrintPages(layout: SiteLayout, o: RollPrintOptions, plan: Ro
     ];
     if (tbH > 0) {
       const strip = plan.strips > 1 ? { index: page.strip, count: plan.strips } : undefined;
-      nodes.push(titleBlock(titleInput(layout, o, d.callouts, strip, plan.rotated), { x: m, y: m, width: plan.printableWidthIn * PT, pt: 1, perMetre: (mm / 25.4) * PT }).node);
+      nodes.push(titleBlock(titleInput(layout, o, d.callouts, strip, plan.rotated), { x: m, y: m, width: plan.printableWidthIn * PT, pt: 1, perMetre: (mm / 25.4) * PT, unit: scaleUnitFor(layout, (mm / 25.4) * PT) }).node);
     }
     // seams: a dashed cut line at the middle of each overlap, with targets above and below the map
     const o2 = (plan.overlapIn * PT) / 2;
