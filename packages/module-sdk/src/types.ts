@@ -2631,13 +2631,18 @@ export interface CharacterBuilderOption {
 
 /**
  * Where a choice's options come from: the items of a reference list
- * (supplement items included) that `where` keeps; fixed `options`; `values`
- * worked out from earlier choices (ids of `list` items, plain strings, or
- * objects with an `id` and `name`); a `range` of whole numbers; or presets.
- * `where` (and the choice's `available`) sees the candidate as `option`.
+ * (supplement items included) that `where` keeps; the items of several
+ * lists (`lists`: JSONLogic giving list ids, so a pick can name the list,
+ * e.g. a class's own feat list, which may be a supplement's, and another);
+ * fixed `options`; `values` worked out from earlier choices (ids of `list`
+ * items, plain strings, or objects with an `id` and `name`); a `range` of
+ * whole numbers; or presets. `where` (and the choice's `available`) sees the
+ * candidate as `option`.
  */
 export type CharacterBuilderSource =
   | { list: string; where?: JsonLogicRule }
+  /** Items of every list the rule names, in order (an item id two lists share is offered once, from the first). */
+  | { lists: JsonLogicRule; where?: JsonLogicRule }
   | { options: CharacterBuilderOption[] }
   | { values: JsonLogicRule; list?: string }
   | { range: { min: number | JsonLogicRule; max: number | JsonLogicRule; label?: string } }

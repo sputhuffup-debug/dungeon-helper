@@ -715,9 +715,10 @@ const definitions: Record<string, JsonSchema> = {
     description: "A fixed option; extra keys are data for the choice's rules (`item.<key>`).",
   },
   builderSource: {
-    description: "Where a choice's options come from: a reference list, fixed options, values worked out by JSONLogic, a range of numbers, or presets.",
+    description: "Where a choice's options come from: a reference list, several lists (JSONLogic giving their ids), fixed options, values worked out by JSONLogic, a range of numbers, or presets.",
     oneOf: [
       { type: "object", required: ["list"], additionalProperties: false, properties: { list: ref("id"), where: logic } },
+      { type: "object", required: ["lists"], additionalProperties: false, properties: { lists: logic, where: logic } },
       { type: "object", required: ["options"], additionalProperties: false, properties: { options: list(ref("builderOption"), { minItems: 1 }) } },
       { type: "object", required: ["values"], additionalProperties: false, properties: { values: logic, list: ref("id") } },
       { type: "object", required: ["range"], additionalProperties: false, properties: { range: { type: "object", required: ["min", "max"], additionalProperties: false, properties: { min: logic, max: logic, label: str() } } } },

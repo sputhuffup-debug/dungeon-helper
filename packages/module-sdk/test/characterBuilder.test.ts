@@ -326,6 +326,27 @@ describe("grants, sub-choices and validation", () => {
     expect(res.fields.speed).toBe(25);
   });
 
+  it("offers the items of several lists a rule names (a class's own list, which a supplement may add, and another)", () => {
+    const multi: CharacterBuilderDef = JSON.parse(JSON.stringify(builder));
+    (multi.steps[1] as { subChoices: unknown[] }).subChoices.push({
+      id: "feature",
+      label: "A feature",
+      // the class's features list, then the races list; an unknown id is reported, an empty value adds none
+      source: { lists: { merge: [["fx.features"], { if: [{ "==": [v("item.id"), "wizard"] }, ["fx.races", "fx.features"], []] }] }, where: { "!=": [v("option.id"), "action-surge"] } },
+    });
+    const m = fixture(multi);
+    expect(characterBuilderIssues(m).filter((i) => i.severity === "error")).toEqual([]);
+    const ids = (cls: string) => builderChoices(resolveCharacterBuilder(m, multi, draft({ race: ["stout"], class: [cls] }))).find((c) => c.id === "feature")!.options.map((o) => o.id);
+    expect(ids("fighter")).toEqual(["second-wind", "arcane-recovery", "tradition"]);
+    // the races list's supplement item keeps its builder data and badge; a shared id is offered once
+    expect(ids("wizard")).toEqual(["second-wind", "arcane-recovery", "tradition", "elfish", "stout", "fx-supp.reedling"]);
+    const bad: CharacterBuilderDef = JSON.parse(JSON.stringify(multi));
+    ((bad.steps[1] as { subChoices: Array<{ source: unknown }> }).subChoices[1]!).source = { lists: ["fx.features", "fx.none"] };
+    expect(characterBuilderIssues(fixture(bad)).map((i) => i.message)).toContain('unknown reference list "fx.none"');
+    const res = resolveCharacterBuilder(fixture(bad), bad, draft({ race: ["stout"], class: ["fighter"] }));
+    expect(res.issues.some((i) => i.message === 'unknown reference list "fx.none"')).toBe(true);
+  });
+
   it("asks for the sub-choices a pick brings, counted from the pick's data", () => {
     let d = draft({ race: ["stout"], class: ["wizard"], level: ["1"] });
     let res = resolveCharacterBuilder(M, builder, d);

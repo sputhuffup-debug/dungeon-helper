@@ -3009,7 +3009,7 @@
       "description": "A fixed option; extra keys are data for the choice's rules (`item.<key>`)."
     },
     "builderSource": {
-      "description": "Where a choice's options come from: a reference list, fixed options, values worked out by JSONLogic, a range of numbers, or presets.",
+      "description": "Where a choice's options come from: a reference list, several lists (JSONLogic giving their ids), fixed options, values worked out by JSONLogic, a range of numbers, or presets.",
       "oneOf": [
         {
           "type": "object",
@@ -3020,6 +3020,21 @@
           "properties": {
             "list": {
               "$ref": "#/definitions/id"
+            },
+            "where": {
+              "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "lists"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "lists": {
+              "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
             },
             "where": {
               "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
