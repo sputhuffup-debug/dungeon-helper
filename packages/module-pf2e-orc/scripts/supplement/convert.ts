@@ -12,7 +12,7 @@ import { join } from "node:path";
 import type { EntityPreset, ReferenceItem, ReferenceList, RuleCard } from "@campaign-forge/module-sdk";
 import { assertClean, compact } from "../convert.ts";
 import { ANCESTRIES, CLASSES, PACK } from "../ids.ts";
-import { convertCharacterOptions } from "../source/character.ts";
+import { convertCharacterOptions, type ExternalFeature } from "../source/character.ts";
 import type { Ctx } from "../source/common.ts";
 import { convertCreatures } from "../source/creatures.ts";
 import { convertEquipment } from "../source/equipment.ts";
@@ -105,13 +105,35 @@ function census(root: string): Map<string, Map<string, Map<string, number>>> {
 
 /** The module's list ids (from its committed pack files). */
 export function baseListIds(packDir: string): Set<string> {
-  const ids = new Set<string>();
+  return new Set(baseLists(packDir).map((l) => l.id));
+}
+
+/** The module's reference lists (from its committed pack files). */
+export function baseLists(packDir: string): ReferenceList[] {
+  const out: ReferenceList[] = [];
   for (const f of readdirSync(packDir).sort()) {
     if (!f.endsWith(".json")) continue;
-    const data = JSON.parse(readFileSync(join(packDir, f), "utf8")) as { referenceLists?: Array<{ id: string }> };
-    for (const l of data.referenceLists ?? []) ids.add(l.id);
+    const data = JSON.parse(readFileSync(join(packDir, f), "utf8")) as { referenceLists?: ReferenceList[] };
+    out.push(...(data.referenceLists ?? []));
   }
-  return ids;
+  return out;
+}
+
+/** What the supplement's builder data needs from the module: its list ids, its class features by name and its feat names. */
+export interface BaseModule {
+  lists: Set<string>;
+  classFeatures: Map<string, ExternalFeature>;
+  featNames: Set<string>;
+}
+
+export function baseModule(packDir: string): BaseModule {
+  const lists = baseLists(packDir);
+  const classFeatures = new Map<string, ExternalFeature>();
+  for (const i of lists.find((l) => l.id === `${PACK}.class-features`)?.items ?? []) {
+    if (!classFeatures.has(i.name)) classFeatures.set(i.name, { id: i.id, description: String(i.description ?? ""), ...(i.builder ? { builder: i.builder as ExternalFeature["builder"] } : {}) });
+  }
+  const featNames = new Set(lists.filter((l) => l.id.startsWith(`${PACK}.feats.`)).flatMap((l) => l.items.map((i) => i.name)));
+  return { lists: new Set(lists.map((l) => l.id)), classFeatures, featNames };
 }
 
 const moduleId = (rest: string) => `${PACK}.${rest}`;
@@ -123,7 +145,8 @@ const bookOfCite = (cite: string | undefined) => (cite ?? "").split(" — ")[0] 
  * converted lists with one of them become `referenceItems` for it, the others
  * new lists.
  */
-export function convertSupplementSource(root: string, baseLists: Set<string>): SupplementConversion {
+export function convertSupplementSource(root: string, base: BaseModule): SupplementConversion {
+  const baseLists = base.lists;
   const log: ReadLog = newLog();
   const loc = readLocalization(root, ["en.json", "re-en.json", "action-en.json"]);
   const ctx: Ctx = { text: { loc, notes: new Map() }, scrub: newScrubLog(), notes: [] };
@@ -145,11 +168,18 @@ export function convertSupplementSource(root: string, baseLists: Set<string>): S
   };
   const conditions = convertConditions(read("conditions"), ctx);
   const actions = convertActions(read("actions"), ctx);
+  // builder data names the supplement's own class features by their supplement ids, the module's by its ids, and each class's feat list
   const character = convertCharacterOptions(
     { ancestries: read("ancestries"), heritages: read("heritages"), backgrounds: read("backgrounds"), classes: read("classes"), classFeatures: read("class-features"), ancestryFeatures: read("ancestry-features") },
     ctx,
+    {
+      localId: (x) => `${SUPPLEMENT}.${x}`,
+      externalFeature: (name) => base.classFeatures.get(name),
+      featList: (cls) => (baseLists.has(moduleId(`feats.class-${cls}`)) ? moduleId(`feats.class-${cls}`) : `${SUPPLEMENT}.feats.class-${cls}`),
+    },
   );
   const feats = convertFeats(read("feats"), ctx, {
+    knownFeats: base.featNames,
     classes: [...CLASSES, ...NEW_CLASSES],
     ancestries: NEW_ANCESTRIES,
     groups: [

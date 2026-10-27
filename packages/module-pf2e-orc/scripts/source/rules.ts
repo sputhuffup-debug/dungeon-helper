@@ -6,7 +6,7 @@
 import type { ReferenceList, RuleCard } from "@campaign-forge/module-sdk";
 import { cite, id, LIST, rule } from "../ids.ts";
 import { actionCost, firstSentence, frequencyText, md, traitsLine, uniqueIds, usable, type Ctx } from "./common.ts";
-import { obj, type Entry } from "./read.ts";
+import { obj, strs, type Entry } from "./read.ts";
 
 /** Action folders under packs/pf2e/actions, as section names. */
 const ACTION_GROUPS: Record<string, string> = {
@@ -72,6 +72,8 @@ export function convertActions(entries: Entry[], ctx: Ctx): RulesConversion {
       const description = md(ctx, obj(e.system.description).value);
       const group = actionGroup(e);
       const frequency = frequencyText(e.system.frequency);
+      // tags a class feature's choice offers it by (a commander's tactics)
+      const tags = strs(obj(e.system.traits).otherTags);
       return {
         id: ids(e.name),
         name: e.name,
@@ -82,6 +84,7 @@ export function convertActions(entries: Entry[], ctx: Ctx): RulesConversion {
         summary: firstSentence(description),
         description,
         cite: cite(e.book, group, e.name),
+        ...(tags.length ? { builder: { tags } } : {}),
       };
     });
   const list: ReferenceList = {

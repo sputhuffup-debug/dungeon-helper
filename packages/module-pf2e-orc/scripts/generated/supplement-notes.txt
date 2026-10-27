@@ -663,4 +663,5 @@ New lists:
 - Foundry usage note removed: 1
 - damage formula scaling with level, written as text: 80
 - link without a label to an entry by id: dropped: 9
+- Psychic: no key attribute in the source; the builder offers intelligence or charisma
 - Tripkee Scout: the same name in two books; the pathfinder-npc-core one has the id preset.npc-core.tripkee-scout
