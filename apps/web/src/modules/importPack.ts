@@ -51,6 +51,8 @@ export async function installPack(files: ReadonlyArray<{ name: string; data: unk
   if (typeof id === "string" && isBuiltinModuleId(id)) fail(`The pack id "${id}" is the id of a module built into the app. Give the pack its own id.`);
 
   const parts = files.filter((f) => f !== main);
+  // a pack with map generators needs its engines before its module can generate
+  if (sdk.declaresMapGenerators(main.data)) await sdk.loadMapEngines();
   const res = sdk.loadPack(main.data, { parts, seeds: 10 });
   const tag = (issues: PackIssue[]) => issues.map((i) => (i.file || parts.length === 0 ? i : { ...i, file: i.file ?? main.name }));
   if (!res.ok || !res.module || !res.pack) fail("The pack did not pass validation.", tag(res.issues));

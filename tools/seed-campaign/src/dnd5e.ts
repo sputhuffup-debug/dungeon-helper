@@ -62,6 +62,7 @@ import {
   type Visibility,
 } from "@campaign-forge/core";
 import { dnd5eSrdSource, THORNWICK_SUPPLEMENT_ID, thornwickHomebrewSupplement } from "@campaign-forge/module-dnd5e-srd";
+import { seedDungeon } from "./dungeon";
 import { writeDemoPrimer } from "./primer";
 
 export const DND5E_DEMO_SEED = "thornwick";
@@ -707,6 +708,29 @@ export async function buildDnd5eDemo(opts: BuildDnd5eDemoOptions = {}): Promise<
   const firstScene = scenes[0];
   if (!firstScene) throw new Error("5e demo: the template made no scenes");
 
+  // -- the tower as a generated dungeon: two storeys, its rooms and goblins accepted into the campaign --
+  const towerMap = seedDungeon(store, game, {
+    generatorId: `${T}.map.dungeon`,
+    seed: `${seed}/tower`,
+    name: "The Sunken Watchtower",
+    inputs: {
+      siteType: "keep",
+      size: "small",
+      levels: 2,
+      partyLevel: 3,
+      partySize: 4,
+      threat: "standard",
+      theme: "goblinoid",
+      faction: "The Ashgrin Band",
+      keyRooms: [
+        { name: "Grisk's bell-frame", description: "Grisk and his wolf haul the stolen bell into a frame of lashed timber. Stop the bell ringing, then deal with Grisk.", readAloud: sceneText["3.1"]!.readAloud, lair: true },
+        { name: "Flooded undercroft", description: "The storey that sank into the marsh: the goblins hide the ransom cart here.", readAloud: "Black marsh water fills the room to the waist. A cart lies on its side against the far wall." },
+      ],
+    },
+    adventureId: adventure.id,
+    locationId: tower.id,
+  });
+
   // -- a handout: the ransom note ----------------------------------------------------
   const note = store.createHandout({ title: "The ransom note", kind: "text", visibility: PLAYERS, attachedTo: { kind: "scene", id: firstScene.id } });
   writeDoc(registry, note.bodyDoc, "BELL IS OURS. FORTY GOLD AT THE TOLL HOUSE OR BELL GOES IN THE RIVER. COME ALONE. NO TRICKS. NO PRIESTS.");
@@ -745,6 +769,7 @@ export async function buildDnd5eDemo(opts: BuildDnd5eDemoOptions = {}): Promise<
       `- **SRD monsters**: ${ref(g1)}, ${ref(w1)} and ${ref(boss)} came from the pack's presets, with their stat blocks.`,
       `- **Table mode**: start session 1. The first scene is ${ref(ambush)}; roll Stealth from the Dice tab with advantage and a DC, then roll initiative on the Trackers tab.`,
       `- **Generators**: ${ref(innkeeper)} was rolled with the NPC generator; try the encounter generator under Generate.`,
+      `- **Dungeon**: ${ref(tower)} has a generated map (${towerMap.name}): two storeys, the bell-frame as the lair, its rooms, goblins, traps and treasure added to the campaign. Open it under Maps, or generate another one from Generate → Site map.`,
       "",
       "Original adventure; the rules content is from the SRD 5.1 (CC-BY-4.0), see Settings for the attribution.",
     ].join("\n"),

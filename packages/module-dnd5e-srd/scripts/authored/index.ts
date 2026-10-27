@@ -15,6 +15,7 @@ import { characterType, encounterType, factionType, itemType, locationType, mons
 import { playGuide } from "./guides.ts";
 import { primer } from "./primer.ts";
 import { dice, manifest } from "./manifest.ts";
+import { dungeonGenerator, dungeonTables } from "./dungeon.ts";
 import { originalTables } from "./tables.ts";
 import { adviceRules, calendar, relationshipTypes, templates } from "./templates.ts";
 import { trackers } from "./trackers.ts";
@@ -50,6 +51,7 @@ export function buildAuthored(data: GeneratedData): Record<string, unknown> {
     d20Combat: d20Combat(data.lists),
     gmScreen,
     characterBuilders: [characterBuilder({ lists: data.lists, equipment: data.equipment, spellSlots: data.spellSlots })],
+    mapGenerators: [dungeonGenerator()],
     templates,
     calendar,
     styleNotes: [
@@ -64,7 +66,7 @@ export function buildAuthored(data: GeneratedData): Record<string, unknown> {
     pack: PACK,
     name: "tables.json",
     rules: [...adviceRules, ...builderRules()],
-    tables,
+    tables: [...tables, ...dungeonTables()],
     procedures,
   };
   return { "pack.json": pack, "tables.json": tablesPart };

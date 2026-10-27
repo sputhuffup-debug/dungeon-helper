@@ -13,7 +13,18 @@
  * so re-running a stage changes only that stage's random draws; later stages
  * keep their own seeds and follow from the new upstream output.
  */
-import { adventureReviewContext, mapGeneratorContext as coreMapGeneratorContext, stageOfStream, type CampaignStore, type Id, type RichTextRegistry, type SiteMap } from "@campaign-forge/core";
+import {
+  acceptMapProduce,
+  adventureReviewContext,
+  linkMapToScenes,
+  mapGeneratorContext as coreMapGeneratorContext,
+  stageOfStream,
+  type AcceptMapResult,
+  type CampaignStore,
+  type Id,
+  type RichTextRegistry,
+  type SiteMap,
+} from "@campaign-forge/core";
 import {
   type GameModule,
   type LoadedModule,
@@ -287,3 +298,53 @@ export function generatedMapsOf(store: CampaignStore, adventureId: Id): SiteMap[
 function structuredCopy<T>(v: T): T {
   return v === undefined ? v : (JSON.parse(JSON.stringify(v)) as T);
 }
+
+// ---------------------------------------------------------------------------
+// accepting a map's entities
+// ---------------------------------------------------------------------------
+
+export interface AcceptMapEntitiesInput {
+  mapId: Id;
+  /** Put the rooms in this existing location instead of creating a new one. */
+  locationId?: Id | undefined;
+  /** The new site's name (default: the map's name). */
+  siteName?: string | undefined;
+  /** Link the adventure's scenes at the site to the map. */
+  adventureId?: Id | undefined;
+}
+
+export interface AcceptMapEntitiesResult extends AcceptMapResult {
+  /** Scenes now showing the map. */
+  scenes: number;
+}
+
+/** True when a generator can add what its maps stand for to the campaign (a site, rooms, encounters, creatures). */
+export function canAcceptMap(generator: Pick<MapGeneratorDef, "produce"> | undefined): boolean {
+  return typeof generator?.produce === "function";
+}
+
+/**
+ * Add a saved generated map's site, rooms, encounters, creatures and hazards
+ * to the campaign (GM-only), link its zones and marks to them and, with an
+ * adventure, the adventure's scenes at the site to the map.
+ */
+export function acceptMapEntities(ctx: StoreCtx & { module: ModuleLike & Pick<LoadedModule, "manifest"> }, input: AcceptMapEntitiesInput): AcceptMapEntitiesResult {
+  const map = ctx.store.get("maps", input.mapId);
+  if (!map?.layout || !map.generator) throw new Error("Only a generated map can be accepted.");
+  const generator = findMapGenerator(ctx.module, map.generator.id);
+  if (!generator?.produce) throw new Error(`The map generator “${map.generator.id}” has nothing to add to the campaign.`);
+  const produced = generator.produce(map.layout, map.generator.inputs ?? {});
+  const manifest = ctx.module.manifest;
+  const supplements = (manifest.supplements ?? []).map((s) => ({ id: s.id, version: s.version }));
+  const result = acceptMapProduce(ctx.store, map.id, produced, {
+    moduleId: manifest.id,
+    moduleVersion: manifest.version,
+    ...(supplements.length ? { supplements } : {}),
+    ...(input.locationId ? { locationId: input.locationId } : {}),
+    ...(input.siteName ? { siteName: input.siteName } : {}),
+  });
+  const scenes = input.adventureId && result.site ? linkMapToScenes(ctx.store, map.id, input.adventureId, result.site) : 0;
+  return { ...result, scenes };
+}
+
+export { linkMapToScenes };

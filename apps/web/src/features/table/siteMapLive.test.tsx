@@ -55,6 +55,10 @@ describe("live helpers", () => {
     expect(exits.find((e) => e.border.id === "B09")!.state.locked).toBe(true);
     expect(borderControls(exits.find((e) => e.border.id === "B09")!.border)).toMatchObject({ lock: true, destroy: true });
     expect(borderControls({ kind: "access" })).toMatchObject({ lock: false, seal: true });
+    // dungeon borders: a portcullis locks, lifts and breaks; rubble is only cleared; a secret door can be found
+    expect(borderControls({ kind: "bars" })).toEqual({ lock: true, seal: false, destroy: true, known: true });
+    expect(borderControls({ kind: "rubble" })).toEqual({ lock: false, seal: false, destroy: true, known: false });
+    expect(borderControls({ kind: "door", hidden: true })).toMatchObject({ lock: true, known: true });
   });
 
   it("clears pings when the clock passes a stretch, not a round", async () => {

@@ -10,7 +10,8 @@
  * 3. lint: table-lint's data-entry checks (citations, id conventions, d66
  *    bounds, preset fields, rule card length);
  * 4. determinism: every procedure run twice per seed, every dice roll made
- *    twice, must give identical output (rule 3).
+ *    twice, must give identical output (rule 3); engine-made map generators
+ *    are generated twice per seed for each site type in the conformance stage.
  *
  * Targets: a built-in module id, a pack's main JSON file (its parts are read
  * from the same folder), a folder holding `pack.json`, a TypeScript module
@@ -28,6 +29,8 @@ import {
   checkDeterminism,
   checkSupplement,
   conformanceToPackIssues,
+  declaresMapGenerators,
+  loadMapEngines,
   conformanceToSupplementIssues,
   mergePackParts,
   mergeSupplementParts,
@@ -279,7 +282,9 @@ export async function checkTarget(target: string, options: ModuleCheckOptions = 
   const module = resolved.module;
   if (module && !issues.some((i) => i.severity === "error")) {
     // table-lint wraps the conformance suite: split its issues back into the two stages.
-    const lint = lintModule(module, { seeds: options.seeds ?? 100 });
+    // engine-made map generators (a pack's `mapGenerators`): a dry run per site type, twice per seed
+    if (declaresMapGenerators(resolved.pack ?? module)) await loadMapEngines();
+    const lint = lintModule(module, { seeds: options.seeds ?? 100, mapGeneratorRuns: 5 });
     stages.push("conformance", "lint");
     for (const i of [...lint.errors, ...lint.warnings]) issues.push(fromConformance(i, i.source === "sdk" ? "conformance" : "lint", resolved.pack));
     stages.push("determinism");

@@ -449,6 +449,22 @@ export function markerGlyph(kind: MapMarker["kind"], x: number, y: number, p: Si
       ]);
     case "hazard":
       return iconNode("hazard", x, y, p, s);
+    case "trap": {
+      // sprung jaws: a ring with teeth
+      const teeth: string[] = [];
+      for (let i = 0; i <= 6; i++) teeth.push(`${i === 0 ? "M" : "L"} ${fmt(x - k * 0.62 + (i * k * 1.24) / 6)} ${fmt(y + (i % 2 === 0 ? k * 0.28 : -k * 0.28))}`);
+      return el("g", {}, [
+        el("circle", { cx: x, cy: y, r: k * 0.95, fill: p.halo, stroke: p.spawn, "stroke-width": 0.12 * s }),
+        el("path", { d: teeth.join(" "), fill: "none", stroke: p.spawn, "stroke-width": 0.1 * s, "stroke-linejoin": "miter" }),
+      ]);
+    }
+    case "treasure":
+      // a chest: body, lid and clasp
+      return el("g", { stroke: p.halo, "stroke-width": 0.05 * s }, [
+        el("rect", { x: x - k * 0.9, y: y - k * 0.15, width: k * 1.8, height: k * 0.95, fill: p.clue }),
+        el("path", { d: `M ${fmt(x - k * 0.9)} ${fmt(y - k * 0.15)} Q ${fmt(x)} ${fmt(y - k * 1.05)} ${fmt(x + k * 0.9)} ${fmt(y - k * 0.15)} Z`, fill: p.clue }),
+        el("rect", { x: x - k * 0.16, y: y - k * 0.3, width: k * 0.32, height: k * 0.42, fill: p.halo }),
+      ]);
     case "label":
     default:
       return el("circle", { cx: x, cy: y, r: k * 0.3, fill: p.muted });
@@ -567,14 +583,40 @@ export function zoneLabel(z: MapZoneData, opts: { number?: number | undefined; f
   return parts.join(", ");
 }
 
+/** The squares around a deck's zones (three squares of ground beyond them), within the deck; undefined when it has none. */
+function cropToZones(layout: SiteLayout, deck: SiteLayout["decks"][number]): { x: number; y: number; w: number; h: number } | undefined {
+  let x0 = Infinity;
+  let y0 = Infinity;
+  let x1 = -Infinity;
+  let y1 = -Infinity;
+  for (const z of layout.zones) {
+    if (z.deck !== deck.id) continue;
+    for (const [x, y] of z.poly) {
+      x0 = Math.min(x0, x);
+      y0 = Math.min(y0, y);
+      x1 = Math.max(x1, x);
+      y1 = Math.max(y1, y);
+    }
+  }
+  if (!Number.isFinite(x0)) return undefined;
+  const pad = 3;
+  const x = Math.max(0, Math.floor(x0) - pad);
+  const y = Math.max(0, Math.floor(y0) - pad);
+  return { x, y, w: Math.min(deck.width, Math.ceil(x1) + pad) - x, h: Math.min(deck.height, Math.ceil(y1) + pad) - y };
+}
+
 /** Draw one deck of a layout. */
 export function drawSiteMap(layout: SiteLayout, opts: SiteMapDrawOptions): SiteMapDrawing {
   const p = resolvePalette(opts.palette);
   const id = (s: string) => `${opts.idPrefix ?? "sm"}-${s}`;
   const deck = layout.decks.find((d) => d.id === opts.deck) ?? layout.decks[0];
   const margin = opts.margin ?? 1;
-  const width = (deck?.width ?? 0) + margin * 2;
-  const height = (deck?.height ?? 0) + margin * 2;
+  // a "hide" fog map for the players is cropped to what they have found (plus a little), so the sheet neither dwarfs it nor shows the dungeon's extent
+  const crop = opts.view === "player" && layout.fog === "hide" && deck ? cropToZones(layout, deck) : undefined;
+  const ox = crop?.x ?? 0;
+  const oy = crop?.y ?? 0;
+  const width = (crop?.w ?? deck?.width ?? 0) + margin * 2;
+  const height = (crop?.h ?? deck?.height ?? 0) + margin * 2;
   const view = opts.view;
   const gm = view === "gm";
   const tracking = view === "tracking";
@@ -631,10 +673,10 @@ export function drawSiteMap(layout: SiteLayout, opts: SiteMapDrawOptions): SiteM
   ]);
 
   const layers: SvgNode[] = [];
-  layers.push(el("rect", { x: -margin, y: -margin, width, height, fill: tracking ? "#ffffff" : sheet ? p.ductSheet : p.background, "data-sheet": sheet ? "duct" : undefined }));
+  layers.push(el("rect", { x: ox - margin, y: oy - margin, width, height, fill: tracking ? "#ffffff" : sheet ? p.ductSheet : p.background, "data-sheet": sheet ? "duct" : undefined }));
   // a duct sheet always shows its grid: the sheet's own background
-  if (sheet && !tracking && deck) layers.push(el("rect", { x: -margin, y: -margin, width, height, fill: `url(#${id("dgrid")})`, "data-layer": "duct-grid" }));
-  else if (opts.grid && deck) layers.push(el("rect", { x: 0, y: 0, width: deck.width, height: deck.height, fill: `url(#${id("grid")})`, "data-layer": "grid" }));
+  if (sheet && !tracking && deck) layers.push(el("rect", { x: ox - margin, y: oy - margin, width, height, fill: `url(#${id("dgrid")})`, "data-layer": "duct-grid" }));
+  else if (opts.grid && deck) layers.push(el("rect", { x: ox, y: oy, width: crop?.w ?? deck.width, height: crop?.h ?? deck.height, fill: `url(#${id("grid")})`, "data-layer": "grid" }));
   // the players' duct sheet is fog wherever they have not crawled: the projection leaves those zones out
   if (sheet && view === "player" && deck) layers.push(el("rect", { x: 0, y: 0, width: deck.width, height: deck.height, fill: `url(#${id("fog")})`, "fill-opacity": 0.85, "data-sheet-fog": deck.id }));
 
@@ -658,7 +700,7 @@ export function drawSiteMap(layout: SiteLayout, opts: SiteMapDrawOptions): SiteM
   layers.push(el("g", { "data-layer": "floors" }, fills));
 
   // 1b. 1 m grid squares inside playable zones, beneath walls and labels
-  if (opts.gridSquares) layers.push(gridSquaresLayer(floors, layout.gridM && layout.gridM > 0 ? 1 / layout.gridM : 1, id));
+  if (opts.gridSquares) layers.push(gridSquaresLayer(floors, layout.gridUnit ? 1 : layout.gridM && layout.gridM > 0 ? 1 / layout.gridM : 1, id));
 
   // 2. walls: every floor zone outline at wall weight (borders redraw shared edges)
   // (outside ground has no wall of its own: a thin dashed edge; the buildings' walls are its borders)
@@ -689,7 +731,9 @@ export function drawSiteMap(layout: SiteLayout, opts: SiteMapDrawOptions): SiteM
     const locked = lockedInAct(eff, act);
     const sealed = !!eff.sealed;
     const attrs = { "data-border": b.id, "data-kind": eff.kind, "data-locked": locked ? "true" : undefined, "data-sealed": sealed ? "true" : undefined };
-    if (b.segment && aOn && bOn) {
+    // a player map that leaves unseen zones out still shows the door or opening in a seen zone's wall
+    const toUnseen = !!b.segment && ((aOn && !byId.has(b.b)) || (bOn && !byId.has(b.a)));
+    if (b.segment && ((aOn && bOn) || toUnseen)) {
       // on a duct sheet open joints need no mark: the tubes run into each other
       if (sheet && eff.kind === "open" && !sealed) continue;
       if (tracking) {
@@ -699,7 +743,7 @@ export function drawSiteMap(layout: SiteLayout, opts: SiteMapDrawOptions): SiteM
       borders.push(el("g", attrs, drawBorder(eff, b.segment, sp, { locked, sealed, hidden: !!b.hidden && gm })));
       // marks that reach into the zones: lock dots, hatch wheels, seals, glyphs on the wall
       const g = seg(b.segment);
-      if (locked && (eff.kind === "door" || eff.kind === "hatch" || eff.kind === "blast")) placer.block(boxAround(g.mx + g.nx * 0.42, g.my + g.ny * 0.42, 0.22), "lock", undefined, b.id);
+      if (locked && (eff.kind === "door" || eff.kind === "hatch" || eff.kind === "blast" || eff.kind === "bars")) placer.block(boxAround(g.mx + g.nx * 0.42, g.my + g.ny * 0.42, 0.22), "lock", undefined, b.id);
       if (eff.kind === "hatch" || eff.kind === "access" || eff.kind === "stairs") placer.block(boxAround(g.mx, g.my, 0.44), "glyph", undefined, b.id);
       if (sealed) placer.block(boxAround(g.mx, g.my, 0.32), "glyph", undefined, b.id);
       continue;
@@ -1275,7 +1319,7 @@ export function drawSiteMap(layout: SiteLayout, opts: SiteMapDrawOptions): SiteM
     layers.push(el("g", { "data-layer": "hits" }, hits));
   }
 
-  const node = el("g", { transform: `translate(${margin} ${margin})`, "data-deck": deck?.id, "data-view": view }, [defs, ...layers]);
+  const node = el("g", { transform: `translate(${margin - ox} ${margin - oy})`, "data-deck": deck?.id, "data-view": view }, [defs, ...layers]);
   return { node, width, height, deck: deck?.id, callouts, labels: placer.boxes };
 }
 
@@ -1618,6 +1662,39 @@ export function drawBorder(b: Pick<MapBorderData, "kind" | "armor" | "flags">, s
       out.push(...borderOpen(s, p));
       out.push(badgeGlyph("both", g.mx, g.my, 0.35, { ...p, badgeInk: p.wall }));
       break;
+    case "bars": {
+      // a grate or portcullis: the opening crossed by bars
+      wall();
+      cut();
+      out.push(line(gx1, gy1, gx2, gy2, { stroke: p.wall, "stroke-width": 0.05, "stroke-dasharray": dash }));
+      for (let t = 0.1; t < gap - 0.05; t += 0.2) {
+        const x = gx1 + g.ux * t;
+        const y = gy1 + g.uy * t;
+        out.push(line(x - g.nx * 0.16, y - g.ny * 0.16, x + g.nx * 0.16, y + g.ny * 0.16, { stroke: p.wall, "stroke-width": 0.06, "data-bar": "1" }));
+      }
+      lockDot();
+      break;
+    }
+    case "rubble": {
+      // a collapsed passage: the gap heaped with stones
+      wall();
+      cut();
+      const stones: Array<[number, number, number]> = [
+        [0.12, -0.18, 0.11],
+        [0.3, 0.12, 0.14],
+        [0.5, -0.1, 0.12],
+        [0.68, 0.17, 0.1],
+        [0.86, -0.14, 0.13],
+        [0.42, 0.24, 0.08],
+        [0.6, -0.26, 0.08],
+      ];
+      for (const [t, o, r] of stones) {
+        const x = gx1 + g.ux * gap * t + g.nx * o;
+        const y = gy1 + g.uy * gap * t + g.ny * o;
+        out.push(el("circle", { cx: x, cy: y, r, fill: p.muted, stroke: p.wall, "stroke-width": 0.04, "data-rubble": "1" }));
+      }
+      break;
+    }
   }
   if (st.sealed && b.kind !== "access") {
     out.push(el("path", { d: `M ${fmt(g.mx - 0.3)} ${fmt(g.my - 0.3)} L ${fmt(g.mx + 0.3)} ${fmt(g.my + 0.3)} M ${fmt(g.mx - 0.3)} ${fmt(g.my + 0.3)} L ${fmt(g.mx + 0.3)} ${fmt(g.my - 0.3)}`, stroke: p.lock, "stroke-width": 0.12 }));

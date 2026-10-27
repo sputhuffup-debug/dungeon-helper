@@ -1374,10 +1374,21 @@ export interface MapZoneData {
   playerNote?: string;
   /** GM-only note. */
   gmNote?: string;
+  /**
+   * A secret zone (a hidden room): left out of every player output, prints
+   * included, until the players reveal it at the table.
+   */
+  hidden?: boolean;
+  /** The campaign entity this zone became when the map was accepted (e.g. a room location). GM-only. */
+  entity?: string;
 }
 
-/** `shaft` is a vertical link inside a duct network (climb or drop between duct sheets). */
-export type MapBorderKind = "open" | "wall" | "door" | "hatch" | "blast" | "access" | "stairs" | "shaft";
+/**
+ * `shaft` is a vertical link inside a duct network (climb or drop between duct sheets).
+ * `bars` is a grate, gate or portcullis (seen through, passable only when open);
+ * `rubble` is a collapsed passage (impassable until cleared).
+ */
+export type MapBorderKind = "open" | "wall" | "door" | "hatch" | "blast" | "access" | "stairs" | "shaft" | "bars" | "rubble";
 
 export interface MapBorderData {
   id: string;
@@ -1397,9 +1408,12 @@ export interface MapBorderData {
   hidden?: boolean;
   /** Module-defined flags (e.g. outerHull). */
   flags?: Record<string, unknown>;
+  /** GM-only text for the zone key (e.g. the lock's DC). Never on player outputs. */
+  note?: string;
 }
 
-export type MapMarkerKind = "start" | "spawn" | "waypoint" | "clue" | "npc" | "win" | "label" | "hazard";
+/** `trap` and `treasure` are GM marks like `spawn` and `clue`: never on player outputs. */
+export type MapMarkerKind = "start" | "spawn" | "waypoint" | "clue" | "npc" | "win" | "label" | "hazard" | "trap" | "treasure";
 
 export interface MapMarker {
   id: string;
@@ -1409,6 +1423,8 @@ export interface MapMarker {
   act?: number;
   /** GM-only markers never appear on player outputs. */
   gmOnly: boolean;
+  /** Longer GM text for the zone key (DCs, contents), when the label is the short form drawn on the map. */
+  detail?: string;
   data?: Record<string, unknown>;
 }
 
@@ -1434,6 +1450,27 @@ export interface SiteLayout {
   checks: MapCheck[];
   /** Module-defined GM data (e.g. act budgets, encounter timer presence). GM-only: never shown to players. */
   meta?: Record<string, unknown>;
+  /**
+   * One grid unit in the map's own measure, when it is not metres: e.g.
+   * `{ size: 5, unit: "ft" }` for 5-foot squares. `gridM` still gives the
+   * unit in metres (1.524 for 5 ft), so physical print scales keep working;
+   * scale bars, grid squares and print scales read this.
+   */
+  gridUnit?: { size: number; unit: string };
+  /**
+   * How the player map shows zones the players have not seen: "outline" (the
+   * default) draws them as fog, so the plan's shape is known; "hide" leaves
+   * them out, so only revealed zones (and the doors and openings in their
+   * walls) are drawn. Prints show the whole plan either way, hidden zones
+   * and hidden borders excepted.
+   */
+  fog?: "outline" | "hide";
+  /** Which zones get map numbers: every playable zone ("all", the default) or key zones only ("key"). */
+  numbering?: "all" | "key";
+  /** False when the map has no acts: border locks hold throughout and views hide the act controls. */
+  acts?: false;
+  /** False when zones carry no cover rule (cluttered or open): views leave the cover column out. */
+  cover?: false;
 }
 
 /** How zone distance reads as a range band (e.g. 0 = Short, 1 = Medium, 2-4 = Long). */
@@ -1453,6 +1490,8 @@ export interface MapLegendEntry {
   page?: PageRef;
   /** Hidden on player outputs. */
   gmOnly?: boolean;
+  /** Section citation for sources without page numbers (e.g. "SRD 5.1 — Combat: Difficult Terrain"). */
+  cite?: string;
   /** Rendering hint (a colour token or CSS colour). */
   color?: string;
   /**
@@ -1508,6 +1547,31 @@ export interface MapGeneratorDef {
    * rolled when a token enters a duct zone. GM-only: never shown to players.
    */
   zoneTables?: MapZoneTable[];
+  /**
+   * The campaign records a generated map stands for, offered when the GM
+   * saves it: the site, its rooms, encounters and creatures (entities from
+   * the module's presets). Accepting creates them with the run's provenance
+   * and links each zone and marker to its entity (`MapProduced`).
+   */
+  produce?(layout: SiteLayout, inputs: Record<string, unknown>): MapProduced;
+  /**
+   * The declarative definition a built-in map engine made this generator
+   * from (a data pack's `mapGenerators` entry). Supplements rebuild the
+   * generator from it, so it sees their presets, lists and tables.
+   */
+  source?: { engine: string; [key: string]: unknown };
+}
+
+/** What a generated map stands for in the campaign: entities to create, and which zones and markers they belong to. */
+export interface MapProduced {
+  entities: ProducedEntity[];
+  relationships: ProducedRelationship[];
+  /** The tempId of the site entity (the dungeon itself), if one is produced. */
+  site?: string;
+  /** Zone id -> tempId of its entity. */
+  zones: Record<string, string>;
+  /** Marker id -> tempId of its entity (an encounter, a creature, a hazard). */
+  markers: Record<string, string>;
 }
 
 /** One step across a border: which zone the mover leaves and enters, and the vertical direction from the decks' `level`s. */

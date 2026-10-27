@@ -27,6 +27,7 @@ A data pack is a JSON object. The SDK validates it (`validatePack`), joins its p
   "d20Combat": {},          // optional; attacks, AC, saves, damage modifiers and conditions (see d20 combat)
   "gmScreen": { "panels": [] }, // optional; the printable GM screen (see GM screen)
   "characterBuilders": [],  // optional; step-by-step character builders (see Character builder)
+  "mapGenerators": [],      // optional; built-in map engines configured as data (see Map generators)
   "parts": ["tables.json"]  // optional; see Split packs
 }
 ```
@@ -175,9 +176,13 @@ Starter text is the pack author's own words (`original: true`), or openly licens
 
 `characterBuilders` (main file only) are step-by-step wizards that make a player character and level one up: choice steps over reference lists, fixed options or values worked out from earlier picks, with grants that write the character's fields and sub-choices a pick brings; an ability score step with arrays, point buy, rolls or typed scores; typed fields; a review page. Every rule is JSONLogic. See [Character builder](character-builder.md).
 
+## Map generators
+
+`mapGenerators` (main file only, at most 8) configure a built-in map engine: `{ "engine": "dungeon", "id", "name", "config" }`. The `dungeon` engine draws crypts, caves, keeps, sewers, temples, mines and whatever else a site type describes, on a square grid, over one or more levels, with doors, locks, secret doors, portcullises and collapses, room purposes and read-aloud lines from the pack's tables, and encounters, traps and treasure picked from its own presets, lists and tables. Every rule is JSONLogic. See [Map generators](map-generators.md).
+
 ## What a pack cannot do (yet)
 
-These parts of the contract need functions, so they are TypeScript-only: `combat` (an armor rule; declarative d20 combat is `d20Combat` above), `crewShip`, `travel`, `ledger`, `progression`, `mapGenerators`, `adventureBuilders` (review checks), `narrativeFields`, `hooks` (end-of-session prompts), `migrations`, and dice `operations` (special rolls such as a panic table). A pack that needs one of them becomes a [TypeScript module](typescript-modules.md); the data can stay JSON and be loaded from TypeScript.
+These parts of the contract need functions, so they are TypeScript-only: `combat` (an armor rule; declarative d20 combat is `d20Combat` above), `crewShip`, `travel`, `ledger`, `progression`, map generators other than the built-in engines (`mapGenerators` above), `adventureBuilders` (review checks), `narrativeFields`, `hooks` (end-of-session prompts), `migrations`, and dice `operations` (special rolls such as a panic table). A pack that needs one of them becomes a [TypeScript module](typescript-modules.md); the data can stay JSON and be loaded from TypeScript.
 
 ## Split packs
 

@@ -361,6 +361,67 @@
         { "range": [3, 3], "label": "Map fragment", "result": { "item": "map fragment" } },
         { "range": [4, 4], "label": "Star stone", "result": { "item": "star stone" } }
       ]
+    },
+    {
+      "id": "example-pack.dungeon.rooms",
+      "name": "Dungeon rooms",
+      "family": "dungeon",
+      "original": true,
+      "dice": "1d6",
+      "rows": [
+        { "range": [1, 1], "label": "Lamp room", "result": { "name": "Lamp room", "readAloud": "You step into the lamp room." } },
+        { "range": [2, 2], "label": "Store", "result": { "name": "Store", "readAloud": "You step into the store." } },
+        { "range": [3, 3], "label": "Shrine", "result": { "name": "Shrine", "readAloud": "You step into the shrine." } },
+        { "range": [4, 4], "label": "Well", "result": { "name": "Well", "readAloud": "You step into the well." } },
+        { "range": [5, 5], "label": "Bunk room", "result": { "name": "Bunk room", "readAloud": "You step into the bunk room." } },
+        { "range": [6, 6], "label": "Echo hall", "result": { "name": "Echo hall", "readAloud": "You step into the echo hall." } }
+      ]
+    },
+    {
+      "id": "example-pack.dungeon.lair",
+      "name": "Dungeon lair",
+      "family": "dungeon",
+      "original": true,
+      "dice": "1d2",
+      "rows": [
+        { "range": [1, 1], "label": "Gloom nest", "result": { "name": "Gloom nest", "readAloud": "You step into the gloom nest." } },
+        { "range": [2, 2], "label": "Keeper's vault", "result": { "name": "Keeper's vault", "readAloud": "You step into the keeper's vault." } }
+      ]
+    },
+    {
+      "id": "example-pack.dungeon.entrance",
+      "name": "Dungeon way in",
+      "family": "dungeon",
+      "original": true,
+      "dice": "1d2",
+      "rows": [
+        { "range": [1, 1], "label": "Stair head", "result": { "name": "Stair head", "readAloud": "You step into the stair head." } },
+        { "range": [2, 2], "label": "Old door", "result": { "name": "Old door", "readAloud": "You step into the old door." } }
+      ]
+    },
+    {
+      "id": "example-pack.dungeon.dressing",
+      "name": "Dungeon dressing",
+      "family": "dungeon",
+      "original": true,
+      "dice": "1d4",
+      "rows": [
+        { "range": [1, 1], "label": "Soot on the ceiling", "result": { "text": "Soot on the ceiling" } },
+        { "range": [2, 2], "label": "A broken lamp", "result": { "text": "A broken lamp" } },
+        { "range": [3, 3], "label": "Scratches by the door", "result": { "text": "Scratches by the door" } },
+        { "range": [4, 4], "label": "Cold air", "result": { "text": "Cold air" } }
+      ]
+    },
+    {
+      "id": "example-pack.dungeon.trap",
+      "name": "Dungeon traps",
+      "family": "dungeon",
+      "original": true,
+      "dice": "1d2",
+      "rows": [
+        { "range": [1, 1], "label": "Snuffer", "result": { "name": "Snuffer", "dc": 9, "effect": "Puts out every lamp" } },
+        { "range": [2, 2], "label": "Trip line", "result": { "name": "Trip line", "dc": 11, "effect": "Rings a bell below" } }
+      ]
     }
   ],
   "procedures": [
@@ -927,6 +988,87 @@
             ]
           }
         ]
+      }
+    }
+  ],
+  "mapGenerators": [
+    {
+      "engine": "dungeon",
+      "id": "example-pack.map.dungeon",
+      "name": "Lantern dungeon",
+      "original": true,
+      "description": "A small fixture dungeon on 5-foot squares: tunnels or halls, gloomlings, snuffer traps and loot.",
+      "config": {
+        "grid": { "size": 5, "unit": "ft", "metres": 1.524 },
+        "siteTypes": [
+          {
+            "id": "mine",
+            "label": "Old mine",
+            "archetype": "tunnels",
+            "keywords": ["mine"],
+            "rooms": "example-pack.dungeon.rooms",
+            "lair": "example-pack.dungeon.lair",
+            "entrance": "example-pack.dungeon.entrance",
+            "passageName": "Tunnel",
+            "outsideName": "Hillside",
+            "flags": { "dark": 0.8 },
+            "vars": { "depthWord": "deep" }
+          },
+          {
+            "id": "halls",
+            "label": "Lamp halls",
+            "archetype": "halls",
+            "keywords": ["hall", "halls"],
+            "rooms": "example-pack.dungeon.rooms",
+            "lair": "example-pack.dungeon.lair",
+            "entrance": "example-pack.dungeon.entrance",
+            "flags": { "dark": 0.5 }
+          }
+        ],
+        "sizes": [
+          { "id": "small", "label": "Small", "rooms": [5, 7] },
+          { "id": "medium", "label": "Medium", "rooms": [8, 11] }
+        ],
+        "maxLevels": 2,
+        "partyLevel": { "min": 1, "max": 5, "default": 2 },
+        "threats": [
+          { "id": "calm", "label": "Calm", "occupied": 0.2 },
+          { "id": "tense", "label": "Tense", "occupied": 0.5, "vars": { "extra": 1 } }
+        ],
+        "defaultThreat": "tense",
+        "themes": [{ "id": "gloom", "label": "Gloomlings", "keywords": ["gloomling", "gloomlings"] }],
+        "dressing": { "rooms": ["example-pack.dungeon.dressing"], "passages": ["example-pack.dungeon.dressing"], "passageChance": 0.2 },
+        "doors": { "notes": { "locked": { "cat": ["Locked: the keeper has the key to the ", { "var": "room.name" }] }, "secret": "A hidden door: search the soot marks." } },
+        "encounters": {
+          "table": "example-pack.encounter.who",
+          "groups": [{ "n": { "+": [2, { "var": ["threat.extra", 0] }] }, "id": "example-pack.preset.gloomling", "when": { "==": [{ "var": "result.who" }, "monster"] } }],
+          "creatureType": "example-pack.monster",
+          "xp": 5,
+          "detail": { "cat": ["They mutter: ", { "var": ["result.rumor", "nothing"] }] },
+          "original": true
+        },
+        "traps": {
+          "chance": { "if": [{ "var": "room.passage" }, 0.1, 0.2] },
+          "pick": { "table": "example-pack.dungeon.trap" },
+          "label": { "var": "result.name" },
+          "detail": { "cat": ["DC ", { "var": "result.dc" }, ": ", { "var": "result.effect" }] },
+          "original": true
+        },
+        "treasure": {
+          "chance": { "if": [{ "var": "room.lair" }, 1, 0.3] },
+          "coins": "2d6",
+          "coinsLabel": { "cat": [{ "var": "coins" }, " coins"] },
+          "itemCount": 1,
+          "items": { "table": "example-pack.loot.rare" },
+          "itemLabel": { "var": "result.item" },
+          "original": true
+        },
+        "legend": [
+          { "target": { "flag": "dark" }, "label": "Unlit", "icon": "dark", "rule": "Bring a lamp." },
+          { "target": { "flag": "trap", "value": "found" }, "label": "Trap found", "icon": "hazard" }
+        ],
+        "accept": { "site": { "type": "example-pack.site", "subtype": "ruin", "fields": { "kind": "ruin" } }, "room": { "type": "example-pack.site" }, "creatures": true },
+        "keyRooms": { "locationSubtypes": ["ruin"] }
       }
     }
   ]

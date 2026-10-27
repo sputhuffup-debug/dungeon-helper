@@ -8,7 +8,7 @@
 import type { SiteLayout } from "@campaign-forge/module-sdk";
 import { drawSiteMap, el, nodeToString, resolvePalette, type SiteMapDrawOptions, type SvgNode } from "./siteMapDraw";
 import { MAP_FONT } from "./textMetrics";
-import { scaleText, titleBlock } from "./titleBlock";
+import { scaleTextFor, scaleUnitFor, titleBlock } from "./titleBlock";
 import { sheetTitle, zoneKeyEntries } from "./rollPrint";
 
 export interface ExportTitleBlock {
@@ -51,8 +51,9 @@ export function composeSiteMap(layout: SiteLayout, options: Omit<RenderSvgOption
       scale: tb.scale ?? scaleLine,
       zoneKey: options.view === "gm" ? zoneKeyEntries(layout, d.deck) : undefined,
       callouts: d.callouts.length ? d.callouts : undefined,
+      zoneWord: layout.numbering === "key" ? "room" : undefined,
     },
-    { x: margin, y: d.height, width: Math.max(1, d.width - 2 * margin), pt: EXPORT_PT, perMetre: 1 / gridM(layout) },
+    { x: margin, y: d.height, width: Math.max(1, d.width - 2 * margin), pt: EXPORT_PT, perMetre: 1 / gridM(layout), unit: scaleUnitFor(layout, 1 / gridM(layout)) },
   );
   const height = d.height + block.height + margin;
   const bg = el("rect", { x: 0, y: d.height - margin, width: d.width, height: block.height + 2 * margin, fill: options.view === "tracking" ? "#ffffff" : resolvePalette(options.palette).background });
@@ -62,7 +63,7 @@ export function composeSiteMap(layout: SiteLayout, options: Omit<RenderSvgOption
 /** A standalone SVG document for one deck. */
 export function renderSiteMapSvg(layout: SiteLayout, options: RenderSvgOptions): string {
   const cm = gridM(layout);
-  const d = composeSiteMap(layout, options, options.physical ? scaleText(10) : undefined);
+  const d = composeSiteMap(layout, options, options.physical ? scaleTextFor(layout, 10) : undefined);
   const w = options.physical ? `${d.width * cm}cm` : String(Math.round(d.width * (options.scale ?? 20)));
   const h = options.physical ? `${d.height * cm}cm` : String(Math.round(d.height * (options.scale ?? 20)));
   const root = el("svg", { xmlns: XMLNS, width: w, height: h, viewBox: `0 0 ${d.width} ${d.height}`, "data-view": options.view }, [options.title ? el("title", {}, [options.title]) : null, d.node]);
@@ -81,7 +82,7 @@ export function pngSize(layout: SiteLayout, options: { deck?: string | undefined
 export async function renderSiteMapPng(layout: SiteLayout, options: Omit<RenderSvgOptions, "scale" | "physical"> & { dpi?: number }): Promise<Blob> {
   const dpi = options.dpi ?? 150;
   const pxPerUnit = (gridM(layout) * dpi) / 2.54;
-  const d = composeSiteMap(layout, options, `${scaleText(10)} at ${dpi} dpi`);
+  const d = composeSiteMap(layout, options, `${scaleTextFor(layout, 10)} at ${dpi} dpi`);
   const width = Math.round(d.width * pxPerUnit);
   const height = Math.round(d.height * pxPerUnit);
   const svg = nodeToString(el("svg", { xmlns: XMLNS, width, height, viewBox: `0 0 ${d.width} ${d.height}` }, [d.node]));
@@ -120,6 +121,8 @@ export const PAPER: Record<PaperSize, { width: number; height: number; name: str
 
 export interface PrintTileOptions extends Omit<SiteMapDrawOptions, "interactive"> {
   paper?: PaperSize;
+  /** Millimetres of paper per metre (default 10: 1 m = 1 cm). */
+  mmPerMetre?: number;
   /** Page margin in cm (default 1). */
   marginCm?: number;
   /** Overlap between neighbouring tiles in cm (default 1). */
@@ -158,7 +161,8 @@ export function printTiles(layout: SiteLayout, options: PrintTileOptions): Print
   const paper = PAPER[options.paper ?? "a4"];
   const margin = options.marginCm ?? 1;
   const overlap = options.overlapCm ?? 1;
-  const cm = gridM(layout);
+  // centimetres of paper per grid unit
+  const cm = options.mmPerMetre === undefined ? gridM(layout) : (gridM(layout) * options.mmPerMetre) / 10;
   const d = drawSiteMap(layout, { ...options, interactive: false });
   const mapW = d.width * cm;
   const mapH = d.height * cm;
@@ -199,7 +203,7 @@ export function printTiles(layout: SiteLayout, options: PrintTileOptions): Print
       if (row < best.rows - 1) marks.push(el("line", { x1: m, y1: m + stepY, x2: m + best.aw, y2: m + stepY, stroke: "#c43f27", "stroke-width": 0.02, "stroke-dasharray": "0.3 0.2", "data-overlap": "bottom" }));
       if (col > 0) marks.push(el("line", { x1: m + overlap, y1: m, x2: m + overlap, y2: m + best.ah, stroke: "#c43f27", "stroke-width": 0.02, "stroke-dasharray": "0.1 0.2", "data-overlap": "left" }));
       if (row > 0) marks.push(el("line", { x1: m, y1: m + overlap, x2: m + best.aw, y2: m + overlap, stroke: "#c43f27", "stroke-width": 0.02, "stroke-dasharray": "0.1 0.2", "data-overlap": "top" }));
-      const label = `${options.title ? `${options.title} · ` : ""}row ${row + 1} of ${best.rows}, column ${col + 1} of ${best.cols} · 1 m = 1 cm · ${paper.name}`;
+      const label = `${options.title ? `${options.title} · ` : ""}row ${row + 1} of ${best.rows}, column ${col + 1} of ${best.cols} · ${layout.gridUnit ? scaleTextFor(layout, options.mmPerMetre ?? 10) : "1 m = 1 cm"} · ${paper.name}`;
       const head = `<svg xmlns="${XMLNS}" width="${best.pw}cm" height="${best.ph}cm" viewBox="0 0 ${best.pw} ${best.ph}" data-tile="${row}-${col}">`;
       const body =
         `<defs><clipPath id="${clipId}"><rect x="${m}" y="${m}" width="${best.aw}" height="${best.ah}"/></clipPath></defs>` +

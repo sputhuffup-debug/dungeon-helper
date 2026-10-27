@@ -6094,6 +6094,10 @@
      "name": "Dungeon or lair"
     },
     {
+     "id": "room",
+     "name": "Room or area"
+    },
+    {
      "id": "wilderness",
      "name": "Wilderness"
     },
@@ -33588,6 +33592,1787 @@
       "hidden": true
      }
     ]
+   }
+  }
+ ],
+ "mapGenerators": [
+  {
+   "engine": "dungeon",
+   "id": "pf2e-orc.map.dungeon",
+   "name": "Dungeon",
+   "description": "An original dungeon on a 5-foot grid: a crypt, cave, keep, sewer, ruined temple or mine of one to three levels, with doors, locks, secret doors, portcullises and collapses, room purposes and dressing, encounters built from GM Core's XP budgets on Monster Core creatures, GM Core hazards for traps and treasure from the core books' items. Accept it to add the dungeon, its rooms, encounters, creatures and hazards to the campaign.",
+   "cite": "GM Core — Building Encounters",
+   "config": {
+    "grid": {
+     "size": 5,
+     "unit": "ft",
+     "metres": 1.524
+    },
+    "siteTypes": [
+     {
+      "id": "crypt",
+      "label": "Crypt or tomb",
+      "archetype": "halls",
+      "description": "A processional passage with tombs in mirrored pairs, an antechamber at its foot and the burial chamber at its head.",
+      "keywords": [
+       "crypt",
+       "tomb",
+       "barrow",
+       "catacomb",
+       "mausoleum",
+       "sepulchre",
+       "ossuary",
+       "grave"
+      ],
+      "rooms": "pf2e-orc.dungeon.crypt.rooms",
+      "lair": "pf2e-orc.dungeon.crypt.lair",
+      "entrance": "pf2e-orc.dungeon.crypt.entrance",
+      "passageName": "Passage",
+      "outsideName": "Graveyard",
+      "levelName": "Level",
+      "flags": {
+       "dark": 0.7
+      },
+      "vars": {
+       "environment": "underground",
+       "trait1": "undead",
+       "trait2": "spirit"
+      }
+     },
+     {
+      "id": "cave",
+      "label": "Cave or cavern",
+      "archetype": "caverns",
+      "description": "Irregular chambers joined by winding open tunnels.",
+      "keywords": [
+       "cave",
+       "cavern",
+       "grotto",
+       "warren",
+       "den",
+       "burrow",
+       "hollow"
+      ],
+      "rooms": "pf2e-orc.dungeon.cave.rooms",
+      "lair": "pf2e-orc.dungeon.cave.lair",
+      "entrance": "pf2e-orc.dungeon.cave.entrance",
+      "passageName": "Tunnel",
+      "outsideName": "Hillside",
+      "levelName": "Depth",
+      "flags": {
+       "dark": 0.6,
+       "difficult": 0.25,
+       "water": 0.1
+      },
+      "passageFlags": {
+       "difficult": 0.2
+      },
+      "vars": {
+       "environment": "underground",
+       "trait1": "animal",
+       "trait2": "beast"
+      }
+     },
+     {
+      "id": "keep",
+      "label": "Keep, castle or tower",
+      "archetype": "keep",
+      "description": "A rectangular block cut into rooms either side of a central hall, with a tower at each corner and the gatehouse on the front.",
+      "keywords": [
+       "keep",
+       "castle",
+       "tower",
+       "fort",
+       "fortress",
+       "stronghold",
+       "manor",
+       "watchtower",
+       "citadel"
+      ],
+      "rooms": "pf2e-orc.dungeon.keep.rooms",
+      "lair": "pf2e-orc.dungeon.keep.lair",
+      "entrance": "pf2e-orc.dungeon.keep.entrance",
+      "passageName": "Hall",
+      "outsideName": "Bailey",
+      "levelName": "Floor",
+      "flags": {
+       "dark": 0.4
+      },
+      "vars": {
+       "environment": "plains",
+       "trait1": "humanoid",
+       "trait2": "construct"
+      }
+     },
+     {
+      "id": "sewer",
+      "label": "Sewer or aqueduct",
+      "archetype": "channels",
+      "description": "A long water channel in sections, with chambers and side tunnels off it and an outfall at one end.",
+      "keywords": [
+       "sewer",
+       "sewers",
+       "aqueduct",
+       "cistern",
+       "drain",
+       "culvert",
+       "undercity"
+      ],
+      "rooms": "pf2e-orc.dungeon.sewer.rooms",
+      "lair": "pf2e-orc.dungeon.sewer.lair",
+      "entrance": "pf2e-orc.dungeon.sewer.entrance",
+      "passageName": "Tunnel",
+      "outsideName": "Outfall",
+      "levelName": "Level",
+      "flags": {
+       "dark": 0.6,
+       "water": 0.25
+      },
+      "passageFlags": {
+       "water": 1,
+       "difficult": 0.3
+      },
+      "vars": {
+       "environment": "urban",
+       "trait1": "animal",
+       "trait2": "ooze"
+      }
+     },
+     {
+      "id": "temple",
+      "label": "Ruined temple",
+      "archetype": "nave",
+      "description": "A long nave with the sanctum at its head, the narthex at its foot and chapels down both sides; parts have fallen in.",
+      "keywords": [
+       "temple",
+       "church",
+       "chapel",
+       "cathedral",
+       "abbey",
+       "monastery",
+       "shrine",
+       "sanctuary"
+      ],
+      "rooms": "pf2e-orc.dungeon.temple.rooms",
+      "lair": "pf2e-orc.dungeon.temple.lair",
+      "entrance": "pf2e-orc.dungeon.temple.entrance",
+      "hall": "pf2e-orc.dungeon.temple.hall",
+      "passageName": "Passage",
+      "outsideName": "Forecourt",
+      "levelName": "Level",
+      "flags": {
+       "dark": 0.5,
+       "difficult": 0.2
+      },
+      "vars": {
+       "environment": "forest",
+       "trait1": "undead",
+       "trait2": "fiend"
+      }
+     },
+     {
+      "id": "mine",
+      "label": "Mine",
+      "archetype": "tunnels",
+      "description": "Small workings strung along long, winding drifts.",
+      "keywords": [
+       "mine",
+       "mines",
+       "quarry",
+       "dig",
+       "shaft",
+       "delve",
+       "lode"
+      ],
+      "rooms": "pf2e-orc.dungeon.mine.rooms",
+      "lair": "pf2e-orc.dungeon.mine.lair",
+      "entrance": "pf2e-orc.dungeon.mine.entrance",
+      "passageName": "Drift",
+      "outsideName": "Pithead",
+      "levelName": "Level",
+      "flags": {
+       "dark": 0.6,
+       "difficult": 0.2
+      },
+      "passageFlags": {
+       "difficult": 0.15
+      },
+      "vars": {
+       "environment": "underground",
+       "trait1": "humanoid",
+       "trait2": "elemental"
+      }
+     }
+    ],
+    "sizes": [
+     {
+      "id": "small",
+      "label": "Small",
+      "rooms": [
+       5,
+       8
+      ]
+     },
+     {
+      "id": "medium",
+      "label": "Medium",
+      "rooms": [
+       9,
+       14
+      ]
+     },
+     {
+      "id": "large",
+      "label": "Large",
+      "rooms": [
+       15,
+       22
+      ]
+     }
+    ],
+    "maxLevels": 3,
+    "partyLevel": {
+     "min": 1,
+     "max": 20,
+     "default": 1
+    },
+    "partySize": {
+     "min": 2,
+     "max": 8,
+     "default": 4
+    },
+    "threats": [
+     {
+      "id": "trivial",
+      "label": "Trivial",
+      "occupied": 0.25,
+      "vars": {
+       "budget": 40,
+       "per": 10,
+       "lairThreat": "low",
+       "lairBudget": 60,
+       "lairPer": 20,
+       "trapChance": 0.08,
+       "danger": "moderate"
+      }
+     },
+     {
+      "id": "low",
+      "label": "Low",
+      "occupied": 0.35,
+      "vars": {
+       "budget": 60,
+       "per": 20,
+       "lairThreat": "moderate",
+       "lairBudget": 80,
+       "lairPer": 20,
+       "trapChance": 0.12,
+       "danger": "high"
+      }
+     },
+     {
+      "id": "moderate",
+      "label": "Moderate",
+      "occupied": 0.45,
+      "vars": {
+       "budget": 80,
+       "per": 20,
+       "lairThreat": "severe",
+       "lairBudget": 120,
+       "lairPer": 30,
+       "trapChance": 0.16,
+       "danger": "high"
+      }
+     },
+     {
+      "id": "severe",
+      "label": "Severe",
+      "occupied": 0.55,
+      "vars": {
+       "budget": 120,
+       "per": 30,
+       "lairThreat": "extreme",
+       "lairBudget": 160,
+       "lairPer": 40,
+       "trapChance": 0.2,
+       "danger": "deadly"
+      }
+     },
+     {
+      "id": "extreme",
+      "label": "Extreme",
+      "occupied": 0.65,
+      "vars": {
+       "budget": 160,
+       "per": 40,
+       "lairThreat": "extreme",
+       "lairBudget": 160,
+       "lairPer": 40,
+       "trapChance": 0.25,
+       "danger": "deadly"
+      }
+     }
+    ],
+    "defaultThreat": "moderate",
+    "themes": [
+     {
+      "id": "undead",
+      "label": "The dead",
+      "keywords": [
+       "undead",
+       "skeleton",
+       "skeletons",
+       "zombie",
+       "zombies",
+       "ghoul",
+       "ghost",
+       "wight",
+       "wraith",
+       "vampire",
+       "lich",
+       "necromancer",
+       "haunted"
+      ],
+      "vars": {
+       "trait1": "undead"
+      }
+     },
+     {
+      "id": "xulgath",
+      "label": "Xulgaths from below",
+      "keywords": [
+       "xulgath",
+       "xulgaths"
+      ],
+      "vars": {
+       "trait1": "xulgath"
+      }
+     },
+     {
+      "id": "goblinoid",
+      "label": "Goblins and hobgoblins",
+      "keywords": [
+       "goblin",
+       "goblins",
+       "hobgoblin",
+       "hobgoblins"
+      ],
+      "vars": {
+       "trait1": "goblin",
+       "trait2": "hobgoblin"
+      }
+     },
+     {
+      "id": "kobold",
+      "label": "Kobolds",
+      "keywords": [
+       "kobold",
+       "kobolds"
+      ],
+      "vars": {
+       "trait1": "kobold"
+      }
+     },
+     {
+      "id": "cult",
+      "label": "A cult",
+      "keywords": [
+       "cult",
+       "cultist",
+       "cultists",
+       "demon",
+       "devil",
+       "fiend"
+      ],
+      "vars": {
+       "trait1": "fiend",
+       "trait2": "human"
+      }
+     },
+     {
+      "id": "aberrant",
+      "label": "Things from below",
+      "keywords": [
+       "aberration",
+       "aberrant",
+       "tentacle",
+       "tentacles"
+      ],
+      "vars": {
+       "trait1": "aberration"
+      }
+     },
+     {
+      "id": "beasts",
+      "label": "Beasts",
+      "keywords": [
+       "wolf",
+       "wolves",
+       "bear",
+       "spider",
+       "spiders",
+       "beast",
+       "beasts",
+       "rats",
+       "centipede",
+       "centipedes"
+      ],
+      "vars": {
+       "trait1": "animal"
+      }
+     }
+    ],
+    "dressing": {
+     "rooms": [
+      "pf2e-orc.dungeon.dressing",
+      "pf2e-orc.dungeon.sense"
+     ],
+     "passages": [
+      "pf2e-orc.dungeon.passage"
+     ],
+     "passageChance": 0.3
+    },
+    "doors": {
+     "lock": {
+      "lists": [
+       "pf2e-orc.equipment.items",
+       "pf2e-orc.equipment.gear"
+      ],
+      "where": {
+       "and": [
+        {
+         "startsWith": [
+          {
+           "var": "item.id"
+          },
+          "lock-"
+         ]
+        },
+        {
+         "<=": [
+          {
+           "var": [
+            "item.level",
+            0
+           ]
+          },
+          {
+           "+": [
+            {
+             "var": [
+              "inputs.partyLevel",
+              1
+             ]
+            },
+            1
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      "fits": {
+       ">=": [
+        {
+         "var": [
+          "item.level",
+          0
+         ]
+        },
+        {
+         "-": [
+          {
+           "var": [
+            "inputs.partyLevel",
+            1
+           ]
+          },
+          4
+         ]
+        }
+       ]
+      }
+     },
+     "notes": {
+      "locked": {
+       "cat": [
+        "Locked: ",
+        {
+         "var": [
+          "lock.name",
+          "a lock"
+         ]
+        },
+        ". ",
+        {
+         "var": [
+          "lock.summary",
+          "Pick a Lock (Thievery) to open it."
+         ]
+        }
+       ]
+      },
+      "secret": {
+       "cat": [
+        "Secret door: a character who Seeks here finds it with a Perception DC ",
+        {
+         "lookup": [
+          {
+           "0": 14,
+           "1": 15,
+           "2": 16,
+           "3": 18,
+           "4": 19,
+           "5": 20,
+           "6": 22,
+           "7": 23,
+           "8": 24,
+           "9": 26,
+           "10": 27,
+           "11": 28,
+           "12": 30,
+           "13": 31,
+           "14": 32,
+           "15": 34,
+           "16": 35,
+           "17": 36,
+           "18": 38,
+           "19": 39,
+           "20": 40,
+           "21": 42,
+           "22": 44,
+           "23": 46,
+           "24": 48,
+           "25": 50
+          },
+          {
+           "var": [
+            "inputs.partyLevel",
+            1
+           ]
+          },
+          15
+         ]
+        },
+        " (DC by level)."
+       ]
+      },
+      "bars": "A portcullis or grate: Force Open (Athletics) to lift or bend it.",
+      "rubble": "Collapsed: impassable until it is cleared."
+     }
+    },
+    "encounters": {
+     "table": {
+      "cat": [
+       "pf2e-orc.encounter.budget-",
+       {
+        "+": [
+         {
+          "if": [
+           {
+            "var": "room.lair"
+           },
+           {
+            "var": "threat.lairBudget"
+           },
+           {
+            "var": "threat.budget"
+           }
+          ]
+         },
+         {
+          "*": [
+           {
+            "-": [
+             {
+              "var": [
+               "inputs.partySize",
+               4
+              ]
+             },
+             4
+            ]
+           },
+           {
+            "if": [
+             {
+              "var": "room.lair"
+             },
+             {
+              "var": "threat.lairPer"
+             },
+             {
+              "var": "threat.per"
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "if": [
+         {
+          "<=": [
+           {
+            "var": [
+             "inputs.partyLevel",
+             1
+            ]
+           },
+           2
+          ]
+         },
+         {
+          "cat": [
+           "-l",
+           {
+            "var": [
+             "inputs.partyLevel",
+             1
+            ]
+           }
+          ]
+         },
+         {
+          ">=": [
+           {
+            "var": [
+             "inputs.partyLevel",
+             1
+            ]
+           },
+           18
+          ]
+         },
+         {
+          "cat": [
+           "-l",
+           {
+            "var": [
+             "inputs.partyLevel",
+             1
+            ]
+           }
+          ]
+         },
+         ""
+        ]
+       }
+      ]
+     },
+     "groups": [
+      {
+       "n": {
+        "var": [
+         "result.n1",
+         0
+        ]
+       },
+       "when": {
+        "var": [
+         "result.n1",
+         0
+        ]
+       },
+       "match": {
+        "fields.level": {
+         "max": [
+          -1,
+          {
+           "min": [
+            21,
+            {
+             "+": [
+              {
+               "var": [
+                "inputs.partyLevel",
+                1
+               ]
+              },
+              {
+               "var": [
+                "result.o1",
+                0
+               ]
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       },
+       "where": {
+        "!": {
+         "in": [
+          {
+           "var": "preset.fields.rarity"
+          },
+          [
+           "unique"
+          ]
+         ]
+        }
+       },
+       "fits": {
+        "or": [
+         {
+          "has": [
+           {
+            "var": [
+             "preset.fields.traits",
+             []
+            ]
+           },
+           {
+            "var": [
+             "theme.trait1",
+             "-"
+            ]
+           }
+          ]
+         },
+         {
+          "has": [
+           {
+            "var": [
+             "preset.fields.traits",
+             []
+            ]
+           },
+           {
+            "var": [
+             "theme.trait2",
+             "-"
+            ]
+           }
+          ]
+         },
+         {
+          "and": [
+           {
+            "!": {
+             "var": "theme"
+            }
+           },
+           {
+            "or": [
+             {
+              "has": [
+               {
+                "var": [
+                 "preset.fields.traits",
+                 []
+                ]
+               },
+               {
+                "var": [
+                 "site.trait1",
+                 "-"
+                ]
+               }
+              ]
+             },
+             {
+              "has": [
+               {
+                "var": [
+                 "preset.fields.traits",
+                 []
+                ]
+               },
+               {
+                "var": [
+                 "site.trait2",
+                 "-"
+                ]
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "n": {
+        "var": [
+         "result.n2",
+         0
+        ]
+       },
+       "when": {
+        "var": [
+         "result.n2",
+         0
+        ]
+       },
+       "match": {
+        "fields.level": {
+         "max": [
+          -1,
+          {
+           "min": [
+            21,
+            {
+             "+": [
+              {
+               "var": [
+                "inputs.partyLevel",
+                1
+               ]
+              },
+              {
+               "var": [
+                "result.o2",
+                0
+               ]
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       },
+       "where": {
+        "!": {
+         "in": [
+          {
+           "var": "preset.fields.rarity"
+          },
+          [
+           "unique"
+          ]
+         ]
+        }
+       },
+       "fits": {
+        "or": [
+         {
+          "has": [
+           {
+            "var": [
+             "preset.fields.traits",
+             []
+            ]
+           },
+           {
+            "var": [
+             "theme.trait1",
+             "-"
+            ]
+           }
+          ]
+         },
+         {
+          "has": [
+           {
+            "var": [
+             "preset.fields.traits",
+             []
+            ]
+           },
+           {
+            "var": [
+             "theme.trait2",
+             "-"
+            ]
+           }
+          ]
+         },
+         {
+          "and": [
+           {
+            "!": {
+             "var": "theme"
+            }
+           },
+           {
+            "or": [
+             {
+              "has": [
+               {
+                "var": [
+                 "preset.fields.traits",
+                 []
+                ]
+               },
+               {
+                "var": [
+                 "site.trait1",
+                 "-"
+                ]
+               }
+              ]
+             },
+             {
+              "has": [
+               {
+                "var": [
+                 "preset.fields.traits",
+                 []
+                ]
+               },
+               {
+                "var": [
+                 "site.trait2",
+                 "-"
+                ]
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "n": {
+        "var": [
+         "result.n3",
+         0
+        ]
+       },
+       "when": {
+        "var": [
+         "result.n3",
+         0
+        ]
+       },
+       "match": {
+        "fields.level": {
+         "max": [
+          -1,
+          {
+           "min": [
+            21,
+            {
+             "+": [
+              {
+               "var": [
+                "inputs.partyLevel",
+                1
+               ]
+              },
+              {
+               "var": [
+                "result.o3",
+                0
+               ]
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       },
+       "where": {
+        "!": {
+         "in": [
+          {
+           "var": "preset.fields.rarity"
+          },
+          [
+           "unique"
+          ]
+         ]
+        }
+       },
+       "fits": {
+        "or": [
+         {
+          "has": [
+           {
+            "var": [
+             "preset.fields.traits",
+             []
+            ]
+           },
+           {
+            "var": [
+             "theme.trait1",
+             "-"
+            ]
+           }
+          ]
+         },
+         {
+          "has": [
+           {
+            "var": [
+             "preset.fields.traits",
+             []
+            ]
+           },
+           {
+            "var": [
+             "theme.trait2",
+             "-"
+            ]
+           }
+          ]
+         },
+         {
+          "and": [
+           {
+            "!": {
+             "var": "theme"
+            }
+           },
+           {
+            "or": [
+             {
+              "has": [
+               {
+                "var": [
+                 "preset.fields.traits",
+                 []
+                ]
+               },
+               {
+                "var": [
+                 "site.trait1",
+                 "-"
+                ]
+               }
+              ]
+             },
+             {
+              "has": [
+               {
+                "var": [
+                 "preset.fields.traits",
+                 []
+                ]
+               },
+               {
+                "var": [
+                 "site.trait2",
+                 "-"
+                ]
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       }
+      }
+     ],
+     "creatureType": "pf2e-orc.creature",
+     "xp": {
+      "lookup": [
+       {
+        "0": 40,
+        "1": 60,
+        "2": 80,
+        "3": 120,
+        "4": 160,
+        "-4": 10,
+        "-3": 15,
+        "-2": 20,
+        "-1": 30
+       },
+       {
+        "-": [
+         {
+          "var": [
+           "preset.fields.level",
+           0
+          ]
+         },
+         {
+          "var": [
+           "inputs.partyLevel",
+           1
+          ]
+         }
+        ]
+       },
+       0
+      ]
+     },
+     "activity": "pf2e-orc.encounter.activity",
+     "detail": {
+      "cat": [
+       {
+        "var": [
+         "encounter.xp",
+         0
+        ]
+       },
+       " XP, a ",
+       {
+        "if": [
+         {
+          "var": "room.lair"
+         },
+         {
+          "var": "threat.lairThreat"
+         },
+         {
+          "var": "threat.id"
+         }
+        ]
+       },
+       " encounter for ",
+       {
+        "var": [
+         "inputs.partySize",
+         4
+        ]
+       },
+       " characters of level ",
+       {
+        "var": [
+         "inputs.partyLevel",
+         1
+        ]
+       },
+       " (",
+       {
+        "+": [
+         {
+          "if": [
+           {
+            "var": "room.lair"
+           },
+           {
+            "var": "threat.lairBudget"
+           },
+           {
+            "var": "threat.budget"
+           }
+          ]
+         },
+         {
+          "*": [
+           {
+            "-": [
+             {
+              "var": [
+               "inputs.partySize",
+               4
+              ]
+             },
+             4
+            ]
+           },
+           {
+            "if": [
+             {
+              "var": "room.lair"
+             },
+             {
+              "var": "threat.lairPer"
+             },
+             {
+              "var": "threat.per"
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       " XP budget)"
+      ]
+     },
+     "passages": 0.06,
+     "cite": "GM Core — Building Encounters"
+    },
+    "traps": {
+     "chance": {
+      "*": [
+       {
+        "var": [
+         "threat.trapChance",
+         0.15
+        ]
+       },
+       {
+        "if": [
+         {
+          "var": "room.passage"
+         },
+         0.6,
+         1
+        ]
+       }
+      ]
+     },
+     "pick": {
+      "presets": "pf2e-orc.hazard",
+      "where": {
+       "and": [
+        {
+         ">=": [
+          {
+           "var": [
+            "preset.fields.level",
+            0
+           ]
+          },
+          {
+           "-": [
+            {
+             "var": [
+              "inputs.partyLevel",
+              1
+             ]
+            },
+            3
+           ]
+          }
+         ]
+        },
+        {
+         "<=": [
+          {
+           "var": [
+            "preset.fields.level",
+            0
+           ]
+          },
+          {
+           "+": [
+            {
+             "var": [
+              "inputs.partyLevel",
+              1
+             ]
+            },
+            1
+           ]
+          }
+         ]
+        },
+        {
+         "!": {
+          "has": [
+           {
+            "var": [
+             "preset.fields.traits",
+             []
+            ]
+           },
+           "kaiju"
+          ]
+         }
+        },
+        {
+         "!": {
+          "has": [
+           {
+            "var": [
+             "preset.fields.traits",
+             []
+            ]
+           },
+           "mythic"
+          ]
+         }
+        }
+       ]
+      },
+      "fits": {
+       "has": [
+        {
+         "var": [
+          "preset.fields.traits",
+          []
+         ]
+        },
+        "trap"
+       ]
+      }
+     },
+     "label": {
+      "var": "preset.name"
+     },
+     "detail": {
+      "cat": [
+       {
+        "if": [
+         {
+          "==": [
+           {
+            "var": "preset.fields.complexity"
+           },
+           "complex"
+          ]
+         },
+         "Complex",
+         "Simple"
+        ]
+       },
+       " hazard ",
+       {
+        "var": [
+         "preset.fields.level",
+         0
+        ]
+       },
+       ". Stealth DC ",
+       {
+        "+": [
+         {
+          "var": [
+           "preset.fields.stealth",
+           0
+          ]
+         },
+         10
+        ]
+       },
+       {
+        "if": [
+         {
+          "var": [
+           "preset.fields.stealthNote",
+           ""
+          ]
+         },
+         {
+          "cat": [
+           " ",
+           {
+            "var": "preset.fields.stealthNote"
+           }
+          ]
+         },
+         ""
+        ]
+       },
+       ". Disable: ",
+       {
+        "var": [
+         "preset.fields.disable",
+         "see its stat block"
+        ]
+       },
+       "."
+      ]
+     },
+     "cite": "GM Core — Hazards"
+    },
+    "treasure": {
+     "chance": {
+      "if": [
+       {
+        "var": "room.lair"
+       },
+       1,
+       {
+        "var": "room.entrance"
+       },
+       0.05,
+       0.3
+      ]
+     },
+     "coins": {
+      "cat": [
+       {
+        "*": [
+         {
+          "if": [
+           {
+            "var": "room.lair"
+           },
+           3,
+           1
+          ]
+         },
+         {
+          "max": [
+           1,
+           {
+            "var": [
+             "inputs.partyLevel",
+             1
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       "d6"
+      ]
+     },
+     "coinsLabel": {
+      "cat": [
+       {
+        "*": [
+         {
+          "var": [
+           "coins",
+           0
+          ]
+         },
+         {
+          "if": [
+           {
+            "<=": [
+             {
+              "var": [
+               "inputs.partyLevel",
+               1
+              ]
+             },
+             4
+            ]
+           },
+           1,
+           {
+            "<=": [
+             {
+              "var": [
+               "inputs.partyLevel",
+               1
+              ]
+             },
+             8
+            ]
+           },
+           5,
+           {
+            "<=": [
+             {
+              "var": [
+               "inputs.partyLevel",
+               1
+              ]
+             },
+             12
+            ]
+           },
+           20,
+           {
+            "<=": [
+             {
+              "var": [
+               "inputs.partyLevel",
+               1
+              ]
+             },
+             16
+            ]
+           },
+           80,
+           300
+          ]
+         }
+        ]
+       },
+       " gp"
+      ]
+     },
+     "itemCount": {
+      "if": [
+       {
+        "var": "room.lair"
+       },
+       2,
+       {
+        ">=": [
+         {
+          "var": [
+           "room.depth",
+           0
+          ]
+         },
+         3
+        ]
+       },
+       1,
+       0
+      ]
+     },
+     "items": {
+      "lists": [
+       "pf2e-orc.equipment.consumables",
+       "pf2e-orc.equipment.items",
+       "pf2e-orc.equipment.treasure"
+      ],
+      "where": {
+       "and": [
+        {
+         "<=": [
+          {
+           "var": [
+            "item.level",
+            0
+           ]
+          },
+          {
+           "+": [
+            {
+             "var": [
+              "inputs.partyLevel",
+              1
+             ]
+            },
+            1
+           ]
+          }
+         ]
+        },
+        {
+         ">=": [
+          {
+           "var": [
+            "item.level",
+            0
+           ]
+          },
+          {
+           "-": [
+            {
+             "var": [
+              "inputs.partyLevel",
+              1
+             ]
+            },
+            2
+           ]
+          }
+         ]
+        },
+        {
+         "!": {
+          "in": [
+           "uncommon",
+           {
+            "var": [
+             "item.traits",
+             ""
+            ]
+           }
+          ]
+         }
+        },
+        {
+         "!": {
+          "in": [
+           "rare",
+           {
+            "var": [
+             "item.traits",
+             ""
+            ]
+           }
+          ]
+         }
+        },
+        {
+         "!": {
+          "startsWith": [
+           {
+            "var": "item.id"
+           },
+           "lock-"
+          ]
+         }
+        }
+       ]
+      }
+     },
+     "itemLabel": {
+      "cat": [
+       {
+        "var": "item.name"
+       },
+       " (level ",
+       {
+        "var": [
+         "item.level",
+         0
+        ]
+       },
+       ", ",
+       {
+        "var": [
+         "item.price",
+         "?"
+        ]
+       },
+       ")"
+      ]
+     },
+     "original": true
+    },
+    "legend": [
+     {
+      "target": {
+       "flag": "dark"
+      },
+      "label": "Darkness",
+      "icon": "dark",
+      "rule": "No light: a creature without darkvision cannot see anything here without a light of its own."
+     },
+     {
+      "target": {
+       "flag": "difficult"
+      },
+      "label": "Difficult terrain",
+      "icon": "collapse",
+      "rule": "Rubble, roots or slick stone: each square costs 5 more feet of movement to enter."
+     },
+     {
+      "target": {
+       "flag": "water"
+      },
+      "label": "Water",
+      "icon": "water",
+      "rule": "Wading water, or deep enough that crossing it means Swimming (Athletics)."
+     },
+     {
+      "target": {
+       "flag": "trap",
+       "value": "found"
+      },
+      "label": "Trap found",
+      "icon": "hazard",
+      "rule": "The party has found a hazard here and knows where it is."
+     },
+     {
+      "target": {
+       "flag": "trap",
+       "value": "sprung"
+      },
+      "label": "Trap sprung",
+      "icon": "hazard",
+      "color": "#c43f27",
+      "rule": "A hazard went off here."
+     }
+    ],
+    "accept": {
+     "site": {
+      "type": "pf2e-orc.location",
+      "subtype": "dungeon",
+      "fields": {
+       "environment": {
+        "var": "site.environment"
+       },
+       "level": {
+        "var": [
+         "inputs.partyLevel",
+         1
+        ]
+       },
+       "danger": {
+        "var": [
+         "threat.danger",
+         "high"
+        ]
+       },
+       "description": {
+        "var": "site.description"
+       },
+       "secrets": {
+        "if": [
+         {
+          "var": "faction"
+         },
+         {
+          "cat": [
+           "Held by ",
+           {
+            "var": "faction"
+           },
+           "."
+          ]
+         },
+         ""
+        ]
+       }
+      }
+     },
+     "room": {
+      "type": "pf2e-orc.location",
+      "subtype": "room",
+      "fields": {
+       "environment": {
+        "var": "site.environment"
+       },
+       "level": {
+        "var": [
+         "inputs.partyLevel",
+         1
+        ]
+       },
+       "description": {
+        "var": "room.readAloud"
+       },
+       "features": {
+        "var": "room.details"
+       },
+       "secrets": {
+        "var": "room.gmNote"
+       }
+      }
+     },
+     "encounter": {
+      "type": "pf2e-orc.encounter",
+      "fields": {
+       "environment": {
+        "var": "site.environment"
+       },
+       "partyLevel": {
+        "var": [
+         "inputs.partyLevel",
+         1
+        ]
+       },
+       "partySize": {
+        "var": [
+         "inputs.partySize",
+         4
+        ]
+       },
+       "threat": {
+        "if": [
+         {
+          "var": "room.lair"
+         },
+         {
+          "var": "threat.lairThreat"
+         },
+         {
+          "var": "threat.id"
+         }
+        ]
+       },
+       "creatures": {
+        "var": "encounter.label"
+       },
+       "xpTotal": {
+        "var": "encounter.xp"
+       },
+       "activity": {
+        "var": "encounter.activity"
+       },
+       "status": "planned",
+       "notes": {
+        "var": "encounter.detail"
+       }
+      }
+     }
+    },
+    "keyRooms": {
+     "locationSubtypes": [
+      "dungeon"
+     ]
+    }
    }
   }
  ],

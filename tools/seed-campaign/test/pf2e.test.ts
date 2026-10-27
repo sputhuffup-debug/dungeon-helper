@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { computeFields, CORE_RELATIONSHIP_TYPES, createRng, loadModule, moduleFromPackSource, validateEntityFields, type GameModule } from "@campaign-forge/module-sdk";
-import { applyImportedDocs, exportBundle, extractRefs, importBundle, RichTextRegistry, type CampaignMaps, type Entity } from "@campaign-forge/core";
+import { applyImportedDocs, exportBundle, extractRefs, importBundle, playerLayout, RichTextRegistry, type CampaignMaps, type Entity } from "@campaign-forge/core";
 import { pf2eOrcSource } from "@campaign-forge/module-pf2e-orc";
 import { RESERVED_TERMS, termPattern } from "@campaign-forge/module-pf2e-orc/reserved";
 import { buildPf2eDemo, pf2eDemoJSON, PF2E_ADVENTURE_TITLE, PF2E_DEMO_NAME, PF2E_DEMO_SEED, PF2E_MODULE_ID } from "../src";
@@ -23,7 +23,11 @@ function signature(maps: CampaignMaps, docs: Record<string, string>) {
   return { entities, relationships, scenes, sessions, text, settingsKeys: Object.keys(maps.meta.settings).sort() };
 }
 
-const byType = (maps: CampaignMaps, type: string): Entity[] => Object.values(maps.entities).filter((e) => e.type === `${PF2E_MODULE_ID}.${type}`);
+const allOfType = (maps: CampaignMaps, type: string): Entity[] => Object.values(maps.entities).filter((e) => e.type === `${PF2E_MODULE_ID}.${type}`);
+/** Entities the demo's generated dungeon added when it was accepted (its rooms, encounters, creatures). */
+const fromMap = (maps: CampaignMaps, e: Entity): boolean => maps.generatorRuns[e.provenance?.generatorRun ?? ""]?.procedure === "pf2e-orc.map.dungeon";
+/** The demo's own entities of a type, without the dungeon's. */
+const byType = (maps: CampaignMaps, type: string): Entity[] => allOfType(maps, type).filter((e) => !fromMap(maps, e));
 const XP: Record<string, number> = { "-4": 10, "-3": 15, "-2": 20, "-1": 30, "0": 40, "1": 60, "2": 80, "3": 120, "4": 160 };
 const HAZARD_XP: Record<string, number> = { "-1": 6, "0": 8, "1": 12 };
 
@@ -225,5 +229,27 @@ describe("buildPf2eDemo", async () => {
     const json = await pf2eDemoJSON(PF2E_DEMO_SEED, game);
     expect(JSON.parse(JSON.stringify(json.maps))).toEqual(json.maps);
     expect(signature(json.maps, json.docs)).toEqual(signature(maps, docs));
+  });
+
+  it("has the xulgath den as a generated cave, already in play with its first rooms revealed", () => {
+    const map = Object.values(maps.maps).find((m) => m.name === "The Glimmer Caves")!;
+    expect(map.generator).toMatchObject({ id: "pf2e-orc.map.dungeon", seed: `${PF2E_DEMO_SEED}/den-7` });
+    expect(map.layout!.checks.filter((c) => c.level === "block" && !c.ok)).toEqual([]);
+    expect(map.layout!.zones.find((z) => z.name === "The xulgath den")?.playerNote).toMatch(/glowing fungus/);
+    const caves = Object.values(maps.entities).find((e) => e.name === "The Glimmer Caves")!;
+    expect(map.location).toBe(caves.id);
+    expect(Object.values(maps.scenes).find((sc) => sc.title === "The xulgath den")?.map).toBe(map.id);
+    // encounters spend GM Core budgets on creatures near level 1, xulgaths first
+    const spawns = map.layout!.markers.filter((m) => m.kind === "spawn");
+    for (const m of spawns) for (const g of m.data!.groups as Array<{ preset: string }>) expect(Math.abs(Number(mod.preset(g.preset)!.fields.level) - 1)).toBeLessThanOrEqual(4);
+    expect(spawns.some((m) => (m.data!.groups as Array<{ preset: string }>).some((g) => g.preset.includes("xulgath")))).toBe(true);
+    // live: the way in and the first rooms are revealed; the player projection shows just those
+    const live = map.live!;
+    expect(live.revealed.length).toBeGreaterThan(2);
+    const shown = playerLayout(map.layout!, { act: 1, revealed: live.revealed, live });
+    expect(shown.zones.map((z) => z.id).sort()).toEqual([...live.revealed].sort());
+    const json = JSON.stringify(shown);
+    for (const m of map.layout!.markers.filter((x) => x.gmOnly)) expect(json).not.toContain(m.label);
+    for (const z of map.layout!.zones) if (z.gmNote) expect(json).not.toContain(z.gmNote);
   });
 });

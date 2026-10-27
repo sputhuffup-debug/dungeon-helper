@@ -13,6 +13,7 @@ import {
   addPing,
   clearPings,
   ductEventsFor,
+  markGroup,
   zoneLayer,
   liveOf,
   moveToken,
@@ -31,6 +32,7 @@ import {
   type SiteMap,
 } from "@campaign-forge/core";
 import type { MapGeneratorDef, MapLegendEntry, MapZoneData } from "@campaign-forge/module-sdk";
+import { Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Badge, Button, Card, MapLegend, PageRef, SiteMapView, pushToast, useDiceRoller } from "../../components/ui";
 import { errorMessage } from "../../lib/format";
@@ -124,16 +126,18 @@ export function LiveSiteMap({ sessionId, map, scene, participants }: { sessionId
       className="app-table__map app-livemap"
       data-testid="live-map"
       actions={
-        <label className="app-row">
-          <span className="cf-muted">Act</span>
-          <select className="cf-select" aria-label="Act" value={live.act} onChange={(e) => setAct(store, map.id, Number(e.target.value))} data-testid="live-act">
-            {Array.from({ length: maxAct }, (_, i) => i + 1).map((a) => (
-              <option key={a} value={a}>
-                {a}
-              </option>
-            ))}
-          </select>
-        </label>
+        layout.acts === false ? undefined : (
+          <label className="app-row">
+            <span className="cf-muted">Act</span>
+            <select className="cf-select" aria-label="Act" value={live.act} onChange={(e) => setAct(store, map.id, Number(e.target.value))} data-testid="live-act">
+              {Array.from({ length: maxAct }, (_, i) => i + 1).map((a) => (
+                <option key={a} value={a}>
+                  {a}
+                </option>
+              ))}
+            </select>
+          </label>
+        )
       }
     >
       <div className="app-row app-livemap__tools" role="group" aria-label="Map tool">
@@ -319,6 +323,13 @@ function ZonePanel({ map, zone, def, label, flagEntries, participants, onClose }
           ×
         </Button>
       </header>
+      {zone.playerNote && (
+        <p className="app-livemap__readaloud" data-testid="live-read-aloud">
+          <span className="cf-muted">Read aloud: </span>
+          {zone.playerNote}
+        </p>
+      )}
+      <ZoneMarks map={map} zone={zone} />
       {flagEntries.length > 0 && (
         <div className="app-row" role="group" aria-label="Zone flags">
           {flagEntries.map((e, i) => {
@@ -354,7 +365,7 @@ function ZonePanel({ map, zone, def, label, flagEntries, participants, onClose }
                 {state.locked && <Badge tone="danger">locked</Badge>}
                 {state.sealed && <Badge tone="danger">sealed</Badge>}
                 {state.destroyed && <Badge tone="warning">broken</Badge>}
-                {b.hidden && <Badge tone={override.known ? "success" : "warning"}>{override.known ? "found" : "hidden"}</Badge>}
+                {b.hidden && <Badge tone={override.known ? "success" : "warning"}>{override.known ? "found" : b.kind === "door" ? "secret" : "hidden"}</Badge>}
                 {!state.passable && !state.locked && !state.sealed && <Badge>blocked</Badge>}
                 {can.lock && !state.destroyed && (
                   <Button size="sm" variant="ghost" onClick={() => setBorderState(store, map.id, b.id, state.locked ? { locked: false, open: undefined } : { locked: true, open: undefined })} aria-label={`${state.locked ? "Unlock" : "Lock"} ${kind} to ${label(other)}`}>
@@ -367,14 +378,14 @@ function ZonePanel({ map, zone, def, label, flagEntries, participants, onClose }
                   </Button>
                 )}
                 {can.destroy && (
-                  <Button size="sm" variant="ghost" onClick={() => setBorderState(store, map.id, b.id, { destroyed: state.destroyed ? undefined : true })} aria-label={`${state.destroyed ? "Repair" : "Break"} ${kind} to ${label(other)}`}>
-                    {state.destroyed ? "Repair" : "Break"}
+                  <Button size="sm" variant="ghost" onClick={() => setBorderState(store, map.id, b.id, { destroyed: state.destroyed ? undefined : true })} aria-label={`${state.destroyed ? (b.kind === "rubble" ? "Restore" : "Repair") : b.kind === "rubble" ? "Clear" : "Break"} ${kind} to ${label(other)}`}>
+                    {state.destroyed ? (b.kind === "rubble" ? "Restore" : "Repair") : b.kind === "rubble" ? "Clear" : "Break"}
                   </Button>
                 )}
                 {can.known && (
-                  <label className="app-row" title="The players know about it: a found access point, or a lock they have tried.">
-                    <input type="checkbox" className="cf-checkbox" checked={!!override.known} onChange={(ev) => setBorderState(store, map.id, b.id, { known: ev.target.checked ? true : undefined })} />
-                    known
+                  <label className="app-row" title={b.hidden ? "The players have found it: it shows on their map." : "The players know about it: a found access point, or a lock they have tried."}>
+                    <input type="checkbox" className="cf-checkbox" checked={!!override.known} onChange={(ev) => setBorderState(store, map.id, b.id, { known: ev.target.checked ? true : undefined })} aria-label={`${b.hidden ? "Found" : "Known"}: ${kind} to ${label(other)}`} />
+                    {b.hidden ? "found" : "known"}
                   </label>
                 )}
               </li>
@@ -514,6 +525,46 @@ function TokenList({ map, label }: { map: SiteMap; label: (id: string) => string
           </label>
         </li>
       ))}
+    </ul>
+  );
+}
+
+/**
+ * The GM's marks in a zone (encounters, traps, treasure) with their key text,
+ * linked to the entities they were accepted as; an encounter can drop a
+ * hidden token on the zone. GM-only: the player screen never reads these.
+ */
+function ZoneMarks({ map, zone }: { map: SiteMap; zone: MapZoneData }) {
+  const ctx = useCampaign();
+  const marks = (map.layout?.markers ?? []).filter((m) => m.zone === zone.id && markGroup(m.kind) !== undefined);
+  if (marks.length === 0) return null;
+  const live = liveOf(map);
+  return (
+    <ul className="app-list app-livemap__marks" aria-label="In this zone (GM only)" data-testid="live-marks">
+      {marks.map((m) => {
+        const entity = typeof m.data?.entity === "string" ? m.data.entity : undefined;
+        const placed = live.tokens.some((t) => t.zone === zone.id && t.label === m.label);
+        return (
+          <li key={m.id} className="app-list__row" data-mark={m.kind}>
+            <Badge tone={m.kind === "trap" ? "danger" : m.kind === "treasure" ? "warning" : undefined}>{markGroup(m.kind) === "encounters" ? "encounter" : m.kind}</Badge>
+            <span className="app-grow">
+              {entity ? (
+                <Link to="/c/$campaignId/entities/$entityId" params={{ campaignId: ctx.campaignId, entityId: entity }} className="app-link-strong">
+                  {m.label}
+                </Link>
+              ) : (
+                <strong>{m.label}</strong>
+              )}
+              {m.detail && <span className="cf-muted"> {m.detail}</span>}
+            </span>
+            {markGroup(m.kind) === "encounters" && !placed && (
+              <Button size="sm" variant="ghost" onClick={() => placeToken(ctx.store, map.id, { label: m.label, zone: zone.id, gmOnly: true, ...(entity ? { entity } : {}) })} aria-label={`Place a hidden token for ${m.label}`}>
+                Token
+              </Button>
+            )}
+          </li>
+        );
+      })}
     </ul>
   );
 }
