@@ -4,13 +4,14 @@
 
 The `pf2e-orc` module (`packages/module-pf2e-orc`), a built-in JSON data pack of the ORC-licensed core rules, compatible with Pathfinder Second Edition (Remaster), with an optional built-in supplement for nine more remaster books.
 
-Demo: *Hollowmere*, a one-shot with four level 1 characters, kobold oil thieves and a xulgath den.
+Demo: *Hollowmere*, a one-shot with four level 1 characters, kobold oil thieves and a xulgath den, and a fifth character half-way through the builder.
 
 ## What it adds
 
 - **The core books.** The ORC-licensed content of Player Core, Player Core 2, GM Core and Monster Core and none of the setting's names: 490 Monster Core stat blocks and 32 hazards as presets; ancestries, heritages, backgrounds, classes, 1,814 feats, 663 spells and 1,243 items as reference lists; every condition and action as a rule card cited by section.
 - **Character sheets.** Perception, saves and skills from proficiency ranks (level + 2/4/6/8), class DC, AC, Hit Points, spell DC and Bulk, all derived.
 - **Four degrees of success.** DC ± 10, with natural 20 and 1 shifting one step; fortune, misfortune and the multiple attack penalty in the roll panel.
+- **Character builder.** *Build a character* (Atlas PCs tab, or *New*) walks through ancestry (heritage, versatile heritages included; Hit Points, size, speed, senses, languages and traits; the ancestry's boosts and flaws, or the alternative two free boosts), background (one of its two boosts and a free one, trained skill and Lore, skill feat), class (key attribute, initial proficiencies, 1st-level features and the class's choices such as instinct, doctrine, muse or school), four free boosts, trained skills and languages from Intelligence, a starting level from 1 to 20 with every level's ancestry, class, skill and general feats (prerequisites checked where the data allows, otherwise confirmed by the GM; archetype feats in class feat slots on request), skill increases up to the rank the level allows, boosts at 5th, 10th, 15th and 20th (partial boosts above +4) and the class features gained with their proficiency increases, then starting wealth by level with an optional shopping list (armor, shield and Strikes go on the sheet), and details (the deity is free text). The side summary shows the attribute modifiers, Hit Points, AC, Perception, saves, class DC and spell DC as they follow from the picks; the review lists every grant with its source and what is left to do by hand. *Level up* on a sheet adds the next level. The supplement's ancestries and classes work the same way, with their source badge.
 - **Encounter builder.** Spends GM Core's XP budgets on Monster Core creatures for the party's level and size.
 - **At the table.** Trackers for initiative, Hit Points, dying/wounded/doomed, Hero and Focus Points and valued conditions.
 - **Combat.** The table's combat panel rolls Strikes from Monster Core's numbers (every creature's attack modifier, damage dice and types, persistent damage, agile and other traits; the supplement's creatures too) and from a character's Strikes table, with the multiple attack penalty, four degrees against AC (a critical hit doubles the damage) and basic saves (none, half, full or double). Immunities, weaknesses and resistances apply in the rules' order, by damage type, group (physical, all) or material and trait (cold iron, holy), with their exceptions; immunities to conditions are kept apart. At 0 Hit Points a character is dying 1 (2 on a critical hit) plus its wounded value; healed, it loses dying and gains wounded.
@@ -36,6 +37,10 @@ Demo: *Hollowmere*, a one-shot with four level 1 characters, kobold oil thieves 
 **Encounter builder**: a severe encounter for four level 3 characters, GM Core's XP budget spent on Monster Core creatures by level.
 
 ![Encounter builder](../screenshots/pf2e-encounter.png)
+
+**Character builder**: the demo's half-built dwarf cleric at the attribute boosts: three of four free boosts picked, the stepper with each step's picks, and the side summary with the attribute modifiers, Hit Points, AC, Perception, saves, class DC and spell DC that follow from them.
+
+![Remaster character builder, attribute boosts with the side summary](../screenshots/orc-builder.png)
 
 **Built-in supplement**: *Remaster ORC books* switched on under Game modules; Hollowmere's ancestries list gains eight from Howl of the Wild, Guns & Gears and Battlecry!, each with its source badge and citation.
 

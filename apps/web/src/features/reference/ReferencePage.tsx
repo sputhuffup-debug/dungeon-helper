@@ -32,7 +32,8 @@ export function ReferencePage() {
   );
 }
 
-const ITEM_META = new Set(["id", "name", "page", "cite", "mode", "summary", "source", "edition"]);
+/** Item keys the browser does not show as data (`builder` is structured data for a character builder). */
+const ITEM_META = new Set(["id", "name", "page", "cite", "mode", "summary", "source", "edition", "builder"]);
 
 /** Columns of a reference list: its own `columns`, else the first five data keys. */
 export function listColumns(list: ReferenceList | undefined): string[] {
