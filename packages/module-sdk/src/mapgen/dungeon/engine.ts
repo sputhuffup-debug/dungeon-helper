@@ -454,32 +454,48 @@ function stock(gen: PackMapGenerator, inputs: DungeonInputs, plan: Plan, ctx: Ma
       if (!occupied.has(z) && !passages.includes(z)) continue;
       const er = rng.fork(`encounter:${z.data.id}`);
       const c = roomCtx(base, z);
-      let row = rollById(tables, enc.table, c, er.fork("roll:0"));
-      for (let t = 1; t < 5 && row && enc.prefer !== undefined; t++) {
-        const res = row.result as Record<string, unknown> | undefined;
-        const preset = typeof res?.preset === "string" ? content.preset(res.preset) : undefined;
-        if (rule(enc.prefer, { ...c, result: row.result, label: row.label, preset })) break;
-        row = rollById(tables, enc.table, c, er.fork(`roll:${t}`));
+      // the encounter roll, re-rolled (up to four more times) while it does not suit the theme:
+      // the pack's `prefer` on the row, and every group finding a creature that `fits`
+      type Built = { row: { result: unknown; label: string | undefined }; groups: Array<{ n: number; preset: string; name: string; xp: number }>; misses: number; unfit: number };
+      const build = (t: number): Built | undefined => {
+        const row = rollById(tables, enc.table, c, er.fork(`roll:${t}`));
+        if (!row) return undefined;
+        const data = { ...c, result: row.result, label: row.label };
+        const out: Built = { row, groups: [], misses: 0, unfit: 0 };
+        enc.groups.forEach((g, gi) => {
+          if (g.when !== undefined && !rule(g.when, data)) return;
+          const count = Math.max(0, Math.round(num(rule(g.n, data), 1)));
+          if (count < 1) return;
+          const spec = { ...g, ...(g.id === undefined && g.presets === undefined && g.lists === undefined ? { presets: enc.creatureType } : {}) };
+          const got = pick(spec, data, er.fork(`group:${t === 0 ? "" : `${t}:`}${gi}`), tables, content);
+          if (!got?.preset) {
+            out.misses++;
+            return;
+          }
+          if (got.fitted === false) out.unfit++;
+          const each = num(rule(enc.xp, { ...data, group: { n: count }, preset: got.preset }), 0);
+          out.groups.push({ n: count, preset: got.preset.id, name: got.preset.name, xp: each });
+        });
+        if (enc.prefer !== undefined) {
+          const res = row.result as Record<string, unknown> | undefined;
+          const preset = typeof res?.preset === "string" ? content.preset(res.preset) : undefined;
+          if (!rule(enc.prefer, { ...c, result: row.result, label: row.label, preset })) out.unfit++;
+        }
+        return out;
+      };
+      let best = build(0);
+      for (let t = 1; t < 5 && best && (best.unfit > 0 || best.misses > 0); t++) {
+        const next = build(t);
+        if (next && (next.misses < best.misses || (next.misses === best.misses && next.unfit < best.unfit))) best = next;
       }
-      if (!row) {
+      if (!best) {
         missing++;
         continue;
       }
+      missing += best.misses;
+      const row = best.row;
+      const groups = best.groups;
       const data = { ...c, result: row.result, label: row.label };
-      const groups: Array<{ n: number; preset: string; name: string; xp: number }> = [];
-      enc.groups.forEach((g, gi) => {
-        if (g.when !== undefined && !rule(g.when, data)) return;
-        const count = Math.max(0, Math.round(num(rule(g.n, data), 1)));
-        if (count < 1) return;
-        const spec = { ...g, ...(g.id === undefined && g.presets === undefined && g.lists === undefined ? { presets: enc.creatureType } : {}) };
-        const got = pick(spec, data, er.fork(`group:${gi}`), tables, content);
-        if (!got?.preset) {
-          missing++;
-          return;
-        }
-        const each = num(rule(enc.xp, { ...data, group: { n: count }, preset: got.preset }), 0);
-        groups.push({ n: count, preset: got.preset.id, name: got.preset.name, xp: each });
-      });
       if (groups.length === 0) continue;
       const activity = enc.activity ? rowText(rollById(tables, enc.activity, data, er.fork("activity"))) : "";
       const total = groups.reduce((s, g) => s + g.n * g.xp, 0);
@@ -694,6 +710,8 @@ export function produceDungeon(gen: PackMapGenerator, module: ModuleContent, lay
             if (preset.summary) e.summary = preset.summary;
             if (preset.tags) e.tags = [...preset.tags];
             out.entities.push(e);
+            // with no encounter entity, the mark stands for its first creature
+            if (!out.markers[m.id]) out.markers[m.id] = tempId;
             const rel: ProducedRelationship = encId ? { type: "appears_in", from: tempId, to: encId } : { type: "found_at", from: tempId, to: placeOf(m.zone) ?? "" };
             if (rel.to) out.relationships.push(rel);
           }

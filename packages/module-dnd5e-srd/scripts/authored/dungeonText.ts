@@ -47,7 +47,7 @@ export const SITES: Record<SiteId, SiteText> = {
     passageName: "Passage",
     outsideName: "Graveyard",
     levelName: "Level",
-    flags: { dark: 0.9 },
+    flags: { dark: 0.7 },
     rooms: [
       { name: "Ossuary", readAloud: "Skulls and long bones are stacked to the ceiling in neat, patient rows.", tags: ["dead"] },
       { name: "Embalming room", readAloud: "A stone slab with blood gutters, and shelves of jars whose wax seals are broken." },
@@ -82,7 +82,7 @@ export const SITES: Record<SiteId, SiteText> = {
     passageName: "Tunnel",
     outsideName: "Hillside",
     levelName: "Depth",
-    flags: { dark: 0.95, difficult: 0.25, water: 0.1 },
+    flags: { dark: 0.6, difficult: 0.25, water: 0.1 },
     passageFlags: { difficult: 0.2 },
     rooms: [
       { name: "Dripping grotto", readAloud: "Water drips from a forest of stalactites into shallow pools.", flags: W },
@@ -153,7 +153,7 @@ export const SITES: Record<SiteId, SiteText> = {
     passageName: "Tunnel",
     outsideName: "Outfall",
     levelName: "Level",
-    flags: { dark: 0.8, water: 0.25 },
+    flags: { dark: 0.6, water: 0.25 },
     passageFlags: { water: 1, difficult: 0.3 },
     rooms: [
       { name: "Junction chamber", readAloud: "Three tunnels meet in a round chamber; the water swirls before choosing a way.", flags: W },
@@ -229,7 +229,7 @@ export const SITES: Record<SiteId, SiteText> = {
     passageName: "Drift",
     outsideName: "Pithead",
     levelName: "Level",
-    flags: { dark: 0.95, difficult: 0.2 },
+    flags: { dark: 0.6, difficult: 0.2 },
     passageFlags: { difficult: 0.15 },
     rooms: [
       { name: "Ore face", readAloud: "Pick marks score the rock, and a vein of ore glints in your light." },

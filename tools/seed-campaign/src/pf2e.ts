@@ -62,6 +62,7 @@ import {
   type Visibility,
 } from "@campaign-forge/core";
 import { pf2eOrcSource } from "@campaign-forge/module-pf2e-orc";
+import { seedDungeon } from "./dungeon";
 import { writeDemoPrimer } from "./primer";
 
 export const PF2E_DEMO_SEED = "hollowmere";
@@ -696,6 +697,30 @@ export async function buildPf2eDemo(opts: BuildPf2eDemoOptions = {}): Promise<Pf
   const firstScene = scenes[0];
   if (!firstScene) throw new Error("remaster demo: the template made no scenes");
 
+  // -- the xulgath den as a generated cave, live at the table with the first rooms found --
+  const denMap = seedDungeon(store, game, {
+    generatorId: `${T}.map.dungeon`,
+    seed: `${seed}/den-7`,
+    name: "The Glimmer Caves",
+    inputs: {
+      siteType: "cave",
+      size: "small",
+      levels: 1,
+      partyLevel: 1,
+      partySize: 4,
+      threat: "moderate",
+      theme: "xulgath",
+      faction: "The xulgath raiders",
+      keyRooms: [
+        { name: "The xulgath den", description: "Vesh the Gnawer and his warriors. Light is a weapon here.", readAloud: sceneText["3.1"]!.readAloud, lair: true },
+        { name: "Smashed kobold shrine", description: "The Ember Tails' shrine, broken by the xulgath; Skrit wants it rebuilt.", readAloud: "Little clay lamps lie broken around a heap of stones that was once a shrine." },
+      ],
+    },
+    adventureId: adventure.id,
+    locationId: caves.id,
+    live: { rooms: 3 },
+  });
+
   // -- a handout: the kobold note ----------------------------------------------------
   const note = store.createHandout({ title: "A note in the oil barrel", kind: "text", visibility: PLAYERS, attachedTo: { kind: "scene", id: firstScene.id } });
   writeDoc(registry, note.bodyDoc, "SORRY FOR OIL. NEED LIGHT. BIG TEETH IN DARK. WILL PAY BACK. — EMBER TAILS");
@@ -735,6 +760,7 @@ export async function buildPf2eDemo(opts: BuildPf2eDemoOptions = {}): Promise<Pf
       `- **Four degrees of success**: roll a skill from a sheet with a DC; beat it by 10 for a critical success, and watch a natural 20 or 1 move the result.`,
       `- **Table mode**: start session 1. The first scene is ${ref(thieves)}; roll initiative on the Trackers tab.`,
       `- **Generators**: ${ref(innkeeper)} was rolled with the NPC generator; try the encounter builder under Generate.`,
+      `- **Dungeon**: ${ref(caves)} has a generated cave map (${denMap.name}) with the xulgath den as its lair, already in play: open table mode on the last scene to reveal more of it, or the player screen to see what the party has found.`,
       "- **Character builder**: Maren Ashdown, a dwarf cleric, is half-built on the Atlas PCs tab; resume her at the attribute boosts, or build a new character.",
       "",
       "Original adventure; the rules content is ORC-licensed (see Settings for the ORC notice and attribution).",

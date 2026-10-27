@@ -4,6 +4,8 @@ import { VitePWA } from "vite-plugin-pwa";
 
 const VENDOR = /node_modules[\\/](react|react-dom|scheduler|use-sync-external-store|@tanstack[\\/](react-router|router-core|history|store|react-store))[\\/]/;
 const SDK = /packages[\\/]module-sdk[\\/]src[\\/]|node_modules[\\/](ajv|ajv-formats|fast-uri|fast-deep-equal|json-schema-traverse|json-logic-js)[\\/]/;
+// The built-in map engines (the dungeon generator) load on demand, in a chunk of their own: never in the SDK chunk.
+const MAP_ENGINES = /packages[\\/]module-sdk[\\/]src[\\/]mapgen[\\/]dungeon[\\/](engine|layout|grid|stock)\.ts$/;
 const ALIEN_AREAS = ["data", "tables", "maps", "rules"];
 
 export default defineConfig({
@@ -53,7 +55,7 @@ export default defineConfig({
             },
             // The game-module SDK (with ajv for the conformance check) loads with a campaign; on its
             // own chunk so the module chunks below cannot pull it in as a dependency.
-            { name: "module-sdk", test: SDK },
+            { name: "module-sdk", test: (id: string) => SDK.test(id) && !MAP_ENGINES.test(id) },
             // The Alien module is one lazy import, loaded when an Alien campaign opens. Split by area so no
             // chunk passes the 500 kB warning; leaves first, so each area keeps only its own files.
             ...ALIEN_AREAS.map((area) => ({ name: `alien-${area}`, test: new RegExp(`packages[\\\\/]module-alien[\\\\/]src[\\\\/]${area}[\\\\/]`) })),

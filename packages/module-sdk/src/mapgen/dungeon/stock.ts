@@ -24,6 +24,8 @@ export interface Picked {
   label?: string | undefined;
   preset?: EntityPreset | undefined;
   item?: (ReferenceItem & { list: string }) | undefined;
+  /** False when the pick had preferred candidates (`fits`) but none qualified, so it fell back to the others. */
+  fitted?: boolean;
 }
 
 /** Evaluate a rule; undefined, null and errors give `fallback`. */
@@ -139,6 +141,7 @@ export function pick(spec: DungeonPick, ctx: Ctx, rng: Rng, tables: TableRegistr
   if (ok.length === 0) return undefined;
   const fit = spec.fits === undefined ? [] : ok.filter((c) => truthy(rule(spec.fits, { ...data, [key]: c })));
   const from = fit.length > 0 ? fit : ok;
+  if (spec.fits !== undefined) out.fitted = fit.length > 0;
   const chosen = from[rng.int(0, from.length - 1)]!;
   if (asPreset) out.preset = chosen as EntityPreset;
   else out.item = chosen as ReferenceItem & { list: string };

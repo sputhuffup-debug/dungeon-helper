@@ -14,8 +14,11 @@ import { Badge, Button, Card, EmptyState, PageRef, pushToast } from "../../compo
 import { adventureTitle, errorMessage, humanize } from "../../lib/format";
 import { useCampaign, useList, useMeta } from "../../state/hooks";
 import {
+  acceptMapEntities,
   adventurePrefill,
+  canAcceptMap,
   findMapGenerator,
+  linkMapToScenes,
   generatedMapsOf,
   layoutDiff,
   mapGeneratorsFor,
@@ -135,6 +138,9 @@ function Workbench({ generator, adventure, saved }: { generator: MapGeneratorDef
   const [rerun, setRerun] = useState<string | undefined>();
   const [name, setName] = useState(() => saved?.name ?? (adventure ? `${adventureTitle(adventure)} site map` : generator.name));
   const [location, setLocation] = useState<Id | "">(() => saved?.location ?? "");
+  // a generator whose maps stand for campaign records (a dungeon's rooms and monsters) offers to add them
+  const acceptable = canAcceptMap(generator);
+  const [addEntities, setAddEntities] = useState(true);
 
   useEffect(() => {
     if (!prefillable || !adventure) return;
@@ -208,7 +214,19 @@ function Workbench({ generator, adventure, saved }: { generator: MapGeneratorDef
       if (location) input.locationId = location;
       if (saved && !asNew) input.mapId = saved.id;
       const map = saveGeneratedMap(ctx, result, input);
-      pushToast(saved && !asNew ? "Site map updated." : "Site map saved to the campaign.", { tone: "success" });
+      const fresh = !saved || asNew;
+      if (acceptable && addEntities && fresh) {
+        const accepted = acceptMapEntities(ctx, { mapId: map.id, locationId: location || undefined, siteName: name, adventureId: adventure?.id });
+        const count = (kind: string) => accepted.entities.filter((e) => ctx.module.entityType(e.type)?.kind === kind).length;
+        const rooms = accepted.entities.filter((e) => e.subtype === "room").length;
+        pushToast(
+          `Saved, with ${rooms} room${rooms === 1 ? "" : "s"}, ${count("encounter")} encounter${count("encounter") === 1 ? "" : "s"} and ${count("creature")} creature${count("creature") === 1 ? "" : "s"} added to the campaign${accepted.scenes ? `; ${accepted.scenes} scene${accepted.scenes === 1 ? "" : "s"} now show the map` : ""}.`,
+          { tone: "success" },
+        );
+      } else {
+        const scenes = fresh && adventure && location ? linkMapToScenes(ctx.store, map.id, adventure.id, location) : 0;
+        pushToast(saved && !asNew ? "Site map updated." : `Site map saved to the campaign${scenes ? `; ${scenes} scene${scenes === 1 ? "" : "s"} now show it` : ""}.`, { tone: "success" });
+      }
       void navigate({ to: "/c/$campaignId/maps/$mapId", params: { campaignId, mapId: map.id } });
     } catch (e) {
       pushToast(`Save failed: ${errorMessage(e)}`, { tone: "danger" });
@@ -307,6 +325,14 @@ function Workbench({ generator, adventure, saved }: { generator: MapGeneratorDef
                   <input className="cf-input" aria-label="Map name" value={name} onChange={(e) => setName(e.target.value)} data-testid="map-name" />
                 </label>
                 <LocationSelect adventure={adventure} value={location} onChange={setLocation} />
+                {acceptable && (
+                  <label className="app-row" data-testid="map-accept-entities">
+                    <input type="checkbox" className="cf-checkbox" checked={addEntities} onChange={(e) => setAddEntities(e.target.checked)} />
+                    <span>
+                      {location ? "Add its rooms" : "Add the site, its rooms"}, encounters and creatures to the campaign (GM only){saved ? " when saved as a new map" : ""}
+                    </span>
+                  </label>
+                )}
                 {stale && <p className="cf-muted app-small">Saves the map shown, generated from the earlier brief and seed.</p>}
                 <div className="app-row">
                   <Button variant="primary" onClick={() => save(false)} data-testid="map-save">
@@ -413,13 +439,14 @@ function LocationSelect({ adventure, value, onChange }: { adventure: Adventure |
     if (!adventure) return [] as Entity[];
     const seen = new Set<Id>();
     const out: Entity[] = [];
-    for (const role of Object.keys(adventure.cast ?? {})) {
-      for (const e of castMembers(ctx.store, adventure.id, role)) {
-        if (seen.has(e.id) || ctx.module.entityType(e.type)?.kind !== "location") continue;
-        seen.add(e.id);
-        out.push(e);
-      }
-    }
+    const add = (e: Entity | undefined) => {
+      if (!e || seen.has(e.id) || ctx.module.entityType(e.type)?.kind !== "location") return;
+      seen.add(e.id);
+      out.push(e);
+    };
+    for (const role of Object.keys(adventure.cast ?? {})) for (const e of castMembers(ctx.store, adventure.id, role)) add(e);
+    // and the places its scenes are set
+    for (const actId of adventure.acts) for (const sceneId of ctx.store.get("acts", actId)?.scenes ?? []) add(ctx.store.get("entities", ctx.store.get("scenes", sceneId)?.location ?? ""));
     return out;
   }, [ctx, adventure]);
   if (locations.length === 0) return null;

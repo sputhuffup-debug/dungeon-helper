@@ -4,7 +4,7 @@
  * PDF writer stay out of the page's first load.
  */
 import { distanceTableCsv, distanceTableJson, zoneKeyCsv, zoneKeyMarkdown, type SiteMap } from "@campaign-forge/core";
-import { printTiles, printTilesHtml, renderRollPdf, renderSiteMapPng, renderSiteMapSvg, type PaperSize, type RollPrintPlan, type SiteMapViewKind } from "@campaign-forge/ui";
+import { printScalesFor, printTiles, printTilesHtml, renderRollPdf, renderSiteMapPng, renderSiteMapSvg, type PaperSize, type RollPrintPlan, type SiteMapViewKind } from "@campaign-forge/ui";
 import { downloadFile, slug } from "../../lib/download";
 import { deckIn, layoutForView, rollOptions, type MapFileOptions, type RollFileOptions } from "./siteMapFiles";
 
@@ -41,12 +41,12 @@ export async function downloadMapPng(map: SiteMap, o: MapFileOptions): Promise<v
   downloadFile(blob, `${fileBase(map, o.view, o.deck)}-150dpi.png`, "image/png");
 }
 
-/** Print tiles at 1 m = 1 cm: opens a print window, or downloads the page when pop-ups are blocked. */
-export function printMapTiles(map: SiteMap, o: MapFileOptions & { paper: PaperSize }): { pages: number; opened: boolean } {
+/** Print tiles (at 1 m = 1 cm, or the scale given): opens a print window, or downloads the page when pop-ups are blocked. */
+export function printMapTiles(map: SiteMap, o: MapFileOptions & { paper: PaperSize; mmPerMetre?: number | undefined }): { pages: number; opened: boolean } {
   if (!map.layout) return { pages: 0, opened: false };
   const layout = layoutForView(map.layout, o.view, o.def, map.live);
   const deckName = map.layout.decks.find((d) => d.id === o.deck)?.name ?? "";
-  const tiles = printTiles(layout, { view: o.view, deck: deckIn(layout, o.deck), legend: o.def?.legend, passable: o.def?.passable, paper: o.paper, grid: o.view !== "tracking", title: `${map.name} ${deckName}`.trim(), idPrefix: "tile" });
+  const tiles = printTiles(layout, { view: o.view, deck: deckIn(layout, o.deck), legend: o.def?.legend, passable: o.def?.passable, paper: o.paper, grid: o.view !== "tracking", title: `${map.name} ${deckName}`.trim(), idPrefix: "tile", ...(o.mmPerMetre !== undefined ? { mmPerMetre: o.mmPerMetre, gridSquares: o.view !== "gm" } : {}) });
   const html = printTilesHtml(tiles, `${map.name}: print tiles`);
   const name = `${fileBase(map, o.view, o.deck)}-tiles-${o.paper}.html`;
   let opened = false;
@@ -72,7 +72,9 @@ export function downloadRollPdf(map: SiteMap, o: RollFileOptions): RollPrintPlan
   if (!map.layout) return undefined;
   const layout = layoutForView(map.layout, o.view, o.def, map.live);
   const { bytes, plan } = renderRollPdf(layout, rollOptions(map, o, layout));
-  const scale = o.mmPerMetre === 25.4 ? "1in-per-m" : o.mmPerMetre === 10 ? "1cm-per-m" : "1-56";
+  const unit = map.layout.gridUnit ? `${map.layout.gridUnit.size}${map.layout.gridUnit.unit}` : "m";
+  const preset = printScalesFor(map.layout).find((s) => Math.abs(s.mmPerMetre - o.mmPerMetre) < 1e-6)?.id;
+  const scale = preset === "inch" ? `1in-per-${unit}` : preset === "overview" ? `1cm-per-${unit}` : "1-56";
   downloadFile(bytes, `${fileBase(map, o.view, o.deck)}-roll-${o.rollWidthIn}in-${scale}.pdf`, "application/pdf");
   return plan;
 }

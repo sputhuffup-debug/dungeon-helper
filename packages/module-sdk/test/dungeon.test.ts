@@ -112,7 +112,7 @@ describe("the dungeon engine in the pack format", () => {
     const props = (gen.inputs as { properties: Record<string, { enum?: unknown[]; default?: unknown }> }).properties;
     expect(props.siteType!.enum).toEqual([...FIXTURE_ARCHETYPES]);
     expect(props.threat!.enum).toEqual(["low", "high"]);
-    expect(props.theme!.enum).toEqual(["", "undead"]);
+    expect(props.theme!.enum).toEqual(["any", "undead"]);
     expect(gen.stages.map((s) => s.id)).toEqual(["layout", "doors", "dressing", "stocking"]);
     expect(gen.legend!.find((e) => "flag" in e.target && e.target.flag === "dark")?.label).toBe("Darkness");
     expect(gen.legend!.some((e) => "marker" in e.target && e.target.marker === "trap" && e.gmOnly)).toBe(true);

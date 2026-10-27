@@ -167,3 +167,16 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* read-aloud text in the room key and the zone detail */
+.prep-sitemap__readaloud {
+  font-style: italic;
+}
+.prep-sitemap__roomkey td,
+.prep-sitemap__roomkey th {
+  vertical-align: top;
+}
+.app-livemap__readaloud {
+  margin: 0;
+  font-style: italic;
+}

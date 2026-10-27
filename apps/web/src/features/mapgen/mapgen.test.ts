@@ -23,6 +23,8 @@ import {
   saveGeneratedMap,
   stageOfStream,
   UnknownMapGeneratorError,
+  acceptMapEntities,
+  canAcceptMap,
   type MapGeneratorRequest,
 } from "../../state/mapgenActions";
 import { siteMapSteps } from "./SiteMapCard";
@@ -328,4 +330,49 @@ describe("Alien site map generator through the workbench actions", () => {
     expect(generatedMapsOf(ctx.store, adventure.id).map((m) => m.id)).toEqual([map.id]);
     expect(siteMapSteps(builder, ctx.module, "cinematic")).toEqual(["locations", "review"]);
   }, 60_000);
+});
+
+describe("accepting a generated dungeon", () => {
+  it("adds the site's rooms, encounters and creatures (GM-only), links zones and marks to them and shows the map on the adventure's scenes there", async () => {
+    const id = await createCampaign({ name: "Dungeon", moduleId: "example-pack" });
+    const ctx = await openCampaign(id);
+    opened.push(ctx.close);
+    const def = mapGeneratorsFor(ctx.module).find((g) => g.id === "example-pack.map.dungeon");
+    expect(canAcceptMap(def)).toBe(true);
+    expect(canAcceptMap(stub)).toBe(false);
+
+    const site = ctx.store.createEntity({ type: "example-pack.site", subtype: "ruin", name: "Lantern Barrow" });
+    const adventure = ctx.store.createAdventure({ title: "Into the barrow" });
+    const act = ctx.store.createAct(adventure.id, { title: "Below" });
+    const scene = ctx.store.createScene(act.id, { title: "The barrow", location: site.id });
+    const request: MapGeneratorRequest = { seed: "barrow", inputs: { size: "small" } };
+    const result = runMapGenerator(ctx.module, def!.id, request);
+    expect(result.failedCheck).toBeUndefined();
+    const map = saveGeneratedMap(ctx, result, { name: "Lantern Barrow", adventureId: adventure.id, generator: { id: def!.id, seed: request.seed, inputs: request.inputs! } });
+
+    const before = ctx.store.list("entities").length;
+    const accepted = acceptMapEntities(ctx, { mapId: map.id, locationId: site.id, adventureId: adventure.id });
+    expect(accepted.site).toBe(site.id);
+    expect(accepted.scenes).toBe(1);
+    expect(ctx.store.get("scenes", scene.id)!.map).toBe(map.id);
+    const created = ctx.store.list("entities").slice(before);
+    expect(created.length).toBeGreaterThan(0);
+    expect(created.every((e) => e.visibility.level === "gm")).toBe(true);
+
+    const stored = ctx.store.get("maps", map.id)!;
+    expect(stored.location).toBe(site.id);
+    const rooms = stored.layout!.zones.filter((z) => z.kind === "room");
+    expect(rooms.every((z) => z.entity && ctx.store.get("entities", z.entity)?.type === "example-pack.site")).toBe(true);
+    const within = ctx.store.list("relationships").filter((r) => r.type === "within" && r.to === site.id);
+    expect(within.map((r) => r.from).sort()).toEqual(rooms.map((z) => z.entity!).sort());
+    const spawns = stored.layout!.markers.filter((m) => m.kind === "spawn");
+    expect(spawns.length).toBeGreaterThan(0);
+    for (const m of spawns) expect(ctx.store.get("entities", (m.data as { entity?: string } | undefined)?.entity ?? "")).toBeDefined();
+  }, 30_000);
+
+  it("refuses a map that is not generated", async () => {
+    const ctx = await open();
+    const map = ctx.store.createMap({ name: "Hand-drawn" });
+    expect(() => acceptMapEntities(ctx, { mapId: map.id })).toThrow(/generated/);
+  });
 });

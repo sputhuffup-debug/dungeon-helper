@@ -33001,7 +33001,7 @@
       "outsideName": "Graveyard",
       "levelName": "Level",
       "flags": {
-       "dark": 0.9
+       "dark": 0.7
       },
       "vars": {
        "terrain": "underground"
@@ -33028,7 +33028,7 @@
       "outsideName": "Hillside",
       "levelName": "Depth",
       "flags": {
-       "dark": 0.95,
+       "dark": 0.6,
        "difficult": 0.25,
        "water": 0.1
       },
@@ -33089,7 +33089,7 @@
       "outsideName": "Outfall",
       "levelName": "Level",
       "flags": {
-       "dark": 0.8,
+       "dark": 0.6,
        "water": 0.25
       },
       "passageFlags": {
@@ -33151,7 +33151,7 @@
       "outsideName": "Pithead",
       "levelName": "Level",
       "flags": {
-       "dark": 0.95,
+       "dark": 0.6,
        "difficult": 0.2
       },
       "passageFlags": {

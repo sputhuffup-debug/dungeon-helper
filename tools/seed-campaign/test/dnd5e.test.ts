@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { computeFields, CORE_RELATIONSHIP_TYPES, loadModule, moduleFromPackSource, validateEntityFields, type GameModule } from "@campaign-forge/module-sdk";
-import { applyImportedDocs, exportBundle, extractRefs, importBundle, RichTextRegistry, type CampaignMaps, type Entity } from "@campaign-forge/core";
+import { applyImportedDocs, exportBundle, extractRefs, importBundle, playerLayout, RichTextRegistry, type CampaignMaps, type Entity } from "@campaign-forge/core";
 import { dnd5eSrdSource } from "@campaign-forge/module-dnd5e-srd";
 import { buildDnd5eDemo, dnd5eDemoJSON, dnd5eDemoModule, DND5E_ADVENTURE_TITLE, DND5E_DEMO_NAME, DND5E_DEMO_SEED, DND5E_DEMO_SUPPLEMENT_ID, DND5E_MODULE_ID } from "../src";
 
@@ -22,7 +22,11 @@ function signature(maps: CampaignMaps, docs: Record<string, string>) {
   return { entities, relationships, scenes, sessions, text, settingsKeys: Object.keys(maps.meta.settings).sort() };
 }
 
-const byType = (maps: CampaignMaps, type: string): Entity[] => Object.values(maps.entities).filter((e) => e.type === `${DND5E_MODULE_ID}.${type}`);
+const allOfType = (maps: CampaignMaps, type: string): Entity[] => Object.values(maps.entities).filter((e) => e.type === `${DND5E_MODULE_ID}.${type}`);
+/** Entities the demo's generated dungeon added when it was accepted (its rooms, encounters, creatures). */
+const fromMap = (maps: CampaignMaps, e: Entity): boolean => maps.generatorRuns[e.provenance?.generatorRun ?? ""]?.procedure === "dnd5e-srd.map.dungeon";
+/** The demo's own entities of a type, without the dungeon's. */
+const byType = (maps: CampaignMaps, type: string): Entity[] => allOfType(maps, type).filter((e) => !fromMap(maps, e));
 
 describe("buildDnd5eDemo", async () => {
   // load the pack (with the demo's supplement) once; every build below reuses it
@@ -211,4 +215,48 @@ describe("the 5e demo's unfinished character", async () => {
     expect((res.fields.abilities as Record<string, number>).intelligence).toBe(17);
     expect(res.name).toBe("Elowen Brightwater");
   });
+
+});
+
+describe("the 5e demo's generated dungeon", async () => {
+  const game: GameModule = await dnd5eDemoModule();
+  const mod = loadModule(game, { skipProcedureRuns: true });
+  const { maps } = await buildDnd5eDemo({ module: game });
+
+  it("has the tower as a generated dungeon: deterministic, accepted into the tower, shown on its scene", async () => {
+    const map = Object.values(maps.maps).find((m) => m.name === "The Sunken Watchtower")!;
+    expect(map.generator).toMatchObject({ id: "dnd5e-srd.map.dungeon", seed: `${DND5E_DEMO_SEED}/tower` });
+    expect(map.layout!.checks.filter((c) => c.level === "block" && !c.ok)).toEqual([]);
+    expect(map.layout!.decks.map((d) => d.name)).toEqual(["Floor 1", "Floor 2"]);
+    const tower = Object.values(maps.entities).find((e) => e.name === "The Sunken Watchtower")!;
+    expect(map.location).toBe(tower.id);
+    // the scene at the tower shows the map
+    expect(Object.values(maps.scenes).find((sc) => sc.title === "The sunken watchtower")?.map).toBe(map.id);
+    // the brief's key room is the lair, with its read-aloud text
+    const frame = map.layout!.zones.find((z) => z.name === "Grisk's bell-frame")!;
+    expect(frame.playerNote).toMatch(/drowned man's arm/);
+    // every room became a Room location within the tower; encounters and their goblinoids came along
+    const rooms = map.layout!.zones.filter((z) => z.kind === "room");
+    for (const z of rooms) {
+      const e = maps.entities[z.entity!]!;
+      expect(e.subtype).toBe("room");
+      expect(Object.values(maps.relationships).some((r) => r.type === "within" && r.from === e.id && r.to === tower.id)).toBe(true);
+    }
+    const spawns = map.layout!.markers.filter((m) => m.kind === "spawn");
+    expect(spawns.length).toBeGreaterThan(0);
+    for (const m of spawns) {
+      const enc = maps.entities[m.data!.entity as string]!;
+      expect(enc.type).toBe("dnd5e-srd.encounter");
+      expect(Object.values(maps.relationships).filter((r) => r.type === "appears_in" && r.to === enc.id).length).toBe((m.data!.groups as Array<{ n: number }>).reduce((n, g) => n + g.n, 0));
+    }
+    const monsters = allOfType(maps, "monster").filter((e) => fromMap(maps, e));
+    expect(monsters.some((e) => mod.preset(String(e.provenance?.preset))?.fields.creatureSubtype === "goblinoid")).toBe(true);
+    for (const e of [...monsters, ...rooms.map((z) => maps.entities[z.entity!]!)]) expect(e.visibility.level).toBe("gm");
+    // the same brief and seed give the same dungeon
+    const again = await buildDnd5eDemo({ module: game });
+    expect(Object.values(again.maps.maps).find((m) => m.name === "The Sunken Watchtower")!.layout!.zones.map((z) => [z.name, z.poly])).toEqual(map.layout!.zones.map((z) => [z.name, z.poly]));
+    // before play, the players see only the way in
+    expect(playerLayout(map.layout!, { act: 1 }).zones.map((z) => z.kind)).toEqual(["exterior"]);
+  });
+
 });

@@ -16,6 +16,7 @@ import {
   type MapDeck,
   type MapGeneratorResult,
   type MapLegendEntry,
+  type MapProduced,
   type MapMarker,
   type MapMove,
   type MapZoneData,
@@ -25,10 +26,11 @@ import {
   type SiteLayout,
   type TableRegistry,
 } from "@campaign-forge/module-sdk";
+import { acceptGeneratedGraph, type AcceptResult } from "./generation";
 import { newId, now } from "./ids";
 import { clone } from "./paths";
 import type { CampaignStore } from "./store";
-import type { Id, SiteMap, SiteMapLiveState } from "./types";
+import type { Id, SiteMap, SiteMapLiveState, Visibility } from "./types";
 
 export type LiveBorderOverride = SiteMapLiveState["borders"][string];
 
@@ -883,6 +885,8 @@ export interface ZoneKeyRow {
   readAloud: string;
   /** The zone's GM marks other than clues (encounters, NPCs, traps, treasure, hazards), with their detail and linked entity. */
   marks: ZoneKeyMark[];
+  /** The campaign entity the zone was accepted as (a room location). */
+  entity?: string | undefined;
 }
 
 export interface ZoneKeyMark {
@@ -968,6 +972,7 @@ export function zoneKeyRows(map: Pick<SiteMap, "layout" | "generator"> & { live?
       clues: layout.markers.filter((m) => m.kind === "clue" && m.zone === z.id).map((m) => m.label),
       gmNote: z.gmNote ?? "",
       readAloud: z.playerNote ?? "",
+      ...(z.entity ? { entity: z.entity } : {}),
       marks: layout.markers
         .filter((m) => m.zone === z.id && markGroup(m.kind) !== undefined)
         .map((m) => {
@@ -1120,4 +1125,98 @@ export function distanceTableCsv(map: Pick<SiteMap, "layout" | "generator" | "li
 /** The distance table as JSON. */
 export function distanceTableJson(map: Pick<SiteMap, "layout" | "generator" | "live">, opts: DistanceTableOptions = {}): string {
   return `${JSON.stringify(distanceTable(map, opts), null, 2)}\n`;
+}
+
+// ---------------------------------------------------------------------------
+// accepting a generated map into the campaign
+// ---------------------------------------------------------------------------
+
+export interface AcceptMapOptions {
+  moduleId: string;
+  moduleVersion: string;
+  /** Supplements the module had applied when the map was generated. */
+  supplements?: Array<{ id: string; version: string }>;
+  /** Put the rooms in this existing location instead of creating the site entity. */
+  locationId?: Id;
+  /** The site entity's name (default: the map's name). */
+  siteName?: string;
+  /** Visibility of every created entity (default GM-only: the players find the dungeon at the table). */
+  visibility?: Visibility;
+}
+
+export interface AcceptMapResult extends AcceptResult {
+  /** The location the map now belongs to (the new site, or the one given). */
+  site?: Id;
+}
+
+/**
+ * Create what a generated map stands for (its generator's `produce`): the
+ * site, its rooms, encounters, creatures and hazards, as one generator run
+ * with provenance. Each zone and marker of the stored layout is linked to its
+ * entity (`zone.entity`, `marker.data.entity`), and the map to its site.
+ */
+export function acceptMapProduce(store: CampaignStore, mapId: Id, produced: MapProduced, opts: AcceptMapOptions): AcceptMapResult {
+  return store.transact(() => {
+    const map = store.get("maps", mapId);
+    if (!map?.layout) throw new Error(`maps/${mapId} has no generated layout`);
+    const site = produced.site;
+    const swap = (ref: string) => (site !== undefined && ref === site && opts.locationId ? opts.locationId : ref);
+    let entities = clone(produced.entities);
+    if (site !== undefined && opts.locationId) entities = entities.filter((e) => e.tempId !== site);
+    for (const e of entities) {
+      if (e.within !== undefined) e.within = swap(e.within);
+      if (site !== undefined && e.tempId === site) e.name = opts.siteName?.trim() || map.name;
+    }
+    const relationships = produced.relationships.map((r) => ({ ...r, from: swap(r.from), to: swap(r.to) }));
+    const result = acceptGeneratedGraph(
+      store,
+      {
+        procedure: map.generator?.id ?? "map",
+        moduleVersion: opts.moduleVersion,
+        ...(opts.supplements?.length ? { supplements: opts.supplements } : {}),
+        seed: map.generator?.seed ?? "",
+        inputs: clone(map.generator?.inputs ?? {}),
+        results: {},
+        rolls: [],
+        produced: { entities, relationships },
+        skipped: [],
+      },
+      { moduleId: opts.moduleId, visibility: opts.visibility ?? { level: "gm" } },
+    );
+    const idOf = (tempId: string | undefined) => (tempId === undefined ? undefined : result.idMap[tempId]);
+    const layout = clone(map.layout);
+    for (const z of layout.zones) {
+      const id = idOf(produced.zones[z.id]);
+      if (id) z.entity = id;
+    }
+    for (const m of layout.markers) {
+      const id = idOf(produced.markers[m.id]);
+      if (id) m.data = { ...(m.data ?? {}), entity: id };
+    }
+    const siteId = opts.locationId ?? idOf(site);
+    const patch: Partial<SiteMap> = { layout };
+    if (siteId && !map.location) patch.location = siteId;
+    store.update("maps", mapId, patch);
+    return siteId ? { ...result, site: siteId } : result;
+  });
+}
+
+/** Scenes of an adventure set at a location (or in a room within it) that have no map yet: show them this map. Returns how many. */
+export function linkMapToScenes(store: CampaignStore, mapId: Id, adventureId: Id, locationId: Id): number {
+  const within = new Set([locationId]);
+  // rooms created within the site count as the site
+  for (const r of store.list("relationships")) if (r.type === "within" && r.to === locationId) within.add(r.from);
+  let n = 0;
+  store.transact(() => {
+    const adventure = store.get("adventures", adventureId);
+    for (const actId of adventure?.acts ?? []) {
+      for (const sceneId of store.get("acts", actId)?.scenes ?? []) {
+        const scene = store.get("scenes", sceneId);
+        if (!scene || scene.map || !scene.location || !within.has(scene.location)) continue;
+        store.update("scenes", scene.id, { map: mapId });
+        n++;
+      }
+    }
+  });
+  return n;
 }

@@ -20,13 +20,13 @@ import {
 import type { MapBorderData, MapGeneratorDef, RangeBandDef, SiteLayout } from "@campaign-forge/module-sdk";
 import { clockState, clockUnits } from "@campaign-forge/ui";
 
-/** Which live toggles a border offers. */
+/** Which live toggles a border offers. A grate locks and breaks like a door; rubble can only be cleared. */
 export function borderControls(b: Pick<MapBorderData, "kind" | "hidden" | "lock">): { lock: boolean; seal: boolean; destroy: boolean; known: boolean } {
-  const door = b.kind === "door" || b.kind === "hatch" || b.kind === "blast";
+  const door = b.kind === "door" || b.kind === "hatch" || b.kind === "blast" || b.kind === "bars";
   return {
     lock: door,
     seal: b.kind === "access" || b.kind === "hatch" || b.kind === "door",
-    destroy: door || b.kind === "wall" || b.kind === "access",
+    destroy: door || b.kind === "wall" || b.kind === "access" || b.kind === "rubble",
     known: !!b.hidden || door,
   };
 }

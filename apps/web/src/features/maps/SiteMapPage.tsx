@@ -5,7 +5,7 @@
  * the generator's checks, the zone key and the distance table.
  * Image maps keep the rectangle editor (MapPage).
  */
-import { distanceTable, exitText, isDuctSheet, zoneKeyRows, zoneNumbers, type SiteMap, type ZoneKeyRow } from "@campaign-forge/core";
+import { distanceTable, exitText, isDuctSheet, markGroup, zoneKeyRows, zoneNumbers, type SiteMap, type ZoneKeyMark, type ZoneKeyRow } from "@campaign-forge/core";
 import type { MapCheck } from "@campaign-forge/module-sdk";
 import { Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
@@ -14,15 +14,16 @@ import {
   Badge,
   Button,
   Card,
-  DEFAULT_MM_PER_METRE,
   MapLegend,
-  PRINT_SCALES,
   PageRef,
   ROLL_WIDTHS,
   SiteMapView,
   Tabs,
   defaultGridSquares,
+  defaultMmPerMetre,
   drawSiteMap,
+  printScalesFor,
+  squareName,
   pushToast,
   type PaperSize,
   type SiteMapViewKind,
@@ -49,6 +50,13 @@ const VIEWS: Array<{ id: SiteMapViewKind; label: string; note: string }> = [
   { id: "tracking", label: "Tracking map", note: "Zone outlines, numbers and ducts, large enough to move hidden tokens on. One page per deck." },
 ];
 
+/** The same views for a map the players explore room by room (unseen rooms are left out, not fogged). */
+const ROOM_VIEWS: Array<{ id: SiteMapViewKind; label: string; note: string }> = [
+  { id: "gm", label: "GM map", note: "Everything: room numbers, encounters, traps, treasure, locked and secret doors (dashed)." },
+  { id: "player", label: "Player map", note: "The plan the players may see, printed whole without its secret rooms and doors or any GM mark. At the table the player screen shows only the rooms you reveal." },
+  { id: "tracking", label: "Tracking map", note: "Room outlines and numbers, large enough to move hidden tokens on. One page per level." },
+];
+
 export function SiteMapPage({ record, onDelete, scenesCard }: { record: SiteMap; onDelete: () => void; scenesCard: React.ReactNode }) {
   const ctx = useCampaign();
   const meta = useMeta();
@@ -62,7 +70,12 @@ export function SiteMapPage({ record, onDelete, scenesCard }: { record: SiteMap;
   const [paper, setPaper] = useState<PaperSize>("a4");
   const [exportTitle, setExportTitle] = useState(false);
   const [roll, setRoll] = useState<number>(36);
-  const [mmPerMetre, setMmPerMetre] = useState(DEFAULT_MM_PER_METRE);
+  const [mmPerMetre, setMmPerMetre] = useState(() => defaultMmPerMetre(layout));
+  const scales = useMemo(() => printScalesFor(layout), [layout]);
+  // a map in squares prints its tiles at a choice of scales; a metric map at 1 m = 1 cm
+  const tileScales = useMemo(() => (layout.gridUnit ? scales.filter((s) => s.id !== "true-28mm").reverse() : undefined), [layout, scales]);
+  const [tileMm, setTileMm] = useState<number | undefined>(() => tileScales?.[0]?.mmPerMetre);
+  const views = layout.fog === "hide" ? ROOM_VIEWS : VIEWS;
   // grid squares follow the view and scale until the GM ticks or unticks them
   const [gridChoice, setGridChoice] = useState<boolean | undefined>();
   const [rollTitle, setRollTitle] = useState(true);
@@ -85,7 +98,7 @@ export function SiteMapPage({ record, onDelete, scenesCard }: { record: SiteMap;
 
   const body = (
     <>
-        <p className="cf-muted prep-sitemap__note">{VIEWS.find((v) => v.id === view)?.note}</p>
+        <p className="cf-muted prep-sitemap__note">{views.find((v) => v.id === view)?.note}</p>
 
         <div className="prep-sitemap__layout">
           <div className="prep-sitemap__main">
@@ -126,7 +139,17 @@ export function SiteMapPage({ record, onDelete, scenesCard }: { record: SiteMap;
                 <input type="checkbox" className="cf-checkbox" checked={exportTitle} onChange={(e) => setExportTitle(e.target.checked)} data-testid="export-title-block" />
                 Title block
               </label>
-              <span className="cf-muted">Print tiles at 1 m = 1 cm</span>
+              {tileScales ? (
+                <select className="cf-select" aria-label="Tile scale" value={String(tileMm)} onChange={(e) => setTileMm(Number(e.target.value))} data-testid="tile-scale">
+                  {tileScales.map((s) => (
+                    <option key={s.id} value={String(s.mmPerMetre)}>
+                      Print tiles at {s.label}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <span className="cf-muted">Print tiles at 1 m = 1 cm</span>
+              )}
               <select className="cf-select" aria-label="Paper size" value={paper} onChange={(e) => setPaper(e.target.value as PaperSize)}>
                 <option value="a4">A4</option>
                 <option value="letter">Letter</option>
@@ -135,7 +158,7 @@ export function SiteMapPage({ record, onDelete, scenesCard }: { record: SiteMap;
                 size="sm"
                 onClick={() =>
                   download("Print tiles", (d) => {
-                    const r = d.printMapTiles(record, { ...fileOpts, paper });
+                    const r = d.printMapTiles(record, { ...fileOpts, paper, mmPerMetre: tileMm });
                     pushToast(r.opened ? `${r.pages} page${r.pages === 1 ? "" : "s"} ready to print` : `Saved ${r.pages} page${r.pages === 1 ? "" : "s"} as a printable file`, { tone: "success" });
                   })
                 }
@@ -164,21 +187,22 @@ export function SiteMapPage({ record, onDelete, scenesCard }: { record: SiteMap;
                   }}
                   data-testid="roll-scale"
                 >
-                  {PRINT_SCALES.map((s) => (
+                  {scales.map((s) => (
                     <option key={s.id} value={String(s.mmPerMetre)}>
                       {s.label}
                     </option>
                   ))}
                 </select>
                 <label className="app-row">
-                  <input type="checkbox" className="cf-checkbox" checked={gridSquares} onChange={(e) => setGridChoice(e.target.checked)} data-testid="roll-grid" />1 m grid squares
+                  <input type="checkbox" className="cf-checkbox" checked={gridSquares} onChange={(e) => setGridChoice(e.target.checked)} data-testid="roll-grid" />
+                  {squareName(layout)} grid squares
                 </label>
                 <label className="app-row">
                   <input type="checkbox" className="cf-checkbox" checked={rollTitle} onChange={(e) => setRollTitle(e.target.checked)} data-testid="roll-title-block" />
                   Title block
                 </label>
                 <span className="cf-muted" data-testid="roll-summary" title={plan ? `Map ${plan.mapWidthIn}" × ${plan.mapHeightIn}"${plan.rotated ? ", turned 90°" : ""}${plan.strips > 1 ? `, ${plan.strips} strips of ${plan.stripWidthIn}" with ${plan.overlapIn}" overlap` : ""}` : undefined}>
-                  {plan ? `${VIEWS.find((v) => v.id === view)?.label} · ${plan.summary}${plan.rotated ? " · turned 90°" : ""}` : ""}
+                  {plan ? `${views.find((v) => v.id === view)?.label} · ${plan.summary}${plan.rotated ? " · turned 90°" : ""}` : ""}
                 </span>
                 <Button
                   size="sm"
@@ -198,7 +222,7 @@ export function SiteMapPage({ record, onDelete, scenesCard }: { record: SiteMap;
           </div>
           <aside className="prep-sitemap__side">
             {selectedRow && view !== "player" && (
-              <Card title={`${selectedRow.number ?? ""} ${selectedRow.name}`.trim()} subtitle={`${selectedRow.cover} · ${selectedRow.kind}`} data-testid="zone-detail">
+              <Card title={`${selectedRow.number ?? ""} ${selectedRow.name}`.trim()} subtitle={layout.cover === false ? selectedRow.kind : `${selectedRow.cover} · ${selectedRow.kind}`} data-testid="zone-detail">
                 <ZoneRowDetail row={selectedRow} />
               </Card>
             )}
@@ -270,7 +294,7 @@ export function SiteMapPage({ record, onDelete, scenesCard }: { record: SiteMap;
           setGridChoice(undefined);
         }}
         className="prep-sitemap__tabs"
-        tabs={VIEWS.map((v) => ({ id: v.id, label: v.label, content: body }))}
+        tabs={views.map((v) => ({ id: v.id, label: v.label, content: body }))}
       />
 
       <ZoneKeyCard
@@ -282,7 +306,7 @@ export function SiteMapPage({ record, onDelete, scenesCard }: { record: SiteMap;
           if (z) setDeck(z.deck);
         }}
       />
-      <DistanceCard record={record} maxAct={maxActOf(layout)} />
+      <DistanceCard record={record} maxAct={layout.acts === false ? 1 : maxActOf(layout)} />
       <div className="app-grid">{scenesCard}</div>
     </div>
   );
@@ -297,9 +321,44 @@ function ExitLine({ e }: { e: ZoneKeyRow["exits"][number] }) {
   );
 }
 
+/** A GM mark of the key: its text, linked to the entity it was accepted as. */
+function MarkLine({ m }: { m: ZoneKeyMark }) {
+  const ctx = useCampaign();
+  const label = m.entity ? (
+    <Link to="/c/$campaignId/entities/$entityId" params={{ campaignId: ctx.campaignId, entityId: m.entity }} className="app-link-strong">
+      {m.label}
+    </Link>
+  ) : (
+    <strong>{m.label}</strong>
+  );
+  return (
+    <div data-mark={m.kind}>
+      {label}
+      {m.detail ? `: ${m.detail}` : ""}
+    </div>
+  );
+}
+
 function ZoneRowDetail({ row }: { row: ZoneKeyRow }) {
+  const groups = (["encounters", "traps", "treasure"] as const).map((g) => [g, row.marks.filter((m) => markGroup(m.kind) === g)] as const).filter(([, ms]) => ms.length > 0);
   return (
     <dl className="prep-sitemap__dl">
+      {row.readAloud && (
+        <>
+          <dt>Read aloud</dt>
+          <dd className="prep-sitemap__readaloud">{row.readAloud}</dd>
+        </>
+      )}
+      {groups.map(([g, ms]) => (
+        <span key={g} style={{ display: "contents" }}>
+          <dt>{g === "encounters" ? "Encounters" : g === "traps" ? "Traps" : "Treasure"}</dt>
+          <dd>
+            {ms.map((m) => (
+              <MarkLine key={m.id} m={m} />
+            ))}
+          </dd>
+        </span>
+      ))}
       {row.layer === "duct" && (
         <>
           <dt>Sheet</dt>
@@ -366,10 +425,11 @@ function ChecksCard({ checks }: { checks: MapCheck[] }) {
 function ZoneKeyCard({ record, onSelect }: { record: SiteMap; onSelect: (id: string) => void }) {
   const ctx = useCampaign();
   const rows = useMemo(() => zoneKeyRows(record, ctx.module.module), [record, ctx.module]);
+  const rooms = record.layout?.numbering === "key";
   return (
     <Card
-      title="Zone key"
-      subtitle="One row per zone, for the GM."
+      title={rooms ? "Room key" : "Zone key"}
+      subtitle={rooms ? "Every room, and any passage with something in it, for the GM: what to read aloud, who is there, traps and treasure." : "One row per zone, for the GM."}
       data-testid="zone-key"
       actions={
         <>
@@ -382,53 +442,121 @@ function ZoneKeyCard({ record, onSelect }: { record: SiteMap; onSelect: (id: str
         </>
       }
     >
-      <div className="prep-sitemap__tablewrap">
-        <table className="prep-sitemap__table">
-          <thead>
-            <tr>
-              <th scope="col">#</th>
-              <th scope="col">Zone</th>
-              <th scope="col">Cover</th>
-              <th scope="col">Flags</th>
-              <th scope="col">Exits</th>
-              <th scope="col">Details</th>
-              <th scope="col">Salvage</th>
-              <th scope="col">Clues</th>
-              <th scope="col">GM note</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.id} data-zone-row={r.id}>
-                <td>{r.number}</td>
-                <th scope="row">
-                  <button type="button" className="app-linkbtn" onClick={() => onSelect(r.id)}>
-                    {r.name}
-                  </button>
-                  {r.layer === "duct" && (
-                    <span className="cf-muted" data-zone-sheet={r.deck}>
-                      {" "}
-                      {r.id} · {r.deckName}
-                    </span>
-                  )}
-                </th>
-                <td>{r.cover}</td>
-                <td>{r.flags.join(", ")}</td>
-                <td title={r.exits.map(exitText).join("; ")}>
-                  {r.exits.map((e, i) => (
-                    <ExitLine key={i} e={e} />
-                  ))}
-                </td>
-                <td>{r.details.join("; ")}</td>
-                <td>{r.salvage.join("; ")}</td>
-                <td>{r.clues.join("; ")}</td>
-                <td>{r.gmNote}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <div className="prep-sitemap__tablewrap">{rooms ? <RoomKeyTable rows={rows} onSelect={onSelect} /> : <ZoneKeyTable rows={rows} onSelect={onSelect} />}</div>
     </Card>
+  );
+}
+
+function ZoneKeyTable({ rows, onSelect }: { rows: ZoneKeyRow[]; onSelect: (id: string) => void }) {
+  return (
+    <table className="prep-sitemap__table">
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Zone</th>
+          <th scope="col">Cover</th>
+          <th scope="col">Flags</th>
+          <th scope="col">Exits</th>
+          <th scope="col">Details</th>
+          <th scope="col">Salvage</th>
+          <th scope="col">Clues</th>
+          <th scope="col">GM note</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((r) => (
+          <tr key={r.id} data-zone-row={r.id}>
+            <td>{r.number}</td>
+            <th scope="row">
+              <button type="button" className="app-linkbtn" onClick={() => onSelect(r.id)}>
+                {r.name}
+              </button>
+              {r.layer === "duct" && (
+                <span className="cf-muted" data-zone-sheet={r.deck}>
+                  {" "}
+                  {r.id} · {r.deckName}
+                </span>
+              )}
+            </th>
+            <td>{r.cover}</td>
+            <td>{r.flags.join(", ")}</td>
+            <td title={r.exits.map(exitText).join("; ")}>
+              {r.exits.map((e, i) => (
+                <ExitLine key={i} e={e} />
+              ))}
+            </td>
+            <td>{r.details.join("; ")}</td>
+            <td>{r.salvage.join("; ")}</td>
+            <td>{r.clues.join("; ")}</td>
+            <td>{r.gmNote}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+/** The key of a map numbered by rooms: read-aloud, description, encounters (linked to their entities), traps, treasure. */
+function RoomKeyTable({ rows, onSelect }: { rows: ZoneKeyRow[]; onSelect: (id: string) => void }) {
+  const ctx = useCampaign();
+  const multi = new Set(rows.map((r) => r.deck)).size > 1;
+  const marks = (r: ZoneKeyRow, g: "encounters" | "traps" | "treasure") =>
+    r.marks
+      .filter((m) => markGroup(m.kind) === g)
+      .map((m) => <MarkLine key={m.id} m={m} />);
+  return (
+    <table className="prep-sitemap__table prep-sitemap__roomkey">
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Room</th>
+          <th scope="col">Read aloud</th>
+          <th scope="col">Description</th>
+          <th scope="col">Encounters</th>
+          <th scope="col">Traps</th>
+          <th scope="col">Treasure</th>
+          <th scope="col">Exits</th>
+          <th scope="col">GM note</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((r) => (
+          <tr key={r.id} data-zone-row={r.id}>
+            <td>{r.number}</td>
+            <th scope="row">
+              <button type="button" className="app-linkbtn" onClick={() => onSelect(r.id)}>
+                {r.name}
+              </button>
+              {(r.number === undefined || multi) && (
+                <span className="cf-muted">
+                  {" "}
+                  {[r.number === undefined ? r.id : undefined, multi ? r.deckName : undefined].filter(Boolean).join(" · ")}
+                </span>
+              )}
+              {r.flags.length > 0 && <div className="cf-muted app-small">{r.flags.join(", ")}</div>}
+              {r.entity && (
+                <div className="app-small">
+                  <Link to="/c/$campaignId/entities/$entityId" params={{ campaignId: ctx.campaignId, entityId: r.entity }} className="app-link" data-room-entity={r.id}>
+                    Open the room
+                  </Link>
+                </div>
+              )}
+            </th>
+            <td className="prep-sitemap__readaloud">{r.readAloud}</td>
+            <td>{r.details.join("; ")}</td>
+            <td>{marks(r, "encounters")}</td>
+            <td>{marks(r, "traps")}</td>
+            <td>{marks(r, "treasure")}</td>
+            <td title={r.exits.map(exitText).join("; ")}>
+              {r.exits.map((e, i) => (
+                <ExitLine key={i} e={e} />
+              ))}
+            </td>
+            <td>{r.gmNote}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }
 
@@ -449,13 +577,15 @@ function DistanceCard({ record, maxAct }: { record: SiteMap; maxAct: number }) {
             <input type="checkbox" className="cf-checkbox" checked={!keyOnly} onChange={(e) => setKeyOnly(!e.target.checked)} aria-label="All zones" />
             All zones
           </label>
-          <select className="cf-select" aria-label="Act" value={act} onChange={(e) => setAct(Number(e.target.value))}>
-            {Array.from({ length: maxAct }, (_, i) => i + 1).map((a) => (
-              <option key={a} value={a}>
-                Act {a}
-              </option>
-            ))}
-          </select>
+          {maxAct > 1 && (
+            <select className="cf-select" aria-label="Act" value={act} onChange={(e) => setAct(Number(e.target.value))}>
+              {Array.from({ length: maxAct }, (_, i) => i + 1).map((a) => (
+                <option key={a} value={a}>
+                  Act {a}
+                </option>
+              ))}
+            </select>
+          )}
           <Button size="sm" onClick={() => download("Distance table", (d) => d.downloadDistanceTable(record, "csv", { keyOnly, act, module: ctx.module.module }))} data-testid="distance-csv">
             CSV
           </Button>

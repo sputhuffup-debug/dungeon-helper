@@ -29,6 +29,9 @@ export interface DungeonInputs {
   keyRooms: DungeonKeyRoom[];
 }
 
+/** The brief's theme value for "no theme". */
+export const NO_THEME = "any";
+
 export const DUNGEON_STAGES = [
   { id: "layout", title: "Floor plan" },
   { id: "doors", title: "Doors and secrets" },
@@ -118,7 +121,7 @@ export function dungeonInputSchema(config: DungeonConfig): JsonSchema {
     partySize: { type: "integer", title: "Party size", minimum: ps.min, maximum: ps.max, default: ps.default },
     threat: { type: "string", title: "Threat", enum: config.threats.map((t) => t.id), enumLabels: config.threats.map((t) => t.label), default: (config.threats.find((t) => t.id === config.defaultThreat) ?? middle(config.threats)!).id },
   };
-  if (themes.length) properties.theme = { type: "string", title: "Theme", enum: ["", ...themes.map((t) => t.id)], enumLabels: ["Any", ...themes.map((t) => t.label)], default: "" };
+  if (themes.length) properties.theme = { type: "string", title: "Theme", enum: [NO_THEME, ...themes.map((t) => t.id)], enumLabels: ["Any", ...themes.map((t) => t.label)], default: NO_THEME };
   properties.faction = { type: "string", title: "Who holds it (faction)", maxLength: 120, default: "" };
   properties.keyRooms = {
     type: "array",
