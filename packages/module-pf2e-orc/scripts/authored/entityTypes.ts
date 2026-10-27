@@ -731,6 +731,7 @@ export function locationType(): EntityTypeDef {
         },
       },
       { id: "dungeon", name: "Dungeon or lair" },
+      { id: "room", name: "Room or area" },
       { id: "wilderness", name: "Wilderness" },
       { id: "building", name: "Building" },
       { id: "plane", name: "Plane" },

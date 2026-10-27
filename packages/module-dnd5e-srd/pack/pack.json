@@ -8764,6 +8764,10 @@
      "name": "Dungeon or lair"
     },
     {
+     "id": "room",
+     "name": "Room or area"
+    },
+    {
      "id": "wilderness",
      "name": "Wilderness"
     },
@@ -32958,6 +32962,1157 @@
       "hidden": true
      }
     ]
+   }
+  }
+ ],
+ "mapGenerators": [
+  {
+   "engine": "dungeon",
+   "id": "dnd5e-srd.map.dungeon",
+   "name": "Dungeon",
+   "description": "An original dungeon on a 5-foot grid: a crypt, cave, keep, sewer, ruined temple or mine of one to three levels, with doors, locks, secret doors, portcullises and collapses, room purposes and dressing, encounters from the pack's encounter tables (SRD monsters), the SRD's sample traps scaled for the party, and treasure from the SRD's magic items. Accept it to add the dungeon, its rooms, encounters and monsters to the campaign.",
+   "original": true,
+   "config": {
+    "grid": {
+     "size": 5,
+     "unit": "ft",
+     "metres": 1.524
+    },
+    "siteTypes": [
+     {
+      "id": "crypt",
+      "label": "Crypt or tomb",
+      "archetype": "halls",
+      "description": "A processional passage with tombs in mirrored pairs, an antechamber at its foot and the burial chamber at its head.",
+      "keywords": [
+       "crypt",
+       "tomb",
+       "barrow",
+       "catacomb",
+       "mausoleum",
+       "sepulchre",
+       "ossuary",
+       "grave"
+      ],
+      "rooms": "dnd5e-srd.dungeon.crypt.rooms",
+      "lair": "dnd5e-srd.dungeon.crypt.lair",
+      "entrance": "dnd5e-srd.dungeon.crypt.entrance",
+      "passageName": "Passage",
+      "outsideName": "Graveyard",
+      "levelName": "Level",
+      "flags": {
+       "dark": 0.9
+      },
+      "vars": {
+       "terrain": "underground"
+      }
+     },
+     {
+      "id": "cave",
+      "label": "Cave or cavern",
+      "archetype": "caverns",
+      "description": "Irregular chambers joined by winding open tunnels.",
+      "keywords": [
+       "cave",
+       "cavern",
+       "grotto",
+       "warren",
+       "den",
+       "burrow",
+       "hollow"
+      ],
+      "rooms": "dnd5e-srd.dungeon.cave.rooms",
+      "lair": "dnd5e-srd.dungeon.cave.lair",
+      "entrance": "dnd5e-srd.dungeon.cave.entrance",
+      "passageName": "Tunnel",
+      "outsideName": "Hillside",
+      "levelName": "Depth",
+      "flags": {
+       "dark": 0.95,
+       "difficult": 0.25,
+       "water": 0.1
+      },
+      "passageFlags": {
+       "difficult": 0.2
+      },
+      "vars": {
+       "terrain": "underground"
+      }
+     },
+     {
+      "id": "keep",
+      "label": "Keep, castle or tower",
+      "archetype": "keep",
+      "description": "A rectangular block cut into rooms either side of a central hall, with a tower at each corner and the gatehouse on the front.",
+      "keywords": [
+       "keep",
+       "castle",
+       "tower",
+       "fort",
+       "fortress",
+       "stronghold",
+       "manor",
+       "watchtower",
+       "citadel"
+      ],
+      "rooms": "dnd5e-srd.dungeon.keep.rooms",
+      "lair": "dnd5e-srd.dungeon.keep.lair",
+      "entrance": "dnd5e-srd.dungeon.keep.entrance",
+      "passageName": "Hall",
+      "outsideName": "Bailey",
+      "levelName": "Floor",
+      "flags": {
+       "dark": 0.4
+      },
+      "vars": {
+       "terrain": "grassland"
+      }
+     },
+     {
+      "id": "sewer",
+      "label": "Sewer or aqueduct",
+      "archetype": "channels",
+      "description": "A long water channel in sections, with chambers and side tunnels off it and an outfall at one end.",
+      "keywords": [
+       "sewer",
+       "sewers",
+       "aqueduct",
+       "cistern",
+       "drain",
+       "culvert",
+       "undercity"
+      ],
+      "rooms": "dnd5e-srd.dungeon.sewer.rooms",
+      "lair": "dnd5e-srd.dungeon.sewer.lair",
+      "entrance": "dnd5e-srd.dungeon.sewer.entrance",
+      "passageName": "Tunnel",
+      "outsideName": "Outfall",
+      "levelName": "Level",
+      "flags": {
+       "dark": 0.8,
+       "water": 0.25
+      },
+      "passageFlags": {
+       "water": 1,
+       "difficult": 0.3
+      },
+      "vars": {
+       "terrain": "urban"
+      }
+     },
+     {
+      "id": "temple",
+      "label": "Ruined temple",
+      "archetype": "nave",
+      "description": "A long nave with the sanctum at its head, the narthex at its foot and chapels down both sides; parts have fallen in.",
+      "keywords": [
+       "temple",
+       "church",
+       "chapel",
+       "cathedral",
+       "abbey",
+       "monastery",
+       "shrine",
+       "sanctuary"
+      ],
+      "rooms": "dnd5e-srd.dungeon.temple.rooms",
+      "lair": "dnd5e-srd.dungeon.temple.lair",
+      "entrance": "dnd5e-srd.dungeon.temple.entrance",
+      "hall": "dnd5e-srd.dungeon.temple.hall",
+      "passageName": "Passage",
+      "outsideName": "Forecourt",
+      "levelName": "Level",
+      "flags": {
+       "dark": 0.5,
+       "difficult": 0.2
+      },
+      "vars": {
+       "terrain": "urban"
+      }
+     },
+     {
+      "id": "mine",
+      "label": "Mine",
+      "archetype": "tunnels",
+      "description": "Small workings strung along long, winding drifts.",
+      "keywords": [
+       "mine",
+       "mines",
+       "quarry",
+       "dig",
+       "shaft",
+       "delve",
+       "lode"
+      ],
+      "rooms": "dnd5e-srd.dungeon.mine.rooms",
+      "lair": "dnd5e-srd.dungeon.mine.lair",
+      "entrance": "dnd5e-srd.dungeon.mine.entrance",
+      "passageName": "Drift",
+      "outsideName": "Pithead",
+      "levelName": "Level",
+      "flags": {
+       "dark": 0.95,
+       "difficult": 0.2
+      },
+      "passageFlags": {
+       "difficult": 0.15
+      },
+      "vars": {
+       "terrain": "underground"
+      }
+     }
+    ],
+    "sizes": [
+     {
+      "id": "small",
+      "label": "Small",
+      "rooms": [
+       5,
+       8
+      ]
+     },
+     {
+      "id": "medium",
+      "label": "Medium",
+      "rooms": [
+       9,
+       14
+      ]
+     },
+     {
+      "id": "large",
+      "label": "Large",
+      "rooms": [
+       15,
+       22
+      ]
+     }
+    ],
+    "maxLevels": 3,
+    "partyLevel": {
+     "min": 1,
+     "max": 20,
+     "default": 3
+    },
+    "partySize": {
+     "min": 1,
+     "max": 8,
+     "default": 4
+    },
+    "threats": [
+     {
+      "id": "quiet",
+      "label": "Quiet (few occupied rooms)",
+      "occupied": 0.25,
+      "vars": {
+       "scale": 0.75,
+       "trapChance": 0.1,
+       "severity": "setback",
+       "danger": "moderate"
+      }
+     },
+     {
+      "id": "standard",
+      "label": "Standard",
+      "occupied": 0.4,
+      "vars": {
+       "scale": 1,
+       "trapChance": 0.15,
+       "severity": "setback",
+       "danger": "high"
+      }
+     },
+     {
+      "id": "dangerous",
+      "label": "Dangerous",
+      "occupied": 0.55,
+      "vars": {
+       "scale": 1.4,
+       "trapChance": 0.2,
+       "severity": "dangerous",
+       "danger": "high"
+      }
+     },
+     {
+      "id": "deadly",
+      "label": "Deadly",
+      "occupied": 0.7,
+      "vars": {
+       "scale": 2,
+       "trapChance": 0.28,
+       "severity": "deadly",
+       "danger": "deadly"
+      }
+     }
+    ],
+    "defaultThreat": "standard",
+    "themes": [
+     {
+      "id": "undead",
+      "label": "The dead",
+      "keywords": [
+       "undead",
+       "skeleton",
+       "skeletons",
+       "zombie",
+       "ghoul",
+       "ghost",
+       "wight",
+       "wraith",
+       "vampire",
+       "lich",
+       "necromancer",
+       "haunted"
+      ],
+      "vars": {
+       "creatureType": "undead",
+       "terrain": "underground"
+      }
+     },
+     {
+      "id": "goblinoid",
+      "label": "Goblins and their kin",
+      "keywords": [
+       "goblin",
+       "goblins",
+       "hobgoblin",
+       "hobgoblins",
+       "bugbear",
+       "bugbears"
+      ],
+      "vars": {
+       "creatureSubtype": "goblinoid",
+       "terrain": "forest"
+      }
+     },
+     {
+      "id": "cult",
+      "label": "A cult",
+      "keywords": [
+       "cult",
+       "cultist",
+       "cultists",
+       "demon",
+       "devil",
+       "fiend"
+      ],
+      "vars": {
+       "creatureType": "humanoid",
+       "altType": "fiend",
+       "terrain": "urban"
+      }
+     },
+     {
+      "id": "aberrant",
+      "label": "Things from below",
+      "keywords": [
+       "aberration",
+       "aberrant",
+       "tentacle",
+       "tentacles",
+       "deep ones"
+      ],
+      "vars": {
+       "creatureType": "aberration",
+       "terrain": "underground"
+      }
+     },
+     {
+      "id": "raiders",
+      "label": "Raiders and bandits",
+      "keywords": [
+       "bandit",
+       "bandits",
+       "raider",
+       "raiders",
+       "brigand",
+       "brigands",
+       "orc",
+       "orcs",
+       "gnoll",
+       "gnolls"
+      ],
+      "vars": {
+       "creatureType": "humanoid",
+       "terrain": "grassland"
+      }
+     },
+     {
+      "id": "beasts",
+      "label": "Beasts",
+      "keywords": [
+       "wolf",
+       "wolves",
+       "bear",
+       "spider",
+       "spiders",
+       "beast",
+       "beasts",
+       "rats"
+      ],
+      "vars": {
+       "creatureType": "beast"
+      }
+     },
+     {
+      "id": "marsh",
+      "label": "Marsh things",
+      "keywords": [
+       "marsh",
+       "swamp",
+       "bog",
+       "fen",
+       "mire"
+      ],
+      "vars": {
+       "terrain": "swamp"
+      }
+     }
+    ],
+    "dressing": {
+     "rooms": [
+      "dnd5e-srd.dungeon.dressing",
+      "dnd5e-srd.dungeon.sense"
+     ],
+     "passages": [
+      "dnd5e-srd.dungeon.passage"
+     ],
+     "passageChance": 0.3
+    },
+    "doors": {
+     "lock": {
+      "lists": [
+       "dnd5e-srd.adventuring-gear"
+      ],
+      "id": "lock"
+     },
+     "notes": {
+      "locked": {
+       "cat": [
+        "Locked. ",
+        {
+         "var": [
+          "lock.description",
+          "A creature proficient with thieves' tools can pick it with a DC 15 Dexterity check."
+         ]
+        }
+       ]
+      },
+      "secret": "Secret door: found by searching, with Wisdom (Perception) or Intelligence (Investigation); a medium task is DC 15, a hard one DC 20.",
+      "bars": "A portcullis or grate: raising or bending it is a Strength (Athletics) check.",
+      "rubble": "Collapsed: impassable until it is dug out."
+     }
+    },
+    "encounters": {
+     "table": {
+      "cat": [
+       "dnd5e-srd.encounter.",
+       {
+        "if": [
+         {
+          "var": [
+           "theme.terrain",
+           ""
+          ]
+         },
+         {
+          "var": "theme.terrain"
+         },
+         {
+          "var": [
+           "site.terrain",
+           "underground"
+          ]
+         }
+        ]
+       },
+       "-",
+       {
+        "if": [
+         {
+          "<=": [
+           {
+            "var": [
+             "inputs.partyLevel",
+             1
+            ]
+           },
+           4
+          ]
+         },
+         1,
+         {
+          "<=": [
+           {
+            "var": [
+             "inputs.partyLevel",
+             1
+            ]
+           },
+           10
+          ]
+         },
+         2,
+         {
+          "<=": [
+           {
+            "var": [
+             "inputs.partyLevel",
+             1
+            ]
+           },
+           16
+          ]
+         },
+         3,
+         4
+        ]
+       }
+      ]
+     },
+     "prefer": {
+      "or": [
+       {
+        "!": {
+         "var": "theme"
+        }
+       },
+       {
+        "==": [
+         {
+          "var": "preset.fields.creatureType"
+         },
+         {
+          "var": [
+           "theme.creatureType",
+           "-"
+          ]
+         }
+        ]
+       },
+       {
+        "==": [
+         {
+          "var": "preset.fields.creatureType"
+         },
+         {
+          "var": [
+           "theme.altType",
+           "-"
+          ]
+         }
+        ]
+       },
+       {
+        "==": [
+         {
+          "var": "preset.fields.creatureSubtype"
+         },
+         {
+          "var": [
+           "theme.creatureSubtype",
+           "-"
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     "groups": [
+      {
+       "n": {
+        "max": [
+         1,
+         {
+          "round": {
+           "*": [
+            {
+             "*": [
+              {
+               "var": [
+                "result.count.n",
+                1
+               ]
+              },
+              {
+               "*": [
+                {
+                 "var": [
+                  "threat.scale",
+                  1
+                 ]
+                },
+                {
+                 "if": [
+                  {
+                   "var": "room.lair"
+                  },
+                  1.5,
+                  1
+                 ]
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "/": [
+              {
+               "var": [
+                "inputs.partySize",
+                4
+               ]
+              },
+              4
+             ]
+            }
+           ]
+          }
+         }
+        ]
+       },
+       "id": {
+        "var": "result.preset"
+       }
+      }
+     ],
+     "creatureType": "dnd5e-srd.monster",
+     "xp": {
+      "var": [
+       "preset.fields.xp",
+       0
+      ]
+     },
+     "activity": "dnd5e-srd.encounter.activity",
+     "detail": {
+      "cat": [
+       "CR ",
+       {
+        "var": [
+         "result.cr",
+         "?"
+        ]
+       },
+       " each; ",
+       {
+        "var": [
+         "encounter.xp",
+         0
+        ]
+       },
+       " XP in all"
+      ]
+     },
+     "passages": 0.08,
+     "original": true
+    },
+    "traps": {
+     "chance": {
+      "*": [
+       {
+        "var": [
+         "threat.trapChance",
+         0.15
+        ]
+       },
+       {
+        "if": [
+         {
+          "var": "room.passage"
+         },
+         0.6,
+         1
+        ]
+       }
+      ]
+     },
+     "pick": {
+      "table": "dnd5e-srd.dungeon.traps"
+     },
+     "label": {
+      "var": "result.name"
+     },
+     "detail": {
+      "cat": [
+       {
+        "var": "result.spot"
+       },
+       " ",
+       {
+        "var": "result.effect"
+       },
+       " For a ",
+       {
+        "var": "threat.severity"
+       },
+       " trap at this level: save DC ",
+       {
+        "lookup": [
+         {
+          "setback": "10–11",
+          "dangerous": "12–15",
+          "deadly": "16–20"
+         },
+         {
+          "var": "threat.severity"
+         },
+         "10–11"
+        ]
+       },
+       ", attack ",
+       {
+        "lookup": [
+         {
+          "setback": "+3 to +5",
+          "dangerous": "+6 to +8",
+          "deadly": "+9 to +12"
+         },
+         {
+          "var": "threat.severity"
+         },
+         "+3 to +5"
+        ]
+       },
+       ", damage ",
+       {
+        "lookup": [
+         {
+          "1-setback": "1d10",
+          "1-dangerous": "2d10",
+          "1-deadly": "4d10",
+          "2-setback": "2d10",
+          "2-dangerous": "4d10",
+          "2-deadly": "10d10",
+          "3-setback": "4d10",
+          "3-dangerous": "10d10",
+          "3-deadly": "18d10",
+          "4-setback": "10d10",
+          "4-dangerous": "18d10",
+          "4-deadly": "24d10"
+         },
+         {
+          "cat": [
+           {
+            "if": [
+             {
+              "<=": [
+               {
+                "var": [
+                 "inputs.partyLevel",
+                 1
+                ]
+               },
+               4
+              ]
+             },
+             1,
+             {
+              "<=": [
+               {
+                "var": [
+                 "inputs.partyLevel",
+                 1
+                ]
+               },
+               10
+              ]
+             },
+             2,
+             {
+              "<=": [
+               {
+                "var": [
+                 "inputs.partyLevel",
+                 1
+                ]
+               },
+               16
+              ]
+             },
+             3,
+             4
+            ]
+           },
+           "-",
+           {
+            "var": "threat.severity"
+           }
+          ]
+         },
+         "1d10"
+        ]
+       },
+       "."
+      ]
+     },
+     "cite": "SRD 5.1 — Adventuring: Traps, Traps in Play"
+    },
+    "treasure": {
+     "chance": {
+      "if": [
+       {
+        "var": "room.lair"
+       },
+       1,
+       {
+        "var": "room.entrance"
+       },
+       0.05,
+       0.3
+      ]
+     },
+     "coins": {
+      "if": [
+       {
+        "var": "room.lair"
+       },
+       "4d6",
+       "2d6"
+      ]
+     },
+     "coinsLabel": {
+      "cat": [
+       {
+        "*": [
+         {
+          "var": [
+           "coins",
+           0
+          ]
+         },
+         {
+          "lookup": [
+           {
+            "1": 5,
+            "2": 25,
+            "3": 250,
+            "4": 2500
+           },
+           {
+            "if": [
+             {
+              "<=": [
+               {
+                "var": [
+                 "inputs.partyLevel",
+                 1
+                ]
+               },
+               4
+              ]
+             },
+             1,
+             {
+              "<=": [
+               {
+                "var": [
+                 "inputs.partyLevel",
+                 1
+                ]
+               },
+               10
+              ]
+             },
+             2,
+             {
+              "<=": [
+               {
+                "var": [
+                 "inputs.partyLevel",
+                 1
+                ]
+               },
+               16
+              ]
+             },
+             3,
+             4
+            ]
+           },
+           5
+          ]
+         }
+        ]
+       },
+       " gp"
+      ]
+     },
+     "itemCount": {
+      "if": [
+       {
+        "var": "room.lair"
+       },
+       2,
+       {
+        ">=": [
+         {
+          "var": [
+           "room.depth",
+           0
+          ]
+         },
+         3
+        ]
+       },
+       1,
+       0
+      ]
+     },
+     "items": {
+      "table": {
+       "cat": [
+        "dnd5e-srd.dungeon.treasure.rarity-",
+        {
+         "if": [
+          {
+           "<=": [
+            {
+             "var": [
+              "inputs.partyLevel",
+              1
+             ]
+            },
+            4
+           ]
+          },
+          1,
+          {
+           "<=": [
+            {
+             "var": [
+              "inputs.partyLevel",
+              1
+             ]
+            },
+            10
+           ]
+          },
+          2,
+          {
+           "<=": [
+            {
+             "var": [
+              "inputs.partyLevel",
+              1
+             ]
+            },
+            16
+           ]
+          },
+          3,
+          4
+         ]
+        }
+       ]
+      },
+      "lists": [
+       "dnd5e-srd.magic-items"
+      ],
+      "where": {
+       "==": [
+        {
+         "var": "item.rarity"
+        },
+        {
+         "var": "result.rarity"
+        }
+       ]
+      }
+     },
+     "itemLabel": {
+      "cat": [
+       {
+        "var": "item.name"
+       },
+       " (",
+       {
+        "var": "item.rarity"
+       },
+       ")"
+      ]
+     },
+     "original": true
+    },
+    "legend": [
+     {
+      "target": {
+       "flag": "dark"
+      },
+      "label": "Darkness",
+      "icon": "dark",
+      "rule": "Heavily obscured: a creature effectively suffers from the blinded condition when trying to see something in it. Darkvision sees darkness as dim light.",
+      "cite": "SRD 5.1 — Adventuring: The Environment, Vision and Light"
+     },
+     {
+      "target": {
+       "flag": "difficult"
+      },
+      "label": "Difficult terrain",
+      "icon": "collapse",
+      "rule": "Every foot of movement costs 1 extra foot.",
+      "cite": "SRD 5.1 — Combat: Movement and Position, Difficult Terrain"
+     },
+     {
+      "target": {
+       "flag": "water"
+      },
+      "label": "Water",
+      "icon": "water",
+      "rule": "Swimming: each foot costs 1 extra foot (2 in difficult terrain), unless the creature has a swimming speed.",
+      "cite": "SRD 5.1 — Adventuring: Movement, Special Types of Movement"
+     },
+     {
+      "target": {
+       "flag": "trap",
+       "value": "found"
+      },
+      "label": "Trap found",
+      "icon": "hazard",
+      "rule": "The party has found a trap here and knows where it is."
+     },
+     {
+      "target": {
+       "flag": "trap",
+       "value": "sprung"
+      },
+      "label": "Trap sprung",
+      "icon": "hazard",
+      "color": "#c43f27",
+      "rule": "A trap went off here."
+     }
+    ],
+    "accept": {
+     "site": {
+      "type": "dnd5e-srd.location",
+      "subtype": "dungeon",
+      "fields": {
+       "environment": {
+        "if": [
+         {
+          "var": [
+           "theme.terrain",
+           ""
+          ]
+         },
+         {
+          "var": "theme.terrain"
+         },
+         {
+          "var": [
+           "site.terrain",
+           "underground"
+          ]
+         }
+        ]
+       },
+       "danger": {
+        "var": [
+         "threat.danger",
+         "high"
+        ]
+       },
+       "description": {
+        "var": "site.description"
+       },
+       "secrets": {
+        "if": [
+         {
+          "var": "faction"
+         },
+         {
+          "cat": [
+           "Held by ",
+           {
+            "var": "faction"
+           },
+           "."
+          ]
+         },
+         ""
+        ]
+       }
+      }
+     },
+     "room": {
+      "type": "dnd5e-srd.location",
+      "subtype": "room",
+      "fields": {
+       "environment": {
+        "if": [
+         {
+          "var": [
+           "theme.terrain",
+           ""
+          ]
+         },
+         {
+          "var": "theme.terrain"
+         },
+         {
+          "var": [
+           "site.terrain",
+           "underground"
+          ]
+         }
+        ]
+       },
+       "description": {
+        "var": "room.readAloud"
+       },
+       "features": {
+        "var": "room.details"
+       },
+       "secrets": {
+        "var": "room.gmNote"
+       }
+      }
+     },
+     "encounter": {
+      "type": "dnd5e-srd.encounter",
+      "fields": {
+       "environment": {
+        "if": [
+         {
+          "var": [
+           "theme.terrain",
+           ""
+          ]
+         },
+         {
+          "var": "theme.terrain"
+         },
+         {
+          "var": [
+           "site.terrain",
+           "underground"
+          ]
+         }
+        ]
+       },
+       "partyLevel": {
+        "var": "inputs.partyLevel"
+       },
+       "creatures": {
+        "var": "encounter.label"
+       },
+       "xpTotal": {
+        "var": "encounter.xp"
+       },
+       "activity": {
+        "var": "encounter.activity"
+       },
+       "status": "planned",
+       "notes": {
+        "var": "encounter.detail"
+       }
+      }
+     }
+    },
+    "keyRooms": {
+     "locationSubtypes": [
+      "dungeon"
+     ]
+    }
    }
   }
  ],

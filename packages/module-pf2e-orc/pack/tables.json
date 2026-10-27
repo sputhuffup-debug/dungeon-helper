@@ -9588,6 +9588,1972 @@
      }
     }
    ]
+  },
+  {
+   "id": "pf2e-orc.dungeon.crypt.rooms",
+   "name": "Crypt or tomb: rooms",
+   "family": "dungeon",
+   "original": true,
+   "dice": "1d12",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Ossuary",
+     "result": {
+      "name": "Ossuary",
+      "readAloud": "Skulls and long bones are stacked to the ceiling in neat, patient rows.",
+      "tags": [
+       "dead"
+      ]
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Embalming room",
+     "result": {
+      "name": "Embalming room",
+      "readAloud": "A stone slab with blood gutters, and shelves of jars whose wax seals are broken."
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Mourners' chapel",
+     "result": {
+      "name": "Mourners' chapel",
+      "readAloud": "Benches face a cracked altar. Someone left fresh candles here, not long ago."
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Burial niches",
+     "result": {
+      "name": "Burial niches",
+      "readAloud": "The walls are honeycombed with niches, each holding a shrouded shape.",
+      "tags": [
+       "dead"
+      ]
+     }
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Knight's tomb",
+     "result": {
+      "name": "Knight's tomb",
+      "readAloud": "A stone knight lies on the lid of a sarcophagus, sword clasped to its chest."
+     }
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Grave-goods store",
+     "result": {
+      "name": "Grave-goods store",
+      "readAloud": "Chests and urns are heaped against the walls, most of them already pried open."
+     }
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Collapsed vault",
+     "result": {
+      "name": "Collapsed vault",
+      "readAloud": "Half the ceiling has come down; roots hang through the gap like reaching hands.",
+      "flags": {
+       "difficult": true
+      }
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Priest's cell",
+     "result": {
+      "name": "Priest's cell",
+      "readAloud": "A narrow cot, a prayer rope, and a ledger of names written in a careful hand."
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Hall of statues",
+     "result": {
+      "name": "Hall of statues",
+      "readAloud": "Robed statues line both walls, faces worn smooth, every one turned toward the door."
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Charnel pit",
+     "result": {
+      "name": "Charnel pit",
+      "readAloud": "A railing guards a pit whose bottom you cannot see. The air rising from it is cold."
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Family vault",
+     "result": {
+      "name": "Family vault",
+      "readAloud": "Name plaques line the walls: three generations of one family, the last plaque left blank."
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Flooded crypt",
+     "result": {
+      "name": "Flooded crypt",
+      "readAloud": "Black water stands knee-deep, and coffin lids float in it like rafts.",
+      "flags": {
+       "water": true,
+       "difficult": true
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "pf2e-orc.dungeon.crypt.lair",
+   "name": "Crypt or tomb: the lair",
+   "family": "dungeon",
+   "original": true,
+   "dice": "1d4",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Founder's burial chamber",
+     "result": {
+      "name": "Founder's burial chamber",
+      "readAloud": "A great sarcophagus stands on a dais, its lid carved with a face that is almost smiling."
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Necromancer's sanctum",
+     "result": {
+      "name": "Necromancer's sanctum",
+      "readAloud": "Candles burn in a ring of chalk symbols around a table fitted with leather straps."
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "The sealed tomb",
+     "result": {
+      "name": "The sealed tomb",
+      "readAloud": "Iron bands and wax seals cover this side of the door. Whoever sealed it meant to keep something in."
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Reliquary",
+     "result": {
+      "name": "Reliquary",
+      "readAloud": "Gold glints in an alcove behind a screen of bones wired together into a lattice."
+     }
+    }
+   ]
+  },
+  {
+   "id": "pf2e-orc.dungeon.crypt.entrance",
+   "name": "Crypt or tomb: the way in",
+   "family": "dungeon",
+   "original": true,
+   "dice": "1d3",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Gate of the dead",
+     "result": {
+      "name": "Gate of the dead",
+      "readAloud": "Two stone guardians flank a stair leading down; the iron gate between them hangs open."
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Mortuary chapel",
+     "result": {
+      "name": "Mortuary chapel",
+      "readAloud": "A small chapel with its altar pushed aside, uncovering steps down into the dark."
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Barrow mouth",
+     "result": {
+      "name": "Barrow mouth",
+      "readAloud": "A low stone doorway, its lintel carved with weathered warnings."
+     }
+    }
+   ]
+  },
+  {
+   "id": "pf2e-orc.dungeon.cave.rooms",
+   "name": "Cave or cavern: rooms",
+   "family": "dungeon",
+   "original": true,
+   "dice": "1d12",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Dripping grotto",
+     "result": {
+      "name": "Dripping grotto",
+      "readAloud": "Water drips from a forest of stalactites into shallow pools.",
+      "flags": {
+       "water": true
+      }
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Bat roost",
+     "result": {
+      "name": "Bat roost",
+      "readAloud": "The ceiling rustles. Droppings crust the floor ankle-deep."
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Fungus garden",
+     "result": {
+      "name": "Fungus garden",
+      "readAloud": "Pale mushrooms as tall as a child glow a faint blue."
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Bone midden",
+     "result": {
+      "name": "Bone midden",
+      "readAloud": "Gnawed bones, broken weapons and torn packs: something eats here."
+     }
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Underground stream",
+     "result": {
+      "name": "Underground stream",
+      "readAloud": "A fast black stream cuts across the cave; the far bank is a long step away.",
+      "flags": {
+       "water": true,
+       "difficult": true
+      }
+     }
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Crystal hollow",
+     "result": {
+      "name": "Crystal hollow",
+      "readAloud": "Quartz glitters in every wall, throwing your light back at you a hundred times."
+     }
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Rockfall",
+     "result": {
+      "name": "Rockfall",
+      "readAloud": "A slope of fallen boulders. Crossing it means picking a careful way.",
+      "flags": {
+       "difficult": true
+      }
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Sleeping chamber",
+     "result": {
+      "name": "Sleeping chamber",
+      "readAloud": "Nests of moss and hide line the walls. They are still warm."
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Echoing cavern",
+     "result": {
+      "name": "Echoing cavern",
+      "readAloud": "Every footstep comes back three times. The roof is lost in the dark."
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Narrow squeeze",
+     "result": {
+      "name": "Narrow squeeze",
+      "readAloud": "The walls close in until you must turn sideways to pass.",
+      "flags": {
+       "difficult": true
+      }
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Old campsite",
+     "result": {
+      "name": "Old campsite",
+      "readAloud": "A ring of stones, cold ashes and a name carved in the rock: someone sheltered here long ago."
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Chasm edge",
+     "result": {
+      "name": "Chasm edge",
+      "readAloud": "The floor ends at a crack too deep to see the bottom of. A draught moans out of it."
+     }
+    }
+   ]
+  },
+  {
+   "id": "pf2e-orc.dungeon.cave.lair",
+   "name": "Cave or cavern: the lair",
+   "family": "dungeon",
+   "original": true,
+   "dice": "1d4",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Beast's den",
+     "result": {
+      "name": "Beast's den",
+      "readAloud": "The stench hits first. Bones crunch underfoot, and two eyes catch your light."
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Hoard cave",
+     "result": {
+      "name": "Hoard cave",
+      "readAloud": "Coins and plunder are heaped in a natural basin, polished smooth by something that sleeps on them."
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Shrine of the deep",
+     "result": {
+      "name": "Shrine of the deep",
+      "readAloud": "A crude idol of piled stones stands over a still pool, hung with offerings."
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Chief's hall",
+     "result": {
+      "name": "Chief's hall",
+      "readAloud": "A wide cavern with a throne of lashed timber and furs at its far end."
+     }
+    }
+   ]
+  },
+  {
+   "id": "pf2e-orc.dungeon.cave.entrance",
+   "name": "Cave or cavern: the way in",
+   "family": "dungeon",
+   "original": true,
+   "dice": "1d3",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Cave mouth",
+     "result": {
+      "name": "Cave mouth",
+      "readAloud": "A wide cave mouth half hidden by hanging roots; the ground slopes down into darkness."
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Sinkhole",
+     "result": {
+      "name": "Sinkhole",
+      "readAloud": "A collapsed sinkhole with a rope tied to a stake, leading down."
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Waterfall cave",
+     "result": {
+      "name": "Waterfall cave",
+      "readAloud": "Behind a curtain of falling water, a wet ledge leads into the hill.",
+      "flags": {
+       "water": true
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "pf2e-orc.dungeon.keep.rooms",
+   "name": "Keep, castle or tower: rooms",
+   "family": "dungeon",
+   "original": true,
+   "dice": "1d12",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Great hall",
+     "result": {
+      "name": "Great hall",
+      "readAloud": "Long tables, a cold hearth wide enough to stand in, and banners rotted to rags."
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Kitchen",
+     "result": {
+      "name": "Kitchen",
+      "readAloud": "Copper pots on hooks, a bread oven, and a chopping block scored with a thousand cuts."
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Barracks",
+     "result": {
+      "name": "Barracks",
+      "readAloud": "Rows of bunks and a weapon rack, mostly empty."
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Armoury",
+     "result": {
+      "name": "Armoury",
+      "readAloud": "Racks of spears and a grindstone. The good blades are gone."
+     }
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Chapel",
+     "result": {
+      "name": "Chapel",
+      "readAloud": "A plain altar under a narrow window of coloured glass."
+     }
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Solar",
+     "result": {
+      "name": "Solar",
+      "readAloud": "A private room: a rug, a writing desk, and a view over the walls."
+     }
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Storeroom",
+     "result": {
+      "name": "Storeroom",
+      "readAloud": "Barrels, sacks of grain gone to dust, and a ladder to a loft."
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Guardroom",
+     "result": {
+      "name": "Guardroom",
+      "readAloud": "A table with a dice cup and a half-finished game, abandoned in a hurry."
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Stables",
+     "result": {
+      "name": "Stables",
+      "readAloud": "Stalls of mouldy straw; the tack still hangs on its pegs."
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Well room",
+     "result": {
+      "name": "Well room",
+      "readAloud": "A stone well-head in the middle of the floor. The rope is new."
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Library",
+     "result": {
+      "name": "Library",
+      "readAloud": "Shelves of ledgers and a few books, swollen with damp."
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Gaol",
+     "result": {
+      "name": "Gaol",
+      "readAloud": "Cells with iron doors, one of them locked, and a key ring hanging just out of reach."
+     }
+    }
+   ]
+  },
+  {
+   "id": "pf2e-orc.dungeon.keep.lair",
+   "name": "Keep, castle or tower: the lair",
+   "family": "dungeon",
+   "original": true,
+   "dice": "1d4",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Lord's chamber",
+     "result": {
+      "name": "Lord's chamber",
+      "readAloud": "A canopied bed, a strongbox at its foot, and a chair placed to face the door."
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Throne room",
+     "result": {
+      "name": "Throne room",
+      "readAloud": "A raised seat under a faded coat of arms. Someone has been sitting in it."
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Treasury",
+     "result": {
+      "name": "Treasury",
+      "readAloud": "An iron-bound room with a single door and chests along every wall."
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "War room",
+     "result": {
+      "name": "War room",
+      "readAloud": "A table covered in maps weighted with daggers. The plans are recent."
+     }
+    }
+   ]
+  },
+  {
+   "id": "pf2e-orc.dungeon.keep.entrance",
+   "name": "Keep, castle or tower: the way in",
+   "family": "dungeon",
+   "original": true,
+   "dice": "1d3",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Gatehouse",
+     "result": {
+      "name": "Gatehouse",
+      "readAloud": "A vaulted passage through the wall, with murder holes in the ceiling."
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Postern",
+     "result": {
+      "name": "Postern",
+      "readAloud": "A small side door in the wall, its bar lifted from the inside."
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Entrance hall",
+     "result": {
+      "name": "Entrance hall",
+      "readAloud": "A heavy door at the top of a short stair, scarred by axes."
+     }
+    }
+   ]
+  },
+  {
+   "id": "pf2e-orc.dungeon.sewer.rooms",
+   "name": "Sewer or aqueduct: rooms",
+   "family": "dungeon",
+   "original": true,
+   "dice": "1d12",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Junction chamber",
+     "result": {
+      "name": "Junction chamber",
+      "readAloud": "Three tunnels meet in a round chamber; the water swirls before choosing a way.",
+      "flags": {
+       "water": true
+      }
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Cistern",
+     "result": {
+      "name": "Cistern",
+      "readAloud": "A vast tank of still water with a narrow walkway around its edge.",
+      "flags": {
+       "water": true
+      }
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Maintenance room",
+     "result": {
+      "name": "Maintenance room",
+      "readAloud": "Rusted tools, a broken lantern and a map scratched into the wall."
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Overflow basin",
+     "result": {
+      "name": "Overflow basin",
+      "readAloud": "A sunken basin where debris collects: crates, bones and a drowned cart.",
+      "flags": {
+       "water": true,
+       "difficult": true
+      }
+     }
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Smugglers' cache",
+     "result": {
+      "name": "Smugglers' cache",
+      "readAloud": "Oilcloth bundles stacked on a dry ledge, well out of the water's reach."
+     }
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Old shrine",
+     "result": {
+      "name": "Old shrine",
+      "readAloud": "A niche to a forgotten river spirit, with fresh coins in its bowl."
+     }
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Pump room",
+     "result": {
+      "name": "Pump room",
+      "readAloud": "A great wooden wheel and pistons, long seized. Water hisses through the cracks."
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Collapsed section",
+     "result": {
+      "name": "Collapsed section",
+      "readAloud": "Fallen masonry chokes half the chamber; the rest is a scramble.",
+      "flags": {
+       "difficult": true
+      }
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Rat nest",
+     "result": {
+      "name": "Rat nest",
+      "readAloud": "Shredded cloth and hair line a hollow in the wall. It squeaks."
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Grated outflow",
+     "result": {
+      "name": "Grated outflow",
+      "readAloud": "Light falls through a grating far above; you hear carts and voices."
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Beggars' camp",
+     "result": {
+      "name": "Beggars' camp",
+      "readAloud": "Bedrolls and a cookfire on a ledge, hastily abandoned."
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Fungus tunnel",
+     "result": {
+      "name": "Fungus tunnel",
+      "readAloud": "Slime and pale fungus coat the walls. The air is thick and sweet."
+     }
+    }
+   ]
+  },
+  {
+   "id": "pf2e-orc.dungeon.sewer.lair",
+   "name": "Sewer or aqueduct: the lair",
+   "family": "dungeon",
+   "original": true,
+   "dice": "1d4",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Thieves' hideout",
+     "result": {
+      "name": "Thieves' hideout",
+      "readAloud": "A dry vault with hammocks, a strongbox and a table of plans."
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "The drowned hall",
+     "result": {
+      "name": "The drowned hall",
+      "readAloud": "An old cellar of the city above, half flooded, with a throne on its dry end.",
+      "flags": {
+       "water": true
+      }
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "The deep pool",
+     "result": {
+      "name": "The deep pool",
+      "readAloud": "A deep, still pool. Bubbles rise from it, slowly.",
+      "flags": {
+       "water": true
+      }
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Cult meeting place",
+     "result": {
+      "name": "Cult meeting place",
+      "readAloud": "A circle of candles on a raised floor, and a symbol painted in something dark."
+     }
+    }
+   ]
+  },
+  {
+   "id": "pf2e-orc.dungeon.sewer.entrance",
+   "name": "Sewer or aqueduct: the way in",
+   "family": "dungeon",
+   "original": true,
+   "dice": "1d3",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Outfall tunnel",
+     "result": {
+      "name": "Outfall tunnel",
+      "readAloud": "The tunnel mouth opens over the river behind a rusted grate."
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Manhole shaft",
+     "result": {
+      "name": "Manhole shaft",
+      "readAloud": "Iron rungs lead down from a street grating into the dark."
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Cellar breach",
+     "result": {
+      "name": "Cellar breach",
+      "readAloud": "A hole knocked through a cellar wall into the old sewer."
+     }
+    }
+   ]
+  },
+  {
+   "id": "pf2e-orc.dungeon.temple.rooms",
+   "name": "Ruined temple: rooms",
+   "family": "dungeon",
+   "original": true,
+   "dice": "1d12",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Side chapel",
+     "result": {
+      "name": "Side chapel",
+      "readAloud": "A small altar to a lesser saint, its candles long burnt down."
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Vestry",
+     "result": {
+      "name": "Vestry",
+      "readAloud": "Robes on pegs, a chest of censers, and a cracked mirror."
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Cloister",
+     "result": {
+      "name": "Cloister",
+      "readAloud": "Pillars around a square of sky; weeds push up between the flagstones."
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Scriptorium",
+     "result": {
+      "name": "Scriptorium",
+      "readAloud": "Writing desks with dry inkwells; a half-copied text lies open."
+     }
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Bell room",
+     "result": {
+      "name": "Bell room",
+      "readAloud": "A bell rope hangs from a hole in the ceiling. The bell is gone."
+     }
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Reliquary chapel",
+     "result": {
+      "name": "Reliquary chapel",
+      "readAloud": "Glass cases, all smashed, and one small box no one noticed."
+     }
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Pilgrims' dormitory",
+     "result": {
+      "name": "Pilgrims' dormitory",
+      "readAloud": "Straw pallets in rows, and prayers scratched into the wall."
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Collapsed aisle",
+     "result": {
+      "name": "Collapsed aisle",
+      "readAloud": "The roof has fallen in. Sunlight and rain come through the hole.",
+      "flags": {
+       "difficult": true
+      }
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Chapter house",
+     "result": {
+      "name": "Chapter house",
+      "readAloud": "A ring of stone seats facing a lectern carved like an eagle."
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Ossuary chapel",
+     "result": {
+      "name": "Ossuary chapel",
+      "readAloud": "Bones arranged into patterns on every wall and across the ceiling."
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Treasury of offerings",
+     "result": {
+      "name": "Treasury of offerings",
+      "readAloud": "Alms boxes broken open; a few coins still lie in the corners."
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Crypt stair",
+     "result": {
+      "name": "Crypt stair",
+      "readAloud": "A stair spirals down beneath a slab that has been moved aside."
+     }
+    }
+   ]
+  },
+  {
+   "id": "pf2e-orc.dungeon.temple.lair",
+   "name": "Ruined temple: the lair",
+   "family": "dungeon",
+   "original": true,
+   "dice": "1d4",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Sanctum",
+     "result": {
+      "name": "Sanctum",
+      "readAloud": "The high altar stands under a broken dome. Something waits beside it."
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Desecrated altar",
+     "result": {
+      "name": "Desecrated altar",
+      "readAloud": "The altar has been overturned and a new idol raised in its place."
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Oracle's hall",
+     "result": {
+      "name": "Oracle's hall",
+      "readAloud": "A cracked tripod over a fissure that breathes warm, sweet air."
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Saint's tomb",
+     "result": {
+      "name": "Saint's tomb",
+      "readAloud": "A golden casket on a plinth, guarded by statues holding real swords."
+     }
+    }
+   ]
+  },
+  {
+   "id": "pf2e-orc.dungeon.temple.entrance",
+   "name": "Ruined temple: the way in",
+   "family": "dungeon",
+   "original": true,
+   "dice": "1d3",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Narthex",
+     "result": {
+      "name": "Narthex",
+      "readAloud": "A porch of fallen columns, and great doors standing half open."
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Pilgrims' porch",
+     "result": {
+      "name": "Pilgrims' porch",
+      "readAloud": "A wide porch worn smooth by a thousand knees."
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "West front",
+     "result": {
+      "name": "West front",
+      "readAloud": "A ruined façade of saints with their faces knocked off, over a gaping doorway."
+     }
+    }
+   ]
+  },
+  {
+   "id": "pf2e-orc.dungeon.temple.hall",
+   "name": "Ruined temple: the great hall",
+   "family": "dungeon",
+   "original": true,
+   "dice": "1d3",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Nave",
+     "result": {
+      "name": "Nave",
+      "readAloud": "Rows of broken pews march toward the far end, where the light falls."
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Great nave",
+     "result": {
+      "name": "Great nave",
+      "readAloud": "Pillars like a stone forest hold up a roof of painted stars, flaking away."
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Burnt nave",
+     "result": {
+      "name": "Burnt nave",
+      "readAloud": "Half the pews are ash. Birds nest in the blackened rafters.",
+      "flags": {
+       "difficult": true
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "pf2e-orc.dungeon.mine.rooms",
+   "name": "Mine: rooms",
+   "family": "dungeon",
+   "original": true,
+   "dice": "1d12",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Ore face",
+     "result": {
+      "name": "Ore face",
+      "readAloud": "Pick marks score the rock, and a vein of ore glints in your light."
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Cart depot",
+     "result": {
+      "name": "Cart depot",
+      "readAloud": "Ore carts on rusted rails, one of them tipped on its side."
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Timbered gallery",
+     "result": {
+      "name": "Timbered gallery",
+      "readAloud": "Old props hold up the roof, some of them cracked and bowing."
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Miners' shrine",
+     "result": {
+      "name": "Miners' shrine",
+      "readAloud": "A little shrine to the earth, with candle stubs and a lucky pick."
+     }
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "Flooded working",
+     "result": {
+      "name": "Flooded working",
+      "readAloud": "The lower end of this cut is under cold, still water.",
+      "flags": {
+       "water": true,
+       "difficult": true
+      }
+     }
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "Collapsed stope",
+     "result": {
+      "name": "Collapsed stope",
+      "readAloud": "A cave-in has left a heap of rubble and a dark gap above it.",
+      "flags": {
+       "difficult": true
+      }
+     }
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Bunk room",
+     "result": {
+      "name": "Bunk room",
+      "readAloud": "Wooden bunks and a stove; someone's boots still stand by the door."
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Powder store",
+     "result": {
+      "name": "Powder store",
+      "readAloud": "Kegs marked with warning signs, stacked well away from the lamps."
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Winch room",
+     "result": {
+      "name": "Winch room",
+      "readAloud": "A great winch over a shaft that drops away into darkness."
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "Smelting hall",
+     "result": {
+      "name": "Smelting hall",
+      "readAloud": "A cold furnace, slag heaps, and moulds for ingots."
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Foreman's office",
+     "result": {
+      "name": "Foreman's office",
+      "readAloud": "A desk, a tally board, and a strongbox bolted to the floor."
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Abandoned drift",
+     "result": {
+      "name": "Abandoned drift",
+      "readAloud": "This tunnel was dug and then given up; the rails end in bare rock."
+     }
+    }
+   ]
+  },
+  {
+   "id": "pf2e-orc.dungeon.mine.lair",
+   "name": "Mine: the lair",
+   "family": "dungeon",
+   "original": true,
+   "dice": "1d4",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "The deep vein",
+     "result": {
+      "name": "The deep vein",
+      "readAloud": "The tunnel opens into a cavern glittering with untouched ore, and something guarding it."
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Breakthrough",
+     "result": {
+      "name": "Breakthrough",
+      "readAloud": "The miners broke into a natural cave here, and stopped digging very suddenly."
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Overseer's hold",
+     "result": {
+      "name": "Overseer's hold",
+      "readAloud": "A fortified chamber with an iron door and arrow slits facing the tunnel."
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Forgotten forge",
+     "result": {
+      "name": "Forgotten forge",
+      "readAloud": "An ancient forge, older than the mine, its fire somehow still glowing."
+     }
+    }
+   ]
+  },
+  {
+   "id": "pf2e-orc.dungeon.mine.entrance",
+   "name": "Mine: the way in",
+   "family": "dungeon",
+   "original": true,
+   "dice": "1d3",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Adit",
+     "result": {
+      "name": "Adit",
+      "readAloud": "A timbered tunnel mouth in the hillside, with rails running in."
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "Pit bottom",
+     "result": {
+      "name": "Pit bottom",
+      "readAloud": "The bottom of the shaft: a ladder up to daylight and a landing of rotten planks."
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Spoil-heap cut",
+     "result": {
+      "name": "Spoil-heap cut",
+      "readAloud": "A narrow cut behind the spoil heaps, an old way in."
+     }
+    }
+   ]
+  },
+  {
+   "id": "pf2e-orc.dungeon.dressing",
+   "name": "Dungeon room dressing",
+   "family": "dungeon",
+   "original": true,
+   "dice": "1d20",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Scratch marks on the floor, as if something heavy was dragged",
+     "result": {
+      "text": "Scratch marks on the floor, as if something heavy was dragged"
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "A broken lantern that still smells of oil",
+     "result": {
+      "text": "A broken lantern that still smells of oil"
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Old bloodstains on the flagstones",
+     "result": {
+      "text": "Old bloodstains on the flagstones"
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "A torn map with a cross drawn in charcoal",
+     "result": {
+      "text": "A torn map with a cross drawn in charcoal"
+     }
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "The bones of a small animal, picked clean",
+     "result": {
+      "text": "The bones of a small animal, picked clean"
+     }
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "A wall covered in tally marks",
+     "result": {
+      "text": "A wall covered in tally marks"
+     }
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Footprints in the dust: recent, and not human",
+     "result": {
+      "text": "Footprints in the dust: recent, and not human"
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "A smashed crate spilling rotten rope",
+     "result": {
+      "text": "A smashed crate spilling rotten rope"
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "Cobwebs thick enough to hide in",
+     "result": {
+      "text": "Cobwebs thick enough to hide in"
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "A puddle that never seems to dry",
+     "result": {
+      "text": "A puddle that never seems to dry"
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "Burnt-out torches in iron brackets",
+     "result": {
+      "text": "Burnt-out torches in iron brackets"
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "A cracked mosaic of a forgotten coat of arms",
+     "result": {
+      "text": "A cracked mosaic of a forgotten coat of arms"
+     }
+    },
+    {
+     "range": [
+      13,
+      13
+     ],
+     "label": "A dropped coin, worn smooth",
+     "result": {
+      "text": "A dropped coin, worn smooth"
+     }
+    },
+    {
+     "range": [
+      14,
+      14
+     ],
+     "label": "A rusted helmet with a dent in it",
+     "result": {
+      "text": "A rusted helmet with a dent in it"
+     }
+    },
+    {
+     "range": [
+      15,
+      15
+     ],
+     "label": "Chalk arrows pointing back the way you came",
+     "result": {
+      "text": "Chalk arrows pointing back the way you came"
+     }
+    },
+    {
+     "range": [
+      16,
+      16
+     ],
+     "label": "A heap of rubble from a fallen arch",
+     "result": {
+      "text": "A heap of rubble from a fallen arch"
+     }
+    },
+    {
+     "range": [
+      17,
+      17
+     ],
+     "label": "A nest of rags and straw",
+     "result": {
+      "text": "A nest of rags and straw"
+     }
+    },
+    {
+     "range": [
+      18,
+      18
+     ],
+     "label": "A crude warning sign in a language you half know",
+     "result": {
+      "text": "A crude warning sign in a language you half know"
+     }
+    },
+    {
+     "range": [
+      19,
+      19
+     ],
+     "label": "Wax drippings from many candles",
+     "result": {
+      "text": "Wax drippings from many candles"
+     }
+    },
+    {
+     "range": [
+      20,
+      20
+     ],
+     "label": "A cold draught from a crack in the wall",
+     "result": {
+      "text": "A cold draught from a crack in the wall"
+     }
+    }
+   ]
+  },
+  {
+   "id": "pf2e-orc.dungeon.sense",
+   "name": "Dungeon smells and sounds",
+   "family": "dungeon",
+   "original": true,
+   "dice": "1d12",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "It smells of damp earth",
+     "result": {
+      "text": "It smells of damp earth"
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "It smells of smoke and old fat",
+     "result": {
+      "text": "It smells of smoke and old fat"
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "A faint, sweet smell of rot",
+     "result": {
+      "text": "A faint, sweet smell of rot"
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Water drips somewhere close",
+     "result": {
+      "text": "Water drips somewhere close"
+     }
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "A distant scraping, then silence",
+     "result": {
+      "text": "A distant scraping, then silence"
+     }
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "The air is cold enough to see your breath",
+     "result": {
+      "text": "The air is cold enough to see your breath"
+     }
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "It is warm and close, almost stuffy",
+     "result": {
+      "text": "It is warm and close, almost stuffy"
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "Faint chanting, or the wind",
+     "result": {
+      "text": "Faint chanting, or the wind"
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "A rhythmic thud, far below",
+     "result": {
+      "text": "A rhythmic thud, far below"
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "The silence is total",
+     "result": {
+      "text": "The silence is total"
+     }
+    },
+    {
+     "range": [
+      11,
+      11
+     ],
+     "label": "A metallic smell, like blood or old coins",
+     "result": {
+      "text": "A metallic smell, like blood or old coins"
+     }
+    },
+    {
+     "range": [
+      12,
+      12
+     ],
+     "label": "Something skitters away from the light",
+     "result": {
+      "text": "Something skitters away from the light"
+     }
+    }
+   ]
+  },
+  {
+   "id": "pf2e-orc.dungeon.passage",
+   "name": "Dungeon passage dressing",
+   "family": "dungeon",
+   "original": true,
+   "dice": "1d10",
+   "rows": [
+    {
+     "range": [
+      1,
+      1
+     ],
+     "label": "Old cart ruts in the floor",
+     "result": {
+      "text": "Old cart ruts in the floor"
+     }
+    },
+    {
+     "range": [
+      2,
+      2
+     ],
+     "label": "A side niche with a cold candle stub",
+     "result": {
+      "text": "A side niche with a cold candle stub"
+     }
+    },
+    {
+     "range": [
+      3,
+      3
+     ],
+     "label": "Water runs along one wall",
+     "result": {
+      "text": "Water runs along one wall"
+     }
+    },
+    {
+     "range": [
+      4,
+      4
+     ],
+     "label": "Claw marks at shoulder height",
+     "result": {
+      "text": "Claw marks at shoulder height"
+     }
+    },
+    {
+     "range": [
+      5,
+      5
+     ],
+     "label": "A tripwire, already cut",
+     "result": {
+      "text": "A tripwire, already cut"
+     }
+    },
+    {
+     "range": [
+      6,
+      6
+     ],
+     "label": "A chalk mark: an X in a circle",
+     "result": {
+      "text": "A chalk mark: an X in a circle"
+     }
+    },
+    {
+     "range": [
+      7,
+      7
+     ],
+     "label": "Loose stones underfoot",
+     "result": {
+      "text": "Loose stones underfoot"
+     }
+    },
+    {
+     "range": [
+      8,
+      8
+     ],
+     "label": "A torn banner across the way",
+     "result": {
+      "text": "A torn banner across the way"
+     }
+    },
+    {
+     "range": [
+      9,
+      9
+     ],
+     "label": "A rusty grate in the floor",
+     "result": {
+      "text": "A rusty grate in the floor"
+     }
+    },
+    {
+     "range": [
+      10,
+      10
+     ],
+     "label": "A carved face above the arch",
+     "result": {
+      "text": "A carved face above the arch"
+     }
+    }
+   ]
   }
  ],
  "procedures": [
