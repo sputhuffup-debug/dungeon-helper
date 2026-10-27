@@ -366,6 +366,58 @@ function characterBuilderLogicChecks(defs: unknown, w: Walker): void {
   });
 }
 
+/** Every JSONLogic slot of a built-in engine map generator, with its path under the generator. */
+export function mapGeneratorLogicSlots(gen: Record<string, unknown>): Array<{ segments: Array<string | number>; rule: unknown }> {
+  const out: Array<{ segments: Array<string | number>; rule: unknown }> = [];
+  const config = (gen.config ?? {}) as Record<string, unknown>;
+  const at = (rule: unknown, ...segments: Array<string | number>) => {
+    if (rule !== undefined && typeof rule !== "string") out.push({ segments: ["config", ...segments], rule });
+  };
+  const pickSlots = (p: unknown, ...segments: Array<string | number>) => {
+    if (!p || typeof p !== "object") return;
+    const r = p as Record<string, unknown>;
+    for (const k of ["table", "id", "where", "fits", "n", "when"]) at(r[k], ...segments, k);
+    for (const [k, rule] of Object.entries((r.match as Record<string, unknown> | undefined) ?? {})) at(rule, ...segments, "match", k);
+  };
+  const enc = config.encounters as Record<string, unknown> | undefined;
+  if (enc) {
+    for (const k of ["table", "prefer", "xp", "detail"]) at(enc[k], "encounters", k);
+    asList(enc.groups).forEach((g, i) => pickSlots(g, "encounters", "groups", i));
+  }
+  const traps = config.traps as Record<string, unknown> | undefined;
+  if (traps) {
+    for (const k of ["chance", "label", "detail"]) at(traps[k], "traps", k);
+    pickSlots(traps.pick, "traps", "pick");
+  }
+  const tr = config.treasure as Record<string, unknown> | undefined;
+  if (tr) {
+    for (const k of ["chance", "coins", "coinsLabel", "itemCount", "itemLabel"]) at(tr[k], "treasure", k);
+    pickSlots(tr.items, "treasure", "items");
+  }
+  const doors = config.doors as Record<string, unknown> | undefined;
+  if (doors) {
+    pickSlots(doors.lock, "doors", "lock");
+    for (const [k, rule] of Object.entries((doors.notes as Record<string, unknown> | undefined) ?? {})) at(rule, "doors", "notes", k);
+  }
+  const accept = config.accept as Record<string, unknown> | undefined;
+  for (const k of ["site", "room", "encounter"]) {
+    const e = accept?.[k] as Record<string, unknown> | undefined;
+    for (const [path, rule] of Object.entries((e?.fields as Record<string, unknown> | undefined) ?? {})) at(rule, "accept", k, "fields", path);
+  }
+  return out;
+}
+
+/** Map generators: namespaced ids and JSONLogic in every slot. */
+function mapGeneratorChecks(defs: unknown, packId: string, w: Walker): void {
+  asList(defs).forEach((g, i) => {
+    if (typeof g.id === "string" && !g.id.startsWith(`${packId}.`)) w.error(["mapGenerators", i, "id"], `map generator id "${g.id}" must start with "${packId}." (ids are namespaced by the pack id)`);
+    for (const slot of mapGeneratorLogicSlots(g)) checkLogicAt(slot.rule, ["mapGenerators", i, ...slot.segments], w);
+    asList((g.config as Record<string, unknown> | undefined)?.accept ? Object.values(((g.config as Record<string, unknown>).accept as Record<string, unknown>) ?? {}) : []).forEach((e, j) => {
+      for (const path of Object.keys((e.fields as Record<string, unknown> | undefined) ?? {})) if (PATH_SEGMENT_FORBIDDEN.test(path)) w.error(["mapGenerators", i, "config", "accept", j, "fields", path], "field path uses a reserved name");
+    });
+  });
+}
+
 /** JSONLogic in a pack's GM screen: list blocks' `where`. */
 function gmScreenLogicChecks(def: Record<string, unknown>, w: Walker): void {
   asList(def.panels).forEach((p, i) => asList(p.blocks).forEach((b, j) => checkLogicAt(b.where, ["gmScreen", "panels", i, "blocks", j, "where"], w)));
@@ -415,6 +467,7 @@ export function validatePack(input: unknown): PackValidation<ModulePack> {
   if (p.d20Combat) d20CombatLogicChecks(p.d20Combat as unknown as Record<string, unknown>, w);
   if (p.gmScreen) gmScreenLogicChecks(p.gmScreen as unknown as Record<string, unknown>, w);
   if (p.characterBuilders) characterBuilderLogicChecks(p.characterBuilders, w);
+  if (p.mapGenerators) mapGeneratorChecks(p.mapGenerators, p.manifest.id, w);
   if (!p.manifest.modes.some((m) => m.id === p.manifest.defaultMode)) w.error(["manifest", "defaultMode"], `"${p.manifest.defaultMode}" is not one of the declared modes`);
   return finishValidation(issues, p);
 }

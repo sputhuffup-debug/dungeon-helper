@@ -13,6 +13,7 @@ import { rollDice } from "../dice";
 import { createDiceEngine } from "../engines";
 import { evaluateLogic, evaluateNumber, setPath } from "../logic";
 import { checkModule, type CheckModuleOptions, type ConformanceIssue } from "../module";
+import { createPackMapGenerator, declaresMapGenerators, loadMapEngines } from "../mapgen/registry";
 import type {
   CalendarDef,
   EntityPreset,
@@ -244,6 +245,7 @@ export function packToModule(input: ModulePack): GameModule {
   if (pack.d20Combat) module.d20Combat = pack.d20Combat;
   if (pack.gmScreen) module.gmScreen = pack.gmScreen;
   if (pack.characterBuilders) module.characterBuilders = pack.characterBuilders;
+  if (pack.mapGenerators?.length) module.mapGenerators = pack.mapGenerators.map((g) => createPackMapGenerator(g, module));
   return module;
 }
 
@@ -279,6 +281,13 @@ export function packPathOf(pack: ModulePack, where: string): { path: string; ite
   if (kind === "dice") return { path: "$.dice" };
   if (kind === "calendar") return { path: "$.calendar" };
   if (kind === "d20Combat") return { path: "$.d20Combat" };
+  if (kind === "mapGenerator") {
+    const m = /^mapGenerator:([^#]+)(?:#(.+))?$/.exec(where);
+    const i = m ? (pack.mapGenerators ?? []).findIndex((g) => g.id === m[1]) : -1;
+    if (i === -1) return { path: "$.mapGenerators" };
+    const rest = (m![2] ?? "").split(/[.:]/).filter((x) => x !== "").map((x) => (/^\d+$/.test(x) ? `[${x}]` : `.${x}`)).join("");
+    return { path: `$.mapGenerators[${i}]${rest}`, item: m![1]! };
+  }
   if (kind === "characterBuilder") {
     const m = /^characterBuilder:([^#]+)(?:#(.+))?$/.exec(where);
     const i = m ? (pack.characterBuilders ?? []).findIndex((b) => b.id === m[1]) : -1;
@@ -380,5 +389,8 @@ export async function packFromSource(source: PackSource): Promise<ModulePack> {
  * `loadModule` does that, as for any module).
  */
 export async function moduleFromPackSource(source: PackSource): Promise<GameModule> {
-  return packToModule(await packFromSource(source));
+  const pack = await packFromSource(source);
+  // a pack with map generators gets its engines now, so they can generate as soon as the module is loaded
+  if (declaresMapGenerators(pack)) await loadMapEngines();
+  return packToModule(pack);
 }

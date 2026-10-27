@@ -6,10 +6,12 @@
  * procedures differ, because the contract's procedures are functions.
  *
  * Not in the pack format (they need code; write a TypeScript module):
- * combat (the armor rule; declarative d20 combat is in: `d20Combat`), crewShip, travel, ledger, progression, mapGenerators,
- * adventureBuilders, narrativeFields, hooks, migrations and dice operations.
+ * combat (the armor rule; declarative d20 combat is in: `d20Combat`), crewShip, travel, ledger, progression,
+ * adventureBuilders, narrativeFields, hooks, migrations and dice operations. Map generators are in when
+ * they use a built-in engine (`mapGenerators`, see ../mapgen).
  */
 import type { DiceEngineConfig } from "../engines/types";
+import type { PackMapGenerator } from "../mapgen/types";
 import type {
   CalendarDef,
   D20CombatDef,
@@ -174,6 +176,8 @@ export interface ModulePack extends PackCollections {
   gmScreen?: GmScreenDef;
   /** Step-by-step character builders (main file only). */
   characterBuilders?: CharacterBuilderDef[];
+  /** Map generators run by a built-in engine (main file only), e.g. `{ "engine": "dungeon", ... }`. */
+  mapGenerators?: PackMapGenerator[];
   /**
    * Names of the part files that complete this pack (e.g. ["tables.json"]),
    * relative to this file. Every part must be present when the pack loads.

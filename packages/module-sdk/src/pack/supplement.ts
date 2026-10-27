@@ -28,6 +28,7 @@
 import { checkDeterminism } from "../determinism";
 import { validateAgainstSchema } from "../entities";
 import { checkModule, type ConformanceIssue } from "../module";
+import { rebindMapGenerators } from "../mapgen/registry";
 import type { AppliedSupplement, EntityPreset, GameModule, ReferenceItem, ReferenceList } from "../types";
 import { conformanceToPackIssues, procedureFromPack, type PresetLookup } from "./loader";
 import { PACK_FORMAT, PACK_PART_FORMAT, SUPPLEMENT_COLLECTIONS, SUPPLEMENT_FORMAT, SUPPLEMENT_PART_FORMAT, type ModulePack, type ModuleSupplement, type ModuleSupplementPart, type PackCollections } from "./types";
@@ -390,6 +391,9 @@ export function applySupplements(base: GameModule, supplements: readonly ModuleS
   };
   const guides = sorted.flatMap((s) => s.playGuides ?? []);
   if (guides.length > 0) module.playGuides = [...(base.playGuides ?? []), ...guides];
+  // engine-made map generators read the merged presets and lists
+  const maps = rebindMapGenerators(base.mapGenerators, module);
+  if (maps) module.mapGenerators = maps;
   return module;
 }
 

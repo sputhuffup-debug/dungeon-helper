@@ -18,4 +18,5 @@ export * from "./calendar";
 export * from "./progression";
 export * from "./determinism";
 export * from "./engines";
+export * from "./mapgen";
 export * from "./pack";

@@ -12,6 +12,7 @@ import { runProcedure } from "./procedures";
 import { createTableRegistry } from "./tables";
 import { lifecycleConfig, lifecycleConfigIssues } from "./lifecycle";
 import { logicIssues } from "./logic";
+import { mapGeneratorIssues } from "./mapgen/check";
 import { attackRanges, planWeaponAttack, weaponListConfig, weaponPresets, weaponRowFrom } from "./weapons";
 import { CORE_NARRATIVE_FIELDS, REVIEW_COLLECTIONS, REVIEW_CONTEXT_KEYS, narrativeEntityType } from "./review";
 import {
@@ -68,6 +69,8 @@ export interface CheckModuleOptions {
   procedureInputs?: Record<string, Record<string, unknown>>;
   /** Skip the (slow) procedure termination check. */
   skipProcedureRuns?: boolean;
+  /** Seeds per site type for a dry run of engine-made map generators (default 0: skipped; needs `loadMapEngines()`). */
+  mapGeneratorRuns?: number;
 }
 
 class Collector {
@@ -1039,6 +1042,9 @@ export function checkModule(module: GameModule, options: CheckModuleOptions = {}
 
   // GM screen.
   for (const i of gmScreenIssues(module)) (i.severity === "error" ? c.error.bind(c) : c.warn.bind(c))(i.where, i.message);
+
+  // Map generators (the dry run only when asked for).
+  for (const i of mapGeneratorIssues(module, { runs: options.skipProcedureRuns ? 0 : (options.mapGeneratorRuns ?? 0) })) (i.severity === "error" ? c.error.bind(c) : c.warn.bind(c))(i.where, i.message);
 
   // Character builders (the dry run is one of the slow checks).
   for (const i of characterBuilderIssues(module, { dryRun: !options.skipProcedureRuns })) (i.severity === "error" ? c.error.bind(c) : c.warn.bind(c))(i.where, i.message);

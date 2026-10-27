@@ -44,6 +44,13 @@
         "$ref": "#/definitions/characterBuilder"
       }
     },
+    "mapGenerators": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/mapGenerator"
+      },
+      "maxItems": 8
+    },
     "parts": {
       "type": "array",
       "items": {
@@ -3934,6 +3941,858 @@
       },
       "required": [
         "id"
+      ],
+      "additionalProperties": false
+    },
+    "mapLegendEntry": {
+      "type": "object",
+      "properties": {
+        "target": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "border": {
+                  "type": "string",
+                  "enum": [
+                    "open",
+                    "wall",
+                    "door",
+                    "hatch",
+                    "blast",
+                    "access",
+                    "stairs",
+                    "shaft",
+                    "bars",
+                    "rubble"
+                  ]
+                }
+              },
+              "required": [
+                "border"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "flag": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "value": {}
+              },
+              "required": [
+                "flag"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "area": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "area"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "marker": {
+                  "type": "string",
+                  "enum": [
+                    "start",
+                    "spawn",
+                    "waypoint",
+                    "clue",
+                    "npc",
+                    "win",
+                    "label",
+                    "hazard",
+                    "trap",
+                    "treasure"
+                  ]
+                }
+              },
+              "required": [
+                "marker"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "room",
+                    "corridor",
+                    "crawlspace",
+                    "shaft",
+                    "exterior",
+                    "out-of-bounds"
+                  ]
+                }
+              },
+              "required": [
+                "kind"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rule": {
+          "type": "string"
+        },
+        "page": {
+          "$ref": "#/definitions/page"
+        },
+        "cite": {
+          "$ref": "#/definitions/cite"
+        },
+        "gmOnly": {
+          "type": "boolean"
+        },
+        "color": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "icon": {
+          "type": "string",
+          "maxLength": 40
+        }
+      },
+      "required": [
+        "target",
+        "label"
+      ],
+      "additionalProperties": false
+    },
+    "mapZoneTable": {
+      "type": "object",
+      "properties": {
+        "table": {
+          "$ref": "#/definitions/id"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "when": {
+          "type": "object",
+          "properties": {
+            "layer": {
+              "enum": [
+                "floor",
+                "duct"
+              ]
+            },
+            "kind": {
+              "type": "string",
+              "enum": [
+                "room",
+                "corridor",
+                "crawlspace",
+                "shaft",
+                "exterior",
+                "out-of-bounds"
+              ]
+            },
+            "flag": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "hint": {
+          "type": "string"
+        },
+        "page": {
+          "$ref": "#/definitions/page"
+        }
+      },
+      "required": [
+        "table",
+        "label",
+        "when"
+      ],
+      "additionalProperties": false
+    },
+    "dungeonRange": {
+      "type": "object",
+      "properties": {
+        "min": {
+          "type": "integer"
+        },
+        "max": {
+          "type": "integer"
+        },
+        "default": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "min",
+        "max",
+        "default"
+      ],
+      "additionalProperties": false
+    },
+    "dungeonLinkWeights": {
+      "type": "object",
+      "properties": {
+        "open": {
+          "type": "number",
+          "minimum": 0
+        },
+        "door": {
+          "type": "number",
+          "minimum": 0
+        },
+        "locked": {
+          "type": "number",
+          "minimum": 0
+        },
+        "secret": {
+          "type": "number",
+          "minimum": 0
+        },
+        "bars": {
+          "type": "number",
+          "minimum": 0
+        },
+        "rubble": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "dungeonSiteType": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "archetype": {
+          "type": "string",
+          "enum": [
+            "halls",
+            "caverns",
+            "keep",
+            "channels",
+            "nave",
+            "tunnels"
+          ]
+        },
+        "description": {
+          "type": "string"
+        },
+        "keywords": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "rooms": {
+          "$ref": "#/definitions/id"
+        },
+        "lair": {
+          "$ref": "#/definitions/id"
+        },
+        "entrance": {
+          "$ref": "#/definitions/id"
+        },
+        "hall": {
+          "$ref": "#/definitions/id"
+        },
+        "passageName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "levelName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "outsideName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "links": {
+          "$ref": "#/definitions/dungeonLinkWeights"
+        },
+        "flags": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        },
+        "passageFlags": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        },
+        "vars": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "archetype",
+        "rooms"
+      ],
+      "additionalProperties": false
+    },
+    "dungeonThreat": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "occupied": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "vars": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "occupied"
+      ],
+      "additionalProperties": false
+    },
+    "dungeonTheme": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "keywords": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "vars": {
+          "type": "object"
+        },
+        "dressing": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "label"
+      ],
+      "additionalProperties": false
+    },
+    "dungeonPick": {
+      "type": "object",
+      "properties": {
+        "table": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "id": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "presets": {
+          "$ref": "#/definitions/id"
+        },
+        "lists": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          }
+        },
+        "match": {
+          "type": "object",
+          "additionalProperties": {
+            "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+          }
+        },
+        "where": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "fits": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        }
+      },
+      "additionalProperties": false
+    },
+    "dungeonEncounterGroup": {
+      "type": "object",
+      "properties": {
+        "n": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "when": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "id": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "presets": {
+          "$ref": "#/definitions/id"
+        },
+        "lists": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          }
+        },
+        "match": {
+          "type": "object",
+          "additionalProperties": {
+            "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+          }
+        },
+        "where": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "fits": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        }
+      },
+      "required": [
+        "n"
+      ],
+      "additionalProperties": false
+    },
+    "dungeonEncounters": {
+      "type": "object",
+      "properties": {
+        "table": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "prefer": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "groups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/dungeonEncounterGroup"
+          },
+          "minItems": 1,
+          "maxItems": 6
+        },
+        "creatureType": {
+          "$ref": "#/definitions/id"
+        },
+        "xp": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "activity": {
+          "$ref": "#/definitions/id"
+        },
+        "detail": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "passages": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "cite": {
+          "$ref": "#/definitions/cite"
+        },
+        "original": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "table",
+        "groups",
+        "creatureType"
+      ],
+      "additionalProperties": false
+    },
+    "dungeonTraps": {
+      "type": "object",
+      "properties": {
+        "chance": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "pick": {
+          "$ref": "#/definitions/dungeonPick"
+        },
+        "label": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "detail": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "cite": {
+          "$ref": "#/definitions/cite"
+        },
+        "original": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "chance",
+        "pick",
+        "label"
+      ],
+      "additionalProperties": false
+    },
+    "dungeonTreasure": {
+      "type": "object",
+      "properties": {
+        "chance": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "coins": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "coinsLabel": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "itemCount": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "items": {
+          "$ref": "#/definitions/dungeonPick"
+        },
+        "itemLabel": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "cite": {
+          "$ref": "#/definitions/cite"
+        },
+        "original": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "chance"
+      ],
+      "additionalProperties": false
+    },
+    "dungeonDoors": {
+      "type": "object",
+      "properties": {
+        "lock": {
+          "$ref": "#/definitions/dungeonPick"
+        },
+        "notes": {
+          "type": "object",
+          "properties": {
+            "open": {
+              "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+            },
+            "door": {
+              "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+            },
+            "locked": {
+              "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+            },
+            "secret": {
+              "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+            },
+            "bars": {
+              "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+            },
+            "rubble": {
+              "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "dungeonAcceptEntity": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/id"
+        },
+        "subtype": {
+          "$ref": "#/definitions/id"
+        },
+        "fields": {
+          "type": "object",
+          "additionalProperties": {
+            "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+          }
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    "dungeonAccept": {
+      "type": "object",
+      "properties": {
+        "site": {
+          "$ref": "#/definitions/dungeonAcceptEntity"
+        },
+        "room": {
+          "$ref": "#/definitions/dungeonAcceptEntity"
+        },
+        "encounter": {
+          "$ref": "#/definitions/dungeonAcceptEntity"
+        },
+        "creatures": {
+          "type": "boolean"
+        },
+        "hazards": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "dungeonConfig": {
+      "type": "object",
+      "properties": {
+        "grid": {
+          "type": "object",
+          "properties": {
+            "size": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "unit": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 12
+            },
+            "metres": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "required": [
+            "size",
+            "unit",
+            "metres"
+          ],
+          "additionalProperties": false
+        },
+        "siteTypes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/dungeonSiteType"
+          },
+          "minItems": 1,
+          "maxItems": 24
+        },
+        "sizes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "$ref": "#/definitions/id"
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1
+              },
+              "rooms": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 3,
+                  "maximum": 60
+                },
+                "minItems": 2,
+                "maxItems": 2
+              }
+            },
+            "required": [
+              "id",
+              "label",
+              "rooms"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1,
+          "maxItems": 8
+        },
+        "maxLevels": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "partyLevel": {
+          "$ref": "#/definitions/dungeonRange"
+        },
+        "partySize": {
+          "$ref": "#/definitions/dungeonRange"
+        },
+        "threats": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/dungeonThreat"
+          },
+          "minItems": 1,
+          "maxItems": 8
+        },
+        "defaultThreat": {
+          "$ref": "#/definitions/id"
+        },
+        "themes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/dungeonTheme"
+          },
+          "maxItems": 24
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "maxLength": 60
+          }
+        },
+        "dressing": {
+          "type": "object",
+          "properties": {
+            "rooms": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/id"
+              }
+            },
+            "passages": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/id"
+              }
+            },
+            "passageChance": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "doors": {
+          "$ref": "#/definitions/dungeonDoors"
+        },
+        "encounters": {
+          "$ref": "#/definitions/dungeonEncounters"
+        },
+        "traps": {
+          "$ref": "#/definitions/dungeonTraps"
+        },
+        "treasure": {
+          "$ref": "#/definitions/dungeonTreasure"
+        },
+        "legend": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/mapLegendEntry"
+          }
+        },
+        "zoneTables": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/mapZoneTable"
+          }
+        },
+        "accept": {
+          "$ref": "#/definitions/dungeonAccept"
+        },
+        "keyRooms": {
+          "type": "object",
+          "properties": {
+            "locationSubtypes": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/id"
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "grid",
+        "siteTypes",
+        "sizes",
+        "threats"
+      ],
+      "additionalProperties": false
+    },
+    "mapGenerator": {
+      "type": "object",
+      "properties": {
+        "engine": {
+          "const": "dungeon",
+          "description": "The built-in engine that runs it."
+        },
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string"
+        },
+        "page": {
+          "$ref": "#/definitions/page"
+        },
+        "cite": {
+          "$ref": "#/definitions/cite"
+        },
+        "original": {
+          "type": "boolean"
+        },
+        "mode": {
+          "$ref": "#/definitions/modes"
+        },
+        "config": {
+          "$ref": "#/definitions/dungeonConfig"
+        }
+      },
+      "required": [
+        "engine",
+        "id",
+        "name",
+        "config"
       ],
       "additionalProperties": false
     },

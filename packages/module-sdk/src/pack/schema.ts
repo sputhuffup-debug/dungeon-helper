@@ -66,6 +66,11 @@ import type {
   GmScreenTableBlock,
   GmScreenTextBlock,
   JsonSchema,
+  MapBorderKind,
+  MapLegendEntry,
+  MapMarkerKind,
+  MapZoneKind,
+  MapZoneTable,
   ModuleLicense,
   ModuleManifest,
   NestedRoll,
@@ -109,6 +114,25 @@ import type {
   SupplementManifest,
 } from "./types";
 import { PACK_FORMAT, PACK_FORMAT_VERSION, PACK_PART_FORMAT, SUPPLEMENT_FORMAT, SUPPLEMENT_FORMAT_VERSION, SUPPLEMENT_PART_FORMAT } from "./types";
+import type {
+  DungeonAccept,
+  DungeonAcceptEntity,
+  DungeonArchetype,
+  DungeonConfig,
+  DungeonDoors,
+  DungeonEncounterGroup,
+  DungeonEncounters,
+  DungeonLinkKind,
+  DungeonPick,
+  DungeonRange,
+  DungeonSiteType,
+  DungeonTheme,
+  DungeonThreat,
+  DungeonTraps,
+  DungeonTreasure,
+  PackMapGenerator,
+} from "../mapgen/types";
+import { DUNGEON_ARCHETYPES, DUNGEON_LINKS } from "../mapgen/types";
 
 // ---------------------------------------------------------------------------
 // Typed builders
@@ -174,6 +198,9 @@ const GRANT_OPS = ["set", "add", "append", "remove", "max", "min", "upsert"] as 
 const GM_SCREEN_SIZES = ["third", "half", "full"] as const satisfies readonly GmScreenSize[];
 const GM_SCREEN_SIDES = ["gm", "players"] as const satisfies readonly GmScreenSide[];
 const CHECKLIST_PHASES = ["prep", "play", "wrap"] as const satisfies readonly SessionChecklistPhase[];
+const MAP_BORDER_KINDS = ["open", "wall", "door", "hatch", "blast", "access", "stairs", "shaft", "bars", "rubble"] as const satisfies readonly MapBorderKind[];
+const MAP_MARKER_KINDS = ["start", "spawn", "waypoint", "clue", "npc", "win", "label", "hazard", "trap", "treasure"] as const satisfies readonly MapMarkerKind[];
+const MAP_ZONE_KINDS = ["room", "corridor", "crawlspace", "shaft", "exterior", "out-of-bounds"] as const satisfies readonly MapZoneKind[];
 const CHECKLIST_EVENTS = [
   "scenes-planned", "log-written", "revealed", "prompts-answered", "summary-saved", "loose-ends-carried", "timeline-confirmed", "next-session-planned", "awards-given",
 ] as const satisfies readonly SessionChecklistEvent[];
@@ -903,6 +930,154 @@ const definitions: Record<string, JsonSchema> = {
     },
     ["id"],
   ),
+  // Map generators (built-in engines)
+  mapLegendEntry: object<MapLegendEntry>()(
+    {
+      target: {
+        anyOf: [
+          { type: "object", properties: { border: oneOfValues<MapBorderKind>()(MAP_BORDER_KINDS) }, required: ["border"], additionalProperties: false },
+          { type: "object", properties: { flag: text, value: {} }, required: ["flag"], additionalProperties: false },
+          { type: "object", properties: { area: text }, required: ["area"], additionalProperties: false },
+          { type: "object", properties: { marker: oneOfValues<MapMarkerKind>()(MAP_MARKER_KINDS) }, required: ["marker"], additionalProperties: false },
+          { type: "object", properties: { kind: oneOfValues<MapZoneKind>()(MAP_ZONE_KINDS) }, required: ["kind"], additionalProperties: false },
+        ],
+      },
+      label: text,
+      rule: str(),
+      page: ref("page"),
+      cite: ref("cite"),
+      gmOnly: bool,
+      color: str({ maxLength: 60 }),
+      icon: str({ maxLength: 40 }),
+    },
+    ["target", "label"],
+  ),
+  mapZoneTable: object<MapZoneTable>()(
+    {
+      table: ref("id"),
+      label: text,
+      when: object<MapZoneTable["when"]>()({ layer: { enum: ["floor", "duct"] }, kind: oneOfValues<MapZoneKind>()(MAP_ZONE_KINDS), flag: text }, []),
+      hint: str(),
+      page: ref("page"),
+    },
+    ["table", "label", "when"],
+  ),
+  dungeonRange: object<DungeonRange>()({ min: int(), max: int(), default: int() }, ["min", "max", "default"]),
+  dungeonLinkWeights: object<Partial<Record<DungeonLinkKind, number>>>()(
+    Object.fromEntries(DUNGEON_LINKS.map((k) => [k, { type: "number", minimum: 0 }])) as unknown as { [K in DungeonLinkKind]: JsonSchema },
+    [],
+  ),
+  dungeonSiteType: object<DungeonSiteType>()(
+    {
+      id: ref("id"),
+      label: text,
+      archetype: oneOfValues<DungeonArchetype>()(DUNGEON_ARCHETYPES),
+      description: str(),
+      keywords: list(text),
+      rooms: ref("id"),
+      lair: ref("id"),
+      entrance: ref("id"),
+      hall: ref("id"),
+      passageName: text,
+      levelName: text,
+      outsideName: text,
+      links: ref("dungeonLinkWeights"),
+      flags: { type: "object", additionalProperties: { type: "number", minimum: 0, maximum: 1 } },
+      passageFlags: { type: "object", additionalProperties: { type: "number", minimum: 0, maximum: 1 } },
+      vars: freeObject,
+    },
+    ["id", "label", "archetype", "rooms"],
+  ),
+  dungeonThreat: object<DungeonThreat>()({ id: ref("id"), label: text, occupied: { type: "number", minimum: 0, maximum: 1 }, vars: freeObject }, ["id", "label", "occupied"]),
+  dungeonTheme: object<DungeonTheme>()({ id: ref("id"), label: text, keywords: list(text), vars: freeObject, dressing: list(ref("id")) }, ["id", "label"]),
+  dungeonPick: object<DungeonPick>()(
+    { table: logic, id: logic, presets: ref("id"), lists: list(ref("id")), match: { type: "object", additionalProperties: logic }, where: logic, fits: logic },
+    [],
+  ),
+  dungeonEncounterGroup: object<DungeonEncounterGroup>()(
+    { n: logic, when: logic, id: logic, presets: ref("id"), lists: list(ref("id")), match: { type: "object", additionalProperties: logic }, where: logic, fits: logic },
+    ["n"],
+  ),
+  dungeonEncounters: object<DungeonEncounters>()(
+    {
+      table: logic,
+      prefer: logic,
+      groups: list(ref("dungeonEncounterGroup"), { minItems: 1, maxItems: 6 }),
+      creatureType: ref("id"),
+      xp: logic,
+      activity: ref("id"),
+      detail: logic,
+      passages: { type: "number", minimum: 0, maximum: 1 },
+      cite: ref("cite"),
+      original: bool,
+    },
+    ["table", "groups", "creatureType"],
+  ),
+  dungeonTraps: object<DungeonTraps>()({ chance: logic, pick: ref("dungeonPick"), label: logic, detail: logic, cite: ref("cite"), original: bool }, ["chance", "pick", "label"]),
+  dungeonTreasure: object<DungeonTreasure>()(
+    { chance: logic, coins: logic, coinsLabel: logic, itemCount: logic, items: ref("dungeonPick"), itemLabel: logic, cite: ref("cite"), original: bool },
+    ["chance"],
+  ),
+  dungeonDoors: object<DungeonDoors>()(
+    {
+      lock: ref("dungeonPick"),
+      notes: object<NonNullable<DungeonDoors["notes"]>>()(Object.fromEntries(DUNGEON_LINKS.map((k) => [k, logic])) as unknown as { [K in DungeonLinkKind]: JsonSchema }, []),
+    },
+    [],
+  ),
+  dungeonAcceptEntity: object<DungeonAcceptEntity>()({ type: ref("id"), subtype: ref("id"), fields: { type: "object", additionalProperties: logic } }, ["type"]),
+  dungeonAccept: object<DungeonAccept>()(
+    { site: ref("dungeonAcceptEntity"), room: ref("dungeonAcceptEntity"), encounter: ref("dungeonAcceptEntity"), creatures: bool, hazards: bool },
+    [],
+  ),
+  dungeonConfig: object<DungeonConfig>()(
+    {
+      grid: object<DungeonConfig["grid"]>()({ size: { type: "number", exclusiveMinimum: 0 }, unit: str({ minLength: 1, maxLength: 12 }), metres: { type: "number", exclusiveMinimum: 0 } }, ["size", "unit", "metres"]),
+      siteTypes: list(ref("dungeonSiteType"), { minItems: 1, maxItems: 24 }),
+      sizes: list(
+        object<DungeonConfig["sizes"][number]>()(
+          { id: ref("id"), label: text, rooms: { type: "array", items: { type: "integer", minimum: 3, maximum: 60 }, minItems: 2, maxItems: 2 } },
+          ["id", "label", "rooms"],
+        ),
+        { minItems: 1, maxItems: 8 },
+      ),
+      maxLevels: int({ minimum: 1, maximum: 5 }),
+      partyLevel: ref("dungeonRange"),
+      partySize: ref("dungeonRange"),
+      threats: list(ref("dungeonThreat"), { minItems: 1, maxItems: 8 }),
+      defaultThreat: ref("id"),
+      themes: list(ref("dungeonTheme"), { maxItems: 24 }),
+      labels: { type: "object", additionalProperties: str({ maxLength: 60 }) },
+      dressing: object<NonNullable<DungeonConfig["dressing"]>>()(
+        { rooms: list(ref("id")), passages: list(ref("id")), passageChance: { type: "number", minimum: 0, maximum: 1 } },
+        [],
+      ),
+      doors: ref("dungeonDoors"),
+      encounters: ref("dungeonEncounters"),
+      traps: ref("dungeonTraps"),
+      treasure: ref("dungeonTreasure"),
+      legend: list(ref("mapLegendEntry")),
+      zoneTables: list(ref("mapZoneTable")),
+      accept: ref("dungeonAccept"),
+      keyRooms: object<NonNullable<DungeonConfig["keyRooms"]>>()({ locationSubtypes: list(ref("id")) }, []),
+    },
+    ["grid", "siteTypes", "sizes", "threats"],
+  ),
+  mapGenerator: object<PackMapGenerator>()(
+    {
+      engine: { const: "dungeon", description: "The built-in engine that runs it." },
+      id: ref("id"),
+      name: text,
+      description: str(),
+      page: ref("page"),
+      cite: ref("cite"),
+      original: bool,
+      mode: ref("modes"),
+      config: ref("dungeonConfig"),
+    },
+    ["engine", "id", "name", "config"],
+  ),
+
   producedEntity: object<PackProducedEntity>()(
     {
       tempId: text,
@@ -974,6 +1149,7 @@ export const MODULE_PACK_SCHEMA: JsonSchema = {
       d20Combat: ref("d20Combat"),
       gmScreen: ref("gmScreen"),
       characterBuilders: list(ref("characterBuilder")),
+      mapGenerators: list(ref("mapGenerator"), { maxItems: 8 }),
       parts: list(str({ pattern: "^[A-Za-z0-9][A-Za-z0-9_.-]*\\.json$" }), { uniqueItems: true }),
       ...collections,
     },
