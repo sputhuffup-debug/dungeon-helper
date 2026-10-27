@@ -39,6 +39,7 @@ Every step takes `id`, `title`, `intro`, `guide` (tips for the side panel), `sum
 | Source | Options |
 |---|---|
 | `{ "list": "mypack.classes", "where": rule }` | The items of a reference list (supplement items included, with their source badge) that `where` keeps |
+| `{ "lists": rule, "where": rule }` | The items of every list the rule names, in order: list ids written out (`["mypack.feats.general", "mypack.feats.skill"]`) or worked out from a pick (`{ "merge": [[{ "var": "choices.class.item.builder.featList" }], ["mypack.feats.archetype"]] }`: a class's own feat list, which may be a supplement's, plus another). An id two lists share is offered once, from the first list |
 | `{ "options": [{ "id", "name", "summary", ... }] }` | Fixed options; extra keys are data for the rules (`item.<key>`) |
 | `{ "values": rule, "list": "mypack.skills" }` | Options worked out from earlier choices: ids of `list` items (or names), plain strings, or objects with `id` and `name` |
 | `{ "range": { "min": 1, "max": 20, "label": "Level" } }` | Whole numbers, shown as a number picker; `choices.<id>.value` is the number |
@@ -130,7 +131,7 @@ Inside `filter`, `map`, `some` and `reduce` a `var` sees only the element; preco
 
 Each choice reports what is missing (fewer picks than `min`, a roll not made), what is wrong (more than `max`, a pick that is no longer available) and fails its `validate` checks (`{ rule, message, level }`, true means fine). The `abilities` step checks its method (each array value once, the point budget, the score range). The finished fields are validated against the entity type's schema. The stepper shows each step as done, to do or wrong, and *Create* stays off until nothing is missing or wrong.
 
-`module-check` and the conformance suite report unknown entity types, lists, fields, list items in `itemData` and grant ops, JSONLogic errors in any rule, duplicate ids, ability methods that do not fit (an array of the wrong length, a point buy without a cost for every score), and run a dry run that picks the first options everywhere and checks the result.
+`module-check` and the conformance suite report unknown entity types, lists (a `lists` source's written-out ids; worked-out ones in the dry run), fields, list items in `itemData` and grant ops, JSONLogic errors in any rule, duplicate ids, ability methods that do not fit (an array of the wrong length, a point buy without a cost for every score), and run a dry run that picks the first options everywhere and checks the result.
 
 ## Level-up
 
@@ -140,10 +141,13 @@ Each choice reports what is missing (fewer picks than `min`, a roll not made), w
 
 The app keeps drafts in the campaign (`meta.settings.characterDrafts`), one per unfinished character, with the picks by choice path, rolled dice, ability scores and typed fields. A choice's path is its step id, then `/<sub-choice id>` (with `.<n>` per `each` element, and `/<pick id>` under a choice that takes several picks). Picks that stop being options (a class changed) are kept but ignored.
 
-## For the ORC follow-up and other systems
+## Patterns for other systems
 
-- Ability *boosts* (PF2e-style) are choice steps whose grants `add` to attribute fields, with `available` keeping picks distinct; the `abilities` step kind is optional.
-- A pick's data drives everything: put structured data in `itemData` (or, for a supplement's items, a `builder` key on the item) rather than parsing text in rules.
+- Ability *boosts* (the remaster's) are choice steps over the attributes list whose grants `add` to attribute fields; a multi-pick choice keeps its picks distinct, and `available` keeps one source from boosting an attribute twice. The `abilities` step kind is optional.
+- A pick's data drives everything: put structured data in `itemData`, or a `builder` key on the item itself (what a supplement's items do, and what a converted list can carry for all its items, as the ORC module's converter does) rather than parsing text in rules.
 - Per-level tables (counts by level, features by level) belong in `data` or `itemData`, read with `lookup`.
+- Per-level choices written once: a sub-choice with `each` over the levels and a single option (picked by itself) whose grants set a builder variable (`$level`) and whose sub-choices read it. One `each` over a list of feat "slots" (`{ kind, label }` objects) keeps a level's class, ancestry, skill and general feats in one rule.
+- A class's own feat list (perhaps a supplement's) and an optional second list: a `lists` source.
+- Work out an id list once into a builder variable before an `each` over a reference list, so the list's `where` stays cheap.
 
-Examples: `packages/module-example/packs/example-pack/pack.json` (small) and `packages/module-dnd5e-srd/scripts/authored/builder.ts` (the fifth edition builder: editions, races and lineages, classes with multiclassing, backgrounds with origin feats, equipment packages, spells).
+Examples: `packages/module-example/packs/example-pack/pack.json` (small), `packages/module-dnd5e-srd/scripts/authored/builder.ts` (the fifth edition builder: editions, races and lineages, classes with multiclassing, backgrounds with origin feats, equipment packages, spells) and `packages/module-pf2e-orc/scripts/authored/builder.ts` (the remaster builder: ancestry boosts and flaws, partial boosts, per-level feats and skill increases, class choices by tag, feat prerequisites, starting wealth; its item data comes from the converter, `scripts/source/builderData.ts`).

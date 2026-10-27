@@ -9,6 +9,7 @@
  */
 import type { EntityPreset, ReferenceList } from "@campaign-forge/module-sdk";
 import { CREATURE, PACK } from "../ids.ts";
+import { characterBuilder } from "./builder.ts";
 import { d20Combat } from "./combat.ts";
 import { gmScreen } from "./gmScreen.ts";
 import { characterType, creatureType, type HpTable, encounterType, factionType, hazardType, itemType, locationType, npcType, questType } from "./entityTypes.ts";
@@ -48,6 +49,7 @@ export function buildAuthored(data: GeneratedData): Record<string, unknown> {
     primer,
     d20Combat: d20Combat(data.lists),
     gmScreen,
+    characterBuilders: [characterBuilder({ lists: data.lists })],
     templates,
     calendar,
     styleNotes: [

@@ -23,7 +23,7 @@ import { PART_BUDGET } from "./convert.ts";
 import { TRADEMARK_NOTICE } from "./authored/manifest.ts";
 import { attributionText, BOOKS, EXTENDS, SUPPLEMENT, SUPPLEMENT_NAME, SUPPLEMENT_VERSION } from "./supplement/books.ts";
 import { candidates } from "./supplement/candidates.ts";
-import { assertSupplementClean, baseListIds, convertSupplementSource, type SupplementContent } from "./supplement/convert.ts";
+import { assertSupplementClean, baseModule, convertSupplementSource, type SupplementContent } from "./supplement/convert.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
 export const PACKAGE_DIR = resolve(here, "..");
@@ -131,7 +131,7 @@ export function buildSupplementFiles(root: string): SupplementBuild {
   const licence = readFileSync(join(root, "static", "licenses", "ORCLicense.md"), "utf8");
   for (const b of BOOKS) if (!b.todo && !licence.includes(b.attribution)) throw new Error(`${b.title}: the attribution line is not in the source's ORCLicense.md`);
 
-  const out = convertSupplementSource(root, baseListIds(PACK_DIR));
+  const out = convertSupplementSource(root, baseModule(PACK_DIR));
   const c = out.content;
   const itemsOf = (test: (listId: string) => boolean) => c.referenceItems.filter((l) => test(l.listId)).flatMap((l) => l.items.map((item) => ({ kind: "item" as const, listId: l.listId, item })));
   const groups: Array<[string, Parameters<typeof packParts>[1]]> = [

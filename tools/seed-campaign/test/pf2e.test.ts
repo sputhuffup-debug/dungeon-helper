@@ -153,6 +153,21 @@ describe("buildPf2eDemo", async () => {
     expect(Object.keys(s.checklist ?? {})).toContain("pf2e-orc.prep.encounters");
   });
 
+  it("has a character half-way through the builder, at the attribute boosts, that resolves with no errors", async () => {
+    const { resolveCharacterBuilder } = await import("@campaign-forge/module-sdk");
+    const drafts = Object.values(maps.meta.settings.characterDrafts as Record<string, Parameters<typeof resolveCharacterBuilder>[2] & { step: string }>);
+    expect(drafts).toHaveLength(1);
+    const draft = drafts[0]!;
+    expect(draft.step).toBe("boosts");
+    const res = resolveCharacterBuilder(game, game.characterBuilders![0]!, draft);
+    expect(res.issues.filter((i) => i.level === "error")).toEqual([]);
+    expect(res.complete).toBe(false);
+    expect(res.name).toBe("Maren Ashdown");
+    // dwarf Con and Wis, free Str, Cha flaw; acolyte Wis and Con; cleric Wis; three of four free boosts so far
+    expect(res.fields.attributes).toEqual({ strength: 2, dexterity: 1, constitution: 2, intelligence: 0, wisdom: 4, charisma: -1 });
+    expect(res.fields).toMatchObject({ ancestry: "dwarf", heritage: "Rock Dwarf", background: "Acolyte", class: "cleric", subclass: "Warpriest" });
+  });
+
   it("produces entities whose fields validate against their module schema", () => {
     const problems: string[] = [];
     for (const e of entities) {

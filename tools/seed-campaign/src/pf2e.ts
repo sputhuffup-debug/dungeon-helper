@@ -735,6 +735,7 @@ export async function buildPf2eDemo(opts: BuildPf2eDemoOptions = {}): Promise<Pf
       `- **Four degrees of success**: roll a skill from a sheet with a DC; beat it by 10 for a critical success, and watch a natural 20 or 1 move the result.`,
       `- **Table mode**: start session 1. The first scene is ${ref(thieves)}; roll initiative on the Trackers tab.`,
       `- **Generators**: ${ref(innkeeper)} was rolled with the NPC generator; try the encounter builder under Generate.`,
+      "- **Character builder**: Maren Ashdown, a dwarf cleric, is half-built on the Atlas PCs tab; resume her at the attribute boosts, or build a new character.",
       "",
       "Original adventure; the rules content is ORC-licensed (see Settings for the ORC notice and attribution).",
     ].join("\n"),
@@ -745,6 +746,37 @@ export async function buildPf2eDemo(opts: BuildPf2eDemoOptions = {}): Promise<Pf
     welcome: "**Hollowmere** is a one-shot for four level 1 heroes: someone is stealing lamp oil from a lakeside village, and the trail leads underground. Expect a mystery, a strange bargain and a dark place full of teeth.",
     tone: "Bright adventure with a few scares.\n\n- **Lines** (never in the game): \n- **Veils** (happen off screen): \n- **Safety tools**: an X-card on the table and a check-in at the break.",
   });
+
+  // -- a character half-way through the builder (the app's "Unfinished characters"; resume it from the PCs tab) --
+  const builder = game.characterBuilders?.[0];
+  if (builder) {
+    const at = new Date().toISOString();
+    const draftId = newId();
+    const draft = {
+      id: draftId,
+      builder: builder.id,
+      mode: "create" as const,
+      created: at,
+      updated: at,
+      seed: `${seed}/draft`,
+      step: "boosts",
+      visited: ["ancestry", "background", "class", "boosts"],
+      picks: {
+        ancestry: ["dwarf"],
+        "ancestry/heritage": ["rock-dwarf"],
+        "ancestry/boosts": ["standard"],
+        "ancestry/boosts/free": ["strength"],
+        background: ["acolyte"],
+        "background/boost": ["wisdom"],
+        "background/free": ["constitution"],
+        class: ["cleric"],
+        "class/select.0": ["warpriest"],
+        boosts: ["wisdom", "strength", "dexterity"],
+      },
+      values: { details: { "core.name": "Maren Ashdown" } },
+    };
+    store.updateMeta({ settings: { ...store.meta().settings, characterDrafts: { [draftId]: draft } } });
+  }
 
   const maps = store.toJSON();
   const resolve = nameResolver(store);

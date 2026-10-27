@@ -7,13 +7,530 @@
  "referenceItems": {
   "pf2e-orc.class-features": [
    {
+    "id": "pf2e-orc-books.plant-eidolon",
+    "name": "Plant Eidolon",
+    "level": 1,
+    "traits": "summoner",
+    "summary": "Your eidolon is an intelligent plant, formed from the same disembodied fragments of nature's life energy that become leshies.",
+    "description": "Your eidolon is an intelligent plant, formed from the same disembodied fragments of nature's life energy that become leshies. Plant eidolons tend to be curious and adaptable, with temperaments based on the parts of mortal culture they feel affinity toward. Despite coming from the same source, plant eidolons don't always look like leshies. Plant eidolons have forms that vary greatly and can look like almost any kind of plant creature in existence. Some even resemble plant creatures so strange they are impossible to identify.\n\n**Tradition** primal\n\n**Traits** eidolon, plant\n\n**Home Plane** the universe\n\n**Size** Medium\n\n**Suggested Attacks** branch (bludgeoning), root (bludgeoning), vine (bludgeoning)\n\n**Eidolon Attributes** Con +3, Int –1, Wis +1, Cha +0\n\n**Skills** Nature, Survival\n\n**Senses** low-light vision\n\n**Language** Muan\n\n**Speed** 25 feet\n\n**Initial (1st)—Tendril Strike** ◆ (eidolon) Stretching to extend their body to its limits, your eidolon attacks a foe that would normally be beyond their reach. Your eidolon makes a melee unarmed Strike, increasing their reach by 5 feet for that Strike. If the unarmed attack has the disarm, shove, or trip trait, the eidolon can use the corresponding action instead of a Strike.\n\n**Symbiosis (7th)—Growing Vines** Your eidolon's vines and branches lengthen even more. All your eidolon's melee unarmed attacks gain the reach trait.\n\n**Transcendence (17th)—Field of Roots** ◆◆ (eidolon) Your eidolon extends their roots underground to entangle and possibly damage all foes nearby. All enemies within your eidolon's reach take damage of the same type and amount as your eidolon's most damaging Strike, depending on their Reflex saves against your spell DC. Any ongoing effects of the save last until the enemy either Escapes or leaves your eidolon's reach. After using Field of Roots, your eidolon is immobilized until they take an Interact action to detach from the ground; this also ends any remaining effects on enemies from Field of Roots.\n\n**Critical Success** The enemy is unaffected.\n\n**Success** The enemy takes no damage, but takes a –10 foot circumstance penalty to its Speeds.\n\n**Failure** The enemy takes half damage, takes a –10-foot circumstance penalty to its Speeds, and at the end of each of its turns, takes half damage again.\n\n**Critical Failure** The enemy is immobilized, takes full damage, and at the end of each of its turns, takes full damage again.",
+    "cite": "Impossible Magic — Class Features: Plant Eidolon",
+    "builder": {
+     "tags": [
+      "summoner-eidolon"
+     ],
+     "ranks": [
+      {
+       "path": "skills.nature",
+       "rank": 1
+      },
+      {
+       "path": "skills.survival",
+       "rank": 1
+      }
+     ]
+    }
+   },
+   {
+    "id": "pf2e-orc-books.precise-discipline",
+    "name": "Precise Discipline",
+    "level": 1,
+    "traits": "psychic",
+    "summary": "Determine intended outcome.",
+    "description": "Determine intended outcome. Align thoughts. Identify and resolve distractions. Manifest. Intentional focus is the key to unleashing your abilities, whether that's because your power naturally tends to precise, discrete effects, or because you've adopted strict discipline to ensure your mind can change the world only when you intend it to.\n\nYour thoughtforms are calculations you make to determine the forces you need to call upon. Perhaps you mentally weigh the mass of an object against the force of gravity to levitate it or you might determine exactly how much energy is needed for an object to combust. Calculation thoughtforms tend to impart ordered visual and auditory effects to your spell manifestation, such as regular tessellations of light, mathematical spirals, or harmonic tones.\n\n**Key Attribute** Your key attribute is Intelligence.\n\n**Psyche Action** Calculate Threats",
+    "cite": "Dark Archive (Remastered) — Class Features: Precise Discipline",
+    "builder": {
+     "tags": [
+      "psychic-subconscious-mind"
+     ],
+     "grants": [
+      "Calculate Threats"
+     ]
+    }
+   },
+   {
+    "id": "pf2e-orc-books.precognitive-reflexes",
+    "name": "Precognitive Reflexes",
+    "level": 5,
+    "traits": "psychic",
+    "summary": "Minor precognition ensures you can react to threats slightly before they occur.",
+    "description": "Minor precognition ensures you can react to threats slightly before they occur. Your proficiency rank for Reflex saves increases to expert.",
+    "cite": "Dark Archive (Remastered) — Class Features: Precognitive Reflexes"
+   },
+   {
+    "id": "pf2e-orc-books.psi-cantrips-and-amps",
+    "name": "Psi Cantrips and Amps",
+    "level": 1,
+    "traits": "psychic",
+    "summary": "The magic of your mind manifests as psi cantrips, which you can modify by spending Focus Points.",
+    "description": "The magic of your mind manifests as psi cantrips, which you can modify by spending Focus Points. Like other cantrips, you can cast psi cantrips as often as you like, and they are automatically heightened to half your level rounded up. Your psi cantrips are in addition to the cantrips you choose from the occult list as part of your psychic spellcasting. Generally, only feats can give you more psi cantrips. Unlike other cantrips, you can't swap out psi cantrips gained from psychic feats at a later level, unless you swap out the specific feat via retraining. At 1st level, you learn three psi cantrips determined by your choice of conscious mind; one is a unique psi cantrip and two are common cantrips, typically from the occult spellcasting tradition, that you always cast as psi cantrips. You automatically gain more psi cantrips as you progress in your career as a psychic.\n\nYou start with a focus pool of 2 Focus Points. However, unlike other spellcasters, you don't gain focus spells that cost Focus Points to cast. Instead, you use your Focus Points to boost or modify your psi cantrips by applying amps—specialized thoughtforms that alter the expression of your psychic power. Each of your psi cantrips has a special amp heading. Whenever you cast a psi cantrip, you can amp it by spending 1 Focus Point as a free action. If the next action you take is to cast the psi cantrip, you add the amp effect. If the spell is a reaction or triggered free action, instead spend the Focus Point as part of that action to add the amped effect. You can also gain additional amps through feats, allowing you to substitute a psi cantrip's normal amp effect for another one. You choose which amp to use, if you choose to use any, each time you cast a psi cantrip. Unless otherwise noted, you can apply only one amp to a given psi cantrip.\n\nYou refill your focus pool during your daily preparations, and you can regain Focus Points by spending 10 minutes using the Refocus activity to explore your mind, whether via meditation, practicing a craft or activity that gives you the mental space to self-reflect, or talking through your thoughts and feelings with yourself or another. If you've spent Focus Points only to amp psi cantrips or fuel psychic abilities since the last time you Refocused, you regain 2 Focus Points instead of 1. If you've spent Focus Points on focus spells or abilities other than those from the psychic class (for instance, to cast a focus spell you gained from an archetype), you regain only 1 Focus Point.",
+    "cite": "Dark Archive (Remastered) — Class Features: Psi Cantrips and Amps"
+   },
+   {
+    "id": "pf2e-orc-books.psychic-spellcasting",
+    "name": "Psychic Spellcasting",
+    "level": 1,
+    "traits": "psychic",
+    "summary": "You access the vast well of power that resides within your own mind, calling forth psychic magic with nothing but thought and will.",
+    "description": "You access the vast well of power that resides within your own mind, calling forth psychic magic with nothing but thought and will. You are a spellcaster and can cast occult spells using the Cast a Spell activity. You don't need to utter incantations to cast your spells, instead exerting your mind toward your intended effect as described in your subconscious mind class feature. Your spells still have clear and noticeable visual and auditory manifestations, as normal for a spellcaster.\n\nEach day, you can cast one 1st-rank spell. You must know spells to cast them, and you learn them via the spell repertoire class feature. The number of spells you can cast each day is called your spell slots.\n\nAs you increase in level as a psychic, your number of spells per day increases, as does the highest rank of spells you can cast.\n\nSome of your spells require you to attempt a spell attack roll to see how effective they are, or have your enemies roll against your spell DC (typically by attempting a saving throw). Since your key attribute is determined by your subconscious mind, your spell attack rolls and spell DCs use the modifier for the attribute stated in your subconscious mind.\n\n### **Heightening Spells**\n\nWhen you get spell slots of 2nd rank and higher, you can fill those slots with stronger versions of lower-rank spells. This increases the spell's rank, heightening it to match the spell slot. You must have a spell in your spell repertoire at the rank you want to cast in order to heighten it to that rank. Many spells have specific improvements when they are heightened to certain ranks. The signature spells class feature lets you heighten certain spells freely.\n\n### **Cantrips**\n\nSome of your spells are cantrips. A cantrip is a special type of spell that doesn't use spell slots. You can cast a cantrip at will, any number of times per day. A cantrip is automatically heightened to half your level rounded up—this is usually equal to the highest rank of psychic spell slot you have. For example, as a 1st-level psychic, your cantrips are 1st-rank spells, and as a 5th-level psychic, your cantrips are 3rd-rank spells.\n\nAs a psychic, you get the ability to improve some of your cantrips with special benefits and psi amps. Over the course of your career, your choice of conscious mind class feature gives you extra cantrips, benefits and psi amps for cantrips, and a collection of unique psi cantrips.",
+    "cite": "Dark Archive (Remastered) — Class Features: Psychic Spellcasting"
+   },
+   {
+    "id": "pf2e-orc-books.psychic-weapon-specialization",
+    "name": "Psychic Weapon Specialization",
+    "level": 13,
+    "traits": "psychic",
+    "summary": "As you touch a weapon, you glimpse the hands that made and wielded it, teaching you how to inflict greater injuries.",
+    "description": "As you touch a weapon, you glimpse the hands that made and wielded it, teaching you how to inflict greater injuries. You deal 2 additional Damage with weapons and unarmed attacks in which you are an expert. This damage increases to 3 if you're a master, and 4 if you're legendary.",
+    "cite": "Dark Archive (Remastered) — Class Features: Psychic Weapon Specialization"
+   },
+   {
+    "id": "pf2e-orc-books.puppeteer",
+    "name": "Puppeteer",
+    "level": 1,
+    "traits": "necromancer",
+    "summary": "You prefer to study life and death from afar.",
+    "description": "You prefer to study life and death from afar. You gain the Consume Thrall action and the thrall proliferation ability.\n\n**Thrall Proliferation** Once per round when you cast Create Thrall, you can create one additional thrall in range.",
+    "cite": "Impossible Magic — Class Features: Puppeteer",
+    "builder": {
+     "tags": [
+      "necromancer-fatal-method"
+     ],
+     "grants": [
+      "Consume Thrall"
+     ]
+    }
+   },
+   {
+    "id": "pf2e-orc-books.razor-prongs",
+    "name": "Razor Prongs",
+    "level": 1,
+    "traits": "inventor",
+    "summary": "You can knock down and slash your foes with sharp, curved blades.",
+    "description": "You can knock down and slash your foes with sharp, curved blades. Your innovation gains the tearing, trip, and versatile S traits.",
+    "cite": "Guns & Gears (Remastered) — Class Features: Razor Prongs",
+    "builder": {
+     "tags": [
+      "melee",
+      "weapon-innovation-modification"
+     ]
+    }
+   },
+   {
+    "id": "pf2e-orc-books.reaction-time",
+    "name": "Reaction Time",
+    "level": 7,
+    "traits": "guardian",
+    "summary": "You're always on the lookout for danger and can react to it in an instant.",
+    "description": "You're always on the lookout for danger and can react to it in an instant. Your proficiency rank for Perception increases to expert. At the start of each of your turns, you gain an additional reaction that you can use only for reactions from guardian feats or class features (including Shield Block). If you have the Ever Ready class feature, you also gain this additional reaction when you roll initiative for combat.",
+    "cite": "Battlecry! — Class Features: Reaction Time"
+   },
+   {
+    "id": "pf2e-orc-books.reaper",
+    "name": "Reaper",
+    "level": 1,
+    "traits": "necromancer",
+    "summary": "You study flesh up close by clashing blade against bone.",
+    "description": "You study flesh up close by clashing blade against bone. You gain the reaper's edge and thrall teamwork abilities.\n\n**Reaper's Edge** You become trained in martial weapons and medium armor. At 11th level, you become an expert in martial weapons, and at 13th you become an expert in medium armor.\n\n**Thrall Teamwork** Once per round after you cast Create Thrall, you can make a melee Strike as a free action against a creature within your melee reach that is adjacent to at least one of your thralls.",
+    "cite": "Impossible Magic — Class Features: Reaper",
+    "builder": {
+     "tags": [
+      "necromancer-fatal-method"
+     ]
+    }
+   },
+   {
+    "id": "pf2e-orc-books.reconfigure",
+    "name": "Reconfigure",
+    "level": 3,
+    "traits": "inventor",
+    "summary": "You've become an expert in all crafts and are always adjusting your inventions.",
+    "description": "You've become an expert in all crafts and are always adjusting your inventions. You can attempt to change the modifications on your innovation by spending 1 day of downtime tinkering with it and attempting a Crafting check, with a high DC for your level. On a success, you can change one modification you've chosen for your innovation to a different modification of the same kind (initial, breakthrough, or revolutionary).\n\nIf you have any modification feats, on a successful check you can choose to instead retrain a modification feat to a different modification feat. The new feat has to meet the standard restrictions for retraining.",
+    "cite": "Guns & Gears (Remastered) — Class Features: Reconfigure"
+   },
+   {
+    "id": "pf2e-orc-books.regalia",
+    "name": "Regalia",
+    "level": 1,
+    "traits": "thaumaturge",
+    "summary": "Regalia implements represent rulership, leadership, and social connections.",
+    "description": "Regalia implements represent rulership, leadership, and social connections. While they differ in shape depending on regional customs and markers used to signify authority, common regalia implements are scepters, jeweled orbs, and heraldic banners. Regalia implements are associated with the harrow suit of crowns and the astrological signs of the patriarch and the sovereign dragon.\n\n### **Initiate Benefit**\n\n### **Adept Benefit**\n\n### **Intensify Vulnerability**\n\nYour regalia implement makes you seem more confident and inspiring with each success. Whenever you successfully Strike the target of your Exploit Vulnerability, choose an ally that you can see. That ally gains a +1 circumstance bonus to its attack rolls against the creature until the beginning of your next turn. If the attack roll was a critical hit, the circumstance bonus increases to +2.\n\n### **Paragon Benefit**",
+    "cite": "Dark Archive (Remastered) — Class Features: Regalia",
+    "builder": {
+     "tags": [
+      "thaumaturge-implement"
+     ],
+     "grants": [
+      "Regalia Implement",
+      "Initiate Benefit (Regalia)"
+     ]
+    }
+   },
+   {
+    "id": "pf2e-orc-books.restless-as-the-tide",
+    "name": "Restless as the Tide",
+    "level": 7,
+    "traits": "exemplar",
+    "summary": "Your dominion is over the ocean, the great source and ultimate taker of lives.",
+    "description": "Your dominion is over the ocean, the great source and ultimate taker of lives. You gain the Energized Spark feat for your choice of water or cold. When you critically succeed on a Strike, water blasts the target and those nearby. This deals bludgeoning splash damage equal to the number of weapon damage dice to the target and all creatures within 10 feet of it. This effect has the water trait.\n\nWhen you Spark Transcendence, you can Step, your body carried along by a surging tide. If your transcendence affected an enemy, you can instead move that enemy 5 feet in a direction of your choice unless it succeeds at a Fortitude save against your class DC. If you move an enemy who started out adjacent to you, you can Step into the space it vacated.",
+    "cite": "War of Immortals — Class Features: Restless as the Tide",
+    "builder": {
+     "tags": [
+      "exemplar-dominion-epithet"
+     ],
+     "more": 1,
+     "feats": [
+      "Energized Spark"
+     ]
+    }
+   },
+   {
+    "id": "pf2e-orc-books.reveler-in-lost-glee",
+    "name": "Reveler in Lost Glee",
+    "level": 1,
+    "traits": "animist",
+    "summary": "Revelers in lost glee are twisted apparitions that arise in desolate and abandoned places where people once found great joy.",
+    "description": "Revelers in lost glee are twisted apparitions that arise in desolate and abandoned places where people once found great joy. They take immense mirth in causing harm or discomfort to others and do not enjoy being attuned to animists who fail to laugh at their antics.\n\n**Apparition Skills** Circus Lore, Fortune-Telling Lore\n\n**Apparition Spells**\n\n- **Cantrip**\n- **1st** Dizzying Colors\n- **2nd** Laughing Fit\n- **3rd** Hypnotize\n- **4th** Confusion\n- **5th** Illusory Scene\n- **6th** Vibrant Pattern\n- **7th** Warp Mind\n- **8th** Quandary\n- **9th** Wails of the Damned\n\n**Vessel Spell** Trickster's Mirrors\n\n**Avatar** *Ringmaster of the Dark Celebration* Speed 50 feet, ignore difficult terrain and greater difficult terrain\n\n**Melee** ◆ ringmaster's whip (reach 15 feet, trip), **Damage** 6d10+6 slashing\n\n**Ranged** ◆ feast of the lost (acid, range 120 feet, versatile void), **Damage** 6d6+6 acid",
+    "cite": "War of Immortals — Class Features: Reveler in Lost Glee",
+    "builder": {
+     "tags": [
+      "animist-apparition"
+     ]
+    }
+   },
+   {
+    "id": "pf2e-orc-books.revolutionary-innovation",
+    "name": "Revolutionary Innovation",
+    "level": 15,
+    "traits": "inventor",
+    "summary": "You are an unparalleled genius and have discovered a technique that will revolutionize your chosen field—or at least for the time being, your innovation!",
+    "description": "You are an unparalleled genius and have discovered a technique that will revolutionize your chosen field—or at least for the time being, your innovation! Choose a revolutionary modification to apply to your innovation. You can also choose an initial or breakthrough modification of the same type instead, if you prefer.\n\n### Revolutionary Armor Modifications\n\n- **Automated Impediments:** Your armor uses electromagnetic fields, subharmonic distortions, or other techniques to make it difficult for those close to you to move unless you allow it. While wearing your armor, all spaces adjacent to you are difficult terrain for your enemies.\n- **Energy Barrier:** Your armor's defenses ablate any kind of energy coming your way. While wearing your armor, you gain resistance to all energy damage (acid, cold, electricity, fire, force, sonic, vitality, and void damage) equal to 2 + half your level. You must have the harmonic oscillator, metallic reactance, or phlogistonic regulator modification to select this modification.\n- **Incredible Resistance:** You've improved upon your breakthrough modification's ability to resist damage. Choose one of the following breakthrough modifications your innovation has: dense plating, layered mesh, or tensile absorption. Increase the resistance you gain from that modification to be equal to your level, instead of half your level.\n- **Multisensory Mask (subterfuge suit only):** You've built a multisensory mask over your armor that protects you by distorting your figure from all senses, leaving behind only a hazy image, muffled sounds, and so forth. While wearing the armor, you gain concealment against all creatures, even if they are using a nonvisual precise sense, such as a bat's echolocation. As normal for effects that leave your location obvious, you can't use this concealment to Hide or Sneak. If you use a hostile action, the concealment ends until you restore the mask as a single action, which has the manipulate trait.\n- **Perfect Fortification (power suit only):** You've outfitted your armor with such heavy fortifications that deadly attacks often lose their edge. Each time you're critically hit while wearing the armor, attempt a DC 13 flat check. On a success, it becomes a normal hit. This isn't cumulative with *fortification* runes or other abilities that reduce critical hits with a flat check. Additionally, you gain resistance 2 + half your level against precision damage.\n- **Physical Protections:** Your armor has so many adjustments and precautions that it can guard against all physical damage. While wearing your armor, you gain resistance to all physical damage (bludgeoning, piercing, and slashing damage, as well as persistent bleed damage) equal to half your level. You must have the dense plating, layered mesh, or tensile absorption breakthrough modification to select this modification.\n- **Rune Capacity:** Whether you've done some dabbling in orichalcum alloys or found another engineering solution, you've built your innovation in such a way that it can hold an additional property rune. Your innovation can have one more property rune than a normal item of its kind (to a maximum of four property runes with a +3 *potency* armor).\n\n### Revolutionary Construct Modifications\n\n- **Flight Chassis:** You fit your construct with a means of flight, such as adding rotors or rebuilding it with wings and a lightweight construction. Your innovation gains a fly Speed of 25 feet.\n- **Miracle Gears:** As you perfect your innovation's cortex, it becomes much more intelligent. Its Intelligence modifier increases by 2, and it learns a language of your choice from among the languages you know. Your construct gains the ability to use actions that require greater Intelligence, like Coerce and Decipher Writing. Finally, your construct becomes legendary in two Intelligence- or Charisma-based skills of your choice. You must have the marvelous gears modification to select this modification.\n- **Resistant Coating:** Your innovation is hard to damage by any means. It gains resistance 5 to all damage (except adamantine).\n- **Runic Keystone:** You've incorporated a device similar to a *runestone* into your innovation, allowing it to hold a property rune, even though it isn't a weapon or suit of armor. An armor property rune affects your innovation itself if it would affect the wearer of the armor. A weapon property rune grants whatever properties it would normally grant to a weapon to your innovation's unarmed attacks, following all the requirements as normal (for instance, a *vorpal* rune would only apply to slashing melee unarmed attacks); if the rune affects only ranged attacks, it has no effect unless your innovation has a built-in ranged attack (from the projectile launcher initial modification, for example). If the rune would affect the physical shape or appearance of the weapon or armor itself, like *raiment*, the rune has no effect when etched into your construct.\n- **Wall Configuration:** Your innovation can transform from a mobile construct to a stationary battlefield emplacement. It can unfold as a 2-action activity that has the manipulate trait, changing from its usual form into a thin, straight wall of metal and gears up to 10 feet tall and 30 feet long. The wall must extend through your innovation's original space. While your construct is a wall, it can't take any actions except to use the same activity to transform back, and it can't defend itself easily, making it off-guard and giving it an additional –2 status penalty to its AC. The wall blocks line of sight and effect unless your innovation has half its maximum HP or fewer, at which point holes in the wall allow creatures to see through and attack with cover, and Tiny creatures to slip through.\n\n### Revolutionary Weapon Modifications\n\n- **Attack Refiner:** Your weapon makes minute recalibrations after every missed attack to ensure the next lands with vicious efficacy. Your innovation gains the backswing and forceful traits.\n- **Deadly Strike:** Through precise calculation, you've found the perfect way for your weapon to deal damage on a well-placed strike. Your innovation gains the deadly d8 trait. If your innovation was already deadly, increase the die by up to two die sizes (d6 to d10, d8 to d12), to a maximum of deadly d12.\n- **Enhanced Damage:** You've made your innovation more powerful than other weapons of its kind. Increase your innovation's weapon damage die by one step (d4 to d6, d6 to d8, d8 to d10, d10 to d12). As normal, you can't increase your die by more than one size, so this modification isn't cumulative with complex simplicity.\n- **Extensible Weapon (melee only):** You've found a way to construct your weapon so that it can extend while leaving its balance unchanged. Your innovation gains the reach trait. If the weapon already had the reach trait, it increases your reach by an additional 10 feet, instead of the usual additional 5 feet.\n- **Impossible Alloy:** Other inventors claim it's not even technically possible, but you've managed to create several metal alloys that seem to work for only you. These alloys can damage opponents vulnerable to any one of the seven skymetals. Your innovation is treated as all seven skymetals (abysium, adamantine, djezet, inubrix, noqual, orichalcum, and siccatite). This means you deal more damage to a variety of creatures, though you don't apply any of the other special effects for weapons made of those skymetals.\n- **Momentum Enhancer:** A special device lets your weapon move with uncanny speed. Your innovation gains the agile trait; if it had the reload ability, you can reload once per round as a free action.\n- **Omnirange Stabilizers (ranged only):** You've modified your innovation to be dangerous and effective at any range. If your innovation had the volley trait, remove the volley trait. Otherwise, increase your innovation's range increment by 50 feet or an amount equal to the weapon's base range increment, whichever is more.\n- **Rune Capacity:** Whether you've dabbled with orichalcum or found another engineering solution, you've built your innovation in such a way that it can hold an additional property rune. Your innovation can have one more property rune than a normal item of its kind (to a maximum of four property runes with a +3 *potency* weapon).",
+    "cite": "Guns & Gears (Remastered) — Class Features: Revolutionary Innovation",
+    "builder": {
+     "more": 1
+    }
+   },
+   {
+    "id": "pf2e-orc-books.ripple-in-the-deep",
+    "name": "Ripple in the Deep",
+    "level": 1,
+    "traits": "witch",
+    "summary": "When your patron appeared, it was as an unfathomably large shadow beneath the waves, possibly as an ancient denizen of the vast waters like a kraken.",
+    "description": "When your patron appeared, it was as an unfathomably large shadow beneath the waves, possibly as an ancient denizen of the vast waters like a kraken. Whether channeling the lethal terror of an oceanic predator or singing the ancestral wisdom of its gentle giants, your leviathan patron brings you lessons from the unplumbed depths of the world.\n\n**Spell List** primal\n\n**Patron Skill** Nature\n\n**Lesson of Surface and Seas** Your patron teaches of the dangers and wonders of its domain, even at the very edges of the water. You gain the Sting of the Sea hex cantrip, and your familiar learns Dizzying Colors or Grease.\n\n**Familiar of Overwhelming Tides** Your familiar constantly drips with ocean water. When you Cast or Sustain a hex, you can cause a small wave to surge forth from your familiar. One creature within 10 feet of your familiar is pushed 5 feet away from your familiar.",
+    "cite": "Howl of the Wild — Class Features: Ripple in the Deep",
+    "builder": {
+     "tags": [
+      "witch-elementalist-patron",
+      "witch-patron"
+     ],
+     "ranks": [
+      {
+       "path": "skills.nature",
+       "rank": 1
+      }
+     ]
+    }
+   },
+   {
+    "id": "pf2e-orc-books.root-epithet",
+    "name": "Root Epithet",
+    "level": 3,
+    "traits": "exemplar",
+    "summary": "As your story unfolds, your personality and deeds begin to shape the potential of your divine spark.",
+    "description": "As your story unfolds, your personality and deeds begin to shape the potential of your divine spark. You come to bear an epithet—a word or phrase that seems to always stick in the mind of those describing you. (You can find examples of acquiring epithets in the Earning your Name sidebar on page 35.) Your epithets grant you additional abilities, especially when your divine spark is brought to the surface.\n\nYou first gain a root epithet to describe an aspect of your personality. This grants you a skill, as well as a special effect that occurs when you Spark Transcendence. If you are already trained in the granted skill, you become trained in a different skill of your choice, as normal. An effect that occurs after you Spark Transcendence happens immediately after your transcendence action is completely resolved.",
+    "cite": "War of Immortals — Class Features: Root Epithet",
+    "builder": {
+     "selections": [
+      {
+       "tags": [
+        "exemplar-root-epithet"
+       ],
+       "count": 1
+      }
+     ]
+    }
+   },
+   {
+    "id": "pf2e-orc-books.rope-shot",
+    "name": "Rope Shot",
+    "level": 7,
+    "traits": "inventor",
+    "summary": "Your weapon can shoot projectiles that split into simple ropes or nets around your foes' legs to trip your targets, and you can climb using the grappling hooks built into the weapon.",
+    "description": "**Ranged Only**\n\nYour weapon can shoot projectiles that split into simple ropes or nets around your foes' legs to trip your targets, and you can climb using the grappling hooks built into the weapon. Your weapon innovation gains the climbing and ranged trip traits, as well as the tethered trait if it is thrown.",
+    "cite": "Guns & Gears (Remastered) — Class Features: Rope Shot",
+    "builder": {
+     "tags": [
+      "ranged",
+      "weapon-innovation-modification"
+     ]
+    }
+   },
+   {
+    "id": "pf2e-orc-books.rune-capacity",
+    "name": "Rune Capacity",
+    "level": 15,
+    "traits": "inventor",
+    "summary": "Whether you've done some dabbling in orichalcum alloys or found another engineering solution, you've built your innovation in such a way that it can hold an additional property rune.",
+    "description": "Whether you've done some dabbling in orichalcum alloys or found another engineering solution, you've built your innovation in such a way that it can hold an additional property rune. Your innovation can have one more property rune than a normal item of its kind (to a maximum of four property runes with a +3 *potency* armor).",
+    "cite": "Guns & Gears (Remastered) — Class Features: Rune Capacity",
+    "builder": {
+     "tags": [
+      "armor-innovation-modification",
+      "weapon-innovation-modification"
+     ]
+    }
+   },
+   {
+    "id": "pf2e-orc-books.runes",
+    "name": "Runes",
+    "level": 1,
+    "traits": "runesmith",
+    "summary": "Through meticulous study, you have carved the knowledge of secret runes into your mind and body.",
+    "description": "Through meticulous study, you have carved the knowledge of secret runes into your mind and body. You can apply special runesmith runes onto objects and creatures, which grant the bearer magical effects. You must know a rune to use it, and you learn runes via the runic repertoire class feature.\n\n### Applying Runes\n\nAll runes can be applied in one of two ways: a rune can be **etched** on or merely **traced**. An etched rune is carved, inked, or branded in; this application doesn't damage the creature or item. Etching runes requires an artisan's toolkit. Your magic can sustain up to two etched runes at a time, and this maximum increases as you go up in level. You can etch any number of runes up to your maximum during your daily preparations or by spending 10 minutes in exploration mode. Your etched runes remain indefinitely until they are expended or removed or until you etch more runes than your maximum, which causes your oldest rune to fade.\n\nA traced rune is drawn lightly in dust, light, or a similar fleeting medium. You can trace a rune with the Trace Rune action.\n\n### Invoking Runes\n\nMagic on your lips, you can pronounce the true name of a rune you have applied, calling it to power using invocation actions. You gain the Invoke Rune action.\n\n### Runic Magic\n\nRunes are magical effects. Some runes have a specific tradition trait; for instance, the elemental *ranshu, rune of thunder* is a primal rune. If a rune has the magical trait, you can choose to replace the magical trait with a specific tradition trait, provided you're trained in the skill matching that tradition. For instance, you could create an arcane *pluuna, rune of illumination* if you were trained in Arcana.\n\nThough runes aren't spells, some things that affect spells also affect runes. Abilities that restrict you from casting spells (such as being polymorphed into a battle form) or protect against spells (such as a spell that protects against other spells or a creature's bonus to saves against spells) also apply to tracing or invoking runes, though you can continue to benefit from the effects of a rune that's already applied.\n\nAny runes that require a saving throw use your runesmith class DC. Rune you etch or trace have the same level as you, even if this would increase the rune's initial level. For instance, if you're 5th level, your runes would be 5th level (and their counteract rank would be 3rd rank), even if you gained the rune at 1st level. Similar to spells, many runes get more powerful as you increase in level. In these cases, the rune ends with one or more Level entries. This either lists the levels the rune gets an upgrade or has an entry with a plus sign that describes a benefit that increases on a regular basis. For instance, a 1st-level rune with a \"Level (+4)\" entry would get stronger at 5th, 9th, 13th, and 17th levels.",
+    "cite": "Impossible Magic — Class Features: Runes",
+    "builder": {
+     "grants": [
+      "Invoke Rune",
+      "Trace Rune"
+     ]
+    }
+   },
+   {
+    "id": "pf2e-orc-books.runic-crafter",
+    "name": "Runic Crafter",
+    "level": 2,
+    "traits": "runesmith",
+    "summary": "Your study of secret runes leaves you well practiced in crafting their more common cousins.",
+    "description": "Your study of secret runes leaves you well practiced in crafting their more common cousins. You gain the Magical Crafting skill feat, even if you don't meet the prerequisites. You automatically learn the formulas for the fundamental armor runes (*armor potency* and *resilient*), fundamental shield rune (*reinforcing*), and fundamental weapon runes (*weapon potency* and *striking*) as soon as your level equals each item's. You practice your runes so thoroughly you can draw them by heart and thus do not need a formula book to record the formula of any runes you learn how to create.\n\nAt 4th level and every 2 levels thereafter, you learn the formula for an armor or weapon property rune of your choice. The rune must be of your level or lower, and can be a common rune or another rune to which you have access.",
+    "cite": "Impossible Magic — Class Features: Runic Crafter",
+    "builder": {
+     "feats": [
+      "Magical Crafting"
+     ]
+    }
+   },
+   {
+    "id": "pf2e-orc-books.runic-optimization",
+    "name": "Runic Optimization",
+    "level": 7,
+    "traits": "runesmith",
+    "summary": "You've learned to draw upon the magic of weapon runes to deal greater damage.",
+    "description": "You've learned to draw upon the magic of weapon runes to deal greater damage. You deal 2 additional damage with weapons bearing a *striking rune*. This damage increases to 3 if the weapon bears a *greater striking rune* and 4 if it bears a *major striking rune*.",
+    "cite": "Impossible Magic — Class Features: Runic Optimization"
+   },
+   {
+    "id": "pf2e-orc-books.runic-repertoire",
+    "name": "Runic Repertoire",
+    "level": 1,
+    "traits": "runesmith",
+    "summary": "The collection of runes that you know is called your runic repertoire.",
+    "description": "The collection of runes that you know is called your runic repertoire. At 1st level, you learn four 1st-level runes of your choice. You choose these from the common runes on the rune list as well as any uncommon or rarer runes you have access to.\n\nAs you increase in level, you add more runes to your repertoire. You can add any rune to your repertoire as long as it is common (or you have access to it) and its level is equal to or less than your own.\n\n### Runesmith Runic Repertoire\n\n| Your Level | Runic Repertoire | Maximum Etched Runes |\n| --- | --- | --- |\n| 1 | 4 | 2 |\n| 2 | 4 | 2 |\n| 3 | 4 | 2 |\n| 4 | 4 | 2 |\n| 5 | 6 | 3 |\n| 6 | 6 | 3 |\n| 7 | 6 | 3 |\n| 8 | 6 | 3 |\n| 9 | 8 | 4 |\n| 10 | 8 | 4 |\n| 11 | 8 | 4 |\n| 12 | 8 | 4 |\n| 13 | 10 | 5 |\n| 14 | 10 | 5 |\n| 15 | 10 | 5 |\n| 16 | 10 | 5 |\n| 17 | 12 | 6 |\n| 18 | 12 | 6 |\n| 19 | 12 | 6 |\n| 20 | 12 | 6 |",
+    "cite": "Impossible Magic — Class Features: Runic Repertoire"
+   },
+   {
+    "id": "pf2e-orc-books.sages-calling",
+    "name": "Sage's Calling",
+    "level": 1,
+    "traits": "uncommon, calling, mythic",
+    "summary": "You're already an archive of knowledge, but you're driven to learn more with an unquenchable passion that might never be sated.",
+    "description": "You're already an archive of knowledge, but you're driven to learn more with an unquenchable passion that might never be sated. When you attempt to Recall Knowledge, you can spend a Mythic Point to attempt the check at mythic proficiency. The first time each day that you critically succeed on a Recall Knowledge check against an enemy creature, you regain a Mythic Point.\n\n**Edicts** preserve your knowledge for future generations, seek out lost knowledge in dangerous or forgotten places\n\n**Anathema** destroy books or other repositories of knowledge, lie to hide knowledge from the world",
+    "cite": "War of Immortals — Class Features: Sage's Calling",
+    "builder": {
+     "grants": [
+      "Rewrite Fate"
+     ]
+    }
+   },
+   {
+    "id": "pf2e-orc-books.scar-of-the-survivor",
+    "name": "Scar of the Survivor",
+    "level": 1,
+    "traits": "ikon",
+    "summary": "A scar on your body commemorates a time someone tried to end your story and failed—a testament to your resilience and fortitude.",
+    "description": "**Usage** imbued in the skin\n\nA scar on your body commemorates a time someone tried to end your story and failed—a testament to your resilience and fortitude.\n\n**Immanence** Divine energy spreads outward from your scar, reinforcing your flesh. You gain the benefits of the Diehard feat and a +1 status bonus to Fortitude saving throws.\n\n**Transcendence—**No Scar but This ◆ (concentrate, healing, transcendence, vitality)",
+    "cite": "War of Immortals — Class Features: Scar of the Survivor",
+    "builder": {
+     "tags": [
+      "exemplar-body-ikon",
+      "exemplar-ikon"
+     ],
+     "grants": [
+      "No Scar but This"
+     ]
+    }
+   },
+   {
+    "id": "pf2e-orc-books.school-of-breathtaking-influence",
+    "name": "School of Breathtaking Influence",
+    "level": 1,
+    "traits": "wizard",
+    "summary": "You have sway in powerful social circles and pride yourself on being able to predict and manipulate opponents.",
+    "description": "You have sway in powerful social circles and pride yourself on being able to predict and manipulate opponents. Less scrupulous academies openly teach this curriculum to aspiring politicians, while other colleges frame it as the study of countering mental manipulation.\n\n**Curriculum**\n\n- **cantrips**: Daze, Infectious Enthusiasm\n- **1st**: Command, Fear, Sleep\n- **2nd**: Blood Vendetta, Phantom Crowd\n- **3rd**: Enthrall, Mind of Menace\n- **4th**: Confusion, Outcast's Curse\n- **5th**: Subconscious Suggestion, Wave of Despair\n- **6th**: Dominate, Never Mind\n- **7th**: Contingency, Puppet Strings\n- **8th**: Dream Council, Hidden Mind\n- **9th**: Telepathic Demand\n\n**School Spells** initial: Appeal to Authority; advanced: Hot Air",
+    "cite": "Impossible Magic — Class Features: School of Breathtaking Influence"
+   },
+   {
+    "id": "pf2e-orc-books.school-of-keen-inquiry",
+    "name": "School of Keen Inquiry",
+    "level": 1,
+    "traits": "wizard",
+    "summary": "You're a scholar of truth, seeking knowledge about the nature of existence and events past, present, and future.",
+    "description": "You're a scholar of truth, seeking knowledge about the nature of existence and events past, present, and future. Whether you share or obfuscate that truth—best reserve judgment until you know what you're working with.\n\n**Curriculum**\n\n- **cantrips**: Detect Magic, Sigil\n- **1st**: Disguise Magic, Illusory Disguise, Mindlink\n- **2nd**: Knock, See the Unseen\n- **3rd**: Clairaudience, Locate\n- **4th**: Clairvoyance, Detect Scrying\n- **5th**: Mind Probe, Scouting Eye\n- **6th**: Scrying, Truesight\n- **7th**: Retrocognition, True Target\n- **8th**: Disappearance, Pinpoint\n- **9th**: Foresight\n\n**School Spells** initial: Fact Check; advanced: Unsettling Perspective",
+    "cite": "Impossible Magic — Class Features: School of Keen Inquiry",
+    "builder": {
+     "tags": [
+      "wizard-arcane-school"
+     ]
+    }
+   },
+   {
+    "id": "pf2e-orc-books.school-of-quantic-control",
+    "name": "School of Quantic Control",
+    "level": 1,
+    "traits": "wizard",
+    "summary": "You're an architect, but not merely of buildings.",
+    "description": "You're an architect, but not merely of buildings. You call upon elemental forces to control the building blocks of reality itself, reshaping the environment and moving creatures like the world is a diorama for you to perfect.\n\n**Curriculum**\n\n- **cantrips**: Gale Blast, Scatter Scree\n- **1st**: Cradle Aloft, Gentle Landing, Pummeling Rubble\n- **2nd**: Dismantle, Unrelenting Gravity\n- **3rd**: Chosen Gravity, Inertia Lock\n- **4th**: Containment, Living Terrain\n- **5th**: Control Water, Wall of Stone\n- **6th**: Repulsion, Wall of Force\n- **7th**: Infinitesimal Collapse Field, Planar Seal\n- **8th**: Arctic Rift, Earthbreaker Stride\n- **9th**: Implosion\n\n**School Spells** initial: Circle of Weakness; advanced: Quantic Dampening",
+    "cite": "Impossible Magic — Class Features: School of Quantic Control",
+    "builder": {
+     "tags": [
+      "wizard-arcane-school"
+     ]
+    }
+   },
+   {
+    "id": "pf2e-orc-books.second-adept",
+    "name": "Second Adept",
+    "level": 11,
+    "traits": "thaumaturge",
+    "summary": "You've improved your link to your second implement.",
+    "description": "You've improved your link to your second implement. You gain the adept benefit of your second implement.",
+    "cite": "Dark Archive (Remastered) — Class Features: Second Adept",
+    "builder": {
+     "more": 1
+    }
+   },
+   {
+    "id": "pf2e-orc-books.seer",
+    "name": "Seer",
+    "level": 1,
+    "traits": "animist",
+    "summary": "You are particularly sensitive to the presence and influence of spirits and undead.",
+    "description": "You are particularly sensitive to the presence and influence of spirits and undead. You can detect lingering spirits, offering you some defense against them.\n\n**Invocation of Sight (1st):** You shift your eyes easily to the spirit world, intuiting the needs of apparitions and other spiritual entities based on how they appear to you. You gain the Apparition Sense feat. You also gain a +1 status bonus to saving throws and AC against the effects of haunts and the abilities of spirits and incorporeal undead.\n\n**Invocation of Protection (9th):** Your status as an intermediary across planar boundaries grants you further defenses against spiritual ailments. You gain spirit resistance and void resistance equal to half your level, and your status bonus to saving throws and AC against the effects of haunts and the abilities of spirits and incorporeal undead increases to +2.\n\n**Invocation of Resilience (17th):** You are a bulwark against the terrible spirits that lurk in the dark. Your apparition sight becomes a precise sense and your status bonus to saving throws and AC against the effects of haunts and the abilities of spirits and incorporeal undead increases to +3.",
+    "cite": "War of Immortals — Class Features: Seer",
+    "builder": {
+     "tags": [
+      "animistic-practice"
+     ],
+     "feats": [
+      "Apparition Sense"
+     ]
+    }
+   },
+   {
+    "id": "pf2e-orc-books.segmented-frame",
+    "name": "Segmented Frame",
+    "level": 1,
+    "traits": "inventor",
+    "summary": "Hinges, clamps, and telescoping parts make your innovation collapsible and adjustable.",
+    "description": "Hinges, clamps, and telescoping parts make your innovation collapsible and adjustable. It gains the modular trait for bludgeoning, piercing, and slashing. You can Interact to collapse the item down to light Bulk or to return it to your normal form. When it's collapsed to light Bulk, it has the concealable trait, which grants you a +2 circumstance bonus to Stealth checks and DCs to hide or conceal the weapon.",
+    "cite": "Guns & Gears (Remastered) — Class Features: Segmented Frame",
+    "builder": {
+     "tags": [
+      "weapon-innovation-modification"
+     ]
+    }
+   },
+   {
+    "id": "pf2e-orc-books.seneschal",
+    "name": "Seneschal",
+    "level": 1,
+    "traits": "witch",
+    "summary": "Your witch patron has gone mysteriously silent.",
+    "description": "Your witch patron has gone mysteriously silent. You still have access to your abilities, and your familiar is still funneling your patron's power to you. As you learn how to tap into that power, you influence your familiar to mold the power by itself, continuing to learn new spells and provide you with other witch class features.\n\nWithout your patron watching over your power, you gain more control but also miss important lessons. You must select Seneschal Witch Dedication as your 2nd-level class feat.\n\n**Prerequisites:** You must be a witch who has lost contact with your patron.\n\n**Adjustments:** Instead of your patron's lesson, you gain the Manifest Will hex cantrip and your familiar learns one common 1st-rank spell of your choice from your spell list.",
+    "cite": "War of Immortals — Class Features: Seneschal",
+    "builder": {
+     "tags": [
+      "class-archetype"
+     ]
+    }
+   },
+   {
+    "id": "pf2e-orc-books.shadow-sheath",
+    "name": "Shadow Sheath",
+    "level": 1,
+    "traits": "extradimensional, ikon",
+    "summary": "With an infinite array of darts, throwing knives, or similar weapons, you never need worry about being unarmed.",
+    "description": "**Usage** a holster or sheath shaped for a one-handed thrown weapon of light Bulk or less\n\nWith an infinite array of darts, throwing knives, or similar weapons, you never need worry about being unarmed. You can spend 1 minute to load a weapon meeting the shadow sheath's usage requirements into the sheath, which is hidden somewhere on your person.\n\nEffect: Shadow Sheath Weapon\n\nAs long as the shadow sheath is on your person, you can Interact to draw an exact copy of the weapon from thin air. These copies retain the runes and abilities of the hidden weapon, though if you use any limited-use abilities (such as talismans or Activations with a frequency limit), they count against the weapon's normal usages. A copy disappears shortly after leaving your hand (or being used for a thrown Strike).\n\n**Immanence** You can Interact to draw a weapon from the shadow sheath as a free action. Your Strikes with a weapon produced from the shadow sheath deal 2 additional spirit damage per weapon damage die, which increases to 3 per die if the target is off-guard.\n\n**Transcendence—**Liar's Hidden Blade ◆ (spirit, transcendence)",
+    "cite": "War of Immortals — Class Features: Shadow Sheath",
+    "builder": {
+     "tags": [
+      "exemplar-ikon",
+      "exemplar-weapon-ikon"
+     ],
+     "grants": [
+      "Liar's Hidden Blade"
+     ]
+    }
+   },
+   {
+    "id": "pf2e-orc-books.shaman",
+    "name": "Shaman",
+    "level": 1,
+    "traits": "animist",
+    "summary": "You form close bonds with your apparitions that allow you to invest them with the rare ability to take on a material form and directly affect the physical world.",
+    "description": "You form close bonds with your apparitions that allow you to invest them with the rare ability to take on a material form and directly affect the physical world.\n\n**Invocation of Embodiment (1st):** You allow your apparition to inhabit a physical form. You gain the Spirit Familiar feat. At 2nd level, you gain the Enhanced Familiar feat.\n\n**Invocation of Growth (9th):** Your bond with the physical form of your chosen apparition grows stronger. You gain the Incredible Familiar feat.\n\n**Invocation of Otherworldliness (17th):** Your apparition familiar becomes ever more powerful, straddling the line between physical and spiritual. Your spirit familiar can take a single action that has the concentrate trait to become incorporeal for 1 minute. It gains the incorporeal trait, meaning it can move through physical creatures and such creatures can move through it. It can't attempt Strength-based checks (such as Grapple) against corporeal creatures, and corporeal creatures can't attempt such checks against it. It gains immunity to precision damage and resistance to physical damage (except damage from Strikes with the Ghost Touch property rune) equal to half your level (double against non-magical damage) but weakness to force damage equal to half your level. However, when incorporeal, your spirit familiar can travel no more than 60 feet from you and must maintain line of effect to you; this typically prevents it from moving through walls. Your spirit familiar can Dismiss this effect.",
+    "cite": "War of Immortals — Class Features: Shaman",
+    "builder": {
+     "tags": [
+      "animistic-practice"
+     ],
+     "feats": [
+      "Spirit Familiar (Animist)"
+     ]
+    }
+   },
+   {
+    "id": "pf2e-orc-books.shared-reflexes",
+    "name": "Shared Reflexes",
+    "level": 9,
+    "traits": "summoner",
+    "summary": "You and your eidolon boost each other's reflexes, allowing you both to roll away from danger.",
+    "description": "You and your eidolon boost each other's reflexes, allowing you both to roll away from danger. Your proficiency rank for Reflex saves and your eidolon's proficiency rank for Reflex saves increase to expert.",
+    "cite": "Impossible Magic — Class Features: Shared Reflexes"
+   },
+   {
+    "id": "pf2e-orc-books.shared-resolve",
+    "name": "Shared Resolve",
+    "level": 15,
+    "traits": "summoner",
+    "summary": "You and your eidolon steel your mind together against effects that threaten you, each protecting the others' minds from danger.",
+    "description": "You and your eidolon steel your mind together against effects that threaten you, each protecting the others' minds from danger. Your and your eidolon's proficiency ranks for Will saves increase to master. When you roll a success on a Will save, you get a critical success instead. When your eidolon rolls a success on a Will save, it gets a critical success instead.",
+    "cite": "Impossible Magic — Class Features: Shared Resolve"
+   },
+   {
+    "id": "pf2e-orc-books.shared-vigilance",
+    "name": "Shared Vigilance",
+    "level": 3,
+    "traits": "summoner",
+    "summary": "You and your eidolon work together to remain alert to threats around you, allowing you to perceive far more together than you could individually.",
+    "description": "You and your eidolon work together to remain alert to threats around you, allowing you to perceive far more together than you could individually. Your proficiency rank in Perception and your eidolon's proficiency rank in Perception increase to expert.",
+    "cite": "Impossible Magic — Class Features: Shared Vigilance"
+   },
+   {
     "id": "pf2e-orc-books.shield",
     "name": "Shield",
     "level": 1,
     "traits": "thaumaturge",
     "summary": "As a universal symbol of defense, a shield wards against a variety of effects and is associated with guardianship, vigilance, and guidance.",
     "description": "As a universal symbol of defense, a shield wards against a variety of effects and is associated with guardianship, vigilance, and guidance. You can choose only shields with a Bulk of 1 or less as an implement, which allows you to position your shield while managing your esoterica. Shield implements are associated with the harrow suit of shields and the astrological signs of the lantern bearer, the bridge, and the patriarch.\n\n### **Initiate Benefit**\n\nYou gain the Shield Block general feat. If your shield implement would be reduced to 0 Hit Points, it's instead reduced to 1 Hit Point, its circumstance bonus to AC when you Raise a Shield is reduced by 1 (this can't reduce the bonus below 0), and you can't Shield Block with your shield implement until it loses the broken condition. You can still use your shield as an implement when it has the broken condition.\n\nAt 5th level, whenever you Exploit Vulnerability, you can also Raise a Shield as a free action.\n\n### **Adept Benefit**\n\nWhen you have your shield implement raised, you gain a status bonus to your saves against spells and other magic effects equal to your circumstance bonus to AC from your shield. In addition, damage you take as a result of a spell or magical effect while your Shield is Raised can trigger your Shield Block reaction, even if the damage isn't physical.\n\n### **Intensify Vulnerability**\n\nEvery drop of blood you spill bolsters your shield. If you succeed at a Strike against the target of your Exploit Vulnerability, your shield regains a number of Hit Points equal to half your level. If your shield is already at full Hit Points, you instead increase your shield's Hardness by your Charisma modifier until the beginning of your next turn. These effects aren't cumulative if you hit with more than one Strike.\n\n### **Paragon Benefit**\n\nWhen you have your shield implement raised, the circumstance bonuses from your shield (both to AC and to saves against spells and other magic effects) also apply to all your allies within 15 feet. You can use your Shield Block reaction in defense of yourself or any of your allies within 15 feet.",
-    "cite": "Battlecry! — Class Features: Shield"
+    "cite": "Battlecry! — Class Features: Shield",
+    "builder": {
+     "tags": [
+      "thaumaturge-implement"
+     ],
+     "more": 1,
+     "grants": [
+      "Initiate Benefit (Shield)"
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.shootists-edge",
@@ -40,7 +557,16 @@
     "traits": "ikon",
     "summary": "Tempered in your spirit, your very skin is as a suit of armor, though a single location on your body remains unprotected, a curse and a challenge within your legend.",
     "description": "**Usage** imbued in the skin\n\nTempered in your spirit, your very skin is as a suit of armor, though a single location on your body remains unprotected, a curse and a challenge within your legend. During your daily preparations, you can strike your skin lightly with an object that deals bludgeoning, slashing or piecing damage to habituate your skin against this type of injury, attuning the ikon to that damage type.\n\n**Immanence** When your skin houses your divine spark, you gain resistance to the attuned damage type equal to half your level. This resistance doesn't apply against critical hits, which successfully find your unprotected spot.\n\n**Transcendence—**Crash Against Me ◆ (transcendence)",
-    "cite": "War of Immortals — Class Features: Skin Hard as Horn"
+    "cite": "War of Immortals — Class Features: Skin Hard as Horn",
+    "builder": {
+     "tags": [
+      "exemplar-body-ikon",
+      "exemplar-ikon"
+     ],
+     "grants": [
+      "Crash Against Me"
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.skybearers-belt",
@@ -49,7 +575,17 @@
     "traits": "ikon",
     "summary": "This girdle wraps around your waist, magnifying your strength to the point you feel you could carry the sky itself.",
     "description": "**Usage** worn belt\n\nThis girdle wraps around your waist, magnifying your strength to the point you feel you could carry the sky itself.\n\n**Immanence** Strength flows forth. You can attempt to Disarm, Grapple, Shove, or Trip creatures up to two sizes larger than you, and you gain a +1 circumstance bonus to checks for these actions and to your saving throws to resist these actions.\n\n**Transcendence—**Bear Allies' Burdens ◆◆ (transcendence)",
-    "cite": "War of Immortals — Class Features: Skybearer's Belt"
+    "cite": "War of Immortals — Class Features: Skybearer's Belt",
+    "builder": {
+     "tags": [
+      "exemplar-ikon",
+      "exemplar-worn-ikon"
+     ],
+     "grants": [
+      "Bear Allies' Burdens"
+     ],
+     "more": 2
+    }
    },
    {
     "id": "pf2e-orc-books.slingers-precision",
@@ -67,7 +603,17 @@
     "traits": "exemplar",
     "summary": "The litany of heroic deeds left in your wake has caused your divine spark to blaze bright enough that it now illuminates your legacy.",
     "description": "The litany of heroic deeds left in your wake has caused your divine spark to blaze bright enough that it now illuminates your legacy. Choose one of the following epithets, which grants you an ability you can use when you Spark Transcendence. You can benefit from no more than one epithet ability each time you Spark Transcendence.",
-    "cite": "War of Immortals — Class Features: Sovereignty Epithet"
+    "cite": "War of Immortals — Class Features: Sovereignty Epithet",
+    "builder": {
+     "selections": [
+      {
+       "tags": [
+        "exemplar-sovereignty-epithet"
+       ],
+       "count": 1
+      }
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.sparkling-targe",
@@ -76,7 +622,15 @@
     "traits": "magus",
     "summary": "You've studied the applications of magic, training yourself to perform not just offensive maneuvers but defensive tactics as well.",
     "description": "You've studied the applications of magic, training yourself to perform not just offensive maneuvers but defensive tactics as well. When magic flows through you, your shield can block impossible things, even a dragon's breath or a Force Barrage.\n\nYou gain the Shield Block general feat.\n\nWhen you're in Arcane Cascade stance with your shield raised, your circumstance bonus to AC from your shield also applies to your saves against spells and other magical effects. In addition, damage you take from a spell or other magical effect while you're in Arcane Cascade can trigger your Shield Block reaction, even if the damage isn't physical. When blocking damage from a magical effect in this way, increase your shield's Hardness by an amount equal to the resistance you have from Arcane Cascade. These benefits apply whether you're using an actual shield, the shield spell, or something else that works like a shield (such as a raised tome if you have the Raise a Tome feat).\n\n**Conflux Spell** Shielding Strike\n\n**Studious Spells** 7th: Resist Energy; 11th: Warding Aggression; 13th: Mountain Resilience",
-    "cite": "Impossible Magic — Class Features: Sparkling Targe"
+    "cite": "Impossible Magic — Class Features: Sparkling Targe",
+    "builder": {
+     "tags": [
+      "magus-hybrid-study"
+     ],
+     "feats": [
+      "Shield Block"
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.speed-boosters",
@@ -85,7 +639,12 @@
     "traits": "inventor",
     "summary": "You have boosters in your armor that increase your Speed.",
     "description": "You have boosters in your armor that increase your Speed. You gain a +5-foot status bonus to your Speed, which increases to a +10-foot status bonus when under the effects of Overdrive.",
-    "cite": "Guns & Gears (Remastered) — Class Features: Speed Boosters"
+    "cite": "Guns & Gears (Remastered) — Class Features: Speed Boosters",
+    "builder": {
+     "tags": [
+      "armor-innovation-modification"
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.spell-tempered-body",
@@ -103,7 +662,12 @@
     "traits": "magus",
     "summary": "You've learned the fundamental magus technique that lets you combine magical and physical attacks together.",
     "description": "You've learned the fundamental magus technique that lets you combine magical and physical attacks together. You gain the Spellstrike activity.\n\n### **Spellstrike** ◆◆\n\nMagus\n\n### Spellstrike Specifics\n\nThough the base Spellstrike rules cover most spells, various modifications apply to more complicated spells when loaded into your fist, blade, or other attack.\n\n**One Target:** The spell targets only the target of your Strike, even if it normally allows more targets. This includes area spells, against which only the target attempts a saving throw. Any ongoing effects of the area, such as the difficult terrain from scatter scree, affect only the target's space. Some feats let you affect more creatures.\n\n**Reach:** The coupled spell affects the target using the reach of the weapon or unarmed attack you use for your Spellstrike. For instance, gouging claw would affect a creature beyond the reach of your hand if you used a weapon with reach, and frostbite would affect only a creature in your weapon's reach, even though the spell's range is longer.\n\n**Ancillary Effects:** Your spell still has any non-targeted effects that might affect creatures other than the target, as well as any ongoing effects starting from the moment you hit with the Strike. For example, Scatter Scree would still create difficult terrain in the target's space (as mentioned above), and Tangle Vine's circumstance penalty would last for its normal duration. The spell takes effect after the Strike deals damage; if the Strike has other special effects, the GM determines whether they happen before or after the spell.\n\n**Invalid or Immune Target:** If the target you hit wouldn't be a valid target for the spell, the spell is still expended but doesn't affect the target. If the target is immune to your attack but not the spell, it can still be affected by the spell.\n\n**Variable Actions:** Some spells have different effects based on the number of actions you spend to cast them. You choose whether to use the effects of the 1- or 2-action version of the spell when you use Spellstrike. A spell has to take exactly 1 or 2 actions; you can't use Spellstrike with a spell that takes a free action, reaction, or 3 or more actions.\n\n**Spellshape:** Even if you gain a spellshape action from outside the magus class, such as from a multiclass feat or an item, you typically can't use spellshape with Spellstrike. Spellshape actions require the next action you take to be Cast a Spell, and Spellstrike is a combined activity that doesn't qualify.",
-    "cite": "Impossible Magic — Class Features: Spellstrike"
+    "cite": "Impossible Magic — Class Features: Spellstrike",
+    "builder": {
+     "grants": [
+      "Spellstrike"
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.spirit",
@@ -112,7 +676,12 @@
     "traits": "necromancer",
     "summary": "Spirit necromancers, also known as vitamancers, seek the secrets of the soul and play with the eternal energies of the living and dead.",
     "description": "Spirit necromancers, also known as vitamancers, seek the secrets of the soul and play with the eternal energies of the living and dead. Your thralls often resemble ghosts and spirits.\n\n**Grave Spell** Life Tap\n\n**Thrall Enhancement** Your thralls, while still being tied to the physical world, have an incorporeal essence. Whenever one of your thralls Strikes, you can choose for that damage to be spirit or void damage instead of physical damage.",
-    "cite": "Impossible Magic — Class Features: Spirit"
+    "cite": "Impossible Magic — Class Features: Spirit",
+    "builder": {
+     "tags": [
+      "necromancer-grim-fascination"
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.spirit-striking",
@@ -130,7 +699,12 @@
     "traits": "animist",
     "summary": "Stalkers in darkened boughs make their homes in ancient forests and jungles unfriendly to humanoids and others who would exert control or influence over nature's designs.",
     "description": "Stalkers in darkened boughs make their homes in ancient forests and jungles unfriendly to humanoids and others who would exert control or influence over nature's designs. These apparitions are drawn to animists who harbor violent thoughts or impulses but are more likely to linger with animists who can quell their hatred. Stalkers in darkened boughs are moody, impulsive, and prone to seeing things from the least charitable perspective.\n\n**Apparition Skills** Forest Lore, Hunting Lore\n\n**Apparition Spells**\n\n- **Cantrip** Gouging Claw\n- **1st** Runic Body\n- **2nd** Vomit Swarm\n- **3rd** Wall of Thorns\n- **4th** Bestial Curse\n- **5th** Moon Frenzy\n- **6th** Tangling Creepers\n- **7th** Unfettered Pack\n- **8th** Monstrosity Form\n- **9th** Wrathful Storm\n\n**Vessel Spell** Darkened Forest Form\n\n**Avatar** *Beast of the Boughs* Speed 70 feet, fly Speed 70 feet\n\n**Melee** ◆ devouring jaws (deadly 3d10, reach 15 feet), **Damage** 6d10+6 piercing",
-    "cite": "War of Immortals — Class Features: Stalker in Darkened Boughs"
+    "cite": "War of Immortals — Class Features: Stalker in Darkened Boughs",
+    "builder": {
+     "tags": [
+      "animist-apparition"
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.starlit-span",
@@ -139,7 +713,12 @@
     "traits": "magus",
     "summary": "With magic, the sky's the limit, and you can't be bound by the confines of physical proximity.",
     "description": "With magic, the sky's the limit, and you can't be bound by the confines of physical proximity. Your power reaches as far as your senses can perceive, transcending the space between you and your target even with spells that normally require direct physical contact.\n\nWhen you use Spellstrike, you can make a ranged weapon or ranged unarmed Strike, as long as the target is within the first range increment of your ranged weapon or ranged unarmed attack. This overrides the actual range of the spell.\n\nWhile you're in Arcane Cascade stance, your ranged attacks ignore any lesser cover your allies would grant to your target.\n\n**Conflux Spell** Shooting Star\n\n**Studious Spells** 7th: Telekinetic Maneuver; 11th: Wall of Wind; 13th: Unfettered Movement",
-    "cite": "Impossible Magic — Class Features: Starlit Span"
+    "cite": "Impossible Magic — Class Features: Starlit Span",
+    "builder": {
+     "tags": [
+      "magus-hybrid-study"
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.starshot",
@@ -148,7 +727,17 @@
     "traits": "ikon",
     "summary": "You might be the only one capable of stringing this bow or pulling this trigger; either way, the ikon's shots are packed with explosive power, striking like falling stars.",
     "description": "**Usage** a ranged weapon\n\nYou might be the only one capable of stringing this bow or pulling this trigger; either way, the ikon's shots are packed with explosive power, striking like falling stars.\n\n**Immanence** Strikes with the starshot deal an additional 1 spirit splash damage per weapon damage die.\n\n**Transcendence—**Giant-Felling Comet ◆◆ (spirit, transcendence)",
-    "cite": "War of Immortals — Class Features: Starshot"
+    "cite": "War of Immortals — Class Features: Starshot",
+    "builder": {
+     "tags": [
+      "exemplar-ikon",
+      "exemplar-weapon-ikon"
+     ],
+     "grants": [
+      "Giant-Felling Comet"
+     ],
+     "more": 3
+    }
    },
    {
     "id": "pf2e-orc-books.steward-of-stone-and-fire",
@@ -157,7 +746,12 @@
     "traits": "animist",
     "summary": "Stewards of stone and fire linger near volcanoes and deep places near the heart of the earth, hot springs where the water is too scorchingly hot to allow casual enjoyment, and other places where the…",
     "description": "Stewards of stone and fire linger near volcanoes and deep places near the heart of the earth, hot springs where the water is too scorchingly hot to allow casual enjoyment, and other places where the barrier between fire and earth is thin or nonexistent, though particularly old rock formations, canyons, and other natural features of earth may also spawn or attract them. Stewards of stone and fire are quick to anger and slow to forget.\n\n**Apparition Skills** Mountain Lore, Volcano Lore\n\n**Apparition Spells**\n\n- **Cantrip** Ignition\n- **1st** Interposing Earth\n- **2nd** Exploding Earth\n- **3rd** Fireball\n- **4th** Wall of Fire\n- **5th** Wall of Stone\n- **6th** Petrify\n- **7th** Volcanic Eruption\n- **8th** Earthquake\n- **9th** Falling Stars\n\n**Vessel Spell** Earth's Bile\n\n**Avatar** *Blood of Planets* Speed 50 feet, burrow Speed 50 feet, ignore difficult terrain and greater difficult terrain\n\n**Melee** ◆ avalanche of molten stone (reach 15 feet, versatile B), **Damage** 6d10+6 fire\n\n**Ranged** ◆ cleansing eruption (fire, range 120 feet), **Damage** 6d6+6 fire",
-    "cite": "War of Immortals — Class Features: Steward of Stone and Fire"
+    "cite": "War of Immortals — Class Features: Steward of Stone and Fire",
+    "builder": {
+     "tags": [
+      "animist-apparition"
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.strained-metabolism",
@@ -183,7 +777,17 @@
     "traits": "psychic",
     "summary": "A psychic's power is born in the depths of their psyche, far from the surface.",
     "description": "A psychic's power is born in the depths of their psyche, far from the surface. Your subconscious mind might represent the way your power comes to you naturally, or it may be a framework you use to safely access the infinite potential of your mind. Either way, your subconscious mind fundamentally shapes how you access and wield psychic magic. Choose a subconscious mind from the options below. This choice will determine your key attribute, thoughtforms you use while casting, and an action you can take while you have Unleashed your Psyche. The following options are presented in this book.\n\n- **Emotional Acceptance** (Cha): Throwing yourself headlong into your emotions is what lets you access your power.\n- **Gathered Lore** (Int): Tutors taught you specific axioms and lessons to help you harness your mind.\n- **Precise Discipline** (Int): Meticulously aligning your thoughts brings your mental power into reality.\n- **Wandering Reverie** (Cha): Your imagination fuels your magic through instinct and free association.",
-    "cite": "Dark Archive (Remastered) — Class Features: Subconscious Mind"
+    "cite": "Dark Archive (Remastered) — Class Features: Subconscious Mind",
+    "builder": {
+     "selections": [
+      {
+       "tags": [
+        "psychic-subconscious-mind"
+       ],
+       "count": 1
+      }
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.subtle-dampeners",
@@ -192,7 +796,13 @@
     "traits": "inventor",
     "summary": "You've designed your armor to help you blend in and dampen noise slightly.",
     "description": "You've designed your armor to help you blend in and dampen noise slightly. When you send your armor into overdrive, the dampeners increase their effect, improving your Stealth. When under the effects of Overdrive, you gain a +1 circumstance bonus to Stealth checks. If you're a master in Crafting, this increases to a +2 circumstance bonus.",
-    "cite": "Guns & Gears (Remastered) — Class Features: Subtle Dampeners"
+    "cite": "Guns & Gears (Remastered) — Class Features: Subtle Dampeners",
+    "builder": {
+     "tags": [
+      "armor-innovation-modification",
+      "subterfuge-suit-modification"
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.summoner-spellcasting",
@@ -219,7 +829,22 @@
     "traits": "summoner",
     "summary": "Your eidolon is a collective of primal energy and nature spirits, gathered into a single fragmentary being.",
     "description": "Your eidolon is a collective of primal energy and nature spirits, gathered into a single fragmentary being. This collection of natural energy has neither form nor identity until bonded with a summoner. You give these spirits purpose, connecting with them and drawing them through to the physical realm. When manifesting, these nature spirits don a simple form, adopting the guise of many Tiny animals. Each of these animals is the same creature and is marked with your summoner's sigil. The act of manifesting in this swarm form temporarily binds the spirits together into one being, making the eidolon a single entity—one mind and personality speaking with a multitude of voices, and a multitude of bodies acting in concert with a singular purpose.\n\n**Tradition** primal\n\n**Traits** animal, eidolon, swarm\n\n**Home Plane** the universe\n\n**Size** Medium (condensed) and Large (dispersed)\n\n**Suggested Attacks** beaks (piercing), claws (slashing), jaws (piercing), talons (slashing)\n\n**Brazen Swarm** *Str* +4, *Dex* +2, *Con* +3, *Int* +0, *Wis* +0, *Cha* +0; +2 AC (+3 Dex cap)\n\n**Slinking Swarm** *Str* +2, *Dex* +4, *Con* +3, *Int* +0, *Wis* +1, *Cha* –1; +1 AC (+4 Dex cap)\n\n**Skills** Nature, Survival\n\n**Senses** low-light vision\n\n**Languages** Common\n\n**Speed** 25 feet\n\n**Eidolon Abilities** *Initial*swarm form*; Symbiosis*sudden shift*; Transcendence*sickening swarm\n\n### Swarm Form\n\nYour eidolon is an intelligent swarm composed of hundreds of Tiny creatures, and it's immune to the grabbed, prone, and restrained conditions. It can fit through tight spaces as though it were a Tiny creature. It has weakness to area damage equal to its level. Your eidolon has two forms: condensed and dispersed. When you Manifest Eidolon, it manifests condensed. It can switch between these two forms as a single action that has the concentrate trait.\n\n**Condensed Form:** When condensed, your eidolon draws all its component bodies into a single, condensed mound that functions as a Medium creature. It has a reach of 5 feet, can make Strikes, and can't occupy the same space as other creatures. While condensed, it can use the Haunting Visage action.\n\n**Dispersed Form:** When dispersed, your eidolon scatters its component bodies across a wider area, increasing its size by one category (to Large for most swarm eidolons). It has a reach of 0 feet, can't make Strikes, and can occupy the same space as other creatures. While dispersed, it can use the Swarming Assault activity.\n\n### Sudden Shift7th\n\nOnce per round, your eidolon can switch forms between condensed and dispersed as a free action, rather than a single action. In addition, your eidolon gains the Redistribute reaction.\n\n### Sickening Form17th\n\nYour eidolon is particularly good at distracting and hindering its foes while dispersed. While dispersed, spaces your eidolon occupies are difficult terrain for other creatures. In addition, your eidolon gains the Sickening Assault action.",
-    "cite": "Battlecry! — Class Features: Swarm Eidolon"
+    "cite": "Battlecry! — Class Features: Swarm Eidolon",
+    "builder": {
+     "tags": [
+      "summoner-eidolon"
+     ],
+     "ranks": [
+      {
+       "path": "skills.nature",
+       "rank": 1
+      },
+      {
+       "path": "skills.survival",
+       "rank": 1
+      }
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.tactics",
@@ -228,7 +853,19 @@
     "traits": "commander",
     "summary": "By studying and practicing the strategic arts of war, you can guide your allies to victory.",
     "description": "By studying and practicing the strategic arts of war, you can guide your allies to victory. You begin play with a folio containing five tactics. These are combat techniques and coordinated maneuvers you can instruct your allies in, enabling them to respond to your signals in combat. As you increase in level, you gain the ability to learn more potent tactics. When you gain the Expert Tactician class feature, you gain the ability to add expert tactics to your folio; when you gain the Master Tactician class feature, you can add master tactics to your folio; and when you gain the Legendary Tactician class feature, you can add legendary tactics to your folio.\n\n### Preparing and Changing Tactics\n\nEach day during your daily preparations, you prepare three tactics from your folio and drill in them alongside your allies, enabling you to use these tactics until your next daily preparations. When you drill, you can instruct a total number of allies equal to 2 + your Intelligence modifier, enabling these allies to respond to your tactics in combat. These allies are your squadmates. A squadmate always has the option not to respond to your tactical signal if they do not wish to. You count as one of your squadmates for the purposes of participating in or benefiting from a tactic (though you do not count against your own maximum number of squadmates). The tactics trait is explained in more detail in the key terms sidebar on this page.\n\nYou can change which tactics you have prepared from those in your folio by spending 10 minutes to drill, replacing all previously prepared tactics and squadmates. This does not prevent your allies from performing their own activities during this time frame. Some tactics have a limited usage, such as the Valkyrie's Charge tactic, which can be used once per day. These tactics can never exceed their indicated use limit even if you replace them with a different tactic and then prepare them again later that same day, but you can replace a tactic whose limited use has been expended with another tactic you know any time you are able to change your prepared tactics.\n\n### Gaining New Tactics\n\nYou add additional tactics to your folio and increase the number of tactics you can prepare when you gain the expert tactician, master tactician, and legendary tactician class features. You can also add tactics to your folio with the Tactical Expansion feat, though this does not change the number you can have prepared. Because tactics folios use shorthand and signals unique to each commander, there is typically no benefit to using (or stealing) another commander's folio, though you can train with another commander to retrain one tactic in your folio to another that they know.",
-    "cite": "Battlecry! — Class Features: Tactics"
+    "cite": "Battlecry! — Class Features: Tactics",
+    "builder": {
+     "selections": [
+      {
+       "tags": [
+        "commander-mobility-tactic",
+        "commander-offensive-tactic"
+       ],
+       "count": 5,
+       "actions": true
+      }
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.tangle-line",
@@ -237,7 +874,13 @@
     "traits": "inventor",
     "summary": "Your weapon has an extensible line that you can use to knock your enemies over, recall the weapon to your hand and even parry attacks.",
     "description": "**Thrown Only**\n\nYour weapon has an extensible line that you can use to knock your enemies over, recall the weapon to your hand and even parry attacks. Your innovation gains the parry, ranged trip and tethered traits.",
-    "cite": "Guns & Gears (Remastered) — Class Features: Tangle Line"
+    "cite": "Guns & Gears (Remastered) — Class Features: Tangle Line",
+    "builder": {
+     "tags": [
+      "thrown",
+      "weapon-innovation-modification"
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.taunt",
@@ -246,7 +889,12 @@
     "traits": "guardian",
     "summary": "Often, the best way to protect your allies is to have the enemy want to attack you instead.",
     "description": "Often, the best way to protect your allies is to have the enemy want to attack you instead. You gain the Taunt action.",
-    "cite": "Battlecry! — Class Features: Taunt"
+    "cite": "Battlecry! — Class Features: Taunt",
+    "builder": {
+     "grants": [
+      "Taunt"
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.teacher-of-heroes",
@@ -255,7 +903,12 @@
     "traits": "exemplar",
     "summary": "Those who make great names for themselves as heroes are called upon to train those who follow them, and such is your destiny—to be remembered not through your own deeds but through the progeny who…",
     "description": "Those who make great names for themselves as heroes are called upon to train those who follow them, and such is your destiny—to be remembered not through your own deeds but through the progeny who you hope will one day surpass you.\n\nAfter you Spark Transcendence, you can attempt to Recall Knowledge about one enemy you can see as a free action and instantly transmit any knowledge you gain as a result to every ally within 60 feet. The first piece of knowledge you gain when Recalling Knowledge in this way is always the enemy's immunities. If the enemy has no immunities, you learn its greatest resistance; if it also possesses no resistances, you learn its greatest weakness; if it possesses none of the above, you learn its lowest saving throw.",
-    "cite": "War of Immortals — Class Features: Teacher of Heroes"
+    "cite": "War of Immortals — Class Features: Teacher of Heroes",
+    "builder": {
+     "tags": [
+      "exemplar-sovereignty-epithet"
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.tensile-absorption",
@@ -291,7 +944,18 @@
     "traits": "exemplar",
     "summary": "Your deeds show fearlessness: when a beast surfaces, you're there to fight it; when someone's lost in the dark, you're first to the rescue.",
     "description": "Your deeds show fearlessness: when a beast surfaces, you're there to fight it; when someone's lost in the dark, you're first to the rescue. You're trained in Athletics. After you Spark Transcendence, your body carries you forward, allowing you to Stride up to half your Speed in a straight line toward one enemy of your choice as a free action. Once you have used this ability on a given enemy, you can't use it against that enemy again for 10 minutes.",
-    "cite": "War of Immortals — Class Features: The Brave"
+    "cite": "War of Immortals — Class Features: The Brave",
+    "builder": {
+     "tags": [
+      "exemplar-root-epithet"
+     ],
+     "ranks": [
+      {
+       "path": "skills.athletics",
+       "rank": 1
+      }
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.the-cunning",
@@ -300,7 +964,18 @@
     "traits": "exemplar",
     "summary": "Why race a hare across a meadow, or a salmon up a waterfall?",
     "description": "Why race a hare across a meadow, or a salmon up a waterfall? Why face a titan in a test of strength? Wouldn't it be better to best your foes with a bit of creativity? After all, the stories that echo throughout history are always those where wits and trickery, rather than raw talent or power, win the day. You are trained in Deception. After you Spark Transcendence, you can Create a Diversion or Feint as a free action.",
-    "cite": "War of Immortals — Class Features: The Cunning"
+    "cite": "War of Immortals — Class Features: The Cunning",
+    "builder": {
+     "tags": [
+      "exemplar-root-epithet"
+     ],
+     "ranks": [
+      {
+       "path": "skills.deception",
+       "rank": 1
+      }
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.the-deft",
@@ -309,7 +984,18 @@
     "traits": "exemplar",
     "summary": "Speed, subtlety, and precision.",
     "description": "Speed, subtlety, and precision. Your feet rush as fast as a gale, but your fingers touch as lightly as a breeze. You are trained in Thievery. After you Spark Transcendence, you can attempt to Steal or Palm an Object. When you Spark Transcendence, you can Interact as a free action to reload or draw a weapon ikon, either directly before or directly after your transcendence action. The weapon ikon must be a ranged weapon with the reload trait or a one-handed melee weapon with the thrown trait.",
-    "cite": "War of Immortals — Class Features: The Deft"
+    "cite": "War of Immortals — Class Features: The Deft",
+    "builder": {
+     "tags": [
+      "exemplar-root-epithet"
+     ],
+     "ranks": [
+      {
+       "path": "skills.thievery",
+       "rank": 1
+      }
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.the-distant-grasp",
@@ -318,7 +1004,13 @@
     "traits": "psychic",
     "summary": "Motion characterizes the physical—a boulder falls, creatures move, the world turns.",
     "description": "Motion characterizes the physical—a boulder falls, creatures move, the world turns. You believe the truest form of mind over matter is therefore to move things as well, wielding telekinesis as an arm that can grasp the furthest and finest of objects.\n\n**Granted Spells**\n\n- 1st: Kinetic Ram\n- 2nd: Telekinetic Maneuver\n- 3rd: Gravity Well\n- 4th: Fly\n- 5th: Telekinetic Haul\n- 6th: Poltergeist's Fury\n- 7th: Telekinetic Bombardment\n- 8th: Falling Sky\n- 9th: Implosion\n\n**Standard Psi Cantrips**\n\nTelekinetic Hand\n\nYour telekinetic hand can carry up to 1 Bulk instead of only light Bulk. If the spell is heightened to 3rd rank or higher, its maximum Bulk is 2. If the spell is heightened to 7th rank or higher, its maximum Bulk is 3. It also gains the following amp.\n\n**Amp** You create a multitude of telekinetic hands that grip onto a creature and move it about. Target a creature of Medium size or smaller with the amped spell instead of an object. You attempt to Shove the target in a direction of your choice, rolling a spell attack roll against its Fortitude DC instead of an Athletics check. The creature takes a –10-foot circumstance penalty to its Speeds until the spell ends. Starting the round after you Cast the Spell, the first time each round you Sustain the Spell, you can attempt to Shove the creature again.\n\n**Amp Heightened (4th)**\n\nYou can attempt to Disarm the creature instead of attempting to Shove it. If you knock an item out of the creature's grasp in this way, the telekinetic hand immediately grabs it. Any effect of the telekinetic hand on the creature ends, and the spell now carries the item, just like you had picked it up with an unamped telekinetic hand.\n\nTelekinetic Projectile\n\nYour telekinetic projectiles can fly much further away. Increase the range of telekinetic projectile to 60 feet. It also gains the following amp.\n\n**Amp** You fling objects with even more force, driving your opponents backwards in a hail of objects. On a success, you push the target 5 feet away from you, and on a critical success, you push the target 10 feet away from you in addition to dealing double damage.\n\n**Amp Heightened (+1)** The damage increases by 2d6 instead of by 1d6.\n\n**Unique Psi Cantrips**\n\nsurface: Telekinetic Rend\n\n**Amp** Your thoughts expand in scope and power. The bursts deal 1d6 bludgeoning damage and 1d6 slashing damage, instead of the usual damage. A creature that critically fails its save is also Stunned 1.\n\n**Amp Heightened (+2)** Both types of damage increase by 1d6 instead of just one. Add a third non-overlapping 5-foot burst to the area.\n\ndeeper: Vector Screen\n\n**Amp** Your screen persists for longer, and you can detonate it in an explosive counterattack. The duration of the spell increases to 1 minute. You can Dismiss the spell. If there are any projectiles trapped in the screen, you can cast *telekinetic projectile* to fire them at one creature as part of Dismissing the spell. Measure the range for the telekinetic projectile from where the vector screen was, instead of from you.\n\ndeepest: Dancing Blade\n\n**Amp** The weapon's attacks increase in strength, and your control is fine enough for advanced technique. The damage dice for the weapon's Strike change from d6s to d10s. When you Cast or Sustain the spell, you can choose from the following options in addition to the standard ones.\n\n- **Guard** Rather than attacking, the weapon grants a +2 circumstance bonus to AC against melee attacks to the creature it's following. The bonus lasts until the start of your next turn or until the weapon Changes Partners, whichever comes first.\n- **Push**(attack) The weapon attempts to Push its target, using your spell attack roll instead of an Athletics check to determine the results of the Push.",
-    "cite": "Dark Archive (Remastered) — Class Features: The Distant Grasp"
+    "cite": "Dark Archive (Remastered) — Class Features: The Distant Grasp",
+    "builder": {
+     "tags": [
+      "psychic-conscious-mind"
+     ],
+     "more": 1
+    }
    },
    {
     "id": "pf2e-orc-books.the-infinite-eye",
@@ -327,7 +1019,13 @@
     "traits": "psychic",
     "summary": "The true strength of the mind lies in the knowledge it contains, with each new observation contributing to the totality of its experiences.",
     "description": "The true strength of the mind lies in the knowledge it contains, with each new observation contributing to the totality of its experiences. To grow your experiences—and with them, your power—you devote yourself to observing as much as possible, casting your senses through space and time with clairvoyance and precognition.\n\n**Granted Spells**\n\n- 1st: Sure Strike\n- 2nd: Augury\n- 3rd: Locate\n- 4th: Clairvoyance\n- 5th: Scouting Eye\n- 6th: Truesight\n- 7th: True Target\n- 8th: Unrelenting Observation\n- 9th: Foresight\n\n**Standard Psi Cantrips**\n\nDetect Magic\n\nYou have the kind of fine control over your magical senses that other spellcasters can only dream of. When you cast detect magic, you're aware of any creature in the emanation affected by a spell or carrying a magic item, and you determine the main location of magic within any magical hazard in the emanation (with the normal restrictions on detecting illusions). This typically manifests as an alteration to your vision, such as seeing a soft aura around the creature or hazard. Sensing these phenomena doesn't make it clear which spell is on a creature, nor which of its items are magical. Your detect magic also gains the following amp.\n\n**Amp** Your pulse of detection magic helps you gain a sense of nearby magic's strengths or weaknesses. When you detect the presence of magic on an enemy or hazard, you gain a +1 status bonus to saves against magic originating from that enemy or hazard for 3 rounds. If you find magic from multiple sources with a single casting of detect magic, you get the bonus against all of them.\n\n**Amp Heightened (7th)** The status bonus to saves against magic increases to +2.\n\nGuidance\n\nYour clairvoyant gaze extends further than most, allowing you to guide your allies from a greater distance. The range of guidance increases to 120 feet. It also gains the following amp.\n\n**Amp** You can project a flash of insight to your ally in the nick of time to save them from failure. Amped guidance doesn't cause a creature to become temporarily immune to guidance, and a creature can be targeted by amped guidance even if it is temporarily immune to guidance.\n\nYou can cast an amped guidance spell as a reaction triggered when your ally fails or critically fails an attack roll, Perception check, saving throw, or skill check, and the bonus from guidance would change the failure to a success or the critical failure to a normal failure. The bonus from guidance applies retroactively to their check.\n\n**Amp Heightened (6th)** The bonus from the spell increases to +2.\n\n**Unique Psi Cantrips**\n\nsurface: Glimpse Weakness\n\n**Amp** The additional precision damage is 1d4+1.\n\n**Amp Heightened (+2)** The additional precision damage increases by 1d4+1.\n\ndeeper: Omnidirectional Scan\n\n**Amp** Your scans are so minute that you can project your foe's likely strengths and weaknesses. You learn which of the target enemy's saving throws is highest and which is lowest, and you and all allies within 30 feet gain a +1 circumstance bonus to attacks and damage against the creature.\n\nIf you take the Aid reaction you prepared for and succeed at your roll, these bonuses increase to +2 on the attack you're Aiding. On a critical success, they increase to +3, or to +4 if you have legendary proficiency in spell attack modifier.\n\ndeepest: Foresee the Path\n\n**Amp** The spell has the same result on a failure as on a success (but still no effect on a critical failure). Each time you Sustain the spell, you can choose an additional ally to target, granting them the same benefit as the initial target ally.",
-    "cite": "Dark Archive (Remastered) — Class Features: The Infinite Eye"
+    "cite": "Dark Archive (Remastered) — Class Features: The Infinite Eye",
+    "builder": {
+     "tags": [
+      "psychic-conscious-mind"
+     ],
+     "more": 1
+    }
    },
    {
     "id": "pf2e-orc-books.the-last-ruler",
@@ -336,7 +1034,12 @@
     "traits": "exemplar",
     "summary": "Whether your destiny is monarch or god, the spirit of all rulers past and future grants you an unrivaled commanding presence.",
     "description": "Whether your destiny is monarch or god, the spirit of all rulers past and future grants you an unrivaled commanding presence. After you Spark Transcendence, you can exude an air of authority until the start of your next turn. If any enemy fails at an attack roll against you during this time, you can attempt an Intimidation check to Demoralize that enemy as a free action as you rebuke it for its foolish attempt to stand against your authority.",
-    "cite": "War of Immortals — Class Features: The Last Ruler"
+    "cite": "War of Immortals — Class Features: The Last Ruler",
+    "builder": {
+     "tags": [
+      "exemplar-sovereignty-epithet"
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.the-mournful",
@@ -345,7 +1048,18 @@
     "traits": "exemplar",
     "summary": "To be a hero is to endure countless hardships and stand where others have fallen, shouldering dreams and destinies in their stead.",
     "description": "To be a hero is to endure countless hardships and stand where others have fallen, shouldering dreams and destinies in their stead. Though this weight may reach your eyes, you bear this burden so that those under you can live smiling. You are trained in Diplomacy. After you Spark Transcendence, your act resonates with bittersweet poignancy, making one enemy of your choice within 30 feet who witnessed the act dazzled as tears or memories dance in their eyes. This is an emotion and mental effect. The enemy remains dazzled until the start of your next turn, and then they are temporarily immune for 10 minutes.",
-    "cite": "War of Immortals — Class Features: The Mournful"
+    "cite": "War of Immortals — Class Features: The Mournful",
+    "builder": {
+     "tags": [
+      "exemplar-root-epithet"
+     ],
+     "ranks": [
+      {
+       "path": "skills.diplomacy",
+       "rank": 1
+      }
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.the-oscillating-wave",
@@ -354,7 +1068,13 @@
     "traits": "psychic",
     "summary": "At the heart of all things is energy.",
     "description": "At the heart of all things is energy. Though it may change its form or resting place, it is eternal, fundamental, the purest of building blocks. Your powers let you shift energy—either concentrating it in a single point to explosive end or freezing objects by plundering it away—in an endless oscillation of temperature.\n\n**Granted Spells**\n\n- 1st: Breathe Fire\n- 2nd: Blazing Bolt\n- 3rd: Fireball\n- 4th: Ice Storm\n- 5th: Howling Blizzard\n- 6th: Frozen Fog\n- 7th: Volcanic Eruption\n- 8th: Arctic Rift\n- 9th: Falling Stars\n\n**Standard Psi Cantrips**\n\nFrostbite\n\nYou can freeze people from even farther away. The range of your *frostbite* increases to 120 feet. Your *frostbite* also gains the following amp.\n\n**Amp** You drain thermal energy at a distance, using what you plunder to replenish yourself. The orb deals 3d4 cold damage. You gain temporary Hit Points equal to half the damage the target takes (after applying resistances and the like). You lose any remaining temporary Hit Points after 1 minute.\n\n**Amp Heightened (+1)** The initial damage increases by 2d4 instead of 1d4. The weakness on a critical failure increases by 1.\n\nIgnition\n\nYou can drastically increase the heat against targets at a distance. When using *ignition* as a ranged attack, increase the range to 60 feet. When using ignition as a melee attack, your reach increases by 5 feet. Your *ignition* also gains the following amp.\n\n**Amp** You project pure heat that causes a target to combust. The initial damage changes to 1d10 fire damage plus 1 fire splash damage. When using amped ignition as a melee attack, increase the damage dice of the initial damage from d10s to d12s. You are not harmed by splash damage from amped ignition.\n\n**Amp Heightened (+1)** Instead of using ignition's normal heightened entry, the initial damage increases by 1d10 (1d12 for melee) and the splash damage increases by 1. The persistent fire damage on a critical hit increases by 1d4.\n\n**Unique Psi Cantrips**\n\nsurface: Thermal Stasis\n\n**Amp** The spell's duration becomes 1 minute.\n\ndeeper: Entropic Wheel\n\n**Amp** You gain two motes instead of one when you Cast the Spell and each time the wheel gains another mote.\n\ndeepest: Redistribute Potential\n\n**Amp** You can affect the flow of energy on a much grander scale. Instead of two 5-foot squares, you create two 10-foot bursts. They still must be adjacent to one another and can overlap. A creature in both areas can still be affected by only one of your choice. The spell's damage increases to 6d6. The conditions last for 1 minute.\n\n**Amp Heightened (+1)** Increase the damage by 2d6 instead of 1d4.\n\n### **Conservation of Energy**\n\nEnergy can't be created or destroyed, only transferred or changed—whenever you use your magic to add or remove energy, you must then balance it with the opposing force. While this allows you to invert your spells to cast a scorching frostbite or frozen fireball, it also means your spells alternate between fire and cold in equal measure. The first time in an encounter that you cast a granted spell from your conscious mind or a standard psi cantrip, decide whether you're adding energy or removing it. Once you add energy, you must remove energy the next time you cast one of these spells, and vice versa. When you Refocus, you restore yourself to a neutral state, allowing you to once again freely choose whether you add or remove energy on your next spell.\n\n**Adding Energy:** The ability gains the fire trait and any damage it deals is fire damage. It loses any traits matching damage types it no longer deals.\n\n**Removing Energy:** The ability gains the cold trait and any damage it deals is cold damage. It loses any traits matching damage types it no longer deals.\n\n**Mindshift:** When you use an action that has the mindshift trait, you can choose to add or remove energy to it instead of making it mental. Alter it as normal for adding or removing energy and change any save it requires to a Reflex save.",
-    "cite": "Dark Archive (Remastered) — Class Features: The Oscillating Wave"
+    "cite": "Dark Archive (Remastered) — Class Features: The Oscillating Wave",
+    "builder": {
+     "tags": [
+      "psychic-conscious-mind"
+     ],
+     "more": 1
+    }
    },
    {
     "id": "pf2e-orc-books.the-proud",
@@ -363,7 +1083,18 @@
     "traits": "exemplar",
     "summary": "Whether out of overconfidence, a desire to protect your comrades, or the unslakable thirst for glory, you invite challengers to strike you down.",
     "description": "Whether out of overconfidence, a desire to protect your comrades, or the unslakable thirst for glory, you invite challengers to strike you down. You are trained in Intimidation. After you Spark Transcendence, you can boast to one enemy within 30 feet to draw its attention; this effect has the auditory, emotion, mental, and linguistic traits. Until the start of your next turn, the target takes a –1 status penalty to attack rolls, damage rolls, and skill checks against creatures other than you, and it gains a +1 status bonus to these rolls when targeting you.\n\nEffect: The Proud",
-    "cite": "War of Immortals — Class Features: The Proud"
+    "cite": "War of Immortals — Class Features: The Proud",
+    "builder": {
+     "tags": [
+      "exemplar-root-epithet"
+     ],
+     "ranks": [
+      {
+       "path": "skills.intimidation",
+       "rank": 1
+      }
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.the-radiant",
@@ -372,7 +1103,18 @@
     "traits": "exemplar",
     "summary": "Leaders must live bigger lives than any other, shining so brightly that they attract followers, inspire troops, and change the course of kingdoms.",
     "description": "Leaders must live bigger lives than any other, shining so brightly that they attract followers, inspire troops, and change the course of kingdoms. You are trained in Diplomacy. After you Spark Transcendence, you inspire an ally within 30 feet to push on, restoring Hit Points equal to 2 + double your level; this is a mental and emotion effect. The ally is then temporarily immune for 10 minutes.",
-    "cite": "War of Immortals — Class Features: The Radiant"
+    "cite": "War of Immortals — Class Features: The Radiant",
+    "builder": {
+     "tags": [
+      "exemplar-root-epithet"
+     ],
+     "ranks": [
+      {
+       "path": "skills.diplomacy",
+       "rank": 1
+      }
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.the-silent-whisper",
@@ -381,7 +1123,13 @@
     "traits": "psychic",
     "summary": "Every mind murmurs constantly, and the static from those nearby reverberates in your head like wind through leaves.",
     "description": "Every mind murmurs constantly, and the static from those nearby reverberates in your head like wind through leaves. What better focus for your magic then, than the very thoughts of those around you? Your versatile telepathic abilities let you soothe and communicate with your allies or control your enemies.\n\n**Granted Spells**\n\n- 1st: Mindlink\n- 2nd: Stupefy\n- 3rd: Heroism\n- 4th: Telepathy\n- 5th: Synaptic Pulse\n- 6th: Sending\n- 7th: Visions of Danger\n- 8th: Uncontrollable Dance\n- 9th: Telepathic Demand\n\n**Standard Psi Cantrips**\n\nDaze\n\nYou can daze from a great distance, your thoughts resounding like a siren in your foes' minds. The range increases to 120 feet. Your daze also gains the following amp.\n\n**Amp** Your spell cracks the target's mental defenses, leaving it susceptible to further psychic attack. The spell's damage changes to 1d10. If the target fails its Will save, until the end of its next turn, it gains weakness 1 to mental damage and takes a –1 status penalty to Will saves. On a critical failure, the weakness is 3 (in addition to the target being Stunned 1). The weakness applies before daze deals damage.\n\n**Amp Heightened (+2)** The spell's damage increases by 2d10, and the weakness on a failure or critical failure increases by 1.\n\nMessage\n\nYour message spell can travel up to 120 feet to reach the target, bending around walls and obstacles; this means you don't need a straight line of effect or line of sight to cast message as long as you know the target's space and there is an unblocked path of 120 feet or less that can reach them. You can cast message in a purely telepathic manner, causing the spell to lose the auditory trait. It also gains the following amp.\n\n**Amp** Your telepathic message allows you to coordinate your actions while you pass on information. The target of the message can immediately spend its reaction to Step or Stride.\n\n**Amp Heightened (4th)** The target of the message can choose to Shove, Strike, or Trip with its reaction instead.\n\n**Unique Psi Cantrips**\n\nsurface: Forbidden Thought\n\n**Amp** Your telepathic push is particularly shocking to those who resist it. If the target fails its save, it's also Stunned 1.\n\ndeeper: Shatter Mind\n\n**Amp** You increase the area of the spell to a 30-foot cone or 60-foot cone, and the damage dice for the spell change to d10s. Creatures that fail are Stupefied 1 until the start of your next turn (or Stupefied 2 on a critical failure).\n\ndeepest: Contagious Idea\n\n**Amp** You can choose to spread the thought from the second target to a third target, in the same manner as spreading it from the first target to the second. A pleasant thought grants twice as many temporary Hit Points (10, plus an additional 2 for each rank heightened).",
-    "cite": "Dark Archive (Remastered) — Class Features: The Silent Whisper"
+    "cite": "Dark Archive (Remastered) — Class Features: The Silent Whisper",
+    "builder": {
+     "tags": [
+      "psychic-conscious-mind"
+     ],
+     "more": 1
+    }
    },
    {
     "id": "pf2e-orc-books.the-tangible-dream",
@@ -390,7 +1138,13 @@
     "traits": "psychic",
     "summary": "You pull colors and shapes from the depth of your mind, projecting impossible creations into the world as tapestries of astral thread or sculptures of force and light.",
     "description": "You pull colors and shapes from the depth of your mind, projecting impossible creations into the world as tapestries of astral thread or sculptures of force and light.\n\n**Granted Spells**\n\n- 1st: Dizzying Colors\n- 2nd: Invisibility\n- 3rd: Sea of Thought\n- 4th: Containment\n- 5th: Etheric Shards\n- 6th: Scintillating Safeguard\n- 7th: Project Image\n- 8th: Confusing Colors\n- 9th: Resplendent Mansion\n\n**Standard Psi Cantrips**\n\nFigment\n\nYour minor illusions shift and dance in a way that draws the eye. The range of figment increases to 60 feet. When you Sustain the spell, you can move the apparent sound or vision up to 15 feet. You can then attempt to Create A Diversion as usual. Those creatures who disbelieved the illusion aren't affected by this diversion. Your figment also gains the following amp.\n\n**Amp** When you amp the spell, you can create a particularly distracting illusion as part of its normal effects. Choose an unoccupied square within the spell's range. The illusion in that square provides flanking for a single melee attack made before the beginning of your next turn. If you Sustain the spell, the details of the illusion change and shift to keep your enemies unsettled; the flanking illusion's duration extends until the beginning of your next turn and you can move it to any unoccupied square in the spell's range. The flanking illusion can't provide its benefit against any creature who has disbelieved the figment.\n\nShield\n\nYour shield spell can be deployed on behalf of others. When you cast shield, you can choose a target ally within 30 feet to gain the benefits of the spell instead of you. The option to Shield Block with the spell is up to you and uses your reaction, not the target's. Your shield also gains the following amp.\n\n**Amp** You create a layered barrier of three shields to improve your defenses. The duration increases to sustained up to 1 minute. The shield still lowers at the start of each of your turns, but you can raise it again when you Sustain the Spell.\n\nWhen you Shield Block with this spell, one of the three layers breaks and you cease to gain the bonus to AC, but the spell doesn't end. You can keep using the spell until the final layer breaks; once it does, the spell ends and you can't cast shield or amped shield again for 10 minutes. You can choose to break additional layers when you Shield Block with this spell to improve your defenses. If you break two layers instead of one, increase the Hardness to 1-1/2 × the normal amount (7 at 1st rank, 15 at 3rd rank, 22 at 5th rank, 30 at 7th rank, and 37 at 9th rank). If you break all three layers, increase the Hardness to double the normal amount.\n\n**Unique Psi Cantrips**\n\nsurface: Imaginary Weapon\n\n**Amp** You form multiple force weapons to lash out at multiple foes. You can target two creatures, making an attack against each. These attacks each increase your multiple attack penalty, but you don't increase your multiple attack penalty until after you make all the spell attack rolls.\n\n**Amp Heightened (+1)** The damage increases by 2d6 instead of 1d6.\n\ndeeper: Astral Rain\n\n**Amp** The area changes to a 5-foot burst, and you can Sustain the Spell up to 1 minute. The first time each round that you Sustain the Spell, you can move the burst up to 20 feet.\n\ndeepest: Hologram Cage\n\n**Amp** Force walls make the cage's barrier physical as well as visual. Each 10-foot-by-10-foot section of the cage's wall has AC 10, Hardness equal to double the spell's rank, and HP equal to quadruple the spell's rank. The spell is disrupted if any of its walls would pass through a creature when you cast it.",
-    "cite": "Dark Archive (Remastered) — Class Features: The Tangible Dream"
+    "cite": "Dark Archive (Remastered) — Class Features: The Tangible Dream",
+    "builder": {
+     "tags": [
+      "psychic-conscious-mind"
+     ],
+     "more": 1
+    }
    },
    {
     "id": "pf2e-orc-books.the-unbound-step",
@@ -399,7 +1153,13 @@
     "traits": "psychic",
     "summary": "The mind can flit from thought to thought; why too shouldn't you?",
     "description": "The mind can flit from thought to thought; why too shouldn't you? You focus on motion in a higher order of spatial dimensions, not just the typical three, allowing for versatile abilities that alter positioning.\n\n**Granted Spells**\n\n- 1st: Thoughtful Gift\n- 2nd: Enlarge\n- 3rd: Rally Point\n- 4th: Translocate\n- 5th: Strange Geometry\n- 6th: Collective Transposition\n- 7th: Momentary Recovery\n- 8th: Quandary\n- 9th: Bilocation\n\n**Standard Psi Cantrips**\n\nPhase Bolt\n\nYour phase bolt temporarily sends the target's cover out of phase if it hits. On a success, reduce the target's circumstance bonus to AC (if any) by 1 until the beginning of your next turn. Your phase bolt also gains the following amp.\n\n**Amp** Your bolt leaves phase completely, becoming invisible and intangible until it's already embedded in the target—giving the impression it simply teleported itself into place. The target is off-guard against the attack. Additionally, the bolt ignores an amount of Hardness or resistance to piercing damage equal to half the spell's rank. On a critical success, the target can't be affected by teleportation effects until the start of your next turn.\n\n**Amp Heightened (+1)** The bolt's damage increases by 2d4 instead of 1d4.\n\nWarp Step\n\nYou warp space more compactly, granting you a +10-foot status to your Speed instead of a +5-foot status bonus when you warp step. The spell also gains the following amp.\n\n**Amp** Space contracts with hardly a thought, letting you Cast the Spell as a single action.\n\n**Amp Heightened (4th)** You twist space so completely you don't need to travel the interposing distance. You can choose to instead teleport to a space within your line of sight and line of effect with a range equal to your double your Speed (after applying the status bonus from warp step). This grants the spell the teleportation trait.\n\n**Unique Psi Cantrips**\n\nsurface: Distortion Lens\n\n**Amp** You can lock the lens in place, allowing it to affect creatures more strongly. The duration of the spell becomes 1 minute, but you cannot Sustain the spell to reposition the lens. Once during a Medium or smaller ally's move action, the ally can move into and out of the lens's area without those spaces counting against the total distance moved. Conversely, the lens is difficult terrain for your enemies.\n\ndeeper: Ghostly Shift\n\n**Amp** Your insubstantiality is complete enough that you can pass through other creatures, causing painful interference effects when you do so. Once each round when you Stride, Burrow, Swim, or Fly, you can pass through one creature's space during that action without needing to attempt a check to Tumble Through, though you can't end your turn in its space. When you pass through a creature's space in this way, you deal 2d6 force damage to that creature, with a basic Fortitude save.\n\n**Amp Heightened (+2)** Increase the damage dealt by phasing through a creature by 1d6.\n\ndeepest: Tesseract Tunnel\n\n**Amp** Physical movement is no longer necessary to connect two points in space. When you cast tesseract tunnel, you simply create a tunnel that ends in a square within a range equal to your Speed; you can choose to immediately teleport to the space at the far end of the tunnel. Furthermore, the tunnel can be traversed in both directions, instead of only from entrance to exit. Finally, the spell's duration changes to 1 minute. You can Dismiss the spell.",
-    "cite": "Dark Archive (Remastered) — Class Features: The Unbound Step"
+    "cite": "Dark Archive (Remastered) — Class Features: The Unbound Step",
+    "builder": {
+     "tags": [
+      "psychic-conscious-mind"
+     ],
+     "more": 1
+    }
    },
    {
     "id": "pf2e-orc-books.thespians-calling",
@@ -408,7 +1168,12 @@
     "traits": "uncommon, calling, mythic",
     "summary": "All the world is a stage, and you're no mere player, but a playwright whose story may change the course of history.",
     "description": "All the world is a stage, and you're no mere player, but a playwright whose story may change the course of history. When you use Performance to Perform or Earn Income, you can spend a Mythic Point to attempt the check at mythic proficiency. The first time each day that you critically succeed on a check to Perform, you regain a Mythic Point.\n\n**Edicts** master new performances, seek opportunities to perform in front of new audiences, support other performers\n\n**Anathema** deny a call for an encore performance, refuse a request to perform in front of an audience, sabotage another performer",
-    "cite": "War of Immortals — Class Features: Thespian's Calling"
+    "cite": "War of Immortals — Class Features: Thespian's Calling",
+    "builder": {
+     "grants": [
+      "Rewrite Fate"
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.thief-of-moonlight",
@@ -417,7 +1182,12 @@
     "traits": "exemplar",
     "summary": "Though your tales are not sung out loud, they still live on as cautionary tales, whispers, tall tales, and half-believed rumors.",
     "description": "Though your tales are not sung out loud, they still live on as cautionary tales, whispers, tall tales, and half-believed rumors. You walk hidden behind stars, capable of taking anything; the lights of the heavens are not safe from your avarice. After you Spark Transcendence, as a free action you can attempt a check to Palm an Object or to Steal an item from an enemy within 30 feet. The relocated objects simply disappear and reappear in your hand.",
-    "cite": "War of Immortals — Class Features: Thief of Moonlight"
+    "cite": "War of Immortals — Class Features: Thief of Moonlight",
+    "builder": {
+     "tags": [
+      "exemplar-sovereignty-epithet"
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.thiefs-calling",
@@ -426,7 +1196,12 @@
     "traits": "uncommon, calling, mythic",
     "summary": "Whether guildmaster or cutpurse, you covet something, or many things, that don't belong to you, and you're driven to ever greater heights of larceny.",
     "description": "Whether guildmaster or cutpurse, you covet something, or many things, that don't belong to you, and you're driven to ever greater heights of larceny. When you attempt to Pick a Lock or Steal an item, you can spend a Mythic Point to attempt the check at mythic proficiency. The first time each day that you critically succeed on a check to Pick a Lock or Steal from a hostile creature, you regain a Mythic Point.\n\n**Edicts** seek opportunities to overcome evermore dangerous and complex locks and mechanical defenses, steal things from dangerous creatures or places\n\n**Anathema** leave unattended treasure where you found it, pass up opportunities for profit that challenge your skills",
-    "cite": "War of Immortals — Class Features: Thief's Calling"
+    "cite": "War of Immortals — Class Features: Thief's Calling",
+    "builder": {
+     "grants": [
+      "Rewrite Fate"
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.third-apparition",
@@ -444,7 +1219,17 @@
     "traits": "thaumaturge",
     "summary": "As you come closer to the culmination of your journey, you gain your final implement, completing your set of three.",
     "description": "As you come closer to the culmination of your journey, you gain your final implement, completing your set of three. It must be a different type of implement than your first and second implements. You gain the initiate benefit and intensify vulnerability benefit of your new implement.",
-    "cite": "Dark Archive (Remastered) — Class Features: Third Implement"
+    "cite": "Dark Archive (Remastered) — Class Features: Third Implement",
+    "builder": {
+     "selections": [
+      {
+       "tags": [
+        "thaumaturge-implement"
+       ],
+       "count": 1
+      }
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.thousand-league-sandals",
@@ -453,7 +1238,17 @@
     "traits": "ikon",
     "summary": "Threadbare but trustworthy, your sandals have carried you this far, and they'll carry you much further still.",
     "description": "**Usage** worn shoes\n\nThreadbare but trustworthy, your sandals have carried you this far, and they'll carry you much further still.\n\n**Immanence** Your sandals ease your travels on the path ahead, granting you a +10-foot status bonus to your Speed.\n\n**Transcendence—**Marathon Dash ◆ (transcendence)",
-    "cite": "War of Immortals — Class Features: Thousand-League Sandals"
+    "cite": "War of Immortals — Class Features: Thousand-League Sandals",
+    "builder": {
+     "tags": [
+      "exemplar-ikon",
+      "exemplar-worn-ikon"
+     ],
+     "grants": [
+      "Marathon Dash"
+     ],
+     "more": 2
+    }
    },
    {
     "id": "pf2e-orc-books.time",
@@ -462,7 +1257,24 @@
     "traits": "oracle",
     "summary": "Whether by accident, fate, or purposeful meddling, you exist slightly outside of time.",
     "description": "Whether by accident, fate, or purposeful meddling, you exist slightly outside of time. While initially unmoored by moments, the countless march of milliseconds builds up to drift you further and further out of sync with your natural timeline, often in contradictory directions. You might view this as a blessing, perhaps as a sign you're somehow beyond mortality or you can't be contained within reality's limitations, or you might view it as a cruel curse that causes your life to slip by adrift even as you gain power over time. Many oracles of time are without faith and either come to rely upon their own instincts to survive or turn to strange rituals and forbidden magic in attempts to break free of time's grasp.\n\n**Granted Spells**\n\n- **cantrip:** Time Sense\n- **1st:** Déjà Vu\n- **3rd:** Time Pocket\n- **7th:** Time Beacon\n\n**Revelation Spells**\n\n- **initial:** Temporal Distortion\n- **advanced:** Time Skip\n- **greater:** Manifold Lives\n\n**Related Domains** change, fate, nothingness, time\n\n**Mystery Skill** Occultism\n\n**Oracle Feat** Trance of Celerity\n\nCurse of Turbulent Moments",
-    "cite": "Dark Archive (Remastered) — Class Features: Time"
+    "cite": "Dark Archive (Remastered) — Class Features: Time",
+    "builder": {
+     "tags": [
+      "oracle-mystery"
+     ],
+     "ranks": [
+      {
+       "path": "skills.occultism",
+       "rank": 1
+      }
+     ],
+     "feats": [
+      "Trance of Celerity"
+     ],
+     "grants": [
+      "Curse of Turbulent Moments"
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.titans-breaker",
@@ -471,7 +1283,17 @@
     "traits": "ikon",
     "summary": "You wield a weapon whose blows shatter mountains with ease.",
     "description": "**Usage** any melee weapon in the club, hammer, or axe group, or any your melee unarmed Strikes that deals bludgeoning damage\n\nYou wield a weapon whose blows shatter mountains with ease.\n\n**Immanence** The titan's breaker deals 2 additional spirit damage per weapon damage die to creatures it Strikes. Constructs and objects are not immune to this spirit damage, and this spirit damage automatically bypasses an amount of their Hardness equal to your level.\n\n**Transcendence—**Fracture Mountains ◆◆ (spirit, transcendence)",
-    "cite": "War of Immortals — Class Features: Titan's Breaker"
+    "cite": "War of Immortals — Class Features: Titan's Breaker",
+    "builder": {
+     "tags": [
+      "exemplar-ikon",
+      "exemplar-weapon-ikon"
+     ],
+     "grants": [
+      "Fracture Mountains"
+     ],
+     "more": 4
+    }
    },
    {
     "id": "pf2e-orc-books.tome",
@@ -480,7 +1302,16 @@
     "traits": "thaumaturge",
     "summary": "Tome implements embody lost knowledge and otherworldly insights.",
     "description": "Tome implements embody lost knowledge and otherworldly insights. While a weathered book is most common, tome implements can have as many different form factors as there are ways to store knowledge, from carved clay tablets to bundles of knotted cords. Tome implements are associated with the harrow suit of books and the astrological signs of the stargazer and the underworld dragon.\n\n### **Initiate Benefit**\n\n### **Adept Benefit**\n\n### **Intensify Vulnerability**\n\nYour tome's power not only reads a creature's present but even records its future actions. When you use Intensify Vulnerability, roll a d20 and set the result aside. At any time until the start of your next turn, you can use the d20 result you set aside for an attack roll to Strike the target of your Exploit Vulnerability, instead of rolling a new d20; this is a fortune effect.\n\n### **Paragon Benefit**",
-    "cite": "Dark Archive (Remastered) — Class Features: Tome"
+    "cite": "Dark Archive (Remastered) — Class Features: Tome",
+    "builder": {
+     "tags": [
+      "thaumaturge-implement"
+     ],
+     "grants": [
+      "Tome Implement",
+      "Initiate Benefit (Tome)"
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.tough-to-kill",
@@ -489,7 +1320,12 @@
     "traits": "guardian",
     "summary": "The protectiveness of your armor ensures that even if you fall, you take longer to die.",
     "description": "The protectiveness of your armor ensures that even if you fall, you take longer to die. You gain the Diehard general feat. If you already have the Diehard feat, you can retrain it when you get Tough to Kill. Additionally, the first time each day you'd be reduced to dying 3 or higher, you stay at dying 2 instead.",
-    "cite": "Battlecry! — Class Features: Tough To Kill"
+    "cite": "Battlecry! — Class Features: Tough To Kill",
+    "builder": {
+     "feats": [
+      "Diehard"
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.troll-deviant-classification",
@@ -497,7 +1333,12 @@
     "level": 0,
     "summary": "Especially common when a deviant ability is born of scientific experimentation, the troll classification connotes improved physical abilities.",
     "description": "Especially common when a deviant ability is born of scientific experimentation, the troll classification connotes improved physical abilities. While often thought of as biological mutation, clockwork implants and personal magical enhancements are equally likely mechanisms.\n\n### Backlash\n\nStrained Metabolism\n\nThe same blood that lets one of the dragon-descended spit out a gout of flame is precisely what keeps the inside of their mouth from being singed in the furnace. Deviations, unfortunately, lack these safeguards, their powers coming from haphazard circumstance and interactions rather than intentional design. A character using their deviation always risks the chance of backlash.\n\nWhenever you attempt to use a deviation, roll a DC 5 flat. On a success, you use your deviation and the DC for subsequent checks increases by 5, to a maximum of 20 (DC 10 flat DC 15 flat DC 20 flat); on a failure, you use your deviation and then suffer a backlash effect, after which your flat check DC resets to 5. Backlash progresses from mild, to moderate, to severe. When you have already taken mild backlash in a given day, the next time you would take backlash, you take the moderate backlash instead, and if you have already taken moderate backlash, you take the severe backlash instead, and your deviation can't be used for the rest of the day—attempting to use it simply brings pain. When you make your daily preparations, your flat check DC returns to 5 and your next backlash returns to mild.\n\nAny effects from backlash can't be reduced, prevented, or otherwise bypassed. Conditions and damage you take from backlash can't be reduced or prevented by resistance or immunity, but still triggers any weakness you have to it.\n\n### Troll Deviant Feats\n\nBone Spikes\n\nTitan Swing\n\nHigh-Speed Regeneration\n\nTectonic Stomp\n\n### Universal Deviant Feats\n\nAwakened Power\n\nGreater Awakened Power",
-    "cite": "Dark Archive (Remastered) — Class Features: Troll Deviant Classification"
+    "cite": "Dark Archive (Remastered) — Class Features: Troll Deviant Classification",
+    "builder": {
+     "grants": [
+      "Strained Metabolism"
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.twin-juggernauts",
@@ -515,7 +1356,12 @@
     "traits": "magus",
     "summary": "The staff is perhaps the simplest of weapons, but this simplicity belies its elegance and versatility.",
     "description": "The staff is perhaps the simplest of weapons, but this simplicity belies its elegance and versatility. To you, a staff is casting implement and martial weapon alike—the foundation of a fighting style.\n\nWhile you wield a staff in one hand, the staff adjusts in shape and weight, gaining the agile trait and increasing its damage die size to 1d6. While you wield a staff in both hands, it lengthens, twists, and reshapes, gaining the parry, reach, and trip traits.\n\nWhile you're in Arcane Cascade stance, once per round you can Interact to change your grip on a staff as a free action.\n\n**Conflux Spell** Spinning Staff\n\n**Studious Spells** 7th: Oaken Resilience; 11th: Slow; 13th: Flicker",
-    "cite": "Impossible Magic — Class Features: Twisting Tree"
+    "cite": "Impossible Magic — Class Features: Twisting Tree",
+    "builder": {
+     "tags": [
+      "magus-hybrid-study"
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.twofold-tine",
@@ -524,7 +1370,12 @@
     "traits": "magus",
     "summary": "Magic dances between the two weapons you wield.",
     "description": "Magic dances between the two weapons you wield. Fighting groups of enemies takes full advantage of your capabilities as you move from one foe to another.\n\nWhile in Arcane Cascade stance, if you make a Strike with a melee weapon you're holding, you can intensify the stance's power for another melee weapon of your choice you're holding in a different hand. Until the end of your turn, any extra damage the chosen weapon gains from Arcane Cascade is increased to 2. The extra damage increases to 4 if you have weapon specialization or 6 if you have greater weapon specialization.\n\n**Conflux Spell** Force Fling\n\n**Studious Spells** 7th: Blur; 11th: Gravity Well; 13th: Unfettered Movement",
-    "cite": "Impossible Magic — Class Features: Twofold Tine"
+    "cite": "Impossible Magic — Class Features: Twofold Tine",
+    "builder": {
+     "tags": [
+      "magus-hybrid-study"
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.unassailable-soul",
@@ -569,7 +1420,22 @@
     "traits": "summoner",
     "summary": "Your eidolon is an undead spirit pulled from the Ethereal Plane or the Void, embodied, and bound to your life force in an unusual, potentially antithetical way that even other summoners can't quite…",
     "description": "Your eidolon is an undead spirit pulled from the Ethereal Plane or the Void, embodied, and bound to your life force in an unusual, potentially antithetical way that even other summoners can't quite understand. Undead eidolons take about every imaginable shape and form, as their bodies manifest from their connection to you. Their ultimate form can be influenced by an amalgamation of the echoes and memories of their old life before becoming undead, their cause of death, their encounters in the afterlife, and portions of your own essences. Together, you and your eidolon need to explore the mysteries of life, death, and undeath to understand what your bond means for both of your futures.\n\n**Tradition** divine\n\n**Traits** eidolon, undead\n\n**Home Plane** Ethereal Plane or Void\n\n**Size** Medium or Small\n\n**Suggested Attacks** claw (slashing), fist (bludgeoning), jaws (piercing)\n\n**Eidolon Attributes** Con +3, Int –1, Wis +1, Cha +0\n\n**Skills** Intimidation, Religion\n\n**Senses** darkvision\n\n**Languages** Necril\n\n**Speed** 25 feet\n\n**Initial (1st)—Void Essence** Your undead eidolon has a link directly to your life force, which grants them a twilight state between living and undead. This renders them a living creature and therefore susceptible to many ailments that bother only the living, though they possess some resistances to these effects. The eidolon has void healing, meaning they heal from void effects that heal undead and are damaged by vitality effects that damage undead. They don't have an undead's normal immunities, but they do gain a +2 circumstance bonus to saving throws against death effects, disease, poison effects, and non-damaging effects that target only undead. Additionally, their necrotic essence stanches their wounds easily. The flat check to remove persistent bleed damage from the eidolon is DC 10 (or DC 5 after receiving particularly effective aid).\n\n**Symbiosis (7th)—Drain Life** ◆◆ (divine, eidolon, void) Your eidolon attacks a living creature and drains some of the creature's life force to feed your shared link. Your eidolon Strikes a living enemy. If the Strike hits and deals damage, the target must attempt a Fortitude save against your spell DC, with the following effects. On a critical hit, the enemy uses the result one degree worse than it rolled.\n\n**Critical Success** No effect.\n\n**Success** Your eidolon drains a small amount of life force. The enemy takes additional void damage equal to half your level.\n\n**Failure** Your eidolon drains enough life force to satisfy itself. The enemy takes additional void damage equal to half your level and is Drained 1. Your eidolon gains temporary Hit Points equal to the enemy's level, which last for 1 minute.\n\n**Critical Failure** Your eidolon drains an incredible amount of life force and is thoroughly glutted with energy. As failure, but the enemy is Drained 2 and the temporary Hit Points are equal to double the enemy's level.\n\n**Transcendence (17th)—Rejuvenation** Your eidolon's unusual connection with you allows you both to rejuvenate when defeated. The first time each day your turn begins while you're dying, you instantly regain a number of Hit Points equal to three times your level (Ad)and wake up. (Increase your wounded condition as normal.) You can immediately Manifest your Eidolon as a free action. You can then take your turn as normal.",
-    "cite": "Impossible Magic — Class Features: Undead Eidolon"
+    "cite": "Impossible Magic — Class Features: Undead Eidolon",
+    "builder": {
+     "tags": [
+      "summoner-eidolon"
+     ],
+     "ranks": [
+      {
+       "path": "skills.intimidation",
+       "rank": 1
+      },
+      {
+       "path": "skills.religion",
+       "rank": 1
+      }
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.undead-lore",
@@ -578,7 +1444,12 @@
     "traits": "necromancer",
     "summary": "Your dealings with death have expanded your knowledge of the macabre.",
     "description": "Your dealings with death have expanded your knowledge of the macabre. You know the dead and what they are capable of. You become trained in Undead Lore, a special lore skill that can be used to Recall Knowledge regarding undead creatures, haunts, and effects caused by undead creatures or other necromancers, but that can't be used to Recall Knowledge of other topics. At 3rd level, you become an expert in Undead Lore; at 7th level, you become a master in Undead Lore; and at 15th level, you become legendary in Undead Lore.",
-    "cite": "Impossible Magic — Class Features: Undead Lore"
+    "cite": "Impossible Magic — Class Features: Undead Lore",
+    "builder": {
+     "lore": [
+      "Undead Lore"
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.undying-resilience",
@@ -596,7 +1467,17 @@
     "traits": "ikon",
     "summary": "The shots fired by this weapon seem guided by divine accuracy, finding the swiftest targets.",
     "description": "**Usage** a ranged weapon\n\nThe shots fired by this weapon seem guided by divine accuracy, finding the swiftest targets.\n\n**Immanence** The unfailing bow deals 1 additional spirit damage per weapon damage die to creatures it Strikes, or 1d4 additional spirit damage per weapon die on a critical hit.\n\n**Transcendence—**Arrow Splits Arrow ◆ (transcendence)",
-    "cite": "War of Immortals — Class Features: Unfailing Bow"
+    "cite": "War of Immortals — Class Features: Unfailing Bow",
+    "builder": {
+     "tags": [
+      "exemplar-ikon",
+      "exemplar-weapon-ikon"
+     ],
+     "grants": [
+      "Arrow Splits Arrow"
+     ],
+     "more": 3
+    }
    },
    {
     "id": "pf2e-orc-books.unleash-psyche",
@@ -605,7 +1486,12 @@
     "traits": "psychic",
     "summary": "When one thins the barrier between their inner mind and the outer world, one can unleash true psychic power.",
     "description": "When one thins the barrier between their inner mind and the outer world, one can unleash true psychic power. However, the mind wasn't meant to tap its full strength for long, leading to backlash once your unleashed psyche ends.",
-    "cite": "Dark Archive (Remastered) — Class Features: Unleash Psyche"
+    "cite": "Dark Archive (Remastered) — Class Features: Unleash Psyche",
+    "builder": {
+     "grants": [
+      "Unleash Psyche"
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.unlimited-esoterica",
@@ -641,7 +1527,12 @@
     "traits": "animist",
     "summary": "Vanguards of roaring waters are found where rivers carve their way through mountains, creating fearsome rapids.",
     "description": "Vanguards of roaring waters are found where rivers carve their way through mountains, creating fearsome rapids. They can also be found near bays where rivers meet the sea and create turbulent breakers and unpredictable undertows, coastal reefs that tear the bottoms from unwary ships and isolate islands, or anywhere else where water becomes violent and difficult to navigate safely. Vanguards of roaring waters encourage chaos and are easily bored.\n\n**Apparition Skills** Mountain Lore, River Lore\n\n**Apparition Spells**\n\n- **Cantrip** Rousing Splash\n- **1st** Hydraulic Push\n- **2nd** Mist\n- **3rd** Crashing Wave\n- **4th** Hydraulic Torrent\n- **5th** Control Water\n- **6th** Personal Ocean\n- **7th** Dancing Fountain\n- **8th** Whirlpool\n- **9th** Wrathful Storm\n\n**Vessel Spell** River Carving Mountains\n\n**Avatar** *River that Splits the World* Speed 50 feet, swim Speed 70 feet\n\n**Melee** ◆ parting mountains (reach 15 feet, versatile S, water), **Damage** 6d10+6 bludgeoning\n\n**Ranged** ◆ crash into the sea (range 120 feet, versatile P, water), **Damage** 6d6+6 bludgeoning",
-    "cite": "War of Immortals — Class Features: Vanguard of Roaring Waters"
+    "cite": "War of Immortals — Class Features: Vanguard of Roaring Waters",
+    "builder": {
+     "tags": [
+      "animist-apparition"
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.victors-wreath",
@@ -650,7 +1541,17 @@
     "traits": "ikon",
     "summary": "This symbol of victory—whether a laurel worn around the head or a medal that hangs from your neck—reminds you and your allies that victory is the only acceptable outcome.",
     "description": "**Usage** worn headwear or belt (typically a sash)\n\nThis symbol of victory—whether a laurel worn around the head or a medal that hangs from your neck—reminds you and your allies that victory is the only acceptable outcome.\n\n**Immanence** (aura, emotion, mental) You inspire your allies to greater glory. You and all your allies in a 15-foot emanation gain a +1 status bonus to attack rolls.\n\n**Transcendence—**One Moment till Glory ◆ (concentrate, emotion, mental, transcendence)",
-    "cite": "War of Immortals — Class Features: Victor's Wreath"
+    "cite": "War of Immortals — Class Features: Victor's Wreath",
+    "builder": {
+     "tags": [
+      "exemplar-ikon",
+      "exemplar-worn-ikon"
+     ],
+     "grants": [
+      "One Moment till Glory"
+     ],
+     "more": 2
+    }
    },
    {
     "id": "pf2e-orc-books.vindicator",
@@ -659,7 +1560,23 @@
     "traits": "ranger",
     "summary": "You have been specially trained to use guile and magic to reveal hidden threats.",
     "description": "You have been specially trained to use guile and magic to reveal hidden threats. You must select Vindicator Dedication as your 2nd-level class feat.\n\n**Prerequisites:** You must be a ranger.\n\n**Vindicator Adjustments:** You must choose a deity to be a follower of, and you gain your deity's sanctification.\n\nYou are trained in Religion instead of Nature.\n\nYou are trained in your deity's favored weapon. If your deity's favored weapon is a simple weapon or unarmed attack with a damage die smaller than d6, you gain the Deadly Simplicity feat. If your deity's favored weapon is an advanced weapon, your proficiency with it is equal to your proficiency with martial weapons.\n\nYou must choose the vindication edge for your hunter's edge.\n\nYou learn warden spells as divine spells instead of primal spells, and your spellcasting attribute is Wisdom. When you gain domain spells via the Domain Initiate or Advanced Domain feats, they are warden spells for the purposes of all your vindicator feats and abilities.\n\n### Vindication Edge\n\nYour specialized training gives you a unique edge that allows you to more effectively bring the tools of your faith to bear against the monsters that lurk in the night or hide among the faithful.\n\nYou gain a +1 status bonus to your spell attack rolls against your hunted prey, and they take a –1 status penalty to their saving throws against divine spells you cast. You gain the Vindicator's Mark warden spell.\n\n### Trackless Journey 5th\n\nVindicators can choose to gain the benefits of this class feature in either urban or natural terrain, chosen at the time the class feature is gained.\n\n### Masterful Hunter 17th\n\nThe masterful hunter class feature gives an additional benefit based on your hunter's edge. Included here is the additional benefit for the vindication edge.\n\n**Vindication:** You combine skill and magic to swiftly defeat your prey. The status bonus to divine spell attack rolls against your hunted prey increases to +2, and the status penalty to their saving throws against divine spells you cast is –2.",
-    "cite": "War of Immortals — Class Features: Vindicator"
+    "cite": "War of Immortals — Class Features: Vindicator",
+    "builder": {
+     "tags": [
+      "class-archetype",
+      "ranger-hunters-edge"
+     ],
+     "ranks": [
+      {
+       "path": "skills.religion",
+       "rank": 1
+      }
+     ],
+     "more": 2,
+     "feats": [
+      "Deadly Simplicity"
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.volatile-spark",
@@ -668,7 +1585,12 @@
     "traits": "uncommon, magus",
     "summary": "Your crashing spells meet their match with booming gunshots in a magical fusillade.",
     "description": "Your crashing spells meet their match with booming gunshots in a magical fusillade. By modifying your shots with your magic, you create explosions and cut through defenses.\n\nWhen you use Spellstrike, you can make a ranged firearm Strike, as long as the target is within the first range increment of your firearm. This overrides the actual range of the spell. If your firearm has the concussive trait, any damage from the spell you use in the Spellstrike uses the target's weakest resistance to any of the following: the spell's damage type, piercing, or bludgeoning. This benefit applies only to creatures you target with your firearm Strike during the Spellstrike, so it wouldn't apply to other creatures damaged with Expansive Spellstrike or similar abilities.\n\nIn addition, you gain the Reloading Cascade action.\n\n**Reloading Cascade** ◆\n\n**Conflux Spell** Booming Blast\n\n**Studious Spells** 7th: Entangling Flora; 11th: Earthbind; 13th: Seal Fate",
-    "cite": "Impossible Magic — Class Features: Volatile Spark"
+    "cite": "Impossible Magic — Class Features: Volatile Spark",
+    "builder": {
+     "tags": [
+      "magus-hybrid-study"
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.walls-of-will",
@@ -686,7 +1608,16 @@
     "traits": "thaumaturge",
     "summary": "Wand implements are short, lightweight batons, usually made of wood but often incorporating other materials.",
     "description": "Wand implements are short, lightweight batons, usually made of wood but often incorporating other materials. Due to their association with spellcasters, wand implements are connected to magic and its practice, as well as the direction and manipulation of energy. Wand implements are associated with the astrological signs of the thrush and the sky dragon.\n\n### **Initiate Benefit**\n\n### **Adept Benefit**\n\n### **Intensify Vulnerability**\n\nYour empowered wand surges with ever-more-powerful magic. When you Fling Magic to damage the target of your Exploit Vulnerability, Fling Magic gains a status bonus to its damage roll equal to your level.\n\n### **Paragon Benefit**",
-    "cite": "Dark Archive (Remastered) — Class Features: Wand"
+    "cite": "Dark Archive (Remastered) — Class Features: Wand",
+    "builder": {
+     "tags": [
+      "thaumaturge-implement"
+     ],
+     "grants": [
+      "Wand Implement",
+      "Initiate Benefit (Wand)"
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.wandering-reverie",
@@ -695,7 +1626,15 @@
     "traits": "psychic",
     "summary": "The subconscious is by definition buried below the surface.",
     "description": "The subconscious is by definition buried below the surface. Thus, only by stripping away the clamor and interference of everyday thought can you bring this more fundamental part of your mind to bear. Whether through sleep, self-hypnosis, or special exercises to empty your mind, you've found a way to access a deeper, more chaotic state of free association that better channels your psychic power.\n\nYour thoughtforms come from your imagination, images, and sensations your mind freely associates. You might have a passing daydream of small creatures bringing you an object as you telekinetically attract it or you may blink to find you've teleported to your desired location. Spell manifestations from imagination thoughtforms have surreal or indistinct qualities, and the exact details fade quickly from observers' memory, as sensations from a dream.\n\n**Key Attribute** Your key attribute score is Charisma.\n\n**Psyche Action** Fade Into Daydreams",
-    "cite": "Dark Archive (Remastered) — Class Features: Wandering Reverie"
+    "cite": "Dark Archive (Remastered) — Class Features: Wandering Reverie",
+    "builder": {
+     "tags": [
+      "psychic-subconscious-mind"
+     ],
+     "grants": [
+      "Fade Into Daydreams"
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.war-magic",
@@ -704,7 +1643,15 @@
     "traits": "wizard",
     "summary": "Your studies have focused on using magic on the battlefield along with the basics of warfare.",
     "description": "Your studies have focused on using magic on the battlefield along with the basics of warfare. With a sturdy breastplate to turn aside errant arrows, you confidently use your spells to turn the tide of battle. If you choose this class archetype, you must select War Mage Dedication as your 2nd-level class feat.\n\n**Prerequisites:** You must be a wizard.\n\n**War Mage Adjustments:** You become trained in light and medium armor. At 11th level, you gain expert proficiency with light and medium armor, as well as unarmored defense.\n\nYou gain the Shield Block general feat at 1st level.\n\nYou gain the war magic class feature at 1st level.\n\nYou must choose the School of Battle Magic as your arcane school.\n\nYou have familiarity with martial weapons, treating them as simple weapons for the purposes of proficiency. You do not gain the Arcane Bond or Arcane Thesis class features.\n\nYou do not gain the Defensive Robes feature at 13th level.\n\n**War Magic:** As a free action that can be taken once per round at the start of your turn, you can exchange any spell you currently have memorized for Sure Strike, heightened to the same level as the replaced spell. As normal, you can cast most spells while wielding a weapon in your hands. You can Refocus by studying plans of war, maps of troop movement, and reports from the field for an active conflict in lieu of studying your spellbook.",
-    "cite": "Battlecry! — Class Features: War Magic"
+    "cite": "Battlecry! — Class Features: War Magic",
+    "builder": {
+     "feats": [
+      "Shield Block"
+     ],
+     "grants": [
+      "School of Battle Magic"
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.warfare-expertise",
@@ -722,7 +1669,16 @@
     "traits": "fighter",
     "summary": "You have received a blessing that will ensure your ascension to legend, and a curse that foretells your inevitable fall.",
     "description": "You have received a blessing that will ensure your ascension to legend, and a curse that foretells your inevitable fall. You must select Warrior of Legend Dedication as your 2nd-level class feat.\n\n**Prerequisites:** You must be a fighter.\n\n**Warrior of Legend Adjustments:** You aren't trained in heavy armor.\n\nThe armor expertise and armor mastery class features only improve your proficiency rank for light armor, medium armor, and unarmored defense. You don't gain Shield Block as a class feature. You are trained in both Acrobatics and Athletics, rather than one or the other.\n\nChoose one physical damage type, which becomes your cursed weakness: bludgeoning, piercing, or slashing. You gain weakness to this damage type equal to half your level (minimum 1).\n\nYou gain Diehard as a bonus feat, but you become Doomed 2 whenever you take damage from your cursed weakness (unless your doomed value is already higher).\n\nYour fighter weapon mastery and weapon legend class features grant you increased proficiency in both spears and polearms, but you can't choose any other weapon group with these class features.",
-    "cite": "War of Immortals — Class Features: Warrior of Legend"
+    "cite": "War of Immortals — Class Features: Warrior of Legend",
+    "builder": {
+     "tags": [
+      "class-archetype"
+     ],
+     "more": 1,
+     "feats": [
+      "Diehard"
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.way-of-the-drifter",
@@ -731,7 +1687,22 @@
     "traits": "gunslinger",
     "summary": "You're a wanderer traveling from land to land with your gun and a melee weapon as company.",
     "description": "You're a wanderer traveling from land to land with your gun and a melee weapon as company. You win battles by relying on mobility and flexible use of your weapons.\n\n**Slinger's Reload** Reloading Strike\n\n**Deeds** *Initial* Into the Fray; *Advanced* Finish The Job; *Greater* Drifter's Wake\n\n**Way Skill** Acrobatics",
-    "cite": "Guns & Gears (Remastered) — Class Features: Way of the Drifter"
+    "cite": "Guns & Gears (Remastered) — Class Features: Way of the Drifter",
+    "builder": {
+     "tags": [
+      "gunslinger-way"
+     ],
+     "grants": [
+      "Into the Fray",
+      "Reloading Strike"
+     ],
+     "ranks": [
+      {
+       "path": "skills.acrobatics",
+       "rank": 1
+      }
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.way-of-the-pistolero",
@@ -740,7 +1711,26 @@
     "traits": "gunslinger",
     "summary": "Whether you're a professional duelist or a pistol-twirling entertainer, you have quick feet and quicker hands that never seem to let you down, and an equally sharp wit and tongue that jab your foes.",
     "description": "Whether you're a professional duelist or a pistol-twirling entertainer, you have quick feet and quicker hands that never seem to let you down, and an equally sharp wit and tongue that jab your foes. You might leave a hand free or cultivate the ambidexterity for twin weapons. Either way, you stay close enough to your enemies to leverage your superior reflexes while leaving enough space to safely fire.\n\n**Slinger's Reload** Raconteur's Reload\n\n**Deeds** *Initial* Ten Paces; *Advanced* Pistolero's Retort; *Greater* Grim Swagger\n\n**Way Skill** choose Deception or Intimidation",
-    "cite": "Guns & Gears (Remastered) — Class Features: Way of the Pistolero"
+    "cite": "Guns & Gears (Remastered) — Class Features: Way of the Pistolero",
+    "builder": {
+     "tags": [
+      "gunslinger-way"
+     ],
+     "grants": [
+      "Raconteur's Reload",
+      "Ten Paces"
+     ],
+     "rankChoices": [
+      {
+       "list": "skills",
+       "from": [
+        "deception",
+        "intimidation"
+       ],
+       "rank": 1
+      }
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.way-of-the-sniper",
@@ -749,7 +1739,22 @@
     "traits": "gunslinger",
     "summary": "You practice a style of shooting that relies on unerring accuracy and perfect placement of your first shot.",
     "description": "You practice a style of shooting that relies on unerring accuracy and perfect placement of your first shot. You keep hidden or at a distance, staying out of the fray and bringing unseen death to your foes.\n\n**Slinger's Reload** Covered Reload\n\n**Deeds** *Initial* One Shot, One Kill; *Advanced* Vital Shot; *Greater* Ghost Shot\n\n**Way Skill** Stealth",
-    "cite": "Guns & Gears (Remastered) — Class Features: Way of the Sniper"
+    "cite": "Guns & Gears (Remastered) — Class Features: Way of the Sniper",
+    "builder": {
+     "tags": [
+      "gunslinger-way"
+     ],
+     "grants": [
+      "Covered Reload",
+      "One Shot, One Kill"
+     ],
+     "ranks": [
+      {
+       "path": "skills.stealth",
+       "rank": 1
+      }
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.way-of-the-spellshot",
@@ -758,7 +1763,23 @@
     "traits": "uncommon, gunslinger",
     "summary": "You've learned the intricacies of magic and technology, blending the two together with deadly results.",
     "description": "You've learned the intricacies of magic and technology, blending the two together with deadly results. You combine a knowledge of arcane theories with a strong connection to your chosen weapon that allows you to manifest unique effects, combining deadly skill with a firearm alongside an array of moderate spellcasting. You can imbue energy into your weapon and conjure bullets from thin air. As you progress, you eventually learn to phase bullets through walls or even to teleport yourself along the path of your bullets. You must select Spellshot Dedication as your 2nd-level class feat.\n\n**Prerequisites** You must be a gunslinger.\n\n**Spellshot Adjustments** Instead of choosing a way from the options listed in the gunslinger class, you have the way of the spellshot. It has the following way skill, slinger's reload, and deeds. You gain these abilities at the same levels as normal for the class. You use Intelligence for your class DC.\n\n**Way Skill** Arcana\n\n**Slinger's Reload** Thoughtful Reload\n\n**Deeds** *Initial* Energy Shot; *Advanced* Recall Ammunition; *Greater* Dispelling Bullet",
-    "cite": "Guns & Gears (Remastered) — Class Features: Way of the Spellshot"
+    "cite": "Guns & Gears (Remastered) — Class Features: Way of the Spellshot",
+    "builder": {
+     "tags": [
+      "class-archetype",
+      "gunslinger-way"
+     ],
+     "grants": [
+      "Thoughtful Reload",
+      "Energy Shot"
+     ],
+     "ranks": [
+      {
+       "path": "skills.arcana",
+       "rank": 1
+      }
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.way-of-the-vanguard",
@@ -767,7 +1788,22 @@
     "traits": "gunslinger",
     "summary": "You practice a unique combat style originated by dwarven siege engineers, using heavy weapons with wide attack areas to blast holes through enemy lines, clear an opening for your allies, and defend…",
     "description": "You practice a unique combat style originated by dwarven siege engineers, using heavy weapons with wide attack areas to blast holes through enemy lines, clear an opening for your allies, and defend the conquered territory.\n\n**Slinger's Reload** Clear a Path\n\n**Deeds** *Initial* Living Fortification; *Advanced* Spinning Crush; *Greater* Siegebreaker\n\n**Way Skill** Athletics",
-    "cite": "Guns & Gears (Remastered) — Class Features: Way of the Vanguard"
+    "cite": "Guns & Gears (Remastered) — Class Features: Way of the Vanguard",
+    "builder": {
+     "tags": [
+      "gunslinger-way"
+     ],
+     "grants": [
+      "Clear a Path",
+      "Living Fortification"
+     ],
+     "ranks": [
+      {
+       "path": "skills.athletics",
+       "rank": 1
+      }
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.weapon",
@@ -776,7 +1812,16 @@
     "traits": "thaumaturge",
     "summary": "Weapon implements are the most direct and confrontational, representing battle, struggle, and potentially violence.",
     "description": "Weapon implements are the most direct and confrontational, representing battle, struggle, and potentially violence. You can choose only a one-handed weapon as an implement, which allows you to channel energies into your weapon as well as hold your other implements once you gain them. Weapon implements are associated with the harrow suit of hammers and the astrological signs of the rider and the swordswoman.\n\n### **Initiate Benefit**\n\n### **Adept Benefit**\n\n### **Intensify Vulnerability**\n\nYour weapon is drawn to your enemy's vital spots, almost of its own accord. You gain a +2 status bonus to attack rolls against the target of your Exploit Vulnerability.\n\n### **Paragon Benefit**",
-    "cite": "Dark Archive (Remastered) — Class Features: Weapon"
+    "cite": "Dark Archive (Remastered) — Class Features: Weapon",
+    "builder": {
+     "tags": [
+      "thaumaturge-implement"
+     ],
+     "more": 1,
+     "grants": [
+      "Initiate Benefit (Weapon)"
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.weapon-innovation",
@@ -785,7 +1830,13 @@
     "traits": "inventor",
     "summary": "Your innovation is a complex and impossible-looking weapon augmented by numerous mechanisms.",
     "description": "Your innovation is a complex and impossible-looking weapon augmented by numerous mechanisms. It begins with the same statistics as a level 0 simple or martial weapon of your choice. The chosen weapon must be common or you must otherwise have access to it.\n\nAn innovation weapon can have fundamental and property runes added to it in the same way as an ordinary weapon. Because of the unique features of your innovation, everyone except you is untrained in it, even if they would normally be trained (or better) in simple or martial weapons.\n\nIf you use the Overdrive action, you can choose to change the additional damage from Overdrive to fire damage.\n\nChoose one initial weapon modification to apply to your innovation, either from the following or from other initial weapon modifications to which you have access. These modifications grant additional weapon traits, sometimes with extra abilities.\n\nA modification might give your weapon the versatile trait with a damage type that the weapon could already deal, either from its base damage type or from an existing versatile trait. In that case, if you select that modification, you can instead choose to give the weapon the versatile trait for a different damage type: bludgeoning, piercing, or slashing.\n\n- **Advanced Design:** Your weapon innovation uses the statistics of a level 0 advanced weapon of your choice. It must be common or you must have access to it. You treat this as a martial weapon for the purposes of proficiency.\n- **Blunt Shot (ranged only):** Your weapon innovation can file the edges off your ammunition and adjust the blunt force of the shot to deliver an attack that can batter as much as pierce, or even knock an opponent right off their feet. Your innovation gains the concussive and ranged trip traits.\n- **Complex Simplicity (simple weapon only):** Increase your innovation's weapon damage die by one step (d4 to d6, d6 to d8, d8 to d10, d10 to d12). In addition, it gains two of the following traits of your choice: versatile B, versatile P, versatile S, or razing.\n- **Dynamic Weighting (one-handed melee weapon only; can't have the agile, attached, or free-hand trait):** Your weapon is modified to be heavier and easier to manipulate or retrieve. Your innovation gains the two-hand trait, with a damage die one size higher than the weapon's normal weapon damage die size (for instance, a longsword would gain the two-hand d10 trait). Your innovation also gains the versatile B trait. If it was a thrown weapon, it gains the tethered trait.\n- **Entangling Form (melee only):** You've altered your weapon to including tangling wires or straps, or to have a flexible construction. Your innovation gains the disarm, grapple, and trip traits.\n- **Hampering Spikes (melee only):** You've added long, snagging spikes to your weapon, which you can use to impede your foes' movement. Your innovation gains the hampering, trip, and versatile P traits.\n- **Hefty Composition (melee only):** Blunt surfaces and sturdy construction make your weapon hefty and mace-like. Your innovation gains the shove, razing, and versatile B traits.\n- **Modular Head:** You've constructed a multi-purpose, adjustable striking surface for your weapon, or you've made special ammunition you can swiftly alter. Your innovation gains the modular trait for bludgeoning, piercing, and slashing. When you Interact to use the modular trait, you can also choose to give the weapon the nonlethal trait if it doesn't currently have it, or to remove that trait if it's currently nonlethal.\n- **Pacification Tools (melee only):** Softer materials make your weapon suited to knock out instead of kill, and special protrusions let you catch weapons and disarm your foes. Your innovation gains the disarm, hampering, and nonlethal traits. You can choose whether to apply the nonlethal trait on each attack with your innovation.\n- **Razor Prongs (melee only):** You can knock down and slash your foes with sharp, curved blades. Your innovation gains the tearing, trip, and versatile S traits.\n- **Segmented Frame:** Hinges, clamps, and telescoping parts make your innovation collapsible and adjustable. It gains the modular trait for bludgeoning, piercing, and slashing. You can Interact to collapse the item down to light Bulk or to return it to your normal form. When it's collapsed to light Bulk, it has the concealable trait, which grants you a +2 circumstance bonus to Stealth checks and DCs to hide or conceal the weapon.",
-    "cite": "Guns & Gears (Remastered) — Class Features: Weapon Innovation"
+    "cite": "Guns & Gears (Remastered) — Class Features: Weapon Innovation",
+    "builder": {
+     "tags": [
+      "inventor-innovation"
+     ],
+     "more": 2
+    }
    },
    {
     "id": "pf2e-orc-books.weapon-specialization",
@@ -803,7 +1854,19 @@
     "traits": "witch",
     "summary": "Wings and swirling winds announced the approach of your patron.",
     "description": "Wings and swirling winds announced the approach of your patron. The wings might have been radiantly feathered, jeweled like a dragonfly's, strangely mechanical, or leathery with the scent of sulfur, but the controlled chaos of their movements contained countless teachings.\n\n**Spell List** primal\n\n**Patron Skill** Nature\n\n**Lesson of the Observed Sky** Your patron teaches that the sky can guide you anywhere you let it. You gain the Murmuration hex cantrip, and your familiar learns Gentle Landing.\n\n**Familiar of Nimble Flight** Even if your familiar doesn't have wings, it can sometimes move as if carried aloft by the wind. When you Cast or Sustain a hex, your familiar can Fly up to 15 feet; this movement doesn't trigger reactions.",
-    "cite": "Howl of the Wild — Class Features: Whisper of Wings"
+    "cite": "Howl of the Wild — Class Features: Whisper of Wings",
+    "builder": {
+     "tags": [
+      "witch-elementalist-patron",
+      "witch-patron"
+     ],
+     "ranks": [
+      {
+       "path": "skills.nature",
+       "rank": 1
+      }
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.whose-cry-is-thunder",
@@ -812,7 +1875,16 @@
     "traits": "exemplar",
     "summary": "The sky overhead is yours to command as lightning strikes your soul.",
     "description": "The sky overhead is yours to command as lightning strikes your soul. You gain the Energized Spark feat for your choice of electricity or sonic. When you critically succeed on a Strike, a thunderclap booms! The target must make a Fortitude saving throw against your class DC. On a failure, they are knocked prone and deafened for 1 minute. This is a sonic effect.\n\nWhen you Spark Transcendence, you can choose to become electrically charged until the start of your next turn. Any creature that touches you or damages you with an unarmed attack or non-reach melee weapon while you're charged takes 1d6 electricity damage as lightning courses back to them.\n\nEffect: Whose Cry is Thunder",
-    "cite": "War of Immortals — Class Features: Whose Cry is Thunder"
+    "cite": "War of Immortals — Class Features: Whose Cry is Thunder",
+    "builder": {
+     "tags": [
+      "exemplar-dominion-epithet"
+     ],
+     "more": 1,
+     "feats": [
+      "Energized Spark"
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.witness-to-ancient-battles",
@@ -821,7 +1893,12 @@
     "traits": "animist",
     "summary": "Witnesses to ancient battles may be the lingering remnants of soldiers who never returned from their last deployment or the restless souls of warriors whose final contest left them unfulfilled.",
     "description": "Witnesses to ancient battles may be the lingering remnants of soldiers who never returned from their last deployment or the restless souls of warriors whose final contest left them unfulfilled. Or the apparitions may be valkyries and other beings from beyond, naturally drawn to sites of death and battle, or even the unquiet entity formed from a battlefield that saw so much death and blood it gained a spiritual essence of its own. Witnesses to ancient battles are often somber and grim.\n\n**Apparition Skills** Battlegrounds Lore, Heraldry Lore\n\n**Apparition Spells**\n\n- **Cantrip** Shield\n- **1st** Sure Strike\n- **2nd** Enlarge\n- **3rd** Ghostly Weapon\n- **4th** Weapon Storm\n- **5th** Invoke Spirits\n- **6th** Phantasmal Calamity\n- **7th** True Target\n- **8th** Canticle of Everlasting Grief\n- **9th** Weapon of Judgment\n\n**Vessel Spell** Embodiment of Battle\n\n**Avatar** *General of Endless Battle* Speed 70 feet, immune to immobilized\n\n**Melee** ◆ final strike (agile, fatal d12, reach 15 feet), Damage 6d8+6 slashing",
-    "cite": "War of Immortals — Class Features: Witness to Ancient Battles"
+    "cite": "War of Immortals — Class Features: Witness to Ancient Battles",
+    "builder": {
+     "tags": [
+      "animist-apparition"
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.wraith-deviant-classification",
@@ -829,7 +1906,12 @@
     "level": 0,
     "summary": "Wraith-type deviations often result from contact with otherworldly presences or artifacts, comprising a strange assortment of abilities that involve realms beyond our own.",
     "description": "Wraith-type deviations often result from contact with otherworldly presences or artifacts, comprising a strange assortment of abilities that involve realms beyond our own.\n\n### Backlash\n\nEncroaching Presence\n\nThe same blood that lets one of the dragon-descended spit out a gout of flame is precisely what keeps the inside of their mouth from being singed in the furnace. Deviations, unfortunately, lack these safeguards, their powers coming from haphazard circumstance and interactions rather than intentional design. A character using their deviation always risks the chance of backlash.\n\nWhenever you attempt to use a deviation, roll a DC 5 flat. On a success, you use your deviation and the DC for subsequent checks increases by 5, to a maximum of 20 (DC 10 flat DC 15 flat DC 20 flat); on a failure, you use your deviation and then suffer a backlash effect, after which your flat check DC resets to 5. Backlash progresses from mild, to moderate, to severe. When you have already taken mild backlash in a given day, the next time you would take backlash, you take the moderate backlash instead, and if you have already taken moderate backlash, you take the severe backlash instead, and your deviation can't be used for the rest of the day—attempting to use it simply brings pain. When you make your daily preparations, your flat check DC returns to 5 and your next backlash returns to mild.\n\nAny effects from backlash can't be reduced, prevented, or otherwise bypassed. Conditions and damage you take from backlash can't be reduced or prevented by resistance or immunity, but still triggers any weakness you have to it.\n\n### Wraith Deviant Feats\n\nEerie Flicker\n\nGhostly Grasp (Deviant)\n\nEnervating Wail\n\nDistant Wandering\n\n### Universal Deviant Feats\n\nAwakened Power\n\nGreater Awakened Power",
-    "cite": "Dark Archive (Remastered) — Class Features: Wraith Deviant Classification"
+    "cite": "Dark Archive (Remastered) — Class Features: Wraith Deviant Classification",
+    "builder": {
+     "grants": [
+      "Encroaching Presence"
+     ]
+    }
    },
    {
     "id": "pf2e-orc-books.zoophonia",
@@ -838,7 +1920,15 @@
     "traits": "bard",
     "summary": "Your muse is a master of birdsong, wolf howls, trumpeting elephants, and other animal communication, pushing you to new heights and encouraging your connections with nature.",
     "description": "Your muse is a master of birdsong, wolf howls, trumpeting elephants, and other animal communication, pushing you to new heights and encouraging your connections with nature. If your muse is a creature, it might be an enlightened animal or a spirit guide.\n\n**Muse Feat** Zoophonic Communication\n\n**Muse Spell** Summon Animal",
-    "cite": "Howl of the Wild — Class Features: Zoophonia"
+    "cite": "Howl of the Wild — Class Features: Zoophonia",
+    "builder": {
+     "tags": [
+      "bard-muse"
+     ],
+     "feats": [
+      "Zoophonic Communication"
+     ]
+    }
    }
   ],
   "pf2e-orc.ancestry-features": [

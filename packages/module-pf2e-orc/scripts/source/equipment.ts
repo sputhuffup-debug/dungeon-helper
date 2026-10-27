@@ -94,6 +94,28 @@ export function convertEquipment(entries: Entry[], ctx: Ctx): EquipmentConversio
     base.summary = firstSentence(description);
     base.description = description;
     base.cite = cite(e.book, "Equipment", e.name);
+    // what the character builder's shopping list reads: the price in copper (for `per` items), Bulk as a number, and armor, shield and Strike numbers
+    if (group !== "treasure" && group !== "runes") {
+      const price = obj(obj(s.price).value);
+      const cp = num(price.pp) * 1000 + num(price.gp) * 100 + num(price.sp) * 10 + num(price.cp);
+      const per = num(obj(s.price).per, 1);
+      const b: Record<string, unknown> = { cp, bulk: bulkValue(s.bulk), ...(per > 1 ? { per } : {}) };
+      if (group === "armor") {
+        b.armor = {
+          category: str(s.category),
+          acBonus: num(s.acBonus),
+          ...(s.dexCap === null || s.dexCap === undefined ? {} : { dexCap: num(s.dexCap) }),
+          ...(num(s.strength) ? { strength: num(s.strength) } : {}),
+          ...(num(s.checkPenalty) ? { checkPenalty: -Math.abs(num(s.checkPenalty)) } : {}),
+          ...(num(s.speedPenalty) ? { speedPenalty: -Math.abs(num(s.speedPenalty)) } : {}),
+        };
+      } else if (group === "shields") {
+        b.shield = { acBonus: num(s.acBonus), hardness: num(s.hardness), hp: num(obj(s.hp).max) };
+      } else if (group === "weapons") {
+        b.strike = s.range ? "ranged" : "melee";
+      }
+      base.builder = b;
+    }
     groups[group]!.push(base);
   }
   const defs: Array<[string, string, string, string[]]> = [

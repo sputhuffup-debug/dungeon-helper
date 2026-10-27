@@ -270,6 +270,10 @@ function isListSource(s: CharacterBuilderSource): s is { list: string; where?: J
   return "list" in s && !("values" in s);
 }
 
+function isListsSource(s: CharacterBuilderSource): s is { lists: JsonLogicRule; where?: JsonLogicRule } {
+  return "lists" in s;
+}
+
 // ---------------------------------------------------------------------------
 // Ability methods
 // ---------------------------------------------------------------------------
@@ -576,6 +580,24 @@ class Resolver {
         const item = this.enrich(src.list, it);
         if (!keep(src.where, item)) continue;
         raw.push({ item, id: it.id, name: it.name, value: it.id });
+      }
+    } else if (isListsSource(src)) {
+      const v = this.eval<unknown>(src.lists, ctx, at, issues);
+      const ids = (Array.isArray(v) ? v : v === undefined || v === null || v === "" ? [] : [v]).filter((x): x is string => typeof x === "string" && x !== "");
+      const taken = new Set<string>();
+      for (const listId of [...new Set(ids)]) {
+        const items = this.lists.get(listId);
+        if (!items) {
+          issues.push({ level: "error", step, path, message: `unknown reference list "${listId}"` });
+          continue;
+        }
+        for (const it of items) {
+          if (taken.has(it.id)) continue;
+          const item = this.enrich(listId, it);
+          if (!keep(src.where, item)) continue;
+          taken.add(it.id);
+          raw.push({ item, id: it.id, name: it.name, value: it.id });
+        }
       }
     }
     const seen = new Set<string>();
@@ -1126,6 +1148,7 @@ export function characterBuilderLogicSlots(b: CharacterBuilderDef): Array<{ segm
   const source = (s: CharacterBuilderSource | undefined, at: Array<string | number>) => {
     if (!s || !isObj(s)) return;
     if ("values" in s) add([...at, "values"], s.values);
+    if ("lists" in s) add([...at, "lists"], s.lists);
     if ("range" in s && isObj(s.range)) {
       add([...at, "range", "min"], s.range.min);
       add([...at, "range", "max"], s.range.max);
@@ -1234,6 +1257,8 @@ export function characterBuilderIssues(module: GameModule, options: { dryRun?: b
         return;
       }
       if ("list" in s && typeof s.list === "string" && !lists.has(s.list)) err(w, `unknown reference list "${s.list}"`);
+      // list ids written out (strings in a literal list) are checked here; worked-out ones by the dry run
+      if ("lists" in s) for (const x of Array.isArray(s.lists) ? s.lists : typeof s.lists === "string" ? [s.lists] : []) if (typeof x === "string" && !lists.has(x)) err(w, `unknown reference list "${x}"`);
       if ("options" in s) {
         if (!Array.isArray(s.options) || s.options.length === 0) err(w, "fixed options are empty");
         else {

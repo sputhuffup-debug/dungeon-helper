@@ -22,7 +22,12 @@
      "traits": "alchemist",
      "summary": "You're permanently quickened, and can use the extra action only to use Quick Alchemy to create a quick vial.",
      "description": "You're permanently quickened, and can use the extra action only to use Quick Alchemy to create a quick vial. You can create only one vial with this action, even if you have Double Brew or a similar ability.",
-     "cite": "Player Core 2 — Class Features: Abundant Vials"
+     "cite": "Player Core 2 — Class Features: Abundant Vials",
+     "builder": {
+      "grants": [
+       "Quickened"
+      ]
+     }
     },
     {
      "id": "adamantine-strikes",
@@ -58,7 +63,10 @@
      "traits": "alchemist",
      "summary": "You can mix special ingredients into your vials, such as magical dust or flakes of precious minerals.",
      "description": "You can mix special ingredients into your vials, such as magical dust or flakes of precious minerals. When you create a versatile vial, you can choose to have it treated as one special material of your choice, chosen from adamantine, cold iron, and dawnsilver. If you're wearing or wielding an item of a different precious material when you make the vial, you can choose that material instead.",
-     "cite": "Player Core 2 — Class Features: Advanced Vials (Bomber)"
+     "cite": "Player Core 2 — Class Features: Advanced Vials (Bomber)",
+     "builder": {
+      "of": "Bomber"
+     }
     },
     {
      "id": "advanced-vials-chirurgeon",
@@ -67,7 +75,10 @@
      "traits": "alchemist",
      "summary": "When you use a field vial to heal a creature that has half its maximum Hit Points or fewer, the coagulant trait doesn't apply to that healing.",
      "description": "When you use a field vial to heal a creature that has half its maximum Hit Points or fewer, the coagulant trait doesn't apply to that healing.",
-     "cite": "Player Core 2 — Class Features: Advanced Vials (Chirurgeon)"
+     "cite": "Player Core 2 — Class Features: Advanced Vials (Chirurgeon)",
+     "builder": {
+      "of": "Chirurgeon"
+     }
     },
     {
      "id": "advanced-vials-mutagenist",
@@ -76,7 +87,10 @@
      "traits": "alchemist",
      "summary": "When you drink one of your field vials, you also gain resistance to physical damage for the same duration.",
      "description": "When you drink one of your field vials, you also gain resistance to physical damage for the same duration. The resistance is equal to half your level.",
-     "cite": "Player Core 2 — Class Features: Advanced Vials (Mutagenist)"
+     "cite": "Player Core 2 — Class Features: Advanced Vials (Mutagenist)",
+     "builder": {
+      "of": "Mutagenist"
+     }
     },
     {
      "id": "advanced-vials-toxicologist",
@@ -84,7 +98,10 @@
      "level": 1,
      "summary": "When you damage a creature with a versatile vial you've used as an injury poison, that creature takes persistent poison damage equal to the vial's splash damage in addition to the initial damage.",
      "description": "When you damage a creature with a versatile vial you've used as an injury poison, that creature takes persistent poison damage equal to the vial's splash damage in addition to the initial damage.",
-     "cite": "Player Core 2 — Class Features: Advanced Vials (Toxicologist)"
+     "cite": "Player Core 2 — Class Features: Advanced Vials (Toxicologist)",
+     "builder": {
+      "of": "Toxicologist"
+     }
     },
     {
      "id": "agile-mind",
@@ -120,7 +137,25 @@
      "traits": "investigator",
      "summary": "Your methodology emphasizes chemical and alchemical analysis, collecting information from unusual particles and fluids found on the scene.",
      "description": "Your methodology emphasizes chemical and alchemical analysis, collecting information from unusual particles and fluids found on the scene. You possess enough alchemical know-how to whip up a few tinctures to help you with your cases.\n\nYou're trained in Crafting and gain the Alchemical Crafting skill feat. You start with a standard formula book, which contains the formulas for two common 1st-level alchemical items of your choice (these must be elixirs or tools), in addition to the formulas gained from Alchemical Crafting. Each time you gain a level, you learn the formula for one common alchemical elixir or alchemical tool of any level of item you can create.\n\nDuring your daily preparations, you can create a number of versatile vials equal to your Intelligence modifier. Statistics for versatile vials appear in the alchemist class.\n\nYou gain the Quick Tincture action, which you can use to turn one of these vials into an elixir or alchemical tool for which you know the formula. If you have the ability to create versatile vials from more than one source (such as the alchemist multiclass archetype), you can use any of your versatile vials for any ability you have that requires them.",
-     "cite": "Player Core 2 — Class Features: Alchemical Sciences Methodology"
+     "cite": "Player Core 2 — Class Features: Alchemical Sciences Methodology",
+     "builder": {
+      "tags": [
+       "investigator-methodology"
+      ],
+      "ranks": [
+       {
+        "path": "skills.crafting",
+        "rank": 1
+       }
+      ],
+      "feats": [
+       "Alchemical Crafting"
+      ],
+      "grants": [
+       "Quick Tincture",
+       "Formula Book (Blank)"
+      ]
+     }
     },
     {
      "id": "alchemical-weapon-expertise",
@@ -147,7 +182,18 @@
      "traits": "alchemist",
      "summary": "You understand the reactions between all manner of reagents and can concoct alchemical items to meet your needs.",
      "description": "You understand the reactions between all manner of reagents and can concoct alchemical items to meet your needs. You can do this using normal reagents and the Craft activity, or you can use specially prepared chemicals that allow you to craft temporary items quickly and at no cost. Over time, you can create more and more alchemical items for free, and since each of them becomes more and more powerful, you advance in power dramatically, leaving behind those who don't understand your strange science.\n\nYou gain the Alchemical Crafting feat, and you can automatically identify alchemical items that you have the formula for.",
-     "cite": "Player Core 2 — Class Features: Alchemy"
+     "cite": "Player Core 2 — Class Features: Alchemy",
+     "builder": {
+      "feats": [
+       "Alchemical Crafting"
+      ],
+      "grants": [
+       "Formula Book",
+       "Advanced Alchemy",
+       "Versatile Vials",
+       "Quick Alchemy"
+      ]
+     }
     },
     {
      "id": "anathema-cleric",
@@ -174,7 +220,24 @@
      "traits": "oracle",
      "summary": "The voices of generations past speak to you, and you hear their words.",
      "description": "The voices of generations past speak to you, and you hear their words. You might resent the constant interruption, or you might revere the spirits of those who came before. You might commune with powerful psychopomps who shepherd souls to the afterlife, with the procession of souls itself, or with those spirits who have become trapped outside of the great cycle of spiritual rebirth. You learn from their whispers and the fragments of their memories, but opening your mind to their knowledge and experience also allows them to meddle in your worldly affairs.\n\n**Granted Spells**\n\n- **cantrip:** Guidance\n- **1st:** Ill Omen\n- **2nd:** Ghostly Carrier\n- **5th:** Dreaming Potential\n\n**Revelation Spells**\n\n- **initial:** Ancestral Touch\n- **advanced:** Ancestral Defense\n- **greater:** Ancestral Form\n\n**Related Domains** death, duty, family, soul\n\n**Mystery Skill** Society\n\n**Oracle Feat** Whispers of Weakness\n\nCurse of Ancestral Meddling",
-     "cite": "Player Core 2 — Class Features: Ancestors"
+     "cite": "Player Core 2 — Class Features: Ancestors",
+     "builder": {
+      "tags": [
+       "oracle-mystery"
+      ],
+      "ranks": [
+       {
+        "path": "skills.society",
+        "rank": 1
+       }
+      ],
+      "feats": [
+       "Whispers of Weakness"
+      ],
+      "grants": [
+       "Curse of Ancestral Meddling"
+      ]
+     }
     },
     {
      "id": "animal-instinct",
@@ -183,7 +246,13 @@
      "traits": "barbarian",
      "summary": "The fury of a wild predator fills you when you Rage, granting you ferocious unarmed attacks.",
      "description": "The fury of a wild predator fills you when you Rage, granting you ferocious unarmed attacks. Cultures that revere vicious animals (such as apes or bears) give rise to barbarians with this instinct. You might also be at war with an uncontrollable, animalistic side of your personality, or you might be a descendant of a werewolf or another werecreature. Select an animal from the Animal Instincts table that best matches your chosen animal.\n\n**Instinct Ability—Bestial Rage** While raging, you gain your chosen animal's unarmed attack (or attacks), but you're unable to use weapons. The specific attack gained, the damage it deals, and its traits are listed in the Animal Instincts table. These attacks are in the brawling group. Your Rage action gains the morph and primal traits.\n\n**Specialization Ability (7th)** Increase the damage die size for the unarmed attacks granted by your chosen animal by one step, and increase the additional damage from Rage from 2 to 5 for your chosen animal's unarmed attacks. If you have greater weapon specialization, increase the damage from Rage from 5 to 12 for your chosen animal's unarmed attacks.\n\n**Raging Resistance (9th)** You resist piercing and slashing damage.\n\n### Animal Instincts\n\n| Animal | Attack | Damage | Traits |\n| --- | --- | --- | --- |\n| Ankylosaurus | Tail | 1d10 B | Razing, unarmed |\n| Ant | Mandibles | 1d10 P | Grapple, unarmed |\n| Ape | Fist | 1d10 B | Grapple, unarmed |\n| Bat | Fangs | 1d10 P | Unarmed |\n| Bat | Wings | 1d4 P | Parry, unarmed |\n| Bear | Jaws | 1d10 P | Unarmed |\n| Bear | Claw | 1d6 S | Agile, unarmed |\n| Bird | Beak | 1d10 P | Unarmed |\n| Bird | Talon | 1d6 S | Agile, unarmed |\n| Brontosaurus | Tail | 1d10 B | Trip, unarmed |\n| Bull | Horn | 1d10 P | Shove, unarmed |\n| Cat | Jaws | 1d10 P | Unarmed |\n| Cat | Claw | 1d6 S | Agile, unarmed |\n| Crab | Claw | 1d10 B | Razing, unarmed |\n| Crab | Claw | 1d4 S | Parry, unarmed |\n| Crocodile | Jaws | 1d10 P | Unarmed |\n| Crocodile | Tail | 1d6 B | Agile, unarmed |\n| Deer | Antler | 1d10 P | Grapple, unarmed |\n| Frog | Jaws | 1d10 B | Unarmed |\n| Frog | Tongue | 1d6 B | Agile, unarmed |\n| Orca | Jaws | 1d8 P | Forceful, unarmed |\n| Scorpion | Stinger | 1d6 P | Reach, unarmed, venomous |\n| Scorpion | Pincer | 1d4 S | Parry, unarmed |\n| Seal | Jaws | 1d10 P | Grapple, unarmed |\n| Shark | Jaws | 1d10 P | Grapple, unarmed |\n| Snake | Fangs | 1d10 P | Grapple, unarmed |\n| Spider | Fangs | 1d8 P | Grapple, unarmed, venomous |\n| Spider | Web | Special* | Range increment 15 feet |\n| Tyrannosaurus | Jaws | 1d8 P | Deadly d12, unarmed |\n| Tyrannosaurus | Tail | 1d6 B | Agile, unarmed |\n| Wasp | Stinger | 1d4 P | Backstabber, deadly d8, unarmed, venomous |\n| Wolf | Jaws | 1d10 P | Trip, unarmed |\n\n*The spider's web attack deals no damage, but the target takes a –10-foot circumstance penalty to its Speeds for 1 round on a hit. If a target is hit a second time by the same character's web attack while they have this penalty, they're instead immobilized until they succeed at a check to Escape against your class DC.",
-     "cite": "Player Core 2 — Class Features: Animal Instinct"
+     "cite": "Player Core 2 — Class Features: Animal Instinct",
+     "builder": {
+      "tags": [
+       "barbarian-instinct"
+      ],
+      "more": 1
+     }
     },
     {
      "id": "animal-order",
@@ -192,7 +261,21 @@
      "traits": "druid",
      "summary": "You have a strong connection to beasts, always feeling like you understood them (and they you) better than your own people.",
      "description": "You have a strong connection to beasts, always feeling like you understood them (and they you) better than your own people. You stand for the animals of nature, a powerful animal companion at your side.\n\n**Order Skill** Athletics\n\n**Druid Feat** Animal Companion\n\n**Order Spell** Heal Animal\n\n**Anathema** Commit wanton cruelty to animals or kill animals unnecessarily. (This doesn't prevent you from defending yourself against animals or killing them cleanly for food).",
-     "cite": "Player Core — Class Features: Animal Order"
+     "cite": "Player Core — Class Features: Animal Order",
+     "builder": {
+      "tags": [
+       "druid-order"
+      ],
+      "ranks": [
+       {
+        "path": "skills.athletics",
+        "rank": 1
+       }
+      ],
+      "feats": [
+       "Animal Companion"
+      ]
+     }
     },
     {
      "id": "arcane-bond",
@@ -201,7 +284,12 @@
      "traits": "wizard",
      "summary": "You place some of your magical power in a bonded item.",
      "description": "You place some of your magical power in a bonded item. Each day when you prepare your spells, you can designate a single item you own as your bonded item. This is typically an item associated with spellcasting, such as a wand, ring, or staff, but you are free to designate a weapon or other item. You gain the Drain Bonded Item free action.",
-     "cite": "Player Core — Class Features: Arcane Bond"
+     "cite": "Player Core — Class Features: Arcane Bond",
+     "builder": {
+      "grants": [
+       "Drain Bonded Item"
+      ]
+     }
     },
     {
      "id": "arcane-school",
@@ -210,7 +298,17 @@
      "traits": "wizard",
      "summary": "At 1st level, you choose your arcane school, which grants you magical abilities.",
      "description": "At 1st level, you choose your arcane school, which grants you magical abilities.\n\nYou gain additional spells and spell slots from the curriculum taught at the school you attended. Some wizards follow the school of unified magical theory, which attempts to forge a new school by studying independently and drawing information from a multitude of texts and tutors. Though a wizard with this approach lacks the focus of formal training, they have greater flexibility.",
-     "cite": "Player Core — Class Features: Arcane School"
+     "cite": "Player Core — Class Features: Arcane School",
+     "builder": {
+      "selections": [
+       {
+        "tags": [
+         "wizard-arcane-school"
+        ],
+        "count": 1
+       }
+      ]
+     }
     },
     {
      "id": "arcane-thesis",
@@ -219,7 +317,17 @@
      "traits": "wizard",
      "summary": "During your studies to become a full-fledged wizard, you produced a thesis of unique magical research.",
      "description": "During your studies to become a full-fledged wizard, you produced a thesis of unique magical research. You gain a special benefit depending on the topic of your thesis research. The arcane thesis topics presented in this book are below; your specific thesis probably has a much longer and more technical title like *\"On the Methods of Spell Interpolation and the Genesis of a New Understanding of the Building Blocks of Magic.\"*\n\nExperimental Spellshaping\n\nImproved Familiar Attunement\n\nSpell Blending\n\nSpell Substitution\n\nStaff Nexus",
-     "cite": "Player Core — Class Features: Arcane Thesis"
+     "cite": "Player Core — Class Features: Arcane Thesis",
+     "builder": {
+      "selections": [
+       {
+        "tags": [
+         "wizard-arcane-thesis"
+        ],
+        "count": 1
+       }
+      ]
+     }
     },
     {
      "id": "archwizards-spellcraft",
@@ -282,7 +390,24 @@
      "traits": "oracle",
      "summary": "Warlike forces fill you with physical might and tactical knowledge, aiming to have you uphold the glory of combat, fight to improve the world, prepare against the necessity of conflict, or endure…",
      "description": "Warlike forces fill you with physical might and tactical knowledge, aiming to have you uphold the glory of combat, fight to improve the world, prepare against the necessity of conflict, or endure the inevitability of war.\n\n**Granted Spells**\n\n- **cantrip:** Shield\n- **1st:** Sure Strike\n- **2nd:** Telekinetic Maneuver\n- **4th:** Weapon Storm\n\n**Revelation Spells**\n\n- **initial:** Weapon Trance\n- **advanced:** Battlefield Persistence\n- **greater:** Revel in Retribution\n\n**Related Domains** destruction, might, protection, zeal\n\n**Mystery Skill** Athletics\n\n**Oracle Feat** Oracular Warning\n\nCurse of the Mortal Warrior",
-     "cite": "Player Core 2 — Class Features: Battle"
+     "cite": "Player Core 2 — Class Features: Battle",
+     "builder": {
+      "tags": [
+       "oracle-mystery"
+      ],
+      "ranks": [
+       {
+        "path": "skills.athletics",
+        "rank": 1
+       }
+      ],
+      "feats": [
+       "Oracular Warning"
+      ],
+      "grants": [
+       "Curse of the Mortal Warrior"
+      ]
+     }
     },
     {
      "id": "battle-hardened",
@@ -300,7 +425,21 @@
      "traits": "swashbuckler",
      "summary": "To you, a fight is a kind of performance art, and you command your foes' attention with mesmerizing motions.",
      "description": "To you, a fight is a kind of performance art, and you command your foes' attention with mesmerizing motions. You are trained in Performance and gain the Fascinating Performance skill feat. When you Perform, the action gains the bravado trait.",
-     "cite": "Player Core 2 — Class Features: Battledancer"
+     "cite": "Player Core 2 — Class Features: Battledancer",
+     "builder": {
+      "tags": [
+       "swashbuckler-style"
+      ],
+      "ranks": [
+       {
+        "path": "skills.performance",
+        "rank": 1
+       }
+      ],
+      "feats": [
+       "Fascinating Performance"
+      ]
+     }
     },
     {
      "id": "battlefield-surveyor",
@@ -318,7 +457,12 @@
      "traits": "champion",
      "summary": "Select one weapon or handwraps of mighty blows.",
      "description": "Select one weapon or handwraps of mighty blows. You gain that armament's critical specialization effect, and you grant the armament a property rune of your choice from the following list: Fearsome, Ghost Touch, Returning, Shifting, or Vitalizing. During your daily preparations, you can change the spirit to inhabit a different armament, grant a different rune, or both.\n\nThis rune doesn't count toward the weapon's number of property runes. It can be used even if the weapon already has its maximum number of property runes.\n\nEffect: Blessed Armament",
-     "cite": "Player Core 2 — Class Features: Blessed Armament"
+     "cite": "Player Core 2 — Class Features: Blessed Armament",
+     "builder": {
+      "tags": [
+       "blessing-of-the-devoted"
+      ]
+     }
     },
     {
      "id": "blessed-shield",
@@ -327,7 +471,12 @@
      "traits": "champion",
      "summary": "In your hands, a shield gains the minor Reinforcing rune.",
      "description": "In your hands, a shield gains the minor Reinforcing rune. As you go up in level, the shield gains the reinforcing rune of your level (lesser at 7th level, moderate at 10th level, greater at 13th level, major at 16th level, and supreme at 19th level). If your shield already has the appropriate reinforcing rune for your level, or if it's a Sturdy Shield of the same level as the appropriate reinforcing rune, the shield's Hardness instead increases by 1.",
-     "cite": "Player Core 2 — Class Features: Blessed Shield"
+     "cite": "Player Core 2 — Class Features: Blessed Shield",
+     "builder": {
+      "tags": [
+       "blessing-of-the-devoted"
+      ]
+     }
     },
     {
      "id": "blessed-swiftness",
@@ -336,7 +485,12 @@
      "traits": "champion",
      "summary": "You gain a +5-foot status bonus to Speed.",
      "description": "You gain a +5-foot status bonus to Speed. If you're mounted, your mount gains the bonus instead. In addition, when the movement of one of your allies triggers an enemy's reaction while the ally is in your champion's aura, the ally gains a +2 status bonus to all defenses against that reaction.",
-     "cite": "Player Core 2 — Class Features: Blessed Swiftness"
+     "cite": "Player Core 2 — Class Features: Blessed Swiftness",
+     "builder": {
+      "tags": [
+       "blessing-of-the-devoted"
+      ]
+     }
     },
     {
      "id": "blessing-of-the-devoted",
@@ -345,7 +499,17 @@
      "traits": "champion",
      "summary": "Your deity blesses your service with a boon.",
      "description": "Your deity blesses your service with a boon. This might come in the form of a spirit that visits you and inhabits your items or body, a mysterious divine tattoo upon your body, or the like. Choose one of the following blessings, or any other to which you have access.\n\n**Blessed Armament**: Select one weapon or handwraps of mighty blows. You gain that armament's critical specialization effect, and you grant the armament a property rune of your choice from the following list: Fearsome, Ghost Touch, Returning, Shifting, or Vitalizing. During your daily preparations, you can change the spirit to inhabit a different armament, grant a different rune, or both.\n\n**Blessed Shield:** In your hands, a shield gains the minor Reinforcing rune. As you go up in level, the shield gains the reinforcing rune of your level (lesser at 7th level, moderate at 10th level, greater at 13th level, major at 16th level, and supreme at 19th level). If your shield already has the appropriate reinforcing rune for your level, or if it's a Sturdy Shield of the same level as the appropriate reinforcing rune, the shield's Hardness instead increases by 1.\n\n**Blessed Swiftness:** You gain a +5-foot status bonus to Speed. If you're mounted, your mount gains the bonus instead. In addition, when the movement of one of your allies triggers an enemy's reaction while the ally is in your champion's aura, the ally gains a +2 status bonus to all defenses against that reaction.",
-     "cite": "Player Core 2 — Class Features: Blessing of the Devoted"
+     "cite": "Player Core 2 — Class Features: Blessing of the Devoted",
+     "builder": {
+      "selections": [
+       {
+        "tags": [
+         "blessing-of-the-devoted"
+        ],
+        "count": 1
+       }
+      ]
+     }
     },
     {
      "id": "bloodline",
@@ -354,7 +518,17 @@
      "traits": "sorcerer",
      "summary": "Choose a bloodline that gives you your spellcasting talent.",
      "description": "Choose a bloodline that gives you your spellcasting talent. This choice determines the type of spells you cast and the spell list you choose them from, additional spells you learn, and additional trained skills. You also gain Focus Points and special focus spells based on your bloodline. The bloodlines presented are as follows:\n\n- **Aberrant** A strange and unknowable influence gives you occult spells.\n- **Angelic** Holy grace bestows divine spells upon you.\n- **Demonic** A sinful corruption gives you divine spells.\n- **Diabolic** A bond with devils gives you divine spells.\n- **Draconic** The blood of dragons grants you arcane spells.\n- **Elemental** The power of the elements manifests in you as primal spells.\n- **Fey** Influence from the fey gives you primal spells.\n- **Genie** Through lineage, magic, or wishes made real, the blood of a noble genie flows through your veins.\n- **Hag** The blight of a hag has given you occult spells.\n- **Imperial** An ancient power grants you arcane spells.\n- **Nymph** One of your ancestors was inspired by a nymph, or perhaps was a nymph themself, and now the beauty of nature lives in you.\n- **Phoenix** The healing fire a phoenix's blessing grants you primal spells.\n- **Psychopomp** For good or ill, your ancestors' deeds drew the attention of psychopomps, or you might somehow count one in your family tree. The presence of these shepherds of souls and enemies of undeath has left an indelible mark on you.\n- **Shadow** Whether due to a velstrac's manipulations or a planar jaunt gone horribly wrong, your bloodline was infused with a vein of shadow.\n- **Undead** The touch of death gives you divine spells.\n- **Wyrmblessed** A draconic blessing grants you divine spells.",
-     "cite": "Player Core 2 — Class Features: Bloodline"
+     "cite": "Player Core 2 — Class Features: Bloodline",
+     "builder": {
+      "selections": [
+       {
+        "tags": [
+         "sorcerer-bloodline"
+        ],
+        "count": 1
+       }
+      ]
+     }
     },
     {
      "id": "bloodline-paragon",
@@ -381,7 +555,22 @@
      "traits": "sorcerer",
      "summary": "Something ancient and unknowable speaks to you from beyond the stars or below the earth.",
      "description": "Something ancient and unknowable speaks to you from beyond the stars or below the earth.\n\n**Tradition** occult\n\n**Bloodline Skills** Intimidation, Occultism\n\n**Sorcerous Gifts** cantrip: Daze; 1st: Phantom Pain; 2nd: Stupefy; 3rd: Vampiric Feast; 4th: Confusion; 5th: Slither; 6th: Never Mind; 7th: Warp Mind; 8th: Uncontrollable Dance; 9th: Unfathomable Song\n\n**Bloodline Spells** initial: Tentacular Limbs; advanced: Aberrant Whispers; greater: Unusual Anatomy\n\n**Blood Magic—Eerie Veil** An ominous pall spills from your mind. Either one target takes a –1 status penalty to Will saving throws for 1 round or you gain a +2 status bonus to Will saving throws for 1 round.\n\nEffect: Aberrant Blood Magic",
-     "cite": "Player Core 2 — Class Features: Bloodline: Aberrant"
+     "cite": "Player Core 2 — Class Features: Bloodline: Aberrant",
+     "builder": {
+      "tags": [
+       "sorcerer-bloodline"
+      ],
+      "ranks": [
+       {
+        "path": "skills.intimidation",
+        "rank": 1
+       },
+       {
+        "path": "skills.occultism",
+        "rank": 1
+       }
+      ]
+     }
     },
     {
      "id": "bloodline-angelic",
@@ -390,7 +579,22 @@
      "traits": "sorcerer",
      "summary": "One of your forebears hailed from a celestial realm, or your ancestors' devotion led to their lineage being blessed.",
      "description": "One of your forebears hailed from a celestial realm, or your ancestors' devotion led to their lineage being blessed.\n\n**Spell List** divine\n\n**Bloodline Skills** Diplomacy, Religion\n\n**Granted Spells** cantrip Light, 1st: Heal, 2nd: Spiritual Armament, 3rd: Holy Light, 4th: Divine Wrath, 5th: Divine Immolation, 6th: Blessed Boundary, 7th: Divine Decree, 8th: Moment of Renewal, 9th: Foresight\n\n**Bloodline Spells** initial: Angelic Halo, advanced: Angelic Wings, greater: Celestial Brand\n\n**Blood Magic—Divine Aura** You project a warming aura that protects you or one target, granting a +1 status bonus to saving throws for 1 round\n\nEffect: Angelic Blood Magic",
-     "cite": "Player Core 2 — Class Features: Bloodline: Angelic"
+     "cite": "Player Core 2 — Class Features: Bloodline: Angelic",
+     "builder": {
+      "tags": [
+       "sorcerer-bloodline"
+      ],
+      "ranks": [
+       {
+        "path": "skills.diplomacy",
+        "rank": 1
+       },
+       {
+        "path": "skills.religion",
+        "rank": 1
+       }
+      ]
+     }
     },
     {
      "id": "bloodline-demonic",
@@ -399,7 +603,22 @@
      "traits": "sorcerer",
      "summary": "Demons debase all they touch.",
      "description": "Demons debase all they touch. One of your ancestors fell victim to their corruption, and you're burdened by that sin.\n\n**Tradition** divine\n\n**Bloodline Skills** Intimidation, Religion\n\n**Sorcerous Gifts** cantrip: Caustic Blast; 1st: Fear; 2nd: Enlarge; 3rd: Slow; 4th: Divine Wrath; 5th: Blister; 6th: Disintegrate; 7th: Divine Decree; 8th: Canticle of Everlasting Grief; 9th: Implosion\n\n**Bloodline Spells** initial: Glutton's Jaws; advanced: Swamp of Sloth; greater: Chthonian Wrath\n\n**Blood Magic—Corruption of Sin** You mentally broadcast brief glimpses into the darkest desires of the mind. Either a target takes a –1 status penalty to AC for 1 round, or you gain a +2 status bonus to Intimidation checks for 1 round.\n\nEffect: Demonic Blood Magic",
-     "cite": "Player Core 2 — Class Features: Bloodline: Demonic"
+     "cite": "Player Core 2 — Class Features: Bloodline: Demonic",
+     "builder": {
+      "tags": [
+       "sorcerer-bloodline"
+      ],
+      "ranks": [
+       {
+        "path": "skills.intimidation",
+        "rank": 1
+       },
+       {
+        "path": "skills.religion",
+        "rank": 1
+       }
+      ]
+     }
     },
     {
      "id": "bloodline-diabolic",
@@ -408,7 +627,22 @@
      "traits": "sorcerer",
      "summary": "Devils are evil with a silver tongue, and one of your ancestors dallied in darkness or made an infernal pact.",
      "description": "Devils are evil with a silver tongue, and one of your ancestors dallied in darkness or made an infernal pact.\n\n**Spell List** divine\n\n**Bloodline Skills** Deception, Religion\n\n**Sorcerous Gifts** cantrip Ignition, 1st: Charm, 2nd: Floating Flame, 3rd: Enthrall, 4th: Suggestion, 5th: Wave of Despair, 6th: Truesight, 7th: Divine Decree, 8th: Divine Inspiration, 9th: Falling Stars\n\n**Bloodline Spells** initial: Diabolic Edict, advanced: Embrace the Pit, greater: Hellfire Plume\n\n**Blood Magic—Tongue of Flame** Your tongue becomes laced with the fires of Hell, and you can either lash out at a foe with it or swallow it to make your lies more palatable. Either a target takes 1 fire damage per spell rank (if the spell already deals initial fire damage, combine this with the spell's initial damage before determining weaknesses and resistances), or you gain a +2 status bonus to Deception checks for 1 round.\n\nEffect: Diabolic Blood Magic (Self)",
-     "cite": "Player Core 2 — Class Features: Bloodline: Diabolic"
+     "cite": "Player Core 2 — Class Features: Bloodline: Diabolic",
+     "builder": {
+      "tags": [
+       "sorcerer-bloodline"
+      ],
+      "ranks": [
+       {
+        "path": "skills.deception",
+        "rank": 1
+       },
+       {
+        "path": "skills.religion",
+        "rank": 1
+       }
+      ]
+     }
     },
     {
      "id": "bloodline-draconic",
@@ -417,7 +651,19 @@
      "traits": "sorcerer",
      "summary": "The blood of dragons flows through your veins.",
      "description": "The blood of dragons flows through your veins. These beasts are both fearsome in combat and skilled at magic.\n\n**Tradition** variable (see Draconic Exemplars below)\n\n**Bloodline Skills** Intimidation and one other skill (see Draconic Exemplars below)\n\n**Sorcerous Gifts** cantrip: Shield; 1st: Fear; 2nd: see Draconic Exemplars below; 3rd: Haste; 4th: Fly; 5th: see Draconic Exemplars below; 6th: Dragon Form (dragon must match your draconic exemplar); 7th: Mask of Terror; 8th: see Draconic Exemplars below; 9th: Overwhelming Presence\n\n**Bloodline Spells** initial: Flurry of Claws; advanced: Dragon Breath; greater: Dragon Wings\n\n**Blood Magic—Scaly Hide** Draconic scales grow briefly on you or one target, granting a +1 status bonus to AC for 1 round.\n\n### Draconic Exemplars\n\nAt 1st level, choose the tradition related to the dragon exemplar who influenced your bloodline. You can't change your dragon exemplar later. As noted, this affects both your bloodline's features and your sorcerous gift spells.\n\n- **Arcane—Tradition** arcane; **Bloodline Skill** Arcana; **Sorcerous Gifts** 2nd: Blazing Bolt; 5th: Subconscious Suggestion; 8th: Quandary\n- **Divine—Tradition** divine; **Bloodline Skill** Religion; **Sorcerous Gifts** 2nd: Augury; 5th: Divine Immolation; 8th: Divine Inspiration\n- **Occult—Tradition** occult; **Bloodline Skill** Occultism; **Sorcerous Gifts** 2nd: Blood Vendetta; 5th: Slither; 8th: Unrelenting Observation\n- **Primal—Tradition** primal; **Bloodline Skill** Nature; **Sorcerous Gifts** 2nd: Shatter; 5th: Howling Blizzard; 8th: Earthquake\n\nDraconic Sorcerer Bloodlines",
-     "cite": "Player Core 2 — Class Features: Bloodline: Draconic"
+     "cite": "Player Core 2 — Class Features: Bloodline: Draconic",
+     "builder": {
+      "tags": [
+       "sorcerer-bloodline"
+      ],
+      "more": 1,
+      "ranks": [
+       {
+        "path": "skills.intimidation",
+        "rank": 1
+       }
+      ]
+     }
     },
     {
      "id": "bloodline-elemental",
@@ -426,7 +672,23 @@
      "traits": "sorcerer",
      "summary": "An elemental influence has imbued your blood with primal fury.",
      "description": "An elemental influence has imbued your blood with primal fury. You are granted different sorcerous gift spells and damage type from blood magic depending on which element affected your bloodline (see Elemental Influences below).\n\n**Tradition** primal\n\n**Bloodline Skills** Intimidation, Nature\n\n**Sorcerous Gifts** cantrip: see Elemental Influences below; 1st: see Elemental Influences below; 2nd: Resist Energy; 3rd: see Elemental Influences below; 4th: Unfettered Movement; 5th: Elemental Form (elemental influence only); 6th :see Elemental Influences below; 7th: Energy Aegis; 8th: Earthquake; 9th: Wrathful Storm\n\n**Bloodline Spells** initial: Elemental Toss; advanced: Elemental Motion; greater: Elemental Blast\n\n**Blood Magic—Elemental Fury** Elemental energy wreathes your form and infuses your magic. Either you gain a +2 status bonus to Intimidation checks for 1 round, or a target takes 1 damage per spell rank; this damage type is listed under your elemental influence. If the spell already deals that type of damage, combine it with the spell's initial damage before determining weaknesses and resistances.\n\n### Elemental Influences\n\nAt 1st level, choose the type of elemental that influenced your bloodline: air, earth, fire, metal, water, or wood. You can't change this later. You are granted different spells at certain ranks according to this influence.\n\n- **Air—Sorcerous Gifts** cantrip: Gale Blast; 1st: Tailwind; 3rd: Wall of Wind; 6th: Chain Lightning; **Blood Magic Damage** slashing\n- **Earth—Sorcerous Gifts** cantrip: Scatter Scree; 1st: Pummeling Rubble; 3rd: Earthbind; 6th: Petrify; **Blood Magic Damage** bludgeoning\n- **Fire—Sorcerous Gifts** cantrip: Ignition, 1st: Breathe Fire; 3rd: Fireball; 6th: Tree of Seasons (all pods are summer); **Blood Magic Damage** fire\n- **Metal—Sorcerous Gifts** cantrip Electric Arc; 1st: Thunderstrike; 3rd: Lightning Bolt; 6th: Chain Lightning; **Blood Magic Damage** piercing\n- **Water—Sorcerous Gifts** cantrip: Frostbite; 1st: Hydraulic Push; 3rd: Aqueous Orb; 6th: Scintillating Safeguard; **Blood Magic Damage** bludgeoning\n- **Wood—Sorcerous Gifts** cantrip: Tangle Vine; 1st: Cleanse Cuisine; 3rd: Wall of Thorns; 6th: Tangling Creepers; **Blood Magic Damage** bludgeoning",
-     "cite": "Player Core 2 — Class Features: Bloodline: Elemental"
+     "cite": "Player Core 2 — Class Features: Bloodline: Elemental",
+     "builder": {
+      "tags": [
+       "sorcerer-bloodline"
+      ],
+      "ranks": [
+       {
+        "path": "skills.intimidation",
+        "rank": 1
+       },
+       {
+        "path": "skills.nature",
+        "rank": 1
+       }
+      ],
+      "more": 1
+     }
     },
     {
      "id": "bloodline-fey",
@@ -435,7 +697,22 @@
      "traits": "sorcerer",
      "summary": "Fey whimsy or a tryst in a moonlit grove put the bewitching magic of the realm of the fey into your family's bloodline.",
      "description": "Fey whimsy or a tryst in a moonlit grove put the bewitching magic of the realm of the fey into your family's bloodline.\n\n**Tradition** primal\n\n**Bloodline Skills** Deception, Nature\n\n**Sorcerous Gifts** cantrip Figment, 1st: Charm, 2nd: Laughing Fit, 3rd: Enthrall, 4th: Suggestion, 5th: Hallucination, 6th: Mislead, 7th: Visions of Danger, 8th: Uncontrollable Dance, 9th: Metamorphosis\n\n**Bloodline Spells** initial: Faerie Dust, advanced: Fey Disappearance, greater: Fey Glamour\n\n**Blood Magic—Cloak of Ribbons** Colorful fey ribbons dance around you. Either you gain a +2 status bonus to Performance checks for 1 round, or you can become concealed for 1 round. Such obvious concealment can't be used to Hide\n\nEffect: Fey Blood Magic",
-     "cite": "Player Core 2 — Class Features: Bloodline: Fey"
+     "cite": "Player Core 2 — Class Features: Bloodline: Fey",
+     "builder": {
+      "tags": [
+       "sorcerer-bloodline"
+      ],
+      "ranks": [
+       {
+        "path": "skills.deception",
+        "rank": 1
+       },
+       {
+        "path": "skills.nature",
+        "rank": 1
+       }
+      ]
+     }
     },
     {
      "id": "bloodline-hag",
@@ -444,7 +721,22 @@
      "traits": "sorcerer",
      "summary": "A hag long ago cursed your family, or you are a descendant of a hag or changeling, and their magic infests your blood and soul.",
      "description": "A hag long ago cursed your family, or you are a descendant of a hag or changeling, and their magic infests your blood and soul.\n\n**Tradition** occult\n\n**Bloodline Skills** Deception, Occultism\n\n**Sorcerous Gifts** cantrip Daze, 1st: Illusory Disguise, 2nd: Stupefy, 3rd: Blindness, 4th: Outcast's Curse, 5th: Mariner's Curse, 6th: Cursed Metamorphosis, 7th: Warp Mind, 8th: Quandary, 9th: Phantasmagoria\n\n**Bloodline Spells** initial: Jealous Hex, advanced: Horrific Visage, greater: You're Mine\n\n**Blood Magic—Retributive Spite** Malice and acrimony take physical form around you. You deal 4 mental damage per spell rank (basic Will save) to the first creature that deals damage to you before the end of your next turn; if no creature damages you in that time, you consume that spite to gain temporary Hit Points at the beginning of your next turn equal to the spell's rank. These temporary Hit Points last until the beginning of your following turn.",
-     "cite": "Player Core 2 — Class Features: Bloodline: Hag"
+     "cite": "Player Core 2 — Class Features: Bloodline: Hag",
+     "builder": {
+      "tags": [
+       "sorcerer-bloodline"
+      ],
+      "ranks": [
+       {
+        "path": "skills.deception",
+        "rank": 1
+       },
+       {
+        "path": "skills.occultism",
+        "rank": 1
+       }
+      ]
+     }
     },
     {
      "id": "bloodline-imperial",
@@ -453,7 +745,22 @@
      "traits": "sorcerer",
      "summary": "One of your ancestors was a mortal who mastered magic.",
      "description": "One of your ancestors was a mortal who mastered magic.\n\n**Tradition** arcane\n\n**Bloodline Skills** Arcana, Society\n\n**Sorcerous Gifts** cantrip Detect Magic, 1st: Force Barrage, 2nd: Dispel Magic, 3rd: Haste, 4th: Translocate, 5th: Scouting Eye, 6th: Disintegrate, 7th: Retrocognition, 8th: Quandary, 9th: Implosion\n\n**Bloodline Spells** initial: Ancestral Memories, advanced: Extend Blood Magic, greater: Arcane Countermeasure\n\n**Blood Magic—Imperious Defense** Raw magic emanates from every cell in your body, protecting you. Until the start of your next turn, you gain your choice of either a +1 status bonus to AC or a +1 status bonus to saving throws.\n\nEffect: Imperial Blood Magic",
-     "cite": "Player Core 2 — Class Features: Bloodline: Imperial"
+     "cite": "Player Core 2 — Class Features: Bloodline: Imperial",
+     "builder": {
+      "tags": [
+       "sorcerer-bloodline"
+      ],
+      "ranks": [
+       {
+        "path": "skills.arcana",
+        "rank": 1
+       },
+       {
+        "path": "skills.society",
+        "rank": 1
+       }
+      ]
+     }
     },
     {
      "id": "bloodline-undead",
@@ -462,7 +769,22 @@
      "traits": "sorcerer",
      "summary": "The touch of undeath runs through your blood.",
      "description": "The touch of undeath runs through your blood. Your family tree might contain powerful undead, like a vampire.\n\n**Tradition** divine\n\n**Bloodline Skills** Intimidation, Religion\n\n**Sorcerous Gifts** cantrip Void Warp, 1st: Harm, 2nd: See the Unseen, 3rd: Bind Undead, 4th: Talking Corpse, 5th: Invoke Spirits, 6th: Vampiric Exsanguination, 7th: Execute, 8th: Canticle of Everlasting Grief, 9th: Wails of the Damned\n\n**Bloodline Spells** initial: Undeath's Blessing, advanced: Drain Life, greater: Grasping Grave\n\n**Blood Magic—Stolen Life** You can channel the necromantic energy in your blood. Either you gain temporary Hit Points equal to the spell's rank that last until the start of your next turn, or a target takes 1 void damage per spell rank (if the spell already deals initial void damage, combine this with the spell's initial damage before determining weaknesses and resistances).",
-     "cite": "Player Core 2 — Class Features: Bloodline: Undead"
+     "cite": "Player Core 2 — Class Features: Bloodline: Undead",
+     "builder": {
+      "tags": [
+       "sorcerer-bloodline"
+      ],
+      "ranks": [
+       {
+        "path": "skills.intimidation",
+        "rank": 1
+       },
+       {
+        "path": "skills.religion",
+        "rank": 1
+       }
+      ]
+     }
     },
     {
      "id": "bomber",
@@ -471,7 +793,17 @@
      "traits": "alchemist",
      "summary": "You specialize in explosions and other violent reactions.",
      "description": "You specialize in explosions and other violent reactions.\n\n**Formulas** Two common 1st-level alchemical bombs.\n\n**Field Benefit** When throwing an alchemical bomb with the splash trait, you can choose to deal splash damage to only your primary target instead of the usual splash area.\n\n**Field Vials** When you Strike with a versatile vial, you can choose to have it deal cold, electricity, or fire damage instead of acid damage.\n\n**Field Discovery (5th)** You have calculated all the angles to maximize a bomb's splash. When you throw an alchemical bomb with the splash trait, you can cause the bomb to deal splash damage equal to your Intelligence modifier (minimum 1) instead of the normal amount.\n\n**Advanced Vials (11th)** You can mix special ingredients into your vials, such as magical dust or flakes of precious minerals. When you create a versatile vial, you can choose to have it treated as one special material of your choice, chosen from adamantine, cold iron, and dawnsilver. If you're wearing or wielding an item of a different precious material when you make the vial, you can choose that material instead.\n\n**Greater Field Discovery (13th)** You can increase the splash on your bombs to damage creatures within 10 feet, or 15 feet if you have Expanded Splash.",
-     "cite": "Player Core 2 — Class Features: Bomber"
+     "cite": "Player Core 2 — Class Features: Bomber",
+     "builder": {
+      "tags": [
+       "alchemist-research-field"
+      ],
+      "replaces": [
+       "Advanced Vials (Bomber)",
+       "Field Discovery (Bomber)",
+       "Greater Field Discovery (Bomber)"
+      ]
+     }
     },
     {
      "id": "bones",
@@ -480,7 +812,24 @@
      "traits": "oracle",
      "summary": "Your mystery imparts an understanding of death and undeath in all their macabre complexity.",
      "description": "Your mystery imparts an understanding of death and undeath in all their macabre complexity. You might have had a brush with death yourself—maybe even dying and returning to life—or carry the touch of undeath in your blood.\n\n**Granted Spells**\n\n- **cantrip:** Void Warp\n- **1st:** Grim Tendrils\n- **2nd:** False Vitality\n- **3rd:** Ghostly Weapon\n\n**Revelation Spells**\n\n- **initial:** Soul Siphon\n- **advanced:** Armor of Bones\n- **greater:** Claim Undead\n\n**Related Domains** death, decay, undeath, vigil\n\n**Mystery Skill** Medicine\n\n**Oracle Feat** Nudge the Scales\n\nCurse of the Living Death",
-     "cite": "Player Core 2 — Class Features: Bones"
+     "cite": "Player Core 2 — Class Features: Bones",
+     "builder": {
+      "tags": [
+       "oracle-mystery"
+      ],
+      "ranks": [
+       {
+        "path": "skills.medicine",
+        "rank": 1
+       }
+      ],
+      "feats": [
+       "Nudge the Scales"
+      ],
+      "grants": [
+       "Curse of the Living Death"
+      ]
+     }
     },
     {
      "id": "braggart",
@@ -489,7 +838,18 @@
      "traits": "swashbuckler",
      "summary": "You boast, taunt, and psychologically needle your foes.",
      "description": "You boast, taunt, and psychologically needle your foes. You are trained in Intimidation. When you Demoralize, the action gains the bravado trait.",
-     "cite": "Player Core 2 — Class Features: Braggart"
+     "cite": "Player Core 2 — Class Features: Braggart",
+     "builder": {
+      "tags": [
+       "swashbuckler-style"
+      ],
+      "ranks": [
+       {
+        "path": "skills.intimidation",
+        "rank": 1
+       }
+      ]
+     }
     },
     {
      "id": "bravery",
@@ -516,7 +876,17 @@
      "traits": "champion",
      "summary": "You devote yourself to a specific cause in your deity's name.",
      "description": "You devote yourself to a specific cause in your deity's name. Some are limited to sanctification, as noted in parentheses. Your cause adds to your edicts and anathema and grants you a special reaction called your champion's reaction, which appears after the divider, along with its upgrades if you gain the relentless reaction and exalted reaction class features at higher levels.\n\n**Desecration (Unholy):** You selfishly corrupt and destroy.\n\n**Grandeur (Holy):** You exemplify the glory and splendor of the celestial realms.\n\n**Iniquity (Unholy):** You destroy, take advantage, and act with dishonor.\n\n**Justice:** You follow laws and mete out just punishment.\n\n**Liberation:** You oppose tyranny and fight for freedom.\n\n**Obedience:** You enforce hierarchies and order.\n\n**Redemption (Holy):** You try to redeem those who commit wicked deeds.",
-     "cite": "Player Core 2 — Class Features: Cause"
+     "cite": "Player Core 2 — Class Features: Cause",
+     "builder": {
+      "selections": [
+       {
+        "tags": [
+         "champion-cause"
+        ],
+        "count": 1
+       }
+      ]
+     }
     },
     {
      "id": "champion-expertise",
@@ -561,7 +931,17 @@
      "traits": "alchemist",
      "summary": "You concentrate on healing others with alchemy.",
      "description": "You concentrate on healing others with alchemy.\n\n**Formulas** Two common 1st-level alchemical elixirs with the healing trait (like lesser antidote, lesser antiplague, or minor elixir of life).\n\n**Field Benefit** You can use your proficiency rank in Crafting for anything that requires a proficiency rank in Medicine (such as prerequisites) and use your Crafting modifier in place of your Medicine modifier for all Medicine checks.\n\n**Field Vials** Your versatile vials can be used to heal a living creature a number of Hit Points equal to the vial's initial damage. A creature can drink the vial for this benefit, or you can throw the vial at a willing creature within 20 feet as an Interact action to heal that creature. In either case, a vial used this way loses the acid and splash traits and gains the coagulant and healing traits, plus the elixir trait if a creature drinks it.\n\n**Field Discovery (5th)** Your medicinal elixirs are quite fortifying. When a creature drinks an infused elixir with the healing trait that you have created, that creature gains a number of temporary Hit Points equal to your Intelligence modifier (minimum 0); these temporary Hit Points last for 1 minute.\n\n**Advanced Vials (11th)** When you use a field vial to heal a creature that has half its maximum Hit Points or fewer, the coagulant trait doesn't apply to that healing.\n\n**Greater Field Discovery (13th)** When you use Quick Alchemy to create any type of elixir of life, the creature healed by the item regains the maximum Hit Points possible, instead of rolling to determine the number of Hit Points regained.",
-     "cite": "Player Core 2 — Class Features: Chirurgeon"
+     "cite": "Player Core 2 — Class Features: Chirurgeon",
+     "builder": {
+      "tags": [
+       "alchemist-research-field"
+      ],
+      "replaces": [
+       "Advanced Vials (Chirurgeon)",
+       "Field Discovery (Chirurgeon)",
+       "Greater Field Discovery (Chirurgeon)"
+      ]
+     }
     },
     {
      "id": "cleric-spellcasting",
@@ -579,7 +959,20 @@
      "traits": "cleric",
      "summary": "You are a cleric of the cloth, focusing on divine magic and your connection to your deity's domains.",
      "description": "You are a cleric of the cloth, focusing on divine magic and your connection to your deity's domains.\n\n**First Doctrine (1st):** You gain the Domain Initiate cleric feat.\n\n**Second Doctrine (3rd):** Your proficiency rank for Fortitude saves increases to expert.\n\n**Third Doctrine (7th):** Your proficiency ranks for the spell attack modifier and spell DC statistics increase to expert.\n\n**Fourth Doctrine (11th):** You gain expert proficiency with your deity's favored weapon, simple weapons, and unarmed attacks. When you critically succeed at an attack roll using your deity's favored weapon, you apply the weapon's critical specialization effect; you can use your spell DC in place of your class DC.\n\n**Fifth Doctrine (15th):** Your proficiency ranks for the spell attack modifier and spell DC statistics increase to master.\n\n**Final Doctrine (19th):** Your proficiency ranks for the spell attack modifier and spell DC statistics increase to legendary.",
-     "cite": "Player Core — Class Features: Cloistered Cleric"
+     "cite": "Player Core — Class Features: Cloistered Cleric",
+     "builder": {
+      "tags": [
+       "cleric-doctrine"
+      ],
+      "replaces": [
+       "Fifth Doctrine (Cloistered Cleric)",
+       "Final Doctrine (Cloistered Cleric)",
+       "First Doctrine (Cloistered Cleric)",
+       "Fourth Doctrine (Cloistered Cleric)",
+       "Second Doctrine (Cloistered Cleric)",
+       "Third Doctrine (Cloistered Cleric)"
+      ]
+     }
     },
     {
      "id": "combat-flexibility",
@@ -615,7 +1008,12 @@
      "traits": "swashbuckler",
      "summary": "You gain an elegant finishing attack you can make when you have panache.",
      "description": "You gain an elegant finishing attack you can make when you have panache. The finisher trait is described below. You gain the Confident Finisher action.\n\n**Finisher** Finishers are spectacular finishing moves that use your panache. Finishers can be used only with weapons that deal additional damage with precise strike (agile or finesse melee weapons or unarmed attacks, for most swashbucklers). You can use a finisher only if you have panache, and you lose your panache immediately after performing a finisher. Once you use a finisher, you can't use actions that have the attack trait for the rest of your turn.\n\nSome finisher actions also grant an effect on a failure. Effects added on a failure don't apply on a critical failure. If your finisher action succeeds, you can still choose to apply the failure effect instead. For example, you might do this when an attack deals no damage due to resistance.",
-     "cite": "Player Core 2 — Class Features: Confident Finisher"
+     "cite": "Player Core 2 — Class Features: Confident Finisher",
+     "builder": {
+      "grants": [
+       "Confident Finisher"
+      ]
+     }
     },
     {
      "id": "continuous-flair",
@@ -633,7 +1031,24 @@
      "traits": "oracle",
      "summary": "Celestial bodies great and small exert influence on you, giving you sublime cosmic power.",
      "description": "Celestial bodies great and small exert influence on you, giving you sublime cosmic power. Perhaps you see the glittering stars as a divine blessing, or perhaps you feel drawn to the infinitely dark spaces between.\n\n**Granted Spells**\n\n- **cantrip:** Light\n- **1st:** Dizzying Colors\n- **2nd:** Darkness\n- **5th:** Moon Frenzy\n\n**Revelation Spells**\n\n- **initial:** Spray of Stars\n- **advanced:** Interstellar Void\n- **greater:** Moonlight Bridge\n\n**Related Domains** darkness, moon, nothingness, star\n\n**Mystery Skill** Nature\n\n**Oracle Feat** Oracular Warning\n\nCurse of the Sky's Call",
-     "cite": "Player Core 2 — Class Features: Cosmos"
+     "cite": "Player Core 2 — Class Features: Cosmos",
+     "builder": {
+      "tags": [
+       "oracle-mystery"
+      ],
+      "ranks": [
+       {
+        "path": "skills.nature",
+        "rank": 1
+       }
+      ],
+      "feats": [
+       "Oracular Warning"
+      ],
+      "grants": [
+       "Curse of the Sky's Call"
+      ]
+     }
     },
     {
      "id": "curse-of-ancestral-meddling",
@@ -714,7 +1129,12 @@
      "traits": "rogue",
      "summary": "When taking advantage of an opening, you both hinder and harm your foe.",
      "description": "When taking advantage of an opening, you both hinder and harm your foe. You gain the Debilitating Strike free action.",
-     "cite": "Player Core — Class Features: Debilitating Strike"
+     "cite": "Player Core — Class Features: Debilitating Strike",
+     "builder": {
+      "grants": [
+       "Debilitating Strike"
+      ]
+     }
     },
     {
      "id": "deductive-improvisation",
@@ -750,7 +1170,14 @@
      "traits": "champion",
      "summary": "As a champion, you are a warrior in the name of a deity you revere above all others.",
      "description": "As a champion, you are a warrior in the name of a deity you revere above all others. Choose one deity.\n\n### Skill\n\nYou become trained in the divine skill listed for your deity. As normal, if you're already trained in that skill, you become trained in a different skill of your choice.\n\n### Anathema\n\nChampions care deeply about the edicts and anathema they take from their deity, sanctification, and cause. As with any implementation of edicts and anathema in the rules, these are a tool for roleplaying between you, the GM, and the other players at the table—you're still playing a nuanced character, not strictly following a script.\n\nActs fundamentally opposed to your deity's ideals are anathema to your faith. Learning or casting spells, committing acts, and using items that are anathema to your deity remove you from your deity's good graces.\n\nSimilarly, using items, spells, or actions that are anathema to the tenets or goals of your faith could interfere with your connection to your deity. Many actions that are anathema don't appear in any deity's formal list. For borderline cases, you and your GM determine which acts are anathema.\n\nIf you perform enough acts that are anathema to your deity, you lose the magical abilities that come from your connection to your deity. The class features that you lose are determined by the GM, but they likely include your holy or unholy trait, your focus pool, and your blessing of the devoted. These abilities can be regained only if you repent by conducting an atone ritual. If your deity doesn't require the specific sanctification you had, your GM might let you retrain your sanctification and cause while still following the same deity.\n\n### Sanctification\n\nDepending on your deity, their sanctification can make you holy or unholy. This commits you to one side of a struggle over souls. Whether you become holy, unholy, or neither will limit your choice of causes, devotion spells, and feats.\n\nIf you \"can be\" holy or unholy according to your deity's sanctification entry, you make that choice, and if you \"must be\" holy or unholy, you gain the trait automatically. If the deity lists \"none,\" you can choose only options that don't require the holy or unholy trait. If you are holy or unholy and gain the opposing trait in some way, you lose the previous trait until you atone.\n\nUnholy sanctification for a champion can be extremely disruptive to a typical game and should be a player character option only in appropriate adventures or campaigns where the group collectively decides to embrace them. Unholy sanctification and causes are uncommon options.\n\n**Holy:** You gain the holy trait and add that trait to any Strikes you make. You gain the edict, \"Do not knowingly harm innocents or fail to prevent harm to an innocent if your direct intervention could save them\" and the anathema \"Commit murder.\"\n\n**Unholy:** You gain the unholy trait and add that trait to any Strikes you make. You gain the edict, \"Do not put another's needs before your own or those of your deity\" and the anathema \"Commit an entirely altruistic act, such as giving something away in charity\" and \"Put anyone's needs before those of your deity.\" None of these prevents you from performing acts others might consider helpful, but these acts must be done with the expectation that they ultimately further your own goals or those of your deity",
-     "cite": "Player Core 2 — Class Features: Deity (Champion)"
+     "cite": "Player Core 2 — Class Features: Deity (Champion)",
+     "builder": {
+      "more": 2,
+      "grants": [
+       "Deific Weapon",
+       "Champion's Aura"
+      ]
+     }
     },
     {
      "id": "deity-cleric",
@@ -759,7 +1186,10 @@
      "traits": "cleric",
      "summary": "As a cleric, you are a mortal servitor of a deity you revere above all others.",
      "description": "As a cleric, you are a mortal servitor of a deity you revere above all others. Your deity grants you the trained proficiency rank in one skill and with the deity's favored weapon. If the favored weapon is uncommon, you also get access to that weapon.\n\nYour deity also adds spells to your spell list. You can prepare these just like you can any spell on the divine spell list once you can prepare spells of their rank as a cleric. Any of these spells that aren't normally on the divine list are still divine spells if you prepare them this way.\n\n### Sanctification\n\nDepending on your deity, their sanctification can make you holy or unholy. This gives you the holy or unholy trait, which commits you to one side of a struggle over the souls of the planes and may be referenced in other abilities. If you \"can be\" holy or unholy according to your deity, you make that choice, and if you \"must be\" holy or unholy you gain the trait automatically. If you gain the opposing trait in some way, you lose the previous trait until you complete an atone ritual.\n\n### Anathema\n\nActs fundamentally opposed to your deity's ideals are anathema to your faith. Learning or casting spells, committing acts, and using items that are anathema to your deity remove you from your deity's good graces.\n\nCasting spells with the unholy trait is almost always anathema to deities who don't allow unholy sanctification, and casting holy spells is likewise anathema to those who don't allow holy sanctification. Similarly, casting spells that are anathema to the tenets or goals of your faith could interfere with your connection to your deity. Many actions that are anathema don't appear in any deity's formal list. For borderline cases, you and your GM determine which acts are anathema.\n\nIf you perform enough acts that are anathema to your deity, you lose the magical abilities that come from your connection to your deity. The class features that you lose are determined by the GM, but they likely include your divine font and all cleric spellcasting. These abilities can be regained only if you repent by conducting an atone ritual.",
-     "cite": "Player Core — Class Features: Deity (Cleric)"
+     "cite": "Player Core — Class Features: Deity (Cleric)",
+     "builder": {
+      "more": 2
+     }
     },
     {
      "id": "deny-advantage",
@@ -777,7 +1207,16 @@
      "traits": "uncommon, champion",
      "summary": "You always take what pleases you, no matter who it hurts, and you spread a malign influence across all you touch.",
      "description": "You always take what pleases you, no matter who it hurts, and you spread a malign influence across all you touch.\n\n**Edicts** subvert or corrupt everything in your path that is pure or holy, sow doubt among those holding ideals of purity or holiness.\n\n**Champion's Reaction** Selfish Shield\n\n**Relentless Reaction (9th)** If your Charisma modifier is +3 or greater, your resistance against the triggering damage equals your Charisma modifier + half your level.\n\n**Exalted Reaction (11th)** Each enemy in your champion's aura takes a –1 status penalty to attack rolls against you until the start of your next turn.\n\nEffect: Exalted Reaction (Desecrator)",
-     "cite": "Player Core 2 — Class Features: Desecration"
+     "cite": "Player Core 2 — Class Features: Desecration",
+     "builder": {
+      "tags": [
+       "champion-cause",
+       "unholy"
+      ],
+      "grants": [
+       "Selfish Shield"
+      ]
+     }
     },
     {
      "id": "devastator",
@@ -795,7 +1234,12 @@
      "traits": "investigator",
      "summary": "You can play out a battle in your head, using brains rather than brawn to execute an attack.",
      "description": "You can play out a battle in your head, using brains rather than brawn to execute an attack.\n\nYou gain the Devise a Stratagem action.",
-     "cite": "Player Core 2 — Class Features: Devise a Stratagem"
+     "cite": "Player Core 2 — Class Features: Devise a Stratagem",
+     "builder": {
+      "grants": [
+       "Devise a Stratagem"
+      ]
+     }
     },
     {
      "id": "devotion-spells",
@@ -831,7 +1275,10 @@
      "traits": "cleric",
      "summary": "Through your deity's blessing, you gain additional spells that channel either the life force called vitality or its counterforce, the void.",
      "description": "Through your deity's blessing, you gain additional spells that channel either the life force called vitality or its counterforce, the void. When you prepare your spells each day, you can prepare additional Heal or Harm spells, depending on your deity. The divine font spell your deity provides is listed in the Divine Font entry for your deity; if both are listed, you can choose between *heal* or *harm*. Once you choose, you can't change your choice short of divine intervention.\n\n**Healing Font:** You gain 4 additional spell slots each day at your highest rank of cleric spell slots. You can prepare only *heal* spells in these slots. At 5th level, the number of additional slots increases to 5, and at 15th level, the total number of additional slots increases to 6.\n\n**Harmful Font:** You gain 4 additional spell slots each day at your highest rank of cleric spell slots. You can prepare only *harm* spells in these slots. At 5th level, the number of additional slots increases to 5, and at 15th level, the total number of additional slots increases to 6.",
-     "cite": "Player Core — Class Features: Divine Font"
+     "cite": "Player Core — Class Features: Divine Font",
+     "builder": {
+      "more": 1
+     }
     },
     {
      "id": "divine-will",
@@ -849,7 +1296,17 @@
      "traits": "cleric",
      "summary": "Even among followers of the same deity, approaches vary.",
      "description": "Even among followers of the same deity, approaches vary. At 1st level, you select cloistered cleric or warpriest and gain the benefits of its first doctrine. At 3rd level and every four levels thereafter, you gain another benefit from your doctrine.\n\n- Cloistered Cleric\n- Warpriest",
-     "cite": "Player Core — Class Features: Doctrine"
+     "cite": "Player Core — Class Features: Doctrine",
+     "builder": {
+      "selections": [
+       {
+        "tags": [
+         "cleric-doctrine"
+        ],
+        "count": 1
+       }
+      ]
+     }
     },
     {
      "id": "dogged-will",
@@ -885,7 +1342,13 @@
      "traits": "barbarian",
      "summary": "You summon the fury of a mighty dragon and manifest incredible abilities.",
      "description": "You summon the fury of a mighty dragon and manifest incredible abilities. Perhaps your culture reveres draconic majesty, or you gained insights by drinking or bathing in dragon's blood or watching a marauding wyrm burn your village. Select a type of dragon from the Dragon Instincts table as your instinct's dragon type. These are the dragons from Monster Core, but your GM might allow you to choose dragons from other sources and determine their tradition and dragon breath type.\n\n**Instinct Ability—Draconic Rage** When you rage, you can increase the additional damage from Rage from 2 to 4 and change its damage type to match that of your instinct's dragon breath instead of the damage type for your weapon or unarmed attack. If you do this, your Rage action gains the trait matching your dragon instinct's tradition, as well as the trait matching the damage type where applicable.\n\n**Specialization Ability (7th)** When you use draconic rage, you increase the additional damage from Rage from 4 to 8. If you have greater weapon specialization, instead increase the damage from Rage when using draconic rage from 8 to 16.\n\n**Raging Resistance (9th)** You resist piercing damage and the damage type of your instinct's dragon breath.\n\n### Dragon Instincts\n\n| Dragon | Tradition | Dragon Breath |\n| --- | --- | --- |\n| Adamantine | Primal | Bludgeoning |\n| Barrage | Arcane | Force |\n| Bog | Primal | Acid |\n| Brine | Primal | Bludgeoning |\n| Cinder | Primal | Fire |\n| Cloud | Primal | Electricity |\n| Conspirator | Occult | Poison |\n| Coral | Primal | Bludgeoning |\n| Crystal | Primal | Piercing |\n| Delight | Divine | Spirit |\n| Despair | Occult | Sonic |\n| Diabolic | Divine | Fire |\n| Empyreal | Divine | Spirit |\n| Executor | Divine | Sonic |\n| Forest | Primal | Piercing |\n| Fortune | Arcane | Force |\n| Horned | Primal | Poison |\n| Magma | Primal | Fire |\n| Mirage | Arcane | Mental |\n| Mocking | Occult | Bludgeoning |\n| Oath | Divine | Spirit |\n| Omen | Occult | Mental |\n| Phase | Arcane | Force |\n| Requiem | Divine | Spirit |\n| Resurrection | Divine | Void |\n| Rime | Primal | Cold |\n| Rune | Arcane | Fire |\n| Sage | Occult | Mental |\n| Sea | Primal | Bludgeoning |\n| Sky | Divine | Electricity |\n| Sovereign | Occult | Mental |\n| Stormcrown | Primal | Electricity |\n| Time | Arcane | Force |\n| Umbral | Occult | Void |\n| Underworld | Arcane | Fire |\n| Vizier | Occult | Fire |\n| Vorpal | Arcane | Void |\n| Wailing | Arcane | Sonic |\n| Whisper | Occult | Mental |\n| Wish | Arcane | Mental |\n| Black | Arcane | Line of Acid |\n| Blue | Arcane | Line of Electricity |\n| Green | Arcane | Cone of Poison |\n| Red | Arcane | Cone of Fire |\n| White | Arcane | Cone of Cold |\n| Brass | Arcane | Line of Fire |\n| Bronze | Arcane | Line of Electricity |\n| Copper | Arcane | Line of Acid |\n| Gold | Arcane | Cone of Fire |\n| Silver | Arcane | Cone of Cold |",
-     "cite": "Player Core 2 — Class Features: Dragon Instinct"
+     "cite": "Player Core 2 — Class Features: Dragon Instinct",
+     "builder": {
+      "tags": [
+       "barbarian-instinct"
+      ],
+      "more": 1
+     }
     },
     {
      "id": "druid-spellcasting",
@@ -912,7 +1375,17 @@
      "traits": "druid",
      "summary": "Upon becoming a druid, you align yourself with a druidic order, which grants you a class feat, an order spell (see below), and an additional trained skill tied to your order While you'll always be a…",
      "description": "Upon becoming a druid, you align yourself with a druidic order, which grants you a class feat, an order spell (see below), and an additional trained skill tied to your order While you'll always be a member of your initial order, it's not unheard of for a druid to request to study with other orders in search of greater understanding of the natural world, and PC druids are among the most likely to blend the powers of different orders.\n\nOrder spells are a type of focus spell. It costs 1 Focus Point to cast a focus spell, and you start with a focus pool of 1 Focus Point. You refill your focus pool during your daily preparations, and you can regain 1 Focus Point by spending 10 minutes using the Refocus activity to commune with local nature spirits or otherwise tend to the wilderness in a way befitting your order.\n\nFocus spells are automatically heightened to half your level rounded up, much like cantrips. Focus spells don't require spell slots, and you can't cast them using spell slots. Certain feats give you more focus spells. The maximum Focus Points your focus pool can hold is equal to the number of focus spells you have, but can never be more than 3 points.\n\n**Order Skill** You become trained in the listed skill. If you're already trained in that skill, you become trained in a different skill of your choice.\n\n**Druid Feat** You gain this 1st-level druid feat.\n\n**Order Spell** You automatically gain the listed order spell at 1st level.\n\n**Anathema** Add this anathema to those for all druids.\n\nAnimal Order\n\nFlame Order\n\nLeaf Order\n\nStone Order\n\nStorm Order\n\nUntamed Order\n\nWave Order",
-     "cite": "Player Core — Class Features: Druidic Order"
+     "cite": "Player Core — Class Features: Druidic Order",
+     "builder": {
+      "selections": [
+       {
+        "tags": [
+         "druid-order"
+        ],
+        "count": 1
+       }
+      ]
+     }
     },
     {
      "id": "empiricism-methodology",
@@ -921,7 +1394,30 @@
      "traits": "investigator",
      "summary": "Everything comes down to data.",
      "description": "Everything comes down to data. Calculating statistics, running numbers, and using inductive reasoning allows you to determine the most likely outcome of any scenario, and anything out of place draws your keen attention.\n\nYou are trained in one Intelligence-based skill of your choice. You gain the That's Odd investigator feat, and you gain the Expeditious Inspection free action.",
-     "cite": "Player Core 2 — Class Features: Empiricism Methodology"
+     "cite": "Player Core 2 — Class Features: Empiricism Methodology",
+     "builder": {
+      "tags": [
+       "investigator-methodology"
+      ],
+      "feats": [
+       "That's Odd"
+      ],
+      "grants": [
+       "Expeditious Inspection"
+      ],
+      "rankChoices": [
+       {
+        "list": "skills",
+        "from": [
+         "arcana",
+         "crafting",
+         "occultism",
+         "society"
+        ],
+        "rank": 1
+       }
+      ]
+     }
     },
     {
      "id": "enigma",
@@ -930,7 +1426,15 @@
      "traits": "bard",
      "summary": "Your muse is a mystery, driving you to uncover the hidden secrets of life and the multiverse.",
      "description": "Your muse is a mystery, driving you to uncover the hidden secrets of life and the multiverse. These muses can be people you cannot fully grasp, texts layered deeply with symbolism, or emotional paradoxes that underline a lifetime's work. Art inspired by an enigma muse could be cryptic, eerie, or laden with speculation and conspiracy. As a bard with the enigma muse, you support your allies by providing knowledge alongside inspiration and occult support.\n\n**Muse Feat** Bardic Lore\n\n**Muse Spell** Sure Strike",
-     "cite": "Player Core — Class Features: Enigma"
+     "cite": "Player Core — Class Features: Enigma",
+     "builder": {
+      "tags": [
+       "bard-muse"
+      ],
+      "feats": [
+       "Bardic Lore"
+      ]
+     }
     },
     {
      "id": "eternal-confidence",
@@ -975,7 +1479,13 @@
      "traits": "wizard",
      "summary": "Your thesis posits that the magical practice of spellshaping can be realized more efficiently by altering variables and parameters as you cast, imitating the wizards of long ago who had to work out…",
      "description": "Your thesis posits that the magical practice of spellshaping can be realized more efficiently by altering variables and parameters as you cast, imitating the wizards of long ago who had to work out their own spells themselves. This allows you efficient access to various spellshape effects.\n\nYou gain one 1st-level spellshape wizard feat of your choice. Starting at 4th level, during your daily preparations, you can gain a spellshape wizard feat of your choice that has a level requirement of no more than half your level, which you can use until your next daily preparations.",
-     "cite": "Player Core — Class Features: Experimental Spellshaping"
+     "cite": "Player Core — Class Features: Experimental Spellshaping",
+     "builder": {
+      "tags": [
+       "wizard-arcane-thesis"
+      ],
+      "more": 1
+     }
     },
     {
      "id": "expert-spellcaster",
@@ -1020,7 +1530,18 @@
      "traits": "witch",
      "summary": "Your patron contacted you in a moment your willpower was close to sputtering out.",
      "description": "Your patron contacted you in a moment your willpower was close to sputtering out. Their reassuring presence was like breath and kindling bringing an ember back aflame, their magic giving you the strength to carry on and bring others to your cause. Your patron is likely a divine being like an angel or aeon acting covertly, though the possibility exists they might be a more sinister entity, using you to unknown ends.\n\n**Spell List** divine\n\n**Patron Skill** Religion\n\n**Lesson of Fervor's Grasp** Your patron has taught you that nothing can seize the heart like faith, whether used to inspire or direct. You gain the Stoke the Heart hex cantrip and your familiar learns Command.\n\n**Familiar of Restored Spirit** Your familiar is pleasantly warm and soft, seeming to wash away worries with its mere presence. When you Cast or Sustain a hex, one willing creature within 15 feet of your familiar gains temporary Hit Points equal to 2 + half your level, which last until the start of your next turn.",
-     "cite": "Player Core — Class Features: Faith's Flamekeeper"
+     "cite": "Player Core — Class Features: Faith's Flamekeeper",
+     "builder": {
+      "tags": [
+       "witch-patron"
+      ],
+      "ranks": [
+       {
+        "path": "skills.religion",
+        "rank": 1
+       }
+      ]
+     }
     },
     {
      "id": "familiar-witch",
@@ -1029,7 +1550,12 @@
      "traits": "witch",
      "summary": "Your patron has sent you a familiar, a mystical creature that teaches you magic and facilitates your spells.",
      "description": "Your patron has sent you a familiar, a mystical creature that teaches you magic and facilitates your spells. This familiar follows the rules for familiars, though as it's a direct conduit between you and your patron, it's more powerful than typical familiars. Your familiar gains two additional familiar abilities: one of these is a unique ability based on your patron and is always selected, and the other is an additional familiar ability that can be selected daily as normal. Your familiar gains another extra ability at 6th, 12th, and 18th levels.\n\n**Spells:** Your familiar is the source and repository of the spells your patron has bestowed upon you, and you must commune with your familiar to prepare your spells each day using your witch spellcasting. Your familiar starts off knowing 10 cantrips, five 1st-rank spells, and one additional spell determined by your patron's initial lesson. You choose these spells from the common spells of the tradition determined by your patron or from other spells of that tradition you gain access to. Each time you gain a level, your patron teaches your familiar two new spells of any rank for which you have spell slots, chosen from common spells of your tradition or others you gain access to. Feats can also grant your familiar additional spells.\n\n**Learning Spells:** Your familiar can learn new spells independently of your patron. It can learn any spell on your tradition's spell list by physically consuming a written version of that spell over the course of 1 hour. This can be a scroll of that spell, or you can prepare a written version using the Learn a Spell exploration activity. You and your familiar can use the Learn a Spell activity to teach your familiar a spell from another witch's familiar. Both familiars must be present for the entirety of the activity, the spell must be on your spellcasting tradition's spell list, and you must pay the usual cost for that activity, typically in the form of an offering to the other familiar's patron. You can't prepare spells from another witch's familiar.\n\n**Undying:** If your familiar dies, your patron replaces it during your next daily preparations. The new familiar might be a duplicate or reincarnation of your former familiar or a new entity altogether, but it knows the same spells your former familiar knew regardless. Your familiar's death doesn't affect any spells you have already prepared.",
-     "cite": "Player Core — Class Features: Familiar (Witch)"
+     "cite": "Player Core — Class Features: Familiar (Witch)",
+     "builder": {
+      "feats": [
+       "Pet"
+      ]
+     }
     },
     {
      "id": "fencer",
@@ -1038,7 +1564,18 @@
      "traits": "swashbuckler",
      "summary": "You move carefully, feinting and creating false openings to lead your foes into inopportune attacks.",
      "description": "You move carefully, feinting and creating false openings to lead your foes into inopportune attacks. You are trained in Deception. When you Create a Diversion or Feint, the action gains the bravado trait.",
-     "cite": "Player Core 2 — Class Features: Fencer"
+     "cite": "Player Core 2 — Class Features: Fencer",
+     "builder": {
+      "tags": [
+       "swashbuckler-style"
+      ],
+      "ranks": [
+       {
+        "path": "skills.deception",
+        "rank": 1
+       }
+      ]
+     }
     },
     {
      "id": "field-discovery",
@@ -1056,7 +1593,10 @@
      "traits": "alchemist",
      "summary": "You have calculated all the angles to maximize a bomb's splash.",
      "description": "You have calculated all the angles to maximize a bomb's splash. When you throw an alchemical bomb with the splash trait, you can cause the bomb to deal splash damage equal to your Intelligence modifier (minimum 1) instead of the normal amount.",
-     "cite": "Player Core 2 — Class Features: Field Discovery (Bomber)"
+     "cite": "Player Core 2 — Class Features: Field Discovery (Bomber)",
+     "builder": {
+      "of": "Bomber"
+     }
     },
     {
      "id": "field-discovery-chirurgeon",
@@ -1065,7 +1605,10 @@
      "traits": "alchemist",
      "summary": "Your medicinal elixirs are quite fortifying.",
      "description": "Your medicinal elixirs are quite fortifying. When a creature drinks an infused elixir with the healing trait that you have created, that creature gains a number of temporary Hit Points equal to your Intelligence modifier (minimum 0); these temporary Hit Points last for 1 minute.\n\nEffect: Field Discovery (Chirurgeon)",
-     "cite": "Player Core 2 — Class Features: Field Discovery (Chirurgeon)"
+     "cite": "Player Core 2 — Class Features: Field Discovery (Chirurgeon)",
+     "builder": {
+      "of": "Chirurgeon"
+     }
     },
     {
      "id": "field-discovery-mutagenist",
@@ -1074,7 +1617,10 @@
      "traits": "alchemist",
      "summary": "The mutagens flowing through your blood have altered your body chemistry.",
      "description": "The mutagens flowing through your blood have altered your body chemistry. When you roll a Fortitude save while affected by a mutagen and dislike the result, you can end the effect of the mutagen to reroll the save. This is a fortune effect.",
-     "cite": "Player Core 2 — Class Features: Field Discovery (Mutagenist)"
+     "cite": "Player Core 2 — Class Features: Field Discovery (Mutagenist)",
+     "builder": {
+      "of": "Mutagenist"
+     }
     },
     {
      "id": "field-discovery-toxicologist",
@@ -1083,7 +1629,10 @@
      "traits": "alchemist",
      "summary": "You have handled enough poisons to become inured to their effects.",
      "description": "You have handled enough poisons to become inured to their effects. You gain poison resistance equal to half your level.",
-     "cite": "Player Core 2 — Class Features: Field Discovery (Toxicologist)"
+     "cite": "Player Core 2 — Class Features: Field Discovery (Toxicologist)",
+     "builder": {
+      "of": "Toxicologist"
+     }
     },
     {
      "id": "fifth-doctrine",
@@ -1101,7 +1650,10 @@
      "traits": "cleric",
      "summary": "Your proficiency ranks for the spell attack modifier and spell DC statistics increase to master.",
      "description": "Your proficiency ranks for the spell attack modifier and spell DC statistics increase to master.",
-     "cite": "Player Core — Class Features: Fifth Doctrine (Cloistered Cleric)"
+     "cite": "Player Core — Class Features: Fifth Doctrine (Cloistered Cleric)",
+     "builder": {
+      "of": "Cloistered Cleric"
+     }
     },
     {
      "id": "fifth-doctrine-warpriest",
@@ -1110,7 +1662,10 @@
      "traits": "cleric",
      "summary": "Your proficiency rank for Fortitude saves increases to master.",
      "description": "Your proficiency rank for Fortitude saves increases to master. When you roll a success at a Fortitude save, you get a critical success instead.",
-     "cite": "Player Core — Class Features: Fifth Doctrine (Warpriest)"
+     "cite": "Player Core — Class Features: Fifth Doctrine (Warpriest)",
+     "builder": {
+      "of": "Warpriest"
+     }
     },
     {
      "id": "fighter-expertise",
@@ -1128,7 +1683,10 @@
      "traits": "fighter",
      "summary": "Hours spent training with your preferred weapons, learning and developing new combat techniques, have made you particularly effective with your weapons of choice.",
      "description": "Hours spent training with your preferred weapons, learning and developing new combat techniques, have made you particularly effective with your weapons of choice. Choose one weapon group. Your proficiency rank increases to master with the simple weapons, martial weapons, and unarmed attacks in that group, and to expert with the advanced weapons in that group. You gain access to the critical specialization effects of all weapons and unarmed attacks for which you have master proficiency.",
-     "cite": "Player Core — Class Features: Fighter Weapon Mastery"
+     "cite": "Player Core — Class Features: Fighter Weapon Mastery",
+     "builder": {
+      "more": 1
+     }
     },
     {
      "id": "final-doctrine",
@@ -1146,7 +1704,10 @@
      "traits": "cleric",
      "summary": "Your proficiency ranks for the spell attack modifier and spell DC statistics increase to legendary.",
      "description": "Your proficiency ranks for the spell attack modifier and spell DC statistics increase to legendary.",
-     "cite": "Player Core — Class Features: Final Doctrine (Cloistered Cleric)"
+     "cite": "Player Core — Class Features: Final Doctrine (Cloistered Cleric)",
+     "builder": {
+      "of": "Cloistered Cleric"
+     }
     },
     {
      "id": "final-doctrine-warpriest",
@@ -1155,7 +1716,10 @@
      "traits": "cleric",
      "summary": "You gain master proficiency with your deity's favored weapon, spell attack modifier, and spell DC.",
      "description": "You gain master proficiency with your deity's favored weapon, spell attack modifier, and spell DC.",
-     "cite": "Player Core — Class Features: Final Doctrine (Warpriest)"
+     "cite": "Player Core — Class Features: Final Doctrine (Warpriest)",
+     "builder": {
+      "of": "Warpriest"
+     }
     },
     {
      "id": "first-doctrine",
@@ -1173,7 +1737,13 @@
      "traits": "cleric",
      "summary": "You gain the Domain Initiate cleric feat.",
      "description": "You gain the Domain Initiate cleric feat.",
-     "cite": "Player Core — Class Features: First Doctrine (Cloistered Cleric)"
+     "cite": "Player Core — Class Features: First Doctrine (Cloistered Cleric)",
+     "builder": {
+      "feats": [
+       "Domain Initiate"
+      ],
+      "of": "Cloistered Cleric"
+     }
     },
     {
      "id": "first-doctrine-warpriest",
@@ -1182,7 +1752,14 @@
      "traits": "cleric",
      "summary": "You're trained in light and medium armor, and you have expert proficiency in Fortitude saves.",
      "description": "You're trained in light and medium armor, and you have expert proficiency in Fortitude saves. You gain the Shield Block general feat, a reaction to reduce damage with a shield. If your deity's favored weapon is a simple weapon or an unarmed attack, you gain the Deadly Simplicity cleric feat. At 13th level, if you gain the Divine Defense class feature, you also gain expert proficiency in light and medium armor.",
-     "cite": "Player Core — Class Features: First Doctrine (Warpriest)"
+     "cite": "Player Core — Class Features: First Doctrine (Warpriest)",
+     "builder": {
+      "feats": [
+       "Shield Block",
+       "Deadly Simplicity"
+      ],
+      "of": "Warpriest"
+     }
     },
     {
      "id": "flames",
@@ -1191,7 +1768,24 @@
      "traits": "oracle",
      "summary": "Fire lives at the center of the world, the center of the sun, and the center of civilization.",
      "description": "Fire lives at the center of the world, the center of the sun, and the center of civilization.\n\n**Granted Spells**\n\n- **cantrip:** Ignition\n- **1st:** Breathe Fire\n- **2nd:** Blazing Bolt\n- **3rd:** Fireball\n\n**Revelation Spells**\n\n- **initial:** Incendiary Aura\n- **advanced:** Whirling Flames\n- **greater:** Flaming Fusillade\n\n**Related Domains** dust, fire, star, sun\n\n**Mystery Skill** Acrobatics\n\n**Oracle Feat** Foretell Harm\n\nCurse of Engulfing Flames",
-     "cite": "Player Core 2 — Class Features: Flames"
+     "cite": "Player Core 2 — Class Features: Flames",
+     "builder": {
+      "tags": [
+       "oracle-mystery"
+      ],
+      "ranks": [
+       {
+        "path": "skills.acrobatics",
+        "rank": 1
+       }
+      ],
+      "feats": [
+       "Foretell Harm"
+      ],
+      "grants": [
+       "Curse of Engulfing Flames"
+      ]
+     }
     },
     {
      "id": "flurry",
@@ -1200,7 +1794,12 @@
      "traits": "ranger",
      "summary": "You have trained to unleash a devastating flurry of attacks upon your prey.",
      "description": "You have trained to unleash a devastating flurry of attacks upon your prey. Your multiple attack penalty for attacks against your hunted prey is –3 (–2 with an agile attack) on your second attack of the turn instead of –5, and –6 (–4 with an agile attack) on your third or subsequent attack of the turn, instead of –10.",
-     "cite": "Player Core — Class Features: Flurry"
+     "cite": "Player Core — Class Features: Flurry",
+     "builder": {
+      "tags": [
+       "ranger-hunters-edge"
+      ]
+     }
     },
     {
      "id": "flurry-of-blows",
@@ -1219,7 +1818,22 @@
      "traits": "investigator",
      "summary": "You've learned that in most cases, especially murders, criminals tend to leave more evidence of the crime on the body than they'd like to believe.",
      "description": "You've learned that in most cases, especially murders, criminals tend to leave more evidence of the crime on the body than they'd like to believe. Information from bruising, bone fractures, blood spatters, and even the life cycle of carrion insects can provide valuable clues that help reconstruct the scene.\n\nYou're trained in Medicine and gain the Forensic Acumen and Battle Medicine skill feats. When you use Battle Medicine, on a success the target recovers additional Hit Points equal to your level, and the target becomes temporarily immune for only 1 hour, not 1 day",
-     "cite": "Player Core 2 — Class Features: Forensic Medicine Methodology"
+     "cite": "Player Core 2 — Class Features: Forensic Medicine Methodology",
+     "builder": {
+      "tags": [
+       "investigator-methodology"
+      ],
+      "ranks": [
+       {
+        "path": "skills.medicine",
+        "rank": 1
+       }
+      ],
+      "feats": [
+       "Forensic Acumen",
+       "Battle Medicine"
+      ]
+     }
     },
     {
      "id": "formula-book",
@@ -1228,7 +1842,12 @@
      "traits": "alchemist",
      "summary": "An alchemist keeps meticulous formulas for every item they can create.",
      "description": "An alchemist keeps meticulous formulas for every item they can create. You start with a standard Formula Book for free. The formula book contains the formulas for two common 1st-level alchemical items of your choice, in addition to any formulas you gained from Alchemical Crafting and your research field.\n\nEach time you gain a level, you can add the formulas for two common alchemical items to your formula book. These new formulas can be for any level of item you can create. You learn these formulas automatically, but it's also possible to find or buy additional formulas in settlements or from other alchemists, or to select the Inventor skill feat so you can invent them.\n\nAs normal, having the base formula is sufficient when Crafting upgraded types of the item—you don't need to learn higher-level formulas. For instance, if you have the 1st-level formula for a minor elixir of life, you can create a minor, lesser, moderate, greater, major, or true elixir of life as long as you meet the level and other prerequisites. Items with type entries that have widely varied functions require separate formulas, but most alchemical items have a structure similar to elixir of life.",
-     "cite": "Player Core 2 — Class Features: Formula Book"
+     "cite": "Player Core 2 — Class Features: Formula Book",
+     "builder": {
+      "grants": [
+       "Formula Book (Blank)"
+      ]
+     }
     },
     {
      "id": "fortitude-expertise",
@@ -1255,7 +1874,10 @@
      "traits": "cleric",
      "summary": "You gain expert proficiency with your deity's favored weapon, simple weapons, and unarmed attacks.",
      "description": "You gain expert proficiency with your deity's favored weapon, simple weapons, and unarmed attacks. When you critically succeed at an attack roll using your deity's favored weapon, you apply the weapon's critical specialization effect; you can use your spell DC in place of your class DC.",
-     "cite": "Player Core — Class Features: Fourth Doctrine (Cloistered Cleric)"
+     "cite": "Player Core — Class Features: Fourth Doctrine (Cloistered Cleric)",
+     "builder": {
+      "of": "Cloistered Cleric"
+     }
     },
     {
      "id": "fourth-doctrine-warpriest",
@@ -1264,7 +1886,10 @@
      "traits": "cleric",
      "summary": "Your proficiency ranks for the spell attack modifier and spell DC statistics increase to expert.",
      "description": "Your proficiency ranks for the spell attack modifier and spell DC statistics increase to expert.",
-     "cite": "Player Core — Class Features: Fourth Doctrine (Warpriest)"
+     "cite": "Player Core — Class Features: Fourth Doctrine (Warpriest)",
+     "builder": {
+      "of": "Warpriest"
+     }
     },
     {
      "id": "furious-footfalls",
@@ -1282,7 +1907,21 @@
      "traits": "barbarian",
      "summary": "Your rage comes from a deep and purely personal well within you.",
      "description": "Your rage comes from a deep and purely personal well within you. You use your rage as you choose.\n\n**Instinct Ability—Unstoppable Frenzy** Increase the additional damage from Rage from 2 to 3. You gain a bonus 1st-level barbarian feat.\n\n**Specialization Ability (7th)** Increase the additional damage from Rage from 3 to 7. If you have greater weapon specialization, instead increase the additional damage from Rage to 13.\n\n**Raging Resistance (9th)** You resist physical weapon damage, but not physical damage from other sources (such as unarmed attacks).",
-     "cite": "Player Core 2 — Class Features: Fury Instinct"
+     "cite": "Player Core 2 — Class Features: Fury Instinct",
+     "builder": {
+      "tags": [
+       "barbarian-instinct"
+      ],
+      "featChoices": [
+       {
+        "level": 1,
+        "traits": [
+         "barbarian"
+        ],
+        "category": "class"
+       }
+      ]
+     }
     },
     {
      "id": "giant-instinct",
@@ -1291,7 +1930,13 @@
      "traits": "barbarian",
      "summary": "Your rage gives you the raw power and size of a giant.",
      "description": "Your rage gives you the raw power and size of a giant. This doesn't necessarily mean you revere giants—you might scoff at them or even aspire to slay them! You could instead seem like a giant to other people due to your exceptional strength or larger-than-life emotions and ego.\n\n**Instinct Ability—Titan Mauler** You can use a weapon built for a Large creature if you are Small or Medium (both normally and when raging). If you're not Small or Medium, you can use a weapon built for a creature one size larger than you. You start with one such weapon, which you receive for free. It must be a common melee or ranged weapon, it must have a Price of 9 gp or less (not including the Price adjustment for being a larger weapon), and it must be common or you must otherwise have access to it. It is your personal weapon and has no value if sold unless you later add runes to it, and it has the normal Bulk for a weapon of its size. When wielding a larger weapon in combat, increase your additional damage from Rage from 2 to 6, but you have the Clumsy 1 condition because of the weapon's unwieldy size. You can't remove this clumsy condition or ignore its penalties by any means while wielding the weapon.\n\n**Specialization Ability (7th)** Increase the damage from Rage when using a larger weapon from 6 to 10; if you have greater weapon specialization, increase it from 10 to 18.\n\n**Raging Resistance (9th)** You resist bludgeoning damage and your choice of cold, electricity, or fire, chosen when you gain raging resistance.",
-     "cite": "Player Core 2 — Class Features: Giant Instinct"
+     "cite": "Player Core 2 — Class Features: Giant Instinct",
+     "builder": {
+      "tags": [
+       "barbarian-instinct"
+      ],
+      "more": 1
+     }
     },
     {
      "id": "graceful-legend",
@@ -1318,7 +1963,16 @@
      "traits": "champion",
      "summary": "The glowing grandeur of the immaculate celestial realms inspires you, and you exhort their virtues to bring humility to the denizens of other grim worlds.",
      "description": "The glowing grandeur of the immaculate celestial realms inspires you, and you exhort their virtues to bring humility to the denizens of other grim worlds.\n\n**Edicts** provide a shining example for others, enjoy and share the beauty around you, keep yourself tidy and well groomed\n\n**Anathema** despoil yourself by associating with fiends and unholy forces.\n\n**Champion's Reaction** Flash of Grandeur\n\n**Relentless Reaction (9th Level)** The enemy also takes persistent spirit damage equal to your Charisma modifier, and it can't recover from this persistent damage while affected by the revealing light from your Flash of Grandeur.\n\n**Exalted Reaction (11th Level)** In addition to the enemy affected by Flash of Grandeur, each other enemy in your champion's aura is affected by the revealing light spell for 1 round.",
-     "cite": "Player Core 2 — Class Features: Grandeur"
+     "cite": "Player Core 2 — Class Features: Grandeur",
+     "builder": {
+      "tags": [
+       "champion-cause",
+       "holy"
+      ],
+      "grants": [
+       "Flash of Grandeur"
+      ]
+     }
     },
     {
      "id": "greater-dogged-will",
@@ -1345,7 +1999,10 @@
      "traits": "alchemist",
      "summary": "You can increase the splash on your bombs to damage creatures within 10 feet, or 15 feet if you have Expanded Splash.",
      "description": "You can increase the splash on your bombs to damage creatures within 10 feet, or 15 feet if you have Expanded Splash.",
-     "cite": "Player Core 2 — Class Features: Greater Field Discovery (Bomber)"
+     "cite": "Player Core 2 — Class Features: Greater Field Discovery (Bomber)",
+     "builder": {
+      "of": "Bomber"
+     }
     },
     {
      "id": "greater-field-discovery-chirurgeon",
@@ -1354,7 +2011,10 @@
      "traits": "alchemist",
      "summary": "When you use Quick Alchemy to create any type of elixir of life, the creature healed by the item regains the maximum Hit Points possible, instead of rolling to determine the number of Hit Points…",
      "description": "When you use Quick Alchemy to create any type of elixir of life, the creature healed by the item regains the maximum Hit Points possible, instead of rolling to determine the number of Hit Points regained.",
-     "cite": "Player Core 2 — Class Features: Greater Field Discovery (Chirurgeon)"
+     "cite": "Player Core 2 — Class Features: Greater Field Discovery (Chirurgeon)",
+     "builder": {
+      "of": "Chirurgeon"
+     }
     },
     {
      "id": "greater-field-discovery-mutagenist",
@@ -1363,7 +2023,10 @@
      "traits": "alchemist",
      "summary": "If you imbibe another mutagen while you are under the effects of a mutagen, you can gain the benefits and the drawbacks of both mutagens at once, despite the fact that they both have the polymorph…",
      "description": "If you imbibe another mutagen while you are under the effects of a mutagen, you can gain the benefits and the drawbacks of both mutagens at once, despite the fact that they both have the polymorph trait and would not normally function together.\n\nIf you come under the effects of any further mutagens while benefiting from two mutagens, you lose the benefit of one of the former mutagens of your choice, while retaining the drawbacks of all the mutagens.\n\nIf you are under the effects of two mutagens and you come under the effect of a non-mutagen polymorph effect, you lose the benefits of the mutagens while retaining the drawbacks of both.\n\nYour field vial benefit applies to one mutagen of your choice.",
-     "cite": "Player Core 2 — Class Features: Greater Field Discovery (Mutagenist)"
+     "cite": "Player Core 2 — Class Features: Greater Field Discovery (Mutagenist)",
+     "builder": {
+      "of": "Mutagenist"
+     }
     },
     {
      "id": "greater-field-discovery-toxicologist",
@@ -1372,7 +2035,10 @@
      "traits": "alchemist",
      "summary": "When a creature fails its initial saving throw against an infused injury poison you created, the wound sprays poison onto another creature adjacent to it.",
      "description": "When a creature fails its initial saving throw against an infused injury poison you created, the wound sprays poison onto another creature adjacent to it.\n\nThe attacker who caused the injury chooses which creature, if there's more than one, and can choose to forgo this effect.\n\nThat creature is exposed to the poison. The second creature doesn't spread the poison further.",
-     "cite": "Player Core 2 — Class Features: Greater Field Discovery (Toxicologist)"
+     "cite": "Player Core 2 — Class Features: Greater Field Discovery (Toxicologist)",
+     "builder": {
+      "of": "Toxicologist"
+     }
     },
     {
      "id": "greater-juggernaut",
@@ -1444,7 +2110,18 @@
      "traits": "swashbuckler",
      "summary": "You reposition, maneuver, and bewilder your foes with daring feats of physical prowess.",
      "description": "You reposition, maneuver, and bewilder your foes with daring feats of physical prowess. You are trained in Athletics. When you Grapple, Reposition, Shove, or Trip, the action gains the bravado trait.",
-     "cite": "Player Core 2 — Class Features: Gymnast"
+     "cite": "Player Core 2 — Class Features: Gymnast",
+     "builder": {
+      "tags": [
+       "swashbuckler-style"
+      ],
+      "ranks": [
+       {
+        "path": "skills.athletics",
+        "rank": 1
+       }
+      ]
+     }
     },
     {
      "id": "heros-defiance",
@@ -1471,7 +2148,12 @@
      "traits": "ranger",
      "summary": "When you focus your attention on a single foe, you become unstoppable in your pursuit.",
      "description": "When you focus your attention on a single foe, you become unstoppable in your pursuit. You gain the Hunt Prey action.",
-     "cite": "Player Core — Class Features: Hunt Prey"
+     "cite": "Player Core — Class Features: Hunt Prey",
+     "builder": {
+      "grants": [
+       "Hunt Prey"
+      ]
+     }
     },
     {
      "id": "hunters-edge",
@@ -1480,7 +2162,17 @@
      "traits": "ranger",
      "summary": "You have trained to become a skilled hunter and tracker, gaining an extra benefit when you Hunt Prey depending on the focus of your training.",
      "description": "You have trained to become a skilled hunter and tracker, gaining an extra benefit when you Hunt Prey depending on the focus of your training. Choose a hunter's edge.\n\n- Flurry\n- Outwit\n- Precision",
-     "cite": "Player Core — Class Features: Hunter's Edge"
+     "cite": "Player Core — Class Features: Hunter's Edge",
+     "builder": {
+      "selections": [
+       {
+        "tags": [
+         "ranger-hunters-edge"
+        ],
+        "count": 1
+       }
+      ]
+     }
     },
     {
      "id": "improved-familiar-attunement",
@@ -1489,7 +2181,15 @@
      "traits": "wizard",
      "summary": "You've long held that fine-tuning the magic that bonds a wizard and their familiar can improve the mystic connection and yield greater results, compared to the safe yet generic bond most wizards…",
      "description": "You've long held that fine-tuning the magic that bonds a wizard and their familiar can improve the mystic connection and yield greater results, compared to the safe yet generic bond most wizards currently use. You've formed such a pact with your familiar, gaining more advantages from it than most wizards. You gain the Familiar wizard feat. Your familiar gains an extra ability, and it gains an additional extra ability when you reach 6th, 12th, and 18th levels.\n\nYour connection with your familiar alters your arcane bond class feature so that you store your magical energy in your familiar, rather than an item you own; you also gain the Drain Familiar free action instead of Drain Bonded Item. Drain Familiar can be used any time an ability would allow you to use Drain Bonded Item and functions identically, except that you draw magic from your familiar instead of an item.",
-     "cite": "Player Core — Class Features: Improved Familiar Attunement"
+     "cite": "Player Core — Class Features: Improved Familiar Attunement",
+     "builder": {
+      "tags": [
+       "wizard-arcane-thesis"
+      ],
+      "feats": [
+       "Familiar"
+      ]
+     }
     },
     {
      "id": "improved-flexibility",
@@ -1525,7 +2225,16 @@
      "traits": "uncommon, champion",
      "summary": "You're dishonorable, dishonest, and committed to breaking the false hopes of kindness.",
      "description": "You're dishonorable, dishonest, and committed to breaking the false hopes of kindness.\n\n**Edicts** destroy that which offends you or stands in your way, take advantage of others, cheat, steal\n\n**Anathema** bind yourself with a law other than what your deity requires\n\n**Champion's Reaction** Destructive Vengeance\n\n**Relentless Reaction (9th Level)** An enemy damaged by the initial reaction's damage also takes persistent spirit damage equal to your Charisma modifier. (This applies only to the damage the reaction itself deals, not the damage you deal with subsequent Strikes.)\n\n**Exalted Reaction (11th Level)** Each enemy in your champion's aura other than the triggering creature takes half the damage you deal to the triggering enemy",
-     "cite": "Player Core 2 — Class Features: Iniquity"
+     "cite": "Player Core 2 — Class Features: Iniquity",
+     "builder": {
+      "tags": [
+       "champion-cause",
+       "unholy"
+      ],
+      "grants": [
+       "Destructive Vengeance"
+      ]
+     }
     },
     {
      "id": "instinct",
@@ -1534,7 +2243,17 @@
      "traits": "barbarian",
      "summary": "Your rage wells up from a dominant instinct—one you learned from a tradition or that comes naturally to you.",
      "description": "Your rage wells up from a dominant instinct—one you learned from a tradition or that comes naturally to you. Your instinct gives you an ability, requires you to avoid certain behaviors, grants you increased damage and resistances at higher levels, and allows you to select feats tied to your instinct.",
-     "cite": "Player Core 2 — Class Features: Instinct"
+     "cite": "Player Core 2 — Class Features: Instinct",
+     "builder": {
+      "selections": [
+       {
+        "tags": [
+         "barbarian-instinct"
+        ],
+        "count": 1
+       }
+      ]
+     }
     },
     {
      "id": "interrogation-methodology",
@@ -1543,7 +2262,24 @@
      "traits": "investigator",
      "summary": "People can't help but trust you, whether through your inherent likableness or your firm insistence on sticking to the truth.",
      "description": "People can't help but trust you, whether through your inherent likableness or your firm insistence on sticking to the truth. You have a way about you that gets others talking, and you've developed interrogative techniques to help you get to the truth of your investigations.\n\nYou are trained in Diplomacy. You gain the No Cause for Alarm skill feat. You can also Pursue a Lead at the same time you Make an Impression, as long as you ask a question related to the creature with which you're conversing or a topic of your conversation. You also gain the Pointed Question action.",
-     "cite": "Player Core 2 — Class Features: Interrogation Methodology"
+     "cite": "Player Core 2 — Class Features: Interrogation Methodology",
+     "builder": {
+      "tags": [
+       "investigator-methodology"
+      ],
+      "ranks": [
+       {
+        "path": "skills.diplomacy",
+        "rank": 1
+       }
+      ],
+      "feats": [
+       "No Cause for Alarm"
+      ],
+      "grants": [
+       "Pointed Question"
+      ]
+     }
     },
     {
      "id": "investigator-expertise",
@@ -1570,7 +2306,15 @@
      "traits": "champion",
      "summary": "In your deity's name you seek justice, following the law and punishing those who transgress it.",
      "description": "In your deity's name you seek justice, following the law and punishing those who transgress it.\n\n**Edicts** follow the law, respect legitimate authorities or leadership\n\n**Anathema** take advantage of another, cheat\n\n**Champion's Reaction** Retributive Strike\n\n**Relentless Reaction (9th Level)** If your Strike hits, the target takes persistent spirit damage equal to your Charisma modifier.\n\n**Exalted Reaction (11th Level)** Each ally in your champion's aura with the target in their melee reach can spend a reaction to Strike the target with a –5 penalty.",
-     "cite": "Player Core 2 — Class Features: Justice"
+     "cite": "Player Core 2 — Class Features: Justice",
+     "builder": {
+      "tags": [
+       "champion-cause"
+      ],
+      "grants": [
+       "Retributive Strike"
+      ]
+     }
     },
     {
      "id": "keen-flair",
@@ -1597,7 +2341,21 @@
      "traits": "druid",
      "summary": "You revere the bounty of nature, acting as both a gardener and warden for the wilderness.",
      "description": "You revere the bounty of nature, acting as both a gardener and warden for the wilderness. With your leshy familiar at your side, you help areas regrow after disasters or negligent expansion and turn flora against those who would abuse them.\n\n**Order Skill** Diplomacy\n\n**Druid Feat** Leshy Familiar\n\n**Order Spell** Cornucopia\n\n**Anathema** Commit wanton cruelty to plants or fungi or kill them unnecessarily. (This doesn't prevent you from defending yourself or harvesting them for survival.)",
-     "cite": "Player Core — Class Features: Leaf Order"
+     "cite": "Player Core — Class Features: Leaf Order",
+     "builder": {
+      "tags": [
+       "druid-order"
+      ],
+      "ranks": [
+       {
+        "path": "skills.diplomacy",
+        "rank": 1
+       }
+      ],
+      "feats": [
+       "Leshy Familiar"
+      ]
+     }
     },
     {
      "id": "legendary-armor",
@@ -1624,7 +2382,12 @@
      "traits": "witch",
      "summary": "You gain the Curse of Death hex, and your familiar learns Raise Dead.",
      "description": "You gain the Curse of Death hex, and your familiar learns Raise Dead.",
-     "cite": "Player Core — Class Features: Lesson of Death"
+     "cite": "Player Core — Class Features: Lesson of Death",
+     "builder": {
+      "tags": [
+       "witch-lesson"
+      ]
+     }
     },
     {
      "id": "lesson-of-dreams",
@@ -1633,7 +2396,12 @@
      "traits": "witch",
      "summary": "You gain the Veil of Dreams hex, and your familiar learns Sleep.",
      "description": "You gain the Veil of Dreams hex, and your familiar learns Sleep.",
-     "cite": "Player Core — Class Features: Lesson of Dreams"
+     "cite": "Player Core — Class Features: Lesson of Dreams",
+     "builder": {
+      "tags": [
+       "witch-lesson"
+      ]
+     }
     },
     {
      "id": "lesson-of-elements",
@@ -1642,7 +2410,12 @@
      "traits": "witch",
      "summary": "You gain the Elemental Betrayal hex.",
      "description": "You gain the Elemental Betrayal hex. Your familiar learns your choice of Breathe Fire, Air Bubble, Hydraulic Push, or Pummeling Rubble.",
-     "cite": "Player Core — Class Features: Lesson of Elements"
+     "cite": "Player Core — Class Features: Lesson of Elements",
+     "builder": {
+      "tags": [
+       "witch-lesson"
+      ]
+     }
     },
     {
      "id": "lesson-of-life",
@@ -1651,7 +2424,12 @@
      "traits": "witch",
      "summary": "You gain the Life Boost hex, and your familiar learns Spirit Link.",
      "description": "You gain the Life Boost hex, and your familiar learns Spirit Link.",
-     "cite": "Player Core — Class Features: Lesson of Life"
+     "cite": "Player Core — Class Features: Lesson of Life",
+     "builder": {
+      "tags": [
+       "witch-lesson"
+      ]
+     }
     },
     {
      "id": "lesson-of-mischief",
@@ -1660,7 +2438,12 @@
      "traits": "witch",
      "summary": "You gain the Deceiver's Cloak hex, and your familiar learns Mad Monkeys.",
      "description": "You gain the Deceiver's Cloak hex, and your familiar learns Mad Monkeys.",
-     "cite": "Player Core — Class Features: Lesson of Mischief"
+     "cite": "Player Core — Class Features: Lesson of Mischief",
+     "builder": {
+      "tags": [
+       "witch-lesson"
+      ]
+     }
     },
     {
      "id": "lesson-of-protection",
@@ -1669,7 +2452,12 @@
      "traits": "witch",
      "summary": "You gain the Blood Ward hex; your familiar learns Mystic Armor.",
      "description": "You gain the Blood Ward hex; your familiar learns Mystic Armor.",
-     "cite": "Player Core — Class Features: Lesson of Protection"
+     "cite": "Player Core — Class Features: Lesson of Protection",
+     "builder": {
+      "tags": [
+       "witch-lesson"
+      ]
+     }
     },
     {
      "id": "lesson-of-renewal",
@@ -1678,7 +2466,12 @@
      "traits": "witch",
      "summary": "You gain the Restorative Moment hex, and your familiar learns Field of Life.",
      "description": "You gain the Restorative Moment hex, and your familiar learns Field of Life.",
-     "cite": "Player Core — Class Features: Lesson of Renewal"
+     "cite": "Player Core — Class Features: Lesson of Renewal",
+     "builder": {
+      "tags": [
+       "witch-lesson"
+      ]
+     }
     },
     {
      "id": "lesson-of-shadow",
@@ -1687,7 +2480,12 @@
      "traits": "witch",
      "summary": "You gain the Malicious Shadow hex, and your familiar learns Chilling Darkness.",
      "description": "You gain the Malicious Shadow hex, and your familiar learns Chilling Darkness.",
-     "cite": "Player Core — Class Features: Lesson of Shadow"
+     "cite": "Player Core — Class Features: Lesson of Shadow",
+     "builder": {
+      "tags": [
+       "witch-lesson"
+      ]
+     }
     },
     {
      "id": "lesson-of-snow",
@@ -1696,7 +2494,12 @@
      "traits": "witch",
      "summary": "You gain the Personal Blizzard hex, and your familiar learns Wall of Wind.",
      "description": "You gain the Personal Blizzard hex, and your familiar learns Wall of Wind.",
-     "cite": "Player Core — Class Features: Lesson of Snow"
+     "cite": "Player Core — Class Features: Lesson of Snow",
+     "builder": {
+      "tags": [
+       "witch-lesson"
+      ]
+     }
     },
     {
      "id": "lesson-of-vengeance",
@@ -1705,7 +2508,12 @@
      "traits": "witch",
      "summary": "You gain the Needle of Vengeance hex, and your familiar learns Phantom Pain.",
      "description": "You gain the Needle of Vengeance hex, and your familiar learns Phantom Pain.",
-     "cite": "Player Core — Class Features: Lesson of Vengeance"
+     "cite": "Player Core — Class Features: Lesson of Vengeance",
+     "builder": {
+      "tags": [
+       "witch-lesson"
+      ]
+     }
     },
     {
      "id": "liberation",
@@ -1714,7 +2522,15 @@
      "traits": "champion",
      "summary": "You will see all people free from bondage and prohibitions.",
      "description": "You will see all people free from bondage and prohibitions.\n\n**Edicts** oppose slavery and tyranny, fight for others' freedom to make their own decisions, respect choices others make for their own lives\n\n**Anathema** force or threaten someone to act a certain way, engage in slavery or tyranny\n\n**Champion's Reaction** Liberating Step\n\n**Relentless Reaction (9th Level)** You punish those who ensnare your allies. If the triggering enemy was using any effects to make your ally grabbed, restrained, immobilized, or paralyzed when you used Liberating Step, that enemy takes persistent spirit damage equal to your Charisma modifier.\n\n**Exalted Reaction (11th Level)** In addition to the ally affected by Liberating Step, you and all other allies in your champion's aura can Step as a free action. You and your allies gain the benefit even if the ally who benefited from Liberating Step can't move.",
-     "cite": "Player Core 2 — Class Features: Liberation"
+     "cite": "Player Core 2 — Class Features: Liberation",
+     "builder": {
+      "tags": [
+       "champion-cause"
+      ],
+      "grants": [
+       "Liberating Step"
+      ]
+     }
     },
     {
      "id": "life",
@@ -1723,7 +2539,24 @@
      "traits": "oracle",
      "summary": "The never-ending flow of life force within living beings is palpable to you.",
      "description": "The never-ending flow of life force within living beings is palpable to you. You might uphold the sanctity of life, or perhaps you seek to undermine it.\n\n**Granted Spells**\n\n- **cantrip:** Vitality Lash\n- **1st:** Soothe\n- **2nd:** False Vitality\n- **5th:** Grisly Growths\n\n**Revelation Spells**\n\n- **initial:** Life Link\n- **advanced:** Delay Affliction\n- **greater:** Life-Giving Form\n\n**Related Domains** death, healing, pain, soul\n\n**Mystery Skill** Medicine\n\n**Oracle Feat** Nudge the Scales\n\nCurse of Outpouring Life",
-     "cite": "Player Core 2 — Class Features: Life"
+     "cite": "Player Core 2 — Class Features: Life",
+     "builder": {
+      "tags": [
+       "oracle-mystery"
+      ],
+      "ranks": [
+       {
+        "path": "skills.medicine",
+        "rank": 1
+       }
+      ],
+      "feats": [
+       "Nudge the Scales"
+      ],
+      "grants": [
+       "Curse of Outpouring Life"
+      ]
+     }
     },
     {
      "id": "light-armor-expertise",
@@ -1750,7 +2583,24 @@
      "traits": "oracle",
      "summary": "Knowledge and information come freely to you.",
      "description": "Knowledge and information come freely to you. You might use this lore to gain power or perhaps to understand the divine mysteries of the multiverse.\n\n**Granted Spells**\n\n- **cantrip:** Read Aura\n- **1st:** Mindlink\n- **3rd:** Hypercognition\n- **6th:** Never Mind\n\n**Revelation Spells**\n\n- **initial:** Brain Drain\n- **advanced:** Access Lore\n- **greater:** Dread Secret\n\n**Related Domains** knowledge, magic, secrecy, truth\n\n**Mystery Skill** Occultism and one Lore skill of your choice\n\n**Oracle Feat** Whispers of Weakness\n\nCurse of Torrential Knowledge",
-     "cite": "Player Core 2 — Class Features: Lore"
+     "cite": "Player Core 2 — Class Features: Lore",
+     "builder": {
+      "tags": [
+       "oracle-mystery"
+      ],
+      "ranks": [
+       {
+        "path": "skills.occultism",
+        "rank": 1
+       }
+      ],
+      "feats": [
+       "Whispers of Weakness"
+      ],
+      "grants": [
+       "Curse of Torrential Knowledge"
+      ]
+     }
     },
     {
      "id": "maestro",
@@ -1759,7 +2609,15 @@
      "traits": "bard",
      "summary": "Your muse constantly inspires you to greater heights of artistic prowess.",
      "description": "Your muse constantly inspires you to greater heights of artistic prowess. For many bards, a teacher or rival fills this role, although some set their sights higher and attempt to surpass great composers of the past or blaze a new trail entirely. Art inspired by a maestro muse is precise and inventive, a formalist achievement.\n\nAs a bard with a maestro muse, you are an inspiration to your allies and confident of your musical and oratorical abilities.\n\n**Muse Feat** Lingering Composition\n\n**Muse Spell** Soothe",
-     "cite": "Player Core — Class Features: Maestro"
+     "cite": "Player Core — Class Features: Maestro",
+     "builder": {
+      "tags": [
+       "bard-muse"
+      ],
+      "feats": [
+       "Lingering Composition"
+      ]
+     }
     },
     {
      "id": "magical-fortitude",
@@ -1831,7 +2689,12 @@
      "traits": "rogue",
      "summary": "You can incapacitate an unwary foe with a single strike.",
      "description": "You can incapacitate an unwary foe with a single strike. Your proficiency rank for your rogue class DC increases to master. You gain the Master Strike free action.",
-     "cite": "Player Core — Class Features: Master Strike"
+     "cite": "Player Core — Class Features: Master Strike",
+     "builder": {
+      "grants": [
+       "Master Strike"
+      ]
+     }
     },
     {
      "id": "master-strikes",
@@ -1894,7 +2757,30 @@
      "traits": "rogue",
      "summary": "You rely on your intellect to craft intricate schemes, planning 10 steps ahead where others might plan three.",
      "description": "You rely on your intellect to craft intricate schemes, planning 10 steps ahead where others might plan three. You might be a driven detective, a spymaster in the service of a powerful house, or an aspiring crime lord or information broker.\n\nIf you successfully identify a creature using Recall Knowledge, that creature is off-guard against your attacks until the start of your next turn; if you critically succeed, it's off-guard against your attacks for 1 minute.\n\nYou're trained in Society and one of the following skills of your choice: Arcana, Nature, Occultism, or Religion. You can choose Intelligence as your key attribute.",
-     "cite": "Player Core — Class Features: Mastermind"
+     "cite": "Player Core — Class Features: Mastermind",
+     "builder": {
+      "tags": [
+       "rogue-racket"
+      ],
+      "ranks": [
+       {
+        "path": "skills.society",
+        "rank": 1
+       }
+      ],
+      "rankChoices": [
+       {
+        "list": "skills",
+        "from": [
+         "arcana",
+         "nature",
+         "occultism",
+         "religion"
+        ],
+        "rank": 1
+       }
+      ]
+     }
     },
     {
      "id": "medium-armor-expertise",
@@ -1930,7 +2816,17 @@
      "traits": "investigator",
      "summary": "Your studies have made you savvy in many areas, but one in particular drew your intense interest.",
      "description": "Your studies have made you savvy in many areas, but one in particular drew your intense interest. Choose a methodology. The methodologies are as follows:\n\n- Alchemical Sciences Methodology\n- Empiricism Methodology\n- Forensic Medicine Methodology\n- Interrogation Methodology",
-     "cite": "Player Core 2 — Class Features: Methodology"
+     "cite": "Player Core 2 — Class Features: Methodology",
+     "builder": {
+      "selections": [
+       {
+        "tags": [
+         "investigator-methodology"
+        ],
+        "count": 1
+       }
+      ]
+     }
     },
     {
      "id": "mighty-rage",
@@ -1966,7 +2862,17 @@
      "traits": "bard",
      "summary": "As a bard, you select one muse at 1st level.",
      "description": "As a bard, you select one muse at 1st level. This muse leads you to great things and might be someone you know, a supernatural creature, location, deity, philosophy, or captivating mystery. Depending on the type of inspiration you receive, your 1st-level muse grants you a specific 1st-level bard feat and adds a spell to your repertoire.\n\nIn addition to this, each muse opens the door to many later bard feats. If one type of inspiration is not enough to represent your muse, consider the Multifarious Muse feat.\n\n- Enigma\n- Maestro\n- Polymath\n- Warrior\n- Zoophonia",
-     "cite": "Player Core — Class Features: Muses"
+     "cite": "Player Core — Class Features: Muses",
+     "builder": {
+      "selections": [
+       {
+        "tags": [
+         "bard-muse"
+        ],
+        "count": 1
+       }
+      ]
+     }
     },
     {
      "id": "mutagenist",
@@ -1975,7 +2881,17 @@
      "traits": "alchemist",
      "summary": "You focus on bizarre mutagenic transformations that sacrifice one aspect of a creature's physical or psychological being in order to strengthen another.",
      "description": "You focus on bizarre mutagenic transformations that sacrifice one aspect of a creature's physical or psychological being in order to strengthen another.\n\n**Formulas** Two common 1st-level alchemical mutagens.\n\n**Field Benefit** When you use a mutagen, you gain a number of temporary Hit Points equal to your Intelligence modifier (minimum 0) plus half your level. These temporary Hit Points last for 1 minute or until the mutagen's duration expires, whichever comes first. You can't gain temporary HP from drinking a mutagen again for 1 minute.\n\n**Field Vials** You can drink the contents of one your versatile vials to suppress the drawback you take from one mutagen currently affecting you for 1 minute. A vial used this way loses the acid, bomb, and splash traits and gains the elixir trait. If you have more than one drawback due to Combine Elixirs or a similar ability, drinking the vial suppresses one drawback of your choice.\n\n**Field Discovery (5th)** The mutagens flowing through your blood have altered your body chemistry. When you roll a Fortitude save while affected by a mutagen and dislike the result, you can end the effect of the mutagen to reroll the save. This is a fortune effect.\n\n**Advanced Vials (11th)** When you drink one of your field vials, you also gain resistance to physical damage for the same duration. The resistance is equal to half your level.\n\n**Greater Field Discovery (13th)** If you imbibe another mutagen while you are under the effects of a mutagen, you can gain the benefits and the drawbacks of both mutagens at once, despite the fact that they both have the polymorph trait and would not normally function together. If you come under the effects of any further mutagens while benefiting from two mutagens, you lose the benefit of one of the former mutagens of your choice, while retaining the drawbacks of all the mutagens. If you are under the effects of two mutagens and you come under the effect of a non-mutagen polymorph effect, you lose the benefits of the mutagens while retaining the drawbacks of both. Your field vial benefit applies to one mutagen of your choice.",
-     "cite": "Player Core 2 — Class Features: Mutagenist"
+     "cite": "Player Core 2 — Class Features: Mutagenist",
+     "builder": {
+      "tags": [
+       "alchemist-research-field"
+      ],
+      "replaces": [
+       "Advanced Vials (Mutagenist)",
+       "Field Discovery (Mutagenist)",
+       "Greater Field Discovery (Mutagenist)"
+      ]
+     }
     },
     {
      "id": "mysterious-resolve",
@@ -1993,7 +2909,17 @@
      "traits": "oracle",
      "summary": "An oracle wields divine power, but not from a single divine being.",
      "description": "An oracle wields divine power, but not from a single divine being. This power could come from a potent concept or ideal, the attention of multiple divine entities whose areas of concern all touch on that subject, or a direct and dangerous conduit to raw divine power. This is the oracle's mystery, a source of divine magic not beholden to any deity.\n\nChoose the mystery that empowers your magic. Your mystery grants you additional spells, and special focus spells called revelation spells. Your mystery also gives you a unique cursebound ability that lets you draw upon the divine, as well as dictating the effects of the oracular curse that falls upon you when you touch too much of this power.\n\n- Ancestors Voices of past generations teach and haunt you.\n- Ashes You see all things in the world as fleeting and temporary, waiting to be purified into their base essence: the ash left behind after a burning fire.\n- Battle You embody the virtues upheld by heroes of legend.\n- Blight A spring bud will wither, a mighty oak will crash to the forest floor, and a callow youth will grow into maturity, then decline into old age.\n- Bones Death always seems near, and the dead speak to you.\n- Cosmos You draw power from the stars and the spaces between.\n- Flames You dance with fire and do your best to remain unscorched by it.\n- Life The teeming energies of life flow through you out into the world.\n- Lore You gain access to unparalleled, overwhelming knowledge.\n- Tempest Wind, waves, and storms rage at your beck and call.\n- Time Whether by accident, fate, or purposeful meddling, you exist slightly outside of time.\n\n### Reading a Mystery Entry\n\nA mystery entry contains the following information, followed by a description of that mystery's curse.\n\n**Granted Spells** You automatically add the spells listed here to your spell repertoire, as described in Spell Repertoire on page 130. At 1st level, you gain a cantrip and a 1st-rank spell. You learn the other spells on the list as soon as you gain the ability to cast oracle spells of that rank.\n\n**Revelation Spells** You automatically gain your mystery's initial revelation spell at 1st level and can gain more by selecting the Advanced Revelation, Greater Revelation, and Diverse Mystery oracle feats. These spells start on page 259.\n\n**Related Domains** These are the cleric domains associated with your mystery. You gain domain spells, which you can cast as revelation spells, by taking the Domain Acumen and Domain Fluency feats. At 11th level, the divine access class feature also gives you additional slotted spells based on your domains. The domains and their domain spells appear on page 372 of Player Core.\n\n**Mystery Skill** You become trained in the listed skill. A few mysteries make you trained in more than one skill.\n\n**Oracle Feat** You gain this 1st-level oracle feat. This is a cursebound feat, so using it aggravates your oracular curse.",
-     "cite": "Player Core 2 — Class Features: Mystery"
+     "cite": "Player Core 2 — Class Features: Mystery",
+     "builder": {
+      "selections": [
+       {
+        "tags": [
+         "oracle-mystery"
+        ],
+        "count": 1
+       }
+      ]
+     }
     },
     {
      "id": "mystic-strikes",
@@ -2029,7 +2955,15 @@
      "traits": "champion",
      "summary": "Society is ordered with good reason, and people should conduct themselves as appropriate for their proper place.",
      "description": "Society is ordered with good reason, and people should conduct themselves as appropriate for their proper place.\n\n**Edicts** enforce proper hierarchies, topple illegitimate hierarchies, lead when you're the most suited to the task\n\n**Anathema** let one who is lesser than you wield power over you or lead you\n\n**Champion's Reaction** Iron Command\n\n**Relentless Reaction (9th Level)** If the enemy refuses, it takes persistent spirit damage equal to your Charisma modifier.\n\n**Exalted Reaction (11th Level)** Each enemy in your champion's aura other than the triggering creature must also either drop prone or take mental damage (each enemy chooses). These creatures take only minimum damage (typically 3 damage at 11th level, 4 at 12th, 5 at 16th, and 6 at 19th), and the effects they take can't be adjusted by anything that changes your Iron Command. For instance, the Iron Repercussions feat couldn't turn the damage into persistent mental damage for creatures other than the triggering creature",
-     "cite": "Player Core 2 — Class Features: Obedience"
+     "cite": "Player Core 2 — Class Features: Obedience",
+     "builder": {
+      "tags": [
+       "champion-cause"
+      ],
+      "grants": [
+       "Iron Command"
+      ]
+     }
     },
     {
      "id": "on-the-case",
@@ -2038,7 +2972,13 @@
      "traits": "investigator",
      "summary": "As an investigator, you think of your adventures as cases waiting to be solved.",
      "description": "As an investigator, you think of your adventures as cases waiting to be solved. You gain one activity and one reaction you can use to investigate cases: Pursue a Lead and Clue In.",
-     "cite": "Player Core 2 — Class Features: On the Case"
+     "cite": "Player Core 2 — Class Features: On the Case",
+     "builder": {
+      "grants": [
+       "Pursue a Lead",
+       "Clue In"
+      ]
+     }
     },
     {
      "id": "opportune-riposte",
@@ -2047,7 +2987,12 @@
      "traits": "swashbuckler",
      "summary": "You turn the tables on foes who fumble, capitalizing immediately on their mistake.",
      "description": "You turn the tables on foes who fumble, capitalizing immediately on their mistake. You gain the Opportune Riposte reaction.",
-     "cite": "Player Core 2 — Class Features: Opportune Riposte"
+     "cite": "Player Core 2 — Class Features: Opportune Riposte",
+     "builder": {
+      "grants": [
+       "Opportune Riposte"
+      ]
+     }
     },
     {
      "id": "oracle-spellcasting",
@@ -2092,7 +3037,12 @@
      "traits": "ranger",
      "summary": "You are talented at outwitting your prey.",
      "description": "You are talented at outwitting your prey. You gain a +1 circumstance bonus to AC against your prey's attacks and a +2 circumstance bonus to Deception checks, Intimidation checks, Stealth checks, and any checks to Recall Knowledge about the prey.",
-     "cite": "Player Core — Class Features: Outwit"
+     "cite": "Player Core — Class Features: Outwit",
+     "builder": {
+      "tags": [
+       "ranger-hunters-edge"
+      ]
+     }
     },
     {
      "id": "panache",
@@ -2110,7 +3060,20 @@
      "traits": "monk",
      "summary": "You have progressed along your own path to enlightenment.",
      "description": "You have progressed along your own path to enlightenment. Choose your Fortitude, Reflex, or Will saving throw. Your proficiency rank for the chosen saving throw increases to master. When you roll a success on the chosen saving throw, you get a critical success instead.",
-     "cite": "Player Core 2 — Class Features: Path to Perfection"
+     "cite": "Player Core 2 — Class Features: Path to Perfection",
+     "builder": {
+      "rankChoices": [
+       {
+        "list": "saves",
+        "from": [
+         "fortitude",
+         "reflex",
+         "will"
+        ],
+        "rank": 3
+       }
+      ]
+     }
     },
     {
      "id": "patron",
@@ -2119,7 +3082,17 @@
      "traits": "witch",
      "summary": "You weren't born with the power to cast spells, nor have you spent years dedicated to worship, study, or uncovering mystical secrets.",
      "description": "You weren't born with the power to cast spells, nor have you spent years dedicated to worship, study, or uncovering mystical secrets. Your magic instead has been gifted to you by a potent being, one who knows that by empowering you so, you'll further the being's agenda in the world, whatever it may be. This entity is typically mysterious and distant, revealing little of their identity and motivations. They make their will known to you in abstract signs such as omens, dreams, or similar subtleties rather than words.\n\nRather than interacting with you directly, your patron works through a familiar—a mystical creature that teaches you, serves as the conduit for your patron's magic, and maybe even keeps an eye on you to ensure you're furthering your patron's nebulous ends.\n\nAt 1st level, choose your patron, which determines your spellcasting tradition and grants you the skill for that tradition of magic, your first witch's lesson and a unique familiar ability.",
-     "cite": "Player Core — Class Features: Patron"
+     "cite": "Player Core — Class Features: Patron",
+     "builder": {
+      "selections": [
+       {
+        "tags": [
+         "witch-patron"
+        ],
+        "count": 1
+       }
+      ]
+     }
     },
     {
      "id": "patron-theme",
@@ -2181,7 +3154,15 @@
      "traits": "bard",
      "summary": "Your muse is a jack of all trades, flitting between skills and pursuits.",
      "description": "Your muse is a jack of all trades, flitting between skills and pursuits. Some bards are constantly moved by new muses or draw their inspiration from an idealized being, whether it's based on a real person or purely philosophical. Art inspired by a polymath muse is restless, with each composition exhibiting new techniques and an ever-evolving style.\n\nAs a bard with a polymath muse, you are interested in a wide array of topics but rarely dedicated to any one, and you rarely make up your mind—you want to try everything.\n\n**Muse Feat** Versatile Performance\n\n**Muse Spell** Phantasmal Minion",
-     "cite": "Player Core — Class Features: Polymath"
+     "cite": "Player Core — Class Features: Polymath",
+     "builder": {
+      "tags": [
+       "bard-muse"
+      ],
+      "feats": [
+       "Versatile Performance"
+      ]
+     }
     },
     {
      "id": "powerful-alchemy",
@@ -2217,7 +3198,12 @@
      "traits": "ranger",
      "summary": "You have trained to aim for your prey's weak points.",
      "description": "You have trained to aim for your prey's weak points. The first time you hit your hunted prey in a round, you also deal 1d8 additional precision damage. (Precision damage increases the damage you already deal, using the same type, but is ineffective against creatures that lack vital organs or weak points.) At 11th level, the extra damage increases to 2d8 precision damage, and at 19th level, the extra damage increases to 3d8 precision damage.",
-     "cite": "Player Core — Class Features: Precision"
+     "cite": "Player Core — Class Features: Precision",
+     "builder": {
+      "tags": [
+       "ranger-hunters-edge"
+      ]
+     }
     },
     {
      "id": "premonition-reflexes",
@@ -2253,7 +3239,12 @@
      "traits": "alchemist",
      "summary": "You gain the Quick Alchemy action to make the items you need on the fly.",
      "description": "You gain the Quick Alchemy action to make the items you need on the fly.",
-     "cite": "Player Core 2 — Class Features: Quick Alchemy"
+     "cite": "Player Core 2 — Class Features: Quick Alchemy",
+     "builder": {
+      "grants": [
+       "Quick Alchemy"
+      ]
+     }
     },
     {
      "id": "quick-tempered",
@@ -2262,7 +3253,12 @@
      "traits": "barbarian",
      "summary": "You gain the Quick-Tempered free action, which lets you Rage at the slightest provocation.",
      "description": "You gain the Quick-Tempered free action, which lets you Rage at the slightest provocation.",
-     "cite": "Player Core 2 — Class Features: Quick-Tempered"
+     "cite": "Player Core 2 — Class Features: Quick-Tempered",
+     "builder": {
+      "grants": [
+       "Quick-Tempered"
+      ]
+     }
     },
     {
      "id": "rage",
@@ -2271,7 +3267,12 @@
      "traits": "barbarian",
      "summary": "You gain the Rage action, which lets you fly into a frenzy.",
      "description": "You gain the Rage action, which lets you fly into a frenzy.",
-     "cite": "Player Core 2 — Class Features: Rage"
+     "cite": "Player Core 2 — Class Features: Rage",
+     "builder": {
+      "grants": [
+       "Rage"
+      ]
+     }
     },
     {
      "id": "raging-resistance",
@@ -2307,7 +3308,21 @@
      "traits": "swashbuckler",
      "summary": "You aren't afraid to use underhanded tactics to get the edge over your opponents.",
      "description": "You aren't afraid to use underhanded tactics to get the edge over your opponents. You are trained in Thievery and gain the Dirty Trick general feat. When you use Dirty Trick, the action gains the bravado trait.",
-     "cite": "Player Core 2 — Class Features: Rascal"
+     "cite": "Player Core 2 — Class Features: Rascal",
+     "builder": {
+      "tags": [
+       "swashbuckler-style"
+      ],
+      "ranks": [
+       {
+        "path": "skills.thievery",
+        "rank": 1
+       }
+      ],
+      "feats": [
+       "Dirty Trick"
+      ]
+     }
     },
     {
      "id": "reactive-strike",
@@ -2316,7 +3331,12 @@
      "traits": "fighter",
      "summary": "Ever watchful for weaknesses, you can quickly attack foes that leave an opening in their defenses.",
      "description": "Ever watchful for weaknesses, you can quickly attack foes that leave an opening in their defenses. You gain the Reactive Strike reaction.",
-     "cite": "Player Core — Class Features: Reactive Strike"
+     "cite": "Player Core — Class Features: Reactive Strike",
+     "builder": {
+      "grants": [
+       "Reactive Strike"
+      ]
+     }
     },
     {
      "id": "redemption",
@@ -2325,7 +3345,16 @@
      "traits": "champion",
      "summary": "Yearning for all to live in harmony, you make every attempt to redeem those others might slay or dismiss.",
      "description": "Yearning for all to live in harmony, you make every attempt to redeem those others might slay or dismiss.\n\n**Edicts** try to redeem those who commit wicked deeds, show compassion to others regardless of their authority or station\n\n**Anathema** kill a sapient enemy without first offering a chance at redemption\n\n**Champion's Reaction** Glimpse of Redemption\n\n**Relentless Reaction (9th Level)** If the enemy refuses, it takes persistent spirit damage equal to your Charisma modifier.\n\n**Exalted Reaction (11th Level)** If the enemy refuses, you can choose to grant the resistance to yourself and all allies in your champion's aura, including the triggering ally. If you do, the resistance is reduced by 2 for all.",
-     "cite": "Player Core 2 — Class Features: Redemption"
+     "cite": "Player Core 2 — Class Features: Redemption",
+     "builder": {
+      "tags": [
+       "champion-cause",
+       "holy"
+      ],
+      "grants": [
+       "Glimpse of Redemption"
+      ]
+     }
     },
     {
      "id": "reflex-expertise",
@@ -2361,7 +3390,17 @@
      "traits": "alchemist",
      "summary": "Your inquiries into the alchemical nature of the universe have led you to focus on a particular field of research.",
      "description": "Your inquiries into the alchemical nature of the universe have led you to focus on a particular field of research. At 1st level, you choose your research field. This choice gives you more formulas, a special benefit, other abilities for your versatile vials, and other benefits as you level up.",
-     "cite": "Player Core 2 — Class Features: Research Field"
+     "cite": "Player Core 2 — Class Features: Research Field",
+     "builder": {
+      "selections": [
+       {
+        "tags": [
+         "alchemist-research-field"
+        ],
+        "count": 1
+       }
+      ]
+     }
     },
     {
      "id": "resolute-faith",
@@ -2415,7 +3454,17 @@
      "traits": "rogue",
      "summary": "You've begun to develop your techniques and approach to a job, while building your reputation in rogues' circles.",
      "description": "You've begun to develop your techniques and approach to a job, while building your reputation in rogues' circles. Choose a rogue's racket from the list below.\n\nEldritch Trickster\n\nMastermind\n\nRuffian\n\nScoundrel\n\nThief",
-     "cite": "Player Core — Class Features: Rogue's Racket"
+     "cite": "Player Core — Class Features: Rogue's Racket",
+     "builder": {
+      "selections": [
+       {
+        "tags": [
+         "rogue-racket"
+        ],
+        "count": 1
+       }
+      ]
+     }
     },
     {
      "id": "ruffian",
@@ -2424,7 +3473,18 @@
      "traits": "rogue",
      "summary": "You prefer the direct approach: strong-arming or intimidation.",
      "description": "You prefer the direct approach: strong-arming or intimidation. You might be an enforcer for organized crime, a highway bandit, or a noble who bullies others with threats of your family's power.\n\nYou use whatever tools you have to get the job done. You can deal sneak attack damage with any weapon, not just the weapons listed in the sneak attack class feature. This benefit doesn't apply to a simple weapon with a damage die greater than d8 or a martial or advanced weapon with a damage die greater than d6. (Apply any abilities that alter the damage die size first.) Critical hits you make with these weapons gain the weapon's critical specialization benefit if the target is off-guard to you.\n\nYou're trained in Intimidation and medium armor. You can choose Strength as your key attribute. When you gain light armor expertise, you also gain expert proficiency in medium armor, and when you gain light armor mastery, you also gain master proficiency in medium armor.",
-     "cite": "Player Core — Class Features: Ruffian"
+     "cite": "Player Core — Class Features: Ruffian",
+     "builder": {
+      "tags": [
+       "rogue-racket"
+      ],
+      "ranks": [
+       {
+        "path": "skills.intimidation",
+        "rank": 1
+       }
+      ]
+     }
     },
     {
      "id": "sacred-body",
@@ -2451,7 +3511,12 @@
      "traits": "wizard",
      "summary": "Runes and wards, numbers and letters—they underpin all magic, making them the logical subject for a wizard who studies fundamental forces.",
      "description": "Runes and wards, numbers and letters—they underpin all magic, making them the logical subject for a wizard who studies fundamental forces.\n\n**Curriculum**\n\n- **cantrips:** Message, Sigil\n- **1st:** Command, Disguise Magic, Runic Body, Runic Weapon\n- **2nd:** Dispel Magic, Translate\n- **3rd:** Enthrall, Veil of Privacy\n- **4th:** Dispelling Globe, Suggestion\n- **5th:** Sending, Truespeech\n- **6th:** Repulsion, Spellwrack\n- **7th:** Contingency, Planar Seal\n- **8th:** Quandary, Unrelenting Observation\n- **9th:** Detonate Magic\n\n**School Spells** initial: Protective Wards; advanced: Rune of Observation",
-     "cite": "Player Core — Class Features: School of Ars Grammatica"
+     "cite": "Player Core — Class Features: School of Ars Grammatica",
+     "builder": {
+      "tags": [
+       "wizard-arcane-school"
+      ]
+     }
     },
     {
      "id": "school-of-battle-magic",
@@ -2460,7 +3525,12 @@
      "traits": "wizard",
      "summary": "Magic is power, and there are always those who will use power for the art of battle.",
      "description": "Magic is power, and there are always those who will use power for the art of battle. You summon whirling energies that can lay waste to both soldiers and armies, while being sure not to neglect arcane countermeasures for common tactical complications or the shields and defenses that keep combatants alive on the battlefield.\n\n**Curriculum**\n\n- **cantrips:** Shield, Telekinetic Projectile\n- **1st:** Breathe Fire, Force Barrage, Mystic Armor\n- **2nd:** Mist, Resist Energy\n- **3rd:** Earthbind, Fireball\n- **4th:** Wall of Fire, Weapon Storm\n- **5th:** Howling Blizzard, Impaling Spike\n- **6th:** Chain Lightning, Disintegrate\n- **7th:** Energy Aegis, True Target\n- **8th:** Arctic Rift, Desiccate\n- **9th:** Falling Stars\n\n**School Spells** initial: Force Bolt; advanced: Energy Absorption",
-     "cite": "Player Core — Class Features: School of Battle Magic"
+     "cite": "Player Core — Class Features: School of Battle Magic",
+     "builder": {
+      "tags": [
+       "wizard-arcane-school"
+      ]
+     }
     },
     {
      "id": "school-of-civic-wizardry",
@@ -2469,7 +3539,12 @@
      "traits": "wizard",
      "summary": "You've learned the humble art of construction, of finding lost people and things, of moving speedily among buildings and moats—yet these same arts can be turned to demolition, and the constructs you…",
      "description": "You've learned the humble art of construction, of finding lost people and things, of moving speedily among buildings and moats—yet these same arts can be turned to demolition, and the constructs you animate to build bridges can just as easily tear them down.\n\n**Curriculum**\n\n- **cantrips:** , Read Aura\n- **1st:** Hydraulic Push, Pummeling Rubble, Summon Construct\n- **2nd:** Revealing Light, Water Walk\n- **3rd:** Cozy Cabin, Safe Passage\n- **4th:** Creation, Unfettered Movement\n- **5th:** Control Water, Wall of Stone\n- **6th:** Disintegrate, Wall of Force\n- **7th:** Planar Palace, Retrocognition\n- **8th:** Earthquake, Pinpoint\n- **9th:** Foresight\n\n**School Spells** initial: Earthworks; advanced: Community Restoration",
-     "cite": "Player Core — Class Features: School of Civic Wizardry"
+     "cite": "Player Core — Class Features: School of Civic Wizardry",
+     "builder": {
+      "tags": [
+       "wizard-arcane-school"
+      ]
+     }
     },
     {
      "id": "school-of-mentalism",
@@ -2478,7 +3553,12 @@
      "traits": "wizard",
      "summary": "As a scholar, you know all too well the importance of a sound mind.",
      "description": "As a scholar, you know all too well the importance of a sound mind.\n\n**Curriculum**\n\n- **cantrips:** Daze, Figment\n- **1st:** Dizzying Colors, Sleep, Sure Strike\n- **2nd:** Illusory Creature, Stupefy\n- **3rd:** Dream Message, Mind Reading\n- **4th:** Nightmare, Vision of Death\n- **5th:** Hallucination, Illusory Scene\n- **6th:** Never Mind, Phantasmal Calamity\n- **7th:** Project Image, Warp Mind\n- **8th:** Disappearance, Uncontrollable Dance\n- **9th:** Phantasmagoria\n\n**School Spells** initial: Charming Push; advanced: Invisibility Cloak",
-     "cite": "Player Core — Class Features: School of Mentalism"
+     "cite": "Player Core — Class Features: School of Mentalism",
+     "builder": {
+      "tags": [
+       "wizard-arcane-school"
+      ]
+     }
     },
     {
      "id": "school-of-protean-form",
@@ -2487,7 +3567,12 @@
      "traits": "wizard",
      "summary": "The uninitiated often think of wizards as cerebral, focused on their studies more than the body, yet your school of magic taught of the relationship between the two.",
      "description": "The uninitiated often think of wizards as cerebral, focused on their studies more than the body, yet your school of magic taught of the relationship between the two.\n\n**Curriculum**\n\n- **cantrips:** Gouging Claw, Tangle Vine\n- **1st:** Jump, Pest Form, Spider Sting\n- **2nd:** Enlarge, Humanoid Form\n- **3rd:** Feet to Fins, Vampiric Feast\n- **4th:** Mountain Resilience, Vapor Form\n- **5th:** Elemental Form, Toxic Cloud\n- **6th:** Cursed Metamorphosis, Petrify\n- **7th:** Duplicate Foe, Fiery Body\n- **8th:** Desiccate, Monstrosity Form\n- **9th:** Metamorphosis\n\n**School Spells** initial: Scramble Body; advanced: Shifting Form",
-     "cite": "Player Core — Class Features: School of Protean Form"
+     "cite": "Player Core — Class Features: School of Protean Form",
+     "builder": {
+      "tags": [
+       "wizard-arcane-school"
+      ]
+     }
     },
     {
      "id": "school-of-the-boundary",
@@ -2496,7 +3581,12 @@
      "traits": "wizard",
      "summary": "Why use your magic to affect something as pedestrian as the physical world?",
      "description": "Why use your magic to affect something as pedestrian as the physical world?\n\n**Curriculum**\n\n- **cantrips:** Telekinetic Hand, Void Warp\n- **1st:** Grim Tendrils, Phantasmal Minion, Summon Undead\n- **2nd:** Darkness, See the Unseen\n- **3rd:** Bind Undead, Ghostly Weapon\n- **4th:** Flicker, Translocate\n- **5th:** Banishment, Invoke Spirits\n- **6th:** Teleport, Vampiric Exsanguination\n- **7th:** Eclipse Burst, Interplanar Teleport\n- **8th:** Quandary, Unrelenting Observation\n- **9th:** Massacre\n\n**School Spells** initial: Fortify Summoning; advanced: Spiral of Horrors",
-     "cite": "Player Core — Class Features: School of the Boundary"
+     "cite": "Player Core — Class Features: School of the Boundary",
+     "builder": {
+      "tags": [
+       "wizard-arcane-school"
+      ]
+     }
     },
     {
      "id": "school-of-unified-magical-theory",
@@ -2505,7 +3595,14 @@
      "traits": "wizard",
      "summary": "You eschew the idea that magic can be neatly expressed by the teachings of any single school or college, instead directing your self-study to pick up the best of every school of magic.",
      "description": "You eschew the idea that magic can be neatly expressed by the teachings of any single school or college, instead directing your self-study to pick up the best of every school of magic. In doing so, you'll find the truths that lie at the intersection of each school, coming closer to the ideal nature of arcane magic. One day, you'll uncover that single elegant theory detailing all magic (perhaps a theory bearing your name?), but until then, your studies continue.\n\n**No Curriculum** You don't have a set curriculum, and so you don't have curriculum spells and can't benefit from abilities that specifically affect them. Instead, you gain an additional 1st-level wizard class feat, and you add one 1st-rank spell of your choice to your spellbook to represent your diverse studies.\n\nYour studies into the very nature of magic itself have let you use it more efficiently—instead of using Drain Bonded Item only once per day, you can use it once per day for each rank of spell you can cast, recalling a spell of that rank each time.\n\n**School Spells** initial: Hand of the Apprentice; advanced: Interdisciplinary Incantation",
-     "cite": "Player Core — Class Features: School of Unified Magical Theory"
+     "cite": "Player Core — Class Features: School of Unified Magical Theory",
+     "builder": {
+      "tags": [
+       "wizard-arcane-school",
+       "wizard-elemental-school"
+      ],
+      "more": 1
+     }
     },
     {
      "id": "scoundrel",
@@ -2514,7 +3611,22 @@
      "traits": "rogue",
      "summary": "You use fast-talking, flattery, and a silver tongue to avoid danger and escape tricky situations.",
      "description": "You use fast-talking, flattery, and a silver tongue to avoid danger and escape tricky situations. You might be a grifter or con artist, or you might use your skills in certain reputable professions, like a barrister or diplomat.\n\nWhen you successfully Feint, the target is off-guard against your melee attacks until the end of your next turn. On a critical success, the target is off-guard against all melee attacks until the end of your next turn, not just yours.\n\nIf you Feint while wielding an agile or finesse melee weapon, you can step immediately after the Feint as a free action. You're trained in Deception and Diplomacy. You can choose Charisma as your key attribute.",
-     "cite": "Player Core — Class Features: Scoundrel"
+     "cite": "Player Core — Class Features: Scoundrel",
+     "builder": {
+      "tags": [
+       "rogue-racket"
+      ],
+      "ranks": [
+       {
+        "path": "skills.diplomacy",
+        "rank": 1
+       },
+       {
+        "path": "skills.deception",
+        "rank": 1
+       }
+      ]
+     }
     },
     {
      "id": "second-doctrine",
@@ -2532,7 +3644,10 @@
      "traits": "cleric",
      "summary": "Your proficiency rank for Fortitude saves increases to expert.",
      "description": "Your proficiency rank for Fortitude saves increases to expert.",
-     "cite": "Player Core — Class Features: Second Doctrine (Cloistered Cleric)"
+     "cite": "Player Core — Class Features: Second Doctrine (Cloistered Cleric)",
+     "builder": {
+      "of": "Cloistered Cleric"
+     }
     },
     {
      "id": "second-doctrine-warpriest",
@@ -2541,7 +3656,10 @@
      "traits": "cleric",
      "summary": "You're trained in martial weapons.",
      "description": "You're trained in martial weapons.",
-     "cite": "Player Core — Class Features: Second Doctrine (Warpriest)"
+     "cite": "Player Core — Class Features: Second Doctrine (Warpriest)",
+     "builder": {
+      "of": "Warpriest"
+     }
     },
     {
      "id": "second-path-to-perfection",
@@ -2550,7 +3668,20 @@
      "traits": "monk",
      "summary": "You've learned to find perfection in every success.",
      "description": "You've learned to find perfection in every success. Choose a different saving throw than the one you chose for your path to perfection. Your proficiency rank for the chosen saving throw increases to master. If you roll a success with the chosen saving throw, you instead critically succeed.",
-     "cite": "Player Core 2 — Class Features: Second Path to Perfection"
+     "cite": "Player Core 2 — Class Features: Second Path to Perfection",
+     "builder": {
+      "rankChoices": [
+       {
+        "list": "saves",
+        "from": [
+         "fortitude",
+         "reflex",
+         "will"
+        ],
+        "rank": 3
+       }
+      ]
+     }
     },
     {
      "id": "second-skin",
@@ -2568,7 +3699,12 @@
      "traits": "champion, commander, druid, exemplar, fighter, guardian, inventor, runesmith",
      "summary": "You gain the Shield Block general feat, a reaction that lets you reduce damage with your shield.",
      "description": "You gain the Shield Block general feat, a reaction that lets you reduce damage with your shield.",
-     "cite": "Player Core — Class Features: Shield Block"
+     "cite": "Player Core — Class Features: Shield Block",
+     "builder": {
+      "feats": [
+       "Shield Block"
+      ]
+     }
     },
     {
      "id": "signature-spells",
@@ -2586,7 +3722,19 @@
      "traits": "witch",
      "summary": "Bitter cold heralded your patron's appearance, in the depths of the winter solstice or on a frozen peak at the end of the world.",
      "description": "Bitter cold heralded your patron's appearance, in the depths of the winter solstice or on a frozen peak at the end of the world. Your patron might be a winter hag, ice yai, or other spirit of the cold, but one thing is clear as ice—their power is not to be underestimated.\n\n**Spell List** primal\n\n**Patron Skill** Nature\n\n**Lesson of Winter's Chill** Your patron taught you the power of winter firsthand by subjecting you to frost and snow. You learn the Clinging Ice hex cantrip and your familiar learns Gust of Wind.\n\n**Familiar of Freezing Rime** Your familiar is cold to the touch, its breath always visible. When you Cast or Sustain a hex, you can cause ice to form in a 5-foot burst centered on a square of your familiar's space. Those squares are difficult terrain until the start of your next turn.",
-     "cite": "Player Core — Class Features: Silence in Snow"
+     "cite": "Player Core — Class Features: Silence in Snow",
+     "builder": {
+      "tags": [
+       "witch-elementalist-patron",
+       "witch-patron"
+      ],
+      "ranks": [
+       {
+        "path": "skills.nature",
+        "rank": 1
+       }
+      ]
+     }
     },
     {
      "id": "skillful-lessons",
@@ -2631,7 +3779,12 @@
      "traits": "wizard",
      "summary": "You theorize that spell slots are a shorthand for an underlying energy that powers all spellcasting, and you've found a way to tinker with the hierarchy of spell slots, combining them to fuel more…",
      "description": "You theorize that spell slots are a shorthand for an underlying energy that powers all spellcasting, and you've found a way to tinker with the hierarchy of spell slots, combining them to fuel more powerful spells.\n\nDuring your daily preparations, you can trade two spell slots of the same spell rank for a bonus spell slot of up to 2 spell ranks higher than the traded spell slots. You can exchange as many spell slots as you have available. Bonus spell slots must be of a spell rank you can normally cast, and each bonus spell slot must be of a different spell rank. You can also trade any spell slot for two additional cantrips, though you can't trade more than one spell slot at a time for additional cantrips in this way.",
-     "cite": "Player Core — Class Features: Spell Blending"
+     "cite": "Player Core — Class Features: Spell Blending",
+     "builder": {
+      "tags": [
+       "wizard-arcane-thesis"
+      ]
+     }
     },
     {
      "id": "spell-repertoire",
@@ -2649,7 +3802,12 @@
      "traits": "wizard",
      "summary": "You don't accept the fact that once spells are prepared, they can't be changed until your next daily preparations, and you have uncovered a shortcut allowing you to substitute new spells for those…",
      "description": "You don't accept the fact that once spells are prepared, they can't be changed until your next daily preparations, and you have uncovered a shortcut allowing you to substitute new spells for those you originally prepared.\n\nYou can spend 10 minutes to empty one of your prepared spell slots and prepare a different spell from your spellbook in its place. If you are interrupted during such a swap, the original spell remains prepared and can still be cast. You can try again to swap out the spell later, but you must start the process over again.",
-     "cite": "Player Core — Class Features: Spell Substitution"
+     "cite": "Player Core — Class Features: Spell Substitution",
+     "builder": {
+      "tags": [
+       "wizard-arcane-thesis"
+      ]
+     }
     },
     {
      "id": "spinner-of-threads",
@@ -2658,7 +3816,18 @@
      "traits": "witch",
      "summary": "You met your patron in a memory of an encounter yet to come or a premonition of something long since passed, as they untangled and re-spun the tapestry of time and fate.",
      "description": "You met your patron in a memory of an encounter yet to come or a premonition of something long since passed, as they untangled and re-spun the tapestry of time and fate. Was your patron a norn? Could it even be a single individual appearing at three or more points in its timeline—multiple versions of the same being, parallel threads converging on a single moment?\n\n**Spell List** occult\n\n**Patron Skill** Occultism\n\n**Lesson of Fate's Vicissitudes** Your patron's harsh lesson is that fate spares no one, rising and falling in turn for all. You gain the Nudge Fate hex cantrip and your familiar learns Sure Strike.\n\n**Familiar of Balanced Luck** Your familiar has a spot on its body that looks like a good luck charm or a bad omen, depending on the angle. When you Cast or Sustain a hex, one creature within 15 feet of your familiar gets your choice of either a +1 status bonus to its AC or a –1 status penalty to its AC until the start of your next turn.",
-     "cite": "Player Core — Class Features: Spinner of Threads"
+     "cite": "Player Core — Class Features: Spinner of Threads",
+     "builder": {
+      "tags": [
+       "witch-patron"
+      ],
+      "ranks": [
+       {
+        "path": "skills.occultism",
+        "rank": 1
+       }
+      ]
+     }
     },
     {
      "id": "spirit-instinct",
@@ -2667,7 +3836,12 @@
      "traits": "barbarian",
      "summary": "Whether you are emotionally sensitive to the spirits around you; worship ancestors or apparitions; or are haunted by the specter of an ancestor, relative, friend, or foe, your rage takes the form of…",
      "description": "Whether you are emotionally sensitive to the spirits around you; worship ancestors or apparitions; or are haunted by the specter of an ancestor, relative, friend, or foe, your rage takes the form of a spiritual possession.\n\n**Instinct Ability—Spirit Rage** When you rage, you can increase the additional damage from Rage from 2 to 3 and change its damage type to spirit, instead of the damage type for your weapon or unarmed attack (choose each time you Rage). If you choose to deal spirit damage, your weapon or unarmed attack gains the effects of the Ghost Touch property rune, which makes it more effective against incorporeal creatures, and your Rage action gains the divine and spirit traits.\n\n**Specialization Ability (7th)** When using spirit rage, increase the damage from Rage from 3 to 7. If you have greater weapon specialization, instead increase the damage when using spirit rage to 13.\n\n**Raging Resistance (9th)** You resist void damage, as well as damage dealt by the attacks and abilities of undead creatures, regardless of the damage type.",
-     "cite": "Player Core 2 — Class Features: Spirit Instinct"
+     "cite": "Player Core 2 — Class Features: Spirit Instinct",
+     "builder": {
+      "tags": [
+       "barbarian-instinct"
+      ]
+     }
     },
     {
      "id": "staff-nexus",
@@ -2676,7 +3850,12 @@
      "traits": "wizard",
      "summary": "Your thesis maintains that early and intense adoption of staves from the first days of study can create a symbiotic bond between spellcaster and staff, allowing them to create remarkable magic…",
      "description": "Your thesis maintains that early and intense adoption of staves from the first days of study can create a symbiotic bond between spellcaster and staff, allowing them to create remarkable magic together. You've formed such a connection with a makeshift staff you built, and you are ready to infuse any staff you encounter with greater power.\n\nYou begin play with a makeshift staff of your own invention. It has the magical trait and contains one cantrip and one 1st-rank spell, both from your spellbook. During your daily preparations, you can expend one spell to grant the staff a number of charges equal to that spell's rank, which dissipate after 24 hours. While you are holding the staff, you can Cast the Spells it contains. The 1st-rank spell consumes 1 charge but the cantrip doesn't require charges. If your staff is destroyed, you can create a new one over the course of 1 hour, though it has no charges.\n\nDuring your daily preparations, you can merge your makeshift staff with another staff in your possession, adding the two chosen spells to it. This staff gains charges from preparing it and from expending spells.\n\nAt 8th level, you can expend two spells instead of one when preparing any staff, adding additional charges equal to the combined ranks of the expended spells. At 16th level, you can expend up to a total of three spells to add charges to the staff, adding additional charges equal to the combined ranks of all three spells.",
-     "cite": "Player Core — Class Features: Staff Nexus"
+     "cite": "Player Core — Class Features: Staff Nexus",
+     "builder": {
+      "tags": [
+       "wizard-arcane-thesis"
+      ]
+     }
     },
     {
      "id": "starless-shadow",
@@ -2685,7 +3864,18 @@
      "traits": "witch",
      "summary": "Your patron first contacted you at the witching hour, as your body lay paralyzed by sleep while your mind had yet to escape the waking world.",
      "description": "Your patron first contacted you at the witching hour, as your body lay paralyzed by sleep while your mind had yet to escape the waking world. Your patron might be a creature of the shadow plane or a long-forgotten spirit of twilight—all you remember of them are haunting eyes of moonlight, offering you power from the darkness.\n\n**Spell List** occult\n\n**Patron Skill** Occultism\n\n**Lesson of Night's Terrors** Your patron taught you that the darkness can hide all manner of things best left unseen. You gain the Shroud of Night hex cantrip, and your familiar learns Fear.\n\n**Familiar of Stalking Night** Your familiar is dark of fur or feather, and light seems to disappear into it. When you Cast or Sustain a hex, and your familiar is adjacent to an enemy to which it's concealed, hidden, or undetected, the enemy becomes Frightened 1.",
-     "cite": "Player Core — Class Features: Starless Shadow"
+     "cite": "Player Core — Class Features: Starless Shadow",
+     "builder": {
+      "tags": [
+       "witch-patron"
+      ],
+      "ranks": [
+       {
+        "path": "skills.occultism",
+        "rank": 1
+       }
+      ]
+     }
     },
     {
      "id": "storm-order",
@@ -2694,7 +3884,21 @@
      "traits": "druid",
      "summary": "Whether you were born under a tempest or survived a bolt of lightning from a clear blue sky, you now carry the fury of the storm in your heart, channeling thunder to terrifying destructive effect…",
      "description": "Whether you were born under a tempest or survived a bolt of lightning from a clear blue sky, you now carry the fury of the storm in your heart, channeling thunder to terrifying destructive effect and riding the winds through the air.\n\n**Order Skill** Acrobatics\n\n**Druid Feat** Storm Born\n\n**Order Spell** Tempest Surge\n\n**Anathema** Pollute the air, allow those who cause major air pollution or climate shifts to go unpunished. (This doesn't force you to take action against merely potential environmental harm or to sacrifice yourself against an obviously superior foe.)",
-     "cite": "Player Core — Class Features: Storm Order"
+     "cite": "Player Core — Class Features: Storm Order",
+     "builder": {
+      "tags": [
+       "druid-order"
+      ],
+      "ranks": [
+       {
+        "path": "skills.acrobatics",
+        "rank": 1
+       }
+      ],
+      "feats": [
+       "Storm Born"
+      ]
+     }
     },
     {
      "id": "strategic-strike",
@@ -2729,7 +3933,13 @@
      "traits": "barbarian",
      "summary": "A deep distrust of magic drives you to forgo and counter the metaphysical nonsense of spellcasters.",
      "description": "A deep distrust of magic drives you to forgo and counter the metaphysical nonsense of spellcasters. Whether you're a member of a superstitious family or culture that distrusts magic, a warrior in constant battle against wizards and witches, a survivor of a magical accident that instilled an intense aversion in your mind and body, or a scion of a bloodline known for its magic resistance, your rage is inimical to magic. This makes you an excellent mage hunter but slow to trust practitioners of magical arts.\n\n**Instinct Ability—Superstitious Resilience** Your deep superstition means it's anathema for you to learn or Cast a Spell, or to wield or use an item that can be activated to Cast a Spell. If you violate this anathema, you lose the instinct's abilities and any feats that list the instinct as a prerequisite until you spend 1 day of downtime re-centering yourself, though you keep all your other barbarian abilities. While raging, you gain a +2 status bonus to all saves against magic. Increase your damage from Rage from 2 to 3, or 4 against creatures you have witnessed Casting a Spell within the last hour. When you Rage, you regain Hit Point equal to the temporary HP you gained from the Rage action; you then can't regain HP in this way again for 10 minutes. While raging, if you willingly accept the effects of a magic spell or effect, you are Frightened 1. You cannot reduce your frightened condition below 1 as long as you are affected by the spell or effect.\n\n**Specialization Ability (7th)** Increase the damage from Rage from 3 to 7, or 8 against creatures you have witnessed Casting a Spell within the last hour. If you have greater weapon specialization, instead increase the damage from Rage to 13, or 16 against creatures you have witnessed Casting a Spell within the last hour.\n\n**Raging Resistance (9th)** Choose two associated magical traditions: arcane and occult, arcane and primal, divine and occult, or divine and primal. The resistance from your raging resistance class feature applies against all damage you take from spells cast with these two traditions of magic, regardless of the type of damage dealt by the spell.",
-     "cite": "Player Core 2 — Class Features: Superstition Instinct"
+     "cite": "Player Core 2 — Class Features: Superstition Instinct",
+     "builder": {
+      "tags": [
+       "barbarian-instinct"
+      ],
+      "more": 1
+     }
     },
     {
      "id": "surprise-attack",
@@ -2756,7 +3966,17 @@
      "traits": "swashbuckler",
      "summary": "Your own distinctive style lets you gracefully handle any situation.",
      "description": "Your own distinctive style lets you gracefully handle any situation. Choose a swashbuckler's style. This style determines the additional actions you use to gain panache and makes you trained in the skill related to that action.",
-     "cite": "Player Core 2 — Class Features: Swashbuckler's Style"
+     "cite": "Player Core 2 — Class Features: Swashbuckler's Style",
+     "builder": {
+      "selections": [
+       {
+        "tags": [
+         "swashbuckler-style"
+        ],
+        "count": 1
+       }
+      ]
+     }
     },
     {
      "id": "swift-prey",
@@ -2783,7 +4003,24 @@
      "traits": "oracle",
      "summary": "- cantrip: Electric Arc\n- 1st: Thunderstrike\n- 4th: Hydraulic Torrent\n- 6th: Chain Lightning",
      "description": "**Granted Spells**\n\n- **cantrip:** Electric Arc\n- **1st:** Thunderstrike\n- **4th:** Hydraulic Torrent\n- **6th:** Chain Lightning\n\n**Revelation Spells**\n\n- **initial:** Tempest Touch\n- **advanced:** Thunderburst\n- **greater:** Tempest Form\n\n**Related Domains** air, cold, lightning, water\n\n**Mystery Skill** Nature\n\n**Oracle Feat** Foretell Harm\n\nCurse of Inclement Headwinds",
-     "cite": "Player Core 2 — Class Features: Tempest"
+     "cite": "Player Core 2 — Class Features: Tempest",
+     "builder": {
+      "tags": [
+       "oracle-mystery"
+      ],
+      "ranks": [
+       {
+        "path": "skills.nature",
+        "rank": 1
+       }
+      ],
+      "feats": [
+       "Foretell Harm"
+      ],
+      "grants": [
+       "Curse of Inclement Headwinds"
+      ]
+     }
     },
     {
      "id": "the-inscribed-one",
@@ -2792,7 +4029,19 @@
      "traits": "witch",
      "summary": "No words passed your patron's lips in the moment you met; instead, words and glyphs danced across their skin while symbols and numbers swam in the depths of their eyes, spelling out their will in a…",
      "description": "No words passed your patron's lips in the moment you met; instead, words and glyphs danced across their skin while symbols and numbers swam in the depths of their eyes, spelling out their will in a torrent of words and wisdom. Your patron might be a powerful archmage, or even one of their abandoned artifacts, searching for a successor.\n\n**Spell List** arcane\n\n**Patron Skill** Arcana\n\n**Lesson of Glyph's Supremacy** Your patron teaches that the written word can accomplish so much more than it seems. You gain the Discern Secrets hex and your familiar learns Runic Weapon.\n\n**Familiar of Flowing Script** Your familiar is covered in a pattern that looks similar to letters in an unknown language, one that seems to draw attention even as it eludes understanding. When you Cast or Sustain a hex, the letters begin to rapidly change, causing a distraction. Until the start of your next turn, your familiar can provide flanking for you and your allies as though it were able to attack and had a reach of 5 feet; this is a visual effect.",
-     "cite": "Player Core — Class Features: The Inscribed One"
+     "cite": "Player Core — Class Features: The Inscribed One",
+     "builder": {
+      "tags": [
+       "witch-elementalist-patron",
+       "witch-patron"
+      ],
+      "ranks": [
+       {
+        "path": "skills.arcana",
+        "rank": 1
+       }
+      ]
+     }
     },
     {
      "id": "the-resentment",
@@ -2801,7 +4050,18 @@
      "traits": "witch",
      "summary": "A single feeling radiated from your patron in the moment you met them, as palpable as heat from a fire: the desire to see every tall poppy felled and every proud nail hammered down, whether to…",
      "description": "A single feeling radiated from your patron in the moment you met them, as palpable as heat from a fire: the desire to see every tall poppy felled and every proud nail hammered down, whether to righteously bring justice for small folk or the base urge to see the powerful defeated. Your patron is likely far from the upper echelons of its kind, such as a hag ousted from its coven or a quasi-divinity or a lower-rank demon. This leaves it only subtler and weaker tools to see its ends met: curses, hexes, and you.\n\n**Spell List** occult\n\n**Patron Skill** Occultism\n\n**Lesson of Strength's Impermanence** Your patron has taught you that power can be taken much more easily that it can be built. You gain the Evil Eye hex cantrip and your familiar learns Enfeeble.\n\n**Familiar of Ongoing Misery** Your familiar seems hostile to all creatures other than you, hissing at them if they get too near. When you Cast or Sustain a hex, your familiar can curse a creature within 15 feet of it, prolonging the duration of any negative conditions affecting it by 1 round. This is a curse effect. This prolongs only conditions with a timed duration (such as \"1 round\" or \"until the end of your next turn\") and doesn't prevent conditions from being removed by other means.",
-     "cite": "Player Core — Class Features: The Resentment"
+     "cite": "Player Core — Class Features: The Resentment",
+     "builder": {
+      "tags": [
+       "witch-patron"
+      ],
+      "ranks": [
+       {
+        "path": "skills.occultism",
+        "rank": 1
+       }
+      ]
+     }
     },
     {
      "id": "thief",
@@ -2810,7 +4070,18 @@
      "traits": "rogue",
      "summary": "Nothing beats the thrill of taking something that belongs to someone else.",
      "description": "Nothing beats the thrill of taking something that belongs to someone else. You might be a pickpocket working the streets, a cat burglar sneaking through windows, or even a consultant, testing your clients' vaults for openings.\n\nWhen a fight breaks out, you prefer swift, lightweight weapons, and you strike where it hurts. When you make a melee Strike with a finesse weapon or finesse unarmed attack, you can add your Dexterity modifier to the damage roll instead of your Strength modifier.\n\nYou are trained in Thievery.",
-     "cite": "Player Core — Class Features: Thief"
+     "cite": "Player Core — Class Features: Thief",
+     "builder": {
+      "tags": [
+       "rogue-racket"
+      ],
+      "ranks": [
+       {
+        "path": "skills.thievery",
+        "rank": 1
+       }
+      ]
+     }
     },
     {
      "id": "third-doctrine",
@@ -2828,7 +4099,10 @@
      "traits": "cleric",
      "summary": "Your proficiency ranks for the spell attack modifier and spell DC statistics increase to expert.",
      "description": "Your proficiency ranks for the spell attack modifier and spell DC statistics increase to expert.",
-     "cite": "Player Core — Class Features: Third Doctrine (Cloistered Cleric)"
+     "cite": "Player Core — Class Features: Third Doctrine (Cloistered Cleric)",
+     "builder": {
+      "of": "Cloistered Cleric"
+     }
     },
     {
      "id": "third-doctrine-warpriest",
@@ -2837,7 +4111,10 @@
      "traits": "cleric",
      "summary": "You gain expert proficiency with your deity's favored weapon, martial weapons, simple weapons, and unarmed attacks.",
      "description": "You gain expert proficiency with your deity's favored weapon, martial weapons, simple weapons, and unarmed attacks. When you critically succeed at an attack roll using your deity's favored weapon, you apply the weapon's critical specialization effect; you can use your spell DC in place of your class DC.",
-     "cite": "Player Core — Class Features: Third Doctrine (Warpriest)"
+     "cite": "Player Core — Class Features: Third Doctrine (Warpriest)",
+     "builder": {
+      "of": "Warpriest"
+     }
     },
     {
      "id": "third-path-to-perfection",
@@ -2846,7 +4123,20 @@
      "traits": "monk",
      "summary": "You have made great progress in your personal studies of enlightenment.",
      "description": "You have made great progress in your personal studies of enlightenment. Choose one of the saving throws you selected for path to perfection or second path to perfection. Your proficiency rank for the chosen type of save increases to legendary. When you roll a critical failure on the chosen type of save, you get a failure instead. When you roll a failure on the chosen type of save against an effect that deals damage, you take half damage.",
-     "cite": "Player Core 2 — Class Features: Third Path to Perfection"
+     "cite": "Player Core 2 — Class Features: Third Path to Perfection",
+     "builder": {
+      "rankChoices": [
+       {
+        "list": "saves",
+        "from": [
+         "fortitude",
+         "reflex",
+         "will"
+        ],
+        "rank": 4
+       }
+      ]
+     }
     },
     {
      "id": "toxicologist",
@@ -2855,7 +4145,17 @@
      "traits": "alchemist",
      "summary": "You specialize in toxins and venoms of all types.",
      "description": "You specialize in toxins and venoms of all types.\n\n**Formulas** Two common 1st-level alchemical poisons.\n\n**Field Benefit** You can Activate an injury poison as a single action, provided you apply it to a weapon you're holding or a piece of ammunition on your person or loaded in a weapon you're holding. This can be an item you're holding or you can Interact to draw an eligible item or make one using Quick Alchemy as part of the single action; if you can make more than one item with Quick Alchemy (such as with the double brew class feature), you can still Activate only one. In addition, you flexibly mix acidic and poisonous alchemical compounds. Your infused items with the poison trait can affect creatures immune to poison. A creature takes acid damage instead of poison damage from such items if either the creature is immune to poison or that would be more detrimental to the creature (as determined by the GM).\n\n**Field Vials** Your versatile vials have the poison trait and deal poison damage instead of having the acid trait and dealing acid damage (though your field benefit still applies). You can apply the contents of a versatile vial to a weapon or piece of ammunition as an injury poison. Add the versatile vial's initial damage to the first successful Strike with that weapon or ammunition. The substance becomes inert at the end of your current turn.\n\n**Field Discovery (5th)** You have handled enough poisons to become inured to their effects. You gain poison resistance equal to half your level.\n\n**Advanced Vials (11th)** When you damage a creature with a versatile vial you've used as an injury poison, that creature takes persistent poison damage equal to the vial's splash damage in addition to the initial damage.\n\n**Greater Field Discovery (13th)** When a creature fails its initial saving throw against an infused injury poison you created, the wound sprays poison onto another creature adjacent to it. The attacker who caused the injury chooses which creature, if there's more than one, and can choose to forgo this effect. That creature is exposed to the poison. The second creature doesn't spread the poison further.",
-     "cite": "Player Core 2 — Class Features: Toxicologist"
+     "cite": "Player Core 2 — Class Features: Toxicologist",
+     "builder": {
+      "tags": [
+       "alchemist-research-field"
+      ],
+      "replaces": [
+       "Advanced Vials (Toxicologist)",
+       "Field Discovery (Toxicologist)",
+       "Greater Field Discovery (Toxicologist)"
+      ]
+     }
     },
     {
      "id": "trackless-journey",
@@ -2882,7 +4182,21 @@
      "traits": "druid",
      "summary": "The uncontrollable call of the natural world courses through your body.",
      "description": "The uncontrollable call of the natural world courses through your body. You might have been raised by a wild animal, or you might have come to reject the artifices of cities after growing up in one. Now, primal magic grants you the ability to wear the form of an untamed creature.\n\n**Order Skill** Intimidation\n\n**Druid Feat** Untamed Form\n\n**Order Spell** Untamed Shift\n\n**Anathema** Become fully domesticated by the temptations of civilization. (This doesn't prevent you from buying and using processed goods or staying in a city for an adventure, but you can never come to rely on these conveniences or truly call such a place your permanent home.)",
-     "cite": "Player Core — Class Features: Untamed Order"
+     "cite": "Player Core — Class Features: Untamed Order",
+     "builder": {
+      "tags": [
+       "druid-order"
+      ],
+      "ranks": [
+       {
+        "path": "skills.intimidation",
+        "rank": 1
+       }
+      ],
+      "feats": [
+       "Untamed Form"
+      ]
+     }
     },
     {
      "id": "versatile-legend",
@@ -2918,7 +4232,10 @@
      "traits": "druid",
      "summary": "You gain your choice of the Animal Empathy or Plant Empathy druid feat.",
      "description": "You gain your choice of the Animal Empathy or Plant Empathy druid feat.",
-     "cite": "Player Core — Class Features: Voice of Nature"
+     "cite": "Player Core — Class Features: Voice of Nature",
+     "builder": {
+      "more": 1
+     }
     },
     {
      "id": "warden-spells",
@@ -2945,7 +4262,20 @@
      "traits": "cleric",
      "summary": "You have trained in the more militant doctrine of your church, focusing on both spells and battle.",
      "description": "You have trained in the more militant doctrine of your church, focusing on both spells and battle.\n\n**First Doctrine (1st):** You're trained in light and medium armor, and you have expert proficiency in Fortitude saves. You gain the Shield Block general feat, a reaction to reduce damage with a shield. If your deity's favored weapon is a simple weapon or an unarmed attack, you gain the Deadly Simplicity cleric feat. At 13th level, if you gain the Divine Defense class feature, you also gain expert proficiency in light and medium armor.\n\n**Second Doctrine (3rd):** You're trained in martial weapons.\n\n**Third Doctrine (7th):** You gain expert proficiency with your deity's favored weapon, martial weapons, simple weapons, and unarmed attacks. When you critically succeed at an attack roll using your deity's favored weapon, you apply the weapon's critical specialization effect; you can use your spell DC in place of your class DC.\n\n**Fourth Doctrine (11th):** Your proficiency ranks for the spell attack modifier and spell DC statistics increase to expert.\n\n**Fifth Doctrine (15th):** Your proficiency rank for Fortitude saves increases to master. When you roll a success at a Fortitude save, you get a critical success instead.\n\n**Final Doctrine (19th):** You gain master proficiency with your deity's favored weapon, spell attack modifier, and spell DC.",
-     "cite": "Player Core — Class Features: Warpriest"
+     "cite": "Player Core — Class Features: Warpriest",
+     "builder": {
+      "tags": [
+       "cleric-doctrine"
+      ],
+      "replaces": [
+       "Fifth Doctrine (Warpriest)",
+       "Final Doctrine (Warpriest)",
+       "First Doctrine (Warpriest)",
+       "Fourth Doctrine (Warpriest)",
+       "Second Doctrine (Warpriest)",
+       "Third Doctrine (Warpriest)"
+      ]
+     }
     },
     {
      "id": "warrior",
@@ -2954,7 +4284,15 @@
      "traits": "bard",
      "summary": "The battlefield is your stage, the clang of steel, your song.",
      "description": "The battlefield is your stage, the clang of steel, your song. Your muse has seen countless battles, whether reveling in combat or resigned to its necessity. An individual soldier or general might inspire you, but so might a battlefield or weapon with a particularly profound history. If your muse is a creature, it might be an otherworldly soldier, such as an archon or devil soldier. Art inspired by a warrior muse is triumphant and strident, often detailing epic battles.\n\nAs a bard with a warrior muse, you train for battle in addition to performance, and you prepare your allies for the dangers of combat. You might even wade into the thick of things with them.\n\n**Muse Feat** Martial Performance\n\n**Muse Spell** Fear",
-     "cite": "Player Core — Class Features: Warrior"
+     "cite": "Player Core — Class Features: Warrior",
+     "builder": {
+      "tags": [
+       "bard-muse"
+      ],
+      "feats": [
+       "Martial Performance"
+      ]
+     }
     },
     {
      "id": "weapon-expertise",
@@ -2981,7 +4319,10 @@
      "traits": "fighter",
      "summary": "You've learned fighting techniques that apply to all armaments, and you've developed unparalleled skill with your favorite weapons.",
      "description": "You've learned fighting techniques that apply to all armaments, and you've developed unparalleled skill with your favorite weapons. Your proficiency ranks for simple weapons, martial weapons, and unarmed attacks increase to master. Your proficiency rank for advanced weapons increases to expert.\n\nYou can select one weapon group and increase your proficiency ranks to legendary for all simple weapons, martial weapons, and unarmed attacks in that weapon group, and to master for all advanced weapons in that weapon group.",
-     "cite": "Player Core — Class Features: Weapon Legend"
+     "cite": "Player Core — Class Features: Weapon Legend",
+     "builder": {
+      "more": 1
+     }
     },
     {
      "id": "weapon-mastery",
@@ -3017,7 +4358,19 @@
      "traits": "witch",
      "summary": "When your patron appeared before you, they moved with the grace and ferocity of the wilderness, their voice the creaking of trees and the sound of hoof against unspoiled earth.",
      "description": "When your patron appeared before you, they moved with the grace and ferocity of the wilderness, their voice the creaking of trees and the sound of hoof against unspoiled earth. They might have been a dryad queen or a primeval beast, but it seemed all of nature was theirs to defend.\n\n**Spell List** primal\n\n**Patron Skill** Nature\n\n**Lesson of Wild Speech** Your patron has taught you the complexities of nonverbal speech, letting you influence and call animals and plants to you. You gain the Wilding Word hex cantrip and your familiar learns your choice of Summon Animal or Summon Plant or Fungus.\n\n**Familiar of Keen Senses** Your familiar has glinting eyes, twitching ears, or some other sign of a beast's powerful senses. When you Cast or Sustain a hex, your familiar gains your choice of an imprecise scent, tremorsense, or wavesense, with a range of 60 feet until the start of your next turn, and it can immediately Point Out as a free action.",
-     "cite": "Player Core — Class Features: Wilding Steward"
+     "cite": "Player Core — Class Features: Wilding Steward",
+     "builder": {
+      "tags": [
+       "witch-elementalist-patron",
+       "witch-patron"
+      ],
+      "ranks": [
+       {
+        "path": "skills.nature",
+        "rank": 1
+       }
+      ]
+     }
     },
     {
      "id": "wildsong",
@@ -3044,7 +4397,21 @@
      "traits": "swashbuckler",
      "summary": "You are friendly, clever, and full of humor, always knowing just what to say.",
      "description": "You are friendly, clever, and full of humor, always knowing just what to say. Your witticisms leave foes unprepared for the skill and speed of your attacks. You are trained in Diplomacy and gain the Bon Mot skill feat. When you use Bon Mot, the action gains the bravado trait",
-     "cite": "Player Core 2 — Class Features: Wit"
+     "cite": "Player Core 2 — Class Features: Wit",
+     "builder": {
+      "tags": [
+       "swashbuckler-style"
+      ],
+      "ranks": [
+       {
+        "path": "skills.diplomacy",
+        "rank": 1
+       }
+      ],
+      "feats": [
+       "Bon Mot"
+      ]
+     }
     },
     {
      "id": "witch-lessons",
@@ -3071,7 +4438,12 @@
      "traits": "wizard",
      "summary": "Through dedicated study and practice, you can construct spells with academic rigor by shaping arcane magic.",
      "description": "Through dedicated study and practice, you can construct spells with academic rigor by shaping arcane magic. You are a spellcaster, and you can cast spells of the arcane tradition using the Cast a Spell activity. As a wizard, when you cast spells, your incantations likely specify exactly what forces you call on and how to shape them, and your gestures precisely shape and direct your magic while circles of arcane runes flare to life.\n\nAt 1st level, you can prepare up to two 1st-rank spells and five cantrips each morning from the spells in your spellbook (see below), as well as one extra curriculum cantrip and one extra curriculum spell of each rank you can cast from your arcane school. Prepared spells remain available to you until you cast them or until you prepare your spells again. The number of spells you can prepare is called your spell slots.\n\nAs you increase in level as a wizard, the number of spells you can prepare each day increases, as does the highest rank of spell you can cast, as shown in the Wizard Spells per Day table.\n\nSome of your spells require you to attempt a spell attack to see how effective they are, or have your enemies roll against your spell DC (typically by attempting a saving throw). Since your key attribute is Intelligence, your spell attack modifier and spell DC use your Intelligence modifier. Details on calculating these statistics appear on page 403.\n\n### Heightening Spells\n\nWhen you get spell slots of 2nd rank and higher, you can fill those slots with stronger versions of lower-rank spells. This increases the spell's rank, heightening it to match the spell slot. Many spells have specific improvements when they are heightened to certain ranks.\n\n### Cantrips\n\nSome of your spells are cantrips. A cantrip is a special type of spell that doesn't use spell slots. You can cast a cantrip at will, any number of times per day. A cantrip is always automatically heightened to half your level rounded up—this is usually equal to the highest rank of wizard spell slot you have. For example, as a 1st-level wizard, your cantrips are 1st-rank spells, and as a 5th-level wizard, your cantrips are 3rd-rank spells.\n\n### Spellbook\n\nEvery arcane spell has a written version, which you record in your personalized book of spells. You start with a spellbook worth 10 sp or less, which you receive for free and must study each day to prepare your spells. Your spellbook's form and name are up to you.\n\nThe spellbook contains your choice of 10 arcane cantrips and five 1st-rank arcane spells. You choose these from the common spells on the arcane spell list or from other arcane spells you gain access to. You also add two 1st-rank spells from the curriculum of your arcane school (except in the case of the school of unified magical theory, as described in that school).\n\nEach time you gain a level, you add two arcane spells to your spellbook, of any spell rank for which you have spell slots, chosen from common spells of your tradition or others you gain access to. You can also add spells to your spellbook with the Learn a Spell activity. When you gain spell slots of a new rank, you also add an additional spell from your school's curriculum (unless it's the school of unified magical theory).",
-     "cite": "Player Core — Class Features: Wizard Spellcasting"
+     "cite": "Player Core — Class Features: Wizard Spellcasting",
+     "builder": {
+      "grants": [
+       "Cast a Spell"
+      ]
+     }
     },
     {
      "id": "wizard-weapon-expertise",
