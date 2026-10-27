@@ -512,7 +512,7 @@ function stock(gen: PackMapGenerator, inputs: DungeonInputs, plan: Plan, ctx: Ma
         data: { groups, xp: total, ...(activity ? { activity } : {}) },
       });
     }
-    checks.push({ id: "encounters", level: "warn", ok: missing === 0 && markers.length > 0, message: missing === 0 ? `${markers.length} encounter(s) from the module's own creatures${xp ? ` (${xp} XP in all)` : ""}.` : `${missing} encounter group(s) found no creature in the module.`, ...(enc.cite ? {} : {}) });
+    checks.push({ id: "encounters", level: "warn", ok: missing === 0 && markers.length > 0, message: missing === 0 ? `${markers.length} encounter(s) from the module's own creatures${xp ? ` (${xp} XP in all)` : ""}.` : `${missing} encounter group(s) found no creature in the module.` });
   }
 
   const traps = config.traps;

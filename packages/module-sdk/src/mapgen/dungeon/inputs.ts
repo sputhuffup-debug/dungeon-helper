@@ -162,7 +162,8 @@ export function dungeonLegend(config: DungeonConfig): MapLegendEntry[] {
   const L = (k: string) => labelOf(config, k);
   const base: MapLegendEntry[] = [
     { target: { border: "open" }, label: "Opening or archway" },
-    { target: { border: "door" }, label: "Door (a red dot: locked; dashed: secret, GM only)" },
+    { target: { border: "door" }, label: "Door (a red dot: locked)" },
+    { target: { border: "door" }, label: "Secret door (dashed): the players see it once found", gmOnly: true },
     { target: { border: "bars" }, label: "Portcullis, gate or grate" },
     { target: { border: "rubble" }, label: "Collapsed passage (impassable until cleared)" },
     { target: { border: "stairs" }, label: "Stairs to another level" },

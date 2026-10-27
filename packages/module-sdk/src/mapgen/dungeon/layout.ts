@@ -74,12 +74,11 @@ export class LevelBuilder {
   readonly grid: Grid;
   readonly zones = new Map<number, DraftZone>();
   readonly links: DraftLink[] = [];
-  constructor(
-    readonly level: number,
-    w: number,
-    h: number,
-    private readonly alloc: () => number,
-  ) {
+  readonly level: number;
+  private readonly alloc: () => number;
+  constructor(level: number, w: number, h: number, alloc: () => number) {
+    this.level = level;
+    this.alloc = alloc;
     this.grid = new Grid(w, h);
   }
 

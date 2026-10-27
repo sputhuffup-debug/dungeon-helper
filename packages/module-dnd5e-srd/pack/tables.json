@@ -12097,7 +12097,7 @@
   {
    "id": "dnd5e-srd.dungeon.traps",
    "name": "Dungeon traps (SRD sample traps)",
-   "family": "trap",
+   "family": "dungeon",
    "cite": "SRD 5.1 — Adventuring: Traps, Sample Traps",
    "dice": "1d10",
    "notes": "The SRD 5.1's sample traps with their own DCs and damage. Scale them for the party with the Trap Save DCs and Damage Severity by Level tables (the dungeon key does).",
@@ -12227,7 +12227,7 @@
   {
    "id": "dnd5e-srd.dungeon.treasure.rarity-1",
    "name": "Treasure: magic item rarity (levels 1–4)",
-   "family": "treasure",
+   "family": "dungeon",
    "original": true,
    "dice": "1d10",
    "notes": "Which rarity a magic item in a dungeon's treasure has, by the party's level band. Original stocking table.",
@@ -12257,7 +12257,7 @@
   {
    "id": "dnd5e-srd.dungeon.treasure.rarity-2",
    "name": "Treasure: magic item rarity (levels 5–10)",
-   "family": "treasure",
+   "family": "dungeon",
    "original": true,
    "dice": "1d10",
    "notes": "Which rarity a magic item in a dungeon's treasure has, by the party's level band. Original stocking table.",
@@ -12287,7 +12287,7 @@
   {
    "id": "dnd5e-srd.dungeon.treasure.rarity-3",
    "name": "Treasure: magic item rarity (levels 11–16)",
-   "family": "treasure",
+   "family": "dungeon",
    "original": true,
    "dice": "1d10",
    "notes": "Which rarity a magic item in a dungeon's treasure has, by the party's level band. Original stocking table.",
@@ -12317,7 +12317,7 @@
   {
    "id": "dnd5e-srd.dungeon.treasure.rarity-4",
    "name": "Treasure: magic item rarity (levels 17–20)",
-   "family": "treasure",
+   "family": "dungeon",
    "original": true,
    "dice": "1d10",
    "notes": "Which rarity a magic item in a dungeon's treasure has, by the party's level band. Original stocking table.",

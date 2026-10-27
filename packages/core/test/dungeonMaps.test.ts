@@ -102,6 +102,15 @@ describe("dungeon player projection", () => {
     clean(out, "start");
   });
 
+  it("a level the players have not reached is left out at the table (not in prints)", () => {
+    const two = dungeon();
+    two.decks.push({ id: "L2", name: "SECRET-LEVEL", width: 30, height: 20, level: 1 });
+    two.zones.push(room("R05", rect(10, 10, 5, 4), { deck: "L2", name: "Crypt" }));
+    expect(playerLayout(two, { act: 1, revealed: ["X1", "R01"], legend }).decks.map((d) => d.id)).toEqual(["L1"]);
+    expect(playerLayout(two, { act: 1, revealed: ["X1", "R01", "R05"], legend }).decks.map((d) => d.id)).toEqual(["L1", "L2"]);
+    expect(playerLayout(two, { act: 1, print: true, legend }).decks.map((d) => d.id)).toEqual(["L1", "L2"]);
+  });
+
   it("without a reveal list the players have seen the way in only", () => {
     const out = playerLayout(dungeon(), { act: 1, legend });
     expect(out.zones.map((z) => z.id)).toEqual(["X1"]);

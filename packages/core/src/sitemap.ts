@@ -636,8 +636,11 @@ export function playerLayout(layout: SiteLayout, opts: PlayerLayoutOptions): Pla
   }
 
   const decks: MapDeck[] = [];
+  const shownDecks = new Set(zones.map((z) => z.deck));
   for (const d of layout.decks) {
     if (sheets.has(d.id) && !shownSheets.has(d.id)) continue;
+    // "hide" fog at the table: a level the players have not reached is not shown (nor how many there are)
+    if (hideFog && !opts.print && !shownDecks.has(d.id)) continue;
     const out: MapDeck = { id: d.id, name: d.name, width: d.width, height: d.height };
     if (d.layer) out.layer = d.layer;
     if (typeof d.level === "number") out.level = d.level;

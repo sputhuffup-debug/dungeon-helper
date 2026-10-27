@@ -83,7 +83,7 @@ function rarityTables(): RollTable[] {
     return {
       id: id(`dungeon.treasure.rarity-${tier}`),
       name: `Treasure: magic item rarity (levels ${["1–4", "5–10", "11–16", "17–20"][Number(tier) - 1]})`,
-      family: "treasure",
+      family: "dungeon",
       original: true,
       dice: "1d10",
       notes: "Which rarity a magic item in a dungeon's treasure has, by the party's level band. Original stocking table.",
@@ -111,7 +111,7 @@ export function dungeonTables(): RollTable[] {
   out.push({
     id: id("dungeon.traps"),
     name: "Dungeon traps (SRD sample traps)",
-    family: "trap",
+    family: "dungeon",
     cite: TRAPS_CITE,
     dice: `1d${SAMPLE_TRAPS.length}`,
     notes: "The SRD 5.1's sample traps with their own DCs and damage. Scale them for the party with the Trap Save DCs and Damage Severity by Level tables (the dungeon key does).",

@@ -78,7 +78,9 @@ export class Content {
   private presetsByType = new Map<string, EntityPreset[]>();
   private items = new Map<string, Array<ReferenceItem & { list: string }>>();
   private presetIndex: Map<string, EntityPreset>;
-  constructor(private readonly m: ModuleContent) {
+  private readonly m: ModuleContent;
+  constructor(m: ModuleContent) {
+    this.m = m;
     this.presetIndex = new Map(m.presets.map((p) => [p.id, p]));
   }
   preset(id: string): EntityPreset | undefined {
