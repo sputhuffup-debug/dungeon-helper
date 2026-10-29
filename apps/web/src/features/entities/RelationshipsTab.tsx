@@ -4,7 +4,7 @@ import { Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { EntityIcon } from "../../components/EntityIcon";
 import { EntityPicker } from "../../components/EntityPicker";
-import { Button, Dialog, EmptyState, IconButton } from "../../components/ui";
+import { AutoGrowText, Button, Dialog, EmptyState, IconButton } from "../../components/ui";
 import { linkEntities, unlinkEntities } from "../../state/actions";
 import { useCampaign, useMapVersion } from "../../state/hooks";
 
@@ -134,7 +134,7 @@ function AddRelationshipDialog({ open, onClose, entity, options }: { open: boole
           </div>
           <label className="app-label">
             Note
-            <input className="cf-input" value={note} onChange={(e) => setNote(e.target.value)} placeholder="optional" />
+            <AutoGrowText value={note} onChange={(e) => setNote(e.target.value)} placeholder="optional" />
           </label>
         </div>
       </Dialog>

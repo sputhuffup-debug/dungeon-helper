@@ -22,10 +22,12 @@ import {
   type WeaponListConfig,
 } from "@campaign-forge/module-sdk";
 import { useSheetContext, type SheetEntityRef } from "../context";
+import { AutoGrowText } from "../primitives/AutoGrowText";
 import { Button, IconButton } from "../primitives/Button";
 import { Dialog } from "../primitives/Dialog";
 import { PageRef } from "../primitives/PageRef";
 import { asNumber, cx, humanize, isRecord } from "../sheet/paths";
+import { isShortText } from "./SchemaValueEditor";
 import type { WidgetProps } from "./types";
 
 type Row = Record<string, unknown>;
@@ -92,6 +94,19 @@ function RowInput({ rowSchema, keyName, value, onChange, label }: { rowSchema: J
   }
   // strings, and number-or-text values (a supply rating or "Single use")
   const numeric = types.includes("integer") || types.includes("number");
+  if (!numeric && !isShortText(s, keyName)) {
+    // free text (a name, special effects, notes) wraps and grows
+    return (
+      <AutoGrowText
+        aria-label={label}
+        value={value === undefined || value === null ? "" : String(value)}
+        onChange={(e) => {
+          const v = e.target.value;
+          onChange(v === "" && keyName !== "name" ? undefined : v);
+        }}
+      />
+    );
+  }
   return (
     <input
       className="cf-input"

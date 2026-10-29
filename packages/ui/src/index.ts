@@ -30,7 +30,7 @@ export { ListField, ObjectField, StatBlockField, TableField } from "./widgets/st
 export { EntriesField } from "./widgets/entries";
 export { ImageField, ZoneMapField } from "./widgets/media";
 export { ComputedField } from "./widgets/computed";
-export { SchemaValueEditor, schemaType } from "./widgets/SchemaValueEditor";
+export { SchemaValueEditor, schemaType, isShortText } from "./widgets/SchemaValueEditor";
 
 // Dice
 export { DieFace, type DieFaceProps } from "./dice/DieFace";
@@ -125,6 +125,7 @@ export { HealthBar, type HealthBarProps } from "./primitives/HealthBar";
 export { Stepper, type StepperProps } from "./primitives/Stepper";
 export { Tabs, type TabsProps, type TabItem } from "./primitives/Tabs";
 export { Dialog, Drawer, type DialogProps, type DrawerProps } from "./primitives/Dialog";
+export { AutoGrowText, singleLineText, type AutoGrowTextProps } from "./primitives/AutoGrowText";
 export { Toolbar, ToolbarGroup, ToolbarSpacer, EmptyState, type ToolbarProps, type EmptyStateProps } from "./primitives/Toolbar";
 export { ProvenanceBadge, RollRecordList, type ProvenanceBadgeProps, type ProvenanceKind } from "./primitives/ProvenanceBadge";
 export { PageRef, formatPageRef, formatCitation, type PageRefProps } from "./primitives/PageRef";

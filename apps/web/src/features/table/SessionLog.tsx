@@ -1,7 +1,7 @@
 /** The running session log: a rich-text note with @ mentions, a quick timestamped line, and the tracker event feed. */
 import type { Id } from "@campaign-forge/core";
 import { useMemo, useState } from "react";
-import { Badge, Button, Card, pushToast } from "../../components/ui";
+import { AutoGrowText, Badge, Button, Card, pushToast } from "../../components/ui";
 import { RichTextEditor } from "../../editor";
 import { errorMessage } from "../../lib/format";
 import { useCampaign, useRecord } from "../../state/hooks";
@@ -31,7 +31,7 @@ export function SessionLog({ sessionId }: { sessionId: Id }) {
           void add();
         }}
       >
-        <input className="cf-input app-grow" aria-label="Log line" placeholder="What just happened…" value={line} onChange={(e) => setLine(e.target.value)} />
+        <AutoGrowText className="cf-input app-grow" aria-label="Log line" placeholder="What just happened…" value={line} onChange={(e) => setLine(e.target.value)} />
         <Button type="submit" variant="primary" disabled={!line.trim()}>
           Add timestamped line
         </Button>

@@ -334,6 +334,7 @@ h3 {
 }
 .app-note {
   margin: 0;
+  overflow-wrap: anywhere;
   padding: var(--cf-space-2) var(--cf-space-3);
   border-radius: var(--cf-radius);
   background: var(--cf-accent-soft);
@@ -395,12 +396,18 @@ h3 {
   padding: var(--cf-space-2) var(--cf-space-3);
   border: 1px solid var(--cf-border);
   border-radius: var(--cf-radius);
+  /* names, notes, licences and ids from a pack or supplement wrap inside the box, however long */
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .app-module__head {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--cf-space-2);
+}
+.app-module__head > * {
+  min-width: 0;
 }
 .app-module__meta {
   margin: var(--cf-space-1) 0 0;

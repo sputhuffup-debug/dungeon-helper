@@ -1,3 +1,4 @@
+import { AutoGrowText } from "../primitives/AutoGrowText";
 import { Button } from "../primitives/Button";
 import { IconButton } from "../primitives/Button";
 import { Pips } from "../primitives/Pips";
@@ -77,13 +78,7 @@ export function GearField(props: WidgetProps) {
                 {readonly ? (
                   r.name
                 ) : (
-                  <input
-                    id={i === 0 ? id : undefined}
-                    className="cf-input"
-                    aria-label={`Item ${i + 1} name`}
-                    value={r.name}
-                    onChange={(e) => update(i, { name: e.target.value })}
-                  />
+                  <AutoGrowText id={i === 0 ? id : undefined} aria-label={`Item ${i + 1} name`} value={r.name} onChange={(e) => update(i, { name: e.target.value })} />
                 )}
               </td>
               {showQty && (

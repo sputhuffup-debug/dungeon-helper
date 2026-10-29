@@ -6,7 +6,7 @@
  */
 import type { Entity, Id } from "@campaign-forge/core";
 import { useState } from "react";
-import { Button, Pips, pushToast } from "../../components/ui";
+import { AutoGrowText, Button, Pips, pushToast } from "../../components/ui";
 import { errorMessage } from "../../lib/format";
 import { poolValue } from "@campaign-forge/module-sdk";
 import { useCampaign, useMeta } from "../../state/hooks";
@@ -56,7 +56,7 @@ export function StoryPointSpend({ entity, sessionId, compact }: { entity: Entity
         ))}
         <option value={OTHER}>Other…</option>
       </select>
-      <input className="cf-input" aria-label="Note" placeholder={use === OTHER ? "Why?" : "Note (optional)"} value={reason} onChange={(e) => setReason(e.target.value)} />
+      <AutoGrowText aria-label="Note" placeholder={use === OTHER ? "Why?" : "Note (optional)"} value={reason} onChange={(e) => setReason(e.target.value)} />
       <Button size="sm" variant="primary" onClick={spend} disabled={use === OTHER && !reason.trim()}>
         Spend
       </Button>

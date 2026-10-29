@@ -1,4 +1,5 @@
 import type { JsonSchema } from "@campaign-forge/module-sdk";
+import { AutoGrowText } from "../primitives/AutoGrowText";
 import { asNumber, isRecord } from "../sheet/paths";
 
 export interface SchemaValueEditorProps {
@@ -8,6 +9,22 @@ export interface SchemaValueEditorProps {
   readonly?: boolean;
   label: string;
   id?: string;
+  /** The property key the value is stored under, when it has one (it tells short id-like and dice fields from free text). */
+  name?: string;
+}
+
+/** Keys of short, structured strings: ids, dice and roll expressions, bonuses. */
+const SHORT_KEY = /(^id$|Id$|dice|damage|bonus|roll|formula|^abbr$|^code$)/i;
+
+/**
+ * Whether a string field is short structured text that stays a one-line input
+ * (a formatted string such as a date or URL, one capped at 40 characters, an
+ * id, dice or a bonus) rather than free text that wraps and grows.
+ */
+export function isShortText(schema: JsonSchema | undefined, name?: string): boolean {
+  if (typeof schema?.format === "string") return true;
+  if (typeof schema?.maxLength === "number" && schema.maxLength <= 40) return true;
+  return !!name && SHORT_KEY.test(name);
 }
 
 export function schemaType(schema: JsonSchema | undefined): string | undefined {
@@ -21,8 +38,8 @@ export function schemaType(schema: JsonSchema | undefined): string | undefined {
   return undefined;
 }
 
-/** A primitive control chosen from a JSON Schema: enum -> select, number, boolean, else text. */
-export function SchemaValueEditor({ schema, value, onChange, readonly, label, id }: SchemaValueEditorProps) {
+/** A primitive control chosen from a JSON Schema: enum -> select, number, boolean, else text (an AutoGrowText for free text). */
+export function SchemaValueEditor({ schema, value, onChange, readonly, label, id, name }: SchemaValueEditorProps) {
   const type = schemaType(schema);
   const en = schema?.enum;
   if (Array.isArray(en)) {
@@ -85,5 +102,7 @@ export function SchemaValueEditor({ schema, value, onChange, readonly, label, id
   // Long text (a schema allowing more than 200 characters, or markdown) gets a text area, as the sheet's own default widget does.
   const long = schema?.format === "markdown" || (typeof schema?.maxLength === "number" && schema.maxLength > 200);
   if (long) return <textarea id={id} className="cf-textarea" rows={Math.min(8, Math.max(2, Math.ceil(str.length / 80)))} aria-label={label} value={str} onChange={(e) => onChange(e.target.value === "" ? undefined : e.target.value)} />;
-  return <input id={id} className="cf-input" type="text" aria-label={label} value={str} onChange={(e) => onChange(e.target.value === "" ? undefined : e.target.value)} />;
+  // a date, an id, dice or another short structured string stays a single-line input; free text wraps and grows
+  if (isShortText(schema, name)) return <input id={id} className="cf-input" type="text" aria-label={label} value={str} onChange={(e) => onChange(e.target.value === "" ? undefined : e.target.value)} />;
+  return <AutoGrowText id={id} aria-label={label} value={str} onChange={(e) => onChange(e.target.value === "" ? undefined : e.target.value)} />;
 }

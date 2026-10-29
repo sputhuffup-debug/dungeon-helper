@@ -2,7 +2,7 @@
 import { ledgerBalance, ledgerBalances, ledgerRows, type Id } from "@campaign-forge/core";
 import type { LedgerCategoryDef, LedgerDef } from "@campaign-forge/module-sdk";
 import { useMemo, useState, type FormEvent } from "react";
-import { Badge, Button, Card, IconButton, PageRef, pushToast } from "../../components/ui";
+import { AutoGrowText, Badge, Button, Card, IconButton, PageRef, pushToast } from "../../components/ui";
 import { useCampaign, useList, useMeta } from "../../state/hooks";
 import { addLedgerEntry, deleteLedgerEntry, exportLedgerCsv, money } from "../../state/shipActions";
 
@@ -213,7 +213,7 @@ function AddEntryForm({ def, holders, shipId }: { def: LedgerDef; holders: Array
       </label>
       <label className="app-label ship-entry__note">
         <span>Note</span>
-        <input className="cf-input" aria-label="Note" value={note} onChange={(e) => setNote(e.target.value)} />
+        <AutoGrowText aria-label="Note" value={note} onChange={(e) => setNote(e.target.value)} />
       </label>
       <label className="app-label">
         <span>In-world date</span>

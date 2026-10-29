@@ -211,3 +211,42 @@ test("ability scores from 4d6 drop lowest: dice entered from the table, or rolle
   await expect(page.getByTestId("values-left")).toBeVisible();
   expect(errors).toEqual([]);
 });
+
+test("a subclass's Details open under the level step and close again (SRD sorcerer)", async ({ page }) => {
+  test.setTimeout(120_000);
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/");
+  await page.getByTestId("load-demo-5e").click();
+  await expect(page).toHaveURL(/\/c\/[0-9A-Z]{26}\/home$/, { timeout: 30_000 });
+  await page.getByRole("navigation", { name: "Campaign" }).getByRole("link", { name: "Atlas", exact: true }).click();
+  await page.getByRole("tab", { name: /^PCs/ }).click();
+  await page.getByTestId("build-character").click();
+  await expect(page.getByTestId("builder-title")).toHaveText("Build a character");
+  // the first pick is saved a moment later; retry it if the page settled under it
+  await expect(async () => {
+    await page.getByTestId("opt:edition:2014").locator("input").check();
+    await expect(page.getByTestId("opt:edition:2014")).toHaveClass(/is-on/, { timeout: 1000 });
+  }).toPass();
+  await page.getByTestId("step-class").click();
+  await pick(page, "class", "sorcerer");
+  await page.getByTestId("step-level").click();
+  await pick(page, "level", "3");
+
+  // the subclass is a sub-choice of the level: its Details open a panel right there
+  const subclass = page.getByTestId("choice:level/subclass");
+  await expect(subclass.getByTestId("opt:level/subclass:draconic")).toBeVisible();
+  await expect(subclass.getByTestId("option-details")).toHaveCount(0);
+  const details = subclass.getByRole("button", { name: "Details: Draconic" });
+  await details.click();
+  const panel = subclass.getByRole("complementary", { name: "About Draconic" });
+  await expect(panel).toBeVisible();
+  await expect(panel).toContainText("Dragon Ancestor");
+  await expect(panel).toContainText("SRD 5.1");
+  await expect(details).toHaveAttribute("aria-expanded", "true");
+  await details.click();
+  await expect(panel).toHaveCount(0);
+  await expect(details).toHaveAttribute("aria-expanded", "false");
+  expect(errors).toEqual([]);
+});
