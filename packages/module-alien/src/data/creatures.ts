@@ -122,7 +122,7 @@ const XX121_COMMON: Ability[] = [
 
 const OPENING_THE_EGG: Ability = {
   name: "Opening The Egg",
-  text: "With a potential host (not an android) within Short range, roll a stress die each round: the facehugger result releases a facehugger. At Adjacent range, a MOBILITY roll (no action) each turn or it opens.",
+  text: "While any possible host other than an android is at Short range, roll a stress die each round: the facehugger result releases a facehugger. At Adjacent range, a MOBILITY roll (no action) each turn or it opens.",
   page: 212,
 };
 

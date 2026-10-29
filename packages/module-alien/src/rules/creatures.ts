@@ -16,7 +16,7 @@ export const creatureRules: RuleCard[] = [
     tags: ["creatures", "combat", "damage"],
     links: { fields: [F.creatureArmor, F.creatureArmorVsFire], rules: ["alien.rule.damage-armor", "alien.rule.damage-types"] },
   }),
-  card("acid-splash", "Acid splash", "When a Xenomorph XX121 takes damage other than fire, everyone Adjacent and the floor suffer an attack with base dice equal to its Acid Splash rating plus the damage taken (counting no more than its maximum Health), base damage 1. Armor reduces the damage but loses a point per point of damage. Anyone the first splash damaged, even if armor soaked it all, is attacked again at the start of each round with half the dice (rounded up) until a roll deals none.", 210, {
+  card("acid-splash", "Acid splash", "Any non-fire damage to a Xenomorph XX121 makes everyone Adjacent and the floor suffer an attack with base dice equal to its Acid Splash rating plus the damage taken (counting no more than its maximum Health), base damage 1. Armor reduces the damage but loses a point per point of damage. Anyone the first splash damaged, even if armor soaked it all, is attacked again at the start of each round with half the dice (rounded up) until a roll deals none.", 210, {
     tags: ["creatures", "combat", "damage"],
     links: { fields: [F.acidSplash, F.creatureDamage], rules: ["alien.rule.creature-attacks", "alien.rule.armor", "alien.rule.barriers"] },
   }),
@@ -44,7 +44,7 @@ export const creatureRules: RuleCard[] = [
     tags: ["creatures", "lifecycle"],
     links: { rules: ["alien.rule.stage-iv-molting", "alien.rule.queen"], trackers: [TR.gestation] },
   }),
-  card("ovomorph", "The egg", "With a potential host (not an android) within Short range, roll a stress die each round, and a facehugger releases the parasite. A host at Adjacent range must pass a Mobility roll, no action, each turn to avoid disturbing it. A lone drone can also turn cocooned hosts into eggs over 24 to 36 hours.", 212, {
+  card("ovomorph", "The egg", "While any possible host other than an android is at Short range, roll a stress die each round, and a facehugger releases the parasite. A host at Adjacent range must pass a Mobility roll, no action, each turn to avoid disturbing it. A lone drone can also turn cocooned hosts into eggs over 24 to 36 hours.", 212, {
     tags: ["creatures", "lifecycle"],
     links: { rules: ["alien.rule.facehugger", "alien.rule.lifecycle"], trackers: [TR.gestation] },
   }),
