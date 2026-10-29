@@ -188,7 +188,7 @@ export const brokenXenomorph: RollTable = {
   family: FAMILY,
   page: 208,
   dice: "1d6",
-  notes: "Roll when a xenomorph is reduced to zero Health. Not for Facehuggers or Chestbursters (they are destroyed), and skipped in Aliens mode, where it simply dies.",
+  notes: "Roll when a xenomorph drops to zero Health. Not for Facehuggers or Chestbursters (they are destroyed), and skipped in Aliens mode, where it simply dies.",
   rows: [
     { range: [1, 1], label: "Rise Again", result: { outcome: "rise-again", dead: false, effect: "Drops as if dead, but it is a ruse: next turn it regains 1 Health and rises." } },
     { range: [2, 2], label: "Wounded", result: { outcome: "wounded", dead: false, effect: "Speed -1 (minimum 1), regains 1 Health. At the start of each of its turns, on D6 1-3 it tries to leave combat." } },
