@@ -1,6 +1,7 @@
 import type { JsonSchema } from "@campaign-forge/module-sdk";
 import { schemaDefaults } from "@campaign-forge/module-sdk";
 import { useSheetContext } from "../context";
+import { AutoGrowText } from "../primitives/AutoGrowText";
 import { Button, IconButton } from "../primitives/Button";
 import { humanize, isRecord } from "../sheet/paths";
 import { SchemaValueEditor } from "./SchemaValueEditor";
@@ -48,6 +49,7 @@ export function ListField(props: WidgetProps) {
                   <SchemaValueEditor
                     id={i === 0 && key === propertyEntries(itemSchema, it)[0]?.[0] ? id : undefined}
                     schema={sub}
+                    name={key}
                     label={`${humanize(key)} ${i + 1}`}
                     value={isRecord(it) ? it[key] : undefined}
                     readonly={readonly}
@@ -109,7 +111,7 @@ function KeyedByCastField({ value, onChange, readonly, field, id }: WidgetProps)
             ) : area ? (
               <textarea className="cf-textarea" rows={3} aria-label={label} value={v} onChange={(e) => set(e.target.value)} />
             ) : (
-              <input className="cf-input" type="text" aria-label={label} value={v} onChange={(e) => set(e.target.value)} />
+              <AutoGrowText aria-label={label} value={v} onChange={(e) => set(e.target.value)} />
             )}
           </div>
         );
@@ -129,7 +131,7 @@ export function ObjectField(props: WidgetProps) {
       {entries.map(([key, sub]) => (
         <div key={key} className="cf-field">
           <span className="cf-field__label">{typeof sub?.title === "string" ? sub.title : humanize(key)}</span>
-          <SchemaValueEditor schema={sub} label={humanize(key)} value={obj[key]} readonly={readonly} onChange={(v) => onChange({ ...obj, [key]: v })} />
+          <SchemaValueEditor schema={sub} name={key} label={humanize(key)} value={obj[key]} readonly={readonly} onChange={(v) => onChange({ ...obj, [key]: v })} />
           {errors?.[key] && <span className="cf-field__error">{errors[key]}</span>}
         </div>
       ))}
@@ -210,7 +212,7 @@ export function TableField(props: WidgetProps) {
             <tr key={i}>
               {cols.map((c) => (
                 <td key={c.key}>
-                  <SchemaValueEditor schema={subSchema(c.key, c)} label={`${c.label ?? humanize(c.key)} ${i + 1}`} value={isRecord(r) ? r[c.key] : undefined} readonly={readonly || c.readonly} onChange={(v) => update(i, c.key, v)} />
+                  <SchemaValueEditor schema={subSchema(c.key, c)} name={c.key} label={`${c.label ?? humanize(c.key)} ${i + 1}`} value={isRecord(r) ? r[c.key] : undefined} readonly={readonly || c.readonly} onChange={(v) => update(i, c.key, v)} />
                 </td>
               ))}
               {!readonly && (

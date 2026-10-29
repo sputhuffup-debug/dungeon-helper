@@ -7,7 +7,7 @@
 import type { Entity, Id } from "@campaign-forge/core";
 import type { Prompt } from "@campaign-forge/module-sdk";
 import { useEffect, useMemo, useState } from "react";
-import { Badge, Button, Card, PageRef, pushToast, useDiceRoller } from "../../components/ui";
+import { AutoGrowText, Badge, Button, Card, PageRef, pushToast, useDiceRoller } from "../../components/ui";
 import { errorMessage } from "../../lib/format";
 import { useCampaign, useMeta, useRecord } from "../../state/hooks";
 import {
@@ -155,7 +155,7 @@ export function WrapUpWizard({ sessionId, onCancel, onDone }: WrapUpWizardProps)
                 {timeline.map((t, i) => (
                   <li key={t.key} className="app-list__row">
                     <input type="checkbox" className="cf-checkbox" aria-label={`Include ${t.text}`} checked={t.include} onChange={(e) => setTimeline(timeline.map((x, j) => (j === i ? { ...x, include: e.target.checked } : x)))} />
-                    <input className="cf-input app-grow" aria-label="Timeline text" value={t.text} onChange={(e) => setTimeline(timeline.map((x, j) => (j === i ? { ...x, text: e.target.value } : x)))} />
+                    <AutoGrowText className="cf-input app-grow" aria-label="Timeline text" value={t.text} onChange={(e) => setTimeline(timeline.map((x, j) => (j === i ? { ...x, text: e.target.value } : x)))} />
                     <EntityNames ids={t.entities} />
                   </li>
                 ))}
@@ -384,7 +384,7 @@ function RewardsStep({ pcs, rewards, setRewards }: { pcs: Entity[]; rewards: Rew
               <div key={r.key} className="app-row">
                 <input className="cf-input" aria-label="Reward kind" placeholder="Kind (cash, gear…)" value={r.kind} onChange={(e) => update(r.key, { kind: e.target.value })} />
                 <input className="cf-input" aria-label="Reward value" placeholder="Value" value={r.value} onChange={(e) => update(r.key, { value: e.target.value })} />
-                <input className="cf-input app-grow" aria-label="Reward note" placeholder="Note" value={r.note} onChange={(e) => update(r.key, { note: e.target.value })} />
+                <AutoGrowText className="cf-input app-grow" aria-label="Reward note" placeholder="Note" value={r.note} onChange={(e) => update(r.key, { note: e.target.value })} />
                 <Button size="sm" variant="ghost" onClick={() => setRewards(rewards.filter((x) => x.key !== r.key))} aria-label="Remove reward">
                   ×
                 </Button>

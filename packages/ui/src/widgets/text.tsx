@@ -1,5 +1,7 @@
 import { useMemo } from "react";
 import { useSheetContext } from "../context";
+import { AutoGrowText } from "../primitives/AutoGrowText";
+import { isShortText } from "./SchemaValueEditor";
 import { cx } from "../sheet/paths";
 import type { Option, WidgetProps } from "./types";
 import { configNumber, configString, filterOptions, resolveOptions } from "./types";
@@ -26,7 +28,9 @@ function namedItem(options: Option[], value: string): Option["item"] {
  * narrows the suggestions by a sibling field (see `filterOptions`). When the
  * value names a list item that has a `summary`, the summary shows under the
  * field as a hint (e.g. a background's ability scores and feat); nothing is
- * applied to the sheet.
+ * applied to the sheet. Without suggestions it is an AutoGrowText (it wraps
+ * and grows taller with long text); with them, or for short structured text
+ * (`isShortText`: a date, an id, dice), a single-line input.
  */
 export function TextField({ id, value, onChange, readonly, invalid, field, schema, referenceLists, fields }: WidgetProps) {
   const { mode } = useSheetContext();
@@ -54,6 +58,21 @@ export function TextField({ id, value, onChange, readonly, invalid, field, schem
     );
   const maxLength = configNumber(field, "maxLength") ?? (typeof schema?.maxLength === "number" ? schema.maxLength : undefined);
   const listId = suggestions.length > 0 ? `${id}-options` : undefined;
+  if (!listId && !isShortText(schema, field.path.split(".").pop()))
+    return (
+      <>
+        <AutoGrowText
+          id={id}
+          value={str}
+          maxLength={maxLength}
+          placeholder={configString(field, "placeholder")}
+          invalid={invalid}
+          aria-invalid={invalid || undefined}
+          onChange={(e) => onChange(e.target.value === "" ? undefined : e.target.value)}
+        />
+        {hint}
+      </>
+    );
   return (
     <>
       <input

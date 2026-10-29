@@ -268,6 +268,9 @@
   border: 1px solid var(--cf-border);
   border-radius: var(--cf-radius);
   background: var(--cf-surface);
+  /* a long name, badge or summary wraps inside the card instead of widening it */
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .cb-card.is-on {
   border-color: var(--cf-accent);
@@ -295,6 +298,7 @@
   flex: none;
 }
 .cb-card__name {
+  min-width: 0;
   font-weight: 600;
 }
 .cb-card__badges {
@@ -377,6 +381,8 @@
 }
 .cb-row__pick {
   flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
   display: flex;
   align-items: center;
   gap: var(--cf-space-2);
@@ -425,6 +431,7 @@
   background: var(--cf-elevated);
   max-height: 340px;
   overflow-y: auto;
+  overflow-wrap: anywhere;
 }
 .cb-details__head {
   display: flex;
@@ -435,7 +442,7 @@
 }
 .cb-details__fields {
   display: grid;
-  grid-template-columns: max-content 1fr;
+  grid-template-columns: max-content minmax(0, 1fr);
   gap: 2px var(--cf-space-3);
   margin: 0 0 var(--cf-space-2);
   font-size: var(--cf-text-sm);
@@ -448,6 +455,17 @@
 }
 .cb-details__fields dd {
   margin: 0;
+  min-width: 0;
+}
+/* a wide table in a detail scrolls sideways inside its cell */
+.cb-details__md {
+  overflow-x: auto;
+}
+.cb-details__md > :first-child {
+  margin-top: 0;
+}
+.cb-details__md > :last-child {
+  margin-bottom: 0;
 }
 .cb-details__text {
   font-size: var(--cf-text-sm);

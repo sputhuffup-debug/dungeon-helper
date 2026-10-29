@@ -156,6 +156,28 @@
   text-transform: uppercase;
   line-height: 1.4;
   white-space: nowrap;
+  /* never wider than the box it sits in */
+  max-width: 100%;
+}
+/*
+ * Badges whose text comes from data (a supplement's or source's name, an
+ * edition) can be long: they wrap inside their box instead of running out of it.
+ */
+.cf-badge--source,
+.cf-badge--edition {
+  /* a block of text, so its lines wrap within the badge's max-width */
+  display: inline-block;
+  white-space: normal;
+  overflow-wrap: break-word;
+  /* a pill on one line, a rounded box on several */
+  border-radius: calc(0.5lh + 3px);
+}
+/* in a table the column sizes to the badge's one-line width instead (wide tables scroll) */
+td .cf-badge--source,
+td .cf-badge--edition,
+th .cf-badge--source,
+th .cf-badge--edition {
+  white-space: nowrap;
 }
 .cf-badge--accent {
   background: var(--cf-accent-soft);
@@ -412,6 +434,34 @@
 }
 .cf-input--inline {
   width: auto;
+}
+/*
+ * AutoGrowText: a one-row textarea that looks like .cf-input and grows a line
+ * at a time as the text wraps, up to --cf-autogrow-rows lines, then scrolls.
+ * The vertical padding centres one line in the control height, as an input does.
+ */
+.cf-autogrow {
+  --cf-autogrow-pad: max(var(--cf-space-2), calc((var(--cf-control-height) - 1lh - 2px) / 2));
+  display: inline-block;
+  vertical-align: top;
+  padding-top: var(--cf-autogrow-pad);
+  padding-bottom: var(--cf-autogrow-pad);
+  max-height: calc(var(--cf-autogrow-rows, 8) * 1lh + 2 * var(--cf-autogrow-pad) + 2px);
+  resize: none;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+  field-sizing: content;
+}
+/*
+ * field-sizing: content also sizes the width to the text, which a table
+ * column would shrink to; in a table cell keep at least an input's width.
+ */
+td .cf-autogrow {
+  min-width: 12em;
+}
+.cf-table-mode .cf-autogrow {
+  --cf-autogrow-pad: max(var(--cf-space-2), calc((var(--cf-touch) - 1lh - 2px) / 2));
 }
 .cf-checkbox {
   width: 20px;
@@ -703,7 +753,11 @@
   border-left: 4px solid var(--cf-accent);
   background: var(--cf-elevated);
   box-shadow: var(--cf-shadow);
+  overflow-wrap: anywhere;
   font-size: var(--cf-text-sm);
+}
+.cf-toast > span {
+  min-width: 0;
 }
 .cf-toast--danger {
   border-left-color: var(--cf-danger);

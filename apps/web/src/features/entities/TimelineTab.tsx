@@ -1,7 +1,7 @@
 import { appearancesTimeline, type Entity, type TimelineEvent } from "@campaign-forge/core";
 import { useMemo, useState } from "react";
 import { useRecordLinks } from "../../components/EntityLinkContext";
-import { Badge, Button, EmptyState, IconButton } from "../../components/ui";
+import { AutoGrowText, Badge, Button, EmptyState, IconButton } from "../../components/ui";
 import { formatDate } from "../../lib/format";
 import { useCampaign, useList, useMapVersion, useMeta } from "../../state/hooks";
 
@@ -35,7 +35,7 @@ export function TimelineTab({ entity }: { entity: Entity }) {
           }}
         >
           <input className="cf-input app-input--date" aria-label="In-world date" value={date} onChange={(e) => setDate(e.target.value)} placeholder="date" />
-          <input className="cf-input app-grow" aria-label="Event" value={text} onChange={(e) => setText(e.target.value)} placeholder={`What happened to ${entity.name}?`} />
+          <AutoGrowText className="cf-input app-grow" aria-label="Event" value={text} onChange={(e) => setText(e.target.value)} placeholder={`What happened to ${entity.name}?`} />
           <Button type="submit">Add</Button>
         </form>
         {sortedEvents.length === 0 ? (

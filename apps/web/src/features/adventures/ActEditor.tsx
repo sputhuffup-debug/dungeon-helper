@@ -35,7 +35,7 @@ export function ActEditor({ act }: { act: Act }) {
         </div>
         <label className="app-label">
           <span>Goal</span>
-          <CommitInput value={act.goal ?? ""} label="Act goal" placeholder="What this act must achieve" onCommit={(v) => ctx.store.update("acts", act.id, { goal: v.trim() || undefined })} />
+          <CommitInput value={act.goal ?? ""} label="Act goal" placeholder="What this act must achieve" grow onCommit={(v) => ctx.store.update("acts", act.id, { goal: v.trim() || undefined })} />
         </label>
       </Card>
       <Card title="Pacing notes">

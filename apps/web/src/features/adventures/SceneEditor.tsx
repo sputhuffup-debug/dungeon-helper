@@ -49,7 +49,7 @@ export function SceneEditor({ scene }: { scene: Scene }) {
         </div>
         <label className="app-label">
           <span>Purpose</span>
-          <CommitInput value={scene.purpose ?? ""} label="Scene purpose" placeholder="What this scene is for, in one line" onCommit={(v) => set({ purpose: v.trim() || undefined })} />
+          <CommitInput value={scene.purpose ?? ""} label="Scene purpose" placeholder="What this scene is for, in one line" grow onCommit={(v) => set({ purpose: v.trim() || undefined })} />
         </label>
         <dl className="prep-scene-refs">
           <div>
@@ -123,7 +123,7 @@ export function SceneEditor({ scene }: { scene: Scene }) {
             {events.map((ev, i) => (
               <li key={ev.id} className={`prep-event${ev.done ? " is-done" : ""}`}>
                 <input type="checkbox" className="cf-checkbox" aria-label={`Done: ${ev.text || `event ${i + 1}`}`} checked={ev.done === true} onChange={(e) => setEvents(events.map((x) => (x.id === ev.id ? { ...x, done: e.target.checked } : x)))} />
-                <CommitInput value={ev.text} label={`Event ${i + 1}`} placeholder="What happens" className="cf-input prep-event__text" onCommit={(v) => setEvents(events.map((x) => (x.id === ev.id ? { ...x, text: v } : x)))} />
+                <CommitInput value={ev.text} label={`Event ${i + 1}`} placeholder="What happens" grow className="cf-input prep-event__text" onCommit={(v) => setEvents(events.map((x) => (x.id === ev.id ? { ...x, text: v } : x)))} />
                 <Button size="sm" active={ev.mandatory} onClick={() => setEvents(events.map((x) => (x.id === ev.id ? { ...x, mandatory: !x.mandatory } : x)))} aria-label={`Mandatory: ${ev.text || `event ${i + 1}`}`}>
                   {ev.mandatory ? "Mandatory" : "Optional"}
                 </Button>

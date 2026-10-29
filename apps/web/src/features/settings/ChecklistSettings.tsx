@@ -16,7 +16,7 @@ import {
   type SessionChecklistSettings,
 } from "@campaign-forge/core";
 import { useMemo, useState } from "react";
-import { Badge, Button, Card, IconButton, PageRef } from "../../components/ui";
+import { AutoGrowText, Badge, Button, Card, IconButton, PageRef } from "../../components/ui";
 import { updateMeta } from "../../state/actions";
 import { useCampaign, useMeta } from "../../state/hooks";
 import { useModuleShortName } from "../sessions/SessionChecklist";
@@ -65,7 +65,7 @@ export function ChecklistSettings() {
                 ))}
                 {own.map((c) => (
                   <li key={c.id} className="app-list__row app-checklist-settings__own" data-item={c.id}>
-                    <input
+                    <AutoGrowText
                       className="cf-input app-grow"
                       aria-label="Item text"
                       defaultValue={c.text}
@@ -76,7 +76,7 @@ export function ChecklistSettings() {
                         else if (!v) e.target.value = c.text;
                       }}
                     />
-                    <input
+                    <AutoGrowText
                       className="cf-input app-grow"
                       aria-label="Item guidance"
                       placeholder="Guidance (optional)"
@@ -131,8 +131,8 @@ function AddItem({ phase, onAdd }: { phase: ChecklistPhase; onAdd: (text: string
         setGuidance("");
       }}
     >
-      <input className="cf-input app-grow" aria-label={`New item: ${CHECKLIST_PHASE_TITLES[phase]}`} placeholder="Add your own item…" value={text} onChange={(e) => setText(e.target.value)} />
-      <input className="cf-input app-grow" aria-label={`New item guidance: ${CHECKLIST_PHASE_TITLES[phase]}`} placeholder="Guidance (optional)" value={guidance} onChange={(e) => setGuidance(e.target.value)} />
+      <AutoGrowText className="cf-input app-grow" aria-label={`New item: ${CHECKLIST_PHASE_TITLES[phase]}`} placeholder="Add your own item…" value={text} onChange={(e) => setText(e.target.value)} />
+      <AutoGrowText className="cf-input app-grow" aria-label={`New item guidance: ${CHECKLIST_PHASE_TITLES[phase]}`} placeholder="Guidance (optional)" value={guidance} onChange={(e) => setGuidance(e.target.value)} />
       <Button type="submit" disabled={!text.trim()}>
         Add
       </Button>

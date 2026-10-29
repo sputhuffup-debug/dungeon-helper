@@ -7,7 +7,7 @@ import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { lazyView } from "../../components/lazyView";
 import { useRecordLinks } from "../../components/EntityLinkContext";
-import { Badge, Button, Card, EmptyState, IconButton } from "../../components/ui";
+import { AutoGrowText, Badge, Button, Card, EmptyState, IconButton } from "../../components/ui";
 import { RichTextView } from "../../editor";
 import { formatDate } from "../../lib/format";
 import { useCampaign, useList, useMapVersion, useMeta, useRecord } from "../../state/hooks";
@@ -206,7 +206,7 @@ function PlanSession({ session }: { session: Session }) {
         <ol className="app-plan" aria-label="Plan">
           {session.nextPlan.map((item, i) => (
             <li key={i} className="app-row">
-              <input className="cf-input app-grow" aria-label={`Plan item ${i + 1}`} value={item} onChange={(e) => set({ nextPlan: session.nextPlan.map((x, j) => (j === i ? e.target.value : x)) })} />
+              <AutoGrowText className="cf-input app-grow" aria-label={`Plan item ${i + 1}`} value={item} onChange={(e) => set({ nextPlan: session.nextPlan.map((x, j) => (j === i ? e.target.value : x)) })} />
               <IconButton variant="ghost" label="Remove plan item" icon="×" onClick={() => set({ nextPlan: session.nextPlan.filter((_, j) => j !== i) })} />
             </li>
           ))}
@@ -220,7 +220,7 @@ function PlanSession({ session }: { session: Session }) {
             setNewItem("");
           }}
         >
-          <input className="cf-input app-grow" aria-label="New plan item" placeholder="Add to the plan…" value={newItem} onChange={(e) => setNewItem(e.target.value)} />
+          <AutoGrowText className="cf-input app-grow" aria-label="New plan item" placeholder="Add to the plan…" value={newItem} onChange={(e) => setNewItem(e.target.value)} />
           <Button type="submit" disabled={!newItem.trim()}>
             Add
           </Button>

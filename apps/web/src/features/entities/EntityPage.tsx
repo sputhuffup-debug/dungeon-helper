@@ -7,7 +7,7 @@ import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { EntityIcon } from "../../components/EntityIcon";
 import { TagInput } from "../../components/TagInput";
 import { VisibilitySelect } from "../../components/VisibilitySelect";
-import { Button, EmptyState, IconButton, PromptDialog, ProvenanceBadge, Tabs, pushToast, type PromptAnswer } from "../../components/ui";
+import { AutoGrowText, Button, EmptyState, IconButton, type PromptAnswer, PromptDialog, ProvenanceBadge, pushToast, Tabs } from "../../components/ui";
 import { errorMessage } from "../../lib/format";
 import { deleteEntity, setEntityImage, setEntityVisibility, updateEntity } from "../../state/actions";
 import { useAssetUrl, useCampaign, useEntityType, useList, useMeta, useRecord } from "../../state/hooks";
@@ -171,7 +171,7 @@ function EntityHeader({ entity, def }: { entity: Entity; def: EntityTypeDef | un
           {edited.length > 0 && <ProvenanceBadge kind="edited" detail={`Edited after creation: ${edited.join(", ")}`} />}
         </div>
         <TagInput value={entity.tags} onChange={(tags) => updateEntity(ctx, entity.id, { tags })} />
-        <input
+        <AutoGrowText
             className="cf-input app-entity__summary"
             aria-label="Summary"
             placeholder="One-line summary"

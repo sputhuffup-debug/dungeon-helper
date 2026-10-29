@@ -5,7 +5,7 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { EntityIcon } from "../../components/EntityIcon";
 import { EntityPicker } from "../../components/EntityPicker";
-import { Button, IconButton } from "../../components/ui";
+import { AutoGrowText, Button, IconButton } from "../../components/ui";
 import { useCampaign, useMapVersion } from "../../state/hooks";
 
 /** Entity type ids of the given core kinds in the campaign's module. */
@@ -16,12 +16,13 @@ export function useTypesOfKind(kinds: CoreEntityKind[]): string[] {
   return useMemo(() => module.module.entityTypes.filter((t) => kinds.includes(t.kind)).map((t) => t.id), [module, key]);
 }
 
-/** A text input that commits on blur / Enter and follows outside changes. */
-export function CommitInput({ value, onCommit, label, placeholder, className, testId }: { value: string; onCommit: (v: string) => void; label: string; placeholder?: string; className?: string; testId?: string }) {
+/** A text input that commits on blur / Enter and follows outside changes. `grow`: free text that wraps and grows taller (an AutoGrowText). */
+export function CommitInput({ value, onCommit, label, placeholder, className, testId, grow }: { value: string; onCommit: (v: string) => void; label: string; placeholder?: string; className?: string; testId?: string; grow?: boolean }) {
   const [text, setText] = useState(value);
   useEffect(() => setText(value), [value]);
+  const Control = grow ? AutoGrowText : "input";
   return (
-    <input
+    <Control
       className={className ?? "cf-input"}
       aria-label={label}
       placeholder={placeholder}
@@ -31,7 +32,7 @@ export function CommitInput({ value, onCommit, label, placeholder, className, te
         if (text !== value) onCommit(text);
       }}
       onKeyDown={(e) => {
-        if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+        if (e.key === "Enter") (e.target as HTMLElement).blur();
         if (e.key === "Escape") setText(value);
       }}
       data-testid={testId}

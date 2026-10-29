@@ -3,8 +3,10 @@
  * option cards (or a compact searchable list for long lists, a number row for
  * a range), each with its summary, source and edition badges and the item
  * keys the module names; a details panel with the focused option's full
- * text; inline counts and problems; and a roll (in the app or entered from
- * the table) for options that roll.
+ * text (shown for the picked option of a step's own choice or a long list,
+ * and at any depth when its Details button opens it); inline counts and
+ * problems; and a roll (in the app or entered from the table) for options
+ * that roll.
  */
 import { createEnteredRng, createRng, rollOptionDice, togglePick, type ChoiceState, type OptionState } from "@campaign-forge/module-sdk";
 import { useId, useMemo, useState } from "react";
@@ -31,6 +33,22 @@ function valueText(v: unknown): string {
   return String(v);
 }
 
+/** The item keys the details panel lists (what the option's data says beyond its name and text). */
+function detailRows(o: OptionState): Array<[string, unknown]> {
+  return Object.entries(o.item)
+    .filter(([k, v]) => !HIDDEN_KEYS.has(k) && valueText(v))
+    .slice(0, 14);
+}
+
+/**
+ * Whether an option has more than its card shows: its text, a source or page
+ * to cite, or item data such as a subclass's features by level. The Details
+ * button and the panel use the same test, so a button never opens nothing.
+ */
+function hasDetails(o: OptionState): boolean {
+  return !!(o.description || o.cite || o.page !== undefined || detailRows(o).length > 0);
+}
+
 /** How many to pick, as a short line. */
 function countLine(c: ChoiceState): string {
   if (c.max <= 0) return "";
@@ -43,6 +61,8 @@ export function ChoiceView({ choice, draft, onDraft, depth = 0 }: ChoiceViewProp
   const headingId = useId();
   const [query, setQuery] = useState("");
   const [focus, setFocus] = useState<string | undefined>();
+  // the details panel: undefined follows the default (the focused option's, for a step's own choice or a long list); the Details button opens or closes it
+  const [detailsOpen, setDetailsOpen] = useState<boolean | undefined>();
   const multi = choice.max > 1;
   const long = !choice.range && choice.options.length > (depth === 0 ? 16 : 10);
   const shown = useMemo(() => {
@@ -51,12 +71,19 @@ export function ChoiceView({ choice, draft, onDraft, depth = 0 }: ChoiceViewProp
     return choice.options.filter((o) => o.name.toLowerCase().includes(q) || (o.summary ?? "").toLowerCase().includes(q) || choice.picked.includes(o.id));
   }, [choice.options, choice.picked, query]);
   const focused = choice.options.find((o) => o.id === (focus ?? choice.picked[0]));
+  const showDetails = !!focused && hasDetails(focused) && (detailsOpen ?? (depth === 0 || long));
+  const toggleDetails = (o: OptionState) => {
+    if (showDetails && focused?.id === o.id) return setDetailsOpen(false);
+    setFocus(o.id);
+    setDetailsOpen(true);
+  };
   const errors = choice.issues.filter((i) => i.level === "error" || i.level === "warning");
   const complete = choice.picked.length >= choice.min && !choice.issues.some((i) => i.level === "error" || i.level === "incomplete");
 
   const pick = (o: OptionState) => {
     if (!o.available) return;
     setFocus(o.id);
+    setDetailsOpen(undefined);
     onDraft(togglePick(draft, choice, o.id));
   };
 
@@ -104,7 +131,7 @@ export function ChoiceView({ choice, draft, onDraft, depth = 0 }: ChoiceViewProp
           <input className="cf-input cb-list__filter" type="search" placeholder={`Filter ${choice.options.length} options`} aria-label={`Filter ${choice.label}`} value={query} onChange={(e) => setQuery(e.target.value)} />
           <ul className="cb-list__items" role={multi ? "group" : "radiogroup"} aria-labelledby={headingId}>
             {shown.map((o) => (
-              <OptionRow key={o.id} option={o} choice={choice} multi={multi} onPick={pick} onDetails={() => setFocus(o.id)} />
+              <OptionRow key={o.id} option={o} choice={choice} multi={multi} onPick={pick} detailsShown={showDetails && focused?.id === o.id} onDetails={() => toggleDetails(o)} />
             ))}
             {shown.length === 0 && <li className="cf-muted">No option matches.</li>}
           </ul>
@@ -113,13 +140,13 @@ export function ChoiceView({ choice, draft, onDraft, depth = 0 }: ChoiceViewProp
         choice.options.length > 0 && (
           <div className={`cb-cards${depth > 0 ? " cb-cards--small" : ""}`} role={multi ? "group" : "radiogroup"} aria-labelledby={headingId}>
             {choice.options.map((o) => (
-              <OptionCard key={o.id} option={o} choice={choice} multi={multi} onPick={pick} onDetails={() => setFocus(o.id)} />
+              <OptionCard key={o.id} option={o} choice={choice} multi={multi} onPick={pick} detailsShown={showDetails && focused?.id === o.id} onDetails={() => toggleDetails(o)} />
             ))}
           </div>
         )
       )}
 
-      {focused && (focused.description || Object.keys(focused.item).some((k) => !HIDDEN_KEYS.has(k) && valueText(focused.item[k]))) && (depth === 0 || long) && <Details option={focused} />}
+      {showDetails && focused && <Details option={focused} />}
 
       {choice.picked.map((id) => {
         const o = choice.options.find((x) => x.id === id);
@@ -152,7 +179,17 @@ function Columns({ option, choice }: { option: OptionState; choice: ChoiceState 
   );
 }
 
-function OptionCard({ option: o, choice, multi, onPick, onDetails }: { option: OptionState; choice: ChoiceState; multi: boolean; onPick: (o: OptionState) => void; onDetails: () => void }) {
+interface OptionProps {
+  option: OptionState;
+  choice: ChoiceState;
+  multi: boolean;
+  onPick: (o: OptionState) => void;
+  /** Whether the details panel shows this option. */
+  detailsShown: boolean;
+  onDetails: () => void;
+}
+
+function OptionCard({ option: o, choice, multi, onPick, detailsShown, onDetails }: OptionProps) {
   const on = choice.picked.includes(o.id);
   return (
     <div className={`cb-card${on ? " is-on" : ""}${o.available ? "" : " is-off"}`} data-testid={`opt:${choice.path}:${o.id}`}>
@@ -166,16 +203,16 @@ function OptionCard({ option: o, choice, multi, onPick, onDetails }: { option: O
       {o.summary && <p className="cb-card__summary">{o.summary}</p>}
       <Columns option={o} choice={choice} />
       {!o.available && o.reason && <p className="cb-card__reason">{o.reason}</p>}
-      {(o.description || o.cite || o.page !== undefined) && (
-        <button type="button" className="cb-card__more" onClick={onDetails} aria-label={`Details: ${o.name}`}>
-          Details
+      {hasDetails(o) && (
+        <button type="button" className="cb-card__more" onClick={onDetails} aria-label={`Details: ${o.name}`} aria-expanded={detailsShown}>
+          {detailsShown ? "Hide details" : "Details"}
         </button>
       )}
     </div>
   );
 }
 
-function OptionRow({ option: o, choice, multi, onPick, onDetails }: { option: OptionState; choice: ChoiceState; multi: boolean; onPick: (o: OptionState) => void; onDetails: () => void }) {
+function OptionRow({ option: o, choice, multi, onPick, detailsShown, onDetails }: OptionProps) {
   const on = choice.picked.includes(o.id);
   return (
     <li className={`cb-row${on ? " is-on" : ""}${o.available ? "" : " is-off"}`} data-testid={`opt:${choice.path}:${o.id}`}>
@@ -186,8 +223,8 @@ function OptionRow({ option: o, choice, multi, onPick, onDetails }: { option: Op
         {o.summary && <span className="cf-muted cb-row__summary">{o.summary}</span>}
         {!o.available && o.reason && <span className="cb-row__reason">{o.reason}</span>}
       </label>
-      {(o.description || o.cite) && (
-        <button type="button" className="cb-row__more" onClick={onDetails} aria-label={`Details: ${o.name}`}>
+      {hasDetails(o) && (
+        <button type="button" className="cb-row__more" onClick={onDetails} aria-label={`Details: ${o.name}`} aria-expanded={detailsShown}>
           ⓘ
         </button>
       )}
@@ -195,10 +232,9 @@ function OptionRow({ option: o, choice, multi, onPick, onDetails }: { option: Op
   );
 }
 
+/** The option's details: its source and page, the data its item carries (a subclass's features by level...), and its text (or its summary when it has no text). */
 function Details({ option: o }: { option: OptionState }) {
-  const rows = Object.entries(o.item)
-    .filter(([k, v]) => !HIDDEN_KEYS.has(k) && valueText(v))
-    .slice(0, 14);
+  const rows = detailRows(o);
   return (
     <aside className="cb-details" aria-label={`About ${o.name}`} data-testid="option-details">
       <header className="cb-details__head">
@@ -209,12 +245,13 @@ function Details({ option: o }: { option: OptionState }) {
           {rows.map(([k, v]) => (
             <div key={k}>
               <dt>{humanize(k)}</dt>
-              <dd>{valueText(v)}</dd>
+              {/* multi-line text (a progression table, a feature list) is markdown */}
+              <dd>{typeof v === "string" && v.includes("\n") ? <Markdown text={v} className="cb-details__md" /> : valueText(v)}</dd>
             </div>
           ))}
         </dl>
       )}
-      {o.description && <Markdown text={o.description} className="cb-details__text" />}
+      {o.description ? <Markdown text={o.description} className="cb-details__text" /> : o.summary && <p className="cb-details__text">{o.summary}</p>}
     </aside>
   );
 }

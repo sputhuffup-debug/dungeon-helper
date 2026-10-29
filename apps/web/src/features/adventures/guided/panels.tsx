@@ -301,7 +301,7 @@ export function ActPanel({ adventure, panel }: { adventure: Adventure; panel: Ac
         return (
           <label className="app-label">
             <span>Goal</span>
-            <CommitInput value={act.goal ?? ""} label={`Act ${act.number} goal`} placeholder="What this act must achieve" onCommit={(v) => setAct({ goal: v.trim() || undefined })} />
+            <CommitInput value={act.goal ?? ""} label={`Act ${act.number} goal`} placeholder="What this act must achieve" grow onCommit={(v) => setAct({ goal: v.trim() || undefined })} />
           </label>
         );
       case "pacing":
@@ -363,7 +363,7 @@ function SceneCard({ scene, act, index, count, sceneFields }: { scene: Scene; ac
         return (
           <label className="app-label">
             <span>Purpose</span>
-            <CommitInput value={scene.purpose ?? ""} label={`${scene.title} purpose`} placeholder="What this scene is for" onCommit={(v) => set({ purpose: v.trim() || undefined })} />
+            <CommitInput value={scene.purpose ?? ""} label={`${scene.title} purpose`} placeholder="What this scene is for" grow onCommit={(v) => set({ purpose: v.trim() || undefined })} />
           </label>
         );
       case "status":
