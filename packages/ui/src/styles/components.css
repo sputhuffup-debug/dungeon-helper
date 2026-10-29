@@ -1229,7 +1229,7 @@
 .cf-weapons td[data-column] {
   white-space: nowrap;
 }
-.cf-weapons__name {
+span.cf-weapons__name {
   display: block;
 }
 .cf-weapons__summary {
