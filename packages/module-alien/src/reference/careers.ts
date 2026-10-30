@@ -183,7 +183,7 @@ export const careerItems: CareerItem[] = [
       "You gave up your family for the job; now you never let friends down.",
       "Downtime is what counts: a cold Aspen beer and some peace and you're content.",
     ],
-    gear: ["Cutting torch", "Watsumi DV-303 Bolt Gun", "D6 doses Hydr8tion", "Maintenance jack", "IRC MK.50 Compression Suit", "Hi-beam flashlight"],
+    gear: ["Cutting torch", "Watatsumi DV-303 Bolt Gun", "D6 doses Hydr8tion", "Maintenance jack", "IRC MK.50 Compression Suit", "Hi-beam flashlight"],
     signatureItems: ["Tool belt", "Photo of partner", "Crucifix or other religious symbol"],
   }),
   career({
