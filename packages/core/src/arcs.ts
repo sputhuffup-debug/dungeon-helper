@@ -442,15 +442,17 @@ export interface ArcTickPlan {
 
 /**
  * Plan the between-jobs tick of every active thread: one roll each from
- * `<seed>/<thread id>`, plus the module's extra for an ignored thread. Pure:
- * same campaign, seed and module, same plan. Nothing moves until applied.
+ * `<seed>/<n>` (its column on the board, from 1), plus the module's extra
+ * for an ignored thread. Pure: same board, seed and module, same plan, also
+ * in another copy of the campaign. Nothing moves until applied.
  */
 export function planArcTicks(maps: Pick<CampaignMaps, "arcs">, def: Pick<ArcsDef, "tick">, seed: string): ArcTickPlan[] {
   const out: ArcTickPlan[] = [];
-  for (const t of threadsInOrder(Object.values(maps.arcs ?? {}))) {
+  const board = threadsInOrder(Object.values(maps.arcs ?? {}));
+  for (const [i, t] of board.entries()) {
     if (t.status !== "active") continue;
     const ignored = isThreadIgnored(t);
-    const roll = rollArcTick(def, `${seed}/${t.id}`, ignored);
+    const roll = rollArcTick(def, `${seed}/${i + 1}`, ignored);
     if (!roll) continue;
     const from = t.clock.filled;
     const to = Math.max(0, Math.min(t.clock.segments, from + roll.ticks + roll.ignored));

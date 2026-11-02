@@ -87,7 +87,7 @@ describe("alien.campaign-thread", () => {
     // recorded: any change to the tables or the dealing shows here
     const out: string[] = [];
     for (let i = 0; i < 40; i++) out.push(JSON.stringify(threads(`thread-fixture-${i}`, { sponsors: i % 3 === 0 ? "new" : "mixed" }).graph.results.offers));
-    expect(createHash("sha256").update(out.join("\n")).digest("hex")).toBe("12d5439a2c91e9231673f85e4ad6f25980e48716cb55b8b9fd581ab519704bcc");
+    expect(createHash("sha256").update(out.join("\n")).digest("hex")).toBe("5b1b112ed99768218907c55177659fbbf4599d3f171145d43cbbbd5a72d016c1");
   });
 
   it("deals 1-3 threads from different sponsors, each with a goal, method, weakness, cost and title", () => {

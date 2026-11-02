@@ -443,10 +443,11 @@ export function recordShare(store: CampaignStore, sessionId: Id, record: ShareRe
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
 /** A short chat message to go with a share, e.g. "Session 3 update: 2 new handouts and the map". */
-export function shareMessage(plan: Pick<SharePlan, "share" | "mapStatus" | "newHandouts">, extra: { primer?: boolean } = {}): string {
+export function shareMessage(plan: Pick<SharePlan, "share" | "mapStatus" | "newHandouts">, extra: { primer?: boolean; crewNotes?: boolean } = {}): string {
   const s = plan.share;
   const parts: string[] = [];
   if (extra.primer) parts.push("the campaign primer");
+  if (extra.crewNotes) parts.push("the crew notes");
   if (s.briefing) parts.push(s.briefing.scene ? `the briefing for “${s.briefing.scene}”` : "the briefing");
   if (s.handouts.length) {
     const fresh = s.handouts.filter((h) => plan.newHandouts.includes(h.id)).length;

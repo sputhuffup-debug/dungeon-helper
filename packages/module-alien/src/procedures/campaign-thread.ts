@@ -204,7 +204,15 @@ export function milestonePositions(segments: number, stages: number): number[] {
   return Array.from({ length: n }, (_, i) => Math.max(1, Math.min(segments, Math.round(((i + 1) * segments) / n))));
 }
 
-function buildThread(ctx: ProcedureContext, index: number, cast: ThreadCast, used: { sponsors: Set<string>; schemes: Set<string> }): ThreadData {
+interface Used {
+  sponsors: Set<string>;
+  schemes: Set<string>;
+  sites: Set<number>;
+  /** Clue templates already on this board ("kind/tier/index"): each thread gets its own. */
+  templates: Set<string>;
+}
+
+function buildThread(ctx: ProcedureContext, index: number, cast: ThreadCast, used: Used): ThreadData {
   const key = `thread-${index}`;
   const seed = ctx.part(key, (r) => seedOf(r));
   const local = (k: string) => createRng(seed).fork(k);
@@ -228,7 +236,12 @@ function buildThread(ctx: ProcedureContext, index: number, cast: ThreadCast, use
   const method = METHODS[part("method", (r) => pickIndex(r, METHODS.length)) % METHODS.length]!;
   const weakness = WEAKNESSES[part("weakness", (r) => pickIndex(r, WEAKNESSES.length)) % WEAKNESSES.length]!;
   const costRaw = COSTS[part("cost", (r) => pickIndex(r, COSTS.length)) % COSTS.length]!;
-  const siteRaw = SITES[part("site", (r) => pickIndex(r, SITES.length)) % SITES.length]!;
+  const siteIndex = part("site", (r) => {
+    const free = SITES.map((_, i) => i).filter((i) => !used.sites.has(i));
+    return free.length ? free[r.int(0, free.length - 1)]! : pickIndex(r, SITES.length);
+  }) % SITES.length;
+  used.sites.add(siteIndex);
+  const siteRaw = SITES[siteIndex]!;
   const codename = CODENAMES[part("codename", (r) => pickIndex(r, CODENAMES.length)) % CODENAMES.length]!;
   const titleTemplate = GM_TITLES[part("title", (r) => pickIndex(r, GM_TITLES.length)) % GM_TITLES.length]!;
   const playerTitle = scheme.playerTitles[part("player-title", (r) => pickIndex(r, scheme.playerTitles.length)) % scheme.playerTitles.length]!;
@@ -244,7 +257,7 @@ function buildThread(ctx: ProcedureContext, index: number, cast: ThreadCast, use
     return stageTiers(r.fork("tiers"), n);
   });
   const tiers = (Array.isArray(shape) ? shape : ["hints", "pattern", "endgame"]).filter((t): t is StageTier => (STAGE_TIERS as readonly string[]).includes(t));
-  const usedTemplates = new Set<string>();
+  const usedTemplates = used.templates;
   const stages = tiers.map((tier, k) => {
     const pickd = part(`stage-${k + 1}`, (r) => pickStage(r, tier, new Set(usedTemplates)));
     // a pinned stage from another shape is re-dealt for this tier
@@ -361,7 +374,7 @@ export function threadOffer(t: ThreadData): Offer {
 export function dealThreads(ctx: ProcedureContext): ThreadData[] {
   const cast = threadCast(ctx.inputs);
   const n = Math.max(1, Math.min(3, Math.floor(num(ctx.inputs.threads, 2))));
-  const used = { sponsors: new Set<string>(), schemes: new Set<string>() };
+  const used: Used = { sponsors: new Set(), schemes: new Set(), sites: new Set(), templates: new Set() };
   const out: ThreadData[] = [];
   for (let i = 1; i <= n; i++) out.push(buildThread(ctx, i, cast, used));
   return out;

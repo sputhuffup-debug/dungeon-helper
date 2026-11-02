@@ -223,7 +223,7 @@ describe("clocks", () => {
     const moves = applyArcTicks(store, a, { session: session.id, note: "Between jobs" });
     expect(moves[0]!.to).toBe(a[0]!.to);
     const log = store.get("arcs", t.id)!.clock.log;
-    expect(log[0]).toMatchObject({ how: "roll", ignored: true, session: session.id, note: "Between jobs", roll: { dice: "1d6", seed: `between-1/${t.id}` } });
+    expect(log[0]).toMatchObject({ how: "roll", ignored: true, session: session.id, note: "Between jobs", roll: { dice: "1d6", seed: "between-1/1" } });
     // finding a clue after the tick: no longer ignored
     markClueFound(store, t.id, clueAt(t, 0, 0).id, { at: new Date(Date.parse(log[0]!.at) + 1000).toISOString() });
     expect(isThreadIgnored(store.get("arcs", t.id)!)).toBe(false);

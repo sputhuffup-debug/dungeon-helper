@@ -242,10 +242,11 @@ const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? o
 const list = (parts: string[]) => (parts.length <= 1 ? (parts[0] ?? "nothing new") : `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`);
 
 /** A short line for the direct message, e.g. "Skyfire Down for Sam, Session 1: your sheet, your agenda and 3 handouts (1 just for you)." */
-export function packetMessage(plan: Pick<PacketPlan, "share" | "mapStatus">, extra: { primer?: boolean } = {}): string {
+export function packetMessage(plan: Pick<PacketPlan, "share" | "mapStatus">, extra: { primer?: boolean; crewNotes?: boolean } = {}): string {
   const s = plan.share;
   const parts: string[] = [];
   if (extra.primer) parts.push("the campaign primer");
+  if (extra.crewNotes) parts.push("your crew notes");
   if (s.characters.length) parts.push(s.characters.length === 1 ? "your sheet" : `your ${s.characters.length} sheets`);
   if (s.characters.some((c) => c.agenda)) parts.push("your agenda");
   if (s.briefing) parts.push(s.briefing.scene ? `the briefing for “${s.briefing.scene}”` : "the briefing");

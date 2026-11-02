@@ -730,7 +730,7 @@ function seedBoardClue(ctx: ProcedureContext, board: PostingData[], arcs: BoardA
   const slotLabel = slotLabelOf(placed.slot);
   pa.clue = { thread: thread.id, threadTitle: thread.title, clue: clue.id, slot: placed.slot, slotLabel, text, ...(entity ? { entity } : {}), ...(knownBy.length ? { knownBy: knownBy.map((c) => c.name) } : {}) };
   pa.links.push({ kind: "clue", thread: thread.id, clue: clue.id, slot: placed.slot, slotLabel, text, ...(entity ? { entity } : {}) });
-  pa.influences.push(`Seeds a clue of “${thread.title}” (${slotLabel.toLowerCase()})`);
+  pa.influences.push(`Seeds a clue of “${thread.title}” (${slotLabel.charAt(0).toLowerCase()}${slotLabel.slice(1)})`);
 }
 
 export const jobBoard: Procedure = {
