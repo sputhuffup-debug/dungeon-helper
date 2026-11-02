@@ -141,6 +141,16 @@ const adventureRoute = createRoute({ getParentRoute: () => campaignRoute, path: 
 const generateRoute = createRoute({ getParentRoute: () => campaignRoute, path: "generate", component: lazyRouteComponent(() => import("./features/generate/GeneratePage"), "GeneratePage") });
 const procedureRoute = createRoute({ getParentRoute: () => campaignRoute, path: "generate/$procedureId", validateSearch: (s: Record<string, unknown>): { run?: string; chainFrom?: string; chain?: number; within?: string; pick?: string } => ({ ...(typeof s.run === "string" ? { run: s.run } : {}), ...(typeof s.pick === "string" && s.pick !== "" ? { pick: s.pick } : {}), ...(typeof s.chainFrom === "string" ? { chainFrom: s.chainFrom } : {}), ...(typeof s.chain === "number" || (typeof s.chain === "string" && s.chain !== "") ? { chain: Number(s.chain) } : {}), ...(typeof s.within === "string" ? { within: s.within } : {}) }), component: lazyRouteComponent(() => import("./features/generate/ProcedurePage"), "ProcedurePage") });
 const tableRoute = createRoute({ getParentRoute: () => campaignRoute, path: "table/$sessionId", validateSearch: (s: Record<string, unknown>): { view?: string } => (typeof s.view === "string" ? { view: s.view } : {}), component: lazyRouteComponent(() => import("./features/table/TableModePage"), "TableModePage") });
+export interface ArcsSearch {
+  view?: string;
+  member?: string;
+}
+const arcsRoute = createRoute({
+  getParentRoute: () => campaignRoute,
+  path: "arcs",
+  validateSearch: (s: Record<string, unknown>): ArcsSearch => ({ ...(typeof s.view === "string" && s.view ? { view: s.view } : {}), ...(typeof s.member === "string" && s.member ? { member: s.member } : {}) }),
+  component: lazyRouteComponent(() => import("./features/arcs/ArcsPage"), "ArcsPage"),
+});
 const shipRoute = createRoute({ getParentRoute: () => campaignRoute, path: "ship", component: lazyRouteComponent(() => import("./features/ship/ShipPage"), "ShipPage") });
 const sessionsRoute = createRoute({ getParentRoute: () => campaignRoute, path: "sessions", component: lazyRouteComponent(() => import("./features/sessions/SessionsPage"), "SessionsPage") });
 const sessionRoute = createRoute({ getParentRoute: () => campaignRoute, path: "sessions/$sessionId", component: lazyRouteComponent(() => import("./features/sessions/SessionPage"), "SessionPage") });
@@ -172,6 +182,7 @@ export const routeTree = rootRoute.addChildren([
     sessionRoute,
     primerRoute,
     shipRoute,
+    arcsRoute,
     mapRoute,
     mapGenRoute,
   ]),

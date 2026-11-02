@@ -7,7 +7,7 @@
  *
  * Nothing in this file names a rule from any game.
  */
-import type { AppliedDuration, Effect, LedgerLinks, PageRef, ProgressionPoolId, RollRecord, SiteLayout, VisibilityLevel } from "@campaign-forge/module-sdk";
+import type { AppliedDuration, ArcClueState, CiteRef, ContactStance, Effect, LedgerLinks, PageRef, ProgressionPoolId, RollRecord, SiteLayout, VisibilityLevel } from "@campaign-forge/module-sdk";
 
 export type Id = string; // ULID
 
@@ -106,6 +106,35 @@ export interface Entity extends BaseRecord {
   ownerMemberId?: Id;
   /** Conditions currently on the entity (stress responses, injuries...). Module-defined ids. */
   conditions?: EntityCondition[];
+  /**
+   * The NPC is one of the crew's contacts (see arcs.ts). The players' view
+   * keeps only where to find them and the favours (`playerContact`); the
+   * stance, grudges, what they know and the GM's note stay with the GM.
+   */
+  contact?: EntityContact;
+}
+
+/** A crew contact, kept on the NPC. */
+export interface EntityContact {
+  /** When they became a contact (ISO). */
+  since: string;
+  stance: ContactStance;
+  /** Favours they owe the crew, and the crew owes them. */
+  favours: { owedToCrew: number; owedByCrew: number };
+  /** What they hold against the crew (GM). */
+  grudges: string[];
+  /** Clues they know: a way for the crew to learn them (GM). */
+  knows: Array<{ thread: Id; clue: Id }>;
+  /** Where they can be found, as the players know it. */
+  foundAt?: string;
+  /** The place they can be found at (shown to the players only when they may see it). */
+  place?: Id;
+  /** The last job and session the crew met them in. */
+  lastSeen?: { job?: Id; session?: Id; at?: string };
+  /** Turned on the crew on a job and lived (GM). */
+  betrayer?: boolean;
+  /** The GM's note. */
+  note?: string;
 }
 
 /**
@@ -233,6 +262,8 @@ export interface ShareRecord {
   party?: boolean;
   /** The campaign primer was included. */
   primer?: boolean;
+  /** The crew notes were included. */
+  crewNotes?: boolean;
   format?: ShareFormat;
   /**
    * A player packet for this member (only their copy). Absent: a group share
@@ -574,6 +605,137 @@ export interface AdvancementEntry extends BaseRecord {
 }
 
 // ---------------------------------------------------------------------------
+// campaign arcs (threads, clues, clocks)
+// ---------------------------------------------------------------------------
+
+/** Records a clue is linked to: places, people, items (entities), jobs, sessions and scenes. */
+export interface ArcLinks {
+  entities?: Id[];
+  jobs?: Id[];
+  sessions?: Id[];
+  scenes?: Id[];
+}
+
+/** Where a clue was placed: the job and posting that carry it and the slot it sits in. */
+export interface ArcClueSeeding {
+  at: string;
+  job?: Id;
+  /** The posting (offer key) it went out on, and the run that dealt it. */
+  posting?: string;
+  run?: Id;
+  /** The module's slot id (e.g. "intent") and its label. */
+  slot?: string;
+  slotLabel?: string;
+  /** The entity it rides on (an NPC with it as a secret, a contact who knows it). */
+  entity?: Id;
+  /** How it reads where it was placed (GM). */
+  text?: string;
+}
+
+/** When and where the crew learnt a clue. */
+export interface ArcClueFound {
+  at: string;
+  session?: Id;
+  job?: Id;
+  entity?: Id;
+  /** Where the GM marked it: the job page, the NPC, the wrap-up, the arc board. */
+  via?: "job" | "entity" | "wrap-up" | "board";
+}
+
+export interface ArcClue {
+  id: Id;
+  /** The module's clue kind (fact, object, person, place...). */
+  kind: string;
+  /** What it is (GM). */
+  text: string;
+  /** How the crew notes put it once found. */
+  playerText: string;
+  /** What learning it unlocks (GM). */
+  unlocks?: string;
+  state: ArcClueState;
+  seeded?: ArcClueSeeding;
+  found?: ArcClueFound;
+  links?: ArcLinks;
+  /** Only these players learnt it: it reaches their crew notes and packets alone. Absent: the whole crew. */
+  players?: Id[];
+}
+
+export interface ArcStage {
+  id: Id;
+  title: string;
+  summary?: string;
+  clues: ArcClue[];
+}
+
+/** A clock milestone: what happens when the clock reaches `at`, and the payoffs it suggests. */
+export interface ArcMilestone {
+  at: number;
+  text: string;
+  /** The stage it opens. */
+  stage?: Id;
+  payoffs?: Array<{ kind: string; text: string; used?: { at: string; job?: Id } }>;
+  /** When the clock first reached it. */
+  reached?: string;
+}
+
+/** One movement of a thread clock. */
+export interface ArcClockTick {
+  at: string;
+  /** Segments added (negative to wind it back). */
+  by: number;
+  how: "roll" | "hand";
+  roll?: { dice: string; faces: number[]; total: number; seed: string };
+  /** The thread was ignored (no clue found since its last tick). */
+  ignored?: boolean;
+  note?: string;
+  session?: Id;
+}
+
+export interface ArcClock {
+  segments: number;
+  filled: number;
+  milestones: ArcMilestone[];
+  log: ArcClockTick[];
+}
+
+export type ArcStatus = "active" | "dormant" | "resolved";
+
+/**
+ * A campaign thread (an arc): a sponsor's scheme told across jobs, from the
+ * first hints to the endgame, with clues the crew finds and a clock that
+ * ticks between jobs. Always GM-only; the players see only crew notes (the
+ * player-facing title and the clues they found, see arcs.ts).
+ */
+export interface ArcThread extends BaseRecord {
+  /** The GM's title. */
+  title: string;
+  /** The title the crew notes use, hidden until the crew finds one of its clues. */
+  playerTitle: string;
+  /** The sponsoring faction (an entity). */
+  sponsor?: Id;
+  /** The players may learn who is behind it: crew notes name the sponsor (when they may see it). */
+  sponsorRevealed?: boolean;
+  goal: string;
+  method: string;
+  weakness: string;
+  /** What happens if the crew ignores it. */
+  cost: string;
+  stages: ArcStage[];
+  clock: ArcClock;
+  status: ArcStatus;
+  /** Column order on the board. */
+  order: number;
+  /** NPCs who work for the thread (a betrayer's "why"). */
+  agents?: Id[];
+  links?: ArcLinks;
+  /** Where it came from: the generator run and offer, the module. */
+  source?: { module?: string; procedure?: string; run?: Id; offer?: string };
+  page?: PageRef;
+  cite?: CiteRef;
+  visibility: Visibility;
+}
+
+// ---------------------------------------------------------------------------
 // the document
 // ---------------------------------------------------------------------------
 
@@ -595,6 +757,8 @@ export interface CampaignMaps {
   ledger: Record<Id, LedgerEntry>;
   travel: Record<Id, TravelLeg>;
   advancement: Record<Id, AdvancementEntry>;
+  /** Campaign threads on the arc board (GM-only). */
+  arcs: Record<Id, ArcThread>;
 }
 
 export type MapName = Exclude<keyof CampaignMaps, "meta">;
@@ -617,6 +781,7 @@ export const MAP_NAMES: MapName[] = [
   "ledger",
   "travel",
   "advancement",
+  "arcs",
 ];
 
 /** Export bundle manifest (README.md lists this too). */

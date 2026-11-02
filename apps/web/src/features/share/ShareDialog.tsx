@@ -27,6 +27,8 @@ import { useCampaign, useMapVersion, useMeta } from "../../state/hooks";
 import { logTable } from "../../state/tableActions";
 import { PacketsBody } from "./PacketsBody";
 import { primerShareSections } from "./primerShare";
+import { crewNotesShareSections } from "./crewNotesShare";
+import { arcsDefOf, crewNotesFor } from "../../state/arcActions";
 import { buildShareFiles, canShareFiles, loadShareImages, sendFiles, shareFileStem, type LoadedImages } from "./shareExport";
 import { shareSections, shareTime, shareTitle, type ShareFormat, type ShareSection } from "./shareLayout";
 import { FormatFieldset, SharePreview, loadShareDocs, usePassable, type ShareCtx } from "./SharePreview";
@@ -109,6 +111,10 @@ function ShareBody({ onClose, sessionId, sceneId, primer }: Omit<ShareDialogProp
   const [opts, setOpts] = useState<ShareOptions>(() => (primer?.only ? { ...defaultShareOptions(baseline), briefing: false, maps: false, handouts: false, party: false } : defaultShareOptions(baseline)));
   const [withPrimer, setWithPrimer] = useState(primer?.defaultOn ?? false);
   const [primerSections, setPrimerSections] = useState<ShareSection[] | undefined>();
+  const [withNotes, setWithNotes] = useState(false);
+  const arcsDef = arcsDefOf(ctx.module, ctx.store.meta().mode);
+  // the whole crew's notes (nothing a single player learnt alone)
+  const notes = useMemo(() => (arcsDef ? crewNotesFor(ctx) : undefined), [ctx, arcsDef, version]); // eslint-disable-line react-hooks/exhaustive-deps
   const [at] = useState(() => new Date().toISOString());
   const [snapshot, setSnapshot] = useState<PlayerShare | undefined>();
   const [images, setImages] = useState<LoadedImages>({ ready: new Map(), originals: new Map() });
@@ -140,16 +146,17 @@ function ShareBody({ onClose, sessionId, sceneId, primer }: Omit<ShareDialogProp
 
   const plan = useMemo(() => (snapshot ? planShare(snapshot, baseline, opts) : undefined), [snapshot, baseline, opts]);
   const primerOn = withPrimer && !!primerSections?.length;
+  const notesOn = withNotes && !!notes && !notes.empty;
   const passable = usePassable(ctx, version);
   const sections = useMemo(() => {
     if (!plan) return [];
     const updatedMaps = new Set(Object.entries(plan.mapStatus).filter(([, s]) => s === "updated").map(([id]) => id));
-    // the primer comes first: it introduces the campaign, and "only what's new" never filters it
+    // the primer comes first: it introduces the campaign, and "only what's new" never filters it; the crew notes go last, as they stand
     const primerPart = primerOn ? primerSections! : [];
-    return [...primerPart, ...shareSections({ share: plan.share, images: images.ready, format, updatedMaps })];
-  }, [plan, images, format, primerOn, primerSections]);
+    return [...primerPart, ...shareSections({ share: plan.share, images: images.ready, format, updatedMaps }), ...(notesOn ? crewNotesShareSections(notes) : [])];
+  }, [plan, images, format, primerOn, primerSections, notesOn, notes]);
   const empty = sections.length === 0;
-  const message = plan ? shareMessage(plan, { primer: primerOn }) : "";
+  const message = plan ? shareMessage(plan, { primer: primerOn, crewNotes: notesOn }) : "";
 
   // build the files ahead of the click: the share sheet needs the click's user activation, which a slow build would lose
   useEffect(() => {
@@ -174,7 +181,7 @@ function ShareBody({ onClose, sessionId, sceneId, primer }: Omit<ShareDialogProp
     try {
       const result = await sendFiles(files, { title, text: message, zipName: `${shareFileStem(snapshot)}.zip` });
       if (result === "cancelled") return;
-      recordShare(ctx.store, sessionId, shareRecordOf(plan, { format, primer: primerOn }));
+      recordShare(ctx.store, sessionId, shareRecordOf(plan, { format, primer: primerOn, crewNotes: notesOn }));
       logTable(ctx, sessionId, `Shared with players: ${message}`);
       pushToast(result === "shared" ? "Shared. Next time only what is new goes out." : `Saved ${files.length === 1 ? files[0]!.name : `${files.length} files as a zip`}. Send it to the group chat.`, { tone: "success" });
       onClose();
@@ -227,6 +234,13 @@ function ShareBody({ onClose, sessionId, sceneId, primer }: Omit<ShareDialogProp
               {available[key] === 0 ? <span className="cf-muted"> (none)</span> : key === "handouts" ? <span className="cf-muted"> ({available[key]})</span> : null}
             </label>
           ))}
+          {arcsDef && (
+            <label className="app-toggle">
+              <input type="checkbox" className="cf-checkbox" checked={notesOn} disabled={!notes || notes.empty} onChange={() => setWithNotes((v) => !v)} data-testid="share-include-crew-notes" />
+              {notes?.title ?? "Crew notes"}
+              {!notes || notes.empty ? <span className="cf-muted"> (nothing found yet)</span> : <span className="cf-muted"> ({notes.threads.length} threads, {notes.contacts.length} contacts)</span>}
+            </label>
+          )}
           <label className="app-toggle">
             <input type="checkbox" className="cf-checkbox" checked={opts.onlyNew} onChange={() => toggle("onlyNew")} data-testid="share-only-new" />
             Only what's new since the last share

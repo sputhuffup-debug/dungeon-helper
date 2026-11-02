@@ -3406,3 +3406,11 @@ a.cf-btn {
   padding-left: 1.2em;
   font-size: var(--cf-text-sm);
 }
+
+/* a job board posting: what the campaign arcs did to it (GM only) */
+.offer-card__influence {
+  margin: 0;
+  padding: var(--cf-space-1) var(--cf-space-2);
+  border-left: 3px solid var(--cf-warning);
+  background: var(--cf-warning-soft);
+}

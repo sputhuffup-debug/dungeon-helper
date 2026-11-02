@@ -22,7 +22,7 @@ More in **[App features](docs/features/app.md)**.
 
 | Module | What it adds | Demos |
 |---|---|---|
-| **[Alien RPG (Evolved Edition)](docs/features/alien.md)** | Guided cinematic builder, creature turns and combat, the ship and crew funds, job boards with NPCs and site briefs, XP and Story Points, generated deck plans with ducts, hidden threats on a motion tracker, roll printing for miniatures | Skyfire Down, Cold Harbor Relay |
+| **[Alien RPG (Evolved Edition)](docs/features/alien.md)** | Guided cinematic builder, creature turns and combat, the ship and crew funds, job boards with NPCs and site briefs, an arc board with clues, clocks, heat and contacts, XP and Story Points, generated deck plans with ducts, hidden threats on a motion tracker, roll printing for miniatures | Skyfire Down, Cold Harbor Relay |
 | **[5th Edition SRD 5.1 & 5.2](docs/features/dnd5e.md)** | 334 monsters, 319 spells, sheets with every modifier computed, d20 rolls with advantage, SRD 5.2 backgrounds, species and subclasses, generated dungeons | Thornwick Crossing |
 | **[Fantasy d20 Remaster (ORC)](docs/features/orc.md)** | 490 creatures, four degrees of success, an XP-budget encounter builder, generated dungeons stocked from GM Core's budgets, an optional supplement with nine more remaster books | Hollowmere |
 

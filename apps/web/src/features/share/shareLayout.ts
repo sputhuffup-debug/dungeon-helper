@@ -43,7 +43,7 @@ export type ShareFormat = "images" | "pdf" | "page";
 /** One item of the share: a title and blocks. */
 export interface ShareSection {
   id: string;
-  kind: "briefing" | "map" | "handout" | "party" | "primer" | "character" | "agenda";
+  kind: "briefing" | "map" | "handout" | "party" | "primer" | "character" | "agenda" | "notes";
   eyebrow: string;
   title: string;
   blocks: Block[];

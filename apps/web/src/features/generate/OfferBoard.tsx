@@ -26,7 +26,7 @@ export interface OfferRun {
 export function OfferBoard({ def, set, graph, controls, run }: { def: OfferDef; set: OfferSet; graph: GeneratedGraph; controls: AgendaSlotControls & { onRerollOffer: (key: string) => void }; run: OfferRun }) {
   const ctx = useCampaign();
   const navigate = useNavigate();
-  const [accepted, setAccepted] = useState<Record<string, { id: Id; name: string; kept: boolean }>>({});
+  const [accepted, setAccepted] = useState<Record<string, { id: Id; name: string; kept: boolean; arc?: boolean }>>({});
   const [discarded, setDiscarded] = useState<string[]>([]);
   const [busy, setBusy] = useState<string | undefined>();
   const shown = set.offers.filter((o) => !discarded.includes(o.key));
@@ -35,6 +35,12 @@ export function OfferBoard({ def, set, graph, controls, run }: { def: OfferDef; 
     setBusy(offer.key);
     try {
       const res = await acceptOffer(ctx, { graph, offer, def, as, ...run });
+      if (res.thread) {
+        const thread = res.thread;
+        setAccepted((a) => ({ ...a, [offer.key]: { id: thread.id, name: thread.title, kept: false, arc: true } }));
+        pushToast(`Put “${thread.title}” on the arc board${res.entities.length ? ", with its sponsor added GM-only" : ""}.`, { tone: "success" });
+        return;
+      }
       const root = res.root ? ctx.store.get("entities", res.root) : undefined;
       if (root) setAccepted((a) => ({ ...a, [offer.key]: { id: root.id, name: root.name, kept: as === "keep" } }));
       pushToast(`${as === "keep" ? "Kept" : "Accepted"} the ${def.noun} with ${res.entities.length} entit${res.entities.length === 1 ? "y" : "ies"}${res.handout ? " and a handout for the players" : ""}.`, { tone: "success" });
@@ -79,6 +85,11 @@ export function OfferBoard({ def, set, graph, controls, run }: { def: OfferDef; 
                 />
               </span>
             </header>
+            {offer.influences && offer.influences.length > 0 && (
+              <p className="offer-card__influence app-small" data-testid="offer-influence" data-gm-only="">
+                <strong>Influenced by:</strong> {offer.influences.join(" · ")}
+              </p>
+            )}
             <div className="offer-card__body">
               <section className="offer-card__players" aria-label="What the players read" data-testid="offer-player-text">
                 <h4 className="offer-card__label">Players read</h4>
@@ -100,10 +111,16 @@ export function OfferBoard({ def, set, graph, controls, run }: { def: OfferDef; 
             <footer className="app-row offer-card__actions">
               {done ? (
                 <span data-testid="offer-accepted">
-                  {done.kept ? "Kept as a lead:" : "Accepted:"}{" "}
-                  <Link to="/c/$campaignId/entities/$entityId" params={{ campaignId: ctx.campaignId, entityId: done.id }} className="app-link-strong">
-                    {done.name}
-                  </Link>
+                  {done.arc ? "On the arc board:" : done.kept ? "Kept as a lead:" : "Accepted:"}{" "}
+                  {done.arc ? (
+                    <Link to="/c/$campaignId/arcs" params={{ campaignId: ctx.campaignId }} className="app-link-strong">
+                      {done.name}
+                    </Link>
+                  ) : (
+                    <Link to="/c/$campaignId/entities/$entityId" params={{ campaignId: ctx.campaignId, entityId: done.id }} className="app-link-strong">
+                      {done.name}
+                    </Link>
+                  )}
                 </span>
               ) : (
                 <>

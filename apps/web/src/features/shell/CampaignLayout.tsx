@@ -7,6 +7,7 @@ import { Badge, DiceRollerProvider, IconButton, useTheme } from "../../component
 import { CampaignProvider } from "../../state/CampaignProvider";
 import { useCampaign, useMeta, useOfflineStatus } from "../../state/hooks";
 import { crewShipDefOf, hasShipPage } from "../../state/shipActions";
+import { arcsDefOf } from "../../state/arcActions";
 import { GlobalSearch } from "./GlobalSearch";
 
 export function CampaignLayout() {
@@ -22,6 +23,7 @@ export function CampaignLayout() {
   );
 }
 
+const ARCS_NAV = { to: "/c/$campaignId/arcs", label: "Arcs", icon: <path d="M4 5h4v14H4Zm6 0h4v9h-4Zm6 0h4v11h-4ZM2 21h20" /> };
 const SHIP_NAV = { to: "/c/$campaignId/ship", label: "Ship", icon: <path d="M12 2c3 3 4 7 4 11l2 3v4l-3-2H9l-3 2v-4l2-3c0-4 1-8 4-11Zm0 7v4" /> };
 
 const NAV: Array<{ to: string; label: string; icon: ReactNode }> = [
@@ -43,10 +45,12 @@ function Shell() {
   const campaignId = ctx.campaignId;
   const modeName = ctx.module.manifest.modes.find((m) => m.id === meta.mode)?.name ?? meta.mode;
   const nav = useMemo(() => {
-    if (!hasShipPage(ctx.module, meta.mode)) return NAV;
-    const ship = { ...SHIP_NAV, label: crewShipDefOf(ctx.module, meta.mode)?.label ?? "Funds" };
-    const at = NAV.findIndex((n) => n.label === "Sessions") + 1;
-    return [...NAV.slice(0, at), ship, ...NAV.slice(at)];
+    const out = [...NAV];
+    const arcs = arcsDefOf(ctx.module, meta.mode);
+    // the arc board sits after Adventures, the crew's ship after Sessions, when the module has them in this mode
+    if (arcs) out.splice(out.findIndex((n) => n.label === "Adventures") + 1, 0, { ...ARCS_NAV, label: arcs.label ?? "Arcs" });
+    if (hasShipPage(ctx.module, meta.mode)) out.splice(out.findIndex((n) => n.label === "Sessions") + 1, 0, { ...SHIP_NAV, label: crewShipDefOf(ctx.module, meta.mode)?.label ?? "Funds" });
+    return out;
   }, [ctx.module, meta.mode]);
 
   const links = useMemo<RecordLinks>(

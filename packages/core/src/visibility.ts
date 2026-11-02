@@ -167,7 +167,24 @@ export function projectEntityForViewer(entity: Entity, def: EntityTypeDef | unde
   delete copy.fieldVisibility;
   delete copy.provenance;
   delete copy.sheetState;
+  if (copy.contact) {
+    const contact = playerContact(entity.contact!);
+    if (contact) copy.contact = contact;
+    else delete copy.contact;
+  }
   return copy;
+}
+
+/**
+ * What the players see of a crew contact: since when, where to find them and
+ * the favours each way. The stance, grudges, what they know, the place
+ * entity, the betrayal and the GM's note are left out (built by copying the
+ * allowed fields, never by deleting the rest).
+ */
+export function playerContact(contact: NonNullable<Entity["contact"]>): Entity["contact"] {
+  const out = { since: contact.since, favours: { owedToCrew: contact.favours?.owedToCrew ?? 0, owedByCrew: contact.favours?.owedByCrew ?? 0 } } as NonNullable<Entity["contact"]>;
+  if (contact.foundAt) out.foundAt = contact.foundAt;
+  return out;
 }
 
 /**
@@ -175,7 +192,7 @@ export function projectEntityForViewer(entity: Entity, def: EntityTypeDef | unde
  * the viewer's own `some_players` content, plus what the viewer's own
  * characters show their player (owner-visible fields, handouts given to
  * them). GM structures (adventures, acts, scenes, sessions, notes, generator
- * runs, tracker state) are empty for players, and so are campaign settings
+ * runs, tracker state, arc threads) are empty for players, and so are campaign settings
  * and other players' member records. A handout's own image goes with it; an
  * entity's portrait only when that image is visible.
  */
@@ -231,6 +248,7 @@ export function projectCampaignForViewer(maps: CampaignMaps, module: ModuleTypes
     ledger: pick(maps.ledger ?? {}),
     travel: pick(maps.travel ?? {}),
     advancement: pick(maps.advancement ?? {}, (r) => r.character in entities),
+    arcs: {},
   };
 }
 

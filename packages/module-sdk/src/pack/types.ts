@@ -6,7 +6,7 @@
  * procedures differ, because the contract's procedures are functions.
  *
  * Not in the pack format (they need code; write a TypeScript module):
- * combat (the armor rule; declarative d20 combat is in: `d20Combat`), crewShip, travel, ledger, progression,
+ * combat (the armor rule; declarative d20 combat is in: `d20Combat`), crewShip, travel, ledger, progression, arcs,
  * adventureBuilders, narrativeFields, hooks, migrations and dice operations. Map generators are in when
  * they use a built-in engine (`mapGenerators`, see ../mapgen).
  */

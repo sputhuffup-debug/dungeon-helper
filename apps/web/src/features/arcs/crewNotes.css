@@ -1,0 +1,32 @@
+/* crew notes: the players' view */
+.crew-notes__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  gap: var(--cf-space-3);
+}
+.crew-notes__thread {
+  padding: var(--cf-space-3);
+  border: 1px solid var(--cf-border);
+  border-radius: var(--cf-radius);
+  background: var(--cf-elevated);
+}
+.crew-notes__title {
+  margin: 0 0 var(--cf-space-2);
+  font-size: var(--cf-text-md);
+}
+.crew-notes__clues {
+  margin: 0;
+  padding-left: var(--cf-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--cf-space-1);
+}
+.crew-notes__personal {
+  margin-left: var(--cf-space-1);
+}
+.crew-notes--compact .crew-notes__grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+.crew-notes__known {
+  margin: 0 0 var(--cf-space-2);
+}

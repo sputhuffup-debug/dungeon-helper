@@ -24,6 +24,12 @@
  * card for the job is given to its player, and one note is shared with Priya
  * alone, so every player's packet differs.
  *
+ * The arc board holds two campaign threads dealt by the module. The job board
+ * seeded one clue of the first into "Ore to the spaceport" (Mara Quill's
+ * secret), found in session 1; a clue of the second is seeded with Mara, now
+ * a crew contact who owes the crew a favour; the last run's employer has
+ * noticed the crew (heat), and the second thread's clock moved between jobs.
+ *
  * Browser-safe: no `node:` imports here or in index.ts (the web app offers
  * "Load demo campaign" through `demoCampaignJSON`). File I/O lives in cli.ts.
  */
@@ -69,6 +75,16 @@ import {
   suggestHuntMove,
   zonePath,
   addPlayer,
+  addContact,
+  applyArcTicks,
+  applyOfferArcLinks,
+  arcsSnapshot,
+  createThread,
+  markClueFound,
+  planArcTicks,
+  seedClue,
+  setHeat,
+  type ArcThread,
   applyLongAgendaWrites,
   applySpend,
   campaignSnapshot,
@@ -93,7 +109,8 @@ import {
   type SiteMapLiveState,
   type Visibility,
 } from "@campaign-forge/core";
-import { alienModule, campaignAgendasProcedure, jobBoard, siteMapGenerator, weaponRowFromPreset, type JobSiteBrief } from "@campaign-forge/module-alien";
+import { alienModule, campaignAgendasProcedure, campaignThread, jobBoard, siteMapGenerator, weaponRowFromPreset, type JobSiteBrief } from "@campaign-forge/module-alien";
+import { slotLabel } from "@campaign-forge/module-sdk";
 import { startInfection } from "./infection";
 
 /**
@@ -547,8 +564,14 @@ export function buildDemoCampaign(opts: BuildDemoOptions = {}): DemoCampaign {
   // -- the crew's advancement: XP from two earlier runs, one talent bought ---
   setupAdvancement(store, { pcs, system, year: cal.defaultYear });
 
-  // -- the next job: a job board with three postings, one taken, with its site map --
-  setupJobBoard(store, registry, mod, { seed, pcs });
+  // -- the arc board: two campaign threads, dealt before the next job --
+  const threads = setupThreads(store, mod, { seed });
+
+  // -- the next job: a job board with three postings, one taken, with its site map; it carries a clue of the first thread --
+  const board = setupJobBoard(store, registry, mod, { seed, pcs, threads });
+
+  // -- the arcs in play: the clue found in session 1, Mara Quill a contact, heat, a clock moved between jobs --
+  setupArcsInPlay(store, { threads, board, session: session.id, employer: employer.id, homeSite, seed });
 
   const maps = store.toJSON();
   const resolve = nameResolver(store);
@@ -781,21 +804,35 @@ export function isDemoPosting(o: Offer): boolean {
  * job's brief, saved with the job's site. Boards are dealt from fixed seeds
  * in order until one has such a posting.
  */
-function setupJobBoard(store: CampaignStore, registry: RichTextRegistry, mod: LoadedModule, s: { seed: string; pcs: Entity[] }): void {
+function setupJobBoard(store: CampaignStore, registry: RichTextRegistry, mod: LoadedModule, s: { seed: string; pcs: Entity[]; threads: ArcThread[] }): DemoBoard {
   const props = (jobBoard.inputs as { properties: Record<string, Record<string, unknown>> }).properties;
   const hint = props["campaign"]![CAMPAIGN_INPUT_HINT] as CampaignInputHint;
   const campaign = campaignSnapshot(store, hint, (t) => mod.entityType(t)?.kind);
+  // the board seeds the first clue of the first thread; heat, clocks and contacts weight it (none have moved yet)
+  const first = s.threads[0];
+  const clue = first?.stages[0]?.clues[0];
+  const arcs = arcsSnapshot(store.toJSON(), alienModule, { seedClue: first && clue ? `${first.id}/${clue.id}` : "none", influence: true });
+  const inputs = { postings: DEMO_BOARD.postings, frame: DEMO_FRAME, treachery: DEMO_BOARD.treachery, campaign, arcs };
   let graph: GeneratedGraph | undefined;
   let offer: Offer | undefined;
-  for (let k = 0; k < DEMO_BOARD.maxBoards && !offer; k++) {
-    graph = runProcedure(jobBoard, alienModule, { seed: `${s.seed}/board/${k}`, inputs: { postings: DEMO_BOARD.postings, frame: DEMO_FRAME, treachery: DEMO_BOARD.treachery, campaign } });
+  let k = 0;
+  for (; k < DEMO_BOARD.maxBoards && !offer; k++) {
+    graph = runProcedure(jobBoard, alienModule, { seed: `${s.seed}/board/${k}`, inputs });
     offer = (graph.results["offers"] as OfferSet).offers.find(isDemoPosting);
   }
   if (!graph || !offer) throw new Error("demo campaign: no job board dealt a difficulty-3 posting with one betrayer, rogue humans and an alien");
+  // the GM pins the clue on the taken posting, as its contact's secret
+  const index = (graph.results["offers"] as OfferSet).offers.indexOf(offer) + 1;
+  const pinnedParts = { "offers/clue": { posting: index, slot: DEMO_ARCS.slot, at: 0 } };
+  if (clue) {
+    graph = runProcedure(jobBoard, alienModule, { seed: `${s.seed}/board/${k - 1}`, inputs, pinnedParts });
+    offer = (graph.results["offers"] as OfferSet).offers[index - 1]!;
+  }
   const def = jobBoard.offers!;
   const entities = offer.produced.entities.map((e, i) => (i === 0 ? { ...e, fields: { ...e.fields, ...(def.accept.fields ?? {}) } } : e));
-  const accepted = acceptGeneratedGraph(store, { ...graph, produced: { entities, relationships: offer.produced.relationships } }, { moduleId: mod.manifest.id });
+  const accepted = acceptGeneratedGraph(store, { ...graph, produced: { entities, relationships: offer.produced.relationships } }, { moduleId: mod.manifest.id, ...(clue ? { pinnedParts } : {}) });
   const job = accepted.entities[0]!;
+  applyOfferArcLinks(store, offer.arcLinks, { job: job.id, posting: offer.key, run: accepted.run.id, idMap: accepted.idMap, slotLabel: (id) => slotLabel(alienModule.arcs, id) });
   const h = offer.handout!;
   const handout = store.createHandout({ title: h.title, kind: "text", visibility: PLAYERS, attachedTo: { kind: "entity", id: job.id }, ...(h.purpose ? { purpose: h.purpose } : {}), withBody: true });
   writeDoc(registry, handout.bodyDoc, h.body);
@@ -812,6 +849,63 @@ function setupJobBoard(store: CampaignStore, registry: RichTextRegistry, mod: Lo
 
   // the live hunt on the job's site map, and the scene that puts it on the table
   setupLiveHunt(store, registry, { mapId: created.id, location: location.id, job, pcs: s.pcs });
+  return { job, contact: accepted.idMap["npc-1"]!, offer };
+}
+
+interface DemoBoard {
+  job: Entity;
+  /** The posting's contact NPC (Mara Quill). */
+  contact: Id;
+  offer: Offer;
+}
+
+// ---------------------------------------------------------------------------
+// campaign arcs
+// ---------------------------------------------------------------------------
+
+/** The demo's arc board: how many threads, where the board seeds the clue, the heat and where to find the contact. */
+export const DEMO_ARCS = { threads: 2, slot: "npc-secret", heat: 2, favours: 1 } as const;
+
+/** Two threads from the module's generator, sponsored by factions already in the campaign, put on the arc board. */
+function setupThreads(store: CampaignStore, mod: LoadedModule, s: { seed: string }): ArcThread[] {
+  const props = (campaignThread.inputs as { properties: Record<string, Record<string, unknown>> }).properties;
+  const hint = props["campaign"]![CAMPAIGN_INPUT_HINT] as CampaignInputHint;
+  const campaign = campaignSnapshot(store, hint, (t) => mod.entityType(t)?.kind);
+  const graph = runProcedure(campaignThread, alienModule, { seed: `${s.seed}/threads`, inputs: { threads: DEMO_ARCS.threads, sponsors: "campaign", stages: "random", campaign, arcs: arcsSnapshot(store.toJSON(), alienModule) } });
+  const offers = (graph.results["offers"] as OfferSet).offers;
+  const accepted = acceptGeneratedGraph(store, { ...graph, produced: { entities: [], relationships: [] } }, { moduleId: mod.manifest.id });
+  return offers.map((o) => createThread(store, o.arc!, { source: { module: mod.manifest.id, procedure: campaignThread.id, run: accepted.run.id, offer: o.key } }));
+}
+
+/**
+ * The arcs one session in: the clue the board seeded in the taken posting was
+ * found in session 1 (from Mara Quill); Mara is a crew contact who owes the
+ * crew a favour and knows a clue of the second thread (seeded with her, not
+ * found); the last run's employer noticed the crew; and between jobs the
+ * second thread's clock rolled forward (ignored, so it moves at least one).
+ */
+function setupArcsInPlay(store: CampaignStore, s: { threads: ArcThread[]; board: DemoBoard; session: Id; employer: Id; homeSite: Entity; seed: string }): void {
+  const [first, second] = s.threads;
+  const arcs = alienModule.arcs!;
+  const seeded = first ? s.board.offer.arcLinks?.find((l) => l.kind === "clue") : undefined;
+  if (first && seeded?.clue) markClueFound(store, first.id, seeded.clue, { session: s.session, job: s.board.job.id, entity: s.board.contact, via: "wrap-up" });
+  const known = second?.stages[0]?.clues.find((c) => c.state === "unseen");
+  const mara = store.get("entities", s.board.contact)!;
+  addContact(store, mara.id, {
+    stance: "friendly",
+    owedToCrew: DEMO_ARCS.favours,
+    foundAt: `${s.homeSite.name}, at the cargo brokers' stalls`,
+    place: s.homeSite.id,
+    lastSeen: { job: s.board.job.id, session: s.session },
+    ...(second && known ? { knows: [{ thread: second.id, clue: known.id }] } : {}),
+    note: "Brokered the ore run; still owes the crew for getting her cargo past customs last month.",
+  });
+  if (second && known) seedClue(store, second.id, known.id, { entity: mara.id, slot: "contact", slotLabel: slotLabel(arcs, "contact"), text: `${mara.name} knows it: ${known.text}.` });
+  setHeat(store, arcs, s.employer, DEMO_ARCS.heat);
+  if (second) {
+    const plan = planArcTicks({ arcs: Object.fromEntries(store.list("arcs").map((t) => [t.id, t])) }, arcs, `${s.seed}/between-jobs`).filter((p) => p.thread === second.id);
+    applyArcTicks(store, plan, { session: s.session, note: "Between jobs" });
+  }
 }
 
 /**

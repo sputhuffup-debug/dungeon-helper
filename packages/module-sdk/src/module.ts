@@ -812,6 +812,47 @@ function checkEconomy(module: GameModule, declaredModes: Set<PlayModeId>, c: Col
   }
 }
 
+/** The arcs definition: its procedures, entity types, fields, dice and labels exist. */
+function checkArcs(module: GameModule, declaredModes: Set<PlayModeId>, c: Collector): void {
+  const def = module.arcs;
+  if (!def) return;
+  const w = "arcs";
+  const procedure = (id: string | undefined, what: string) => {
+    if (id !== undefined && !module.procedures.some((p) => p.id === id)) c.error(w, `${what} references unknown procedure "${id}"`);
+  };
+  procedure(def.generator, "generator");
+  const gen = module.procedures.find((p) => p.id === def.generator);
+  if (gen && !gen.offers) c.error(w, `generator "${def.generator}" must deal offers (its offers carry the drafted threads)`);
+  for (const b of def.boards ?? []) procedure(b, "board");
+  procedure(def.betweenJobs, "betweenJobs");
+  if (!Array.isArray(def.clueKinds) || def.clueKinds.length === 0) c.error(w, "arcs declare no clue kinds");
+  checkUnique(def.clueKinds ?? [], (k) => k.id, () => w, "clue kind", c);
+  checkUnique(def.slots ?? [], (k) => k.id, () => w, "clue slot", c);
+  checkUnique(def.payoffs ?? [], (k) => k.id, () => w, "payoff kind", c);
+  const types = new Set(module.entityTypes.map((t) => t.id));
+  if (def.heat) {
+    if (def.heat.labels.length < 2) c.error(w, "heat needs a label for each level, at least two");
+    for (const t of def.heat.entityTypes) {
+      const et = module.entityTypes.find((x) => x.id === t);
+      if (!et) c.error(w, `heat references unknown entity type "${t}"`);
+      else if (fieldSchemaAt(et, def.heat.path) === undefined) c.error(w, `heat field "${def.heat.path}" is not in the schema of "${t}"`);
+    }
+  }
+  if (def.tick) {
+    try {
+      parseDiceExpression(def.tick.dice);
+    } catch {
+      c.error(w, `tick dice "${def.tick.dice}" is not a dice expression`);
+    }
+    if (!Array.isArray(def.tick.steps) || def.tick.steps.length === 0) c.error(w, "tick needs at least one step");
+    if (!Number.isInteger(def.tick.ignored) || def.tick.ignored < 0) c.error(w, "tick.ignored must be a whole number of segments");
+  }
+  for (const t of def.contacts?.entityTypes ?? []) if (!types.has(t)) c.error(w, `contacts reference unknown entity type "${t}"`);
+  const rules = new Set(module.rules.map((r) => r.id));
+  for (const r of def.rules ?? []) if (!rules.has(r)) c.error(w, `references unknown rule "${r}"`);
+  checkModes(def.mode, declaredModes, w, c);
+}
+
 function checkProgression(module: GameModule, declaredModes: Set<PlayModeId>, c: Collector): void {
   const def = module.progression;
   if (!def) return;
@@ -1049,6 +1090,7 @@ export function checkModule(module: GameModule, options: CheckModuleOptions = {}
 
   // Character progression.
   checkProgression(module, declaredModes, c);
+  checkArcs(module, declaredModes, c);
 
   // Declarative d20 combat.
   checkD20Combat(module, c);

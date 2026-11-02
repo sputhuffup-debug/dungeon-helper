@@ -1,9 +1,9 @@
 /** Procedure input form generated from the procedure's `inputs` JSON Schema. */
 import type { CampaignStore } from "@campaign-forge/core";
-import type { LoadedModule } from "@campaign-forge/module-sdk";
+import type { ArcSnapshot, LoadedModule } from "@campaign-forge/module-sdk";
 import { Button, IconButton } from "../../components/ui";
 import { humanize } from "../../lib/format";
-import { adventureInput, adventurePcs, campaignHint, characterArraysFor, characterItem, entityHint, entitySnapshot, isAdventureInput, isCharacterArray, playerCharacters, schemaTypeOf, type DocText, type Schema } from "./prefill";
+import { adventureInput, adventurePcs, campaignHint, characterArraysFor, characterItem, entityHint, entitySnapshot, isAdventureInput, isArcsInput, isCharacterArray, playerCharacters, schemaTypeOf, type DocText, type Schema } from "./prefill";
 
 export interface InputFormProps {
   properties: Record<string, Schema>;
@@ -13,9 +13,13 @@ export interface InputFormProps {
   module: Pick<LoadedModule, "entityType">;
   /** Plain text of loaded rich-text docs, for adventure inputs. */
   docText?: DocText;
+  /** The procedure is one of the module's arc boards: its arcs input offers a clue to seed and the influence toggle. */
+  arcsBoard?: boolean;
+  /** The module's clue kind labels. */
+  clueKind?: (kind: string) => string;
 }
 
-export function InputForm({ properties, value, onChange, store, module, docText }: InputFormProps) {
+export function InputForm({ properties, value, onChange, store, module, docText, arcsBoard, clueKind }: InputFormProps) {
   const keys = Object.keys(properties);
   const extra = Object.keys(value).filter((k) => !(k in properties));
   const set = (key: string, v: unknown) => {
@@ -63,6 +67,9 @@ export function InputForm({ properties, value, onChange, store, module, docText 
               {s.description && <span className="cf-muted prep-form__help">{s.description}</span>}
             </label>
           );
+        }
+        if (isArcsInput(s)) {
+          return <ArcsInput key={key} name={key} schema={s} value={value[key] as ArcSnapshot | undefined} onChange={(v) => set(key, v)} board={!!arcsBoard} clueKind={clueKind ?? ((k) => k)} />;
         }
         if (campaignHint(s)) {
           const snap = value[key] as { entities?: unknown[]; relationships?: unknown[] } | undefined;
@@ -253,5 +260,45 @@ function CharacterArrayInput({ name, schema, value, onChange, store, module }: {
         </div>
       )}
     </fieldset>
+  );
+}
+
+/** The arc board as an input: what was read, and on a board the clue to seed and whether the arcs weight it. */
+function ArcsInput({ name, schema, value, onChange, board, clueKind }: { name: string; schema: Schema; value: ArcSnapshot | undefined; onChange: (v: ArcSnapshot) => void; board: boolean; clueKind: (kind: string) => string }) {
+  const snap: ArcSnapshot = value ?? { threads: [], heat: [], contacts: [] };
+  const threads = snap.threads.filter((t) => t.clues.some((c) => c.state !== "found"));
+  const summary = `${snap.threads.length} thread${snap.threads.length === 1 ? "" : "s"}, heat on ${snap.heat.length} faction${snap.heat.length === 1 ? "" : "s"}, ${snap.contacts.length} contact${snap.contacts.length === 1 ? "" : "s"}, read when the page opened`;
+  return (
+    <div className="app-label prep-form__field prep-form__note" data-testid={`input-${name}`}>
+      <span>{schema.title ?? humanize(name)}</span>
+      <span className="cf-muted">{summary}</span>
+      {board && (
+        <>
+          <label className="app-label">
+            <span>Seed a clue</span>
+            <select className="cf-select" aria-label="Seed a clue" value={snap.seedClue ?? "none"} onChange={(e) => onChange({ ...snap, seedClue: e.target.value })} data-testid="input-arcs-seed">
+              <option value="none">No clue</option>
+              <option value="auto">Auto: the most advanced thread's next clue</option>
+              {threads.map((t) => (
+                <optgroup key={t.id} label={t.title}>
+                  {t.clues
+                    .filter((c) => c.state !== "found")
+                    .map((c) => (
+                      <option key={c.id} value={`${t.id}/${c.id}`}>
+                        {`Stage ${c.stage + 1} · ${clueKind(c.kind)}${c.state === "seeded" ? " (seeded)" : ""}: ${c.text}`}
+                      </option>
+                    ))}
+                </optgroup>
+              ))}
+            </select>
+          </label>
+          <label className="app-toggle">
+            <input type="checkbox" className="cf-checkbox" checked={snap.influence !== false} onChange={(e) => onChange({ ...snap, influence: e.target.checked })} data-testid="input-arcs-influence" />
+            Heat, clocks and contacts weight the board
+          </label>
+        </>
+      )}
+      {schema.description && <span className="cf-muted prep-form__help">{schema.description}</span>}
+    </div>
   );
 }
