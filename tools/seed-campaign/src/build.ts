@@ -20,6 +20,10 @@
  * module's end-of-session questions, logged in the advancement log) and the
  * first PC has already spent some of it on a talent.
  *
+ * Four players (Sam, Priya, Mateo, Jun) each play one PC: each PC's agenda
+ * card for the job is given to its player, and one note is shared with Priya
+ * alone, so every player's packet differs.
+ *
  * Browser-safe: no `node:` imports here or in index.ts (the web app offers
  * "Load demo campaign" through `demoCampaignJSON`). File I/O lives in cli.ts.
  */
@@ -44,6 +48,7 @@ import {
   CampaignStore,
   RichTextRegistry,
   acceptGeneratedGraph,
+  addPlayer,
   applyLongAgendaWrites,
   applySpend,
   campaignSnapshot,
@@ -477,6 +482,9 @@ export function buildDemoCampaign(opts: BuildDemoOptions = {}): DemoCampaign {
     writeDoc(registry, handout.bodyDoc, `${str(fresh.fields["personalAgenda"], "Get through this job alive.")}\n\nOn this run, keep an eye on ${ref(wildcard)}.`);
   }
 
+  // -- the players at the table: one per PC, each PC's agenda given to them, one note for one player
+  setupPlayers(store, registry, pcs);
+
   // -- timeline, session, note ------------------------------------------------
   store.createTimelineEvent({ inWorldDate: `${cal.defaultYear}-05-28`, text: `The ${SHIP_NAME} docks at ${homeBase.name} after a dry month.`, entities: [ship.id, homeBase.id], visibility: PLAYERS });
   store.createTimelineEvent({ inWorldDate: `${cal.defaultYear}-05-30`, text: `${destination.name} stops answering routine traffic.`, entities: [destination.id], visibility: GM });
@@ -521,6 +529,51 @@ export function buildDemoCampaign(opts: BuildDemoOptions = {}): DemoCampaign {
   const docs: Record<Id, string> = {};
   for (const id of docIdsOf(maps)) docs[id] = toMarkdown(registry.open(id), resolve);
   return { store, registry, maps, docs };
+}
+
+// ---------------------------------------------------------------------------
+// the players
+// ---------------------------------------------------------------------------
+
+/** The demo's players (original names), one per PC in build order, with the GM's contact note for each. */
+export const DEMO_PLAYERS: ReadonlyArray<{ name: string; contact: string }> = [
+  { name: "Sam", contact: "@sam in the group chat" },
+  { name: "Priya", contact: "@priya, prefers email" },
+  { name: "Mateo", contact: "@mateo" },
+  { name: "Jun", contact: "@jun, joins by video" },
+];
+
+/** Title of the demo handout shared with one player only (the second). */
+export const DEMO_PRIVATE_HANDOUT = "An unsigned note";
+
+/**
+ * Who plays which PC: four players, each PC's agenda card for the job given
+ * to its player (their packet gets it), and one handout shared with the
+ * second player alone. Their long-term agenda's goal, beat and tension reach
+ * them through the character's owner-visible fields.
+ */
+function setupPlayers(store: CampaignStore, registry: RichTextRegistry, pcs: Entity[]): void {
+  const members = pcs.map((pc, i) => {
+    const p = DEMO_PLAYERS[i] ?? { name: `Player ${i + 1}`, contact: "" };
+    const member = addPlayer(store, { name: p.name, contact: p.contact, characters: [pc.id] });
+    return member;
+  });
+  for (const h of store.list("handouts")) {
+    if (h.kind === "agenda" && h.attachedTo?.kind === "adventure" && h.character) store.update("handouts", h.id, { toOwner: true });
+  }
+  const second = pcs[1];
+  const priya = members[1];
+  if (!second || !priya) return;
+  const note = store.createHandout({ title: DEMO_PRIVATE_HANDOUT, kind: "text", visibility: { level: "some_players", players: [priya.id] }, character: second.id });
+  writeDoc(
+    registry,
+    note.bodyDoc,
+    [
+      "Folded into the seal of your locker when you came back from the docks:",
+      "",
+      "> The manifest they will show you is not the cargo. Count the cryo pods yourself before you sign. Keep this between us.",
+    ].join("\n"),
+  );
 }
 
 // ---------------------------------------------------------------------------
