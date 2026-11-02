@@ -1663,6 +1663,14 @@ export interface MapGeneratorDef {
    */
   zoneTables?: MapZoneTable[];
   /**
+   * The live hunt at the table: hidden threat tokens the GM moves zone by
+   * zone (with suggested moves from `movers`), and the sensors the PCs carry
+   * that pick them up as blips at a range band and a direction. GM-only
+   * except for the blips (band and direction, never a zone) and tokens the
+   * GM reveals.
+   */
+  hunt?: MapHuntDef;
+  /**
    * The campaign records a generated map stands for, offered when the GM
    * saves it: the site, its rooms, encounters and creatures (entities from
    * the module's presets). Accepting creates them with the run's provenance
@@ -1675,6 +1683,119 @@ export interface MapGeneratorDef {
    * generator from it, so it sees their presets, lists and tables.
    */
   source?: { engine: string; [key: string]: unknown };
+}
+
+// ---------------------------------------------------------------------------
+// the live hunt: hidden threats, suggested moves, sensors and blips
+// ---------------------------------------------------------------------------
+
+/** A rule line shown with the hunt, cited, or marked as the module's own when the book gives none. */
+export interface MapHuntNote {
+  text: string;
+  page?: PageRef;
+  /** True when the module made it up (no book rule). */
+  original?: boolean;
+}
+
+/** A unit the hunt advances by: a stretch of stealthy play, a combat round. */
+export interface MapHuntStepDef {
+  id: string;
+  label: string;
+  page?: PageRef;
+}
+
+/**
+ * Weights for where a hidden mover goes next: each zone it can reach this
+ * step is scored, highest first. Every weight is optional (0).
+ */
+export interface MapMoverPreference {
+  /** Per zone closer to the nearest target (a PC's token); negative flees. */
+  approach?: number;
+  /** Per zone closer to the next point of its route (patrol waypoints). */
+  route?: number;
+  /** Per zone of distance from its home zone (where it was placed): negative keeps it near home. */
+  home?: number;
+  /** For a zone on the duct layer. */
+  duct?: number;
+  /** For a cluttered zone. */
+  cluttered?: number;
+  /** For each zone flag named that is truthy there (layout or live). */
+  flags?: Record<string, number>;
+  /** For a zone the players have revealed (negative keeps it out of sight). */
+  revealed?: number;
+  /** For staying where it is. */
+  stay?: number;
+  /** For a zone of its recent trail (negative: it does not double back). */
+  trail?: number;
+}
+
+/** A kind of hidden threat token (a creature, a group of people, an android) and how it moves. */
+export interface MapMoverDef {
+  id: string;
+  label: string;
+  /**
+   * Zones it may move per step, by step id (`MapHuntDef.steps`): a number,
+   * or JSONLogic over the token's data (e.g. `{ "var": ["speed", 1] }`).
+   * A step id it does not name moves it one zone.
+   */
+  zones?: Record<string, number | JsonLogicRule>;
+  /** May enter zones on the duct layer (crawlspaces). */
+  ducts?: boolean;
+  /**
+   * What it is made from: map markers of a kind, campaign entities of a
+   * type, each with an optional JSONLogic `when` over the marker's data or
+   * the entity (`{ type, subtype, tags, fields }`). The first mover that
+   * matches a source is the source's kind.
+   */
+  from?: {
+    markers?: Array<{ kind: MapMarkerKind; when?: JsonLogicRule }>;
+    entities?: Array<{ type: string; when?: JsonLogicRule }>;
+  };
+  /** How it moves by default. */
+  prefer: MapMoverPreference;
+  /** The token data field that names its posture (default "posture"). */
+  postureKey?: string;
+  /** Weights by posture, laid over `prefer`. */
+  postures?: Record<string, MapMoverPreference>;
+  /** Weights while the GM marks it hurt, laid over the rest (e.g. it retreats). */
+  hurt?: MapMoverPreference;
+  /** Seeded noise added to each score (default 0.3) so ties break differently each step. */
+  jitter?: number;
+  notes?: MapHuntNote[];
+}
+
+/** Something a character carries that picks up hidden tokens (a motion tracker). */
+export interface MapSensorDef {
+  id: string;
+  label: string;
+  /** How a carrier is recognised: gear row names (case-insensitive) or the preset of a linked item entity. */
+  carried: { names?: string[]; presets?: string[] };
+  /** The range band (`MapGeneratorDef.rangeBands` id) it reaches: every zone up to that band's `maxDistance`. */
+  range: string;
+  /** "moved": only tokens that moved in the current step show. "all": every token in range. */
+  detects: "moved" | "all";
+  /**
+   * How range is counted: across every border, walls and locked doors
+   * included ("any": it reads through them), or along passable borders only.
+   */
+  through?: "any" | "passable";
+  page?: PageRef;
+  notes?: MapHuntNote[];
+}
+
+export interface MapHuntDef {
+  /** Units the hunt advances by, the usual one first. */
+  steps: MapHuntStepDef[];
+  movers: MapMoverDef[];
+  sensors?: MapSensorDef[];
+  /** Entity fields holding carried gear rows (`{ name, itemId? }`) that sensors are looked for in. */
+  gearPaths?: string[];
+  /** Blip letters in order of detection (e.g. a boxed set's signal tokens); default A-Z. */
+  blipLetters?: string[];
+  /** How many recent zones a token's trail keeps (default 4). */
+  trail?: number;
+  notes?: MapHuntNote[];
+  page?: PageRef;
 }
 
 /** A generator brief read from a campaign entity (see `MapGeneratorDef.briefFromEntity`). */

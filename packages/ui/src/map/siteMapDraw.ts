@@ -113,6 +113,83 @@ export interface SiteMapPalette {
   badge: string;
   badgeInk: string;
   badgeEdge: string;
+  /** Hidden threat tokens, their trails and suggested moves (GM views); a default red when absent. */
+  hunt?: string;
+}
+
+const DEFAULT_HUNT_COLOR = "#c2410c";
+
+/**
+ * The hunt layer for the GM and tracking views: each hidden threat as a
+ * diamond (dashed while hidden, ringed while it is a blip, solid once seen)
+ * with its blip letter, a faint line through its recent zones, and a dashed
+ * arrow along its suggested move. Only zones on the drawn deck are used.
+ */
+function drawHunt(hunt: SiteMapHuntInput, o: { byId: Map<string, MapZoneData>; onDeck: Set<string>; color: string; halo: string; tracking: boolean }): SvgNode[] {
+  const out: SvgNode[] = [];
+  const shown = hunt.tokens.filter((t) => t.state !== "gone");
+  const perZone = new Map<string, number>();
+  const spot = new Map<string, [number, number]>();
+  for (const t of shown) {
+    const z = o.byId.get(t.zone);
+    if (!z || !o.onDeck.has(z.id)) continue;
+    const i = perZone.get(z.id) ?? 0;
+    perZone.set(z.id, i + 1);
+    const [cx, cy] = center(z.poly);
+    const b = bbox(z.poly);
+    // below the zone's centre (clear of its number and the plain tokens), side by side
+    spot.set(t.id, [cx + i * 1.3, Math.min(cy + (o.tracking ? 0.4 : 1.25), b.y1 - 0.6)]);
+  }
+  const at = (zone: string): [number, number] | undefined => {
+    const z = o.byId.get(zone);
+    return z && o.onDeck.has(zone) ? center(z.poly) : undefined;
+  };
+  const line = (pts: Array<[number, number]>, attrs: SvgAttrs) => el("polyline", { points: pts.map(([x, y]) => `${fmt(x)},${fmt(y)}`).join(" "), fill: "none", ...attrs });
+  // trails first, faint, under everything
+  for (const t of shown) {
+    const pts = [...(t.trail ?? []), t.zone].map(at).filter((p): p is [number, number] => !!p);
+    if (pts.length < 2) continue;
+    out.push(el("g", { "data-hunt-trail": t.id }, [line(pts, { stroke: o.color, "stroke-width": 0.18, "stroke-opacity": 0.3, "stroke-linecap": "round", "stroke-linejoin": "round" })]));
+  }
+  for (const s of hunt.suggestions ?? []) {
+    const pts = s.path.map(at).filter((p): p is [number, number] => !!p);
+    const end = pts[pts.length - 1];
+    if (pts.length < 2 || !end) continue;
+    const prev = pts[pts.length - 2]!;
+    const ang = Math.atan2(end[1] - prev[1], end[0] - prev[0]);
+    const head = (d: number) => [end[0] - 0.7 * Math.cos(ang + d), end[1] - 0.7 * Math.sin(ang + d)] as [number, number];
+    out.push(
+      el("g", { "data-hunt-suggestion": s.token, "data-to": s.path[s.path.length - 1]! }, [
+        line(pts, { stroke: o.color, "stroke-width": 0.14, "stroke-dasharray": "0.45 0.3", "stroke-opacity": 0.85 }),
+        line([head(0.45), end, head(-0.45)], { stroke: o.color, "stroke-width": 0.16, "stroke-linejoin": "round" }),
+        el("title", {}, ["Suggested move"]),
+      ]),
+    );
+  }
+  for (const t of shown) {
+    const p = spot.get(t.id);
+    if (!p) continue;
+    const [x, y] = p;
+    const r = 0.62;
+    const diamond = `${fmt(x)},${fmt(y - r)} ${fmt(x + r)},${fmt(y)} ${fmt(x)},${fmt(y + r)} ${fmt(x - r)},${fmt(y)}`;
+    const initials = t.label
+      .split(/\s+/)
+      .map((w) => w[0] ?? "")
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
+    const hidden = t.state === "hidden";
+    out.push(
+      el("g", { "data-hunt-token": t.id, "data-hunt-state": t.state, ...(t.letter ? { "data-hunt-letter": t.letter } : {}) }, [
+        ...(t.state === "detected" ? [el("circle", { cx: x, cy: y, r: r + 0.3, fill: "none", stroke: o.color, "stroke-width": 0.08, "stroke-opacity": 0.8 })] : []),
+        ...(hunt.active === t.id ? [el("circle", { cx: x, cy: y, r: r + 0.5, fill: "none", stroke: o.color, "stroke-width": 0.14 })] : []),
+        el("polygon", { points: diamond, fill: o.color, "fill-opacity": hidden ? 0.55 : 1, stroke: o.halo, "stroke-width": 0.08, "stroke-dasharray": hidden ? "0.2 0.1" : undefined }),
+        el("text", { x, y: y + 0.19, "text-anchor": "middle", "font-size": 0.5, "font-family": MAP_FONT, "font-weight": 700, fill: "#ffffff" }, [t.letter ?? (initials || "?")]),
+        el("title", {}, [`${t.label} (${t.state}${t.letter ? `, blip ${t.letter}` : ""})`]),
+      ]),
+    );
+  }
+  return out;
 }
 
 export const LIGHT_PALETTE: SiteMapPalette = {
@@ -142,6 +219,7 @@ export const LIGHT_PALETTE: SiteMapPalette = {
   ping: "#16a34a",
   token: "#2f5fa8",
   gmToken: "#8a3fb8",
+  hunt: "#c2410c",
   select: "#e08a00",
   path: "#178f89",
   act: "#178f89",
@@ -186,6 +264,7 @@ export const DARK_PALETTE: SiteMapPalette = {
   ping: "#3ee07a",
   token: "#5f8fe8",
   gmToken: "#c07ff0",
+  hunt: "#fb923c",
   select: "#ffb020",
   path: "#5fd6cf",
   act: "#5fd6cf",
@@ -505,8 +584,22 @@ export interface SiteMapLiveInput {
   act?: number;
   borders?: Record<string, LiveBorderOverride>;
   zoneFlags?: Record<string, Record<string, unknown>>;
-  tokens?: Array<{ id: string; label: string; zone: string; gmOnly?: boolean }>;
+  /** `badge` replaces the initials (a revealed threat's blip letter). */
+  tokens?: Array<{ id: string; label: string; zone: string; gmOnly?: boolean; badge?: string }>;
   pings?: Array<{ zone: string; at?: string }>;
+  /**
+   * The live hunt, for the GM and tracking views only (the player view never
+   * draws it): hidden threat tokens with their blip letter and faint trail,
+   * and the suggested move for each (a dashed arrow along its path).
+   */
+  hunt?: SiteMapHuntInput | undefined;
+}
+
+export interface SiteMapHuntInput {
+  tokens: Array<{ id: string; label: string; zone: string; state: string; letter?: string; trail?: string[] }>;
+  suggestions?: Array<{ token: string; path: string[] }>;
+  /** The token the GM is moving (drawn with a ring). */
+  active?: string | undefined;
 }
 
 export interface SiteMapDrawOptions {
@@ -1260,12 +1353,13 @@ export function drawSiteMap(layout: SiteLayout, opts: SiteMapDrawOptions): SiteM
       liveNodes.push(
         el("g", { "data-token": t.id }, [
           el("circle", { cx: x, cy: y, r: 0.55, fill: t.gmOnly ? p.gmToken : p.token, stroke: p.halo, "stroke-width": 0.08, "stroke-dasharray": t.gmOnly ? "0.2 0.1" : undefined }),
-          el("text", { x, y: y + 0.2, "text-anchor": "middle", "font-size": 0.52, "font-family": MAP_FONT, "font-weight": 700, fill: "#ffffff" }, [initials || "?"]),
+          el("text", { x, y: y + 0.2, "text-anchor": "middle", "font-size": 0.52, "font-family": MAP_FONT, "font-weight": 700, fill: "#ffffff" }, [t.badge || initials || "?"]),
           el("title", {}, [t.label]),
         ]),
       );
     });
   }
+  if (view !== "player" && live.hunt) liveNodes.push(...drawHunt(live.hunt, { byId, onDeck, color: p.hunt ?? DEFAULT_HUNT_COLOR, halo: p.halo, tracking }));
   layers.push(el("g", { "data-layer": "live" }, liveNodes));
 
   // 8. range path and selection
