@@ -25,6 +25,31 @@ const graph: GeneratedGraph = {
 };
 
 describe("acceptGeneratedGraph", () => {
+  it("gives each entity and link the visibility the procedure asks for, unless the accept call sets one", () => {
+    const store = newStore();
+    const g: GeneratedGraph = {
+      ...graph,
+      produced: {
+        entities: [
+          { tempId: "contact", type: "example.person", name: "Contact", fields: { role: "broker", secret: "x" }, visibility: "players", fieldVisibility: { secret: "gm" } },
+          { tempId: "insider", type: "example.person", name: "Insider", fields: {} },
+        ],
+        relationships: [
+          { type: "knows", from: "contact", to: "insider", visibility: "players" },
+          { type: "knows", from: "insider", to: "contact" },
+        ],
+      },
+    };
+    const res = acceptGeneratedGraph(store, g, { moduleId: "example" });
+    const [contact, insider] = res.entities.map((e) => store.get("entities", e.id)!);
+    expect(contact!.visibility).toEqual({ level: "players" });
+    expect(contact!.fieldVisibility).toEqual({ secret: { level: "gm" } });
+    expect(insider!.visibility.level).toBe("gm");
+    expect(res.relationships.map((r) => r.visibility.level)).toEqual(["players", "gm"]);
+    const forced = acceptGeneratedGraph(store, g, { moduleId: "example", visibility: { level: "gm" } });
+    expect(forced.entities.every((e) => e.visibility.level === "gm")).toBe(true);
+  });
+
   it("records the supplements a run used, when there were any", () => {
     const store = newStore();
     const { run } = acceptGeneratedGraph(store, { ...graph, supplements: [{ id: "extras", version: "0.2.0" }] }, { moduleId: "example" });

@@ -448,6 +448,8 @@ function ZoneKeyCard({ record, onSelect }: { record: SiteMap; onSelect: (id: str
 }
 
 function ZoneKeyTable({ rows, onSelect }: { rows: ZoneKeyRow[]; onSelect: (id: string) => void }) {
+  // who is where (spawns, NPCs, rogue humans), when the map has any
+  const encounters = rows.some((r) => r.marks.some((m) => markGroup(m.kind) === "encounters"));
   return (
     <table className="prep-sitemap__table">
       <thead>
@@ -460,6 +462,7 @@ function ZoneKeyTable({ rows, onSelect }: { rows: ZoneKeyRow[]; onSelect: (id: s
           <th scope="col">Details</th>
           <th scope="col">Salvage</th>
           <th scope="col">Clues</th>
+          {encounters && <th scope="col">Encounters</th>}
           <th scope="col">GM note</th>
         </tr>
       </thead>
@@ -488,6 +491,15 @@ function ZoneKeyTable({ rows, onSelect }: { rows: ZoneKeyRow[]; onSelect: (id: s
             <td>{r.details.join("; ")}</td>
             <td>{r.salvage.join("; ")}</td>
             <td>{r.clues.join("; ")}</td>
+            {encounters && (
+              <td>
+                {r.marks
+                  .filter((m) => markGroup(m.kind) === "encounters")
+                  .map((m) => (
+                    <MarkLine key={m.id} m={m} />
+                  ))}
+              </td>
+            )}
             <td>{r.gmNote}</td>
           </tr>
         ))}

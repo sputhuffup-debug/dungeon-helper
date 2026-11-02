@@ -234,8 +234,8 @@ export interface Handout extends BaseRecord {
   asset?: Id;
   visibility: Visibility;
   revealedIn?: Id;
-  /** The act or scene it belongs to. */
-  attachedTo?: { kind: "act" | "scene" | "adventure"; id: Id };
+  /** The act, scene, adventure or campaign entity (e.g. a job, for its posting) it belongs to. */
+  attachedTo?: { kind: "act" | "scene" | "adventure" | "entity"; id: Id };
   /** For agendas: the PC it is for. */
   character?: Id;
   /**

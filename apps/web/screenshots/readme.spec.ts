@@ -224,7 +224,7 @@ test("alien-weapons", async ({ page }) => {
 test("generator", async ({ page }) => {
   const base = await loadDemo(page, "skyfire");
   await page.goto(`${base}/generate`);
-  await page.getByRole("link", { name: "Re-open" }).nth(1).click();
+  await page.getByRole("region", { name: "Recent runs" }).getByRole("listitem").filter({ hasText: "Star System Generator" }).first().getByRole("link", { name: "Re-open" }).click();
   await expect(page.getByRole("heading", { name: /Star System Generator/ })).toBeVisible();
   await expect(page.getByTestId("workbench")).toBeVisible();
   await shot(page, "generator");
@@ -344,6 +344,32 @@ test("alien-campaign-agendas", async ({ page }) => {
   await expect(tab.getByRole("list", { name: "Tension" }).locator('[aria-current="step"]')).toHaveText("Quiet disagreement");
   await expect(tab.getByTestId("long-agenda-tab-friction").locator("li")).toHaveCount(2);
   await shot(page, "alien-campaign-agendas");
+});
+
+/** The Skyfire Down job taken from the job board (difficulty 3, one betrayer). */
+function skyfireBoardJob(): string {
+  const demo = buildDemoCampaign();
+  const job = Object.values(demo.maps.entities).find((e) => e.type === "alien.job" && e.tags.includes("job-board"));
+  demo.registry.closeAll();
+  demo.store.destroy();
+  if (!job) throw new Error("the Skyfire Down demo has no job from the job board");
+  return job.name;
+}
+
+test("alien-job-board", async ({ page }) => {
+  // the job taken from the board: its posting, the GM's side (plays one difficulty lower: one betrayer), its NPCs and the site brief with its map
+  await page.setViewportSize({ width: 1440, height: 1500 });
+  const base = await loadDemo(page, "skyfire");
+  await page.goto(`${base}/atlas`);
+  await page.getByRole("tab", { name: /^Jobs/ }).click();
+  await page.getByRole("tabpanel").getByRole("link", { name: skyfireBoardJob(), exact: true }).click();
+  const panel = page.getByTestId("job-panel");
+  await expect(panel.getByTestId("job-npc")).toHaveCount(3);
+  await expect(panel.getByTestId("job-brief-summary")).toContainText("Difficulty 3 (plays as 2: one betrayer)");
+  await expect(panel.getByTestId("job-site-maps").locator("li")).toHaveCount(1);
+  // the posting, the GM's side and the panel: the page scrolled so the panel ends at the bottom
+  await panel.evaluate((e) => window.scrollTo(0, e.getBoundingClientRect().bottom + window.scrollY - window.innerHeight + 24));
+  await shot(page, "alien-job-board");
 });
 
 test("wrap-up-awards", async ({ page }) => {

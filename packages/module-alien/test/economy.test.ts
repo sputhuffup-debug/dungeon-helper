@@ -240,7 +240,7 @@ describe("between jobs", () => {
   });
 
   it("chains into shore leave and the next job", () => {
-    expect(betweenJobs.chains?.map((c) => c.procedure)).toEqual(["alien.shore-leave", "alien.job.create"]);
+    expect(betweenJobs.chains?.map((c) => c.procedure)).toEqual(["alien.shore-leave", "alien.job.create", "alien.job-board"]);
     expect(betweenJobs.inputs?.properties).toMatchObject({ job: { "x-entity": { types: ["alien.job"] } }, ship: { "x-entity": { types: ["alien.spaceship"], setting: "ship" } } });
   });
 });

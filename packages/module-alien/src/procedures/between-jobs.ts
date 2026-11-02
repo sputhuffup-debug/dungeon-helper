@@ -339,5 +339,6 @@ export const betweenJobs: Procedure = {
   chains: [
     { procedure: "alien.shore-leave", label: "Shore leave week", inputs: (ctx) => ({ livingStandard: str(input(ctx, "livingStandard"), "normal") }) },
     { procedure: "alien.job.create", label: "Roll the next job", inputs: (ctx) => ({ frame: str(input(ctx, "frame"), "space-truckers"), pcCount: Math.max(1, Math.floor(num(input(ctx, "pcCount"), 4))) }) },
+    { procedure: "alien.job-board", label: "Deal a job board", inputs: (ctx) => ({ frame: str(input(ctx, "frame"), "space-truckers"), pcCount: Math.max(1, Math.floor(num(input(ctx, "pcCount"), 4))) }) },
   ],
 };

@@ -101,6 +101,18 @@ export const campaignPlayRules: RuleCard[] = [
     tags: ["campaign", "generator", "jobs"],
     links: { tables: ["alien.jobs.plot-twist"], rules: ["alien.rule.jobs"] },
   }),
+  card(
+    "job-board",
+    "Job board",
+    "Between jobs, deal a few postings, each a Job Generator roll that the players read as a posting (title, pitch, pay, who posted it, deadline, requirements and a risk rating that may undersell or oversell the difficulty) while the GM keeps the complications, the twist, the employer's real intent and the NPCs' agendas. Each job comes with one NPC per point of difficulty, the contact first. Every NPC whose agenda turns on the crew (a sell-out, or a hidden synthetic whose directive puts the crew second) makes the site play one difficulty lower, at least 1: the traitor is the extra danger.",
+    [244, 252],
+    {
+      ...C,
+      original: true,
+      tags: ["campaign", "generator", "jobs"],
+      links: { rules: ["alien.rule.jobs", "alien.rule.job-payment", "alien.rule.plot-twists", "alien.rule.androids"] },
+    },
+  ),
   card("session-end", "After the session", "Answer the XP questions and award a bonus for agendas pursued at risk. Any PC who rolled 9 or more on a panic roll makes the mental trauma roll, and players may change buddy and rival.", 30, {
     ...C,
     tags: ["campaign", "gm"],

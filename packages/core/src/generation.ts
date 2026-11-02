@@ -65,7 +65,13 @@ export function acceptGeneratedGraph(store: CampaignStore, graph: GeneratedGraph
       const subtype = p.subtype ?? (typeof p.fields.subtype === "string" ? p.fields.subtype : undefined);
       if (subtype !== undefined) input.subtype = subtype;
       if (opts.visibility) input.visibility = opts.visibility;
-      const entity = store.createEntity(input);
+      else if (p.visibility) input.visibility = p.visibility === "some_players" ? { level: p.visibility, players: [] } : { level: p.visibility };
+      let entity = store.createEntity(input);
+      if (p.fieldVisibility && Object.keys(p.fieldVisibility).length > 0) {
+        const fieldVisibility: NonNullable<Entity["fieldVisibility"]> = {};
+        for (const [path, level] of Object.entries(p.fieldVisibility)) fieldVisibility[path] = level === "some_players" ? { level, players: [] } : { level };
+        entity = store.update("entities", entity.id, { fieldVisibility });
+      }
       idMap[p.tempId] = entity.id;
       entities.push(entity);
     }
@@ -86,7 +92,8 @@ export function acceptGeneratedGraph(store: CampaignStore, graph: GeneratedGraph
       const from = resolve(r.from);
       const to = resolve(r.to);
       if (from === undefined || to === undefined) continue;
-      relationships.push(store.createRelationship(r.type, from, to, r.note));
+      const vis: Visibility | undefined = r.visibility ? (r.visibility === "some_players" ? { level: r.visibility, players: [] } : { level: r.visibility }) : undefined;
+      relationships.push(store.createRelationship(r.type, from, to, r.note, vis));
     }
 
     const finalRun = store.update("generatorRuns", run.id, { produced: entities.map((e) => e.id) });

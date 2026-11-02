@@ -3247,3 +3247,112 @@ a.cf-btn {
   flex-wrap: nowrap;
   gap: var(--cf-space-1);
 }
+
+/* boards of offers (job board) */
+.offer-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cf-space-2);
+  padding: var(--cf-space-3);
+  border: 1px solid var(--cf-border);
+  border-radius: var(--cf-radius);
+  background: var(--cf-surface);
+  min-width: 0;
+}
+.offer-card.is-pinned {
+  border-color: var(--cf-warning);
+}
+.offer-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--cf-space-2);
+}
+.offer-card__title {
+  gap: var(--cf-space-1);
+  min-width: 0;
+}
+.offer-card__name {
+  margin: 0;
+  font-size: var(--cf-text-md);
+}
+.offer-card__badges {
+  flex-wrap: wrap;
+  gap: var(--cf-space-1);
+}
+.offer-card__body {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: var(--cf-space-3);
+}
+.offer-card__players,
+.offer-card__gm {
+  min-width: 0;
+  padding: var(--cf-space-2) var(--cf-space-3);
+  border-radius: var(--cf-radius-sm);
+  font-size: var(--cf-text-sm);
+}
+.offer-card__players {
+  background: var(--cf-elevated);
+  border: 1px solid var(--cf-border);
+}
+.offer-card__gm {
+  background: var(--cf-warning-soft);
+}
+.offer-card__players h2 {
+  font-size: var(--cf-text-md);
+  margin: 0 0 var(--cf-space-1);
+}
+.offer-card__label {
+  margin: 0 0 var(--cf-space-1);
+  font-size: var(--cf-text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--cf-muted);
+}
+.offer-card__parts summary {
+  cursor: pointer;
+  font-size: var(--cf-text-sm);
+  color: var(--cf-muted);
+}
+.offer-card__parts .agenda-slot {
+  grid-template-columns: 170px minmax(0, 1fr) auto;
+}
+.offer-card__actions {
+  flex-wrap: wrap;
+}
+
+/* a job's NPCs, posting and site brief: the whole row under the tabs */
+.job-panel {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
+  gap: var(--cf-space-4);
+  align-items: start;
+}
+.job-panel__wide {
+  grid-column: 1 / -1;
+}
+.job-panel__npcs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: var(--cf-space-2);
+}
+.job-panel__npc {
+  padding: var(--cf-space-2) var(--cf-space-3);
+  border: 1px solid var(--cf-border);
+  border-radius: var(--cf-radius-sm);
+  background: var(--cf-surface);
+  font-size: var(--cf-text-sm);
+}
+.job-panel__npc.is-betrayer {
+  border-color: var(--cf-danger);
+}
+.job-panel__brief {
+  margin: 0;
+  padding-left: 1.2em;
+  font-size: var(--cf-text-sm);
+}
