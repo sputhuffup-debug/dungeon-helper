@@ -9,8 +9,9 @@
  * screen draws) or from the two player-facing texts of the GM structures:
  * a scene's title and read-aloud text and an adventure's title and player
  * intro. It is built by copying allowed fields, never by deleting forbidden
- * ones. `some_players` content is left out: a group share has no single
- * viewer. Nothing here names a game.
+ * ones. `some_players` content is left out of a group share: it has no
+ * single viewer. A player packet (packets.ts) runs the same snapshot with
+ * one player's viewer (`memberViewer`) instead. Nothing here names a game.
  */
 import type { EntityTypeDef, MapLegendEntry, SheetField, SheetLayout } from "@campaign-forge/module-sdk";
 import { computeFields } from "@campaign-forge/module-sdk";
@@ -20,7 +21,7 @@ import { toMarkdown } from "./richtext";
 import { liveOf, playerLayout, playerLive, type PlayerLayout, type PlayerLiveState } from "./sitemap";
 import type { CampaignStore } from "./store";
 import type { CampaignMaps, Entity, HandoutKind, Id, Scene, Session, ShareRecord, SiteMap } from "./types";
-import { canSee, fieldVisibilityOf, findEntityType, projectCampaignForViewer, type ModuleTypes, type Viewer } from "./visibility";
+import { canSee, canSeeField, findEntityType, projectCampaignForViewer, type ModuleTypes, type Viewer } from "./visibility";
 
 /** A group share is seen by every player: only `players` and `revealed` content. */
 export const SHARE_VIEWER: Viewer = { role: "player" };
@@ -57,6 +58,12 @@ export interface ShareHandout {
   image?: ShareImage;
   /** Revealed during the shared session. */
   thisSession: boolean;
+  /**
+   * Shared with this player alone (a `some_players` handout naming them, or
+   * one given to the player of their character), not with the whole group.
+   * Player packets only.
+   */
+  personal?: boolean;
 }
 
 export interface ShareMember {
@@ -87,6 +94,8 @@ export interface PlayerShare {
   maps: ShareMap[];
   handouts: ShareHandout[];
   party: ShareMember[];
+  /** For one player only (a player packet): their name, for titles ("for Sam"). */
+  for?: string;
 }
 
 export interface PlayerShareInput {
@@ -100,6 +109,12 @@ export interface PlayerShareInput {
   at: string;
   /** Names of reference-list items for select fields (e.g. a career id), when the module has them. */
   referenceName?: ((ref: string, id: string) => string | undefined) | undefined;
+  /**
+   * Who it is for: the whole group (`SHARE_VIEWER`, the default) or one
+   * player (`memberViewer`), whose projection then adds what is shared with
+   * them alone and what their own characters show them.
+   */
+  viewer?: Viewer | undefined;
 }
 
 /** "Session 3: The offer", or "Session 3". */
@@ -120,7 +135,7 @@ export function isPlayerCharacter(e: Entity, module: ModuleTypes | undefined): b
 }
 
 /** Markdown of a body with references as plain names: player-visible entities by name, others by the label stored in the text. */
-function bodyText(doc: Y.Doc | undefined, visibleNames: Map<Id, string>): string | undefined {
+export function shareBodyText(doc: Y.Doc | undefined, visibleNames: Map<Id, string>): string | undefined {
   if (!doc) return undefined;
   const md = toMarkdown(doc, (id) => visibleNames.get(id) ?? "");
   const text = md
@@ -177,7 +192,7 @@ function statValue(f: SheetField | undefined, v: unknown, referenceName: PlayerS
  * from the player projection of the entity. Computed values are computed
  * from the projected fields, so a hidden field cannot leak through one.
  */
-function partyMember(raw: Entity, projected: Entity, module: ModuleTypes | undefined, assets: CampaignMaps["assets"], referenceName: PlayerShareInput["referenceName"]): ShareMember {
+function partyMember(raw: Entity, projected: Entity, module: ModuleTypes | undefined, assets: CampaignMaps["assets"], referenceName: PlayerShareInput["referenceName"], viewer: Viewer): ShareMember {
   const def = findEntityType(module, raw.type);
   const sheet = sheetOf(def, raw);
   let computed: Record<string, unknown> = {};
@@ -190,7 +205,7 @@ function partyMember(raw: Entity, projected: Entity, module: ModuleTypes | undef
   }
   const stats: ShareMember["stats"] = [];
   for (const path of sheet?.summary ?? def?.sheet.summary ?? []) {
-    if (!canSee(fieldVisibilityOf(raw, def, path), SHARE_VIEWER)) continue;
+    if (!canSeeField(raw, def, path, viewer)) continue;
     const f = sheetField(sheet, path) ?? sheetField(def?.sheet, path);
     if (f?.widget === "image" || f?.widget === "zonemap") continue;
     const v = path in computed ? computed[path] : getPath(projected.fields, path);
@@ -226,7 +241,9 @@ function imageOf(a: CampaignMaps["assets"][string]): ShareImage {
  */
 export function playerShareSnapshot(input: PlayerShareInput): PlayerShare {
   const { maps, module } = input;
-  const projected = projectCampaignForViewer(maps, module, SHARE_VIEWER);
+  const viewer = input.viewer ?? SHARE_VIEWER;
+  const projected = projectCampaignForViewer(maps, module, viewer);
+  const bodyText = shareBodyText;
   const session = maps.sessions[input.sessionId];
   if (!session) throw new Error(`sessions/${input.sessionId} not found`);
   const visibleNames = new Map(Object.values(projected.entities).map((e) => [e.id, e.name] as const));
@@ -259,16 +276,22 @@ export function playerShareSnapshot(input: PlayerShareInput): PlayerShare {
     if (shareMap && shareMap.visibleZones.length > 0) out.maps.push(shareMap);
   }
 
-  // handouts the players can see: revealed this session first, then the newest
+  // handouts the viewer can see: theirs alone first (packets), then revealed this session, then the newest
+  const personal = (h: (typeof projected.handouts)[string]) => viewer.memberId !== undefined && !canSee(h.visibility, SHARE_VIEWER);
   const handouts = Object.values(projected.handouts).sort(
-    (a, b) => Number(b.revealedIn === session.id) - Number(a.revealedIn === session.id) || b.updated.localeCompare(a.updated) || a.id.localeCompare(b.id),
+    (a, b) =>
+      Number(personal(b)) - Number(personal(a)) ||
+      Number(b.revealedIn === session.id) - Number(a.revealedIn === session.id) ||
+      b.updated.localeCompare(a.updated) ||
+      a.id.localeCompare(b.id),
   );
   for (const h of handouts) {
     const item: ShareHandout = { id: h.id, title: h.title, kind: h.kind, thisSession: h.revealedIn === session.id || h.visibility.revealedIn === session.id };
+    if (personal(h)) item.personal = true;
     const text = h.bodyDoc ? bodyText(input.doc(h.bodyDoc), visibleNames) : undefined;
     if (text) item.text = text;
-    // a revealed handout's own image goes with it, as on the player screen
-    const asset = h.asset ? maps.assets[h.asset] : undefined;
+    // a handout's own image goes with it, as on the player screen (the projection keeps it with the handout)
+    const asset = h.asset ? projected.assets[h.asset] : undefined;
     if (asset && asset.kind === "image") item.image = imageOf(asset);
     if (item.text || item.image || item.title) out.handouts.push(item);
   }
@@ -280,7 +303,7 @@ export function playerShareSnapshot(input: PlayerShareInput): PlayerShare {
   for (const raw of pcs) {
     const p = projected.entities[raw.id];
     if (!p) continue;
-    out.party.push(partyMember(raw, p, module, projected.assets, input.referenceName));
+    out.party.push(partyMember(raw, p, module, projected.assets, input.referenceName, viewer));
   }
   return out;
 }
@@ -303,9 +326,10 @@ export interface ShareBaseline {
 }
 
 /** The share history of a campaign (every session's records, in time order). */
-export function shareBaseline(sessions: Iterable<Pick<Session, "shares">>): ShareBaseline {
+export function shareBaseline(sessions: Iterable<Pick<Session, "shares">>, member?: Id): ShareBaseline {
   const records: ShareRecord[] = [];
-  for (const s of sessions) for (const r of s.shares ?? []) records.push(r);
+  // the group's shares, or one player's packets
+  for (const s of sessions) for (const r of s.shares ?? []) if (r.member === member) records.push(r);
   records.sort((a, b) => a.at.localeCompare(b.at));
   const b: ShareBaseline = { count: records.length, handouts: new Set(), maps: new Map(), scenes: new Set(), party: false, primer: false };
   for (const r of records) {
@@ -397,13 +421,14 @@ export function planShare(snapshot: PlayerShare, baseline: ShareBaseline, opts: 
 }
 
 /** The record to keep for a share that went out. */
-export function shareRecordOf(plan: Pick<SharePlan, "share">, extra: { format?: ShareRecord["format"]; primer?: boolean } = {}): ShareRecord {
+export function shareRecordOf(plan: Pick<SharePlan, "share">, extra: { format?: ShareRecord["format"]; primer?: boolean; member?: Id } = {}): ShareRecord {
   const s = plan.share;
   const rec: ShareRecord = { at: s.at, handouts: s.handouts.map((h) => h.id), maps: Object.fromEntries(s.maps.map((m) => [m.id, [...m.visibleZones]])) };
   if (s.briefing?.sceneId) rec.scene = s.briefing.sceneId;
   if (s.party.length) rec.party = true;
   if (extra.primer) rec.primer = true;
   if (extra.format) rec.format = extra.format;
+  if (extra.member) rec.member = extra.member;
   return rec;
 }
 

@@ -106,6 +106,8 @@ export const alienModule: GameModule = {
   travel,
   progression,
   gmScreen,
+  // a PC's agenda cards (one per act in cinematic play) reach that PC's player once the GM gives each one out
+  ownerHandouts: [{ kind: "agenda", when: "given" }],
   migrations: [],
 };
 

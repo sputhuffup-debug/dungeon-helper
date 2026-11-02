@@ -1,25 +1,78 @@
 /**
  * Visibility: pure projection rules. These are the functions a future sync
  * service would run to derive a player's view; v1 uses them for the
- * "preview as player" toggle and export filtering.
+ * "preview as player" toggle, shares, player packets and export filtering.
+ *
+ * A player sees `players` and `revealed` records, `some_players` records
+ * that name them, and, for the characters they play (`Viewer.characters`),
+ * the fields the module marks owner-visible (`"x-visibility": "owner"`) and
+ * the handouts given to the character's player (`Handout.toOwner`, or a
+ * module `ownerHandouts` kind with `when: "always"`).
  */
-import type { EntityTypeDef, GameModule, VisibilityLevel } from "@campaign-forge/module-sdk";
+import { ownerVisiblePaths, type EntityTypeDef, type GameModule, type VisibilityLevel } from "@campaign-forge/module-sdk";
 import { now } from "./ids";
 import { clone, deletePath, getPath } from "./paths";
 import type { CampaignStore } from "./store";
 import { playerLayout, playerLive } from "./sitemap";
-import type { CampaignMaps, Entity, Id, SiteMap, Visibility } from "./types";
+import type { CampaignMaps, Entity, Handout, Id, SiteMap, Visibility } from "./types";
 
 export interface Viewer {
   role: "gm" | "player";
   /** Member id, for `some_players`. */
   memberId?: string;
+  /** Entity ids of the characters this player plays (see `memberViewer`); entities naming the member as `ownerMemberId` count too. */
+  characters?: Id[];
 }
 
 export const GM_VIEWER: Viewer = { role: "gm" };
 
-/** Modules are consulted for entity type definitions (and map legends, when given). */
-export type ModuleTypes = Pick<GameModule, "entityTypes"> & Partial<Pick<GameModule, "mapGenerators">>;
+/** Modules are consulted for entity type definitions (and map legends and owner handout kinds, when given). */
+export type ModuleTypes = Pick<GameModule, "entityTypes"> & Partial<Pick<GameModule, "mapGenerators" | "ownerHandouts">>;
+
+/** Does this player play the character? */
+export function viewerOwns(viewer: Viewer, entity: Pick<Entity, "id" | "ownerMemberId"> | undefined): boolean {
+  if (viewer.role !== "player" || !viewer.memberId || !entity) return false;
+  return !!viewer.characters?.includes(entity.id) || (!!entity.ownerMemberId && entity.ownerMemberId === viewer.memberId);
+}
+
+/** The GM set a visibility on this field path or one of its parents. */
+function hasOverride(entity: Entity, path: string): boolean {
+  const fv = entity.fieldVisibility;
+  if (!fv) return false;
+  const segs = path.split(".");
+  for (let i = segs.length; i > 0; i--) if (fv[segs.slice(0, i).join(".")]) return true;
+  return false;
+}
+
+/**
+ * May the viewer see this field of the entity? Its effective visibility, or,
+ * for the player who plays it, an owner-visible mark on the path or a parent
+ * (unless the GM set the field's visibility on this entity by hand).
+ */
+export function canSeeField(entity: Entity, def: EntityTypeDef | undefined, path: string, viewer: Viewer): boolean {
+  if (canSee(fieldVisibilityOf(entity, def, path), viewer)) return true;
+  if (!def || !viewerOwns(viewer, entity) || hasOverride(entity, path)) return false;
+  return ownerVisiblePaths(def, entity.subtype).some((p) => path === p || path.startsWith(`${p}.`));
+}
+
+/** Field paths with a visibility of their own: the GM's overrides, the type's defaults and, for the owner, the owner-visible marks. */
+function explicitPaths(entity: Entity, def: EntityTypeDef | undefined, viewer: Viewer): string[] {
+  const out = [...Object.keys(entity.fieldVisibility ?? {}), ...Object.keys(def?.defaultVisibility ?? {})];
+  if (def && viewerOwns(viewer, entity)) out.push(...ownerVisiblePaths(def, entity.subtype));
+  return out;
+}
+
+/** A path below this one is visible (so a hidden parent keeps those children: a nested field shared with this player, or marked for the owner). */
+function visibleBelow(entity: Entity, def: EntityTypeDef | undefined, path: string, viewer: Viewer, candidates: string[]): boolean {
+  return candidates.some((p) => p.startsWith(`${path}.`) && canSeeField(entity, def, p, viewer));
+}
+
+/** May the viewer see this handout? Its visibility, or it was given to the player of its character. */
+export function canSeeHandout(handout: Pick<Handout, "visibility" | "character" | "toOwner" | "kind">, viewer: Viewer, maps: Pick<CampaignMaps, "entities">, module: ModuleTypes | undefined): boolean {
+  if (canSee(handout.visibility, viewer)) return true;
+  if (!handout.character || !viewerOwns(viewer, maps.entities[handout.character] ?? { id: handout.character })) return false;
+  return handout.toOwner === true || !!module?.ownerHandouts?.some((r) => r.kind === handout.kind && r.when === "always");
+}
 
 export function canSee(vis: Visibility | undefined, viewer: Viewer): boolean {
   if (viewer.role === "gm") return true;
@@ -66,21 +119,39 @@ export function fieldVisibilityOf(entity: Entity, def: EntityTypeDef | undefined
  * `undefined` when the viewer may not see the entity at all. GM-only
  * bookkeeping (`fieldVisibility`, `provenance`, `sheetState`) is stripped
  * for players.
+ *
+ * The player who plays the entity always sees it, with its owner-visible
+ * fields (`"x-visibility": "owner"` in the schema) on top of what every
+ * player sees; when the entity itself is GM-only they get its name, its
+ * conditions and those fields only.
  */
 export function projectEntityForViewer(entity: Entity, def: EntityTypeDef | undefined, viewer: Viewer): Entity | undefined {
   if (viewer.role === "gm") return clone(entity);
-  if (!canSee(entity.visibility, viewer)) return undefined;
+  const owned = viewerOwns(viewer, entity);
+  const visible = canSee(entity.visibility, viewer);
+  if (!visible && !owned) return undefined;
   const copy = clone(entity);
-  const paths = new Set<string>([
-    ...Object.keys(entity.fieldVisibility ?? {}),
-    ...Object.keys(def?.defaultVisibility ?? {}),
-  ]);
-  // longest paths first so a hidden parent removes everything underneath
-  const sorted = [...paths].sort((a, b) => b.length - a.length);
-  for (const path of sorted) {
-    if (getPath(copy.fields, path) === undefined) continue;
-    if (!canSee(fieldVisibilityOf(entity, def, path), viewer)) deletePath(copy.fields, path);
+  const candidates = explicitPaths(entity, def, viewer);
+  const paths = new Set<string>(candidates);
+  // a GM-only entity its player plays: every field inherits GM-only, so each is checked
+  if (!visible) {
+    for (const k of Object.keys(copy.fields)) paths.add(k);
+    delete copy.summary;
+    copy.tags = [];
   }
+  /** Remove what the viewer may not see at `path`, keeping the visible children of a hidden parent. */
+  const prune = (path: string, depth: number): void => {
+    const value = getPath(copy.fields, path);
+    if (value === undefined || canSeeField(entity, def, path, viewer)) return;
+    if (depth < 12 && value && typeof value === "object" && !Array.isArray(value) && visibleBelow(entity, def, path, viewer, candidates)) {
+      for (const k of Object.keys(value as Record<string, unknown>)) prune(`${path}.${k}`, depth + 1);
+      return;
+    }
+    deletePath(copy.fields, path);
+  };
+  // longest paths first so a hidden parent removes everything underneath
+  const sorted = [...paths].sort((a, b) => b.length - a.length || a.localeCompare(b));
+  for (const path of sorted) prune(path, 0);
   delete copy.fieldVisibility;
   delete copy.provenance;
   delete copy.sheetState;
@@ -89,8 +160,12 @@ export function projectEntityForViewer(entity: Entity, def: EntityTypeDef | unde
 
 /**
  * The player projection of a whole campaign: only `players`, `revealed` and
- * the viewer's own `some_players` content. GM structures (adventures, acts,
- * scenes, sessions, notes, generator runs, tracker state) are empty for players.
+ * the viewer's own `some_players` content, plus what the viewer's own
+ * characters show their player (owner-visible fields, handouts given to
+ * them). GM structures (adventures, acts, scenes, sessions, notes, generator
+ * runs, tracker state) are empty for players, and so are campaign settings
+ * and other players' member records. A handout's own image goes with it; an
+ * entity's portrait only when that image is visible.
  */
 export function projectCampaignForViewer(maps: CampaignMaps, module: ModuleTypes | undefined, viewer: Viewer): CampaignMaps {
   if (viewer.role === "gm") return clone(maps);
@@ -109,11 +184,23 @@ export function projectCampaignForViewer(maps: CampaignMaps, module: ModuleTypes
   const relationships = pick(maps.relationships, (r) => r.from in entities && r.to in entities);
   const timeline = pick(maps.timeline);
   for (const t of Object.values(timeline)) t.entities = t.entities.filter((id) => id in entities);
-  const handouts = pick(maps.handouts);
+  const handouts: Record<Id, Handout> = {};
+  for (const h of Object.values(maps.handouts)) if (canSeeHandout(h, viewer, maps, module)) handouts[h.id] = clone(h);
   const siteMaps = pick(maps.maps);
   for (const m of Object.values(siteMaps)) projectSiteMapInPlace(m, module);
   const assets = pick(maps.assets);
-  const members = maps.meta.members.filter((m) => m.role === "gm" || m.id === viewer.memberId);
+  for (const h of Object.values(handouts)) {
+    const a = h.asset ? maps.assets[h.asset] : undefined;
+    if (a) assets[a.id] = clone(a);
+  }
+  for (const e of Object.values(entities)) if (e.image && !(e.image in assets)) delete e.image;
+  const members = maps.meta.members
+    .filter((m) => m.role === "gm" || m.id === viewer.memberId)
+    .map((m) => {
+      const out = { ...m };
+      delete out.contact;
+      return out;
+    });
   return {
     meta: { ...clone(maps.meta), members, settings: {} },
     entities,

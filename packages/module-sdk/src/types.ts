@@ -582,6 +582,29 @@ export type CoreEntityKind =
 
 export type VisibilityLevel = "gm" | "players" | "some_players" | "revealed";
 
+/**
+ * Schema annotation for owner-visible fields: a property of an entity type's
+ * schema with `"x-visibility": "owner"` is always seen by the player who owns
+ * the entity (a PC's player) in their own player view and packet, even when
+ * the field, or the whole entity, is otherwise GM-only. Everyone else still
+ * follows the field's visibility. Nested properties can be marked on their
+ * own (a goal inside a GM-only record); an explicit per-entity override the
+ * GM sets on the field wins.
+ */
+export const OWNER_VISIBILITY = "owner" as const;
+
+/**
+ * A kind of handout that reaches the player of the character it is for
+ * (`Handout.character`). `when: "always"`: every such handout goes to that
+ * player without the GM sharing it. `"given"` (the default): once the GM
+ * gives it to them (the handout's "Give to its player" toggle), e.g. an act's
+ * agenda at the start of that act.
+ */
+export interface OwnerHandoutDef {
+  kind: string;
+  when?: "always" | "given";
+}
+
 export type SheetWidget =
   | "text"
   | "textarea"
@@ -3079,6 +3102,13 @@ export interface GameModule {
   gmScreen?: GmScreenDef;
   /** Step-by-step character builders (one per entity type) and their level-up steps. Packs can declare them. */
   characterBuilders?: CharacterBuilderDef[];
+  /**
+   * Handout kinds that reach the player of the character they are for
+   * (`Handout.character`), in that player's packet. Fields reach their owner
+   * through the schema annotation `"x-visibility": "owner"` (see
+   * `OWNER_VISIBILITY`).
+   */
+  ownerHandouts?: OwnerHandoutDef[];
   /** Upgrade stored entity fields from an older module version. */
   migrations?: Array<{ from: string; to: string; migrate: (entity: { type: string; fields: Record<string, unknown> }) => Record<string, unknown> }>;
 }
