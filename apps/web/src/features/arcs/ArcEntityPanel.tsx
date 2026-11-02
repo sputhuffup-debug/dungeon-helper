@@ -121,7 +121,7 @@ function CluesHere({ entity, job, clues, def }: { entity: Entity; job: boolean; 
                 </Button>
               ) : (
                 <Button size="sm" variant="ghost" onClick={() => unmarkClueFound(ctx.store, thread.id, clue.id)}>
-                  Not found
+                  Mark not found
                 </Button>
               )}
             </div>

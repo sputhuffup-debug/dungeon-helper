@@ -508,7 +508,7 @@ function ClueCard({ thread: t, clue: c, def }: { thread: ArcThread; clue: ArcClu
           </Button>
         ) : (
           <Button size="sm" variant="ghost" onClick={() => unmarkClueFound(ctx.store, t.id, c.id)}>
-            Not found
+            Mark not found
           </Button>
         )}
         {c.state === "seeded" && (
