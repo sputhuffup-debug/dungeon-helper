@@ -1,5 +1,5 @@
 import "fake-indexeddb/auto";
-import { CampaignStore, RichTextRegistry, huntOf, liveOf, placeToken, playerLayout, playerLive, recordSweep, runMapGenerator, startLive, type SiteMap } from "@campaign-forge/core";
+import { CampaignStore, RichTextRegistry, advanceHunt, huntOf, liveOf, moveHuntToken, placeHuntToken, placeToken, playerLayout, playerLive, recordSweep, runMapGenerator, startLive, type SiteMap } from "@campaign-forge/core";
 import { exampleModule, exampleSiteGenerator } from "@campaign-forge/module-example";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import * as Y from "yjs";
@@ -141,7 +141,6 @@ describe("the hunt across tabs", () => {
       const m = a.createMap({ name: "Old keep" });
       a.update("maps", m.id, { layout: result.layout, generator: { id: exampleSiteGenerator.id, seed: "tabs", inputs: {} } });
       startLive(a, m.id, 1);
-      const { placeHuntToken, advanceHunt, moveHuntToken } = await import("@campaign-forge/core");
       const t = placeHuntToken(a, m.id, { label: "Ghoul", zone: "D03", mover: "ghoul" });
       advanceHunt(a, m.id, "turn");
       moveHuntToken(a, m.id, t, "U02", { path: ["D03", "U01", "U02"] });
