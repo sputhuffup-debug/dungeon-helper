@@ -85,7 +85,7 @@ export function ensureLive(store: CampaignStore, map: SiteMap, act: number | und
   if (map.layout && !map.live) startLive(store, map.id, act ?? 1);
 }
 
-export type LiveTool = "select" | "reveal" | "measure" | "ping";
+export type LiveTool = "select" | "reveal" | "measure" | "ping" | "threat";
 
 /** Zones the player map shows as fog: every zone not yet revealed (out-of-bounds zones are never fogged). */
 export function unrevealed(layout: SiteLayout, live: SiteMapLiveState): Id[] {
@@ -146,4 +146,37 @@ export function rangeText(r: TargetRange | undefined): string {
   if (r.distance === undefined) return "no route";
   const zones = r.distance === 0 ? "same zone" : `${r.distance} zone${r.distance === 1 ? "" : "s"}`;
   return r.band ? `${zones} · ${r.band.label}` : zones;
+}
+
+// ---------------------------------------------------------------------------
+// the live hunt
+// ---------------------------------------------------------------------------
+
+/**
+ * Where the table clock and the initiative tracker stand, for the hunt:
+ * `stretch` moves when a stretch (or anything bigger) passes, `round` when a
+ * round passes on the clock or the initiative tracker starts a new round.
+ */
+export function huntSignal(config: Record<string, unknown> | undefined, state: unknown, initiativeRound: number | undefined): { stretch: string; round: string } {
+  const units = clockUnits(config);
+  const smallest = units[0] ? (clockState(state, units).counters[units[0].id] ?? 0) : 0;
+  return { stretch: clockStamp(config, state), round: `${smallest}:${initiativeRound ?? ""}` };
+}
+
+/** Which kind of step passed between two signals: the hunt's first step (a stretch) or its round step; undefined when neither moved. */
+export function huntStepPassed(prev: { stretch: string; round: string } | undefined, next: { stretch: string; round: string }, steps: Array<{ id: string }>): string | undefined {
+  if (!prev || steps.length === 0) return undefined;
+  if (prev.stretch !== next.stretch) return steps[0]!.id;
+  if (prev.round !== next.round) return (steps.find((s) => s.id === "round") ?? steps[1] ?? steps[0])!.id;
+  return undefined;
+}
+
+/** The PCs on the map as stalk targets: the zone of each PC's token, with the PC's name. */
+export function pcTargets(live: SiteMapLiveState, pcs: Array<{ id: Id; name: string }>): Array<{ zone: string; label: string; entity: Id }> {
+  const out: Array<{ zone: string; label: string; entity: Id }> = [];
+  for (const pc of pcs) {
+    const t = live.tokens.find((x) => x.entity === pc.id);
+    if (t) out.push({ zone: t.zone, label: pc.name, entity: pc.id });
+  }
+  return out;
 }

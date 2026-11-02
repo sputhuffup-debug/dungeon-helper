@@ -11,7 +11,12 @@
  */
 import {
   addPing,
+  advanceHunt,
   clearPings,
+  huntOf,
+  huntSeed,
+  moveHuntToken,
+  suggestHuntMoves,
   ductEventsFor,
   markGroup,
   zoneLayer,
@@ -40,8 +45,10 @@ import { rollZoneTable, tableRun } from "../../state/tableActions";
 import { useCampaign } from "../../state/hooks";
 import { maxActOf, useMapGenerator, useMapPalette } from "../maps/siteMapFiles";
 import "../maps/sitemap.css";
-import { useSessionTrackerState } from "./hooks";
-import { clearPingsOnStretch, clockStamp, ensureLive, measureRange, sceneActNumber, unrevealed, zoneExits, borderControls, type LiveTool } from "./siteMapLive";
+import { usePlayerCharacters, useSessionTrackerState } from "./hooks";
+import { clearPingsOnStretch, clockStamp, ensureLive, huntSignal, huntStepPassed, measureRange, pcTargets, sceneActNumber, unrevealed, zoneExits, borderControls, type LiveTool } from "./siteMapLive";
+import { useInitiativeCurrent } from "./Combat";
+import { HuntPanel, type HuntPrompt } from "./HuntPanel";
 import { RollSource } from "./RollSource";
 import { useModeTrackers } from "./TrackersPanel";
 
@@ -51,6 +58,8 @@ const TOOLS: Array<{ id: LiveTool; label: string; hint: string }> = [
   { id: "measure", label: "Range", hint: "Click two zones to read the range between them." },
   { id: "ping", label: "Ping", hint: "Click a zone to drop a tracker ping." },
 ];
+
+const THREAT_TOOL: { id: LiveTool; label: string; hint: string } = { id: "threat", label: "Move threat", hint: "Pick a hidden threat in the panel below, then click the zone it moves to." };
 
 function zoneName(z: MapZoneData | undefined, n: number | undefined): string {
   if (!z) return "?";
@@ -91,6 +100,49 @@ export function LiveSiteMap({ sessionId, map, scene, participants }: { sessionId
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stamp]);
 
+  // the live hunt: hidden threats, their suggested moves, and a prompt when a stretch or round passes
+  const hunt = def?.hunt ? def : undefined;
+  const huntState = huntOf(live);
+  const pcs = usePlayerCharacters();
+  const initiative = useInitiativeCurrent(sessionId);
+  const signal = clock ? huntSignal(clock.config, ts?.state[clock.id], initiative?.round) : huntSignal(undefined, undefined, initiative?.round);
+  const lastSignal = useRef<{ stretch: string; round: string } | undefined>(undefined);
+  const [prompt, setPrompt] = useState<HuntPrompt | undefined>();
+  const [moving, setMoving] = useState<string | undefined>();
+  const advance = (kind: string) => {
+    const next = advanceHunt(store, map.id, kind);
+    setPrompt({ step: next.step, kind });
+  };
+  useEffect(() => {
+    const prev = lastSignal.current;
+    lastSignal.current = signal;
+    const kind = hunt?.hunt ? huntStepPassed(prev, signal, hunt.hunt.steps) : undefined;
+    // only a map with threats on it keeps count
+    if (kind && huntState.tokens.some((t) => t.state !== "gone")) advance(kind);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [signal.stretch, signal.round]);
+  const targets = useMemo(() => pcTargets(live, pcs), [live, pcs]);
+  const suggestions = useMemo(
+    () => (hunt && huntState.tokens.length ? suggestHuntMoves(layout, live, { def: hunt, targets, seed: huntSeed(map) }) : []),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [hunt, layout, live, targets, map.id, map.generator?.seed],
+  );
+  const drawnLive = useMemo(
+    () =>
+      hunt && huntState.tokens.length
+        ? {
+            ...live,
+            hunt: {
+              tokens: huntState.tokens,
+              suggestions: suggestions.filter((s) => s.best.path.length > 1 && huntState.tokens.find((t) => t.id === s.token)?.state !== "seen").map((s) => ({ token: s.token, path: s.best.path })),
+              active: moving,
+            },
+          }
+        : live,
+    [hunt, live, huntState.tokens, suggestions, moving],
+  );
+  const tools = hunt ? [...TOOLS, THREAT_TOOL] : TOOLS;
+
   const [tool, setTool] = useState<LiveTool>("select");
   const [selected, setSelected] = useState<string | undefined>();
   const [range, setRange] = useState<{ from?: string | undefined; to?: string | undefined }>({});
@@ -112,6 +164,16 @@ export function LiveSiteMap({ sessionId, map, scene, participants }: { sessionId
       case "ping":
         addPing(store, map.id, zone);
         break;
+      case "threat": {
+        if (!moving) {
+          pushToast("Pick a threat in the hidden threats panel first.");
+          break;
+        }
+        const option = suggestions.find((s) => s.token === moving)?.options.find((o) => o.zone === zone);
+        moveHuntToken(store, map.id, moving, zone, { path: option?.path, trail: hunt?.hunt?.trail });
+        setMoving(undefined);
+        break;
+      }
     }
   };
 
@@ -141,12 +203,12 @@ export function LiveSiteMap({ sessionId, map, scene, participants }: { sessionId
       }
     >
       <div className="app-row app-livemap__tools" role="group" aria-label="Map tool">
-        {TOOLS.map((t) => (
+        {tools.map((t) => (
           <Button key={t.id} size="sm" variant={tool === t.id ? "primary" : "ghost"} aria-pressed={tool === t.id} onClick={() => setTool(t.id)} title={t.hint}>
             {t.label}
           </Button>
         ))}
-        <span className="app-grow cf-muted">{TOOLS.find((t) => t.id === tool)?.hint}</span>
+        <span className="app-grow cf-muted">{tools.find((t) => t.id === tool)?.hint}</span>
         <Badge>{live.revealed.length} revealed</Badge>
         {live.pings.length > 0 && (
           <Button size="sm" variant="ghost" onClick={() => clearPings(store, map.id)}>
@@ -158,7 +220,7 @@ export function LiveSiteMap({ sessionId, map, scene, participants }: { sessionId
         layout={layout}
         view="gm"
         legend={legend}
-        live={live}
+        live={drawnLive}
         act={live.act}
         fogged={fogged}
         selected={marks}
@@ -172,6 +234,26 @@ export function LiveSiteMap({ sessionId, map, scene, participants }: { sessionId
       />
 
       <RangePanel layout={layout} label={label} range={range} setRange={setRange} reading={reading} />
+      {hunt && (
+        <HuntPanel
+          sessionId={sessionId}
+          map={map}
+          def={hunt}
+          pcs={pcs}
+          participants={participants}
+          label={label}
+          suggestions={suggestions}
+          prompt={prompt}
+          onDismissPrompt={() => setPrompt(undefined)}
+          onAdvance={advance}
+          moving={moving}
+          onMove={(id) => {
+            setMoving(id);
+            if (id) setTool("threat");
+          }}
+          selectedZone={selected}
+        />
+      )}
       <DuctEvents sessionId={sessionId} map={map} zones={[...(selected ? [selected] : []), ...live.tokens.map((t) => t.zone)]} label={label} />
 
       {zone && (
