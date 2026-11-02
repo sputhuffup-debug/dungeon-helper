@@ -10,6 +10,7 @@ import {
   charactersOfMember,
   exportBundle,
   fromMarkdown,
+  handoutStaysWithGm,
   importBundle,
   memberViewer,
   ownerMemberOf,
@@ -176,6 +177,25 @@ describe("handouts for one player", () => {
     expect(sees(s.benCard, ben)).toBe(true);
     expect(sees(s.benCard, ana)).toBe(false);
     for (const h of [s.anaOnly, s.anaAgenda, s.benCard]) expect(sees(h, SHARE_VIEWER)).toBe(false);
+  });
+});
+
+describe("handouts a module keeps with the GM", () => {
+  it("never gives a GM-only purpose to the player, even with the toggle set", () => {
+    const s = seed();
+    const gmCard = s.store.createHandout({ title: "SECRET-GM-CARD", kind: "agenda", character: s.heroA.id, purpose: "gm-card", visibility: { level: "gm" } });
+    s.store.update("handouts", gmCard.id, { toOwner: true });
+    const strict: PacketModule = { ...module, ownerHandouts: [{ kind: "agenda", when: "given", gmOnlyPurposes: ["gm-card"], gmOnlyNote: "Stays with you." }] };
+    const maps = s.store.toJSON();
+    const ana = memberViewer(maps, s.ana.id);
+    expect(handoutStaysWithGm(maps.handouts[gmCard.id]!, strict)).toBe("Stays with you.");
+    expect(handoutStaysWithGm(maps.handouts[s.anaAgenda.id]!, strict)).toBeUndefined();
+    expect(canSeeHandout(maps.handouts[gmCard.id]!, ana, maps, strict)).toBe(false);
+    expect(canSeeHandout(maps.handouts[s.anaAgenda.id]!, ana, maps, strict)).toBe(true);
+    // without the mark the toggle would have given it
+    expect(canSeeHandout(maps.handouts[gmCard.id]!, ana, maps, module)).toBe(true);
+    const p = playerPacketSnapshot({ maps, module: strict, memberId: s.ana.id, sessionId: s.session.id, doc: (id) => s.registry.open(id), at: "t" });
+    expect(JSON.stringify(p)).not.toContain("SECRET-GM-CARD");
   });
 });
 

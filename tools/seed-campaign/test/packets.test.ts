@@ -11,10 +11,13 @@ import {
   CampaignStore,
   LONG_AGENDA_PURPOSE,
   addPlayer,
+  handoutStaysWithGm,
   longAgendaDefOf,
   memberViewer,
   playerMembers,
   playerPacketSnapshot,
+  revealZones,
+  startLive,
   projectCampaignForViewer,
   shareMapOf,
   stringLeaves,
@@ -25,7 +28,7 @@ import {
   type RichTextRegistry,
   type Viewer,
 } from "@campaign-forge/core";
-import { alienModule, CAMPAIGN_AGENDA_DEF } from "@campaign-forge/module-alien";
+import { alienModule, CAMPAIGN_AGENDA_CARD_PURPOSE, CAMPAIGN_AGENDA_DEF } from "@campaign-forge/module-alien";
 import { pf2eOrcSource } from "@campaign-forge/module-pf2e-orc";
 import { buildCinematicDemo, buildDemoCampaign, buildDnd5eDemo, buildPf2eDemo, dnd5eDemoModule, DEMO_PLAYERS, DEMO_PRIVATE_HANDOUT } from "../src";
 
@@ -238,5 +241,108 @@ describe("Skyfire Down's players", () => {
   it("matches the campaign agenda definition the module declares", () => {
     expect(CAMPAIGN_AGENDA_DEF.handouts?.agenda).toBe("{name}: personal agenda");
     expect(registry).toBeTruthy();
+  });
+
+  it("keeps the GM's agenda cards with the GM even if one is marked given", () => {
+    expect(CAMPAIGN_AGENDA_CARD_PURPOSE).toBe(LONG_AGENDA_PURPOSE);
+    const store = CampaignStore.fromJSON(maps);
+    const cards = store.list("handouts").filter((h) => h.purpose === LONG_AGENDA_PURPOSE);
+    expect(cards).toHaveLength(4);
+    for (const c of cards) {
+      expect(handoutStaysWithGm(c, alienModule)).toBe("Players get their agenda in their packet; this card stays with you.");
+      store.update("handouts", c.id, { toOwner: true });
+    }
+    const given = store.toJSON();
+    const session = Object.values(given.sessions)[0]!;
+    for (const m of playerMembers(given.meta)) {
+      const p = playerPacketSnapshot({ maps: given, module: alienModule, memberId: m.id, sessionId: session.id, doc: (id) => registry.open(id), at: AT });
+      for (const c of cards) expect(p.handouts.some((h) => h.id === c.id), `${m.name}: ${c.title}`).toBe(false);
+      for (const e of Object.values(given.entities)) {
+        const secret = (e.fields["campaignAgenda"] as { secret?: { text: string } } | undefined)?.secret?.text;
+        if (secret) expect(JSON.stringify(p)).not.toContain(secret);
+      }
+    }
+    // the job's agenda cards (no purpose) are still given
+    expect(handoutStaysWithGm(Object.values(given.handouts).find((h) => h.title.startsWith("Agenda: "))!, alienModule)).toBeUndefined();
+  });
+});
+
+describe("Skyfire Down's job board in the packets", () => {
+  // the taken job's site map on the first scene, with the zones holding rogue humans revealed: the packets then carry the map with fog
+  const demo = buildDemoCampaign();
+  const { store, registry } = demo;
+  const before = store.toJSON();
+  const job = Object.values(before.entities).find((e) => e.type === "alien.job" && e.tags.includes("job-board"))!;
+  const rels = Object.values(before.relationships);
+  const npcs = rels.filter((r) => r.type === "involved_in" && r.to === job.id).map((r) => ({ note: r.note, e: before.entities[r.from]! }));
+  const contact = npcs.find((n) => n.note === "Contact")!.e;
+  const site = rels.find((r) => r.type === "site_of" && r.to === job.id)!;
+  const siteMap = Object.values(before.maps).find((m) => m.location === site.from)!;
+  const hostiles = siteMap.layout!.markers.filter((m) => m.kind === "hostile");
+  const scene = Object.values(before.scenes)[0]!;
+  store.update("scenes", scene.id, { map: siteMap.id });
+  // the betrayer as a secret synthetic, with orders and cover scores the scan can look for
+  const betrayer = npcs.find((n) => (job.fields["betrayers"] as string[]).includes(n.e.name))!.e;
+  const ORDERS = "Bring the specimen home; the crew is expendable (planted orders).";
+  store.update("entities", betrayer.id, { fields: { ...betrayer.fields, secretAndroid: true, secretOrders: ORDERS, coverAttributes: { strength: 3, agility: 3, wits: 4, empathy: 3 } } });
+  startLive(store, siteMap.id, 1);
+  revealZones(store, siteMap.id, [...new Set([...hostiles.map((m) => m.zone), ...siteMap.layout!.zones.slice(0, 6).map((z) => z.id)])]);
+  const maps = store.toJSON();
+  const session = Object.values(maps.sessions)[0]!;
+  const posting = Object.values(maps.handouts).find((h) => h.purpose === "job-posting")!;
+  const packets = playerMembers(maps.meta).map((m) => playerPacketSnapshot({ maps, module: alienModule, memberId: m.id, sessionId: session.id, sceneId: scene.id, doc: (id) => registry.open(id), at: AT }));
+  const androids = Object.values(maps.entities).filter((e) => e.type === "alien.character" && (e.fields["android"] === true || e.fields["secretAndroid"] === true) && e.visibility.level === "gm");
+  const brief = job.fields["siteBrief"] as { summary: string[]; name?: string };
+
+  it("has what the scan needs: a betrayer, an android NPC, rogue humans on the revealed map", () => {
+    expect((job.fields["betrayers"] as string[]).length).toBe(1);
+    expect(androids.map((a) => a.id)).toContain(betrayer.id);
+    expect(maps.entities[betrayer.id]!.fields["secretOrders"]).toBe(ORDERS);
+    expect(hostiles.length).toBeGreaterThan(0);
+    for (const p of packets) expect(p.maps.map((m) => m.id)).toEqual([siteMap.id]);
+  });
+
+  it("puts the posting and the visible contact in every packet", () => {
+    for (const p of packets) {
+      expect(p.handouts.find((h) => h.id === posting.id), p.for).toBeDefined();
+      expect(p.handouts.find((h) => h.id === posting.id)?.personal).toBeUndefined();
+      expect(JSON.stringify(p), p.for).toContain(contact.name);
+      expect(projectCampaignForViewer(maps, alienModule, memberViewer(maps, p.member.id)).entities[contact.id]).toBeDefined();
+    }
+  });
+
+  it("never puts the betrayer, an android's secrets, NPC agendas, the job's GM fields or hostile markers in a packet", () => {
+    for (const p of packets) {
+      const json = JSON.stringify(p);
+      const view = projectCampaignForViewer(maps, alienModule, memberViewer(maps, p.member.id));
+      for (const n of npcs) {
+        for (const f of ["personalAgenda", "secret", "goal", "secretOrders"]) {
+          const v = n.e.fields[f];
+          if (typeof v === "string" && v.length > 8) expect(json, `${p.for}: ${n.e.name}.${f}`).not.toContain(v);
+        }
+        if (n.e.visibility.level === "gm") {
+          expect(json, `${p.for}: ${n.e.name}`).not.toContain(n.e.id);
+          expect(view.entities[n.e.id]).toBeUndefined();
+        }
+      }
+      expect(json).not.toContain(ORDERS);
+      expect(json).not.toContain("secretAndroid");
+      expect(json).not.toContain("coverAttributes");
+      for (const a of androids) {
+        expect(json).not.toContain(a.id);
+        expect(view.entities[a.id]).toBeUndefined();
+        for (const v of [a.fields["secretOrders"], ...((a.fields["fairClues"] as string[] | undefined) ?? [])]) if (typeof v === "string" && v) expect(json).not.toContain(v);
+      }
+      for (const name of job.fields["betrayers"] as string[]) expect(json, `${p.for}: betrayer ${name}`).not.toContain(name);
+      const pj = view.entities[job.id]!;
+      for (const f of ["difficulty", "effectiveDifficulty", "betrayers", "employerIntent", "siteBrief", "complications", "plotTwist"]) expect(pj.fields[f], f).toBeUndefined();
+      expect(json).not.toContain(String(job.fields["employerIntent"]));
+      for (const line of brief.summary) expect(json, line).not.toContain(line);
+      // the map goes out with fog and without its rogue humans
+      expect(json).not.toContain('"kind":"hostile"');
+      for (const m of hostiles) if (m.label) expect(json, `${p.for}: ${m.label}`).not.toContain(m.label);
+      for (const z of siteMap.layout!.zones) if (z.gmNote) expect(json).not.toContain(z.gmNote);
+      expect(json).not.toMatch(/betray|Rogue humans|UPP fire team|Mercenary team/i);
+    }
   });
 });

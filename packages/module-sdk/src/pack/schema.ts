@@ -550,7 +550,7 @@ const definitions: Record<string, JsonSchema> = {
     ["id", "title", "prompt"],
   ),
   primer: object<PrimerDef>()({ sections: list(ref("primerSection"), { minItems: 1 }) }, ["sections"]),
-  ownerHandout: object<OwnerHandoutDef>()({ kind: str(), when: { type: "string", enum: ["always", "given"] } }, ["kind"], { description: "A handout kind that reaches the player of the character it is for (`character`): always, or once the GM gives it. See docs/modules/sheets.md#owner-visible-fields." }),
+  ownerHandout: object<OwnerHandoutDef>()({ kind: str(), when: { type: "string", enum: ["always", "given"] }, gmOnlyPurposes: list(str()), gmOnlyNote: text }, ["kind"], { description: "A handout kind that reaches the player of the character it is for (`character`): always, or once the GM gives it. See docs/modules/sheets.md#owner-visible-fields." }),
 
   // Declarative d20 combat
   d20Duration: object<D20DurationSpec>()(

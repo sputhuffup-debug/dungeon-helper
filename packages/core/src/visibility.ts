@@ -67,10 +67,22 @@ function visibleBelow(entity: Entity, def: EntityTypeDef | undefined, path: stri
   return candidates.some((p) => p.startsWith(`${path}.`) && canSeeField(entity, def, p, viewer));
 }
 
-/** May the viewer see this handout? Its visibility, or it was given to the player of its character. */
-export function canSeeHandout(handout: Pick<Handout, "visibility" | "character" | "toOwner" | "kind">, viewer: Viewer, maps: Pick<CampaignMaps, "entities">, module: ModuleTypes | undefined): boolean {
+/**
+ * The note to show when the module keeps this handout with the GM (its kind's
+ * `gmOnlyPurposes` name the handout's `purpose`): it is never given to the
+ * character's player. Undefined for any other handout.
+ */
+export function handoutStaysWithGm(handout: Pick<Handout, "kind" | "purpose">, module: ModuleTypes | undefined): string | undefined {
+  if (!handout.purpose) return undefined;
+  const rule = module?.ownerHandouts?.find((r) => r.kind === handout.kind && r.gmOnlyPurposes?.includes(handout.purpose!));
+  return rule ? (rule.gmOnlyNote ?? "This handout stays with the GM.") : undefined;
+}
+
+/** May the viewer see this handout? Its visibility, or it was given to the player of its character (never one the module keeps with the GM). */
+export function canSeeHandout(handout: Pick<Handout, "visibility" | "character" | "toOwner" | "kind" | "purpose">, viewer: Viewer, maps: Pick<CampaignMaps, "entities">, module: ModuleTypes | undefined): boolean {
   if (canSee(handout.visibility, viewer)) return true;
   if (!handout.character || !viewerOwns(viewer, maps.entities[handout.character] ?? { id: handout.character })) return false;
+  if (handoutStaysWithGm(handout, module) !== undefined) return false;
   return handout.toOwner === true || !!module?.ownerHandouts?.some((r) => r.kind === handout.kind && r.when === "always");
 }
 

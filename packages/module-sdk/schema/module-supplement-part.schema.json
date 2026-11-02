@@ -1903,6 +1903,16 @@
             "always",
             "given"
           ]
+        },
+        "gmOnlyPurposes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "gmOnlyNote": {
+          "type": "string",
+          "minLength": 1
         }
       },
       "required": [

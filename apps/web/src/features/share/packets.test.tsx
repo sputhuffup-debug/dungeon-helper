@@ -3,6 +3,7 @@ import { LONG_AGENDA_PURPOSE, memberViewer, playerMembers, projectCampaignForVie
 import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import { strFromU8, unzipSync } from "fflate";
 import { afterEach, describe, expect, it } from "vitest";
+import { GiveToPlayer } from "../../components/GiveToPlayer";
 import { CampaignContext, openCampaign, type CampaignContextValue } from "../../state/CampaignProvider";
 import { loadDemoCampaign } from "../../state/tableActions";
 import { sessionPackets } from "./PacketsBody";
@@ -123,6 +124,25 @@ describe("player packets in the web app", () => {
     expect(html).not.toContain("An unsigned note");
     expect(priya).toBeTruthy();
     expect(within(dialog).getByTestId("packet-title").textContent).toBe("Skyfire Down for Sam: Session 1: The offer");
+  });
+});
+
+describe("Give to <player>", () => {
+  it("is a note, not a toggle, on the GM's campaign agenda card, and a toggle on the job's agenda card", async () => {
+    const { ctx } = await skyfire();
+    const handouts = ctx.store.list("handouts");
+    const gmCard = handouts.find((h) => h.purpose === LONG_AGENDA_PURPOSE)!;
+    const jobCard = handouts.find((h) => h.kind === "agenda" && h.title.startsWith("Agenda: "))!;
+    const view = render(
+      <CampaignContext.Provider value={ctx}>
+        <GiveToPlayer handout={gmCard} />
+        <GiveToPlayer handout={jobCard} />
+      </CampaignContext.Provider>,
+    );
+    expect(view.getByTestId("give-to-player-gm-only").textContent).toBe("Players get their agenda in their packet; this card stays with you.");
+    const toggles = view.getAllByTestId("give-to-player");
+    expect(toggles).toHaveLength(1);
+    expect(toggles[0]!.getAttribute("aria-label")).toBe(`Give ${jobCard.title} to ${playerMembers(ctx.store.meta()).find((m) => m.id === ctx.store.get("entities", jobCard.character!)!.ownerMemberId)!.name}`);
   });
 });
 

@@ -2,9 +2,10 @@
  * "Give to its player": a handout written for one character (an agenda card)
  * goes into that character's player's packet once the GM gives it out. A
  * module may mark a handout kind as always going to its player; then this
- * only says so.
+ * only says so; a kind's `gmOnlyPurposes` keep a handout with the GM, with the
+ * module's note in place of the toggle.
  */
-import { ownerMemberOf, type Handout } from "@campaign-forge/core";
+import { handoutStaysWithGm, ownerMemberOf, type Handout } from "@campaign-forge/core";
 import { useCampaign, useMeta, useRecord } from "../state/hooks";
 import { updateHandout } from "../state/prepActions";
 import { Badge } from "./ui";
@@ -14,6 +15,14 @@ export function GiveToPlayer({ handout }: { handout: Handout }) {
   const meta = useMeta();
   const character = useRecord("entities", handout.character);
   if (!handout.character) return null;
+  // a handout the module keeps with the GM (e.g. the GM's own agenda card) is never given out
+  const staysWithGm = handoutStaysWithGm(handout, ctx.module.module);
+  if (staysWithGm)
+    return (
+      <span className="cf-muted app-give-note" data-testid="give-to-player-gm-only">
+        {staysWithGm}
+      </span>
+    );
   const owner = character ? ownerMemberOf(meta, character) : undefined;
   const always = ctx.module.module.ownerHandouts?.some((r) => r.kind === handout.kind && r.when === "always");
   if (always) return <Badge tone="accent">{owner ? `Goes to ${owner.name}` : "Goes to its player"}</Badge>;

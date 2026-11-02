@@ -667,6 +667,15 @@ export const OWNER_VISIBILITY = "owner" as const;
 export interface OwnerHandoutDef {
   kind: string;
   when?: "always" | "given";
+  /**
+   * Handouts of this kind that a tool keeps for one of these purposes
+   * (`Handout.purpose`, e.g. the GM's own agenda card) stay with the GM: they
+   * are never given to the player, and `gmOnlyNote` shows where the toggle
+   * would be.
+   */
+  gmOnlyPurposes?: string[];
+  /** One line shown in place of the toggle on those handouts. */
+  gmOnlyNote?: string;
 }
 
 export type SheetWidget =
