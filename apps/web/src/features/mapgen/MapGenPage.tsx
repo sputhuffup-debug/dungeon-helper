@@ -7,15 +7,18 @@
  * `map=` re-opens a saved generated map with its seed, brief and stage seeds.
  */
 import { castMembers, type Adventure, type Entity, type Id, type SiteMap } from "@campaign-forge/core";
-import type { MapGeneratorDef, MapGeneratorResult } from "@campaign-forge/module-sdk";
+import type { EntityMapBrief, MapGeneratorDef, MapGeneratorResult } from "@campaign-forge/module-sdk";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Badge, Button, Card, EmptyState, PageRef, pushToast } from "../../components/ui";
 import { adventureTitle, errorMessage, humanize } from "../../lib/format";
 import { useCampaign, useList, useMeta } from "../../state/hooks";
+import { entityBrief } from "../jobs/JobPanel";
 import {
   acceptMapEntities,
   adventurePrefill,
+  ensureEntitySite,
+  prefillFromEntityBrief,
   canAcceptMap,
   findMapGenerator,
   linkMapToScenes,
@@ -48,7 +51,9 @@ export function MapGenPage() {
   const saved = search.map ? ctx.store.get("maps", search.map) : undefined;
   const adventureId = search.adventure ?? saved?.adventure;
   const adventure = adventureId ? ctx.store.get("adventures", adventureId) : undefined;
-  const fallbackId = adventure ? generators.find((g) => g.inputsFromAdventure)?.id : undefined;
+  const fromEntity = search.from ? ctx.store.get("entities", search.from) : undefined;
+  const fromBrief = fromEntity ? entityBrief(generators, fromEntity) : undefined;
+  const fallbackId = fromBrief?.generator.id ?? (adventure ? generators.find((g) => g.inputsFromAdventure)?.id : undefined);
   const generatorId = search.generator ?? saved?.generator?.id ?? fallbackId ?? (generators.length === 1 ? generators[0]?.id : undefined);
   const generator = findMapGenerator(ctx.module, generatorId);
   const pick = (id: string) => void navigate({ to: "/c/$campaignId/maps/new", params: { campaignId }, search: { ...search, generator: id }, replace: true });
@@ -104,7 +109,13 @@ export function MapGenPage() {
           ))}
         </ul>
       ) : (
-        <Workbench key={`${generator.id}|${adventureId ?? ""}|${saved?.id ?? ""}`} generator={generator} adventure={adventure} saved={saved?.generator?.id === generator.id ? saved : undefined} />
+        <Workbench
+          key={`${generator.id}|${adventureId ?? ""}|${saved?.id ?? ""}|${fromEntity?.id ?? ""}`}
+          generator={generator}
+          adventure={adventure}
+          saved={saved?.generator?.id === generator.id ? saved : undefined}
+          source={fromEntity && fromBrief && fromBrief.generator.id === generator.id ? { entity: fromEntity, brief: fromBrief.brief } : undefined}
+        />
       )}
     </div>
   );
@@ -119,15 +130,26 @@ interface Run {
   diff?: LayoutDiff;
 }
 
-function Workbench({ generator, adventure, saved }: { generator: MapGeneratorDef; adventure: Adventure | undefined; saved: SiteMap | undefined }) {
+function Workbench({
+  generator,
+  adventure,
+  saved,
+  source,
+}: {
+  generator: MapGeneratorDef;
+  adventure: Adventure | undefined;
+  saved: SiteMap | undefined;
+  /** A campaign entity whose brief fills the form (e.g. a job's site brief). */
+  source?: { entity: Entity; brief: EntityMapBrief } | undefined;
+}) {
   const ctx = useCampaign();
   const navigate = useNavigate();
   const campaignId = ctx.campaignId;
   const fromSaved = saved ? requestFromMap(saved) : undefined;
-  const prefillable = !!adventure && !!generator.inputsFromAdventure && !fromSaved;
+  const prefillable = !!adventure && !!generator.inputsFromAdventure && !fromSaved && !source;
 
   const [seed, setSeed] = useState(() => fromSaved?.seed ?? newSeed());
-  const [inputs, setInputs] = useState<Record<string, unknown>>(() => fromSaved?.inputs ?? mapInputDefaults(generator));
+  const [inputs, setInputs] = useState<Record<string, unknown>>(() => fromSaved?.inputs ?? (source ? prefillFromEntityBrief(generator, source.brief).inputs : mapInputDefaults(generator)));
   const [stageSeeds, setStageSeeds] = useState<Record<string, string>>(() => fromSaved?.stageSeeds ?? {});
   const [fromAdventure, setFromAdventure] = useState<string[]>([]);
   const [prefill, setPrefill] = useState<"idle" | "loading" | "done" | "error">(prefillable ? "loading" : "idle");
@@ -136,7 +158,7 @@ function Workbench({ generator, adventure, saved }: { generator: MapGeneratorDef
     saved?.layout && fromSaved ? { request: fromSaved, result: { layout: saved.layout, attempts: saved.generator?.attempts ?? 1 }, stored: true } : undefined,
   );
   const [rerun, setRerun] = useState<string | undefined>();
-  const [name, setName] = useState(() => saved?.name ?? (adventure ? `${adventureTitle(adventure)} site map` : generator.name));
+  const [name, setName] = useState(() => saved?.name ?? source?.brief.name ?? (adventure ? `${adventureTitle(adventure)} site map` : generator.name));
   const [location, setLocation] = useState<Id | "">(() => saved?.location ?? "");
   // a generator whose maps stand for campaign records (a dungeon's rooms and monsters) offers to add them
   const acceptable = canAcceptMap(generator);
@@ -212,6 +234,8 @@ function Workbench({ generator, adventure, saved }: { generator: MapGeneratorDef
       };
       if (adventure) input.adventureId = adventure.id;
       if (location) input.locationId = location;
+      // a map from an entity's brief is saved with that entity's site (created, GM only, the first time)
+      else if (source?.brief.site && !saved) input.locationId = ensureEntitySite(ctx, source.entity.id, source.brief.site);
       if (saved && !asNew) input.mapId = saved.id;
       const map = saveGeneratedMap(ctx, result, input);
       const fresh = !saved || asNew;
@@ -238,6 +262,15 @@ function Workbench({ generator, adventure, saved }: { generator: MapGeneratorDef
 
   return (
     <>
+      {source && (
+        <p className="app-note" data-testid="entity-brief-note">
+          Brief from{" "}
+          <Link to="/c/$campaignId/entities/$entityId" params={{ campaignId, entityId: source.entity.id }} className="app-link-strong">
+            {source.entity.name}
+          </Link>
+          {source.brief.summary?.length ? `: ${source.brief.summary.join(" ")}` : "."} Edit anything before generating; the map is saved with the job's site.
+        </p>
+      )}
       {adventure && <AdventureNote adventure={adventure} generator={generator} saved={saved} prefill={prefill} prefillError={prefillError} fromAdventure={fromAdventure} inputs={inputs} />}
       {saved && (
         <p className="app-note" data-testid="regenerate-note">

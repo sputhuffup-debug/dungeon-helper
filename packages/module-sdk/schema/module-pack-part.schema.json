@@ -3998,7 +3998,8 @@
                     "label",
                     "hazard",
                     "trap",
-                    "treasure"
+                    "treasure",
+                    "hostile"
                   ]
                 }
               },

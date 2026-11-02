@@ -108,6 +108,8 @@ any subtype (shown on the site sheet): `secret`, `puzzle`, `puzzleClue`, `puzzle
 ## `alien.job.fields`
 `frame`, `jobType` ("job"|"mission"|"expedition"), `distance: number 0..5`, `difficulty: number 1..3`, `payment: number`, `employer: string`, `bonusRewards: string[]`, `mission?: string`, `cargo?: string`, `destination: string`, `complications: string[]`, `plotTwist?: string`, `status` ("offered"|"accepted"|"done"|"declined")
 
+From the job board (`alien.job-board`, module-original): `posting: { title, pitch, pay, postedBy, where, deadline, requirements: string[], risk }` (what the players read), and GM-only `effectiveDifficulty: number 1..3` (the rolled difficulty less one per betraying NPC, at least 1), `betrayers: string[]`, `employerIntent: string`, `siteBrief: { generator, inputs, difficulty, mix, summary }` (the site map generator's brief: data only, read by Generate site map). A board job keeps `difficulty` GM-only (players see the posting's risk rating) and `employer` GM-only when the posting keeps the client confidential. Its NPCs link to it with `involved_in` (note: the role), the contact and a company liaison to the employer with `member_of`; the job's site links with `site_of`. The posting handout has `purpose: "job-posting"` and `attachedTo: { kind: "entity", id: <job> }`.
+
 ## `alien.item.fields`
 weapon: `bonus: number`, `damage: number`, `damageType?` ("normal"|"stun"|"fire"|"energy"), `range` ("adjacent"|"short"|"medium"|"long"|"extreme"), `rangeMin?`, `ammo?` , `power?: number`, `weight: number`, `cost: number`, `special: string[]`
 armor: `armorRating: number`, `airSupply?: number`, `weight`, `cost`, `special`
@@ -131,7 +133,7 @@ The crew's ship is the entity id in `meta.settings.ship` (session zero question 
 Host conditions it sets: `xx121:facehugged`, `xx121:implanted` (set by the `inseminationCheck` dice operation), `xx121:embryo`, `xx121:killed-by-chestburster`, `xx121:killed-by-removal`, `xx121:died-in-surgery`, `xx121:cocooned`, `xx121:ovomorphed`.
 
 ## Procedure ids
-`alien.world.create`, `alien.system.create`, `alien.job.create`, `alien.lifepath`, `alien.encounter.check`, `alien.shore-leave`, `alien.between-jobs`, `alien.agendas` (cinematic agenda drafts, `src/procedures/agendas.ts`), `alien.campaign-agendas` (campaign long-term agendas, beats and open friction, `src/procedures/campaign-agendas.ts`), `alien.session-end` (the last is implemented as a hook, not a procedure).
+`alien.world.create`, `alien.system.create`, `alien.job.create`, `alien.lifepath`, `alien.encounter.check`, `alien.shore-leave`, `alien.between-jobs`, `alien.agendas` (cinematic agenda drafts, `src/procedures/agendas.ts`), `alien.campaign-agendas` (campaign long-term agendas, beats and open friction, `src/procedures/campaign-agendas.ts`), `alien.job-board` (job postings with NPCs, agendas and a site brief, `src/procedures/job-board.ts`), `alien.session-end` (the last is implemented as a hook, not a procedure).
 
 ## Table id convention
 `alien.<family>.<name>` e.g. `alien.world.atmosphere`, `alien.character.panic`, `alien.jobs.truckers.employer`, `alien.encounters.colony.general`, `alien.lifepath.origin`.

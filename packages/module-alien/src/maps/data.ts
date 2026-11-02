@@ -574,6 +574,13 @@ export const MAP_LEGEND: MapLegendEntry[] = [
   L({ marker: "start" }, "Start", "Where the crew begins."),
   L({ marker: "spawn" }, "Spawn point", "Creature, act and Speed (zones per stretch in stealth mode).", [55, 208], { gmOnly: true }),
   L({ marker: "waypoint" }, "Patrol waypoint", "Where an active threat moves between stretches.", 55, { gmOnly: true }),
+  L(
+    { marker: "hostile" },
+    "Rogue humans",
+    "Module decision: a hostile group of people (or a hostile android) that holds a room, patrols the corridors or guards the objective. People keep out of the ducts; androids may use them. The zone key gives their stat line.",
+    [258, 259],
+    { gmOnly: true },
+  ),
   L({ marker: "clue" }, "Clue", "One of three placements for a puzzle answer.", undefined, { gmOnly: true }),
   L({ marker: "npc" }, "NPC", "Where an NPC is in each act.", undefined, { gmOnly: true }),
   L({ marker: "win" }, "Win path", "An endpoint that ends the scenario.", undefined, { gmOnly: true }),

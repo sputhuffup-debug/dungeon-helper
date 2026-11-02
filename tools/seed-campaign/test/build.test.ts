@@ -21,8 +21,9 @@ function signature(maps: CampaignMaps) {
   return { entities, relationships, scenes, settingsKeys: Object.keys(maps.meta.settings).sort() };
 }
 
+/** The job the crew is on (the job board's postings are the next ones). */
 const job = (maps: CampaignMaps): Entity => {
-  const jobs = Object.values(maps.entities).filter((e) => e.type === "alien.job");
+  const jobs = Object.values(maps.entities).filter((e) => e.type === "alien.job" && !e.tags.includes("job-board"));
   expect(jobs).toHaveLength(1);
   return jobs[0]!;
 };
@@ -105,11 +106,14 @@ describe("buildDemoCampaign", () => {
     expect(entities.some((e) => e.type === "alien.character" && e.fields["android"] === true)).toBe(true);
   });
 
-  it("links the crew to the ship and every handout to a PC", () => {
+  it("links the crew to the ship and every handout to a PC (or a job's posting to its job)", () => {
     const ship = entities.find((e) => e.type === "alien.spaceship")!;
     const crew = Object.values(maps.relationships).filter((r) => r.type === "crew_of" && r.to === ship.id);
     expect(crew).toHaveLength(4);
-    for (const h of Object.values(maps.handouts)) expect(maps.entities[h.character ?? ""]?.fields["isPC"]).toBe(true);
+    for (const h of Object.values(maps.handouts)) {
+      if (h.purpose === "job-posting") expect(maps.entities[h.attachedTo?.id ?? ""]?.type).toBe("alien.job");
+      else expect(maps.entities[h.character ?? ""]?.fields["isPC"]).toBe(true);
+    }
   });
 
   it("has no dangling relationship endpoints or record references", () => {
@@ -239,7 +243,8 @@ describe("other seeds", () => {
       const { maps } = buildDemoCampaign({ seed: `seed-${i}` });
       const entities = Object.values(maps.entities);
       expect(entities.filter((e) => e.fields["isPC"] === true)).toHaveLength(4);
-      expect(entities.filter((e) => e.type === "alien.job")).toHaveLength(1);
+      expect(entities.filter((e) => e.type === "alien.job")).toHaveLength(2);
+      expect(entities.filter((e) => e.type === "alien.job" && e.tags.includes("job-board"))).toHaveLength(1);
       expect(entities.some((e) => e.subtype === "planet")).toBe(true);
       for (const r of Object.values(maps.relationships)) expect(maps.entities[r.from] && maps.entities[r.to]).toBeTruthy();
     }

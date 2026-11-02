@@ -16,6 +16,8 @@ A map generator draws a site map for the campaign: a floor plan of zones (rooms 
 ]
 ```
 
+A TypeScript generator can also read its brief from a campaign entity: `briefFromEntity(entity)` returns an `EntityMapBrief` (the inputs, a map name, GM-only summary lines and the `site` location to save the map with, linked to the entity by a relationship) or undefined. The app then shows the brief on the entity's page with *Generate site map*, prefills the generator from it and saves the map with the entity's site (created GM-only the first time); a map generated from an earlier brief says the brief changed. The Alien module reads a job's `siteBrief` this way. A generator may place `hostile` markers (an armed group holding ground, GM-only like `spawn`); the zone key lists them under encounters.
+
 The engine is code in the SDK; the config is data. Every rule in it is JSONLogic ([cookbook](jsonlogic.md)), and every random draw comes from the run's seeded streams, so the same seed, brief and module version give the same map (rule 3). The engine is loaded on demand: `moduleFromPackSource` loads it when a pack declares generators, and the web app keeps it out of the first page's code. TypeScript modules can declare a `PackMapGenerator` too (`createPackMapGenerator` from the SDK); the fifth edition and ORC packs build theirs in `scripts/authored/dungeon.ts`. `packages/module-example/packs/example-pack/pack.json` has a small complete example.
 
 ## The `dungeon` engine

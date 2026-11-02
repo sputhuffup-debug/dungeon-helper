@@ -200,7 +200,7 @@ const GM_SCREEN_SIZES = ["third", "half", "full"] as const satisfies readonly Gm
 const GM_SCREEN_SIDES = ["gm", "players"] as const satisfies readonly GmScreenSide[];
 const CHECKLIST_PHASES = ["prep", "play", "wrap"] as const satisfies readonly SessionChecklistPhase[];
 const MAP_BORDER_KINDS = ["open", "wall", "door", "hatch", "blast", "access", "stairs", "shaft", "bars", "rubble"] as const satisfies readonly MapBorderKind[];
-const MAP_MARKER_KINDS = ["start", "spawn", "waypoint", "clue", "npc", "win", "label", "hazard", "trap", "treasure"] as const satisfies readonly MapMarkerKind[];
+const MAP_MARKER_KINDS = ["start", "spawn", "waypoint", "clue", "npc", "win", "label", "hazard", "trap", "treasure", "hostile"] as const satisfies readonly MapMarkerKind[];
 const MAP_ZONE_KINDS = ["room", "corridor", "crawlspace", "shaft", "exterior", "out-of-bounds"] as const satisfies readonly MapZoneKind[];
 const CHECKLIST_EVENTS = [
   "scenes-planned", "log-written", "revealed", "prompts-answered", "summary-saved", "loose-ends-carried", "timeline-confirmed", "next-session-planned", "awards-given",

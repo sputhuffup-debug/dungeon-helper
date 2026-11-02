@@ -1,5 +1,5 @@
 /** Campaign Forge demo campaign builder. Browser-safe: no node: imports (file I/O is in cli.ts). */
-export { buildDemoCampaign, demoCampaignJSON, DEMO_SEED, DEMO_NAME, DEMO_FRAME, DEMO_PLAYERS, DEMO_PRIVATE_HANDOUT } from "./build";
+export { buildDemoCampaign, demoCampaignJSON, DEMO_SEED, DEMO_NAME, DEMO_FRAME, DEMO_BOARD, DEMO_PLAYERS, DEMO_PRIVATE_HANDOUT, isDemoPosting } from "./build";
 export type { BuildDemoOptions, DemoCampaign } from "./build";
 export { buildCinematicDemo, cinematicDemoJSON, CINEMATIC_DEMO_SEED, CINEMATIC_DEMO_NAME, CINEMATIC_ADVENTURE_TITLE } from "./cinematic";
 export type { BuildCinematicDemoOptions, CinematicDemoCampaign } from "./cinematic";

@@ -60,7 +60,10 @@ test("ship page: funds and ledger, travel to another system, then between jobs p
   await expect(page.getByTestId("ship-card")).toContainText("at Y87-544");
   await expect(page.getByTestId("travel-log").getByTestId("travel-leg")).toHaveCount(2);
 
-  // 6. between jobs, for the demo's job: the payment is posted once, with the bills
+  // 6. between jobs, for the demo's job (the job board's posting is the next one): the payment is posted once, with the bills
+  const finished = page.getByRole("combobox", { name: "Job just finished" });
+  const haul = await finished.locator("option", { hasText: /^Haul / }).getAttribute("value");
+  await finished.selectOption(haul!);
   await page.getByTestId("between-jobs-link").click();
   await expect(page.getByTestId("workbench")).toBeVisible();
   await expect(page.getByTestId("input-job")).not.toHaveValue("");

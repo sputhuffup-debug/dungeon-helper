@@ -1,0 +1,23 @@
+{
+ "colony_block/layout": "7b4dea62ced0c7a24325a5ec",
+ "colony_block/player": "65eadb74fd5c72f48fe2ca14",
+ "colony_block/svg-gm": "38cdeb1825100b45cdfbdd4b",
+ "station_deck/layout": "272afa82f0d7239b77805075",
+ "station_deck/player": "7413a95d13dbaf5a5d87f09b",
+ "station_deck/svg-gm": "667f71f550d07f6313929ed8",
+ "starship/layout": "3b1f7d86fc1f1e995158119a",
+ "starship/player": "614a5a523778bac48517511b",
+ "starship/svg-gm": "b979cdd43ffb2460a6a377fa",
+ "derelict/layout": "8b72a58a35f33878f33f4540",
+ "derelict/player": "d9090ab5d14ecfda9078b587",
+ "derelict/svg-gm": "c9243913f3b7dea1bde2b5db",
+ "mine/layout": "8b12f2c5531fd26895f046fc",
+ "mine/player": "4795d4927a63b893d13fc89f",
+ "mine/svg-gm": "4d47b923a2581d682967cc23",
+ "research_lab/layout": "6a5c45567438dfcf2e9b7531",
+ "research_lab/player": "3980ee588925736af6c6ac0a",
+ "research_lab/svg-gm": "525311b4e40118185d424486",
+ "alien_ruin/layout": "13548f3a8f56a45163a598bf",
+ "alien_ruin/player": "801dbf61daabbcfffc189966",
+ "alien_ruin/svg-gm": "2e30abb5a7786763a2393aa4"
+}

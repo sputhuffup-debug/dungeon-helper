@@ -74,7 +74,9 @@ test("campaign agendas: generate, accept, mark a job's outcome, see the next bea
   const players = await popup;
   await expect(players.getByTestId("player-screen")).toBeVisible();
   await expect(players.locator("[data-handout] h3").filter({ hasText: `${name}: friction` })).toHaveCount(1);
-  await expect(players.locator("[data-handout]")).toHaveCount(4);
+  // the four friction handouts and the job board posting the crew took
+  await expect(players.locator("[data-handout]")).toHaveCount(5);
+  await expect(players.locator("[data-handout] h3").filter({ hasText: /^Posting: / })).toHaveCount(1);
   await expect(players.getByText("personal agenda")).toHaveCount(0);
   await expect(players.getByText(nextBeat)).toHaveCount(0);
 

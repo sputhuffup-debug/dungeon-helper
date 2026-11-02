@@ -7,7 +7,7 @@
 import type { MapBorderData, MapMarker, MapPoint, MapZoneData, SiteLayout } from "@campaign-forge/module-sdk";
 import { useMemo } from "react";
 
-const MARKER_GLYPH: Record<string, string> = { start: "▶", spawn: "◆", waypoint: "◇", clue: "⚿", npc: "☺", win: "★", label: "•", hazard: "⚠" };
+const MARKER_GLYPH: Record<string, string> = { start: "▶", spawn: "◆", waypoint: "◇", clue: "⚿", npc: "☺", win: "★", label: "•", hazard: "⚠", hostile: "⌖" };
 
 function hue(text: string): number {
   let h = 0;

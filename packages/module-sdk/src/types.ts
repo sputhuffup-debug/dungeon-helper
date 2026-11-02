@@ -491,6 +491,60 @@ export interface Procedure {
    * session wrap-up.
    */
   longAgendas?: LongAgendaDef;
+  /**
+   * The procedure deals a board of offers the GM picks from (job postings,
+   * rumours, leads): its `results.offers` is an `OfferSet`. The app shows one
+   * card per offer, re-rollable and pinnable as a whole (its `key` part) or
+   * slot by slot, and accepts any offer on its own: the offer's `produced`
+   * entities and relationships go into the campaign with the run's
+   * provenance, with the offer's player handout. Unaccepted offers can be
+   * discarded from the board. The procedure's own `produce` is not used.
+   */
+  offers?: OfferDef;
+}
+
+/** How the app accepts one offer of a board (see `Procedure.offers`). */
+export interface OfferDef {
+  /** One offer, for buttons and toasts (e.g. "posting"). */
+  noun: string;
+  /** The main accept action (e.g. "Take the job"), with fields it sets on the offer's first entity. */
+  accept: { label: string; fields?: Record<string, unknown> };
+  /** A second way to accept that keeps the offer for later (e.g. "Keep as lead"). */
+  keep?: { label: string; fields?: Record<string, unknown> };
+}
+
+/** One slot of an offer the GM can re-roll or pin: `key` is the part key ("<step id>/<key>"). */
+export interface OfferSlot {
+  key: string;
+  label: string;
+  text: string;
+  /** Shown only in the GM's view of the card (never in the players' text). */
+  gmOnly?: boolean;
+}
+
+/** One offer on a board: what the players are told, what the GM knows, and what accepting it creates. */
+export interface Offer {
+  /** The part key ("<step id>/<key>") that re-rolls or pins the whole offer. */
+  key: string;
+  title: string;
+  /** Short facts for the card head (pay, risk...). `gmOnly` badges stay in the GM's view. */
+  badges?: Array<{ label: string; tone?: "accent" | "warning" | "danger" | "success"; gmOnly?: boolean }>;
+  /** What the players are told, as Markdown: also the handout's body. Must never carry GM-only facts. */
+  playerText: string;
+  /** What only the GM knows, as Markdown. */
+  gmText: string;
+  slots: OfferSlot[];
+  /** What accepting the offer creates; the first entity is the offer's own record (e.g. the job). */
+  produced: { entities: ProducedEntity[]; relationships: ProducedRelationship[] };
+  /** The player-visible handout added on accept (the posting as the players read it). */
+  handout?: { title: string; body: string; purpose?: string };
+}
+
+/** A procedure's `results.offers`. */
+export interface OfferSet {
+  offers: Offer[];
+  /** Shown above the cards (e.g. how the board was dealt). */
+  note?: string;
 }
 
 export interface ProducedEntity {
@@ -510,6 +564,14 @@ export interface ProducedEntity {
    * into `fields`); recorded in the entity's provenance on acceptance.
    */
   preset?: string;
+  /**
+   * Who may see the entity once accepted, when the procedure knows (e.g. a
+   * job's contact is met in the open, its other NPCs are GM-only until met).
+   * The accept call's own visibility wins; absent both, the entity is GM-only.
+   */
+  visibility?: VisibilityLevel;
+  /** Per-field visibility overrides set on acceptance (e.g. a secret android's `android` flag kept GM-only on an NPC the players can see). */
+  fieldVisibility?: Record<string, VisibilityLevel>;
 }
 
 export interface ProducedRelationship {
@@ -517,6 +579,8 @@ export interface ProducedRelationship {
   from: string;
   to: string;
   note?: string;
+  /** Who may see the link once accepted (GM-only when absent). */
+  visibility?: VisibilityLevel;
 }
 
 export interface GeneratedGraph {
@@ -1447,7 +1511,8 @@ export interface MapBorderData {
 }
 
 /** `trap` and `treasure` are GM marks like `spawn` and `clue`: never on player outputs. */
-export type MapMarkerKind = "start" | "spawn" | "waypoint" | "clue" | "npc" | "win" | "label" | "hazard" | "trap" | "treasure";
+/** `hostile` is an armed group of people (or another thinking foe) holding a room, patrolling or guarding an objective: GM-only, like `spawn`. */
+export type MapMarkerKind = "start" | "spawn" | "waypoint" | "clue" | "npc" | "win" | "label" | "hazard" | "trap" | "treasure" | "hostile";
 
 export interface MapMarker {
   id: string;
@@ -1568,6 +1633,13 @@ export interface MapGeneratorDef {
   /** Build generator inputs from an adventure review context (cast, acts, fields). */
   inputsFromAdventure?(ctx: Record<string, unknown>): Record<string, unknown>;
   /**
+   * The brief a campaign entity carries for this generator (e.g. a job's
+   * site brief), or undefined when it carries none. The app offers
+   * "Generate site map" on such an entity, prefills the brief from it, and
+   * links the saved map and its site back to the entity.
+   */
+  briefFromEntity?(entity: EntitySnapshot): EntityMapBrief | undefined;
+  /**
    * Border kinds and flags that block movement for distance, given the act.
    * `move`, when given, is the direction of travel across the border (core
    * passes it for every step of a path search), so a one-way drop can be
@@ -1594,6 +1666,20 @@ export interface MapGeneratorDef {
    * generator from it, so it sees their presets, lists and tables.
    */
   source?: { engine: string; [key: string]: unknown };
+}
+
+/** A generator brief read from a campaign entity (see `MapGeneratorDef.briefFromEntity`). */
+export interface EntityMapBrief {
+  inputs: Record<string, unknown>;
+  /** The map's suggested name. */
+  name?: string;
+  /** Short lines describing the brief for the entity's page (GM-only). */
+  summary?: string[];
+  /**
+   * The site the map shows, created as a GM-only location when the entity
+   * has none linked yet: `relationship` runs from the site to the entity.
+   */
+  site?: { name: string; type: string; subtype?: string; summary?: string; fields?: Record<string, unknown>; relationship: string };
 }
 
 /** What a generated map stands for in the campaign: entities to create, and which zones and markers they belong to. */

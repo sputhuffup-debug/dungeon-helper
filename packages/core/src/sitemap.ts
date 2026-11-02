@@ -442,7 +442,7 @@ export function shaftLabel(link: ShaftLink, withId = true): string {
 // ---------------------------------------------------------------------------
 
 /** Marker kinds that never reach a player output, whatever their `gmOnly` says. */
-export const GM_MARKER_KINDS: ReadonlySet<MapMarker["kind"]> = new Set(["spawn", "clue", "npc", "waypoint", "trap", "treasure"]);
+export const GM_MARKER_KINDS: ReadonlySet<MapMarker["kind"]> = new Set(["spawn", "clue", "npc", "waypoint", "trap", "treasure", "hostile"]);
 
 /** Border flags the renderer draws and players can see (wall weight). */
 const PLAYER_BORDER_FLAGS = new Set(["outerHull"]);
@@ -903,7 +903,7 @@ export interface ZoneKeyMark {
 
 /** "Encounters", "Traps", "Treasure": which key column a mark belongs to. */
 export function markGroup(kind: MapMarker["kind"]): "encounters" | "traps" | "treasure" | undefined {
-  if (kind === "spawn" || kind === "npc") return "encounters";
+  if (kind === "spawn" || kind === "npc" || kind === "hostile") return "encounters";
   if (kind === "trap" || kind === "hazard") return "traps";
   if (kind === "treasure") return "treasure";
   return undefined;
