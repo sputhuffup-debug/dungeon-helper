@@ -11,6 +11,7 @@ import { MAP_STAGES, generateSiteMap } from "./generator";
 import { alienPassable } from "./helpers";
 import { MAP_INPUT_SCHEMA, inputsFromAdventure } from "./inputs";
 import { briefFromJob } from "./jobBrief";
+import { ALIEN_HUNT } from "./hunt";
 
 /** GM-only tables the table mode offers for matching zones. */
 export const MAP_ZONE_TABLES: MapZoneTable[] = [
@@ -39,6 +40,7 @@ export const siteMapGenerator: MapGeneratorDef = {
   rangeBands: RANGE_BANDS,
   legend: MAP_LEGEND,
   zoneTables: MAP_ZONE_TABLES,
+  hunt: ALIEN_HUNT,
 };
 
 export const mapGenerators: MapGeneratorDef[] = [siteMapGenerator];
@@ -46,6 +48,7 @@ export const mapGenerators: MapGeneratorDef[] = [siteMapGenerator];
 export * from "./data";
 export { MAP_STAGES, MAX_ATTEMPTS, createMapContext, generateSiteMap, validateLayout, threatSpecs, hostileSpecs } from "./generator";
 export * from "./hostiles";
+export * from "./hunt";
 export { jobSiteBrief, briefFromJob, JOB_BRIEF_ROWS, THREAT_KINDS, THREAT_KIND_LABELS, THREAT_SLOTS, SIZE_BY_DIFFICULTY, type JobSiteBrief, type JobBriefFacts, type JobBriefNpc, type ThreatKind } from "./jobBrief";
 export {
   alienPassable,

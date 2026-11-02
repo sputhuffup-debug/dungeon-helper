@@ -5,13 +5,16 @@
  * clues, NPCs, GM notes, hidden borders, unknown locks, pings and hidden
  * tokens cannot be drawn here. A duct sheet appears once the GM reveals one
  * of its zones, fogged elsewhere; duct event rolls stay in the GM's table
- * mode and the session log, which this screen never reads.
+ * mode and the session log, which this screen never reads. Of the live hunt
+ * the players get the motion tracker readout (blips at a range band and a
+ * direction, never a zone) and the threats the GM has revealed.
  */
 import { liveOf, playerLayout, playerLive, type SiteMap } from "@campaign-forge/core";
 import { useMemo } from "react";
 import { MapLegend, SiteMapView } from "../../components/ui";
 import { useMapGenerator, useMapPalette } from "../maps/siteMapFiles";
 import "../maps/sitemap.css";
+import { TrackerReadout } from "./TrackerReadout";
 
 export function PlayerSiteMap({ map }: { map: SiteMap }) {
   const def = useMapGenerator(map);
@@ -27,6 +30,7 @@ export function PlayerSiteMap({ map }: { map: SiteMap }) {
   return (
     <section className="app-player__map" aria-label="Map" data-testid="player-map">
       <SiteMapView layout={view.layout} view="player" legend={legend} fogged={view.layout.fogged} live={view.live} passable={def?.passable} palette={palette} title={map.name} gridToggle={false} grid />
+      <TrackerReadout tracker={view.live.tracker} bands={def?.rangeBands} />
       {legend && legend.length > 0 && (
         <details className="app-player__legend">
           <summary>Legend</summary>
