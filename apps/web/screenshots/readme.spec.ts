@@ -356,6 +356,61 @@ function skyfireBoardJob(): string {
   return job.name;
 }
 
+/** Session 1 in table mode on "The ore run": the job's site map with the live hunt. */
+async function openHunt(page: Page) {
+  await loadDemo(page, "skyfire");
+  await startSession1(page);
+  const scenes = page.getByRole("combobox", { name: "Scene" });
+  await scenes.selectOption((await scenes.locator("option", { hasText: "The ore run" }).getAttribute("value"))!);
+  const live = page.getByTestId("live-map");
+  await expect(live.getByTestId("hunt-token")).toHaveCount(2);
+  return live;
+}
+
+test("alien-motion-tracker", async ({ page, context }) => {
+  // the player screen mid-hunt: the crew on Deck B, the revealed way in, and Lee-Ann's sweep as blips A and B
+  await openHunt(page);
+  const popup = context.waitForEvent("page");
+  await page.getByRole("button", { name: "Player screen" }).click();
+  const players = await popup;
+  // tall enough for the map and the tracker readout under it without scrolling
+  await players.setViewportSize({ width: 1440, height: 2000 });
+  const playerMap = players.getByTestId("player-map");
+  await expect(playerMap.getByTestId("tracker-blip")).toHaveCount(2);
+  await playerMap.getByRole("group", { name: "Decks" }).getByRole("button", { name: "Deck B" }).click();
+  await refit(playerMap);
+  // frame the scene column: the title, the map and the readout
+  const scene = (await players.getByRole("region", { name: "Scene" }).boundingBox())!;
+  const readout = (await playerMap.getByTestId("tracker-readout").boundingBox())!;
+  const pad = 12;
+  await shot(players, "alien-motion-tracker", { clip: { x: Math.floor(scene.x - pad), y: Math.floor(scene.y - pad), width: Math.ceil(scene.width + pad * 2), height: Math.ceil(readout.y + readout.height - scene.y + pad * 2) } });
+});
+
+test("alien-motion-tracker-gm", async ({ page }) => {
+  // the GM's live map on the duct sheet over Deck B: the stalker hidden with its trail and suggested move, and the hunt panel
+  await page.setViewportSize({ width: 2000, height: 2400 });
+  const live = await openHunt(page);
+  const sitemap = live.getByTestId("sitemap");
+  await sitemap.getByRole("group", { name: "Decks" }).getByRole("button", { name: /^Ducts over Deck B/ }).click();
+  await refit(live);
+  // zoom in on the stalker: drag the map from an empty corner so the stalker sits mid-view
+  for (let i = 0; i < 3; i++) await sitemap.getByRole("button", { name: "Zoom in" }).click();
+  const view = (await sitemap.locator(".cf-map__viewport").boundingBox())!;
+  const stalker = (await sitemap.locator("[data-hunt-token]").first().boundingBox())!;
+  const from = { x: view.x + 12, y: view.y + 12 };
+  await page.mouse.move(from.x, from.y);
+  await page.mouse.down();
+  await page.mouse.move(from.x + (view.x + view.width / 2 - (stalker.x + stalker.width / 2)), from.y + (view.y + view.height * 0.55 - (stalker.y + stalker.height / 2)), { steps: 8 });
+  await page.mouse.up();
+  const panel = live.getByTestId("hunt-panel");
+  await live.evaluate((e) => e.scrollIntoView({ block: "start" }));
+  await settle(page);
+  const a = (await live.boundingBox())!;
+  const b = (await panel.boundingBox())!;
+  const pad = 8;
+  await shot(page, "alien-motion-tracker-gm", { clip: { x: Math.floor(a.x - pad), y: Math.floor(a.y - pad), width: Math.ceil(a.width + pad * 2), height: Math.ceil(b.y + b.height - a.y + pad * 2) } });
+});
+
 test("alien-job-board", async ({ page }) => {
   // the job taken from the board: its posting, the GM's side (plays one difficulty lower: one betrayer), its NPCs and the site brief with its map
   await page.setViewportSize({ width: 1440, height: 1500 });

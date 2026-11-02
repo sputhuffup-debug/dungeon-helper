@@ -231,4 +231,50 @@ export const exampleSiteGenerator: MapGeneratorDef = {
     { target: { marker: "win" }, label: "Way out", gmOnly: true },
   ],
   zoneTables: [{ table: "example.table.crawl", label: "Crawl event", when: { layer: "duct" }, hint: "Roll when a token enters a crawlway zone.", page: 72 }],
+  // the live hunt: ghouls crawl and stalk, the warden's men keep to the floor; a ghost bell hears movement
+  hunt: {
+    steps: [
+      { id: "turn", label: "Turn", page: 72 },
+      { id: "round", label: "Round" },
+    ],
+    movers: [
+      {
+        id: "ghoul",
+        label: "Ghoul",
+        zones: { turn: { var: ["speed", 2] }, round: 1 },
+        ducts: true,
+        from: { markers: [{ kind: "spawn" }], entities: [{ type: "example.beast" }] },
+        prefer: { approach: 2, duct: 1, flags: { dark: 0.5 }, trail: -0.5 },
+        postureKey: "state",
+        postures: { asleep: { approach: 0, stay: 5 } },
+        hurt: { approach: -2, duct: 2 },
+        notes: [{ text: "Ghouls crawl toward the nearest living soul.", page: 72 }],
+      },
+      {
+        id: "guards",
+        label: "Guards",
+        zones: { turn: 1, round: 1 },
+        ducts: false,
+        from: { markers: [{ kind: "npc" }], entities: [{ type: "example.hero", when: { "!": { var: "fields.isPC" } } }] },
+        prefer: { approach: 0.5, stay: 0.5 },
+        postures: { hold: { approach: 0, home: -3, stay: 1 } },
+        notes: [{ text: "Guards keep out of the crawlways.", original: true }],
+      },
+    ],
+    sensors: [
+      {
+        id: "ghost-bell",
+        label: "Ghost bell",
+        carried: { names: ["Ghost bell"] },
+        range: "far",
+        detects: "moved",
+        through: "any",
+        page: 73,
+        notes: [{ text: "It rings for anything that moved this turn.", page: 73 }],
+      },
+    ],
+    gearPaths: ["gear"],
+    blipLetters: ["A", "B", "C"],
+    trail: 3,
+  },
 };

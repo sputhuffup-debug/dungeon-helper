@@ -345,6 +345,78 @@ export interface SiteMapLiveState {
   tokens: Array<{ id: Id; label: string; zone: Id; gmOnly: boolean; entity?: Id }>;
   /** Motion tracker pings, cleared each stretch. */
   pings: Array<{ zone: Id; at: string }>;
+  /**
+   * The live hunt (the generator's `hunt`): hidden threat tokens, their
+   * trails and the PCs' sensor sweeps. GM-only; the player projection keeps
+   * only blips (letter, range band, direction) and tokens revealed as seen.
+   * Absent until the GM places a hidden threat.
+   */
+  hunt?: HuntState;
+}
+
+/** hidden: on the GM's map only; detected: a blip on a tracker this step; seen: revealed on the player map; gone: out of play. */
+export type HuntTokenState = "hidden" | "detected" | "seen" | "gone";
+
+export interface HuntToken {
+  id: Id;
+  label: string;
+  zone: Id;
+  /** The module's mover kind (`hunt.movers[].id`). */
+  mover: string;
+  state: HuntTokenState;
+  /** Where it was placed: guard postures stay near it. */
+  home: Id;
+  /** Recent zones, oldest first (GM-only, drawn faintly). */
+  trail: Id[];
+  /** The hunt step of its last move: movement-only sensors read it. */
+  movedAt?: number;
+  /** Marked hurt by the GM: its mover's `hurt` weights apply. */
+  hurt?: boolean;
+  /** Blip letter, while it has one. */
+  letter?: string;
+  /** The map marker or campaign entity it was made from. */
+  marker?: string;
+  entity?: Id;
+  /** What its mover rules read (speed, count, posture, state). */
+  data?: Record<string, unknown>;
+  /** Patrol waypoints in order, and the index of the next one. */
+  route?: Id[];
+  routeAt?: number;
+}
+
+export interface HuntBlip {
+  letter: string;
+  /** GM-only: the token behind the blip and its zone distance. */
+  token: Id;
+  distance: number;
+  band: string;
+  bandLabel: string;
+  /** Compass bearing from the sweeper ("N", "NE" ... "NW"), or "here". */
+  direction: string;
+  /** When the blip is on another level. */
+  vertical?: "above" | "below";
+}
+
+export interface HuntSweep {
+  id: Id;
+  step: number;
+  at: string;
+  by: { name: string; entity?: Id };
+  /** GM-only: the zone swept from. */
+  zone: Id;
+  sensor: string;
+  sensorLabel: string;
+  blips: HuntBlip[];
+}
+
+export interface HuntState {
+  /** Steps (stretches or rounds) since the hunt began. */
+  step: number;
+  /** The step id the last advance used (`hunt.steps[].id`). */
+  stepKind?: string;
+  tokens: HuntToken[];
+  /** Recent sweeps, oldest first. */
+  sweeps: HuntSweep[];
 }
 
 // ---------------------------------------------------------------------------

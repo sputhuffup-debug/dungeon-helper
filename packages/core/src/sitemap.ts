@@ -27,6 +27,7 @@ import {
   type TableRegistry,
 } from "@campaign-forge/module-sdk";
 import { acceptGeneratedGraph, type AcceptResult } from "./generation";
+import { playerTracker, type PlayerTrackerState } from "./hunt";
 import { newId, now } from "./ids";
 import { clone } from "./paths";
 import type { CampaignStore } from "./store";
@@ -174,18 +175,39 @@ export function zoneMove(layout: Pick<SiteLayout, "decks" | "zones">, from: stri
   return { from, to, vertical: verticalBetween(decks.get(from), decks.get(to)) };
 }
 
+export interface ZoneGraphOptions extends BorderStateOptions {
+  /** Zones the graph keeps (default: every zone). */
+  keep?: ((z: MapZoneData) => boolean) | undefined;
+  /** Count every border both ways, passable or not (a sensor that reads through walls). */
+  anyBorder?: boolean | undefined;
+}
+
+/** Breadth-first search over a zone graph: steps from `from` to every zone it reaches, and the zone before each on one shortest path. */
+export function graphSearch(adj: Map<string, string[]>, from: string): { dist: Map<string, number>; prev: Map<string, string> } {
+  return bfs(adj, from);
+}
+
+function adjacency(layout: SiteLayout, opts: BorderStateOptions): Map<string, string[]> {
+  return zoneGraph(layout, opts);
+}
+
 /**
  * Directed adjacency: each border is asked once per direction (the module's
  * `passable` gets the move), so a one-way drop links its top to its bottom
  * only. Duct sheets and floor decks are one graph.
  */
-function adjacency(layout: SiteLayout, opts: BorderStateOptions): Map<string, string[]> {
+export function zoneGraph(layout: SiteLayout, opts: ZoneGraphOptions): Map<string, string[]> {
   const adj = new Map<string, string[]>();
-  for (const z of layout.zones) adj.set(z.id, []);
+  for (const z of layout.zones) if (!opts.keep || opts.keep(z)) adj.set(z.id, []);
   const decks = zoneDecks(layout);
   for (const b of layout.borders) {
     // hidden borders still count: the distance is the GM's truth
     if (!adj.has(b.a) || !adj.has(b.b) || b.a === b.b) continue;
+    if (opts.anyBorder) {
+      if (!adj.get(b.a)!.includes(b.b)) adj.get(b.a)!.push(b.b);
+      if (!adj.get(b.b)!.includes(b.a)) adj.get(b.b)!.push(b.a);
+      continue;
+    }
     const ab: MapMove = { from: b.a, to: b.b, vertical: verticalBetween(decks.get(b.a), decks.get(b.b)) };
     const ba: MapMove = { from: b.b, to: b.a, vertical: verticalBetween(decks.get(b.b), decks.get(b.a)) };
     if (borderState(b, opts, ab).passable) adj.get(b.a)!.push(b.b);
@@ -662,10 +684,19 @@ export function playerLayout(layout: SiteLayout, opts: PlayerLayoutOptions): Pla
 
 export interface PlayerLiveState {
   zoneFlags: Record<Id, Record<string, unknown>>;
-  tokens: Array<{ id: Id; label: string; zone: Id }>;
+  /** `badge` is a revealed threat's kept blip letter. */
+  tokens: Array<{ id: Id; label: string; zone: Id; badge?: string }>;
+  /** The motion tracker readout: blips at a range band and a direction, never a zone. Only once there has been a sweep. */
+  tracker?: PlayerTrackerState;
 }
 
-/** Live state for players: visible tokens and legend-visible zone flags in zones they can see. Pings stay with the GM. */
+/**
+ * Live state for players: visible tokens and legend-visible zone flags in
+ * zones they can see. Pings stay with the GM. Of the hunt, only threats the
+ * GM revealed as seen (in zones the players see) and the sweeps' blips
+ * (letter, range band, direction) reach them: never a hidden token, a trail,
+ * a suggestion or a blip's zone.
+ */
 export function playerLive(live: SiteMapLiveState | undefined, projected: PlayerLayout, legend: MapLegendEntry[] | undefined): PlayerLiveState {
   const visible = new Set(projected.zones.filter((z) => !projected.fogged.includes(z.id)).map((z) => z.id));
   const flagNames = playerFlagNames(legend);
@@ -675,8 +706,17 @@ export function playerLive(live: SiteMapLiveState | undefined, projected: Player
     const f = playerFlags(flags, flagNames);
     if (f) zoneFlags[zone] = f;
   }
-  const tokens = (live?.tokens ?? []).filter((t) => !t.gmOnly && visible.has(t.zone)).map((t) => ({ id: t.id, label: t.label, zone: t.zone }));
-  return { zoneFlags, tokens };
+  const tokens: PlayerLiveState["tokens"] = (live?.tokens ?? []).filter((t) => !t.gmOnly && visible.has(t.zone)).map((t) => ({ id: t.id, label: t.label, zone: t.zone }));
+  const out: PlayerLiveState = { zoneFlags, tokens };
+  const hunt = live?.hunt;
+  if (!hunt) return out;
+  for (const t of hunt.tokens ?? []) {
+    if (t.state !== "seen" || !visible.has(t.zone)) continue;
+    tokens.push({ id: t.id, label: t.label, zone: t.zone, ...(t.letter ? { badge: t.letter } : {}) });
+  }
+  const tracker = playerTracker(hunt);
+  if (tracker) out.tracker = tracker;
+  return out;
 }
 
 // ---------------------------------------------------------------------------
@@ -698,7 +738,13 @@ export function liveOf(map: Pick<SiteMap, "live">): SiteMapLiveState {
     zoneFlags: l.zoneFlags ?? {},
     tokens: Array.isArray(l.tokens) ? l.tokens : [],
     pings: Array.isArray(l.pings) ? l.pings : [],
+    ...(l.hunt ? { hunt: l.hunt } : {}),
   };
+}
+
+/** Change a map's live state in one transaction: `fn` edits a copy (or returns a new state). */
+export function updateLive(store: CampaignStore, mapId: Id, fn: (live: SiteMapLiveState, map: SiteMap) => SiteMapLiveState | void): SiteMapLiveState {
+  return writeLive(store, mapId, fn);
 }
 
 function writeLive(store: CampaignStore, mapId: Id, fn: (live: SiteMapLiveState, map: SiteMap) => SiteMapLiveState | void): SiteMapLiveState {

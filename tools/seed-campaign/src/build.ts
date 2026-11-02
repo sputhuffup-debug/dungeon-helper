@@ -50,6 +50,24 @@ import {
   CampaignStore,
   RichTextRegistry,
   acceptGeneratedGraph,
+  advanceHunt,
+  applyHuntAdvance,
+  applyHuntMove,
+  carriedSensors,
+  emptyLive,
+  sweepReadings,
+  huntMarkerSources,
+  huntOf,
+  huntSeed,
+  liveOf,
+  moveHuntToken,
+  placeHuntSource,
+  placeToken,
+  recordSweep,
+  revealZones,
+  startLive,
+  suggestHuntMove,
+  zonePath,
   addPlayer,
   applyLongAgendaWrites,
   applySpend,
@@ -70,7 +88,9 @@ import {
   type AcceptResult,
   type CampaignMaps,
   type Entity,
+  type HuntState,
   type Id,
+  type SiteMapLiveState,
   type Visibility,
 } from "@campaign-forge/core";
 import { alienModule, campaignAgendasProcedure, jobBoard, siteMapGenerator, weaponRowFromPreset, type JobSiteBrief } from "@campaign-forge/module-alien";
@@ -528,7 +548,7 @@ export function buildDemoCampaign(opts: BuildDemoOptions = {}): DemoCampaign {
   setupAdvancement(store, { pcs, system, year: cal.defaultYear });
 
   // -- the next job: a job board with three postings, one taken, with its site map --
-  setupJobBoard(store, registry, mod, { seed });
+  setupJobBoard(store, registry, mod, { seed, pcs });
 
   const maps = store.toJSON();
   const resolve = nameResolver(store);
@@ -761,7 +781,7 @@ export function isDemoPosting(o: Offer): boolean {
  * job's brief, saved with the job's site. Boards are dealt from fixed seeds
  * in order until one has such a posting.
  */
-function setupJobBoard(store: CampaignStore, registry: RichTextRegistry, mod: LoadedModule, s: { seed: string }): void {
+function setupJobBoard(store: CampaignStore, registry: RichTextRegistry, mod: LoadedModule, s: { seed: string; pcs: Entity[] }): void {
   const props = (jobBoard.inputs as { properties: Record<string, Record<string, unknown>> }).properties;
   const hint = props["campaign"]![CAMPAIGN_INPUT_HINT] as CampaignInputHint;
   const campaign = campaignSnapshot(store, hint, (t) => mod.entityType(t)?.kind);
@@ -789,6 +809,106 @@ function setupJobBoard(store: CampaignStore, registry: RichTextRegistry, mod: Lo
   const result = runMapGenerator(alienModule, siteMapGenerator, JSON.parse(JSON.stringify(brief.inputs)), { seed: mapSeed });
   const created = store.createMap({ name: brief.name ?? `${job.name}: site map`, location: location.id });
   store.update("maps", created.id, { layout: JSON.parse(JSON.stringify(result.layout)), generator: { id: siteMapGenerator.id, seed: mapSeed, inputs: JSON.parse(JSON.stringify(brief.inputs)), attempts: result.attempts } });
+
+  // the live hunt on the job's site map, and the scene that puts it on the table
+  setupLiveHunt(store, registry, { mapId: created.id, location: location.id, job, pcs: s.pcs });
+}
+
+/**
+ * The live hunt on the job's site map (act 3): the crew has come in from the
+ * start to `crewZone` (the zones on the way revealed), the XX121 stalker and
+ * the UPP fire team move hidden through the site for `stretches` stretches
+ * (each taking the app's suggested move), and the colonial marshal, who
+ * carries the M314 motion tracker, sweeps: blips A and B. A scene outside
+ * the adventure's acts ("The ore run") shows the map in table mode.
+ */
+export const DEMO_HUNT = {
+  scene: "The ore run",
+  act: 3,
+  crewZone: "Z22",
+  stretches: 2,
+  tracker: "M314 Motion Tracker",
+  sweeper: "colonial-marshal",
+  /** The instant of the sweep (a fixed in-world evening). */
+  at: "2026-11-07T21:30:00.000Z",
+} as const;
+
+function setupLiveHunt(store: CampaignStore, registry: RichTextRegistry, s: { mapId: Id; location: Id; job: Entity; pcs: Entity[] }): void {
+  const layout = store.get("maps", s.mapId)!.layout!;
+  const hunt = siteMapGenerator.hunt!;
+  // the marshal draws the M314 from the ship's locker (her career's gear list carries one, p. 96)
+  const sweeper = s.pcs.find((pc) => pc.tags.includes(DEMO_HUNT.sweeper)) ?? s.pcs[0]!;
+  const gear = [...((store.get("entities", sweeper.id)!.fields["gear"] as Array<Record<string, unknown>> | undefined) ?? [])];
+  gear.push({ name: DEMO_HUNT.tracker, weight: 1, qty: 1, supply: 5 });
+  store.update("entities", sweeper.id, { fields: { ...store.get("entities", sweeper.id)!.fields, gear } });
+  const sensor = carriedSensors(hunt, store.get("entities", sweeper.id)!)[0];
+  if (!sensor) throw new Error("demo hunt: the sweeper carries no motion tracker");
+
+  const location = store.get("entities", s.location)!;
+  const scene = store.createScene(undefined, {
+    title: DEMO_HUNT.scene,
+    purpose: "The crew crosses the site with the ore; something moves in the ducts.",
+    location: s.location,
+    map: s.mapId,
+    tags: ["demo"],
+  });
+  writeDoc(registry, scene.bodyDoc, `The crew hauls the ore across ${ref(location)} for ${ref(s.job)}. Something moves in the ducts, and the UPP fire team is sweeping the rings. Move the hidden threats each stretch; ${ref(sweeper)} reads them on the motion tracker.`);
+
+  // the threats: the XX121 spawn and the UPP fire team (else the first rogue humans) from the map's marks
+  const sources = huntMarkerSources(layout, hunt);
+  const markOf = (x: (typeof sources)[number]) => layout.markers.find((m) => m.id === x.marker);
+  const stalker = sources.find((x) => x.mover === "creature" && String(x.data["creature"]).includes("xx121")) ?? sources.find((x) => x.mover === "creature");
+  const upp = sources.find((x) => markOf(x)?.data?.["group"] === "upp-squad") ?? sources.find((x) => markOf(x)?.kind === "hostile");
+  const threats = [stalker, upp].filter((x): x is (typeof sources)[number] => !!x);
+
+  // The crew stands in `crewZone`, come in from the start; the threats close in for a few stretches,
+  // each taking its suggested move; the marshal sweeps. Tried on a copy first: the demo's crew zone,
+  // then other floor zones in turn, until the sweep picks up every threat.
+  const targetsAt = (zone: string) => s.pcs.map((pc) => ({ zone, label: pc.name }));
+  const play = (crewZone: string, route: string[]) => {
+    const live: SiteMapLiveState = { ...emptyLive(DEMO_HUNT.act), revealed: route, tokens: s.pcs.map((pc) => ({ id: pc.id, label: pc.name, zone: crewZone, gmOnly: false, entity: pc.id })) };
+    const state: HuntState = { step: 0, tokens: threats.map((src, i) => ({ id: `t${i}`, label: src.label, zone: src.zone!, mover: src.mover, state: "hidden", home: src.zone!, trail: [], ...(src.marker ? { marker: src.marker } : {}), data: src.data, ...(src.route ? { route: src.route, routeAt: 0 } : {}) })), sweeps: [] };
+    live.hunt = state;
+    for (let i = 0; i < DEMO_HUNT.stretches; i++) {
+      applyHuntAdvance(state, hunt.steps[0]!.id);
+      for (const t of state.tokens) {
+        const move = suggestHuntMove(layout, live, t, { def: siteMapGenerator, targets: targetsAt(crewZone), seed: huntSeedOf });
+        if (move) applyHuntMove(state, t.id, move.best.zone, { path: move.best.path, trail: hunt.trail });
+      }
+    }
+    return sweepReadings(layout, live, siteMapGenerator, sensor, crewZone).length;
+  };
+  const huntSeedOf = huntSeed(store.get("maps", s.mapId)!);
+  const act = { act: DEMO_HUNT.act, live: { borders: {} }, passable: siteMapGenerator.passable };
+  const floor = layout.zones.filter((z) => z.kind !== "out-of-bounds" && z.layer !== "duct" && z.id !== layout.start).map((z) => z.id);
+  let crewZone: string | undefined;
+  let route: string[] | undefined;
+  for (const zone of [DEMO_HUNT.crewZone, ...floor.filter((z) => z !== DEMO_HUNT.crewZone)].filter((z) => floor.includes(z))) {
+    const way = zonePath(layout, layout.start!, zone, act);
+    if (!way) continue;
+    if (!crewZone) [crewZone, route] = [zone, way];
+    if (play(zone, way) >= threats.length) {
+      [crewZone, route] = [zone, way];
+      break;
+    }
+  }
+  if (!crewZone || !route) return;
+
+  // the same on the map, through the app's own live helpers
+  startLive(store, s.mapId, DEMO_HUNT.act);
+  revealZones(store, s.mapId, route);
+  for (const pc of s.pcs) placeToken(store, s.mapId, { label: pc.name, zone: crewZone, gmOnly: false, entity: pc.id });
+  const tokens = threats.map((src) => placeHuntSource(store, s.mapId, src));
+  for (let i = 0; i < DEMO_HUNT.stretches; i++) {
+    advanceHunt(store, s.mapId, hunt.steps[0]!.id);
+    for (const id of tokens) {
+      const m = store.get("maps", s.mapId)!;
+      const t = huntOf(liveOf(m)).tokens.find((x) => x.id === id)!;
+      const move = suggestHuntMove(layout, liveOf(m), t, { def: siteMapGenerator, targets: targetsAt(crewZone), seed: huntSeed(m) });
+      if (move) moveHuntToken(store, s.mapId, id, move.best.zone, { path: move.best.path, trail: hunt.trail });
+    }
+  }
+  recordSweep(store, s.mapId, { by: { name: sweeper.name, entity: sweeper.id }, from: crewZone, sensor, def: siteMapGenerator, at: DEMO_HUNT.at });
 }
 
 /** `date` minus `days` on the Gregorian-style module calendar (the leg's departure). */
