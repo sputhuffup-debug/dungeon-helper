@@ -244,6 +244,7 @@ export function packToModule(input: ModulePack): GameModule {
   if (pack.primer) module.primer = pack.primer;
   if (pack.d20Combat) module.d20Combat = pack.d20Combat;
   if (pack.gmScreen) module.gmScreen = pack.gmScreen;
+  if (pack.ownerHandouts?.length) module.ownerHandouts = pack.ownerHandouts;
   if (pack.characterBuilders) module.characterBuilders = pack.characterBuilders;
   if (pack.mapGenerators?.length) module.mapGenerators = pack.mapGenerators.map((g) => createPackMapGenerator(g, module));
   return module;

@@ -57,6 +57,7 @@ import type {
   CharacterBuilderSubChoice,
   GmScreenConditionsBlock,
   GmScreenDef,
+  OwnerHandoutDef,
   GmScreenGuideBlock,
   GmScreenListBlock,
   GmScreenPanel,
@@ -549,6 +550,7 @@ const definitions: Record<string, JsonSchema> = {
     ["id", "title", "prompt"],
   ),
   primer: object<PrimerDef>()({ sections: list(ref("primerSection"), { minItems: 1 }) }, ["sections"]),
+  ownerHandout: object<OwnerHandoutDef>()({ kind: str(), when: { type: "string", enum: ["always", "given"] } }, ["kind"], { description: "A handout kind that reaches the player of the character it is for (`character`): always, or once the GM gives it. See docs/modules/sheets.md#owner-visible-fields." }),
 
   // Declarative d20 combat
   d20Duration: object<D20DurationSpec>()(
@@ -1148,6 +1150,7 @@ export const MODULE_PACK_SCHEMA: JsonSchema = {
       primer: ref("primer"),
       d20Combat: ref("d20Combat"),
       gmScreen: ref("gmScreen"),
+      ownerHandouts: list(ref("ownerHandout")),
       characterBuilders: list(ref("characterBuilder")),
       mapGenerators: list(ref("mapGenerator"), { maxItems: 8 }),
       parts: list(str({ pattern: "^[A-Za-z0-9][A-Za-z0-9_.-]*\\.json$" }), { uniqueItems: true }),

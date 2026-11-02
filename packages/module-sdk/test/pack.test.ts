@@ -12,6 +12,7 @@ import {
   procedureContext,
   runProcedure,
   validatePack,
+  ownerVisiblePaths,
   type ModulePack,
 } from "../src";
 
@@ -327,5 +328,21 @@ describe("campaign inputs in a pack procedure", () => {
     });
     expect(g.results.people).toBe(2);
     expect(g.display?.people).toBe("2 people in Bell Night");
+  });
+});
+
+describe("owner-visible material in a pack", () => {
+  it("keeps x-visibility owner marks in entity schemas and loads ownerHandouts", () => {
+    const pack = mainFile() as unknown as ModulePack;
+    const type = clone(pack.entityTypes![0]!);
+    const props = (type.schema as { properties: Record<string, Record<string, unknown>> }).properties;
+    const first = Object.keys(props)[0]!;
+    props[first] = { ...props[first], "x-visibility": "owner" };
+    const next = { ...clone(pack), entityTypes: [type, ...pack.entityTypes!.slice(1)], ownerHandouts: [{ kind: "agenda", when: "given" }] };
+    expect(errorsOf(next)).toEqual([]);
+    const m = loadPack(next, { parts: parts(), skipProcedureRuns: true }).module!;
+    expect(m.ownerHandouts).toEqual([{ kind: "agenda", when: "given" }]);
+    expect(ownerVisiblePaths(m.entityTypes.find((t) => t.id === type.id)!)).toEqual([first]);
+    expect(errorsOf({ ...next, ownerHandouts: [{ kind: "agenda", when: "sometimes" }] }).length).toBeGreaterThan(0);
   });
 });
