@@ -18,6 +18,9 @@ import { useTableState } from "./hooks";
 import { PlayerSiteMap } from "./PlayerSiteMap";
 import { useSceneMap } from "./SceneMap";
 import { BoundTracker, useModeTrackers } from "./TrackersPanel";
+import { CrewNotesView } from "../arcs/CrewNotesView";
+import { arcsDefOf, crewNotesFor } from "../../state/arcActions";
+import { useMapVersion } from "../../state/hooks";
 
 const noop = () => undefined;
 
@@ -78,6 +81,21 @@ function PlayerCombat({ sessionId }: { sessionId: Id }) {
   );
 }
 
+/** The whole crew's notes, when the module keeps arcs (nothing one player learnt alone). */
+function PlayerCrewNotes() {
+  const ctx = useCampaign();
+  const meta = useMeta();
+  const version = useMapVersion("*");
+  const def = arcsDefOf(ctx.module, meta.mode);
+  const notes = useMemo(() => (def ? crewNotesFor(ctx) : undefined), [ctx, def, version]); // eslint-disable-line react-hooks/exhaustive-deps
+  if (!notes || notes.empty) return null;
+  return (
+    <div className="app-player__notes">
+      <CrewNotesView notes={notes} compact />
+    </div>
+  );
+}
+
 export function PlayerScreen({ sessionId }: { sessionId: Id }) {
   const meta = useMeta();
   const table = useTableState(sessionId);
@@ -117,6 +135,7 @@ export function PlayerScreen({ sessionId }: { sessionId: Id }) {
           <h2 className="app-subtitle">Handouts</h2>
           {handouts.length === 0 ? <p className="cf-muted">Nothing revealed yet.</p> : handouts.map((h) => <PlayerHandout key={h.id} handout={h} />)}
         </section>
+        <PlayerCrewNotes />
       </div>
     </div>
   );

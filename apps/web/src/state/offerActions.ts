@@ -6,7 +6,8 @@
  * accept or keep fields on its first entity (e.g. a job's status), and adds
  * the offer's handout for the players, attached to that entity.
  */
-import type { AcceptResult, Handout, Id } from "@campaign-forge/core";
+import { applyOfferArcLinks, createThread, type AcceptResult, type ArcThread, type Handout, type Id } from "@campaign-forge/core";
+import { slotLabel } from "@campaign-forge/module-sdk";
 import type { GeneratedGraph, Offer, OfferDef, OfferSet } from "@campaign-forge/module-sdk";
 import type { CampaignContextValue } from "./CampaignProvider";
 import { acceptGenerated, writeMarkdownDoc } from "./prepActions";
@@ -35,6 +36,8 @@ export interface AcceptOfferResult extends AcceptResult {
   handout?: Handout;
   /** The offer's own record (its first entity). */
   root?: Id;
+  /** The thread the offer put on the arc board (`Offer.arc`). */
+  thread?: ArcThread;
 }
 
 /** Accept one offer of a board: its entities, relationships and player handout. */
@@ -61,6 +64,13 @@ export async function acceptOffer(ctx: OfferCtx, input: AcceptOfferInput): Promi
     const out: AcceptOfferResult = { ...res };
     if (handout) out.handout = handout;
     if (root) out.root = root;
+    // a drafted thread goes on the arc board; links to the arcs (a seeded clue, an agent, a payoff, a contact) are recorded
+    const offer = input.offer;
+    if (offer.arc) out.thread = createThread(ctx.store, offer.arc, { idMap: res.idMap, source: { module: ctx.module.manifest.id, procedure: input.graph.procedure, run: res.run.id, offer: offer.key } });
+    if (offer.arcLinks?.length) {
+      const session = ctx.store.list("sessions").find((s) => s.status === "running")?.id;
+      applyOfferArcLinks(ctx.store, offer.arcLinks, { ...(root ? { job: root } : {}), posting: offer.key, run: res.run.id, idMap: res.idMap, ...(session ? { session } : {}), slotLabel: (id) => slotLabel(ctx.module.module.arcs, id) });
+    }
     return out;
   });
   if (docWrite) await writeMarkdownDoc(ctx, docWrite.docId, docWrite.markdown);

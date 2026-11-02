@@ -4,9 +4,11 @@
  * characters, a characters array built from the PCs, a snapshot of the
  * campaign's entities, the adventure and its PCs).
  */
-import { adventureSnapshot, campaignSnapshot, clone, type CampaignStore, type Entity, type Id } from "@campaign-forge/core";
+import { adventureSnapshot, arcsSnapshot, campaignSnapshot, clone, type CampaignStore, type Entity, type Id } from "@campaign-forge/core";
+import { defaultArcChoices } from "../../state/arcActions";
 import {
   ADVENTURE_INPUT_HINT,
+  ARCS_INPUT_HINT,
   CAMPAIGN_INPUT_HINT,
   ENTITY_INPUT_HINT,
   type AdventureSnapshot,
@@ -116,6 +118,12 @@ export function campaignHint(s: Schema | undefined): CampaignInputHint | undefin
   return h && typeof h === "object" ? (h as CampaignInputHint) : undefined;
 }
 
+/** Whether an input schema is filled with the arc board (`"x-arcs"`). */
+export function isArcsInput(s: Schema | undefined): boolean {
+  const h = (s as Record<string, unknown> | undefined)?.[ARCS_INPUT_HINT];
+  return !!h && typeof h === "object";
+}
+
 /** Whether an input schema is an adventure picker (`"x-adventure"`). */
 export function isAdventureInput(s: Schema | undefined): boolean {
   const h = (s as Record<string, unknown> | undefined)?.[ADVENTURE_INPUT_HINT];
@@ -177,7 +185,7 @@ export interface InitialInputOptions {
 }
 
 /** Schema defaults plus what the campaign knows. */
-export function initialInputs(procedure: Procedure | undefined, store: CampaignStore, module: Pick<LoadedModule, "entityType">, opts: InitialInputOptions = {}): Record<string, unknown> {
+export function initialInputs(procedure: Procedure | undefined, store: CampaignStore, module: Pick<LoadedModule, "entityType"> & Partial<Pick<LoadedModule, "module">>, opts: InitialInputOptions = {}): Record<string, unknown> {
   const inputs = schemaDefaultInputs(procedure);
   const props = inputProperties(procedure);
   const settings = store.meta().settings ?? {};
@@ -202,6 +210,10 @@ export function initialInputs(procedure: Procedure | undefined, store: CampaignS
     const ch = campaignHint(s);
     if (ch) {
       inputs[key] = campaignSnapshot(store, ch, (type) => module.entityType(type)?.kind);
+      continue;
+    }
+    if (isArcsInput(s)) {
+      inputs[key] = arcsSnapshot(store.toJSON(), module.module, defaultArcChoices(store));
       continue;
     }
     const hint = entityHint(s);

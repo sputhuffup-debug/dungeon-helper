@@ -6,7 +6,7 @@
  * the campaign, chained procedures and recent runs.
  */
 import { loadAdventureSnapshot, plainText, type GeneratorRun, type Id } from "@campaign-forge/core";
-import { isDieRequest, probeDice, type AgendaDraftCharacter, type GeneratedGraph, type Procedure, type RollRecord } from "@campaign-forge/module-sdk";
+import { clueKindLabel, isDieRequest, probeDice, type AgendaDraftCharacter, type GeneratedGraph, type Procedure, type RollRecord } from "@campaign-forge/module-sdk";
 import { Link, useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Badge, Button, Card, EmptyState, PageRef, pushToast } from "../../components/ui";
@@ -25,6 +25,8 @@ import { StepList } from "./StepList";
 import { ChainButtons } from "./ChainButtons";
 import { OfferBoard } from "./OfferBoard";
 import { offersOf, withoutPartsOf } from "../../state/offerActions";
+import { arcsDefOf } from "../../state/arcActions";
+import { ArcClockTicker } from "../arcs/ArcClockTicker";
 
 interface ProcedureSearch {
   pick?: string;
@@ -174,6 +176,7 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
   const changed = useMemo(() => changedSteps(compareTo, graph), [compareTo, graph]);
   const withinEntity = within ? ctx.store.get("entities", within) : undefined;
   const inMode = ctx.module.forMode(meta.mode).procedures.some((p) => p.id === procedure.id);
+  const arcsDef = arcsDefOf(ctx.module, meta.mode);
 
   const edit = <T,>(setter: (v: T) => void) => (v: T) => {
     setCompareTo(undefined);
@@ -362,6 +365,8 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
                 store={ctx.store}
                 module={ctx.module}
                 docText={(id) => (ctx.registry.has(id) ? plainText(ctx.registry.open(id)) : "")}
+                arcsBoard={!!arcsDef?.boards?.includes(procedure.id)}
+                clueKind={(k) => clueKindLabel(arcsDef, k)}
               />
               <div className="app-row prep-seed">
                 <label className="app-label">
@@ -468,6 +473,7 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
         </div>
 
         <aside className="app-stack prep-workbench__side">
+          {arcsDef && arcsDef.betweenJobs === procedure.id && <ArcClockTicker def={arcsDef} />}
           {graph && drafts ? (
             <>
               <AgendaAccept drafts={drafts} edits={edits} graph={graph} adventureId={adventureId} run={{ stepSeeds, pinned, partSeeds, pinnedParts }} />
