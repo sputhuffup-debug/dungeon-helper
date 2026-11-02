@@ -42,6 +42,7 @@ import {
 import { bfs, components, disjointPaths, shortestPath, type Adjacency } from "./graph";
 import { alienPassable, playerLayout, zoneAdjacency } from "./helpers";
 import { normalizeMapInputs, type MapInputs, type PuzzleInput } from "./inputs";
+import { HOSTILE_POSTURE_LABELS, MIN_HOSTILE_DISTANCE, hostileGroup, hostileStatLine, type HostilePosture } from "./hostiles";
 import { DUCT_SHEET_MAX, type DuctSheet } from "./ducts";
 import { layoutSite, polyBounds, type LayoutResult } from "./layout";
 import { planSite, type Plan, type PlanNode } from "./plan";
@@ -608,6 +609,130 @@ export function threatSpecs(inputs: MapInputs): ThreatSpec[] {
   });
 }
 
+interface HostileSpec {
+  group: string;
+  name: string;
+  act: number;
+  count: number;
+  tier: ThreatTier;
+  cost: number;
+  posture: HostilePosture;
+  preset: string;
+  leader?: string;
+  ducts: boolean;
+  kind: "human" | "android";
+  conduct: string;
+}
+
+/** Rogue humans and hostile androids with their tier and cost (module decision: one armed person is a lesser foe; see hostiles.ts). */
+export function hostileSpecs(inputs: Pick<MapInputs, "hostiles">): HostileSpec[] {
+  return (inputs.hostiles ?? []).flatMap((h) => {
+    const g = hostileGroup(h.group);
+    if (!g) return [];
+    const tier = groupTier(g.tier, h.count);
+    const spec: HostileSpec = { group: g.id, name: g.name, act: h.act, count: h.count, tier, cost: THREAT_COST[tier], posture: h.posture, preset: g.preset, ducts: g.ducts === true, kind: g.kind, conduct: g.conduct };
+    if (g.leader && h.count > 1) spec.leader = g.leader;
+    return [spec];
+  });
+}
+
+/**
+ * Place the brief's hostile groups (hostiles.ts): `hold` a room, `patrol`
+ * corridors with waypoints on a floor-only route, `guard` the act's key
+ * room. People never stand in ducts; a hostile android may. Runs on its own
+ * stream after everything else, so a brief without hostiles draws exactly
+ * as before.
+ */
+function placeHostiles(rng: Rng, d: Draft, markers: MapMarker[], nextId: () => string, adjFor: (act: number) => Adjacency, focusOf: (act: number) => string): void {
+  const specs = hostileSpecs(d.inputs);
+  if (specs.length === 0) return;
+  const keyZones = new Set(d.keys.map((k) => k.zone));
+  const winZones = new Set(d.wins.map((w) => w.zone));
+  const used = new Set<string>();
+  const floorAdj = new Map<number, Adjacency>();
+  const floorFor = (act: number) => {
+    if (!floorAdj.has(act)) floorAdj.set(act, zoneAdjacency(d, act, { floorOnly: true }));
+    return floorAdj.get(act)!;
+  };
+  const secure = (z: MapZoneData) => hasTag(nodeOfZone(d, z.id), "secure") || hasTag(nodeOfZone(d, z.id), "terminal") || z.area === "security";
+  specs.forEach((h, i) => {
+    const r = rng.fork(`hostile:${i}`);
+    const adj = adjFor(h.act);
+    const fromStart = bfs(adj, d.start);
+    const focus = focusOf(h.act);
+    const fromFocus = bfs(adj, focus);
+    const far = (z: MapZoneData) => (fromStart.get(z.id) ?? -1) >= MIN_HOSTILE_DISTANCE;
+    const floor = (z: MapZoneData) => z.layer !== "duct" && z.kind !== "crawlspace" && z.kind !== "out-of-bounds" && z.kind !== "shaft";
+    const region = (z: MapZoneData) => (z.acts ?? [])[0] === h.act;
+    const score = (z: MapZoneData, bonus: number) => (fromFocus.get(z.id) ?? 40) * 0.4 - bonus + (used.has(z.id) ? 4 : 0) + (region(z) ? 0 : 1.5) + r.next() * 0.5;
+    const best = (pool: MapZoneData[], bonus: (z: MapZoneData) => number) => pool.map((z) => ({ z, s: score(z, bonus(z)) })).sort((a, b) => a.s - b.s)[0]?.z;
+    let zone: MapZoneData | undefined;
+    if (h.posture === "guard") {
+      const target = d.keys.find((k) => k.act === h.act)?.zone ?? d.keys.filter((k) => k.act <= h.act).pop()?.zone;
+      const tz = target ? d.zones.find((z) => z.id === target) : undefined;
+      if (tz && far(tz)) zone = tz;
+      else zone = best(d.zones.filter((z) => floor(z) && z.kind === "room" && far(z) && z.id !== d.start && !winZones.has(z.id)), () => 0);
+    } else if (h.posture === "patrol") {
+      const lair = (z: MapZoneData) => h.ducts && z.layer === "duct" && z.flags?.exitTo === undefined && (z.flags?.ductType === "junction" || z.flags?.ductType === "chamber");
+      const pool = d.zones.filter((z) => far(z) && !keyZones.has(z.id) && !winZones.has(z.id) && z.id !== d.start && ((floor(z) && z.kind === "corridor") || lair(z)));
+      zone = best(pool, (z) => (lair(z) ? 1 : 0));
+    } else {
+      const pool = d.zones.filter((z) => floor(z) && z.kind === "room" && far(z) && !keyZones.has(z.id) && !winZones.has(z.id) && z.id !== d.start);
+      zone = best(pool, (z) => (secure(z) ? 2 : 0) + (z.cluttered ? 0.5 : 0));
+    }
+    // fallback: a room far enough (a key room will do), then any floor zone far enough, else the farthest floor zone (the placement check flags it)
+    if (h.posture !== "patrol") zone ??= best(d.zones.filter((z) => floor(z) && z.kind === "room" && far(z) && z.id !== d.start && !winZones.has(z.id)), () => 0);
+    zone ??= best(d.zones.filter((z) => floor(z) && far(z) && z.id !== d.start && !winZones.has(z.id)), () => 0);
+    zone ??= d.zones.filter(floor).sort((a, b) => (fromStart.get(b.id) ?? -1) - (fromStart.get(a.id) ?? -1))[0];
+    if (!zone) return;
+    used.add(zone.id);
+    const lead = h.leader ? ` (led by ${hostileStatLine(h.leader).split(":")[0]})` : "";
+    const m: MapMarker = {
+      id: nextId(),
+      kind: "hostile",
+      zone: zone.id,
+      label: `${h.name}${h.count > 1 ? ` x${h.count}` : ""}`,
+      act: h.act,
+      gmOnly: true,
+      detail: `${HOSTILE_POSTURE_LABELS[h.posture]}${lead}. ${h.conduct} ${hostileStatLine(h.preset)}${h.leader ? `. Leader: ${hostileStatLine(h.leader)}` : ""}.`,
+      data: {
+        group: h.group,
+        name: h.name,
+        kind: h.kind,
+        preset: h.preset,
+        ...(h.leader ? { leader: h.leader } : {}),
+        count: h.count,
+        tier: h.tier,
+        tierLabel: THREAT_TIER_LABELS[h.tier],
+        cost: h.cost,
+        posture: h.posture,
+        ducts: h.ducts,
+        distanceFromStart: fromStart.get(zone.id) ?? null,
+        focus,
+      },
+    };
+    markers.push(m);
+    if (h.posture === "patrol") {
+      // waypoints on the floor (an android's route may use the ducts)
+      const route = shortestPath(h.ducts ? adj : floorFor(h.act), zone.id, focus) ?? [];
+      const inner = route.slice(1, -1).filter((z) => z !== d.start);
+      const n = Math.min(3, inner.length);
+      for (let k = 0; k < n; k++) {
+        const at = inner[Math.floor(((k + 1) * inner.length) / (n + 1))]!;
+        markers.push({ id: nextId(), kind: "waypoint", zone: at, label: `${h.name} patrol ${k + 1}`, act: h.act, gmOnly: true, data: { hostile: m.id, order: k + 1 } });
+      }
+    }
+  });
+}
+
+/** A turning android NPC's Act 3 zone: a duct junction or vent chamber near the focus when the site has one, as a hostile android moves (module decision). */
+function turnZone(rng: Rng, d: Draft, focus: string, adj: Adjacency, fallback: string): string {
+  const fromFocus = bfs(adj, focus);
+  const lairs = d.zones.filter((z) => z.layer === "duct" && z.flags?.exitTo === undefined && (z.flags?.ductType === "junction" || z.flags?.ductType === "chamber") && fromFocus.has(z.id));
+  if (lairs.length === 0) return fallback;
+  return lairs.map((z) => ({ z, s: (fromFocus.get(z.id) ?? 99) + rng.next() })).sort((a, b) => a.s - b.s)[0]!.z.id;
+}
+
 function placeEncounters(rng: Rng, d: Draft): void {
   const { inputs } = d;
   const byId = zoneById(d);
@@ -711,7 +836,19 @@ function placeEncounters(rng: Rng, d: Draft): void {
       const hide = pickOne(rng, inRegion(1 + rng.int(0, 1), (z) => z.cluttered && z.flags?.deadEnd === true && z.id !== d.start && !keyZones.has(z.id)))!.id;
       zones = [hide, hide, focusOf(3)];
     } else zones = [d.start, pickOne(rng, inRegion(2))!.id, focusOf(3)];
-    zones.forEach((zone, i) => markers.push({ id: nextId(), kind: "npc", zone, label: npc.name, act: i + 1, gmOnly: true, data: { name: npc.name, role: npc.role } }));
+    if (npc.turns && npc.role === "android") zones[2] = turnZone(rng.fork(`turn:${npc.name}`), d, focusOf(3), adjFor(3), zones[2]!);
+    zones.forEach((zone, i) =>
+      markers.push({
+        id: nextId(),
+        kind: "npc",
+        zone,
+        label: npc.name,
+        act: i + 1,
+        gmOnly: true,
+        ...(npc.note ? { detail: npc.note } : {}),
+        data: { name: npc.name, role: npc.role, ...(npc.turns ? { turns: true } : {}) },
+      }),
+    );
   }
 
   // Clues: three zones per puzzle, two of them on separate routes into the puzzle's room.
@@ -746,14 +883,18 @@ function placeEncounters(rng: Rng, d: Draft): void {
     if (typeof f.dropM === "number") notes.push(`Drop ${f.dropM} m`);
     if (notes.length > 0) markers.push({ id: nextId(), kind: "hazard", zone: z.id, label: notes.join(", "), gmOnly: true });
   }
+
+  // Rogue humans and hostile androids: their own stream, after everything else.
+  placeHostiles(rng.fork("hostiles"), d, markers, nextId, adjFor, focusOf);
   d.markers = markers;
 
-  // Act summary: budgets (module decision), threat cost so far, encounter timer start (p. 303).
+  // Act summary: budgets (module decision), threat cost so far (creatures and hostile groups), encounter timer start (p. 303).
   const budgets = ACT_BUDGETS[inputs.crew] ?? ACT_BUDGETS[2]!;
   const acts: Record<string, unknown> = {};
+  const costed: Array<{ act: number; cost: number }> = [...threats, ...hostileSpecs(inputs)];
   for (const a of [1, 2, 3]) {
-    const cost = threats.filter((t) => t.act <= a).reduce((n, t) => n + t.cost, 0);
-    const presence: EnemyPresenceId = a === 1 ? (threats.some((t) => t.act === 1) ? "uncertain" : "all-clear") : a === 2 ? (threats.some((t) => t.act === 1) ? "confirmed" : "suspected") : "closing";
+    const cost = costed.filter((t) => t.act <= a).reduce((n, t) => n + t.cost, 0);
+    const presence: EnemyPresenceId = a === 1 ? (costed.some((t) => t.act === 1) ? "uncertain" : "all-clear") : a === 2 ? (costed.some((t) => t.act === 1) ? "confirmed" : "suspected") : "closing";
     const level = ENEMY_PRESENCE.find((p) => p.id === presence)!;
     acts[String(a)] = { budget: budgets[a - 1], cost, presence, presenceLabel: level.label, presenceDice: level.dice, focus: focusOf(a) };
   }
@@ -956,8 +1097,8 @@ export function validateLayout(layout: SiteLayout, inputs: MapInputs, extra: { k
   });
   checks.push(check("spawn-distance", "block", near.length === 0, near.length === 0 ? `Every spawn is ${MIN_SPAWN_DISTANCE}+ zones from the start, past Long range and the tracker` : `Too close to the start: ${near.map((m) => `${m.label} in ${m.zone}`).join(", ")}`, [55, 58]));
 
-  // Act budgets (owner's heuristic).
-  const threats = threatSpecs(inputs);
+  // Act budgets (owner's heuristic): creatures and hostile groups alike.
+  const threats = [...threatSpecs(inputs), ...hostileSpecs(inputs)];
   const budgets = ACT_BUDGETS[inputs.crew] ?? ACT_BUDGETS[2]!;
   const off: string[] = [];
   for (const a of [1, 2, 3]) {
@@ -1053,7 +1194,47 @@ export function validateLayout(layout: SiteLayout, inputs: MapInputs, extra: { k
   });
   checks.push(check("threat-approach", "warn", lonely.length === 0, spawns.length === 0 ? "No threats placed" : lonely.length === 0 ? "Greater threats have two ways to the crew, one through the ducts" : `One way in, or none through the ducts: ${lonely.map((m) => m.label).join(", ")}`));
 
+  // Rogue humans (only when the brief has hostile groups, so other maps keep their checklist).
+  if ((inputs.hostiles ?? []).length > 0) checks.push(hostilePlacementCheck(layout, inputs, d, extra.keys));
+
   return checks;
+}
+
+/**
+ * Rogue humans stand where their posture says (hostiles.ts): every group is
+ * placed; people are never in a duct (an android may be); nobody is within
+ * `MIN_HOSTILE_DISTANCE` zones of the start; a guard stands in its act's key
+ * room when that room is far enough; patrol waypoints of people are on the floor.
+ */
+function hostilePlacementCheck(layout: SiteLayout, inputs: MapInputs, d: Pick<Draft, "zones" | "borders" | "start">, keys: KeyZone[]): MapCheck {
+  const byId = new Map(layout.zones.map((z) => [z.id, z]));
+  const marks = layout.markers.filter((m) => m.kind === "hostile");
+  const problems: string[] = [];
+  if (marks.length !== hostileSpecs(inputs).length) problems.push(`${marks.length} of ${hostileSpecs(inputs).length} hostile groups placed`);
+  for (const m of marks) {
+    const z = byId.get(m.zone);
+    const ducts = m.data?.ducts === true;
+    if (!z || ((z.layer === "duct" || z.kind === "crawlspace") && !ducts)) problems.push(`${m.label} in a duct`);
+    const dist = bfs(zoneAdjacency(d, m.act ?? 1), d.start).get(m.zone);
+    if (dist === undefined || dist < MIN_HOSTILE_DISTANCE) problems.push(`${m.label} ${dist ?? "unreachable"} zones from the start`);
+    if (m.data?.posture === "guard") {
+      const key = keys.find((k) => k.act === m.act);
+      const keyDist = key ? bfs(zoneAdjacency(d, m.act ?? 1), d.start).get(key.zone) : undefined;
+      if (key && keyDist !== undefined && keyDist >= MIN_HOSTILE_DISTANCE && key.zone !== m.zone) problems.push(`${m.label} is not in the Act ${m.act} key room`);
+    }
+    if (!ducts) {
+      for (const w of layout.markers.filter((x) => x.kind === "waypoint" && x.data?.hostile === m.id)) {
+        const wz = byId.get(w.zone);
+        if (!wz || wz.layer === "duct") problems.push(`${w.label} in a duct`);
+      }
+    }
+  }
+  return check(
+    "hostile-placement",
+    "block",
+    problems.length === 0,
+    problems.length === 0 ? `${marks.length} hostile group${marks.length === 1 ? "" : "s"} placed: ${MIN_HOSTILE_DISTANCE}+ zones from the start, people out of the ducts, guards on their objective` : problems.join("; "),
+  );
 }
 
 /** Shortest distance in Act 3 from the start to the farthest win path, on the floor (with ducts when the floor is shut). */

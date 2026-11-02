@@ -48,6 +48,22 @@ export const relationshipTypes: RelationshipTypeDef[] = [
     toKinds: ["character", "creature"],
   },
   {
+    // A job's NPCs: the contact, an insider, a rival... The note names the role.
+    id: "involved_in",
+    forward: "involved in",
+    reverse: "involves",
+    fromKinds: ["character"],
+    toKinds: ["job"],
+  },
+  {
+    // The place a job sends the crew to, with its site map.
+    id: "site_of",
+    forward: "site of",
+    reverse: "site",
+    fromKinds: ["location"],
+    toKinds: ["job"],
+  },
+  {
     id: "stationed_at",
     forward: "stationed at",
     reverse: "hosts",

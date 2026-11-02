@@ -23,6 +23,8 @@ import { ResultsPanel } from "./ResultsPanel";
 import { changedSteps, contextFromRun, newSeed, requestFromRun, runGenerator, stepRun, stepViews, withoutDependentDice, type GeneratorRequest } from "./runner";
 import { StepList } from "./StepList";
 import { ChainButtons } from "./ChainButtons";
+import { OfferBoard } from "./OfferBoard";
+import { offersOf, withoutPartsOf } from "../../state/offerActions";
 
 interface ProcedureSearch {
   pick?: string;
@@ -144,6 +146,7 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
   const graph = outcome.graph;
   const drafts = useMemo(() => agendaDraftsOf(graph), [graph]);
   const longDrafts = useMemo(() => (procedure.longAgendas ? longAgendaDraftsOf(graph) : undefined), [graph, procedure.longAgendas]);
+  const offers = useMemo(() => (procedure.offers ? offersOf(graph) : undefined), [graph, procedure.offers]);
 
   // An adventure input reads the adventure's rich text (its hidden situation) once the docs have loaded.
   const adventureKeys = useMemo(() => Object.entries(inputProperties(procedure)).filter(([, s]) => isAdventureInput(s)).map(([k]) => k), [procedure]);
@@ -270,6 +273,14 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
         return n;
       }),
   };
+  /** A whole offer re-rolled: its own seed is new, and its parts start afresh (pins stay). */
+  const offerControls = {
+    ...partControls,
+    onRerollOffer: (key: string) => {
+      setCompareTo(graph);
+      setPartSeeds((p) => ({ ...withoutPartsOf(p, key), [key]: newSeed() }));
+    },
+  };
   /** Lock (or free) a character's arc: the input the drafts name for it. */
   const lockArc = (c: Pick<AgendaDraftCharacter, "lock">) => {
     const lock = c.lock;
@@ -340,7 +351,7 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
         </p>
       )}
 
-      <div className={`prep-workbench__grid${drafts || longDrafts ? " has-agendas" : ""}`}>
+      <div className={`prep-workbench__grid${drafts || longDrafts || offers ? " has-agendas" : ""}`}>
         <div className="app-stack prep-workbench__main">
           <Card title="Inputs">
             <div className="app-stack">
@@ -407,6 +418,7 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
                   <AgendaDraftCards drafts={drafts} controls={partControls} edits={edits} onEdit={editDraft} onLock={lockArc} />
                 </>
               )}
+              {offers && procedure.offers && graph && <OfferBoard def={procedure.offers} set={offers} graph={graph} controls={offerControls} run={{ stepSeeds, pinned, partSeeds, pinnedParts }} />}
               {longDrafts && procedure.longAgendas && (
                 <>
                   {longDrafts.report && <AgendaReportCard report={longDrafts.report} title="No-betrayal check" />}
@@ -462,6 +474,12 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
             </>
           ) : graph && longDrafts && procedure.longAgendas ? (
             <LongAgendaAccept def={procedure.longAgendas} set={longDrafts} edits={longEdits} graph={graph} run={{ stepSeeds, pinned, partSeeds, pinnedParts }} />
+          ) : offers && procedure.offers ? (
+            <Card title="Accepting">
+              <p className="cf-muted app-small" data-testid="offers-accept-note">
+                Accept each {procedure.offers.noun} on its own card: “{procedure.offers.accept.label}”{procedure.offers.keep ? ` or “${procedure.offers.keep.label}”` : ""}. Each adds its records to the campaign and a handout with only what the players read.
+              </p>
+            </Card>
           ) : (
             <>
               {graph && <PreviewPanel graph={graph} names={names} onRename={(tempId, name) => setNames((n) => ({ ...n, [tempId]: name }))} />}

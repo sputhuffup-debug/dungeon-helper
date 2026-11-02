@@ -5,11 +5,12 @@ import { campaignAgendasProcedure } from "./campaign-agendas";
 import { betweenJobs } from "./between-jobs";
 import { encounterCheck } from "./encounter";
 import { jobCreate } from "./job";
+import { jobBoard } from "./job-board";
 import { lifepath } from "./lifepath";
 import { shoreLeave } from "./shore-leave";
 import { systemCreate } from "./system";
 import { worldCreate } from "./world";
 
-export const procedures: Procedure[] = [worldCreate, systemCreate, jobCreate, lifepath, encounterCheck, shoreLeave, betweenJobs, agendaDraftsProcedure, campaignAgendasProcedure];
+export const procedures: Procedure[] = [worldCreate, systemCreate, jobCreate, jobBoard, lifepath, encounterCheck, shoreLeave, betweenJobs, agendaDraftsProcedure, campaignAgendasProcedure];
 
-export { worldCreate, systemCreate, jobCreate, lifepath, encounterCheck, shoreLeave, betweenJobs, agendaDraftsProcedure, campaignAgendasProcedure };
+export { worldCreate, systemCreate, jobCreate, jobBoard, lifepath, encounterCheck, shoreLeave, betweenJobs, agendaDraftsProcedure, campaignAgendasProcedure };

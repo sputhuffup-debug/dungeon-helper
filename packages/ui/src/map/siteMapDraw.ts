@@ -465,6 +465,13 @@ export function markerGlyph(kind: MapMarker["kind"], x: number, y: number, p: Si
         el("path", { d: `M ${fmt(x - k * 0.9)} ${fmt(y - k * 0.15)} Q ${fmt(x)} ${fmt(y - k * 1.05)} ${fmt(x + k * 0.9)} ${fmt(y - k * 0.15)} Z`, fill: p.clue }),
         el("rect", { x: x - k * 0.16, y: y - k * 0.3, width: k * 0.32, height: k * 0.42, fill: p.halo }),
       ]);
+    case "hostile":
+      // armed people: a crosshair on a filled square
+      return el("g", {}, [
+        el("rect", { x: x - k * 0.8, y: y - k * 0.8, width: k * 1.6, height: k * 1.6, fill: p.lock, stroke: p.halo, "stroke-width": 0.06 * s, rx: k * 0.15 }),
+        el("circle", { cx: x, cy: y, r: k * 0.45, fill: "none", stroke: p.halo, "stroke-width": 0.09 * s }),
+        el("path", { d: `M ${fmt(x)} ${fmt(y - k * 0.7)} L ${fmt(x)} ${fmt(y + k * 0.7)} M ${fmt(x - k * 0.7)} ${fmt(y)} L ${fmt(x + k * 0.7)} ${fmt(y)}`, stroke: p.halo, "stroke-width": 0.08 * s }),
+      ]);
     case "label":
     default:
       return el("circle", { cx: x, cy: y, r: k * 0.3, fill: p.muted });

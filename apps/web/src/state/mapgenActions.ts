@@ -26,6 +26,7 @@ import {
   type SiteMap,
 } from "@campaign-forge/core";
 import {
+  type EntityMapBrief,
   type GameModule,
   type LoadedModule,
   type MapCheck,
@@ -348,3 +349,36 @@ export function acceptMapEntities(ctx: StoreCtx & { module: ModuleLike & Pick<Lo
 }
 
 export { linkMapToScenes };
+
+// ---------------------------------------------------------------------------
+// briefs carried by campaign entities (e.g. a job's site brief)
+// ---------------------------------------------------------------------------
+
+/** Brief from an entity: schema defaults overlaid with what the entity's brief supplies. */
+export function prefillFromEntityBrief(generator: MapGeneratorDef, brief: EntityMapBrief): AdventurePrefill {
+  const inputs = mapInputDefaults(generator);
+  const from: string[] = [];
+  for (const [k, v] of Object.entries(brief.inputs)) {
+    if (v === undefined) continue;
+    inputs[k] = structuredCopy(v);
+    from.push(k);
+  }
+  return { inputs, fromAdventure: from };
+}
+
+/**
+ * The site location of an entity's brief: the location already linked to it
+ * by the brief's relationship, else a new GM-only location linked to it.
+ */
+export function ensureEntitySite(ctx: StoreCtx, entityId: Id, site: NonNullable<EntityMapBrief["site"]>): Id {
+  return ctx.store.transact(() => {
+    const existing = ctx.store.list("relationships").find((r) => r.type === site.relationship && r.to === entityId && ctx.store.has("entities", r.from));
+    if (existing) return existing.from;
+    const input: Parameters<CampaignStore["createEntity"]>[0] = { type: site.type, name: site.name, fields: structuredCopy(site.fields ?? {}) };
+    if (site.subtype) input.subtype = site.subtype;
+    if (site.summary) input.summary = site.summary;
+    const created = ctx.store.createEntity(input);
+    ctx.store.createRelationship(site.relationship, created.id, entityId);
+    return created.id;
+  });
+}

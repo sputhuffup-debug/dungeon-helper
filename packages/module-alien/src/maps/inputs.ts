@@ -21,6 +21,7 @@ import {
   type SiteTypeId,
   type WinPathId,
 } from "./data";
+import { HOSTILE_GROUPS, HOSTILE_POSTURES, HOSTILE_POSTURE_LABELS, MAX_HOSTILE_COUNT, hostileGroup, type HostilePosture } from "./hostiles";
 
 export interface ThreatInput {
   /** Creature preset id, e.g. "alien.creature.xx121-drone". */
@@ -43,6 +44,18 @@ export interface PuzzleInput {
 export interface NpcInput {
   name: string;
   role: NpcRole;
+  /** GM-only note on the NPC's markers (e.g. how they turn on the crew). */
+  note?: string;
+  /** The NPC turns on the crew in Act 3; a turning android then moves like a hostile android (it may take the ducts). */
+  turns?: boolean;
+}
+/** A hostile group of people (rogue humans, or a hostile android): see hostiles.ts. */
+export interface HostileInput {
+  /** Hostile group id, e.g. "mercenaries". */
+  group: string;
+  act: number;
+  count: number;
+  posture: HostilePosture;
 }
 
 export interface MapInputs {
@@ -52,6 +65,8 @@ export interface MapInputs {
   crew: number;
   runtime_h: number;
   threats: ThreatInput[];
+  /** Rogue humans and hostile androids, by act. Empty for most briefs. */
+  hostiles: HostileInput[];
   duct_density: DuctDensity;
   darkness: number;
   hazards: HazardId[];
@@ -103,6 +118,22 @@ export const MAP_INPUT_SCHEMA: JsonSchema = {
           count: { type: "integer", title: "How many", minimum: 1, maximum: 30, default: 1 },
         },
         required: ["creature", "act"],
+      },
+    },
+    hostiles: {
+      type: "array",
+      title: "Rogue humans",
+      description: "Hostile people (and hostile androids) by act. They hold rooms, patrol corridors or guard the objective, never hide in ducts (androids may), and cost their tier against the act budget.",
+      default: [],
+      items: {
+        type: "object",
+        properties: {
+          group: { type: "string", title: "Group", enum: HOSTILE_GROUPS.map((x) => x.id), enumLabels: HOSTILE_GROUPS.map((x) => x.name), default: "mercenaries" },
+          act: { ...act, title: "Act", default: 2 },
+          count: { type: "integer", title: "How many", minimum: 1, maximum: MAX_HOSTILE_COUNT, default: 3 },
+          posture: { type: "string", title: "Posture", enum: [...HOSTILE_POSTURES], enumLabels: HOSTILE_POSTURES.map((x) => HOSTILE_POSTURE_LABELS[x]), default: "hold" },
+        },
+        required: ["group", "act"],
       },
     },
     duct_density: {
@@ -172,6 +203,8 @@ export const MAP_INPUT_SCHEMA: JsonSchema = {
         properties: {
           name: { type: "string", title: "Name" },
           role: { type: "string", title: "Role", enum: [...NPC_ROLES], enumLabels: ["Crew", "Survivor", "Android"], default: "crew" },
+          note: { type: "string", title: "Note (GM only)" },
+          turns: { type: "boolean", title: "Turns on the crew in Act 3" },
         },
         required: ["name"],
       },
@@ -253,7 +286,20 @@ export function normalizeMapInputs(raw: Record<string, unknown> = {}): MapInputs
     for (const n of raw.npcs) {
       const name = isRec(n) ? str(n.name) : str(n);
       if (!name) continue;
-      npcs.push({ name, role: oneOf(isRec(n) ? n.role : undefined, NPC_ROLES, "crew") });
+      const npc: NpcInput = { name, role: oneOf(isRec(n) ? n.role : undefined, NPC_ROLES, "crew") };
+      const note = isRec(n) ? str(n.note) : "";
+      if (note) npc.note = note;
+      if (isRec(n) && n.turns === true) npc.turns = true;
+      npcs.push(npc);
+    }
+  }
+  const hostiles: HostileInput[] = [];
+  if (Array.isArray(raw.hostiles)) {
+    for (const h of raw.hostiles) {
+      if (!isRec(h)) continue;
+      const group = hostileGroup(str(h.group ?? h.id));
+      if (!group) continue;
+      hostiles.push({ group: group.id, act: clampInt(h.act, 1, 3, 2), count: clampInt(h.count, 1, MAX_HOSTILE_COUNT, 1), posture: oneOf(h.posture, HOSTILE_POSTURES, group.posture) });
     }
   }
   return {
@@ -263,6 +309,7 @@ export function normalizeMapInputs(raw: Record<string, unknown> = {}): MapInputs
     crew: clampInt(raw.crew, 1, 5, 2),
     runtime_h: clampInt(raw.runtime_h, 1, 5, 4),
     threats: threatsRaw === undefined ? [{ ...DEFAULT_THREAT }] : threats,
+    hostiles,
     duct_density: oneOf(raw.duct_density, DUCT_DENSITIES, "normal"),
     darkness: clampInt(raw.darkness, 0, 100, 40),
     hazards,

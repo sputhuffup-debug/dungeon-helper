@@ -36,6 +36,8 @@ import {
   type GeneratedGraph,
   type LongAgendaDraftSet,
   type LoadedModule,
+  type Offer,
+  type OfferSet,
   type Procedure,
   type ProcedureContext,
   type Rng,
@@ -58,6 +60,7 @@ import {
   newId,
   presetToEntity,
   recordEdit,
+  runMapGenerator,
   toMarkdown,
   type AcceptResult,
   type CampaignMaps,
@@ -65,7 +68,7 @@ import {
   type Id,
   type Visibility,
 } from "@campaign-forge/core";
-import { alienModule, campaignAgendasProcedure, weaponRowFromPreset } from "@campaign-forge/module-alien";
+import { alienModule, campaignAgendasProcedure, jobBoard, siteMapGenerator, weaponRowFromPreset, type JobSiteBrief } from "@campaign-forge/module-alien";
 import { startInfection } from "./infection";
 
 /**
@@ -516,6 +519,9 @@ export function buildDemoCampaign(opts: BuildDemoOptions = {}): DemoCampaign {
   // -- the crew's advancement: XP from two earlier runs, one talent bought ---
   setupAdvancement(store, { pcs, system, year: cal.defaultYear });
 
+  // -- the next job: a job board with three postings, one taken, with its site map --
+  setupJobBoard(store, registry, mod, { seed });
+
   const maps = store.toJSON();
   const resolve = nameResolver(store);
   const docs: Record<Id, string> = {};
@@ -675,6 +681,61 @@ function setupCampaignAgendas(store: CampaignStore, registry: RichTextRegistry, 
     outcomes,
   );
   accept(runProcedure(proc, alienModule, { seed: `${s.seed}/agendas/${DEMO_AGENDA_JOBS[1]}`, inputs: { campaign: snapshot(), pcs, friction: "simmering", job, jobLabel: DEMO_AGENDA_JOBS[1], progress } }));
+}
+
+/** What the demo's job board must deal for the posting it takes (deterministic: boards are dealt in order until one fits). */
+export const DEMO_BOARD = { postings: 3, treachery: "rare", maxBoards: 400 } as const;
+
+/** True for the demo's posting: difficulty 3, three NPCs, exactly one betrayer, and a brief with rogue humans and a xenomorph. */
+export function isDemoPosting(o: Offer): boolean {
+  const job = o.produced.entities[0]!;
+  const brief = job.fields["siteBrief"] as JobSiteBrief | undefined;
+  return (
+    job.fields["difficulty"] === 3 &&
+    o.produced.entities.filter((e) => e.type === "alien.character").length === 3 &&
+    (job.fields["betrayers"] as string[]).length === 1 &&
+    !!brief &&
+    brief.inputs.hostiles.length > 0 &&
+    brief.inputs.threats.some((t) => t.creature.includes("xx121"))
+  );
+}
+
+/**
+ * The job board between jobs: three postings dealt at the docks; the crew
+ * takes the difficulty-3 one (one NPC betrays them, so its site plays as 2),
+ * which adds the job, its employer, three NPCs (the contact visible to the
+ * players), the players' posting handout and a site map generated from the
+ * job's brief, saved with the job's site. Boards are dealt from fixed seeds
+ * in order until one has such a posting.
+ */
+function setupJobBoard(store: CampaignStore, registry: RichTextRegistry, mod: LoadedModule, s: { seed: string }): void {
+  const props = (jobBoard.inputs as { properties: Record<string, Record<string, unknown>> }).properties;
+  const hint = props["campaign"]![CAMPAIGN_INPUT_HINT] as CampaignInputHint;
+  const campaign = campaignSnapshot(store, hint, (t) => mod.entityType(t)?.kind);
+  let graph: GeneratedGraph | undefined;
+  let offer: Offer | undefined;
+  for (let k = 0; k < DEMO_BOARD.maxBoards && !offer; k++) {
+    graph = runProcedure(jobBoard, alienModule, { seed: `${s.seed}/board/${k}`, inputs: { postings: DEMO_BOARD.postings, frame: DEMO_FRAME, treachery: DEMO_BOARD.treachery, campaign } });
+    offer = (graph.results["offers"] as OfferSet).offers.find(isDemoPosting);
+  }
+  if (!graph || !offer) throw new Error("demo campaign: no job board dealt a difficulty-3 posting with one betrayer, rogue humans and an alien");
+  const def = jobBoard.offers!;
+  const entities = offer.produced.entities.map((e, i) => (i === 0 ? { ...e, fields: { ...e.fields, ...(def.accept.fields ?? {}) } } : e));
+  const accepted = acceptGeneratedGraph(store, { ...graph, produced: { entities, relationships: offer.produced.relationships } }, { moduleId: mod.manifest.id });
+  const job = accepted.entities[0]!;
+  const h = offer.handout!;
+  const handout = store.createHandout({ title: h.title, kind: "text", visibility: PLAYERS, attachedTo: { kind: "entity", id: job.id }, ...(h.purpose ? { purpose: h.purpose } : {}), withBody: true });
+  writeDoc(registry, handout.bodyDoc, h.body);
+
+  // the job's site and its map, from the job's brief
+  const brief = siteMapGenerator.briefFromEntity!({ id: job.id, name: job.name, type: job.type, fields: job.fields })!;
+  const site = brief.site!;
+  const location = store.createEntity({ type: site.type, name: site.name, ...(site.subtype ? { subtype: site.subtype } : {}), ...(site.summary ? { summary: site.summary } : {}), fields: {} });
+  store.createRelationship(site.relationship, location.id, job.id);
+  const mapSeed = `${s.seed}/job-site`;
+  const result = runMapGenerator(alienModule, siteMapGenerator, JSON.parse(JSON.stringify(brief.inputs)), { seed: mapSeed });
+  const created = store.createMap({ name: brief.name ?? `${job.name}: site map`, location: location.id });
+  store.update("maps", created.id, { layout: JSON.parse(JSON.stringify(result.layout)), generator: { id: siteMapGenerator.id, seed: mapSeed, inputs: JSON.parse(JSON.stringify(brief.inputs)), attempts: result.attempts } });
 }
 
 /** `date` minus `days` on the Gregorian-style module calendar (the leg's departure). */

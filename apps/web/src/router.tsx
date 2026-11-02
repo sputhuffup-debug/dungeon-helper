@@ -147,7 +147,7 @@ const sessionRoute = createRoute({ getParentRoute: () => campaignRoute, path: "s
 const primerRoute = createRoute({ getParentRoute: () => campaignRoute, path: "primer", component: lazyRouteComponent(() => import("./features/primer/PrimerPage"), "PrimerPage") });
 const mapRoute = createRoute({ getParentRoute: () => campaignRoute, path: "maps/$mapId", component: lazyRouteComponent(() => import("./features/maps/MapPage"), "MapPage") });
 // Site map workbench (features/mapgen): ?generator=&adventure=&map=
-const mapGenRoute = createRoute({ getParentRoute: () => campaignRoute, path: "maps/new", validateSearch: (s: Record<string, unknown>): { generator?: string; adventure?: string; map?: string } => { const out: { generator?: string; adventure?: string; map?: string } = {}; for (const k of ["generator", "adventure", "map"] as const) if (typeof s[k] === "string" && s[k] !== "") out[k] = s[k] as string; return out; }, component: lazyRouteComponent(() => import("./features/mapgen/MapGenPage"), "MapGenPage") });
+const mapGenRoute = createRoute({ getParentRoute: () => campaignRoute, path: "maps/new", validateSearch: (s: Record<string, unknown>): { generator?: string; adventure?: string; map?: string; from?: string } => { const out: { generator?: string; adventure?: string; map?: string; from?: string } = {}; for (const k of ["generator", "adventure", "map", "from"] as const) if (typeof s[k] === "string" && s[k] !== "") out[k] = s[k] as string; return out; }, component: lazyRouteComponent(() => import("./features/mapgen/MapGenPage"), "MapGenPage") });
 
 export const routeTree = rootRoute.addChildren([
   campaignsRoute,
