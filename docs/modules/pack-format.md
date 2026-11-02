@@ -27,6 +27,7 @@ A data pack is a JSON object. The SDK validates it (`validatePack`), joins its p
   "d20Combat": {},          // optional; attacks, AC, saves, damage modifiers and conditions (see d20 combat)
   "gmScreen": { "panels": [] }, // optional; the printable GM screen (see GM screen)
   "characterBuilders": [],  // optional; step-by-step character builders (see Character builder)
+  "ownerHandouts": [],      // optional; handout kinds that reach the player of the character they are for (see Sheets and widgets)
   "mapGenerators": [],      // optional; built-in map engines configured as data (see Map generators)
   "parts": ["tables.json"]  // optional; see Split packs
 }

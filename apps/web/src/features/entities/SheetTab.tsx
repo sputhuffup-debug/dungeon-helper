@@ -1,5 +1,6 @@
 /** The schema-driven sheet, with validation, rules drawer, entity picking, rolls and the player preview. */
-import { projectEntityForViewer, type Entity } from "@campaign-forge/core";
+import { ownerMemberOf, playerMembers, projectEntityForViewer, setCharacterOwner, type Entity } from "@campaign-forge/core";
+import { FieldVisibilityButton } from "./FieldVisibility";
 import { createRng, validateEntityFields, type EntityTypeDef, type ReferenceList, type RollResult, type SheetField } from "@campaign-forge/module-sdk";
 import { useCallback, useMemo, useState } from "react";
 import { EntityPicker } from "../../components/EntityPicker";
@@ -36,7 +37,10 @@ export function SheetTab({ entity, def }: { entity: Entity; def: EntityTypeDef |
   if (!def) return <EmptyState title="Unknown entity type" text={`The module does not define “${entity.type}”. The data is kept as is.`} />;
 
   const canPreview = def.kind === "character";
-  const projected = asPlayer ? projectEntityForViewer(entity, def, { role: "player" }) : undefined;
+  const players = playerMembers(meta);
+  const owner = canPreview ? ownerMemberOf(meta, entity) : undefined;
+  // the player sheet is what its own player sees (owner-visible fields included), else what any player sees
+  const projected = asPlayer ? projectEntityForViewer(entity, def, owner ? { role: "player", memberId: owner.id, characters: [entity.id] } : { role: "player" }) : undefined;
 
   return (
     <div className="app-sheet">
@@ -48,6 +52,20 @@ export function SheetTab({ entity, def }: { entity: Entity; def: EntityTypeDef |
           </label>
         )}
         {canPreview && isPlayerCharacter(entity) && <Badge tone="accent">PC</Badge>}
+        {canPreview && (players.length > 0 || owner) && (
+          <label className="app-toggle" data-testid="sheet-player">
+            Played by
+            <select className="cf-select cf-input--inline" aria-label="Played by" value={owner?.id ?? ""} onChange={(e) => setCharacterOwner(ctx.store, entity.id, e.target.value || undefined)}>
+              <option value="">Nobody</option>
+              {players.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+        {!asPlayer && <FieldVisibilityButton entity={entity} def={def} />}
         {!validation.valid && !asPlayer && (
           <Badge tone="danger" title={validation.errors.map((e) => `${e.path}: ${e.message}`).join("\n")}>
             {validation.errors.length} validation issue{validation.errors.length === 1 ? "" : "s"}
@@ -66,7 +84,7 @@ export function SheetTab({ entity, def }: { entity: Entity; def: EntityTypeDef |
       {asPlayer ? (
         projected ? (
           <>
-            <p className="app-note">What a player would see: GM-only fields are removed and the sheet is read-only.</p>
+            <p className="app-note">{owner ? `What ${owner.name} sees of their own character: GM-only fields are removed, except those the game shows a character's own player, and the sheet is read-only.` : "What a player would see: GM-only fields are removed and the sheet is read-only."}</p>
             <SheetRenderer
               def={def}
               subtype={projected.subtype}

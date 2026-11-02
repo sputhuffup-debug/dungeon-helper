@@ -1,34 +1,61 @@
-import type { Visibility } from "@campaign-forge/core";
+import type { CampaignMember, Visibility } from "@campaign-forge/core";
 import type { VisibilityLevel } from "@campaign-forge/module-sdk";
 
 const LEVELS: Array<{ id: VisibilityLevel; label: string; hint: string }> = [
   { id: "gm", label: "GM only", hint: "Only the GM sees this." },
   { id: "players", label: "Players", hint: "Every player may see this." },
   { id: "revealed", label: "Revealed", hint: "Revealed to players during play." },
-  { id: "some_players", label: "Some players", hint: "Only chosen players (needs player members)." },
+  { id: "some_players", label: "Some players", hint: "Only the players you pick (add players in Settings)." },
 ];
 
-export function VisibilitySelect({ value, onChange, id, hasPlayers = false }: { value: Visibility; onChange: (v: Visibility) => void; id?: string; hasPlayers?: boolean }) {
+/**
+ * The visibility of a record or field. "Some players" lists the campaign's
+ * players to pick from: a record shared with Sam only reaches Sam's packet.
+ */
+export function VisibilitySelect({ value, onChange, id, players = [], label = "Visibility" }: { value: Visibility; onChange: (v: Visibility) => void; id?: string; players?: CampaignMember[]; label?: string }) {
+  const chosen = new Set(value.players ?? []);
+  const hasPlayers = players.length > 0;
   return (
-    <select
-      id={id}
-      className="cf-select"
-      aria-label="Visibility"
-      value={value.level}
-      onChange={(e) => {
-        const level = e.target.value as VisibilityLevel;
-        const next: Visibility = { level };
-        if (level === "some_players") next.players = value.players ?? [];
-        if (level === "revealed" && value.revealedIn) next.revealedIn = value.revealedIn;
-        onChange(next);
-      }}
-    >
-      {LEVELS.map((l) => (
-        <option key={l.id} value={l.id} title={l.hint} disabled={l.id === "some_players" && !hasPlayers && value.level !== "some_players"}>
-          {l.label}
-        </option>
-      ))}
-    </select>
+    <span className="app-visibility">
+      <select
+        id={id}
+        className="cf-select"
+        aria-label={label}
+        value={value.level}
+        onChange={(e) => {
+          const level = e.target.value as VisibilityLevel;
+          const next: Visibility = { level };
+          if (level === "some_players") next.players = value.players ?? [];
+          if (level === "revealed" && value.revealedIn) next.revealedIn = value.revealedIn;
+          onChange(next);
+        }}
+      >
+        {LEVELS.map((l) => (
+          <option key={l.id} value={l.id} title={l.hint} disabled={l.id === "some_players" && !hasPlayers && value.level !== "some_players"}>
+            {l.label}
+          </option>
+        ))}
+      </select>
+      {value.level === "some_players" && (
+        <span className="app-visibility__players" role="group" aria-label={`${label}: players`}>
+          {players.map((p) => (
+            <label key={p.id} className="app-chip-toggle">
+              <input
+                type="checkbox"
+                checked={chosen.has(p.id)}
+                onChange={(e) => {
+                  const ids = (value.players ?? []).filter((x) => x !== p.id);
+                  onChange({ ...value, players: e.target.checked ? [...ids, p.id] : ids });
+                }}
+                aria-label={`Share with ${p.name}`}
+              />
+              {p.name}
+            </label>
+          ))}
+          {!hasPlayers && <span className="cf-muted">No players yet</span>}
+        </span>
+      )}
+    </span>
   );
 }
 

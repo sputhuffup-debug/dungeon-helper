@@ -1894,6 +1894,36 @@
       ],
       "additionalProperties": false
     },
+    "ownerHandout": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "when": {
+          "type": "string",
+          "enum": [
+            "always",
+            "given"
+          ]
+        },
+        "gmOnlyPurposes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "gmOnlyNote": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "additionalProperties": false,
+      "description": "A handout kind that reaches the player of the character it is for (`character`): always, or once the GM gives it. See docs/modules/sheets.md#owner-visible-fields."
+    },
     "d20Duration": {
       "type": "object",
       "properties": {

@@ -6,8 +6,11 @@
  * character's summary field in step, and keeps two handouts per character:
  *
  *  - the agenda handout (kind "agenda", GM-only): the goal, this job's beat,
- *    the tension, the GM details and the beats so far, for the GM to hand
- *    out (per-player visibility does not exist yet);
+ *    the tension, the GM details and the beats so far: the GM's card. The
+ *    character's player reads their agenda in their player packet instead,
+ *    rendered from the record as their projection shows it (the fields the
+ *    module marks owner-visible, see packets.ts); the GM can still give this
+ *    card to them (`Handout.toOwner`);
  *  - the friction handout (kind "text", visible to the players): the lines
  *    that say whom the character clashes with and over what.
  *

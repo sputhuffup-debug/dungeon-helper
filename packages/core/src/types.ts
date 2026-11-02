@@ -39,10 +39,29 @@ export interface CampaignMeta extends BaseRecord {
   currentDate?: string;
   /** Module-defined campaign-level settings, e.g. frame, home base (written by checklists). */
   settings: Record<string, unknown>;
-  /** Members: GM plus players. v1 is GM-only but the shape is kept. */
-  members: Array<{ id: Id; name: string; role: "gm" | "player"; characterId?: Id }>;
+  /**
+   * Members: the GM plus the players. v1 has no player accounts: players are
+   * names the GM keeps so material can be shared with one of them (player
+   * packets, `some_players`). Which PCs a player plays is kept on the
+   * characters (`Entity.ownerMemberId`), see members.ts.
+   */
+  members: CampaignMember[];
   /** The campaign primer: the players' session 0 introduction (see primer.ts). */
   primer?: CampaignPrimer;
+}
+
+export interface CampaignMember {
+  id: Id;
+  name: string;
+  role: "gm" | "player";
+  /**
+   * Earlier shape: the one PC this member plays. Still read (as owning that
+   * character when the character names no owner of its own); new data keeps
+   * ownership on the character.
+   */
+  characterId?: Id;
+  /** The GM's note on how to reach the player (a chat handle, an email). GM-only. */
+  contact?: string;
 }
 
 /** The campaign primer's sections, in order; each section's text is a rich-text body. */
@@ -214,8 +233,17 @@ export interface ShareRecord {
   party?: boolean;
   /** The campaign primer was included. */
   primer?: boolean;
-  format?: "images" | "pdf";
+  format?: ShareFormat;
+  /**
+   * A player packet for this member (only their copy). Absent: a group share
+   * for every player. The group share's "only what's new" reads group shares
+   * only; each player's packet reads that player's packets.
+   */
+  member?: Id;
 }
+
+/** How a share went out: phone images, a PDF, or one self-contained web page. */
+export type ShareFormat = "images" | "pdf" | "page";
 
 export interface TimelineEvent extends BaseRecord {
   inWorldDate: string;
@@ -238,6 +266,11 @@ export interface Handout extends BaseRecord {
   attachedTo?: { kind: "act" | "scene" | "adventure" | "entity"; id: Id };
   /** For agendas: the PC it is for. */
   character?: Id;
+  /**
+   * Given to the player of `character` ("Give to its player"): that player
+   * sees it in their packet whatever `visibility` says to everyone else.
+   */
+  toOwner?: boolean;
   /**
    * What a tool keeps the handout for (e.g. "long-agenda" or
    * "long-agenda-friction" for a character's long-term agenda and its open

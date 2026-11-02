@@ -10,6 +10,7 @@ import { deleteCampaign, exportCampaignBundle, exportCampaignJSON, importBundleI
 import { useCampaign, useList, useMeta } from "../../state/hooks";
 import { pushToast } from "../../components/ui";
 import { ChecklistSettings } from "./ChecklistSettings";
+import { PlayersCard } from "./PlayersCard";
 import { describeSupplement, moduleEntry, supplementProblems } from "../../modules/registry";
 import { ModuleLicenseView, safeHttpUrl } from "../modules/ModuleLicense";
 
@@ -84,25 +85,7 @@ export function SettingsPage() {
         </div>
       </Card>
 
-      <Card title="Members" subtitle="Campaign Forge v1 is GM-only; players arrive with sync in a later version.">
-        <ul className="app-list">
-          {meta.members.map((m) => (
-            <li key={m.id} className="app-list__row">
-              <input
-                className="cf-input cf-input--inline"
-                aria-label="Member name"
-                defaultValue={m.name}
-                key={m.name}
-                onBlur={(e) => {
-                  const v = e.target.value.trim();
-                  if (v && v !== m.name) updateMeta(ctx, { members: meta.members.map((x) => (x.id === m.id ? { ...x, name: v } : x)) });
-                }}
-              />
-              <Badge tone="accent">{m.role.toUpperCase()}</Badge>
-            </li>
-          ))}
-        </ul>
-      </Card>
+      <PlayersCard />
 
       <DiceSettings />
 

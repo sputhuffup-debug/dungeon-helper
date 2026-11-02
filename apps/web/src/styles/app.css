@@ -3248,6 +3248,56 @@ a.cf-btn {
   gap: var(--cf-space-1);
 }
 
+/* Visibility with chosen players, the players list, field visibility */
+.app-visibility {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cf-space-1);
+}
+.app-visibility__players {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--cf-space-1);
+}
+.app-chip-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border: 1px solid var(--cf-border-strong);
+  border-radius: 999px;
+  font-size: var(--cf-text-xs);
+  cursor: pointer;
+  background: var(--cf-surface);
+}
+.app-chip-toggle:has(input:checked) {
+  border-color: var(--cf-accent);
+  background: color-mix(in srgb, var(--cf-accent) 14%, transparent);
+}
+.app-players__row {
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+.app-players__who {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cf-space-1);
+  min-width: 180px;
+}
+.app-players__pcs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cf-space-1);
+  flex: 1 1 240px;
+}
+.app-players__add {
+  flex-wrap: wrap;
+  margin-top: var(--cf-space-2);
+}
+.app-fieldvis .app-list__row {
+  flex-wrap: wrap;
+}
 /* boards of offers (job board) */
 .offer-card {
   display: flex;

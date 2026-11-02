@@ -1,4 +1,4 @@
-import { weaponRowFrom, type EntityPreset, type EntityTypeDef, type JsonLogicRule, type SheetSection, type WeaponAttackConfig, type WeaponListConfig } from "@campaign-forge/module-sdk";
+import { OWNER_VISIBILITY, weaponRowFrom, type EntityPreset, type EntityTypeDef, type JsonLogicRule, type SheetSection, type WeaponAttackConfig, type WeaponListConfig } from "@campaign-forge/module-sdk";
 import { CAMPAIGN, CINEMATIC } from "../modes";
 import { OVERWHELMED_TRAUMA } from "../reference/mentalTraumas";
 import {
@@ -241,6 +241,49 @@ export const characterSchema = objectSchema(
     else: { properties: { attributes: { properties: attributeProps(HUMAN_ATTRIBUTE_MAX) } } },
   },
 );
+
+/**
+ * What a PC's own player always sees in their player packet, even when the
+ * GM keeps the field (or the whole character) hidden from the other players
+ * (module-sdk `OWNER_VISIBILITY`): the sheet they play from (stats, stress,
+ * health, gear, XP, conditions) and their personal agenda, with the campaign
+ * agenda's goal, current beat and tension. Not the campaign agenda's secret
+ * or history, the per-act cinematic agendas (handed out act by act, see
+ * `ownerHandouts`), the android box, the secret synthetic section or the NPC
+ * dossier fields.
+ */
+export const CHARACTER_OWNER_FIELDS = [
+  "isPC",
+  "career",
+  "attributes",
+  "skills",
+  "talents",
+  "stress",
+  "damage",
+  "fatigued",
+  "rads",
+  "criticalInjuries",
+  "mentalTraumas",
+  "gear",
+  "weapons",
+  "signatureItem",
+  "cash",
+  "storyPoints",
+  "xp",
+  "buddy",
+  "rival",
+  "background",
+  "personalAgenda",
+  "campaignAgenda.goal",
+  "campaignAgenda.beat",
+  "campaignAgenda.tension",
+] as const;
+
+for (const path of CHARACTER_OWNER_FIELDS) {
+  let node = characterSchema as Record<string, unknown>;
+  for (const seg of path.split(".")) node = (node.properties as Record<string, Record<string, unknown>>)[seg]!;
+  node["x-visibility"] = OWNER_VISIBILITY;
+}
 
 /** Stacks of a talent; an entry without a count counts once. */
 const talentCount = (talentId: string, cap?: number): JsonLogicRule => {

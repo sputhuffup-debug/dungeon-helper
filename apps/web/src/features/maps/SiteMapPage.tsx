@@ -5,7 +5,7 @@
  * the generator's checks, the zone key and the distance table.
  * Image maps keep the rectangle editor (MapPage).
  */
-import { distanceTable, exitText, isDuctSheet, markGroup, zoneKeyRows, zoneNumbers, type SiteMap, type ZoneKeyMark, type ZoneKeyRow } from "@campaign-forge/core";
+import { distanceTable, playerMembers, exitText, isDuctSheet, markGroup, zoneKeyRows, zoneNumbers, type SiteMap, type ZoneKeyMark, type ZoneKeyRow } from "@campaign-forge/core";
 import type { MapCheck } from "@campaign-forge/module-sdk";
 import { Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
@@ -264,7 +264,7 @@ export function SiteMapPage({ record, onDelete, scenesCard }: { record: SiteMap;
                 </Link>
               </>
             )}
-            <VisibilitySelect value={record.visibility} onChange={(v) => updateSiteMap(ctx, record.id, { visibility: v })} hasPlayers={meta.members.some((m) => m.role === "player")} />
+            <VisibilitySelect value={record.visibility} onChange={(v) => updateSiteMap(ctx, record.id, { visibility: v })} players={playerMembers(meta)} />
             <Badge>{playable} zones</Badge>
             <Badge>
               {layout.decks.length - sheets} deck{layout.decks.length - sheets === 1 ? "" : "s"}

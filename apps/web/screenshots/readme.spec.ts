@@ -637,6 +637,25 @@ test("share-players", async ({ page }) => {
   await shot(page, "share-players");
 });
 
+test("player-packets", async ({ page }) => {
+  // Skyfire Down session 1: Share, Player packets: the four players, and Priya's packet as the web page she gets (her sheet, her agenda, the note shared with her alone)
+  await page.setViewportSize({ width: 1440, height: 1100 });
+  await loadDemo(page, "skyfire");
+  await startSession1(page);
+  await page.getByTestId("share-players").click();
+  await page.getByRole("tab", { name: /Player packets/ }).click();
+  const dialog = page.getByTestId("packets-dialog");
+  await expect(dialog.getByTestId("packet-player")).toHaveCount(4);
+  await dialog.getByRole("button", { name: "Preview Priya's packet" }).click();
+  await expect(dialog.getByTestId("packet-title")).toHaveText(/^Skyfire Down for Priya/);
+  const preview = dialog.frameLocator("[data-testid=share-preview-page]");
+  await expect(preview.getByRole("heading", { name: "An unsigned note" })).toBeVisible();
+  await expect(dialog.getByTestId("packet-send")).toBeEnabled();
+  // the players at the top, Priya's page below them
+  await dialog.locator(".app-packets").evaluate((el) => el.scrollIntoView({ block: "start" }));
+  await shot(page, "player-packets");
+});
+
 test("primer", async ({ page }) => {
   // Cold Harbor's campaign primer: the module's prompts in grey, the demo's own text, places drafted from player-visible locations
   await page.setViewportSize({ width: 1440, height: 1000 });

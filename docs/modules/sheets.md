@@ -22,6 +22,17 @@ An entity type says what a kind of thing *is* (its `schema`), how its sheet *loo
 - `subtypes`: `{ id, name, sheet?, schema? }` for kinds of a kind (a location that is a ruin or a village); a subtype's sheet sections and schema add to the type's.
 - `defaultVisibility`: field path → `gm`, `players`, `some_players` or `revealed`. `playerEditable`: paths a player may edit once sync arrives.
 
+## Owner-visible fields
+
+A character's own player (the campaign member who plays it, set in Settings → Players) often needs fields the other players must not see: their stats, their stress, their private agenda. Mark those properties in the schema with `"x-visibility": "owner"`:
+
+```json
+"stress": { "type": "integer", "minimum": 0, "x-visibility": "owner" },
+"agenda": { "type": "object", "properties": { "goal": { "type": "string", "x-visibility": "owner" }, "secret": { "type": "string" } } }
+```
+
+The owner then sees the field in their player packet and player sheet whatever its visibility says to everyone else, even when the field (or the whole character) is GM-only; nested properties can be marked on their own, as `agenda.goal` above, while `agenda.secret` stays GM-only. A visibility the GM sets on that field of one entity (*Field visibility…*) still wins. Handout kinds work the same way at the module level: `"ownerHandouts": [{ "kind": "agenda", "when": "given" }]` (main file only in a pack) lets a handout linked to a character (`character`) reach that character's player, `always` without the GM doing anything, `given` once the GM ticks *Give to <player>* on it. `gmOnlyPurposes` (with a one-line `gmOnlyNote`) keeps handouts a tool makes for one of those purposes with the GM, such as a GM card holding a secret: no toggle, and never given.
+
 ## The schema (safe subset)
 
 `schema` is a JSON Schema (draft-07) for the entity's `fields`. Defaults (`default`) fill a new entity. Use `type`, `properties`, `required`, `additionalProperties`, `items`, `enum`, `const`, `minimum`, `maximum`, `minLength`, `maxLength`, `minItems`, `maxItems`, `anyOf`, `oneOf`, `allOf`, `definitions` and local `$ref` (`"#/definitions/..."`), `title`, `description`, `format`. Packs may not use `pattern`, `patternProperties`, `propertyNames`, `$data`, `$async`, `$id`, `$schema` or remote `$ref`.

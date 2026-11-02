@@ -5,7 +5,7 @@
  * drags and written to the store debounced, so a drag is one write rather
  * than hundreds.
  */
-import type { Entity, Id, Scene, SiteMap } from "@campaign-forge/core";
+import { playerMembers, type Entity, type Id, type Scene, type SiteMap } from "@campaign-forge/core";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
@@ -231,7 +231,7 @@ function MapEditorPage({ record }: { record: SiteMap }) {
               {location ? "Change" : "Pick location"}
             </Button>
             {location && <IconButton size="sm" variant="ghost" label="Clear location" icon="×" onClick={() => updateSiteMap(ctx, record.id, { location: undefined })} />}
-            <VisibilitySelect value={record.visibility} onChange={(v) => updateSiteMap(ctx, record.id, { visibility: v })} hasPlayers={meta.members.some((m) => m.role === "player")} />
+            <VisibilitySelect value={record.visibility} onChange={(v) => updateSiteMap(ctx, record.id, { visibility: v })} players={playerMembers(meta)} />
             <Badge>
               {draft.zones.length} zone{draft.zones.length === 1 ? "" : "s"}
             </Badge>

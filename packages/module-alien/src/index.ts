@@ -83,6 +83,9 @@ export { mapTables, ductEventsTable, LOCATION_DETAIL_TABLE_ID, ANOMALOUS_DETAIL_
 
 export const referenceLists = [...coreReferenceLists, ...dataReferenceLists, campaignThemes, fearStages];
 
+/** The purpose the app keeps a PC's campaign agenda GM card under (core's LONG_AGENDA_PURPOSE; the module cannot import core). */
+export const CAMPAIGN_AGENDA_CARD_PURPOSE = "long-agenda";
+
 export const alienModule: GameModule = {
   manifest,
   dice: diceSystem,
@@ -109,6 +112,9 @@ export const alienModule: GameModule = {
   travel,
   progression,
   gmScreen,
+  // a PC's agenda cards (one per act in cinematic play) reach that PC's player once the GM gives each one out;
+  // the campaign agenda's GM card (with the embarrassing secret) never does: the player reads their agenda in their packet
+  ownerHandouts: [{ kind: "agenda", when: "given", gmOnlyPurposes: [CAMPAIGN_AGENDA_CARD_PURPOSE], gmOnlyNote: "Players get their agenda in their packet; this card stays with you." }],
   migrations: [],
 };
 

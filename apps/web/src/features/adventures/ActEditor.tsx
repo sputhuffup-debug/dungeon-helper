@@ -1,6 +1,7 @@
 /** Act pane: number, title, goal, pacing notes and the act's handouts (per-character agendas included). */
-import type { Act, Handout, HandoutKind } from "@campaign-forge/core";
+import { playerMembers, type Act, type Handout, type HandoutKind } from "@campaign-forge/core";
 import { useMemo, useState } from "react";
+import { GiveToPlayer } from "../../components/GiveToPlayer";
 import { VisibilitySelect } from "../../components/VisibilitySelect";
 import { Badge, Button, Card, IconButton } from "../../components/ui";
 import { RichTextEditor } from "../../editor";
@@ -107,7 +108,8 @@ function HandoutRow({ handout }: { handout: Handout }) {
         </button>
         <CommitInput value={handout.title} label="Handout title" className="cf-input prep-handout__title" onCommit={(v) => updateHandout(ctx, handout.id, { title: v.trim() || handout.title })} />
         {handout.kind === "agenda" && (character ? <Badge tone="accent">{character.name}</Badge> : <Badge tone="warning">no character</Badge>)}
-        <VisibilitySelect value={handout.visibility} onChange={(v) => updateHandout(ctx, handout.id, { visibility: v })} hasPlayers={meta.members.some((m) => m.role === "player")} />
+        <VisibilitySelect value={handout.visibility} onChange={(v) => updateHandout(ctx, handout.id, { visibility: v })} players={playerMembers(meta)} />
+        <GiveToPlayer handout={handout} />
         <IconButton size="sm" variant="ghost" label={`Delete ${handout.title}`} icon="×" onClick={() => deleteHandout(ctx, handout.id)} />
       </div>
       {open && (

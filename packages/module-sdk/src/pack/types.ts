@@ -19,6 +19,7 @@ import type {
   EntityTypeDef,
   CharacterBuilderDef,
   GmScreenDef,
+  OwnerHandoutDef,
   JsonLogicRule,
   JsonSchema,
   ModuleLicense,
@@ -174,6 +175,8 @@ export interface ModulePack extends PackCollections {
   d20Combat?: D20CombatDef;
   /** A printable GM screen built from the pack's own content (main file only). */
   gmScreen?: GmScreenDef;
+  /** Handout kinds that reach the player of the character they are for (player packets; main file only). */
+  ownerHandouts?: OwnerHandoutDef[];
   /** Step-by-step character builders (main file only). */
   characterBuilders?: CharacterBuilderDef[];
   /** Map generators run by a built-in engine (main file only), e.g. `{ "engine": "dungeon", ... }`. */

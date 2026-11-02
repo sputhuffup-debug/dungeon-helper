@@ -247,3 +247,46 @@ export function schemaAt(root: JsonSchema, path: string): JsonSchema | undefined
 export function fieldSchemaAt(def: EntityTypeDef, path: string): JsonSchema | undefined {
   return schemaAt(def.schema, path);
 }
+
+const ownerPathCache = new WeakMap<EntityTypeDef, Map<string, string[]>>();
+
+/**
+ * Field paths the entity's owner always sees (a PC's player): properties of
+ * the type's schema, and of the subtype's when given, annotated
+ * `"x-visibility": "owner"`, as sorted dotted paths ("stress",
+ * "campaignAgenda.goal"). Object properties are walked, along with
+ * `allOf`/`anyOf`/`oneOf` and `then`/`else`; array items are not (a marked
+ * array covers its rows).
+ */
+export function ownerVisiblePaths(def: EntityTypeDef, subtype?: string): string[] {
+  let byType = ownerPathCache.get(def);
+  if (!byType) {
+    byType = new Map();
+    ownerPathCache.set(def, byType);
+  }
+  const key = subtype ?? "";
+  const cached = byType.get(key);
+  if (cached) return cached;
+  const out = new Set<string>();
+  const walk = (schema: unknown, prefix: string, root: JsonSchema, depth: number): void => {
+    if (!isSchema(schema) || depth > 12) return;
+    const s = resolveRef(schema, root);
+    if (isSchema(s.properties)) {
+      for (const [k, v] of Object.entries(s.properties)) {
+        if (!isSchema(v)) continue;
+        const path = prefix ? `${prefix}.${k}` : k;
+        if (v["x-visibility"] === "owner") out.add(path);
+        walk(v, path, root, depth + 1);
+      }
+    }
+    for (const list of [s.allOf, s.anyOf, s.oneOf]) if (Array.isArray(list)) for (const sub of list) walk(sub, prefix, root, depth + 1);
+    walk(s.then, prefix, root, depth + 1);
+    walk(s.else, prefix, root, depth + 1);
+  };
+  walk(def.schema, "", def.schema, 0);
+  const sub = subtype ? def.subtypes?.find((t) => t.id === subtype)?.schema : undefined;
+  if (sub) walk(sub, "", sub, 0);
+  const paths = [...out].sort();
+  byType.set(key, paths);
+  return paths;
+}
