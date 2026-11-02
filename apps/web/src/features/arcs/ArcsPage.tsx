@@ -51,6 +51,7 @@ import { CrewNotesView } from "./CrewNotesView";
 import "./arcs.css";
 
 const TABS = ["board", "notes", "contacts"] as const;
+const plural = (n: number, one: string) => `${n} ${one}${n === 1 ? "" : "s"}`;
 
 export function ArcsPage() {
   const ctx = useCampaign();
@@ -129,7 +130,7 @@ function BoardTab({ def }: { def: ArcsDef }) {
           </label>
         )}
         <span className="cf-muted app-small">
-          {threads.length} thread{threads.length === 1 ? "" : "s"} · {threads.reduce((n, t) => n + threadCounts(t).found, 0)} clues found · {threads.reduce((n, t) => n + threadCounts(t).seeded, 0)} seeded
+          {plural(threads.length, "thread")} · {plural(threads.reduce((n, t) => n + threadCounts(t).found, 0), "clue")} found · {threads.reduce((n, t) => n + threadCounts(t).seeded, 0)} seeded
         </span>
       </div>
       {shown.length === 0 ? (

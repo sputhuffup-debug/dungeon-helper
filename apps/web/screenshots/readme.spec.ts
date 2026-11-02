@@ -427,6 +427,35 @@ test("alien-job-board", async ({ page }) => {
   await shot(page, "alien-job-board");
 });
 
+test("alien-arc-board", async ({ page }) => {
+  // the arc board: faction heat and thread clocks on top, two threads as columns, stages as rows, a found and a seeded clue
+  await page.setViewportSize({ width: 1440, height: 1400 });
+  const base = await loadDemo(page, "skyfire");
+  await page.goto(`${base}/arcs`);
+  await expect(page.getByTestId("arc-thread")).toHaveCount(2);
+  await expect(page.locator("[data-testid=arc-clue][data-state=found]")).toHaveCount(1);
+  await expect(page.locator("[data-testid=arc-clue][data-state=seeded]")).toHaveCount(1);
+  await shot(page, "alien-arc-board");
+});
+
+test("crew-notes", async ({ page, context }) => {
+  // the player screen's crew notes: the clue found in session 1 under the thread's player title, Mara Quill and her favour
+  await loadDemo(page, "skyfire");
+  await startSession1(page);
+  const popup = context.waitForEvent("page");
+  await page.getByRole("button", { name: "Player screen" }).click();
+  const players = await popup;
+  await players.setViewportSize({ width: 1100, height: 1400 });
+  const notes = players.getByTestId("crew-notes");
+  await expect(notes.getByTestId("crew-notes-clue")).toHaveCount(1);
+  await expect(notes.getByTestId("crew-notes-contact")).toContainText("Mara Quill");
+  await notes.evaluate((e) => e.scrollIntoView({ block: "start" }));
+  await settle(players);
+  const box = (await notes.boundingBox())!;
+  const pad = 16;
+  await shot(players, "crew-notes", { clip: { x: Math.floor(box.x - pad), y: Math.floor(box.y - pad), width: Math.ceil(box.width + pad * 2), height: Math.ceil(box.height + pad * 2) } });
+});
+
 test("wrap-up-awards", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1250 });
   await loadDemo(page, "skyfire");

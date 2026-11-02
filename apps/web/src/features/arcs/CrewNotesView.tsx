@@ -53,13 +53,13 @@ export function CrewNotesView({ notes, heading = true, compact = false }: { note
               {notes.places.length > 0 && (
                 <>
                   <h3 className="crew-notes__title">Places</h3>
-                  <p className="app-small">{notes.places.map((p) => p.name).join(" · ")}</p>
+                  <p className="crew-notes__known">{notes.places.map((p) => p.name).join(" · ")}</p>
                 </>
               )}
               {notes.factions.length > 0 && (
                 <>
                   <h3 className="crew-notes__title">Factions</h3>
-                  <p className="app-small">{notes.factions.map((f) => f.name).join(" · ")}</p>
+                  <p className="crew-notes__known">{notes.factions.map((f) => f.name).join(" · ")}</p>
                 </>
               )}
             </article>

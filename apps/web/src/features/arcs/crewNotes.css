@@ -27,3 +27,6 @@
 .crew-notes--compact .crew-notes__grid {
   grid-template-columns: minmax(0, 1fr);
 }
+.crew-notes__known {
+  margin: 0 0 var(--cf-space-2);
+}
