@@ -6,7 +6,7 @@
  * `PlayerShare` (already the player projection) plus the images the caller
  * loaded; nothing here reads the campaign.
  */
-import type { PlayerShare, ShareMap, ShareMember } from "@campaign-forge/core";
+import type { PlayerPacket, PlayerShare, ShareMap, ShareMember } from "@campaign-forge/core";
 import type { MapGeneratorDef } from "@campaign-forge/module-sdk";
 import { MAP_FONT, PRINT_PALETTE, drawSiteMap, nodeToString, svgNode as el, wrapText, type PdfPage, type SiteMapPalette, type SvgNode } from "@campaign-forge/ui";
 import type { Paper } from "../../lib/paper";
@@ -35,13 +35,15 @@ export interface ShareLayoutInput {
    * card holds only its text (and an image-only handout has no card). "pdf":
    * the image goes on the handout's page.
    */
-  format?: "images" | "pdf";
+  format?: ShareFormat;
 }
+
+export type ShareFormat = "images" | "pdf" | "page";
 
 /** One item of the share: a title and blocks. */
 export interface ShareSection {
   id: string;
-  kind: "briefing" | "map" | "handout" | "party" | "primer";
+  kind: "briefing" | "map" | "handout" | "party" | "primer" | "character" | "agenda";
   eyebrow: string;
   title: string;
   blocks: Block[];
@@ -171,7 +173,8 @@ export function shareSections(input: ShareLayoutInput): ShareSection[] {
     const asIs = input.format === "images" && img && h.image;
     if (img && !asIs) blocks.push({ kind: "image", image: img, alt: h.title });
     blocks.push(...markdownBlocks(h.text));
-    const section: ShareSection = { id: `handout:${h.id}`, kind: "handout", eyebrow: h.thisSession ? "New handout" : "Handout", title: h.title || "Handout", blocks, file: `handout-${slugOf(h.title)}` };
+    const eyebrow = h.personal ? (share.for ? `Just for ${share.for}` : "Just for you") : h.thisSession ? "New handout" : "Handout";
+    const section: ShareSection = { id: `handout:${h.id}`, kind: "handout", eyebrow, title: h.title || "Handout", blocks, file: `handout-${slugOf(h.title)}` };
     if (asIs) {
       section.original = { asset: h.image!.asset, mime: h.image!.mime };
       if (blocks.length === 0) section.cardless = true;
@@ -183,6 +186,33 @@ export function shareSections(input: ShareLayoutInput): ShareSection[] {
     out.push({ id: "party", kind: "party", eyebrow: "The party", title: "Who's who", blocks, file: "party" });
   }
   return out;
+}
+
+/**
+ * A player packet as sections: the player's own character sheets and
+ * agendas first, then the share as they see it (handouts just for them
+ * first). Everything comes from the packet, which is already that player's
+ * projection.
+ */
+export function packetSections(input: ShareLayoutInput & { share: PlayerPacket }): ShareSection[] {
+  const { share } = input;
+  const out: ShareSection[] = [];
+  for (const c of share.characters) {
+    const blocks: Block[] = [];
+    const portrait = c.portrait ? input.images?.get(c.portrait.asset) : undefined;
+    if (portrait) blocks.push({ kind: "image", image: portrait, alt: c.name });
+    if (c.kind) blocks.push({ kind: "note", text: c.kind });
+    if (c.conditions.length) blocks.push({ kind: "para", text: `Conditions: ${c.conditions.join(", ")}`, style: "lead" });
+    for (const s of c.sections) {
+      blocks.push({ kind: "heading", text: s.title });
+      for (const r of s.rows) blocks.push({ kind: "para", text: `${r.label}: ${r.value}`, style: "bullet" });
+    }
+    out.push({ id: `character:${c.id}`, kind: "character", eyebrow: share.characters.length > 1 ? "One of your characters" : "Your character", title: c.name, blocks, file: `sheet-${slugOf(c.name)}` });
+    if (c.agenda) {
+      out.push({ id: `agenda:${c.id}`, kind: "agenda", eyebrow: "Your agenda · keep it to yourself", title: c.agenda.title, blocks: markdownBlocks(c.agenda.markdown), file: `agenda-${slugOf(c.name)}` });
+    }
+  }
+  return [...out, ...shareSections(input)];
 }
 
 // ---------------------------------------------------------------------------
@@ -472,8 +502,16 @@ export function shareTime(at: string): string {
   return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}, ${two(d.getHours())}:${two(d.getMinutes())}`;
 }
 
-export function footerLine(share: Pick<PlayerShare, "campaign" | "session" | "at">): string {
-  return `${share.campaign} · ${share.session.label} · shared ${shareTime(share.at)}`;
+/** The share's header fields; `for` names the one player of a packet. */
+export type ShareHeader = Pick<PlayerShare, "campaign" | "session" | "at" | "for">;
+
+export function footerLine(share: ShareHeader): string {
+  return `${share.campaign}${share.for ? ` · for ${share.for}` : ""} · ${share.session.label} · shared ${shareTime(share.at)}`;
+}
+
+/** "Skyfire Down for Sam: Session 1", or "Skyfire Down: Session 1". */
+export function shareTitle(share: ShareHeader): string {
+  return `${share.campaign}${share.for ? ` for ${share.for}` : ""}: ${share.session.label}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -497,7 +535,7 @@ export interface PhoneCard {
 export const PHONE_MAX_HEIGHT = 2340;
 
 /** One or more 1080 px cards per section, each with the campaign, session and share time in its footer. */
-export function phoneCards(sections: ShareSection[], share: Pick<PlayerShare, "campaign" | "session" | "at">, opts: Pick<ShareLayoutInput, "passable"> = {}): PhoneCard[] {
+export function phoneCards(sections: ShareSection[], share: ShareHeader, opts: Pick<ShareLayoutInput, "passable"> = {}): PhoneCard[] {
   const th = PHONE;
   const inner = th.width - 2 * th.margin;
   const footer = footerLine(share);
@@ -576,7 +614,7 @@ export interface PacketPages {
  * a map that does not fit starts a new page), body text in 11 pt, greyscale
  * maps with solid fog, and a footer with the share time and page number.
  */
-export function packetPages(sections: ShareSection[], share: Pick<PlayerShare, "campaign" | "session" | "at">, paper: Paper, opts: Pick<ShareLayoutInput, "passable"> = {}): PacketPages {
+export function packetPages(sections: ShareSection[], share: ShareHeader, paper: Paper, opts: Pick<ShareLayoutInput, "passable"> = {}): PacketPages {
   const { width, height } = PAPER_POINTS[paper];
   const th: Theme = { ...PAGE, width };
   const inner = width - 2 * th.margin;
@@ -608,9 +646,9 @@ export function packetPages(sections: ShareSection[], share: Pick<PlayerShare, "
 
   const rows: Row[] = [];
   // page one opens with what is inside
-  const contents: Block[] = [{ kind: "para", text: `For the players of ${share.campaign}: ${share.session.label}.`, style: "lead" }];
+  const contents: Block[] = [{ kind: "para", text: share.for ? `For ${share.for} only, from ${share.campaign}: ${share.session.label}.` : `For the players of ${share.campaign}: ${share.session.label}.`, style: "lead" }];
   for (const s of sections) contents.push({ kind: "para", text: `${s.eyebrow}: ${s.title}`, style: "bullet" });
-  rows.push(heading(sections.length > 0 && sections.every((x) => x.kind === "primer") ? "Campaign primer" : "Player packet", share.campaign, true));
+  rows.push(heading(sections.length > 0 && sections.every((x) => x.kind === "primer") ? "Campaign primer" : "Player packet", share.for ? `${share.campaign} for ${share.for}` : share.campaign, true));
   contents.forEach((b, i) => rows.push(...blockRows(b, th, inner, room, `pk-c${i}-`, opts.passable)));
   // figures may take a page less its heading
   const figureRoom = room - (th.eyebrow * th.line + th.title * 1.15 + th.gap * 1.2) - th.gap * 2;
@@ -622,8 +660,8 @@ export function packetPages(sections: ShareSection[], share: Pick<PlayerShare, "
   const pages: PdfPage[] = [];
   const texts: string[][] = [];
   paginate(rows, room).forEach((part, i) => {
-    const head = `${share.campaign} · ${share.session.label}`.toUpperCase();
-    const foot = `Shared ${shareTime(share.at)} · for the players`;
+    const head = `${share.campaign}${share.for ? ` · for ${share.for}` : ""} · ${share.session.label}`.toUpperCase();
+    const foot = `Shared ${shareTime(share.at)} · ${share.for ? `for ${share.for} only` : "for the players"}`;
     const placed = placeRows(part, th.margin, top);
     const nodes: SvgNode[] = [
       el("rect", { x: 0, y: 0, width, height, fill: "#ffffff" }),
@@ -638,4 +676,116 @@ export function packetPages(sections: ShareSection[], share: Pick<PlayerShare, "
     texts.push([head, foot, ...placed.text]);
   });
   return { pages, text: texts };
+}
+
+// ---------------------------------------------------------------------------
+// web page
+// ---------------------------------------------------------------------------
+
+const escHtml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+function blockHtml(b: Block, idPrefix: string, passable: ShareLayoutInput["passable"]): string {
+  switch (b.kind) {
+    case "heading":
+      return `<h3>${escHtml(b.text)}</h3>`;
+    case "para":
+      if (b.style === "quote") return `<blockquote>${escHtml(b.text)}</blockquote>`;
+      if (b.style === "bullet") return `<p class="li"><span class="mk">${escHtml(b.marker ?? "•")}</span>${escHtml(b.text)}</p>`;
+      return `<p${b.style === "lead" ? ' class="lead"' : ""}>${escHtml(b.text)}</p>`;
+    case "note":
+      return `<p class="note">${escHtml(b.text)}</p>`;
+    case "image":
+      return `<img src="${escHtml(b.image.href)}" width="${b.image.width}" height="${b.image.height}" alt="${escHtml(b.alt)}">`;
+    case "map": {
+      const d = drawSiteMap(b.map.layout, {
+        view: "player",
+        deck: b.deck,
+        legend: b.map.legend,
+        live: { act: b.map.act, ...b.map.live },
+        act: b.map.act,
+        fogged: b.map.layout.fogged,
+        passable: passable?.(b.map.id),
+        palette: PHONE.palette,
+        grid: true,
+        margin: 1,
+        idPrefix,
+        interactive: false,
+      });
+      return `<figure class="map"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${d.width} ${d.height}" role="img" aria-label="${escHtml(b.map.name)}"><rect x="0" y="0" width="${d.width}" height="${d.height}" fill="${PHONE.palette.background}"/>${nodeToString(d.node)}</svg></figure>`;
+    }
+    case "member": {
+      const m = b.member;
+      const stats = m.stats.map((s) => (/^[-+]?\d/.test(s.value) ? `${s.label} ${s.value}` : `${s.label}: ${s.value}`)).join(" · ");
+      const pic = b.portrait ? `<img class="pic" src="${escHtml(b.portrait.href)}" alt="">` : "";
+      return `<div class="member">${pic}<div><p class="name">${escHtml(m.name)}</p>${m.kind ? `<p class="note">${escHtml(m.kind)}</p>` : ""}${stats ? `<p>${escHtml(stats)}</p>` : ""}</div></div>`;
+    }
+  }
+}
+
+const PAGE_CSS = `
+:root{color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:#f4f4f2;color:#111;font:17px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:720px;margin:0 auto;padding:16px}
+header.top{background:#111;color:#fff;padding:20px 16px}
+header.top p{margin:0;max-width:720px;margin:0 auto}
+header.top .eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.8}
+header.top h1{font-size:26px;line-height:1.2;margin:4px auto 0;max-width:720px}
+nav ul{padding-left:20px}
+section{background:#fff;border:1px solid #ddd;border-radius:10px;padding:16px 18px;margin:16px 0}
+section .eyebrow{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#555;margin:0}
+section h2{font-size:24px;line-height:1.2;margin:4px 0 8px;border-bottom:2px solid #111;padding-bottom:6px}
+h3{font-size:18px;margin:16px 0 4px}
+p{margin:8px 0}
+p.lead{font-size:18px}
+p.li{margin:2px 0 2px 18px;text-indent:-14px}
+p.li .mk{display:inline-block;width:14px;font-weight:700}
+p.note{font-size:13px;color:#555}
+blockquote{margin:8px 0;padding-left:12px;border-left:4px solid #111}
+img{max-width:100%;height:auto;display:block;margin:8px auto}
+figure.map{margin:8px 0}
+figure.map svg{width:100%;height:auto;display:block}
+.member{display:flex;gap:12px;margin:12px 0}
+.member .pic{width:72px;height:72px;object-fit:cover;margin:0;border:1px solid #111}
+.member .name{font-weight:700;font-size:18px;margin:0}
+footer{font-size:13px;color:#555;text-align:center;padding:8px 16px 24px}
+`;
+
+/**
+ * The share as one self-contained web page (opens in any phone browser, no
+ * app needed): the same sections and blocks as the cards and the PDF, with
+ * images inline as data URLs and maps as inline SVG. Pure.
+ */
+export function sharePageHtml(sections: ShareSection[], share: ShareHeader, opts: Pick<ShareLayoutInput, "passable"> = {}): string {
+  const title = shareTitle(share);
+  const lead = share.for ? `For ${share.for} only, from ${share.campaign}: ${share.session.label}.` : `For the players of ${share.campaign}: ${share.session.label}.`;
+  const toc = sections.length > 1 ? `<nav aria-label="Contents"><ul>${sections.map((s, i) => `<li><a href="#s${i + 1}">${escHtml(s.eyebrow)}: ${escHtml(s.title)}</a></li>`).join("")}</ul></nav>` : "";
+  const body = sections
+    .map((s, si) => {
+      const blocks = s.blocks.map((b, bi) => blockHtml(b, `pg${si}-${bi}-`, opts.passable)).join("\n");
+      return `<section id="s${si + 1}" data-kind="${s.kind}"><p class="eyebrow">${escHtml(s.eyebrow)}</p><h2>${escHtml(s.title)}</h2>\n${blocks}\n</section>`;
+    })
+    .join("\n");
+  return [
+    "<!doctype html>",
+    '<html lang="en">',
+    "<head>",
+    '<meta charset="utf-8">',
+    '<meta name="viewport" content="width=device-width, initial-scale=1">',
+    '<meta name="robots" content="noindex">',
+    `<title>${escHtml(title)}</title>`,
+    `<style>${PAGE_CSS}</style>`,
+    "</head>",
+    "<body>",
+    `<header class="top"><p class="eyebrow">${share.for ? "Player packet" : "For the players"}</p><h1>${escHtml(share.for ? `${share.campaign} for ${share.for}` : share.campaign)}</h1></header>`,
+    "<main>",
+    `<p class="lead">${escHtml(lead)}</p>`,
+    toc,
+    body,
+    "</main>",
+    `<footer>${escHtml(footerLine(share))}</footer>`,
+    "</body>",
+    "</html>",
+    "",
+  ].join("\n");
 }

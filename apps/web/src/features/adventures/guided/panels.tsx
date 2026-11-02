@@ -8,6 +8,7 @@ import { computeFields, reviewHeadline, type AdventureBuilderDef, type BuilderPa
 import { Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ConfirmDialog } from "../../../components/ConfirmDialog";
+import { GiveToPlayer } from "../../../components/GiveToPlayer";
 import { EntityPicker } from "../../../components/EntityPicker";
 import { TagInput } from "../../../components/TagInput";
 import { Badge, Button, Card, IconButton, PageRef, SheetRenderer } from "../../../components/ui";
@@ -503,9 +504,12 @@ export function AgendasPanel({ adventure, role }: { adventure: Adventure; role: 
               const h = agendaFor(ctx.store, a, m.id);
               return (
                 <div key={a.id} className="app-label guided-agendas__act">
-                  <span>
-                    Act {a.number}
-                    {a.title ? `: ${a.title}` : ""}
+                  <span className="app-row">
+                    <span>
+                      Act {a.number}
+                      {a.title ? `: ${a.title}` : ""}
+                    </span>
+                    {h && <GiveToPlayer handout={h} />}
                   </span>
                   {h?.bodyDoc ? (
                     <RichTextEditor docId={h.bodyDoc} label={`${m.name}, act ${a.number} agenda`} placeholder="A concrete private goal for this act" />

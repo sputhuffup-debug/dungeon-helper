@@ -7,12 +7,12 @@
  * several files). Nothing leaves the device except through that share sheet
  * or download.
  */
-import type { AssetStore, PlayerShare } from "@campaign-forge/core";
+import type { AssetStore, PlayerPacket, PlayerShare } from "@campaign-forge/core";
 import { svgPagesToPdf } from "@campaign-forge/ui";
 import { zipSync } from "fflate";
 import { downloadFile, slug } from "../../lib/download";
 import type { Paper } from "../../lib/paper";
-import { cardSvg, packetPages, phoneCards, type PhoneCard, type ReadyImage, type ShareLayoutInput, type ShareSection } from "./shareLayout";
+import { cardSvg, packetPages, phoneCards, sharePageHtml, shareTitle, type PhoneCard, type ReadyImage, type ShareFormat, type ShareLayoutInput, type ShareSection } from "./shareLayout";
 
 /** Longest side of an image embedded in a card or the packet. */
 const MAX_IMAGE_SIDE = 1600;
@@ -74,10 +74,11 @@ async function toJpeg(blob: Blob): Promise<ReadyImage | undefined> {
 }
 
 /** Load every image the share uses (handout images, portraits). Images that fail to load are left out. */
-export async function loadShareImages(assets: Pick<AssetStore, "get">, share: PlayerShare): Promise<LoadedImages> {
+export async function loadShareImages(assets: Pick<AssetStore, "get">, share: PlayerShare & Partial<Pick<PlayerPacket, "characters">>): Promise<LoadedImages> {
   const ids = new Set<string>();
   for (const h of share.handouts) if (h.image) ids.add(h.image.asset);
   for (const m of share.party) if (m.portrait) ids.add(m.portrait.asset);
+  for (const c of share.characters ?? []) if (c.portrait) ids.add(c.portrait.asset);
   const ready = new Map<string, ReadyImage>();
   const originals = new Map<string, Blob>();
   await Promise.all(
@@ -123,19 +124,27 @@ export interface ShareFilesInput {
   share: PlayerShare;
   sections: ShareSection[];
   images: LoadedImages;
-  format: "images" | "pdf";
+  format: ShareFormat;
   paper: Paper;
   passable?: ShareLayoutInput["passable"];
 }
 
-/** The files of a share: card PNGs plus handout images as uploaded, or one PDF. */
+/** "skyfire-down-session-1", or "skyfire-down-session-1-for-sam" for a player's packet. */
+export function shareFileStem(share: Pick<PlayerShare, "campaign" | "session" | "for">): string {
+  return `${slug(share.campaign)}-session-${share.session.number}${share.for ? `-for-${slug(share.for)}` : ""}`;
+}
+
+/** The files of a share: card PNGs plus handout images as uploaded, one PDF, or one web page. */
 export async function buildShareFiles(input: ShareFilesInput): Promise<File[]> {
   const { share, sections } = input;
   const opts = input.passable ? { passable: input.passable } : {};
   if (input.format === "pdf") {
     const { pages } = packetPages(sections, share, input.paper, opts);
-    const bytes = svgPagesToPdf(pages, { title: `${share.campaign}: ${share.session.label}`, subject: "Player packet", creator: "Campaign Forge" });
-    return [new File([bytes as BlobPart], `${slug(share.campaign)}-session-${share.session.number}.pdf`, { type: "application/pdf" })];
+    const bytes = svgPagesToPdf(pages, { title: shareTitle(share), subject: "Player packet", creator: "Campaign Forge" });
+    return [new File([bytes as BlobPart], `${shareFileStem(share)}.pdf`, { type: "application/pdf" })];
+  }
+  if (input.format === "page") {
+    return [new File([sharePageHtml(sections, share, opts)], `${shareFileStem(share)}.html`, { type: "text/html" })];
   }
   const cards = phoneCards(sections, share, opts);
   const files: File[] = [];
@@ -157,9 +166,31 @@ export async function buildShareFiles(input: ShareFilesInput): Promise<File[]> {
 
 /** Several files as one zip (stored, not compressed: PNG, JPEG and PDF are compressed already). */
 export async function zipFiles(files: File[], name: string): Promise<File> {
-  const entries: Record<string, [Uint8Array, { level: 0 }]> = {};
-  for (const f of files) entries[f.name] = [new Uint8Array(await f.arrayBuffer()), { level: 0 }];
-  return new File([zipSync(entries) as BlobPart], name, { type: "application/zip" });
+  return zipEntries(
+    files.map((f) => [f.name, f] as const),
+    name,
+  );
+}
+
+/** Files under the given paths in one zip (paths may hold folders, which a File's own name may not). Text files are compressed. */
+export async function zipEntries(entries: ReadonlyArray<readonly [string, Blob]>, name: string): Promise<File> {
+  const out: Record<string, [Uint8Array, { level: 0 | 6 }]> = {};
+  for (const [path, blob] of entries) out[path] = [new Uint8Array(await blob.arrayBuffer()), { level: blob.type.startsWith("text/") ? 6 : 0 }];
+  return new File([zipSync(out) as BlobPart], name, { type: "application/zip" });
+}
+
+/**
+ * Every player's packet files in one zip, for the GM to hand out: a single
+ * file per player sits at the top ("…-for-sam.pdf"), several (phone cards)
+ * go in a folder per player.
+ */
+export async function packetsZip(packets: ReadonlyArray<{ share: Pick<PlayerShare, "campaign" | "session" | "for">; files: File[] }>, name: string): Promise<File> {
+  const entries: Array<readonly [string, Blob]> = [];
+  for (const p of packets) {
+    if (p.files.length === 1) entries.push([p.files[0]!.name, p.files[0]!]);
+    else for (const f of p.files) entries.push([`${slug(p.share.for ?? "player")}/${f.name}`, f]);
+  }
+  return zipEntries(entries, name);
 }
 
 /** What the browser can do with files. */

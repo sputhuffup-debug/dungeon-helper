@@ -1,5 +1,5 @@
 /** `/entities/$entityId`: header plus Sheet | Progression (characters who advance) | Notes | Relationships | Backlinks | Timeline. */
-import type { Entity } from "@campaign-forge/core";
+import { playerMembers, type Entity } from "@campaign-forge/core";
 import type { EntityTypeDef, Prompt } from "@campaign-forge/module-sdk";
 import { Link, useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
@@ -172,7 +172,7 @@ function EntityHeader({ entity, def }: { entity: Entity; def: EntityTypeDef | un
               ))}
             </select>
           )}
-          <VisibilitySelect value={entity.visibility} onChange={(v) => setEntityVisibility(ctx, entity.id, v)} hasPlayers={meta.members.some((m) => m.role === "player")} />
+          <VisibilitySelect value={entity.visibility} onChange={(v) => setEntityVisibility(ctx, entity.id, v)} players={playerMembers(meta)} />
           {preset && <ProvenanceBadge kind="preset" label="preset" detail={`From preset “${preset.name}”`} />}
           {run && <ProvenanceBadge kind="rolled" label="generated" rolls={run.rolls} detail={`Procedure ${run.procedure}, seed ${run.seed}`} />}
           {edited.length > 0 && <ProvenanceBadge kind="edited" detail={`Edited after creation: ${edited.join(", ")}`} />}
