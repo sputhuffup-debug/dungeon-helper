@@ -15,6 +15,8 @@ import { acceptGenerated } from "../../state/prepActions";
 import { useCampaign, useList, useMeta } from "../../state/hooks";
 import { InputForm } from "./InputForm";
 import { AgendaAccept, AgendaDraftCards, agendaDraftsOf, AgendaReportCard, type AgendaEdits } from "./AgendaDrafts";
+import { LongAgendaAccept, LongAgendaDraftCards, type LongAgendaEdits } from "../agendas/LongAgendas";
+import { longAgendaDraftsOf } from "../../state/longAgendaActions";
 import { initialInputs, inputProperties, isAdventureInput, pickedInputs } from "./prefill";
 import { PreviewPanel } from "./PreviewPanel";
 import { ResultsPanel } from "./ResultsPanel";
@@ -129,6 +131,8 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
   const [pinnedParts, setPinnedParts] = useState<Record<string, unknown>>(initial.request.pinnedParts ?? {});
   /** The GM's own text for agenda drafts. */
   const [edits, setEdits] = useState<AgendaEdits>({});
+  /** The GM's own text for long-term agenda drafts (goal summary and beat per character). */
+  const [longEdits, setLongEdits] = useState<LongAgendaEdits>({});
 
   const outcome = useMemo((): { graph?: GeneratedGraph; error?: string } => {
     try {
@@ -139,6 +143,7 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
   }, [ctx.module, procedure.id, seed, inputs, stepSeeds, stepDice, pinned, includeOptional, partSeeds, pinnedParts]);
   const graph = outcome.graph;
   const drafts = useMemo(() => agendaDraftsOf(graph), [graph]);
+  const longDrafts = useMemo(() => (procedure.longAgendas ? longAgendaDraftsOf(graph) : undefined), [graph, procedure.longAgendas]);
 
   // An adventure input reads the adventure's rich text (its hidden situation) once the docs have loaded.
   const adventureKeys = useMemo(() => Object.entries(inputProperties(procedure)).filter(([, s]) => isAdventureInput(s)).map(([k]) => k), [procedure]);
@@ -266,7 +271,7 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
       }),
   };
   /** Lock (or free) a character's arc: the input the drafts name for it. */
-  const lockArc = (c: AgendaDraftCharacter) => {
+  const lockArc = (c: Pick<AgendaDraftCharacter, "lock">) => {
     const lock = c.lock;
     if (!lock) return;
     setCompareTo(graph);
@@ -335,7 +340,7 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
         </p>
       )}
 
-      <div className={`prep-workbench__grid${drafts ? " has-agendas" : ""}`}>
+      <div className={`prep-workbench__grid${drafts || longDrafts ? " has-agendas" : ""}`}>
         <div className="app-stack prep-workbench__main">
           <Card title="Inputs">
             <div className="app-stack">
@@ -395,12 +400,34 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
               )}
             </div>
           ) : (
-            drafts && (
-              <>
-                {drafts.report && <AgendaReportCard report={drafts.report} />}
-                <AgendaDraftCards drafts={drafts} controls={partControls} edits={edits} onEdit={editDraft} onLock={lockArc} />
-              </>
-            )
+            <>
+              {drafts && (
+                <>
+                  {drafts.report && <AgendaReportCard report={drafts.report} />}
+                  <AgendaDraftCards drafts={drafts} controls={partControls} edits={edits} onEdit={editDraft} onLock={lockArc} />
+                </>
+              )}
+              {longDrafts && procedure.longAgendas && (
+                <>
+                  {longDrafts.report && <AgendaReportCard report={longDrafts.report} title="No-betrayal check" />}
+                  <LongAgendaDraftCards
+                    def={procedure.longAgendas}
+                    set={longDrafts}
+                    controls={partControls}
+                    edits={longEdits}
+                    onEdit={(id, patch) =>
+                      setLongEdits((cur) => {
+                        const n = { ...cur };
+                        if (patch) n[id] = patch;
+                        else delete n[id];
+                        return n;
+                      })
+                    }
+                    onLock={lockArc}
+                  />
+                </>
+              )}
+            </>
           )}
           {!outcome.error && (
             <section aria-label="Steps" className="app-stack">
@@ -433,6 +460,8 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
             <>
               <AgendaAccept drafts={drafts} edits={edits} graph={graph} adventureId={adventureId} run={{ stepSeeds, pinned, partSeeds, pinnedParts }} />
             </>
+          ) : graph && longDrafts && procedure.longAgendas ? (
+            <LongAgendaAccept def={procedure.longAgendas} set={longDrafts} edits={longEdits} graph={graph} run={{ stepSeeds, pinned, partSeeds, pinnedParts }} />
           ) : (
             <>
               {graph && <PreviewPanel graph={graph} names={names} onRename={(tempId, name) => setNames((n) => ({ ...n, [tempId]: name }))} />}

@@ -238,6 +238,12 @@ export interface Handout extends BaseRecord {
   attachedTo?: { kind: "act" | "scene" | "adventure"; id: Id };
   /** For agendas: the PC it is for. */
   character?: Id;
+  /**
+   * What a tool keeps the handout for (e.g. "long-agenda" or
+   * "long-agenda-friction" for a character's long-term agenda and its open
+   * friction), so the tool updates it in place rather than adding another.
+   */
+  purpose?: string;
 }
 
 export interface Note extends BaseRecord {

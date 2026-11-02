@@ -22,12 +22,16 @@ import { LevelUpButton } from "../builder/entry";
 import { PayoutButton } from "../ship/PayoutButton";
 import { applyGeneratorEffects } from "../../state/prepActions";
 import { entityAdvances } from "../../state/progressionActions";
+import { longAgendaProcedureOf } from "../../state/longAgendaActions";
+import { isPlayerCharacter } from "../atlas/AtlasPage";
 import { lazyView } from "../../components/lazyView";
 
 // The Progression tab (pools, history, Spend XP) loads when it is opened.
 const ProgressionTab = lazyView(() => import("../progression/ProgressionTab").then((m) => m.ProgressionTab), { what: "progression" });
+// The Agenda tab (long-term agendas, beats and open friction) too.
+const LongAgendaTab = lazyView(() => import("../agendas/LongAgendas").then((m) => m.LongAgendaTab), { what: "agenda" });
 
-const TABS = ["sheet", "progression", "notes", "relationships", "backlinks", "timeline"] as const;
+const TABS = ["sheet", "progression", "agenda", "notes", "relationships", "backlinks", "timeline"] as const;
 
 export function EntityPage() {
   const { entityId } = useParams({ from: "/c/$campaignId/entities/$entityId" });
@@ -55,7 +59,9 @@ export function EntityPage() {
   }
 
   const advancing = entityAdvances(ctx.module, meta.mode, entity);
-  const tab = (TABS as readonly string[]).includes(search.tab ?? "") && (search.tab !== "progression" || advancing) ? (search.tab as string) : "sheet";
+  // long-term agendas: player characters, when the module keeps them in this mode
+  const agendas = !!longAgendaProcedureOf(ctx.module, meta.mode) && isPlayerCharacter(entity) && def?.kind === "character";
+  const tab = (TABS as readonly string[]).includes(search.tab ?? "") && (search.tab !== "progression" || advancing) && (search.tab !== "agenda" || agendas) ? (search.tab as string) : "sheet";
   return (
     <div className="app-page app-entity" data-testid="entity-page">
       <EntityHeader entity={entity} def={def} />
@@ -65,6 +71,7 @@ export function EntityPage() {
         tabs={[
           { id: "sheet", label: "Sheet", content: <SheetTab entity={entity} def={def} /> },
           ...(advancing ? [{ id: "progression", label: "Progression", content: <ProgressionTab entity={entity} /> }] : []),
+          ...(agendas ? [{ id: "agenda", label: "Agenda", content: <LongAgendaTab entity={entity} /> }] : []),
           { id: "notes", label: <NotesLabel entityId={entity.id} />, content: <NotesTab entity={entity} /> },
           { id: "relationships", label: "Relationships", content: <RelationshipsTab entity={entity} def={def} /> },
           { id: "backlinks", label: "Backlinks", content: <BacklinksTab entity={entity} /> },

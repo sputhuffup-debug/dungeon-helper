@@ -7,8 +7,10 @@ import { buildDemoCampaign, demoCampaignJSON } from "../src";
 /** The seed-dependent shape of a build: everything except ids and timestamps. */
 function signature(maps: CampaignMaps) {
   const nameOf = (id: string) => maps.entities[id]?.name ?? `?${id}`;
+  // fields that name another entity (a long-term agenda's friction lines) name it by its id: compare by name
+  const ids = new RegExp(`"(${Object.keys(maps.entities).join("|") || "-"})"`, "g");
   const entities = Object.values(maps.entities)
-    .map((e) => JSON.stringify({ type: e.type, subtype: e.subtype, name: e.name, summary: e.summary, tags: e.tags, visibility: e.visibility.level, fields: e.fields }))
+    .map((e) => JSON.stringify({ type: e.type, subtype: e.subtype, name: e.name, summary: e.summary, tags: e.tags, visibility: e.visibility.level, fields: e.fields }).replace(ids, (_, id: string) => `"@${nameOf(id)}"`))
     .sort();
   const relationships = Object.values(maps.relationships)
     .map((r) => `${nameOf(r.from)} -${r.type}-> ${nameOf(r.to)}`)

@@ -396,6 +396,7 @@ export class CampaignStore {
     visibility?: Visibility;
     attachedTo?: Handout["attachedTo"];
     character?: Id;
+    purpose?: string;
     /** Allocate a body doc (default: yes unless the handout is an image with an asset). */
     withBody?: boolean;
   }): Handout {
@@ -406,6 +407,7 @@ export class CampaignStore {
     if (input.asset !== undefined) rec.asset = input.asset;
     if (input.attachedTo !== undefined) rec.attachedTo = input.attachedTo;
     if (input.character !== undefined) rec.character = input.character;
+    if (input.purpose !== undefined) rec.purpose = input.purpose;
     return this.insert("handouts", rec);
   }
 
