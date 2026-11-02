@@ -211,101 +211,103 @@ export function HuntPanel({ sessionId, map, def, pcs, participants, label, sugge
       )}
 
       {inPlay.length === 0 && <p className="cf-muted">No hidden threats on the map. Place one from the map's marks or the cast below.</p>}
-      <ul className="app-list app-hunt__tokens" aria-label="Threat tokens">
-        {inPlay.map((t) => {
-          const s = bySuggestion.get(t.id);
-          const stays = s && s.best.zone === t.zone;
-          return (
-            <li key={t.id} className={`app-hunt__token app-hunt__token--${t.state}`} data-hunt-row={t.id} data-zone={t.zone} data-state={t.state} data-testid="hunt-token">
-              <div className="app-row">
-                <span className="app-hunt__diamond" aria-hidden>
-                  {t.letter ?? ""}
-                </span>
-                <span className="app-grow">
-                  <strong>{t.label}</strong> <span className="cf-muted">{moverLabel(t.mover)} · in {label(t.zone)}</span>
-                </span>
-                <select className="cf-select" aria-label={`State of ${t.label}`} value={t.state} onChange={(e) => run(() => setHuntTokenState(store, map.id, t.id, e.target.value as HuntTokenState, { keepLetter: true }))}>
-                  {(Object.keys(STATE_LABELS) as HuntTokenState[]).map((k) => (
-                    <option key={k} value={k}>
-                      {STATE_LABELS[k]}
-                    </option>
-                  ))}
-                </select>
-                <select className="cf-select" aria-label={`Blip letter of ${t.label}`} value={t.letter ?? ""} onChange={(e) => run(() => setHuntLetter(store, map.id, t.id, e.target.value || undefined))} title="Name the blip by hand to match the signal token on the table">
-                  <option value="">auto</option>
-                  {letters.map((l) => (
-                    <option key={l} value={l}>
-                      {l}
-                    </option>
-                  ))}
-                </select>
-                <label className="app-row" title="Hurt: it moves by its mover's hurt weights (e.g. it retreats)">
-                  <input type="checkbox" className="cf-checkbox" checked={!!t.hurt} onChange={(e) => run(() => setHuntHurt(store, map.id, t.id, e.target.checked))} />
-                  hurt
-                </label>
-              </div>
-              {s && t.state !== "seen" && (
-                <div className="app-row app-hunt__suggest" data-testid="hunt-suggestion" data-to={s.best.zone}>
-                  <span className="app-grow">
-                    {stays ? "Suggests: stay in " : "Suggests: "}
-                    <strong>{label(s.best.zone)}</strong>
-                    {s.best.path.length > 2 && <span className="cf-muted"> via {s.best.path.slice(1, -1).map(label).join(", ")}</span>}
-                    {s.best.reasons.length > 0 && <span className="cf-muted"> ({s.best.reasons.slice(0, 3).join("; ")})</span>}
+      {inPlay.length > 0 && (
+        <ul className="app-list app-hunt__tokens" aria-label="Threats in play">
+          {inPlay.map((t) => {
+            const s = bySuggestion.get(t.id);
+            const stays = s && s.best.zone === t.zone;
+            return (
+              <li key={t.id} className={`app-hunt__token app-hunt__token--${t.state}`} data-hunt-row={t.id} data-zone={t.zone} data-state={t.state} data-testid="hunt-token">
+                <div className="app-row">
+                  <span className="app-hunt__diamond" aria-hidden>
+                    {t.letter ?? ""}
                   </span>
-                  {!stays && (
-                    <Button size="sm" variant="primary" onClick={() => accept(t, s.best)} aria-label={`Accept move: ${t.label} to ${label(s.best.zone)}`} data-testid="hunt-accept">
-                      Accept
-                    </Button>
-                  )}
-                  {s.alternative && (
-                    <Button size="sm" variant="ghost" onClick={() => accept(t, s.alternative!)} aria-label={`Alternative move: ${t.label} to ${label(s.alternative.zone)}`} title={s.alternative.reasons.join("; ")}>
-                      Or {label(s.alternative.zone)}
-                    </Button>
-                  )}
-                  <select
-                    className="cf-select"
-                    aria-label={`Move ${t.label} to`}
-                    value=""
-                    onChange={(e) => {
-                      const o = s.options.find((x) => x.zone === e.target.value);
-                      if (o) accept(t, o);
-                    }}
-                  >
-                    <option value="">Another zone…</option>
-                    {s.options
-                      .filter((o) => o.zone !== t.zone)
-                      .map((o) => (
-                        <option key={o.zone} value={o.zone}>
-                          {label(o.zone)} ({o.path.length - 1} zone{o.path.length === 2 ? "" : "s"})
-                        </option>
-                      ))}
+                  <span className="app-grow">
+                    <strong>{t.label}</strong> <span className="cf-muted">{moverLabel(t.mover)} · in {label(t.zone)}</span>
+                  </span>
+                  <select className="cf-select" aria-label={`State of ${t.label}`} value={t.state} onChange={(e) => run(() => setHuntTokenState(store, map.id, t.id, e.target.value as HuntTokenState, { keepLetter: true }))}>
+                    {(Object.keys(STATE_LABELS) as HuntTokenState[]).map((k) => (
+                      <option key={k} value={k}>
+                        {STATE_LABELS[k]}
+                      </option>
+                    ))}
                   </select>
+                  <select className="cf-select" aria-label={`Blip letter of ${t.label}`} value={t.letter ?? ""} onChange={(e) => run(() => setHuntLetter(store, map.id, t.id, e.target.value || undefined))} title="Name the blip by hand to match the signal token on the table">
+                    <option value="">auto</option>
+                    {letters.map((l) => (
+                      <option key={l} value={l}>
+                        {l}
+                      </option>
+                    ))}
+                  </select>
+                  <label className="app-row" title="Hurt: it moves by its mover's hurt weights (e.g. it retreats)">
+                    <input type="checkbox" className="cf-checkbox" checked={!!t.hurt} onChange={(e) => run(() => setHuntHurt(store, map.id, t.id, e.target.checked))} />
+                    hurt
+                  </label>
                 </div>
-              )}
-              <div className="app-row app-hunt__actions">
-                <Button size="sm" variant={moving === t.id ? "primary" : "ghost"} aria-pressed={moving === t.id} onClick={() => onMove(moving === t.id ? undefined : t.id)} title="Then click the zone on the map: any zone, the GM's call">
-                  Move on map
-                </Button>
-                {t.state !== "seen" ? (
-                  <Button size="sm" variant="ghost" onClick={() => reveal(t)} aria-label={`Reveal ${t.label} to the players`} data-testid="hunt-reveal">
-                    Reveal
-                  </Button>
-                ) : (
-                  <Button size="sm" variant="ghost" onClick={() => run(() => setHuntTokenState(store, map.id, t.id, "hidden"))} aria-label={`Hide ${t.label} again`}>
-                    Hide again
-                  </Button>
+                {s && t.state !== "seen" && (
+                  <div className="app-row app-hunt__suggest" data-testid="hunt-suggestion" data-to={s.best.zone}>
+                    <span className="app-grow">
+                      {stays ? "Suggests: stay in " : "Suggests: "}
+                      <strong>{label(s.best.zone)}</strong>
+                      {s.best.path.length > 2 && <span className="cf-muted"> via {s.best.path.slice(1, -1).map(label).join(", ")}</span>}
+                      {s.best.reasons.length > 0 && <span className="cf-muted"> ({s.best.reasons.slice(0, 3).join("; ")})</span>}
+                    </span>
+                    {!stays && (
+                      <Button size="sm" variant="primary" onClick={() => accept(t, s.best)} aria-label={`Accept move: ${t.label} to ${label(s.best.zone)}`} data-testid="hunt-accept">
+                        Accept
+                      </Button>
+                    )}
+                    {s.alternative && (
+                      <Button size="sm" variant="ghost" onClick={() => accept(t, s.alternative!)} aria-label={`Alternative move: ${t.label} to ${label(s.alternative.zone)}`} title={s.alternative.reasons.join("; ")}>
+                        Or {label(s.alternative.zone)}
+                      </Button>
+                    )}
+                    <select
+                      className="cf-select"
+                      aria-label={`Move ${t.label} to`}
+                      value=""
+                      onChange={(e) => {
+                        const o = s.options.find((x) => x.zone === e.target.value);
+                        if (o) accept(t, o);
+                      }}
+                    >
+                      <option value="">Another zone…</option>
+                      {s.options
+                        .filter((o) => o.zone !== t.zone)
+                        .map((o) => (
+                          <option key={o.zone} value={o.zone}>
+                            {label(o.zone)} ({o.path.length - 1} zone{o.path.length === 2 ? "" : "s"})
+                          </option>
+                        ))}
+                    </select>
+                  </div>
                 )}
-                <Button size="sm" variant="ghost" onClick={() => run(() => setHuntTokenState(store, map.id, t.id, "gone"))} aria-label={`${t.label} is gone`}>
-                  Gone
-                </Button>
-                <Button size="sm" variant="ghost" onClick={() => run(() => removeHuntToken(store, map.id, t.id))} aria-label={`Remove ${t.label}`}>
-                  ×
-                </Button>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+                <div className="app-row app-hunt__actions">
+                  <Button size="sm" variant={moving === t.id ? "primary" : "ghost"} aria-pressed={moving === t.id} onClick={() => onMove(moving === t.id ? undefined : t.id)} title="Then click the zone on the map: any zone, the GM's call">
+                    Move on map
+                  </Button>
+                  {t.state !== "seen" ? (
+                    <Button size="sm" variant="ghost" onClick={() => reveal(t)} aria-label={`Reveal ${t.label} to the players`} data-testid="hunt-reveal">
+                      Reveal
+                    </Button>
+                  ) : (
+                    <Button size="sm" variant="ghost" onClick={() => run(() => setHuntTokenState(store, map.id, t.id, "hidden"))} aria-label={`Hide ${t.label} again`}>
+                      Hide again
+                    </Button>
+                  )}
+                  <Button size="sm" variant="ghost" onClick={() => run(() => setHuntTokenState(store, map.id, t.id, "gone"))} aria-label={`${t.label} is gone`}>
+                    Gone
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => run(() => removeHuntToken(store, map.id, t.id))} aria-label={`Remove ${t.label}`}>
+                    ×
+                  </Button>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
       {inPlay.some((t) => t.letter) && (
         <label className="app-row cf-muted" title="When a threat is revealed: its blip letter stays with it (the signal token stays on the table), or goes back to the pile">
           <input type="checkbox" className="cf-checkbox" checked={keepLetter} onChange={(e) => setKeepLetter(e.target.checked)} data-testid="hunt-keep-letter" />
