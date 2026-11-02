@@ -46,6 +46,10 @@ export interface NpcAgenda {
   turn?: string;
   /** A hidden synthetic: its directive, whether it turns on the crew, and fair clues. */
   synthetic?: { directive: string; turns: boolean; clues: string[] };
+  /** Tied to a campaign thread: who they really work for, and what for (the arc board). */
+  why?: string;
+  /** A contact who comes back with a grudge. */
+  grudge?: string;
 }
 
 export interface AgendaContext {
@@ -195,5 +199,7 @@ export function agendaText(a: NpcAgenda): string {
   if (a.beats.length) parts.push(`Beats: ${a.beats.map((b, i) => `(${i + 1}) ${b}`).join(" ")}`);
   if (a.synthetic) parts.push(`Hidden synthetic. Directive: ${a.synthetic.directive}`);
   if (a.turn) parts.push(`Turns on the crew: ${a.turn}`);
+  if (a.why) parts.push(`Why: ${a.why}`);
+  if (a.grudge) parts.push(`Returns with a grudge: ${a.grudge}`);
   return parts.join(" ");
 }

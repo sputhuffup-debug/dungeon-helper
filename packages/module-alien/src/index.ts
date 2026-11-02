@@ -31,6 +31,7 @@ import { crewShip, ledger } from "./economy";
 import { travel } from "./travel";
 import { progression } from "./progression";
 import { gmScreen } from "./gmScreen";
+import { arcs } from "./arcs";
 
 export { manifest, ALIEN_MODULE_ID, ALIEN_MODULE_VERSION } from "./manifest";
 export { modes, CAMPAIGN, CINEMATIC } from "./modes";
@@ -57,6 +58,10 @@ export * from "./economy";
 export { travel, FATIGUED_CONDITION } from "./travel";
 export * from "./progression";
 export { gmScreen } from "./gmScreen";
+export { arcs, HEAT_LABELS, ARC_SLOTS, type ArcSlotId } from "./arcs";
+export { CAMPAIGN_THREAD_ID, campaignThread, dealThreads, threadOffer, threadDraft, threadCast, milestonePositions, SPONSOR_MODES, STAGE_COUNTS, type ThreadData, type ThreadSponsor } from "./procedures/campaign-thread";
+export { SCHEMES, METHODS, WEAKNESSES, COSTS, GM_TITLES, STAGE_TITLES, STAGE_SUMMARIES, SITES, CLUES, MILESTONES, PAYOFFS, PAYOFF_KINDS, THREAD_CLUE_KINDS } from "./procedures/campaign-thread-data";
+export { boardArcs, chooseClue, hostileGroupFor, type PostingArc, type BoardArcs } from "./procedures/job-board-arcs";
 export { shipTables, travelTables, MINOR_DAMAGE_TABLE, MAJOR_DAMAGE_TABLE, NDD_TABLE } from "./tables/ships";
 export { BETWEEN_JOBS_ID } from "./procedures/between-jobs";
 export { JOB_BOARD_ID, jobBoard, dealBoard, postingOffer, playerText as postingPlayerText, difficultyLine, rollBookJob, boardCast, EMPLOYER_BIASES, POSTING_HANDOUT_PURPOSE, type PostingData, type BoardNpc, type BoardCast, type BookJob } from "./procedures/job-board";
@@ -112,6 +117,7 @@ export const alienModule: GameModule = {
   travel,
   progression,
   gmScreen,
+  arcs,
   // a PC's agenda cards (one per act in cinematic play) reach that PC's player once the GM gives each one out;
   // the campaign agenda's GM card (with the embarrassing secret) never does: the player reads their agenda in their packet
   ownerHandouts: [{ kind: "agenda", when: "given", gmOnlyPurposes: [CAMPAIGN_AGENDA_CARD_PURPOSE], gmOnlyNote: "Players get their agenda in their packet; this card stays with you." }],

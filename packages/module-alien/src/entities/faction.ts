@@ -14,6 +14,7 @@ export const factionSchema = objectSchema({
   relations: stringField("Relations with other factions."),
   currentActivities: stringField(),
   reputation: intField(-5, 5, 0, "How the crew stands with this faction; module convention, not a book rule."),
+  heat: intField(0, 6, 0, "How closely the faction watches the crew, from unnoticed (0) to hunted (6); the arc board's faction heat, a module convention."),
   minor: { type: "boolean", default: false, description: "A minor corporation from the list (p. 162)." },
   sector: stringField("Line of business (minor corporations)."),
   notableNpc: {
@@ -40,6 +41,7 @@ export const factionType: EntityTypeDef = {
           select("factionType", "Type", [...FACTION_TYPES], { span: 3, rule: "alien.rule.factions" }),
           select("allegiance", "Allegiance", [...ALLEGIANCE_IDS], { span: 3, rule: "alien.rule.allegiance" }),
           { path: "reputation", label: "Reputation", widget: "number", span: 3 },
+          { path: "heat", label: "Heat", widget: "number", span: 3 },
           checkbox("minor", "Minor corporation", { rule: "alien.rule.minor-corporations" }),
         ],
       },
@@ -66,5 +68,5 @@ export const factionType: EntityTypeDef = {
     ],
     summary: ["factionType", "allegiance", "reputation"],
   },
-  defaultVisibility: { currentActivities: "gm", relations: "gm", reputation: "gm", notableNpc: "gm" },
+  defaultVisibility: { currentActivities: "gm", relations: "gm", reputation: "gm", heat: "gm", notableNpc: "gm" },
 };

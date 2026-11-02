@@ -55,6 +55,26 @@ import {
   type TreacheryDial,
 } from "./job-board-data";
 import { agendaText, dealNpcAgenda, effectiveDifficulty, isBetrayer, type NpcAgenda } from "./npc-agendas";
+import {
+  arcAgent,
+  arcGrudge,
+  arcHeat,
+  arcPayoffs,
+  arcPoster,
+  arcSponsor,
+  boardArcs,
+  chooseClue,
+  clueRng,
+  emptyPostingArc,
+  placeClue,
+  placementFits,
+  slotLabelOf,
+  sponsorIntent,
+  type BoardArcs,
+  type CluePlacement,
+  type ClueHost,
+  type PostingArc,
+} from "./job-board-arcs";
 
 export const JOB_BOARD_ID = "alien.job-board";
 export const EMPLOYER_BIASES = ["any", "corporation", "government", "military", "colonial", "other"] as const;
@@ -240,13 +260,18 @@ export interface PostingData {
   requirements: string[];
   risk: { label: string; level: number; honesty: "honest" | "understated" | "overstated" };
   intent: string;
-  npcs: Array<BoardNpc & { agenda: NpcAgenda; android: boolean }>;
+  /** `existing`: an NPC already in the campaign (a contact), linked rather than created. */
+  npcs: Array<BoardNpc & { agenda: NpcAgenda; android: boolean; existing?: string }>;
   brief: JobSiteBrief;
   employerName: string;
   /** How the posting names the destination ("the spaceport"). */
   destText: string;
   /** An existing campaign faction the employer is, when there is one. */
   existingEmployer?: string;
+  /** What the campaign's arcs did to the posting (absent when the board has no arcs). */
+  arc?: PostingArc;
+  /** The posting's own seed (the board-level clue placement reads every posting's). */
+  seed?: string;
 }
 
 function labelsOf(book: BookJob, fk: FrameKey): { mission: string; destination: string; complications: string[]; twist: string } {
@@ -259,7 +284,7 @@ function labelsOf(book: BookJob, fk: FrameKey): { mission: string; destination: 
   return { mission, destination, complications, twist };
 }
 
-function buildPosting(ctx: ProcedureContext, index: number, cast: BoardCast, taken: Set<string>): PostingData {
+function buildPosting(ctx: ProcedureContext, index: number, cast: BoardCast, taken: Set<string>, arcs?: BoardArcs): PostingData {
   const key = `posting-${index}`;
   const seed = ctx.part(key, (r) => seedOf(r));
   const local = (k: string) => createRng(seed).fork(k);
@@ -275,19 +300,24 @@ function buildPosting(ctx: ProcedureContext, index: number, cast: BoardCast, tak
   const difficulty = Math.max(1, Math.min(3, num(jf.difficulty, 1)));
   const distance = num(jf.distance);
   const payment = num(jf.payment);
-  const employerName = str(jf.employer, "the employer");
-  const factionType = (str(book.employer?.fields.factionType, fk === "marines" ? "military" : "other") as FactionType) ?? "other";
+  // the campaign's arcs: a thread's sponsor may post it, a contact may bring it (absent without arcs)
+  const pa = arcs ? emptyPostingArc() : undefined;
+  const sponsor = arcs && pa ? arcSponsor(part, arcs, `offers/${key}`, pa) : undefined;
+  const posterContact = arcs && pa ? arcPoster(part, arcs, `offers/${key}`, pa) : undefined;
+  const employerName = sponsor ? sponsor.name : str(jf.employer, "the employer");
+  const factionType = sponsor ? sponsor.factionType : ((str(book.employer?.fields.factionType, fk === "marines" ? "military" : "other") as FactionType) ?? "other");
   const labels = labelsOf(book, fk);
   const allLabels = [labels.mission, labels.destination, ...labels.complications, labels.twist].filter(Boolean);
-  const existing = cast.factions.find((f) => f.name.toLowerCase() === employerName.toLowerCase());
+  const existing = sponsor ? { id: sponsor.id } : cast.factions.find((f) => f.name.toLowerCase() === employerName.toLowerCase());
 
   // what the players read
-  const poster = part("poster", (r) => {
+  let poster = part("poster", (r) => {
     const rows = POSTERS.filter((p) => !p.frames || p.frames.includes(fk));
     const row = pick(r, rows);
     const f = fillWith({ employer: employerName, home: cast.home });
     return { postedBy: f(row.postedBy), where: f(row.where), clientShown: row.clientShown };
   });
+  if (posterContact) poster = { ...poster, postedBy: posterContact.name, where: posterContact.foundAt ?? poster.where };
   const publicEmployer = poster.clientShown ? employerName : "the client";
   const what = (labels.mission || "the job").toLowerCase();
   const destShort = labels.destination ? (DEST_TEXT[labels.destination] ?? `the ${labels.destination.toLowerCase()}`) : "the destination";
@@ -317,15 +347,32 @@ function buildPosting(ctx: ProcedureContext, index: number, cast: BoardCast, tak
     }
     return out;
   });
-  const intent = part("intent", (r) => pick(r, EMPLOYER_INTENTS[factionType] ?? EMPLOYER_INTENTS.other));
+  const rolledIntent = part("intent", (r) => pick(r, EMPLOYER_INTENTS[factionType] ?? EMPLOYER_INTENTS.other));
+  const intent = sponsor ? sponsorIntent(rolledIntent, arcs?.snap.threads.find((t) => t.id === sponsor.thread)) : rolledIntent;
 
   // NPCs: one per point of rolled difficulty, the contact first
   const dial = (TREACHERY_DIAL as readonly string[]).includes(str(ctx.inputs.treachery)) ? (str(ctx.inputs.treachery) as TreacheryDial) : "rare";
   const npcs: PostingData["npcs"] = [];
   const roles = new Set<string>();
   const count = Math.min(3, difficulty);
+  let grudgeTried = false;
   for (let k = 0; k < count; k++) {
-    const npc = part(`npc-${k + 1}`, (r) => dealNpc(r, k, { fk, factionType, labels: allLabels, taken, roles, fill }));
+    let npc = part(`npc-${k + 1}`, (r) => dealNpc(r, k, { fk, factionType, labels: allLabels, taken, roles, fill }));
+    // a contact who posted the job is its contact; one with a grudge may come back as another of its NPCs
+    let existingNpc: string | undefined;
+    let grudge: string | undefined;
+    if (k === 0 && posterContact) {
+      npc = { ...npc, name: posterContact.name };
+      existingNpc = posterContact.id;
+    } else if (k > 0 && arcs && pa && !grudgeTried) {
+      grudgeTried = true;
+      const back = arcGrudge(part, arcs, `offers/${key}`, pa);
+      if (back) {
+        npc = { ...npc, name: back.contact.name };
+        existingNpc = back.contact.id;
+        grudge = back.grudge;
+      }
+    }
     taken.add(npc.name);
     roles.add(npc.role);
     const row = roleRow(npc.role);
@@ -335,7 +382,23 @@ function buildPosting(ctx: ProcedureContext, index: number, cast: BoardCast, tak
     // at most one hidden synthetic per job, none under the "none" dial, none on an open android: a pinned or stale agenda that breaks this is re-dealt
     if (agenda.synthetic && (ctxA.noSynthetic || ctxA.openAndroid || dial === "none")) agenda = dealNpcAgenda(local(`npc-${k + 1}/agenda-alt`), { ...ctxA, noSynthetic: true });
     if (dial === "none" && agenda.betrayal >= 2) agenda = dealNpcAgenda(local(`npc-${k + 1}/agenda-none`), { ...ctxA, noSynthetic: true });
-    npcs.push({ ...npc, agenda, android: row.android === true || !!agenda.synthetic });
+    if (existingNpc && !grudge && (isBetrayer(agenda) || agenda.synthetic)) agenda = dealNpcAgenda(local(`npc-${k + 1}/agenda-contact`), { ...ctxA, dial: "none", noSynthetic: true });
+    if (grudge) {
+      // the returning grudge turns on the crew when the dial allows it
+      for (let t = 0; t < 8 && dial !== "none" && !isBetrayer(agenda); t++) agenda = dealNpcAgenda(local(`npc-${k + 1}/agenda-grudge-${t}`), { ...ctxA, dial: "common", noSynthetic: true });
+      agenda = { ...agenda, grudge };
+    }
+    npcs.push({ ...npc, agenda, android: row.android === true || !!agenda.synthetic, ...(existingNpc ? { existing: existingNpc } : {}) });
+  }
+  // betrayers and hidden synthetics may work for one of the campaign's threads
+  if (arcs && pa) {
+    npcs.forEach((n, k) => {
+      if (!isBetrayer(n.agenda) && !n.agenda.synthetic) return;
+      const tie = arcAgent(part, arcs, `offers/${key}`, `npc-${k + 1}`, n.name, pa);
+      if (!tie) return;
+      n.agenda = { ...n.agenda, why: tie.why };
+      pa.links.push({ kind: "agent", thread: tie.thread.id, entity: n.existing ?? `npc-${k + 1}` });
+    });
   }
   const betrayers = npcs.filter((n) => isBetrayer(n.agenda)).map((n) => n.name);
   const effective = effectiveDifficulty(difficulty, betrayers.length);
@@ -356,6 +419,10 @@ function buildPosting(ctx: ProcedureContext, index: number, cast: BoardCast, tak
     createRng(briefSeed),
   );
   brief.summary.unshift(`${difficultyLine(difficulty, effective, betrayers.length)}.`);
+  if (arcs && pa) {
+    arcHeat(part, arcs, `offers/${key}`, brief, pa);
+    arcPayoffs(part, arcs, `offers/${key}`, brief, pa);
+  }
 
   const out: PostingData = {
     index,
@@ -379,6 +446,10 @@ function buildPosting(ctx: ProcedureContext, index: number, cast: BoardCast, tak
     destText: destShort,
   };
   if (existing) out.existingEmployer = existing.id;
+  if (pa) {
+    out.arc = pa;
+    out.seed = seed;
+  }
   return out;
 }
 
@@ -433,7 +504,19 @@ function gmText(p: PostingData): string {
     "**Site brief**",
     ...p.brief.summary.map((s) => `- ${s}`),
   ];
+  const a = p.arc;
+  if (a && hasArc(a)) {
+    out.push("", "**Arcs**", `- **Influenced by:** ${a.influences.length ? a.influences.join("; ") : "nothing this time (heat, clocks and contacts were weighed)"}`);
+    for (const n of a.notes) out.push(`- **Complication:** ${n}`);
+    if (a.cargo) out.push(`- **Cargo:** ${a.cargo}`);
+    if (a.clue) out.push(`- **Clue for “${a.clue.threadTitle}”** (${a.clue.slotLabel}): ${a.clue.text}${a.clue.knownBy?.length ? ` Also known to ${a.clue.knownBy.join(", ")}: a way to find it.` : ""}`);
+  }
   return out.join("\n");
+}
+
+/** Whether the arcs left a mark on the posting (anything weighed, added or seeded). */
+function hasArc(a: PostingArc): boolean {
+  return a.parts.length > 0 || a.influences.length > 0 || a.links.length > 0 || a.notes.length > 0 || !!a.clue || !!a.cargo;
 }
 const lowerFirst = (s: string) => (s ? s.charAt(0).toLowerCase() + s.slice(1) : s);
 
@@ -486,6 +569,17 @@ export function postingOffer(p: PostingData): Offer {
     employerIntent: p.intent,
     siteBrief: JSON.parse(JSON.stringify(p.brief)),
   };
+  const arc = p.arc && hasArc(p.arc) ? p.arc : undefined;
+  if (arc) {
+    // a sponsor posting names the sponsor as the employer
+    if (p.existingEmployer && p.employerName !== jobFields.employer) jobFields.employer = p.employerName;
+    jobFields.arc = {
+      influences: [...arc.influences],
+      ...(arc.notes.length ? { complications: [...arc.notes] } : {}),
+      ...(arc.cargo ? { cargo: arc.cargo } : {}),
+      ...(arc.clue ? { clue: { thread: arc.clue.threadTitle, where: arc.clue.slotLabel, text: arc.clue.text } } : {}),
+    };
+  }
   const job: ProducedEntity = {
     tempId: "job",
     type: "alien.job",
@@ -495,7 +589,7 @@ export function postingOffer(p: PostingData): Offer {
     tags: [...(book.job.tags ?? []), "job-board"],
     fields: jobFields,
     visibility: "players",
-    fieldVisibility: { difficulty: "gm", ...(p.poster.clientShown ? {} : { employer: "gm" }) },
+    fieldVisibility: { difficulty: "gm", ...(p.poster.clientShown ? {} : { employer: "gm" }), ...(arc ? { arc: "gm" } : {}) },
   };
   const entities: ProducedEntity[] = [job];
   const relationships: ProducedRelationship[] = [];
@@ -504,10 +598,11 @@ export function postingOffer(p: PostingData): Offer {
   if (!p.existingEmployer && book.employer) entities.push({ ...book.employer, visibility: employerVisibility });
   if (book.relationship) relationships.push({ ...book.relationship, from: employerRef, visibility: employerVisibility });
   p.npcs.forEach((n, k) => {
-    const e = npcEntity(p, n, k);
-    entities.push(e);
-    relationships.push({ type: "involved_in", from: e.tempId, to: "job", note: roleRow(n.role).label, visibility: k === 0 ? "players" : "gm" });
-    if (k === 0 || n.role === "liaison") relationships.push({ type: "member_of", from: e.tempId, to: employerRef, visibility: k === 0 && p.poster.clientShown ? "players" : "gm" });
+    // a contact already in the campaign is linked, not created again
+    const ref = n.existing ?? `npc-${k + 1}`;
+    if (!n.existing) entities.push(npcEntity(p, n, k));
+    relationships.push({ type: "involved_in", from: ref, to: "job", note: roleRow(n.role).label, visibility: k === 0 ? "players" : "gm" });
+    if (!n.existing && (k === 0 || n.role === "liaison")) relationships.push({ type: "member_of", from: ref, to: employerRef, visibility: k === 0 && p.poster.clientShown ? "players" : "gm" });
   });
 
   const key = p.key;
@@ -526,15 +621,24 @@ export function postingOffer(p: PostingData): Offer {
       { key: `${key}/npc-${k + 1}/agenda`, label: `${n.name}: agenda`, text: `${n.agenda.name}${isBetrayer(n.agenda) ? " (betrayer)" : ""}${n.agenda.synthetic ? " (hidden synthetic)" : ""}: ${n.agenda.summary}`, gmOnly: true },
     ]),
     { key: `${key}/brief`, label: "Site brief", text: p.brief.summary.join(" "), gmOnly: true },
+    ...(arc ? arc.parts.map((x): OfferSlot => ({ key: x.key, label: x.label, text: x.text, gmOnly: true })) : []),
+    ...(arc?.clue ? [{ key: `offers/clue`, label: `Arcs: clue for “${arc.clue.threadTitle}”`, text: `${arc.clue.slotLabel}: ${arc.clue.text}`, gmOnly: true }] : []),
   ];
   const badges: NonNullable<Offer["badges"]> = [
     { label: money(num(book.job.fields.payment)) },
     { label: p.risk.label, tone: p.risk.level >= 3 ? "danger" : p.risk.level === 2 ? "warning" : "success" },
     { label: difficultyLine(p.difficulty, p.effectiveDifficulty, p.betrayers.length), tone: p.betrayers.length ? "danger" : "accent", gmOnly: true },
     { label: `${p.npcs.length} NPC${p.npcs.length === 1 ? "" : "s"}`, gmOnly: true },
+    ...(arc?.clue ? [{ label: `Clue: ${arc.clue.threadTitle}`, tone: "accent" as const, gmOnly: true }] : []),
+    ...(arc && arc.influences.length ? [{ label: "Influenced by arcs", tone: "warning" as const, gmOnly: true }] : []),
   ];
   const text = playerText(p);
-  return { key, title: p.title, badges, playerText: text, gmText: gmText(p), slots, produced: { entities, relationships }, handout: { title: `Posting: ${p.title}`, body: text, purpose: POSTING_HANDOUT_PURPOSE } };
+  const offer: Offer = { key, title: p.title, badges, playerText: text, gmText: gmText(p), slots, produced: { entities, relationships }, handout: { title: `Posting: ${p.title}`, body: text, purpose: POSTING_HANDOUT_PURPOSE } };
+  if (arc) {
+    if (arc.links.length) offer.arcLinks = arc.links.map((l) => ({ ...l }));
+    offer.influences = arc.influences.length ? [...arc.influences] : ["Nothing this time: heat, clocks and contacts were weighed."];
+  }
+  return offer;
 }
 
 /** The whole board: every posting's data, in order. Exposed for tests and the demo. */
@@ -542,9 +646,91 @@ export function dealBoard(ctx: ProcedureContext): PostingData[] {
   const cast = boardCast(ctx.inputs);
   const taken = new Set<string>(cast.takenNames);
   const n = Math.max(1, Math.min(6, Math.floor(num(ctx.inputs.postings, 3))));
+  const arcs = boardArcs(ctx.inputs);
   const out: PostingData[] = [];
-  for (let i = 1; i <= n; i++) out.push(buildPosting(ctx, i, cast, taken));
+  for (let i = 1; i <= n; i++) out.push(buildPosting(ctx, i, cast, taken, arcs));
+  if (arcs) seedBoardClue(ctx, out, arcs);
   return out;
+}
+
+/**
+ * Seed the GM's clue (or, "auto", the first unseen clue of the most
+ * advanced thread) into one posting's material: the employer's real
+ * intent, an NPC's secret or agenda, a cargo detail, a complication note, a
+ * key room of the site brief, or a contact who knows it. The placement is
+ * a board-level part ("offers/clue") seeded from every posting's seed: a
+ * pinned clue stays where it is when its posting is re-rolled, an unpinned
+ * one moves.
+ */
+function seedBoardClue(ctx: ProcedureContext, board: PostingData[], arcs: BoardArcs): void {
+  const chosen = chooseClue(arcs.snap);
+  if (!chosen) return;
+  const { thread, clue } = chosen;
+  const knownBy = arcs.snap.contacts.filter((c) => c.knows.some((k) => k.thread === thread.id && k.clue === clue.id));
+  const knownIds = knownBy.map((c) => c.id);
+  const hosts: ClueHost[] = board.map((p) => ({
+    index: p.index,
+    frame: p.frame,
+    intent: p.intent,
+    npcs: p.npcs.map((n, k) => ({ key: `npc-${k + 1}`, name: n.name, secret: n.secret, betrayer: isBetrayer(n.agenda) || !!n.agenda.synthetic, ...(n.existing ? { existing: n.existing } : {}) })),
+    complications: (Array.isArray(p.book.job.fields.complications) ? p.book.job.fields.complications : []).filter((c): c is string => typeof c === "string"),
+    keyRooms: p.brief.inputs.key_rooms.map((r) => r.name),
+    ...(p.npcs[0]?.existing ? { contact: p.npcs[0].existing } : {}),
+  }));
+  const initial = placeClue(clueRng(board.map((p) => p.seed ?? "")), hosts, clue.kind, knownIds);
+  if (!initial) return;
+  let placed: CluePlacement = ctx.part("clue", (r) => placeClue(r, hosts, clue.kind, knownIds) ?? initial, { initial });
+  if (!placementFits(placed, hosts, knownIds)) placed = initial;
+  const p = board.find((x) => x.index === placed.posting);
+  if (!p) return;
+  const pa = (p.arc ??= emptyPostingArc());
+  let text = clue.text;
+  let entity: string | undefined;
+  switch (placed.slot) {
+    case "intent":
+      p.intent = `${p.intent} What it hides: ${clue.text}.`;
+      text = `The employer's real intent hides it: ${clue.text}.`;
+      break;
+    case "npc-secret": {
+      const n = p.npcs[placed.at]!;
+      n.secret = `${n.secret}. Also knows: ${clue.text}`;
+      entity = `npc-${placed.at + 1}`;
+      text = `${n.name} knows it: ${clue.text}.`;
+      break;
+    }
+    case "npc-agenda": {
+      const n = p.npcs[placed.at]!;
+      n.agenda = { ...n.agenda, summary: `${n.agenda.summary} Carries a lead the crew can take from them: ${clue.text}.` };
+      entity = `npc-${placed.at + 1}`;
+      text = `${n.name}'s agenda carries it: ${clue.text}.`;
+      break;
+    }
+    case "cargo":
+      pa.cargo = `Among the cargo: ${clue.text}.`;
+      text = pa.cargo;
+      break;
+    case "complication":
+      pa.notes.push(`On the job: ${clue.text}.`);
+      text = `A complication brings it up: ${clue.text}.`;
+      break;
+    case "key-room": {
+      const room = p.brief.inputs.key_rooms[placed.at]!;
+      room.description = `${room.description} Clue: ${clue.text}.`;
+      p.brief.summary.push(`Clue in the ${room.name.toLowerCase()}: ${clue.text}.`);
+      text = `In the ${room.name.toLowerCase()} of the site: ${clue.text}.`;
+      break;
+    }
+    case "contact": {
+      const n = p.npcs[0]!;
+      entity = n.existing;
+      text = `${n.name}, who brings the job, knows it: ${clue.text}.`;
+      break;
+    }
+  }
+  const slotLabel = slotLabelOf(placed.slot);
+  pa.clue = { thread: thread.id, threadTitle: thread.title, clue: clue.id, slot: placed.slot, slotLabel, text, ...(entity ? { entity } : {}), ...(knownBy.length ? { knownBy: knownBy.map((c) => c.name) } : {}) };
+  pa.links.push({ kind: "clue", thread: thread.id, clue: clue.id, slot: placed.slot, slotLabel, text, ...(entity ? { entity } : {}) });
+  pa.influences.push(`Seeds a clue of “${thread.title}” (${slotLabel.toLowerCase()})`);
 }
 
 export const jobBoard: Procedure = {
@@ -582,6 +768,12 @@ export const jobBoard: Procedure = {
         title: "Campaign",
         "x-campaign": { kinds: ["character", "location", "faction"], fields: ["factionType"], relationships: [] },
         description: "The PCs (for pay and crew size), the home base (where postings are found), factions (an employer already in the campaign is linked) and names already taken.",
+      },
+      arcs: {
+        type: "object",
+        title: "Campaign arcs",
+        "x-arcs": {},
+        description: "The arc board: a clue to seed into one posting, and (unless turned off) faction heat, thread clocks and contacts weighting the postings. Each posting says what influenced it.",
       },
     },
   },

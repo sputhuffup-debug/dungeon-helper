@@ -103,7 +103,7 @@ site: `description` (what the PCs find), `mapId?` (core SiteMap id)
 any subtype (shown on the site sheet): `secret`, `puzzle`, `puzzleClue`, `puzzleSolution`, `puzzleFallback`, `threat` (all GM-only by default)
 
 ## `alien.faction.fields`
-`factionType` ("corporation"|"government"|"military"|"colonial"|"other"), `allegiance`, `history`, `products`, `military`, `leaders`, `locations`, `relations`, `currentActivities`, `reputation: number`, `minor: boolean`
+`factionType` ("corporation"|"government"|"military"|"colonial"|"other"), `allegiance`, `history`, `products`, `military`, `leaders`, `locations`, `relations`, `currentActivities`, `reputation: number`, `heat: number` (0-6, the arc board's faction heat, GM-only), `minor: boolean`
 
 ## `alien.job.fields`
 `frame`, `jobType` ("job"|"mission"|"expedition"), `distance: number 0..5`, `difficulty: number 1..3`, `payment: number`, `employer: string`, `bonusRewards: string[]`, `mission?: string`, `cargo?: string`, `destination: string`, `complications: string[]`, `plotTwist?: string`, `status` ("offered"|"accepted"|"done"|"declined")
@@ -133,7 +133,7 @@ The crew's ship is the entity id in `meta.settings.ship` (session zero question 
 Host conditions it sets: `xx121:facehugged`, `xx121:implanted` (set by the `inseminationCheck` dice operation), `xx121:embryo`, `xx121:killed-by-chestburster`, `xx121:killed-by-removal`, `xx121:died-in-surgery`, `xx121:cocooned`, `xx121:ovomorphed`.
 
 ## Procedure ids
-`alien.world.create`, `alien.system.create`, `alien.job.create`, `alien.lifepath`, `alien.encounter.check`, `alien.shore-leave`, `alien.between-jobs`, `alien.agendas` (cinematic agenda drafts, `src/procedures/agendas.ts`), `alien.campaign-agendas` (campaign long-term agendas, beats and open friction, `src/procedures/campaign-agendas.ts`), `alien.job-board` (job postings with NPCs, agendas and a site brief, `src/procedures/job-board.ts`), `alien.session-end` (the last is implemented as a hook, not a procedure).
+`alien.world.create`, `alien.system.create`, `alien.job.create`, `alien.lifepath`, `alien.encounter.check`, `alien.shore-leave`, `alien.between-jobs`, `alien.agendas` (cinematic agenda drafts, `src/procedures/agendas.ts`), `alien.campaign-agendas` (campaign long-term agendas, beats and open friction, `src/procedures/campaign-agendas.ts`), `alien.job-board` (job postings with NPCs, agendas and a site brief, `src/procedures/job-board.ts`), `alien.campaign-thread` (campaign threads for the arc board, `src/procedures/campaign-thread.ts`), `alien.session-end` (the last is implemented as a hook, not a procedure).
 
 ## Table id convention
 `alien.<family>.<name>` e.g. `alien.world.atmosphere`, `alien.character.panic`, `alien.jobs.truckers.employer`, `alien.encounters.colony.general`, `alien.lifepath.origin`.

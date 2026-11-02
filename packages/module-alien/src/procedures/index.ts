@@ -2,6 +2,7 @@
 import type { Procedure } from "@campaign-forge/module-sdk";
 import { agendaDraftsProcedure } from "./agendas";
 import { campaignAgendasProcedure } from "./campaign-agendas";
+import { campaignThread } from "./campaign-thread";
 import { betweenJobs } from "./between-jobs";
 import { encounterCheck } from "./encounter";
 import { jobCreate } from "./job";
@@ -11,6 +12,6 @@ import { shoreLeave } from "./shore-leave";
 import { systemCreate } from "./system";
 import { worldCreate } from "./world";
 
-export const procedures: Procedure[] = [worldCreate, systemCreate, jobCreate, jobBoard, lifepath, encounterCheck, shoreLeave, betweenJobs, agendaDraftsProcedure, campaignAgendasProcedure];
+export const procedures: Procedure[] = [worldCreate, systemCreate, jobCreate, jobBoard, lifepath, encounterCheck, shoreLeave, betweenJobs, agendaDraftsProcedure, campaignAgendasProcedure, campaignThread];
 
-export { worldCreate, systemCreate, jobCreate, jobBoard, lifepath, encounterCheck, shoreLeave, betweenJobs, agendaDraftsProcedure, campaignAgendasProcedure };
+export { worldCreate, systemCreate, jobCreate, jobBoard, lifepath, encounterCheck, shoreLeave, betweenJobs, agendaDraftsProcedure, campaignAgendasProcedure, campaignThread };
