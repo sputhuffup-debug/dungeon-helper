@@ -130,6 +130,12 @@ export function removePlayer(store: CampaignStore, memberId: Id): void {
       }
       if (changed) store.update("entities", e.id, { fieldVisibility: fv });
     }
+    // clues only this player learnt stay theirs alone: dropped from the list, not opened to everyone
+    for (const t of store.list("arcs")) {
+      if (!t.stages.some((s) => s.clues.some((c) => c.players?.includes(memberId)))) continue;
+      const stages = t.stages.map((s) => ({ ...s, clues: s.clues.map((c) => (c.players?.includes(memberId) ? { ...c, players: c.players.filter((p) => p !== memberId) } : c)) }));
+      store.update("arcs", t.id, { stages });
+    }
     store.updateMeta({ members: store.meta().members.filter((m) => m.id !== memberId) });
   });
 }

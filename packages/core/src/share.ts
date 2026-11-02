@@ -421,12 +421,13 @@ export function planShare(snapshot: PlayerShare, baseline: ShareBaseline, opts: 
 }
 
 /** The record to keep for a share that went out. */
-export function shareRecordOf(plan: Pick<SharePlan, "share">, extra: { format?: ShareRecord["format"]; primer?: boolean; member?: Id } = {}): ShareRecord {
+export function shareRecordOf(plan: Pick<SharePlan, "share">, extra: { format?: ShareRecord["format"]; primer?: boolean; crewNotes?: boolean; member?: Id } = {}): ShareRecord {
   const s = plan.share;
   const rec: ShareRecord = { at: s.at, handouts: s.handouts.map((h) => h.id), maps: Object.fromEntries(s.maps.map((m) => [m.id, [...m.visibleZones]])) };
   if (s.briefing?.sceneId) rec.scene = s.briefing.sceneId;
   if (s.party.length) rec.party = true;
   if (extra.primer) rec.primer = true;
+  if (extra.crewNotes) rec.crewNotes = true;
   if (extra.format) rec.format = extra.format;
   if (extra.member) rec.member = extra.member;
   return rec;

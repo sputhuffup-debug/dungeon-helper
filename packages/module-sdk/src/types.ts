@@ -538,6 +538,21 @@ export interface Offer {
   produced: { entities: ProducedEntity[]; relationships: ProducedRelationship[] };
   /** The player-visible handout added on accept (the posting as the players read it). */
   handout?: { title: string; body: string; purpose?: string };
+  /**
+   * A campaign thread: accepting the offer creates it on the arc board (a
+   * GM-only record, see `ArcsDef`). Its `sponsor` may name one of the
+   * offer's produced entities by tempId, or an existing entity by id.
+   */
+  arc?: ArcDraft;
+  /**
+   * What the offer ties to the campaign's arcs (a clue it seeds, an NPC who
+   * works for a thread, a milestone payoff it uses, a contact it brings
+   * back). Accepting it records each link (a seeded clue gets the job, the
+   * posting and the slot). Never shown to the players.
+   */
+  arcLinks?: OfferArcLink[];
+  /** GM-only: why the board dealt it this way ("influenced by" the arcs), one short line each. */
+  influences?: string[];
 }
 
 /** A procedure's `results.offers`. */
@@ -545,6 +560,171 @@ export interface OfferSet {
   offers: Offer[];
   /** Shown above the cards (e.g. how the board was dealt). */
   note?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Campaign arcs: threads, clues, clocks, faction heat and contacts
+// ---------------------------------------------------------------------------
+
+/** The clue states: not yet placed, placed in a job's material, learnt by the crew. */
+export type ArcClueState = "unseen" | "seeded" | "found";
+
+/** How a crew contact feels about the crew. */
+export type ContactStance = "friendly" | "neutral" | "wary" | "hostile";
+export const CONTACT_STANCES: readonly ContactStance[] = ["friendly", "neutral", "wary", "hostile"];
+
+/** One clue of a drafted thread. */
+export interface ArcDraftClue {
+  /** The module's clue kind (`ArcsDef.clueKinds`), e.g. fact, object, person, place. */
+  kind: string;
+  /** What it is, for the GM. */
+  text: string;
+  /** How the crew notes put it once the crew finds it. Must not give away what the GM text keeps back. */
+  playerText: string;
+  /** What learning it unlocks (GM). */
+  unlocks?: string;
+}
+
+/** A thread as a generator drafts it (see `Offer.arc`). */
+export interface ArcDraft {
+  /** The GM's title (never shown to the players). */
+  title: string;
+  /** The title the crew notes use once the crew has found one of its clues, e.g. "The missing ore shipments". */
+  playerTitle: string;
+  /** The sponsoring faction: an offer tempId or an existing entity id. */
+  sponsor?: string;
+  goal: string;
+  method: string;
+  weakness: string;
+  /** What happens if the crew ignores it. */
+  cost: string;
+  /** From the first hints to the endgame, in order. */
+  stages: Array<{ title: string; summary?: string; clues: ArcDraftClue[] }>;
+  clock: {
+    segments: number;
+    /** What happens when the clock reaches `at` filled segments; `stage` is a stage index; `payoffs` are suggestions for the GM. */
+    milestones: Array<{ at: number; text: string; stage?: number; payoffs?: Array<{ kind: string; text: string }> }>;
+  };
+  page?: PageRef;
+  cite?: CiteRef;
+}
+
+/** One link an offer makes to the arcs (see `Offer.arcLinks`). */
+export interface OfferArcLink {
+  /** clue: the offer's material carries a clue; agent: an NPC works for the thread; payoff: a reached milestone's payoff is used; contact: an existing contact is in it. */
+  kind: "clue" | "agent" | "payoff" | "contact";
+  thread?: string;
+  clue?: string;
+  /** Where the clue sits: the module's slot id and label, and the text as placed. */
+  slot?: string;
+  slotLabel?: string;
+  text?: string;
+  /** The entity it rides on: an offer tempId (e.g. an NPC) or an existing entity id (a contact). */
+  entity?: string;
+  /** For payoffs: the milestone (`at`) and the payoff kind. */
+  milestone?: number;
+  payoff?: string;
+}
+
+/**
+ * Procedure input hint: a property whose schema carries `"x-arcs"` is filled
+ * by the app with an `ArcSnapshot`: the campaign's threads (with their clues'
+ * states and clocks), faction heat and the crew's contacts, plus the GM's
+ * choices for this run (`seedClue`, `influence`). Stored with the run, so
+ * the run replays the same.
+ */
+export const ARCS_INPUT_HINT = "x-arcs" as const;
+export type ArcsInputHint = Record<string, never>;
+
+export interface ArcSnapshotClue {
+  id: string;
+  /** Index of its stage in the thread. */
+  stage: number;
+  kind: string;
+  text: string;
+  playerText: string;
+  state: ArcClueState;
+}
+
+export interface ArcSnapshotThread {
+  id: string;
+  title: string;
+  sponsor?: string;
+  sponsorName?: string;
+  goal: string;
+  method: string;
+  status: "active" | "dormant" | "resolved";
+  segments: number;
+  filled: number;
+  /** No clue of it was found since its clock last ticked: an ignored thread. */
+  ignored: boolean;
+  clues: ArcSnapshotClue[];
+  /** Payoffs of reached milestones not used yet. */
+  payoffs: Array<{ milestone: number; kind: string; text: string }>;
+}
+
+export interface ArcSnapshot {
+  threads: ArcSnapshotThread[];
+  /** Faction heat above zero, highest first. */
+  heat: Array<{ id: string; name: string; heat: number; label: string; fields?: Record<string, string | number | boolean> }>;
+  contacts: Array<{
+    id: string;
+    name: string;
+    stance: ContactStance;
+    owedToCrew: number;
+    owedByCrew: number;
+    grudges: string[];
+    knows: Array<{ thread: string; clue: string }>;
+    foundAt?: string;
+    /** Turned on the crew on a job and lived (a returning betrayer). */
+    betrayer?: boolean;
+    /** The contact entity is visible to the players. */
+    visible?: boolean;
+  }>;
+  /** The GM's pick for this run: no clue, the module's pick ("auto"), or "<thread id>/<clue id>". */
+  seedClue?: string;
+  /** Let heat, clocks and contacts weight the run (default on). */
+  influence?: boolean;
+}
+
+/** One clue slot a board can place a clue in (e.g. the employer's real intent). */
+export interface ArcSlotDef {
+  id: string;
+  label: string;
+}
+
+/**
+ * Campaign arcs (module-declared): the app's Arcs page, a board of threads
+ * with stages, clues and clocks that a generator fills, clues that boards
+ * seed into jobs, faction heat and thread clocks that tick between jobs and
+ * weight what boards deal, crew notes for the players and a contacts network.
+ * The engine is generic (core `arcs.ts`); the module supplies the words, the
+ * generator and the rules for ticks and heat.
+ */
+export interface ArcsDef {
+  /** Nav and page label (default "Arcs"). */
+  label?: string;
+  /** The procedure that deals threads: an offers board whose offers carry `arc`. */
+  generator: string;
+  /** Procedures that read the arcs (an `x-arcs` input) and seed clues, e.g. a job board. */
+  boards?: string[];
+  /** The procedure the GM runs between jobs, where thread clocks tick (shown with the ticker). */
+  betweenJobs?: string;
+  clueKinds: Array<{ id: string; label: string }>;
+  /** Where a board can place a clue, for labels. */
+  slots?: ArcSlotDef[];
+  /** Faction heat: entity types that carry it, the field, and one label per level from 0 (the length sets the maximum). */
+  heat?: { entityTypes: string[]; path: string; labels: string[]; /** The wrap-up question. */ prompt?: string };
+  /** Thread clocks between jobs: dice per thread, segments by total (the highest `min` reached), and extra segments for an ignored thread. */
+  tick?: { dice: string; steps: Array<{ min: number; ticks: number; label?: string }>; ignored: number };
+  /** Payoff kinds a reached milestone suggests (a posting from the sponsor, a returning grudge...). */
+  payoffs?: Array<{ id: string; label: string }>;
+  /** Contacts: entity types an NPC contact can be (characters that are not PCs). */
+  contacts?: { entityTypes: string[] };
+  /** The players' view: its title (default "Crew notes"). */
+  crewNotes?: { title?: string };
+  mode?: PlayModeId[];
+  rules?: string[];
 }
 
 export interface ProducedEntity {
@@ -3316,6 +3496,8 @@ export interface GameModule {
   progression?: ProgressionDef;
   /** A printable GM screen built from the module's own content. Packs can declare it. */
   gmScreen?: GmScreenDef;
+  /** Campaign arcs: threads with clues and clocks, faction heat, crew notes and contacts (the Arcs page). */
+  arcs?: ArcsDef;
   /** Step-by-step character builders (one per entity type) and their level-up steps. Packs can declare them. */
   characterBuilders?: CharacterBuilderDef[];
   /**
