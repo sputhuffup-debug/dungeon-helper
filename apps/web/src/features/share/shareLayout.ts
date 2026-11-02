@@ -205,7 +205,9 @@ export function packetSections(input: ShareLayoutInput & { share: PlayerPacket }
     if (c.conditions.length) blocks.push({ kind: "para", text: `Conditions: ${c.conditions.join(", ")}`, style: "lead" });
     for (const s of c.sections) {
       blocks.push({ kind: "heading", text: s.title });
-      for (const r of s.rows) blocks.push({ kind: "para", text: `${r.label}: ${r.value}`, style: "bullet" });
+      // a section that is one field of the same name (Gear, Skills) reads as its value
+      if (s.rows.length === 1 && s.rows[0]!.label === s.title) blocks.push({ kind: "para", text: s.rows[0]!.value });
+      else for (const r of s.rows) blocks.push({ kind: "para", text: `${r.label}: ${r.value}`, style: "bullet" });
     }
     out.push({ id: `character:${c.id}`, kind: "character", eyebrow: share.characters.length > 1 ? "One of your characters" : "Your character", title: c.name, blocks, file: `sheet-${slugOf(c.name)}` });
     if (c.agenda) {
