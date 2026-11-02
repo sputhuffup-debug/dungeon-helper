@@ -395,6 +395,19 @@ function checkProcedureStatic(proc: Procedure, module: GameModule, declaredModes
   for (const chain of proc.chains ?? []) {
     if (!module.procedures.some((p) => p.id === chain.procedure)) c.error(where, `chains into unknown procedure "${chain.procedure}"`);
   }
+  const long = proc.longAgendas;
+  if (long) {
+    const characters = module.entityTypes.filter((t) => t.kind === "character");
+    for (const f of [long.field, long.summaryField].filter((x): x is string => typeof x === "string")) {
+      if (!characters.some((t) => fieldPathExists(t, f))) c.error(where, `longAgendas names field "${f}", which no character type declares`);
+    }
+    if (long.outcomes.length === 0) c.error(where, "longAgendas declares no outcomes");
+    for (const r of long.reminders ?? []) {
+      if (r.page !== undefined && !validPage(r.page)) c.error(where, `longAgendas reminder "${r.label}" has an invalid page reference`);
+      if (r.procedure !== undefined && !module.procedures.some((p) => p.id === r.procedure)) c.error(where, `longAgendas reminder "${r.label}" opens unknown procedure "${r.procedure}"`);
+      if (r.rule !== undefined && !module.rules.some((x) => x.id === r.rule)) c.error(where, `longAgendas reminder "${r.label}" links unknown rule "${r.rule}"`);
+    }
+  }
 }
 
 function checkProcedureRuns(proc: Procedure, module: GameModule, options: CheckModuleOptions, c: Collector): void {

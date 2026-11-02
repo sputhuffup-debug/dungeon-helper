@@ -33,7 +33,7 @@ export interface AgendaSlotControls {
   onUnpin: (key: string) => void;
 }
 
-function SlotRow({ slot, who, controls, chip = false }: { slot: AgendaDraftSlot; who: string; controls: AgendaSlotControls; chip?: boolean }) {
+export function SlotRow({ slot, who, controls, chip = false }: { slot: AgendaDraftSlot; who: string; controls: AgendaSlotControls; chip?: boolean }) {
   const pinned = Object.prototype.hasOwnProperty.call(controls.pinnedParts, slot.key);
   const rerolled = !pinned && controls.partSeeds[slot.key] !== undefined;
   const label = `${slot.label} for ${who}`;
@@ -171,9 +171,9 @@ export function AgendaDraftCards({
 const TONE_ICON: Record<AgendaDraftReport["lines"][number]["tone"], string> = { ok: "✓", info: "·", warning: "!", danger: "✕" };
 
 /** The conflict report. */
-export function AgendaReportCard({ report }: { report: AgendaDraftReport }) {
+export function AgendaReportCard({ report, title = "Conflict check" }: { report: AgendaDraftReport; title?: string }) {
   return (
-    <Card title="Conflict check" subtitle={report.summary} className="agenda-report" data-testid="agenda-report" data-ok={report.ok ? "true" : "false"}>
+    <Card title={title} subtitle={report.summary} className="agenda-report" data-testid="agenda-report" data-ok={report.ok ? "true" : "false"}>
       <ul className="agenda-report__lines">
         {report.lines.map((l, i) => (
           <li key={i} className={`agenda-report__line is-${l.tone}`}>

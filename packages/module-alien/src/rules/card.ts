@@ -27,6 +27,7 @@ export const F = {
   mentalTraumas: "alien.character.mentalTraumas",
   personalAgenda: "alien.character.personalAgenda",
   agendas: "alien.character.agendas",
+  campaignAgenda: "alien.character.campaignAgenda",
   signatureItem: "alien.character.signatureItem",
   cash: "alien.character.cash",
   career: "alien.character.career",

@@ -28,9 +28,12 @@ describe("campaign snapshot (x-campaign inputs)", () => {
       pc: true,
       tags: ["a", "b"],
       fields: { role: "scout", "stats.grit": 3 },
+      visibility: hero.visibility.level,
     });
     const mayor = snap.entities.find((e) => e.id === npc.id)!;
     expect(mayor.pc).toBeUndefined();
+    // the visibility level rides along, so a procedure keeps GM-only names out of player text
+    expect(mayor.visibility).toBe(npc.visibility.level);
     expect(JSON.stringify(mayor)).not.toContain("guild");
   });
 

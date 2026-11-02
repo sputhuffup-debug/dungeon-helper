@@ -63,6 +63,19 @@ export { AGENDAS_ID, agendaDraftsProcedure, actText, STORY_POINT_PAGE } from "./
 export { AGENDA_ARCS, ARC_IDS, arcById, BETRAYAL_DIAL, type AgendaArc } from "./procedures/agenda-arcs";
 export { analyseParty } from "./procedures/agenda-conflicts";
 export { buildCast } from "./procedures/agenda-targets";
+export {
+  CAMPAIGN_AGENDAS_ID,
+  CAMPAIGN_AGENDA_FIELD,
+  CAMPAIGN_AGENDA_DEF,
+  CAMPAIGN_AGENDA_OUTCOMES,
+  campaignAgendasProcedure,
+  buildCampaignCast,
+  asRecord as campaignAgendaRecord,
+  type CampaignAgendaRecord,
+  type CampaignAgendaOutcome,
+} from "./procedures/campaign-agendas";
+export { CAMPAIGN_GOALS, FRICTION_TEMPLATES, EMBARRASSING_SECRETS, TENSION_LADDER, TENSION_CAP, FRICTION_KINDS, followUpsOf } from "./procedures/campaign-agenda-data";
+export { checkCampaignDeal, scanText, campaignMaterialTexts, BANNED_PATTERNS } from "./procedures/campaign-agenda-check";
 export { mapTables, ductEventsTable, LOCATION_DETAIL_TABLE_ID, ANOMALOUS_DETAIL_TABLE_ID, SALVAGE_TABLE_ID, DUCT_EVENTS_TABLE_ID } from "./tables/maps";
 
 export const referenceLists = [...coreReferenceLists, ...dataReferenceLists, campaignThemes, fearStages];

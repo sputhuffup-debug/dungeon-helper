@@ -112,7 +112,10 @@ test("table mode keeps working offline and the player screen shows revealed hand
   await page.getByRole("button", { name: "Player screen" }).click();
   const players = await popupPromise;
   await expect(players.getByTestId("player-screen")).toBeVisible();
-  await expect(players.getByText("Nothing revealed yet.")).toBeVisible();
+  // the crew's open friction is on the player screen from the start; their goals are not
+  await expect(players.locator("[data-handout]")).toHaveCount(4);
+  await expect(players.locator("[data-handout] h3").filter({ hasText: /: friction$/ })).toHaveCount(4);
+  await expect(players.getByText("personal agenda")).toHaveCount(0);
 
   await context.setOffline(true);
   const reveal = page.getByTestId("reveal-panel");

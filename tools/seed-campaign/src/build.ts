@@ -24,14 +24,17 @@
  * "Load demo campaign" through `demoCampaignJSON`). File I/O lives in cli.ts.
  */
 import {
+  CAMPAIGN_INPUT_HINT,
   addDaysToDate,
   createRng,
   createTableRegistry,
   procedureContext,
   loadModule,
   runProcedure,
+  type CampaignInputHint,
   type EntityPreset,
   type GeneratedGraph,
+  type LongAgendaDraftSet,
   type LoadedModule,
   type Procedure,
   type ProcedureContext,
@@ -41,8 +44,12 @@ import {
   CampaignStore,
   RichTextRegistry,
   acceptGeneratedGraph,
+  applyLongAgendaWrites,
   applySpend,
+  campaignSnapshot,
   departTravel,
+  longAgendaProgress,
+  longAgendaWrites,
   postAward,
   postLedgerEntry,
   docIdsOf,
@@ -58,7 +65,7 @@ import {
   type Id,
   type Visibility,
 } from "@campaign-forge/core";
-import { alienModule, weaponRowFromPreset } from "@campaign-forge/module-alien";
+import { alienModule, campaignAgendasProcedure, weaponRowFromPreset } from "@campaign-forge/module-alien";
 import { startInfection } from "./infection";
 
 /**
@@ -360,6 +367,9 @@ export function buildDemoCampaign(opts: BuildDemoOptions = {}): DemoCampaign {
   const destination = get(destinationId);
   store.createRelationship("knows", contact.id, employer.id, "Brokered the contract", GM);
 
+  // -- long-term agendas (campaign play): dealt for the last run, then moved on by its outcome --
+  setupCampaignAgendas(store, registry, mod, { seed, pcs, job });
+
   // -- creatures -----------------------------------------------------------
   const creaturePool = mod.presetsFor("alien.creature").filter((p) => p.fields["loreOnly"] !== true);
   const creatures = sample(rng.fork("creatures"), creaturePool, 2).map((p) => presetToEntity(store, p, { visibility: GM }));
@@ -624,6 +634,47 @@ function setupAdvancement(store: CampaignStore, s: { pcs: Entity[]; system: Enti
   const held = new Set(((store.get("entities", first.id)?.fields["talents"] as Array<{ id?: string }> | undefined) ?? []).map((t) => t.id));
   const talent = BOUGHT_TALENTS.find((id) => !held.has(id));
   if (talent) applySpend(store, alienModule, { character: first.id, option: "alien.spend.talent", target: talent, mode: "campaign", inWorldDate: `${s.year}-05-31`, realDate, source: { kind: "import" } });
+}
+
+// ---------------------------------------------------------------------------
+// long-term agendas
+// ---------------------------------------------------------------------------
+
+/** What the GM marked for each PC's goal after the last run, by PC order (the second PC's stalled). */
+export const DEMO_AGENDA_OUTCOMES: readonly string[] = ["advanced", "stalled", "advanced", "resolved"];
+export const DEMO_AGENDA_JOBS = ["Job 1", "Job 2"] as const;
+
+/**
+ * The module's campaign agendas, as the app deals them: a goal, a beat and
+ * open friction for each PC on the last run (Job 1), accepted onto the
+ * sheets with a GM-only agenda handout and a players' friction handout each;
+ * then the last run's outcomes (one goal advanced, one stalled, one
+ * resolved) deal the beats for the job in hand (Job 2). Seeded runs, both
+ * recorded as generator runs.
+ */
+function setupCampaignAgendas(store: CampaignStore, registry: RichTextRegistry, mod: LoadedModule, s: { seed: string; pcs: Entity[]; job: Entity }): void {
+  const proc = campaignAgendasProcedure;
+  const def = proc.longAgendas!;
+  const props = (proc.inputs as { properties: Record<string, Record<string, unknown>> }).properties;
+  const hint = props["campaign"]![CAMPAIGN_INPUT_HINT] as CampaignInputHint;
+  const snapshot = () => campaignSnapshot(store, hint, (t) => mod.entityType(t)?.kind);
+  const job = { id: s.job.id, name: s.job.name, type: s.job.type, fields: s.job.fields };
+  // the crew in build order (the app passes them sorted by name)
+  const pcs = s.pcs.map((pc) => ({ id: pc.id, name: pc.name, goal: "random" }));
+  const accept = (graph: GeneratedGraph) => {
+    const set = graph.results["longAgendaDrafts"] as LongAgendaDraftSet;
+    const res = applyLongAgendaWrites(store, def, longAgendaWrites(def, set));
+    for (const d of res.docs) writeDoc(registry, d.docId, d.markdown);
+    acceptGeneratedGraph(store, graph, { moduleId: mod.manifest.id });
+  };
+  accept(runProcedure(proc, alienModule, { seed: `${s.seed}/agendas`, inputs: { campaign: snapshot(), pcs, friction: "simmering", job, jobLabel: DEMO_AGENDA_JOBS[0] } }));
+  const outcomes = Object.fromEntries(s.pcs.map((pc, i) => [pc.id, DEMO_AGENDA_OUTCOMES[i]]));
+  const progress = longAgendaProgress(
+    def,
+    s.pcs.map((pc) => store.get("entities", pc.id)!),
+    outcomes,
+  );
+  accept(runProcedure(proc, alienModule, { seed: `${s.seed}/agendas/${DEMO_AGENDA_JOBS[1]}`, inputs: { campaign: snapshot(), pcs, friction: "simmering", job, jobLabel: DEMO_AGENDA_JOBS[1], progress } }));
 }
 
 /** `date` minus `days` on the Gregorian-style module calendar (the leg's departure). */

@@ -480,6 +480,17 @@ export interface Procedure {
    * app offers it from an adventure's agendas.
    */
   agendaDrafts?: boolean;
+  /**
+   * The procedure drafts long-term agendas (a goal that lasts several jobs,
+   * a short beat per job, open friction lines between the characters): its
+   * `results.longAgendaDrafts` is a `LongAgendaDraftSet` the app shows as
+   * editable cards and writes into each character's `field` (and
+   * `summaryField`), a GM-only agenda handout and a player-visible friction
+   * handout per character. Run again with `progressInput` set, it deals the
+   * next beats after a job. The app offers it from the character page and the
+   * session wrap-up.
+   */
+  longAgendas?: LongAgendaDef;
 }
 
 export interface ProducedEntity {
@@ -2359,6 +2370,11 @@ export interface CampaignEntitySummary {
   tags: string[];
   /** The scalar fields the hint asked for, when set. */
   fields?: Record<string, string | number | boolean>;
+  /**
+   * The entity's visibility level, so a procedure can keep GM-only names out
+   * of text meant for the players. Absent (an older snapshot): treat as GM-only.
+   */
+  visibility?: VisibilityLevel;
 }
 /** The value an `x-campaign` input carries. */
 export interface CampaignSnapshot {
@@ -2437,6 +2453,113 @@ export interface AgendaDraftSet {
   characters: AgendaDraftCharacter[];
   report?: AgendaDraftReport;
   /** Shown above the drafts (e.g. "Drafts: revise them to fit your story"). */
+  note?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Long-term agenda drafts (a procedure's `results.longAgendaDrafts`)
+// ---------------------------------------------------------------------------
+
+/**
+ * How a procedure's long-term agendas are stored and moved on (the
+ * procedure's `longAgendas`). Each character keeps one record in `field`
+ * (module-defined; the app reads and writes only the paths below, dotted,
+ * inside the record) and its one-line summary in `summaryField`.
+ */
+export interface LongAgendaDef {
+  /** Character field holding the record (an object). */
+  field: string;
+  /** Character text field kept equal to the goal's one-line summary (e.g. the sheet's personal agenda). */
+  summaryField?: string;
+  /** Input key the app fills with `LongAgendaProgress[]` to deal the next beats after a job. */
+  progressInput: string;
+  /** Input key for a short label of the job the next beats are for (e.g. "Job 3"). */
+  jobInput?: string;
+  /** What the GM may mark for each goal after a job, in order. */
+  outcomes: Array<{ id: string; label: string; text?: string }>;
+  /** Paths inside the record. */
+  paths: {
+    /** The goal's name. */
+    title: string;
+    /** The goal's one-line summary (the GM may revise it). */
+    summary: string;
+    /** The current beat's text (the GM may revise it). */
+    beat: string;
+    /** The label of the job the current beat is for. */
+    beatJob?: string;
+    /** The last outcome marked (an `outcomes` id), or a module word for a fresh goal. */
+    status?: string;
+    /** The tension level, an index into `tension.levels`. */
+    tension?: string;
+    /** Earlier beats: [{ job?, text, outcome? }], oldest first. */
+    history?: string;
+    /** The character's open friction lines: [{ text, kind?, with?: string[] }]. */
+    friction?: string;
+  };
+  /** Further GM-only lines of the agenda handout: a label and the record path of its text (e.g. who they answer to). */
+  details?: Array<{ label: string; path: string }>;
+  /** The tension ladder; the level index is stored at `paths.tension`, never above the last level. */
+  tension?: { levels: Array<{ id: string; label: string; text?: string }> };
+  /** Short reminders the app shows with the next beats (e.g. how pursuing the agenda pays out), each optionally opening a procedure. */
+  reminders?: Array<{ label: string; text: string; page?: PageRef; procedure?: string; rule?: string }>;
+  /** Titles of the handouts the app keeps per character; `{name}` is the character's name. */
+  handouts?: { agenda?: string; friction?: string; frictionIntro?: string };
+}
+
+/** One character's state after a job, as the app passes it in `progressInput`. */
+export interface LongAgendaProgress {
+  /** Character entity id. */
+  id: string;
+  name?: string;
+  /** The record stored in the def's `field`, as it is now. */
+  record?: Record<string, unknown>;
+  /** The outcome the GM marked (an `outcomes` id); absent leaves the character as they are. */
+  outcome?: string;
+}
+
+/** One open friction line: who it involves and how each character's handout reads it. */
+export interface LongAgendaFrictionLine {
+  /** Part key ("<step id>/<key>") the GM re-rolls or pins it by, when it can be. */
+  key?: string;
+  kind: string;
+  kindLabel: string;
+  /** Character ids involved (one when the other side is an NPC or the employer). */
+  between: string[];
+  /** Character id -> the line as that character's handout reads it. */
+  text: Record<string, string>;
+}
+
+export interface LongAgendaDraftCharacter {
+  /** Entity id; a placeholder id when `inCampaign` is false. */
+  id: string;
+  name: string;
+  inCampaign: boolean;
+  /** The goal's name and one-line summary (written into `summaryField`). */
+  title: string;
+  summary: string;
+  /** Slots that hold for the goal (who they answer to, why...). */
+  slots: AgendaDraftSlot[];
+  beat: { text: string; slots: AgendaDraftSlot[]; hint?: { label: string; text: string; page?: PageRef } };
+  /** A short line on where the goal stands (e.g. its tension). */
+  status?: string;
+  /** What the job's outcome changed, for the next beats ("Stalled: tension rises to open argument"). */
+  change?: string;
+  /** Reminder indexes (into the def's `reminders`) that apply after this outcome. */
+  reminders?: number[];
+  /** The record to store in the def's `field`; the app writes the GM's summary and beat into it at `paths`. */
+  record: Record<string, unknown>;
+  /** The procedure input that fixes this character's goal. */
+  lock?: { path: Array<string | number>; value: string; locked: boolean };
+}
+
+export interface LongAgendaDraftSet {
+  /** "deal": fresh agendas; "next": the next beats after a job. */
+  stage: "deal" | "next";
+  /** Label of the job the beats are for. */
+  job?: string;
+  characters: LongAgendaDraftCharacter[];
+  friction: LongAgendaFrictionLine[];
+  report?: AgendaDraftReport;
   note?: string;
 }
 

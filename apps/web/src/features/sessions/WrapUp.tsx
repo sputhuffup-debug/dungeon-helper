@@ -31,6 +31,7 @@ import { WrapChecklistPanel } from "./SessionChecklist";
 import { usePlayerCharacters } from "../table/hooks";
 import { BetweenJobsLink } from "../ship/BetweenJobsLink";
 import { AwardsStep } from "../progression/AwardsStep";
+import { LongAgendaWrapUp } from "../agendas/LongAgendas";
 
 const STEPS = [
   { id: "summary", label: "Summary" },
@@ -144,6 +145,7 @@ export function WrapUpWizard({ sessionId, onCancel, onDone }: WrapUpWizardProps)
 
           {step === "prompts" && <PromptsStep sessionId={sessionId} prompts={prompts} answers={answers} pcs={pcs} />}
 
+          {step === "rewards" && <LongAgendaWrapUp />}
           {step === "rewards" && <AwardsStep sessionId={sessionId} />}
           {step === "rewards" && <RewardsStep pcs={pcs} rewards={rewards} setRewards={setRewards} />}
           {step === "rewards" && <BetweenJobsLink />}

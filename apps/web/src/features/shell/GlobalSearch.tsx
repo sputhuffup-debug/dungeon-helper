@@ -155,7 +155,11 @@ export function openRecord(ctx: ReturnType<typeof useCampaign>, links: ReturnTyp
     case "handout": {
       const h = store.get("handouts", id);
       const at = h?.attachedTo;
-      if (!at) return;
+      if (!at) {
+        // a character's own handout (e.g. a long-term agenda) opens the character
+        if (h?.character) links.openEntity(h.character, h.purpose?.startsWith("long-agenda") ? "agenda" : undefined);
+        return;
+      }
       if (at.kind === "adventure") links.openAdventure(at.id);
       else if (at.kind === "act") {
         const act = store.get("acts", at.id);

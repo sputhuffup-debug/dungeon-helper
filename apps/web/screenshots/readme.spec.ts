@@ -322,6 +322,30 @@ test("progression", async ({ page }) => {
   await shot(page, "progression");
 });
 
+/** The Skyfire Down PC whose long-term goal stalled on the last job (its tension stepped up). */
+function skyfireStalled(): string {
+  const demo = buildDemoCampaign();
+  const pc = Object.values(demo.maps.entities).find((e) => (e.fields["campaignAgenda"] as { status?: string } | undefined)?.status === "stalled");
+  demo.registry.closeAll();
+  demo.store.destroy();
+  if (!pc) throw new Error("the Skyfire Down demo has no stalled agenda");
+  return pc.name;
+}
+
+test("alien-campaign-agendas", async ({ page }) => {
+  // a PC's agenda tab: the long-term goal, this job's beat, the tension after a stall, and the open friction
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const base = await loadDemo(page, "skyfire");
+  await page.goto(`${base}/atlas`);
+  await page.getByRole("tab", { name: /^PCs/ }).click();
+  await page.getByRole("tabpanel").getByRole("link", { name: skyfireStalled(), exact: true }).click();
+  await page.getByRole("tab", { name: "Agenda" }).click();
+  const tab = page.getByTestId("long-agenda-tab");
+  await expect(tab.getByRole("list", { name: "Tension" }).locator('[aria-current="step"]')).toHaveText("Quiet disagreement");
+  await expect(tab.getByTestId("long-agenda-tab-friction").locator("li")).toHaveCount(2);
+  await shot(page, "alien-campaign-agendas");
+});
+
 test("wrap-up-awards", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1250 });
   await loadDemo(page, "skyfire");

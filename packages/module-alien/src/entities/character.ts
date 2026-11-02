@@ -21,6 +21,7 @@ import {
   textarea,
 } from "./common";
 import { DAMAGE_TYPES } from "./item";
+import { CAMPAIGN_ALLEGIANCES, FRICTION_KINDS, TENSION_CAP } from "../procedures/campaign-agenda-data";
 
 /** Talent ids the computed rules look for (reference/talents.ts, p. 51). */
 export const HARDENED_TALENT = "hardened";
@@ -32,6 +33,62 @@ export const TALENT_STACK_CAP = 3;
 export const HUMAN_ATTRIBUTE_MAX = 5;
 export const ANDROID_ATTRIBUTE_MAX = 8;
 export const SKILL_MAX = 5;
+
+/**
+ * Campaign mode: the long-term personal agenda the campaign agenda generator
+ * deals and moves on after each job (procedures/campaign-agendas.ts). Its goal
+ * summary is kept equal to `personalAgenda`. GM-only; the open friction lines
+ * also go to the players as a handout. Nothing here is computed: the tension
+ * is raised by a stall and lowered by the GM, never derived.
+ */
+const campaignAgendaSchema = {
+  type: "object",
+  description: "Campaign mode: a long-term goal, this job's beat, the beats before it, the tension (0-3) and the open friction lines (p. 27, 30, 158-159).",
+  properties: {
+    goal: {
+      type: "object",
+      required: ["id", "title", "text"],
+      properties: {
+        id: { type: "string" },
+        title: { type: "string" },
+        text: { type: "string" },
+        allegiance: { type: "string", enum: [...CAMPAIGN_ALLEGIANCES] },
+        answersTo: { type: "string" },
+        motive: { type: "string" },
+        why: { type: "string" },
+        since: { type: "string" },
+      },
+    },
+    beat: { type: "object", required: ["text"], properties: { n: { type: "integer", minimum: 0 }, text: { type: "string" }, job: { type: "string" } } },
+    status: { type: "string", enum: ["new", "advanced", "stalled"] },
+    tension: { type: "integer", minimum: 0, maximum: TENSION_CAP },
+    history: {
+      type: "array",
+      items: {
+        type: "object",
+        required: ["text", "outcome"],
+        properties: { goal: { type: "string" }, n: { type: "integer" }, job: { type: "string" }, text: { type: "string" }, outcome: { type: "string", enum: ["advanced", "stalled", "resolved"] } },
+      },
+    },
+    past: { type: "array", items: { type: "object", required: ["id", "title"], properties: { id: { type: "string" }, title: { type: "string" }, text: { type: "string" }, job: { type: "string" } } } },
+    secret: { type: "object", properties: { id: { type: "string" }, text: { type: "string" }, topic: { type: "string" } } },
+    friction: {
+      type: "array",
+      items: {
+        type: "object",
+        required: ["kind", "text"],
+        properties: {
+          key: { type: "string" },
+          kind: { type: "string", enum: [...FRICTION_KINDS] },
+          tpl: { type: "string" },
+          with: { type: "array", items: { type: "string" } },
+          outsider: { type: "string" },
+          text: { type: "string" },
+        },
+      },
+    },
+  },
+};
 
 const attributeProps = (max: number) =>
   Object.fromEntries(ATTRIBUTE_IDS.map((a) => [a, { type: "integer", minimum: 1, maximum: max }]));
@@ -121,6 +178,7 @@ export const characterSchema = objectSchema(
         properties: { act: intField(1, 3), text: { type: "string" } },
       },
     },
+    campaignAgenda: campaignAgendaSchema,
     gear: {
       type: "array",
       default: [],
@@ -561,6 +619,7 @@ export const characterType: EntityTypeDef = {
     trait: "gm",
     personalAgenda: "gm",
     agendas: "gm",
+    campaignAgenda: "gm",
     lifePath: "gm",
     voice: "gm",
     fears: "gm",

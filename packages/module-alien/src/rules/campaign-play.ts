@@ -30,6 +30,28 @@ export const campaignPlayRules: RuleCard[] = [
     tags: ["campaign", "cinematic", "character"],
     links: { fields: [F.personalAgenda, F.agendas], rules: ["alien.rule.xp", "alien.rule.cinematic-agendas"] },
   }),
+  card(
+    "campaign-agendas",
+    "Agendas in campaign play",
+    "A campaign PC keeps one personal agenda across many sessions: concrete action on it at real risk or cost earns the bonus XP at session end, and a shore leave week spent on Pursue Agenda earns 1 XP if it succeeds (p. 257). Give each PC a long goal that lasts several jobs and a short beat on every job, mark the goal advanced, stalled or resolved after each job, and let a resolved goal make way for one that grows out of it. Keep goals and beats between you and the player, but let everyone know whom they clash with and over what.",
+    [27, 30],
+    {
+      ...C,
+      tags: ["campaign", "character", "gm"],
+      links: { fields: [F.personalAgenda, F.campaignAgenda, F.xp], rules: ["alien.rule.friction-not-betrayal", "alien.rule.agendas", "alien.rule.xp", "alien.rule.shore-leave", "alien.rule.goals-and-rewards"] },
+    },
+  ),
+  card(
+    "friction-not-betrayal",
+    "Friction, not betrayal",
+    "In a long campaign, agendas should rub, not cut: crewmates compete for pay, berths and gear, argue over who the crew answers to, keep embarrassing secrets that endanger no one, and needle a rival or cover for a buddy at a cost. A goal that keeps stalling heats up from quiet disagreement to an open argument to hard words, and stops there. Nobody sabotages, robs, harms or sells out a crewmate; this module leaves calling PvP to cinematic play.",
+    [27, 158],
+    {
+      ...C,
+      tags: ["campaign", "gm"],
+      links: { rules: ["alien.rule.campaign-agendas", "alien.rule.buddies-rivals", "alien.rule.calling-pvp", "alien.rule.campaign-structure"] },
+    },
+  ),
   card("buddies-rivals", "Buddies and rivals", "Each PC may have one buddy and one rival among the other PCs, which the GM uses to create situations. Campaign players choose them and may change them after any session; cinematic adventures set them.", [27, 30], {
     tags: ["campaign", "character"],
     links: { rules: ["alien.rule.xp", "alien.rule.session-zero"] },

@@ -6,7 +6,7 @@
  * the turn, gear and supply, and recovery.
  */
 import type { GmScreenDef } from "@campaign-forge/module-sdk";
-import { CINEMATIC } from "./modes";
+import { CAMPAIGN, CINEMATIC } from "./modes";
 
 export const gmScreen: GmScreenDef = {
   title: "GM screen",
@@ -102,6 +102,19 @@ export const gmScreen: GmScreenDef = {
       blocks: [
         { kind: "guide", tips: [0, 1, 2] },
         { kind: "guide", title: "When to call for them", entries: ["observation", "comtech", "survival", "command", "medicalAid", "manipulation"] },
+      ],
+    },
+    {
+      id: "agendas",
+      title: "Agendas and friction",
+      optional: true,
+      blocks: [
+        { kind: "rule", rule: "alien.rule.campaign-agendas", mode: [CAMPAIGN] },
+        { kind: "rule", rule: "alien.rule.friction-not-betrayal", mode: [CAMPAIGN] },
+        { kind: "rule", rule: "alien.rule.xp", mode: [CAMPAIGN] },
+        { kind: "rule", rule: "alien.rule.shore-leave", mode: [CAMPAIGN] },
+        { kind: "rule", rule: "alien.rule.agendas", mode: [CINEMATIC] },
+        { kind: "rule", rule: "alien.rule.story-point-award", mode: [CINEMATIC] },
       ],
     },
     {
