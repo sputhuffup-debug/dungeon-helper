@@ -33,26 +33,32 @@ import { alienModule } from "../src/index";
 const NAMES = ["Ada Rook", "Bo Lantern", "Cy Varga", "Dee Morrow", "Eli Strand", "Fen Okoye", "Gus Partridge", "Hal Ivers"];
 const CAREERS = ["officer", "medic", "roughneck", "company-agent", "pilot", "kid", "scientist", "colonial-marshal"];
 
-function campaignOf(n: number, links = true): CampaignSnapshot {
-  const pcs = NAMES.slice(0, n).map((name, i) => ({ id: `pc-${i + 1}`, name, type: "alien.character", kind: "character", pc: true, tags: [], fields: { career: CAREERS[i]! } }));
+/** A sample crew's campaign. Mira Tolland is the GM's secret; the rest the players can see (or, with `employerHidden`, not the employer). */
+function campaignOf(n: number, links = true, opts: { employerHidden?: boolean } = {}): CampaignSnapshot {
+  const open = "players" as const;
+  const pcs = NAMES.slice(0, n).map((name, i) => ({ id: `pc-${i + 1}`, name, type: "alien.character", kind: "character", pc: true, tags: [], fields: { career: CAREERS[i]! }, visibility: open }));
   const relationships: CampaignSnapshot["relationships"] = [];
   if (links && n >= 2) relationships.push({ type: "buddy_of", from: "pc-1", to: "pc-2" });
   if (links && n >= 4) relationships.push({ type: "rival_of", from: "pc-3", to: "pc-4" });
   if (links && n >= 6) relationships.push({ type: "rival_of", from: "pc-5", to: "pc-1" });
+  const employer = opts.employerHidden ? ("gm" as const) : open;
   return {
     entities: [
       ...pcs,
-      { id: "npc-1", name: "Mira Tolland, Dockmaster", type: "alien.character", kind: "character", tags: [], fields: { role: "Dockmaster" } },
-      { id: "npc-2", name: "Oskar Vell", type: "alien.character", kind: "character", tags: [], fields: {} },
-      { id: "loc-home", name: "Tamber Station", type: "alien.location", kind: "location", subtype: "colony", tags: ["home-base"] },
-      { id: "loc-bar", name: "The Lamp Room", type: "alien.location", kind: "location", subtype: "site", tags: [] },
-      { id: "ship-1", name: "MV Corran", type: "alien.spaceship", kind: "vehicle", tags: [] },
-      { id: "fac-1", name: "Halvard Freight", type: "alien.faction", kind: "faction", tags: [], fields: { factionType: "corporation" } },
-      { id: "job-1", name: "Haul water ice for Halvard Freight", type: "alien.job", kind: "job", tags: [], fields: { employer: "Halvard Freight" } },
+      { id: "npc-1", name: "Mira Tolland, Dockmaster", type: "alien.character", kind: "character", tags: [], fields: { role: "Dockmaster" }, visibility: "gm" },
+      { id: "npc-2", name: "Oskar Vell", type: "alien.character", kind: "character", tags: [], fields: {}, visibility: open },
+      { id: "loc-home", name: "Tamber Station", type: "alien.location", kind: "location", subtype: "colony", tags: ["home-base"], visibility: open },
+      { id: "loc-bar", name: "The Lamp Room", type: "alien.location", kind: "location", subtype: "site", tags: [], visibility: open },
+      { id: "ship-1", name: "MV Corran", type: "alien.spaceship", kind: "vehicle", tags: [], visibility: open },
+      { id: "fac-1", name: "Halvard Freight", type: "alien.faction", kind: "faction", tags: [], fields: { factionType: "corporation" }, visibility: employer },
+      { id: "job-1", name: "Haul water ice for Halvard Freight", type: "alien.job", kind: "job", tags: [], fields: { employer: "Halvard Freight" }, visibility: employer },
     ],
     relationships,
   };
 }
+
+/** Every text the players see from a set: each PC's friction lines. */
+const playerTexts = (set: LongAgendaDraftSet) => set.friction.flatMap((l) => Object.values(l.text));
 
 const inputsFor = (n: number, extra: Record<string, unknown> = {}) => ({ campaign: campaignOf(n), friction: "simmering", ...extra });
 const run = (seed: string, inputs: Record<string, unknown>, extra: { partSeeds?: Record<string, string>; pinnedParts?: Record<string, unknown> } = {}): GeneratedGraph =>
@@ -170,6 +176,47 @@ describe("campaign agendas: deal", () => {
     expect(cast.ship).toBe("MV Corran");
     expect(cast.npcs).toEqual(["Mira Tolland", "Oskar Vell"]);
     expect(cast.places).toEqual(["Tamber Station", "The Lamp Room"]);
+    // what the players may hear named: not the GM's secret NPC
+    expect(cast.open).toEqual({ npcs: ["Oskar Vell"], employer: "Halvard Freight" });
+    expect(cast.hidden).toEqual(["Mira Tolland, Dockmaster", "Mira Tolland"]);
+    const secretEmployer = buildCampaignCast({ campaign: campaignOf(4, true, { employerHidden: true }) });
+    expect(secretEmployer.employer).toBe("Halvard Freight");
+    expect(secretEmployer.open.employer).toBe("the employer");
+    // an older snapshot without visibility: nothing in it counts as seen
+    const old = campaignOf(2);
+    for (const e of old.entities) delete (e as { visibility?: unknown }).visibility;
+    expect(buildCampaignCast({ campaign: old }).open).toEqual({ npcs: expect.arrayContaining(["the dockmaster"]), employer: "the employer" });
+  });
+
+  it("friction the players see never names a GM-only NPC or employer: one PC and a crew, over many seeds", () => {
+    for (const n of [1, 2, 4]) {
+      for (let i = 0; i < 60; i++) {
+        for (const employerHidden of [false, true]) {
+          const g = run(`hidden-${n}-${i}-${employerHidden}`, { campaign: campaignOf(n, true, { employerHidden }), friction: "prickly" });
+          const set = setOf(g);
+          expect((g.results.check as { ok: boolean }).ok).toBe(true);
+          for (const t of playerTexts(set)) {
+            expect(t).not.toContain("Mira Tolland");
+            if (employerHidden) expect(t).not.toContain("Halvard Freight");
+          }
+        }
+      }
+    }
+    // GM-only goals and beats may still name anyone
+    const lone = Array.from({ length: 40 }, (_, i) => setOf(run(`gm-npc-${i}`, { campaign: campaignOf(1), friction: "prickly" })));
+    expect(lone.some((s) => s.characters.some((c) => c.beat.text.includes("Mira Tolland")))).toBe(true);
+  });
+
+  it("carried friction is scrubbed of names the players can no longer see", () => {
+    const set = setOf(run("carry-scrub", { campaign: campaignOf(1), friction: "prickly" }));
+    const c = set.characters[0]!;
+    const record = JSON.parse(JSON.stringify(c.record)) as CampaignAgendaRecord;
+    record.friction[0]!.text = "You and Mira Tolland disagree about who you really work for.";
+    record.friction[0]!.outsider = "Mira Tolland";
+    const next = setOf(run("carry-scrub-2", { campaign: campaignOf(1), friction: "prickly", progress: [{ id: c.id, record, outcome: "advanced" }], jobLabel: "Job 2" }));
+    const texts = playerTexts(next);
+    expect(texts.join(" ")).not.toContain("Mira Tolland");
+    expect(texts).toContain("You and someone disagree about who you really work for.");
   });
 
   it("is deterministic: same seed, same deal", () => {

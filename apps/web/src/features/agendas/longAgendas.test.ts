@@ -1,5 +1,5 @@
 import "fake-indexeddb/auto";
-import { LONG_AGENDA_FRICTION_PURPOSE, LONG_AGENDA_PURPOSE, longAgendaHandoutsOf, plainText, projectCampaignForViewer, type Id } from "@campaign-forge/core";
+import { LONG_AGENDA_FRICTION_PURPOSE, LONG_AGENDA_PURPOSE, longAgendaHandoutsOf, plainText, playerShareSnapshot, projectCampaignForViewer, type Id } from "@campaign-forge/core";
 import { afterEach, describe, expect, it } from "vitest";
 import { createCampaign } from "../../state/actions";
 import { openCampaign, type CampaignContextValue } from "../../state/CampaignProvider";
@@ -12,13 +12,19 @@ afterEach(() => {
   while (opened.length) opened.pop()?.();
 });
 
-async function setup(mode = "campaign") {
+async function setup(mode = "campaign", count = 3) {
   const id = await createCampaign({ name: "Long haul", moduleId: "alien", mode });
   const ctx: CampaignContextValue = await openCampaign(id);
   opened.push(ctx.close);
   const s = ctx.store;
-  const pcs = ["Ada Rook", "Bo Lantern", "Cy Varga"].map((name) => s.createEntity({ type: "alien.character", name, fields: { isPC: true, personalAgenda: "" }, visibility: { level: "players" } }));
-  s.createRelationship("buddy_of", pcs[0]!.id, pcs[1]!.id);
+  const pcs = ["Ada Rook", "Bo Lantern", "Cy Varga"].slice(0, count).map((name) => s.createEntity({ type: "alien.character", name, fields: { isPC: true, personalAgenda: "" }, visibility: { level: "players" } }));
+  if (pcs[1]) s.createRelationship("buddy_of", pcs[0]!.id, pcs[1].id);
+  // the GM's secret NPC and secret employer; one NPC the players know
+  s.createEntity({ type: "alien.character", name: "Vesna Kroll", fields: { isPC: false }, visibility: { level: "gm" } });
+  s.createEntity({ type: "alien.character", name: "Tobin Ash", fields: { isPC: false }, visibility: { level: "players" } });
+  const corp = s.createEntity({ type: "alien.faction", name: "Orrin Salvage", fields: { factionType: "corporation" }, visibility: { level: "gm" } });
+  const job = s.createEntity({ type: "alien.job", name: "Tow the wreck", fields: { employer: "Orrin Salvage" }, visibility: { level: "players" } });
+  s.createRelationship("employer_of", corp.id, job.id);
   return { ctx, pcs };
 }
 
@@ -62,6 +68,29 @@ describe("long-term agendas in the app", () => {
     for (const pc of pcs) {
       expect(view.entities[pc.id]!.fields.campaignAgenda).toBeUndefined();
       expect(view.entities[pc.id]!.fields.personalAgenda).toBeUndefined();
+    }
+  });
+
+  it("friction handouts, the player view and a share never name the GM-only NPC or employer, for one PC or a crew", async () => {
+    for (const count of [1, 3]) {
+      for (const seed of ["a", "b", "c", "d", "e", "f"]) {
+        const { ctx, pcs } = await setup("campaign", count);
+        const { procedure, graph, set } = deal(ctx, `${seed}-${count}`);
+        await acceptLongAgendaDrafts(ctx, { def: procedure.longAgendas, set, graph });
+        const texts = pcs.map((pc) => plainText(ctx.registry.open(longAgendaHandoutsOf(ctx.store, pc.id).friction!.bodyDoc!)));
+        for (const t of texts) {
+          expect(t).not.toContain("Vesna Kroll");
+          expect(t).not.toContain("Orrin Salvage");
+        }
+        const session = ctx.store.createSession({ number: 1, title: "One" });
+        const share = playerShareSnapshot({ maps: ctx.store.toJSON(), module: ctx.module.module, sessionId: session.id, at: "2026-11-07T20:00:00Z", doc: (id) => ctx.registry.open(id) });
+        const shared = JSON.stringify(share.handouts);
+        expect(share.handouts).toHaveLength(count);
+        expect(shared).not.toContain("Vesna Kroll");
+        expect(shared).not.toContain("Orrin Salvage");
+        const view = projectCampaignForViewer(ctx.store.toJSON(), ctx.module.module, { role: "player" });
+        expect(Object.values(view.handouts).every((h) => h.purpose === LONG_AGENDA_FRICTION_PURPOSE)).toBe(true);
+      }
     }
   });
 

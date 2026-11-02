@@ -92,10 +92,21 @@ describe("Skyfire Down: campaign agendas", () => {
       expect(view.entities[pc.id]!.fields[CAMPAIGN_AGENDA_FIELD]).toBeUndefined();
       expect(view.entities[pc.id]!.fields["personalAgenda"]).toBeUndefined();
     }
+    // no name the players cannot see, in a friction handout or anywhere in the share
+    const hiddenNames = Object.values(maps.entities)
+      .filter((e) => e.fields["isPC"] !== true && e.visibility.level === "gm")
+      .flatMap((e) => [e.name, e.name.split(",")[0]!.trim()])
+      .filter((n) => n.length >= 3);
+    expect(hiddenNames.length).toBeGreaterThan(5);
+    for (const h of handouts.filter((x) => x.purpose === LONG_AGENDA_FRICTION_PURPOSE)) {
+      const t = plainText(registry.open(h.bodyDoc!));
+      for (const n of hiddenNames) expect(t, n).not.toContain(n);
+    }
     const session = Object.values(maps.sessions)[0]!;
     const share = playerShareSnapshot({ maps, module: alienModule, sessionId: session.id, at: "2026-11-07T20:00:00Z", doc: (id) => registry.open(id), referenceName: () => undefined });
     const text = JSON.stringify(share);
     expect(share.handouts.filter((h) => /friction/.test(h.title))).toHaveLength(4);
+    for (const n of hiddenNames) expect(text, n).not.toContain(n);
     for (const pc of pcs) {
       const r = recordOf(pc);
       expect(text).not.toContain(r.goal.text);

@@ -2370,6 +2370,11 @@ export interface CampaignEntitySummary {
   tags: string[];
   /** The scalar fields the hint asked for, when set. */
   fields?: Record<string, string | number | boolean>;
+  /**
+   * The entity's visibility level, so a procedure can keep GM-only names out
+   * of text meant for the players. Absent (an older snapshot): treat as GM-only.
+   */
+  visibility?: VisibilityLevel;
 }
 /** The value an `x-campaign` input carries. */
 export interface CampaignSnapshot {

@@ -185,6 +185,7 @@ export interface CampaignCast {
   party: PartyMember[];
   /** Locked goals by PC id. */
   locked: Record<string, string>;
+  /** NPCs any GM-only text may name. */
   npcs: string[];
   places: string[];
   home: string;
@@ -192,7 +193,16 @@ export interface CampaignCast {
   employer: string;
   company: string;
   job?: string;
+  /** What text the players see may name: NPCs they can see (or generic stand-ins), and the employer if they can see it (or "the employer"). */
+  open: { npcs: string[]; employer: string };
+  /** Names of entities the players cannot see, longest first: never in text the players see. */
+  hidden: string[];
 }
+
+/** Whether the players can already see a snapshot entity (no level: an older snapshot, so no). */
+const playersSee = (e: CampaignEntitySummary | undefined): boolean => e?.visibility === "players" || e?.visibility === "revealed";
+/** The stand-in for an employer the players cannot see. */
+export const HIDDEN_EMPLOYER = "the employer";
 
 const short = (name: string) => name.split(",")[0]!.trim() || name.trim();
 
@@ -218,7 +228,9 @@ export function buildCampaignCast(inputs: Record<string, unknown>): CampaignCast
     if (isObj(p) && typeof p.id === "string" && typeof p.goal === "string" && goalById(p.goal)) locked[p.id] = p.goal;
   }
   const partyIds = new Set(base.party.map((p) => p.id));
-  const npcs = [...new Set(entities.filter((e) => e.kind === "character" && !e.pc && !partyIds.has(e.id)).map((e) => short(e.name)))];
+  const npcEntities = entities.filter((e) => e.kind === "character" && !e.pc && !partyIds.has(e.id));
+  const npcs = [...new Set(npcEntities.map((e) => short(e.name)))];
+  const openNpcs = [...new Set(npcEntities.filter(playersSee).map((e) => short(e.name)))];
   const locations = entities.filter((e) => e.kind === "location");
   const places = [...new Set(locations.filter((e) => e.subtype === "site" || e.subtype === "colony").map((e) => short(e.name)))];
   const homeEntity =
@@ -231,7 +243,19 @@ export function buildCampaignCast(inputs: Record<string, unknown>): CampaignCast
   const employerLink = jobEntity ? links.find((l) => (l.type === "employer_of" || l.type === "sponsor_of") && l.to === jobEntity.id) : undefined;
   const employerEntity = employerLink ? entities.find((e) => e.id === employerLink.from) : undefined;
   const company = base.pools.company;
-  const employer = str(jobFields["employer"]) || employerEntity?.name || (company !== "the Company" ? company : "") || "the employer";
+  const employer = str(jobFields["employer"]) || employerEntity?.name || (company !== "the Company" ? company : "") || HIDDEN_EMPLOYER;
+  // the employer as the players know it: the employer's entity, else the job's, else the company's faction, must be one they can see
+  const companyEntity = entities.find((e) => e.kind === "faction" && e.name === company);
+  const employerSource = employerEntity ?? (str(jobFields["employer"]) ? (jobEntity ?? entities.find((e) => e.id === str(jobInput?.id))) : companyEntity);
+  const hidden = new Set<string>();
+  for (const e of entities) {
+    if (e.pc || partyIds.has(e.id) || playersSee(e)) continue;
+    for (const n of [e.name.trim(), short(e.name)]) if (n.length >= 3) hidden.add(n);
+  }
+  // a name the players can see under another entity stays sayable
+  for (const e of entities) if (playersSee(e) || e.pc || partyIds.has(e.id)) for (const n of [e.name.trim(), short(e.name)]) hidden.delete(n);
+  const openEmployer = employer !== HIDDEN_EMPLOYER && playersSee(employerSource) && !hidden.has(employer) ? employer : HIDDEN_EMPLOYER;
+  if (openEmployer === HIDDEN_EMPLOYER && employer !== HIDDEN_EMPLOYER) hidden.add(employer);
   const cast: CampaignCast = {
     party: base.party,
     locked,
@@ -241,6 +265,8 @@ export function buildCampaignCast(inputs: Record<string, unknown>): CampaignCast
     ship: shipEntity ? shipEntity.name : "ship",
     employer,
     company,
+    open: { npcs: openNpcs.length ? openNpcs : FALLBACK_NPCS, employer: openEmployer },
+    hidden: [...hidden].sort((a, b) => b.length - a.length || a.localeCompare(b)),
   };
   const jobName = jobInput ? str(jobInput.name) : jobEntity?.name;
   if (jobName) cast.job = jobName;
@@ -622,28 +648,43 @@ function templateFits(t: FrictionTemplate, kind: FrictionKind, pair: { a: Slotte
   return t.with !== "pc" && !t.needs;
 }
 
-/** Render one line for every PC in it. */
+const escapeRe = (x: string) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const hiddenRe = (name: string) => new RegExp(`(?<![\\w-])${escapeRe(name)}(?![\\w-])`, "g");
+
+/** The hidden names a text the players see would give away. */
+export function hiddenNamesIn(text: string, cast: Pick<CampaignCast, "hidden">): string[] {
+  return cast.hidden.filter((n) => hiddenRe(n).test(text));
+}
+
+/** Text for the players with every name they cannot see replaced by a stand-in (the employer, the Company, someone). */
+export function scrubForPlayers(text: string, cast: Pick<CampaignCast, "hidden" | "employer" | "company">): string {
+  let out = text;
+  for (const n of cast.hidden) out = out.replace(hiddenRe(n), n === cast.employer ? HIDDEN_EMPLOYER : n === cast.company ? "the Company" : "someone");
+  return out;
+}
+
+/** Render one line for every PC in it: text the players see, so only names they can see. */
 export function renderLine(line: Omit<FrictionLine, "text">, members: SlottedMember[], cast: CampaignCast): Record<string, string> {
   const t = frictionTemplateById(line.tpl)!;
   const owner = members.find((m) => m.id === line.between[0])!;
   const other = line.between[1] ? members.find((m) => m.id === line.between[1]) : undefined;
-  const thing = (CONTESTED_THINGS[line.thing ?? 0] ?? CONTESTED_THINGS[0]!).replace("{employer}", cast.employer);
+  const thing = (CONTESTED_THINGS[line.thing ?? 0] ?? CONTESTED_THINGS[0]!).replace("{employer}", cast.open.employer);
   const topic = secretById(owner.secret)?.topic ?? "the past";
   const fillFor = (tpl: string, me: SlottedMember, them: { name: string; allegiance?: CampaignAllegiance }) =>
     tpl
       .replace(/\{other\}/g, them.name)
       .replace(/\{thing\}/g, thing)
       .replace(/\{topic\}/g, topic)
-      .replace(/\{employer\}/g, cast.employer)
+      .replace(/\{employer\}/g, cast.open.employer)
       .replace(/\{mine\}/g, answersToText(me.allegiance, cast))
       .replace(/\{theirs\}/g, them.allegiance ? ALLEGIANCE_TEXT[them.allegiance].theirs.replace("{company}", cast.company) : "someone else");
   const out: Record<string, string> = {};
   if (!other) {
-    out[owner.id] = cap(fillFor(t.a, owner, { name: line.outsider ?? cast.employer }));
+    out[owner.id] = scrubForPlayers(cap(fillFor(t.a, owner, { name: line.outsider ?? cast.open.employer })), cast);
     return out;
   }
-  out[owner.id] = cap(fillFor(t.a, owner, { name: nameIn(cast, other.id), allegiance: other.allegiance }));
-  out[other.id] = cap(fillFor(t.b ?? t.a, other, { name: nameIn(cast, owner.id), allegiance: owner.allegiance }));
+  out[owner.id] = scrubForPlayers(cap(fillFor(t.a, owner, { name: nameIn(cast, other.id), allegiance: other.allegiance })), cast);
+  out[other.id] = scrubForPlayers(cap(fillFor(t.b ?? t.a, other, { name: nameIn(cast, owner.id), allegiance: owner.allegiance })), cast);
   return out;
 }
 
@@ -727,7 +768,7 @@ function makeLine(rng: Rng, key: string, kind: FrictionKind, pair: { a: SlottedM
   const t = pickOne(rng.fork("tpl"), fits);
   const line: Omit<FrictionLine, "text"> = { key, kind, tpl: t.id, between: b ? [a.id, b.id] : [a.id] };
   if (t.a.includes("{thing}") || t.b?.includes("{thing}")) line.thing = rng.fork("thing").int(0, CONTESTED_THINGS.length - 1);
-  if (!b) line.outsider = outsider ?? cast.employer;
+  if (!b) line.outsider = outsider ?? cast.open.employer;
   return line;
 }
 
@@ -757,7 +798,14 @@ function membersCheck(cast: CampaignCast, members: SlottedMember[], lines: Frict
     texts: texts(m),
   }));
   const checkedLines: CheckedLine[] = lines.map((l) => ({ key: l.key, tpl: l.tpl, between: l.between, ...(l.outsider ? { outsider: l.outsider } : {}) }));
-  return checkCampaignDeal(checked, checkedLines);
+  const result = checkCampaignDeal(checked, checkedLines);
+  // the friction lines go to the players: none may name what they cannot see
+  for (const l of lines) {
+    const leaks = [...new Set(Object.values(l.text).flatMap((t) => hiddenNamesIn(t, cast)))];
+    if (leaks.length) result.problems.push({ tone: "danger", text: `friction line ${l.key} names what the players cannot see: ${leaks.join(", ")}` });
+  }
+  result.ok = result.problems.length === 0;
+  return result;
 }
 
 function friction(ctx: ProcedureContext, rng: Rng): FrictionResult {
@@ -776,8 +824,9 @@ function friction(ctx: ProcedureContext, rng: Rng): FrictionResult {
       for (const f of d.record?.friction ?? []) {
         if (!frictionTemplateById(f.tpl) || ![d.id, ...f.with].every((id) => ids.has(id))) continue;
         const line = byKey.get(f.key) ?? { key: f.key, kind: f.kind, tpl: f.tpl, between: [], text: {}, carried: true };
-        if (f.outsider) line.outsider = f.outsider;
-        line.text[d.id] = f.text;
+        // carried text goes to the players again: names they cannot see (now) give way to stand-ins
+        if (f.outsider) line.outsider = scrubForPlayers(f.outsider, cast);
+        line.text[d.id] = scrubForPlayers(f.text, cast);
         for (const id of [d.id, ...f.with]) if (!line.between.includes(id)) line.between.push(id);
         byKey.set(f.key, line);
       }
@@ -820,7 +869,8 @@ function friction(ctx: ProcedureContext, rng: Rng): FrictionResult {
       // a lone PC: friction with the employer and the NPCs
       const m = members[0]!;
       const have = lines.filter((l) => l.between.includes(m.id)).length;
-      const outsiders = [cast.employer, ...cast.npcs];
+      // friction the players see: only the employer and NPCs they can see, or stand-ins
+      const outsiders = [cast.open.employer, ...cast.open.npcs];
       for (let i = have; i < (dealt?.stage === "next" ? 1 : perPc); i++) {
         const pairKinds = lines.map((l) => l.kind);
         const kind = weightedPick(ar.fork(`kind-${i}`), kindWeights(dial, members, cast, { a: m }, used, pairKinds.length >= FRICTION_KINDS.length ? [] : pairKinds));

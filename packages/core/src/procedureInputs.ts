@@ -31,6 +31,7 @@ export function campaignSnapshot(store: CampaignStore, hint: CampaignInputHint, 
     if (kind) summary.kind = kind;
     if (e.subtype) summary.subtype = e.subtype;
     if (isPc(e, kind)) summary.pc = true;
+    summary.visibility = e.visibility.level;
     for (const path of hint.fields ?? []) {
       const v = getPath(e.fields, path);
       if (typeof v === "string" || typeof v === "boolean" || (typeof v === "number" && Number.isFinite(v))) (summary.fields ??= {})[path] = v;
