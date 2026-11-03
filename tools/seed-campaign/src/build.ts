@@ -540,7 +540,8 @@ export function buildDemoCampaign(opts: BuildDemoOptions = {}): DemoCampaign {
   store.createTimelineEvent({ inWorldDate: `${cal.defaultYear}-05-28`, text: `The ${SHIP_NAME} docks at ${homeBase.name} after a dry month.`, entities: [ship.id, homeBase.id], visibility: PLAYERS });
   store.createTimelineEvent({ inWorldDate: `${cal.defaultYear}-05-30`, text: `${destination.name} stops answering routine traffic.`, entities: [destination.id], visibility: GM });
 
-  const session = store.createSession({ number: 1, date: "2026-11-07", title: "The offer", status: "planned" });
+  // played on the campaign's in-world date (the recap's "Last time" names it, never the real-world date)
+  const session = store.createSession({ number: 1, date: "2026-11-07", title: "The offer", status: "planned", ...(store.meta().currentDate ? { inWorldDate: store.meta().currentDate } : {}) });
   store.update("sessions", session.id, {
     nextPlan: [
       `Run the briefing with ${contact.name}.`,
@@ -971,6 +972,8 @@ export const DEMO_HUNT = {
   crewZone: "Z22",
   stretches: 2,
   tracker: "M314 Motion Tracker",
+  /** A handout on the scene, for the GM to reveal at the table. */
+  handout: "Ore manifest",
   sweeper: "colonial-marshal",
   /** The instant of the sweep (a fixed in-world evening). */
   at: "2026-11-07T21:30:00.000Z",
@@ -996,6 +999,9 @@ function setupLiveHunt(store: CampaignStore, registry: RichTextRegistry, s: { ma
     tags: ["demo"],
   });
   writeDoc(registry, scene.bodyDoc, `The crew hauls the ore across ${ref(location)} for ${ref(s.job)}. Something moves in the ducts, and the UPP fire team is sweeping the rings. Move the hidden threats each stretch; ${ref(sweeper)} reads them on the motion tracker.`);
+  // a handout for the scene, kept back until the GM reveals it at the table
+  const manifest = store.createHandout({ title: DEMO_HUNT.handout, kind: "text", visibility: GM, attachedTo: { kind: "scene", id: scene.id }, withBody: true });
+  writeDoc(registry, manifest.bodyDoc, "Hold 2: refined ore, 40 tonnes, sealed and signed for. Hold 3: listed empty. Its seal has been cut and pressed back by hand.");
 
   // the threats: the XX121 spawn and the UPP fire team (else the first rogue humans) from the map's marks
   const sources = huntMarkerSources(layout, hunt);

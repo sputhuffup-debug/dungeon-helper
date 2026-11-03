@@ -49,7 +49,13 @@ describe("Skyfire Down: the recap for session 2", () => {
 
   it("gives the players a read-aloud from their projection only", () => {
     const text = recapTexts(recap, "players").join("\n");
-    expect(text).toContain("Session 1: The offer, played 7 Nov 2026.");
+    // dated in the world, never by the table's real-world date
+    expect(one.inWorldDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(text).toContain(`Session 1: The offer (${one.inWorldDate}).`);
+    expect(text).not.toContain("7 Nov 2026");
+    // the GM's summary is offered to read aloud, switched off
+    const offered = recap.players.flatMap((s) => s.lines).filter((l) => l.optIn);
+    expect(offered).toEqual([expect.objectContaining({ key: "summary", text: one.summary, off: true })]);
     expect(text).toContain(`${first.playerTitle}: ${found.playerText.replace(/\.$/, "")}`);
     expect(text).toContain("Mara Quill is one of your contacts. Owes the crew a favour.");
     expect(text).toContain(`The crew took the job ${ore.name}`);
@@ -75,7 +81,8 @@ describe("Skyfire Down: the recap for session 2", () => {
       ...hiddenLeaves,
     ];
     const shown = playerRecap(maps, alienModule, two.id)!;
-    const outputs = [JSON.stringify(recap.players), JSON.stringify(shown), recapMarkdown(recap.players), recapReadAloud(recap.players)];
+    const sharedLines = recap.players.map((s) => ({ ...s, lines: s.lines.filter((l) => !l.optIn) }));
+    const outputs = [JSON.stringify(sharedLines), JSON.stringify(shown), recapMarkdown(recap.players), recapReadAloud(recap.players)];
     for (const out of outputs) {
       for (const secret of secrets) expect(out.toLowerCase(), secret).not.toContain(secret.toLowerCase());
       expect(out).not.toMatch(/GM only|"heat"|clock|stance/);

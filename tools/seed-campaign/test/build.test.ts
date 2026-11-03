@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { lifecycleState, validateEntityFields } from "@campaign-forge/module-sdk";
 import { applyImportedDocs, exportBundle, extractRefs, getCampaignTrackerState, importBundle, RichTextRegistry, type CampaignMaps, type Entity } from "@campaign-forge/core";
 import { alienModule, GESTATION_TRACKER } from "@campaign-forge/module-alien";
-import { buildDemoCampaign, demoCampaignJSON } from "../src";
+import { buildDemoCampaign, demoCampaignJSON, DEMO_HUNT } from "../src";
 
 /** The seed-dependent shape of a build: everything except ids and timestamps. */
 function signature(maps: CampaignMaps) {
@@ -110,12 +110,13 @@ describe("buildDemoCampaign", () => {
     expect(entities.some((e) => e.type === "alien.character" && e.fields["android"] === true)).toBe(true);
   });
 
-  it("links the crew to the ship and every handout to a PC (or a job's posting to its job)", () => {
+  it("links the crew to the ship and every handout to a PC (or a job's posting to its job, or a scene's handout to its scene)", () => {
     const ship = entities.find((e) => e.type === "alien.spaceship")!;
     const crew = Object.values(maps.relationships).filter((r) => r.type === "crew_of" && r.to === ship.id);
     expect(crew).toHaveLength(4);
     for (const h of Object.values(maps.handouts)) {
       if (h.purpose === "job-posting") expect(maps.entities[h.attachedTo?.id ?? ""]?.type).toBe("alien.job");
+      else if (h.attachedTo?.kind === "scene") expect(maps.scenes[h.attachedTo.id], h.title).toBeDefined();
       else expect(maps.entities[h.character ?? ""]?.fields["isPC"]).toBe(true);
     }
   });
@@ -130,6 +131,14 @@ describe("buildDemoCampaign", () => {
       for (const p of s.participants) expect(maps.entities[p]).toBeDefined();
     }
     for (const run of Object.values(maps.generatorRuns)) for (const id of run.produced) expect(maps.entities[id]).toBeDefined();
+  });
+
+  it("keeps a handout on the hunt's scene for the GM to reveal at the table, and dates session 1 in the world", () => {
+    const scene = Object.values(maps.scenes).find((s) => s.title === DEMO_HUNT.scene)!;
+    const manifest = Object.values(maps.handouts).find((h) => h.title === DEMO_HUNT.handout)!;
+    expect(manifest).toMatchObject({ attachedTo: { kind: "scene", id: scene.id }, visibility: { level: "gm" } });
+    const one = Object.values(maps.sessions).find((s) => s.number === 1)!;
+    expect(one.inWorldDate).toMatch(/^\d{4}-06-01$/);
   });
 
   it("resolves every [[id|name]] reference in scene bodies (and every other doc) to an entity", () => {
