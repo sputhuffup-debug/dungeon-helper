@@ -2590,3 +2590,28 @@ span.cf-weapons__name {
   gap: var(--cf-space-2);
   font-size: var(--cf-text-xs);
 }
+
+/* the gear list: every group's columns line up (fixed widths), the item name takes the rest */
+.cf-weapons--catalog {
+  table-layout: fixed;
+  width: 100%;
+}
+.cf-weapons--catalog .cf-weapons__num {
+  width: 5.5rem;
+}
+.cf-weapons--catalog .cf-weapons__page {
+  width: 4.5rem;
+  white-space: nowrap;
+}
+.cf-weapons--catalog .cf-weapons__act {
+  width: 4.5rem;
+  text-align: right;
+}
+@media (max-width: 600px) {
+  .cf-weapons--catalog .cf-weapons__num {
+    width: 3.75rem;
+  }
+  .cf-weapons--catalog .cf-weapons__page {
+    width: 3.5rem;
+  }
+}

@@ -88,7 +88,7 @@ function GearCatalogPicker({
         {groups.map((g) => (
           <section key={g.id || "other"} className="cf-weapons__group" aria-label={g.label} data-group={g.id}>
             <h3 className="cf-weapons__group-title">{g.label}</h3>
-            <table className="cf-weapons cf-weapons--picker">
+            <table className="cf-weapons cf-weapons--picker cf-weapons--catalog">
               <thead>
                 <tr>
                   <th scope="col">Item</th>
@@ -97,8 +97,10 @@ function GearCatalogPicker({
                       {c.label}
                     </th>
                   ))}
-                  <th scope="col">Page</th>
-                  <th scope="col" />
+                  <th scope="col" className="cf-weapons__page">
+                    Page
+                  </th>
+                  <th scope="col" className="cf-weapons__act" />
                 </tr>
               </thead>
               <tbody>
@@ -113,10 +115,10 @@ function GearCatalogPicker({
                         {weaponColumnText(c, p.fields) || <span className="cf-muted">—</span>}
                       </td>
                     ))}
-                    <td>
+                    <td className="cf-weapons__page">
                       <PageRef page={p.page} cite={p.cite} original={p.original} />
                     </td>
-                    <td>
+                    <td className="cf-weapons__act">
                       <Button
                         size="sm"
                         variant="primary"
