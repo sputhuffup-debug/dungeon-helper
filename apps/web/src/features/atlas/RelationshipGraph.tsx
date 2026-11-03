@@ -12,6 +12,9 @@ import { useCampaign, useList } from "../../state/hooks";
 const COL_W = 220;
 const ROW_H = 30;
 const PAD = 24;
+/** An arc between two entities in one column bows left by up to 45px (control points 60px out), so the first column starts after a gutter that holds it. */
+const LOOP = 48;
+const colX = (ci: number) => PAD + LOOP + ci * COL_W;
 const MAX_NODES = 400;
 
 const KIND_ORDER = ["location", "faction", "character", "creature", "job", "vehicle", "item", "clue", "encounter"];
@@ -44,10 +47,10 @@ export function RelationshipGraph({ entities, typeById, module, label, asPlayer 
     kinds.forEach((k, ci) => {
       const col = (byKind.get(k) ?? []).sort((a, b) => a.name.localeCompare(b.name));
       maxRows = Math.max(maxRows, col.length);
-      col.forEach((e, ri) => pos.set(e.id, { x: PAD + ci * COL_W + 8, y: PAD + 28 + ri * ROW_H }));
+      col.forEach((e, ri) => pos.set(e.id, { x: colX(ci) + 8, y: PAD + 28 + ri * ROW_H }));
     });
     const edges = rels.filter((r) => pos.has(r.from) && pos.has(r.to) && (!asPlayer || canSee(r.visibility, { role: "player" })));
-    return { kinds, byKind, pos, edges, width: PAD * 2 + Math.max(1, kinds.length) * COL_W, height: PAD * 2 + 28 + maxRows * ROW_H };
+    return { kinds, byKind, pos, edges, width: PAD * 2 + LOOP + Math.max(1, kinds.length) * COL_W, height: PAD * 2 + 28 + maxRows * ROW_H };
   }, [entities, typeById, rels, asPlayer]);
 
   if (entities.length === 0) return <EmptyState title="Nothing to draw" text="Entities and their relationships appear here." />;
@@ -66,7 +69,7 @@ export function RelationshipGraph({ entities, typeById, module, label, asPlayer 
       {entities.length > MAX_NODES && <p className="cf-muted">Showing the first {MAX_NODES} entities; use the filters to narrow the graph.</p>}
       <svg width={layout.width} height={layout.height} role="img" aria-label="Relationship graph" className="app-graph__svg">
         {layout.kinds.map((k, ci) => (
-          <text key={k} x={PAD + ci * COL_W} y={PAD + 8} className="app-graph__kind">
+          <text key={k} x={colX(ci)} y={PAD + 8} className="app-graph__kind">
             {(module.entityTypes.find((t) => t.kind === k)?.plural ?? k).toUpperCase()}
           </text>
         ))}
