@@ -34,12 +34,12 @@ export { SchemaValueEditor, schemaType, isShortText } from "./widgets/SchemaValu
 
 // Dice
 export { DieFace, type DieFaceProps } from "./dice/DieFace";
-export { DiceRollPanel, specById, type DiceRollPanelProps } from "./dice/DiceRollPanel";
+export { DiceRollPanel, specById, type DiceRollPanelProps, type RollInfo } from "./dice/DiceRollPanel";
 export { EnterDice, type EnterDiceProps } from "./dice/EnterDice";
 export { DiceRollerProvider, DiceModeSwitch, useDiceRoller, type DiceRollerValue, type RollRequest } from "./dice/DiceRoller";
 export { usePhysicalDicePreference, getPhysicalDice, setPhysicalDice, PHYSICAL_DICE_KEY } from "./dice/physicalDice";
 export { RollLog, type RollLogEntry, type RollLogProps } from "./dice/RollLog";
-export { toneBadge, showsTotal, resultHeadline, rollOptionFields, type RollOptionField } from "./dice/outcome";
+export { toneBadge, showsTotal, resultHeadline, rollOptionFields, rollOptionNotes, type RollOptionField } from "./dice/outcome";
 
 // Trackers
 export { registerTracker, getTracker, hasTracker, trackerKinds } from "./trackers/registry";
@@ -130,7 +130,7 @@ export { Dialog, Drawer, type DialogProps, type DrawerProps } from "./primitives
 export { AutoGrowText, singleLineText, type AutoGrowTextProps } from "./primitives/AutoGrowText";
 export { Toolbar, ToolbarGroup, ToolbarSpacer, EmptyState, type ToolbarProps, type EmptyStateProps } from "./primitives/Toolbar";
 export { ProvenanceBadge, RollRecordList, type ProvenanceBadgeProps, type ProvenanceKind } from "./primitives/ProvenanceBadge";
-export { PageRef, formatPageRef, formatCitation, type PageRefProps } from "./primitives/PageRef";
+export { PageRef, HidePageRefs, usePageRefsHidden, formatPageRef, formatCitation, type PageRefProps } from "./primitives/PageRef";
 export { Markdown, renderInline } from "./primitives/Markdown";
 export { RuleCardView, RuleCardList, filterRuleCards, rulePreview, type RuleCardViewProps, type RuleCardListProps } from "./primitives/RuleCard";
 export { PlayGuideView, PlayGuideEntryView, PlayGuideTips, playGuidesForMode, filterPlayGuideEntries, type PlayGuideViewProps, type PlayGuideEntryViewProps, type PlayGuideTipsProps } from "./primitives/PlayGuide";

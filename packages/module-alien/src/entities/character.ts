@@ -515,6 +515,8 @@ export const GEAR_CATALOG: GearCatalogConfig = {
   copy: { weight: "weight", supply: "power" },
   presetKey: "presetId",
   routes: [{ path: "weapons", subtypes: ["weapon"] }],
+  // the gear tables' skill modifiers (e.g. binoculars +2 OBSERVATION, p. 96): a pick on a table-mode skill roll
+  skillBonus: { path: "skillBonus", input: "gear" },
 };
 
 const sections: SheetSection[] = [

@@ -373,7 +373,7 @@ export class CampaignStore {
     });
   }
 
-  createSession(input: { date?: string; title?: string; number?: number; attendees?: Id[]; status?: Session["status"] } = {}): Session {
+  createSession(input: { date?: string; title?: string; number?: number; attendees?: Id[]; status?: Session["status"]; inWorldDate?: string } = {}): Session {
     const rec: NewRecord<"sessions"> = {
       number: input.number ?? this.count("sessions") + 1,
       date: input.date ?? now().slice(0, 10),
@@ -386,6 +386,9 @@ export class CampaignStore {
       reveals: [],
     };
     if (input.title !== undefined) rec.title = input.title;
+    // a session that starts now is played on the campaign's current in-world date
+    const inWorldDate = input.inWorldDate ?? (rec.status === "running" ? this.meta().currentDate : undefined);
+    if (inWorldDate) rec.inWorldDate = inWorldDate;
     return this.insert("sessions", rec);
   }
 

@@ -3,7 +3,11 @@ import { strFromU8, unzipSync } from "fflate";
 import { describe, expect, it } from "vitest";
 import {
   RichTextRegistry,
+  accountBalance,
+  accountOpening,
   applyEffects,
+  removeLedgerEntry,
+  updateLedgerEntry,
   crewShip,
   currentLocation,
   departTravel,
@@ -128,6 +132,42 @@ describe("ledger", () => {
     ]);
     expect(ledgerRows(store, { categories: ["pay"] }).map((r) => r.balance)).toEqual([5, 55]);
     expect(ledgerEntries(store, { categories: ["tolls"] })).toHaveLength(1);
+  });
+
+  it("reads a personal account from its holder's money field, which its entries move, so nothing counts twice", () => {
+    const { store } = world();
+    const hero = store.createEntity({ type: "example.person", name: "Hero", fields: { cash: 700 } });
+    const field = "cash";
+    // the sheet's starting cash is the account's balance, before any entry
+    expect(accountBalance(store, hero.id, field)).toBe(700);
+    expect(accountOpening(store, hero.id, field)).toBe(700);
+    expect(accountBalance(store, hero.id)).toBe(0);
+    // an entry on the account moves the sheet; the balance stays the sheet's
+    const { entry } = postLedgerEntry(store, { amount: 250, category: "pay", account: hero.id, accountField: field });
+    expect(entry.accountField).toBe("cash");
+    expect(store.get("entities", hero.id)!.fields.cash).toBe(950);
+    expect(accountBalance(store, hero.id, field)).toBe(950);
+    expect(accountOpening(store, hero.id, field)).toBe(700);
+    // the running balance over the account's entries ends at the sheet
+    expect(ledgerRows(store, { account: hero.id }, undefined, accountOpening(store, hero.id, field)).map((r) => r.balance)).toEqual([950]);
+    // through an effect too; the shared account is untouched
+    applyEffects(store, [{ kind: "ledger", amount: -50, category: "tolls", note: "Toll", account: hero.id }], { ledgerAccountField: field });
+    expect(store.get("entities", hero.id)!.fields.cash).toBe(900);
+    expect(ledgerBalance(store)).toBe(0);
+    // the player spends on the sheet: the balance follows, and the rest is what it held off the books
+    store.update("entities", hero.id, { fields: { cash: 880 } });
+    expect(accountBalance(store, hero.id, field)).toBe(880);
+    expect(accountOpening(store, hero.id, field)).toBe(680);
+    // changing and deleting an entry moves the sheet back
+    updateLedgerEntry(store, entry.id, { amount: 200 });
+    expect(store.get("entities", hero.id)!.fields.cash).toBe(830);
+    removeLedgerEntry(store, entry.id);
+    expect(store.get("entities", hero.id)!.fields.cash).toBe(630);
+    // without the field, an account is its entries' sum and no sheet moves
+    const other = store.createEntity({ type: "example.person", name: "Other", fields: { cash: 5 } });
+    postLedgerEntry(store, { amount: 3, category: "pay", account: other.id });
+    expect(store.get("entities", other.id)!.fields.cash).toBe(5);
+    expect(accountBalance(store, other.id)).toBe(3);
   });
 
   it("posts a keyed entry once", () => {

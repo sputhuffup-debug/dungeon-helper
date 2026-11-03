@@ -400,6 +400,73 @@ test("enter-dice", async ({ page }) => {
   await shot(page, "enter-dice", { clip });
 });
 
+test("skill-roll-modifier", async ({ page }) => {
+  // a skill roll with the gear that helps it and a modifier: Lee-Ann's MEDICAL AID with her personal medkit (+2, p. 97) and +1 die, still on her
+  await page.setViewportSize({ width: 1440, height: 1100 });
+  await loadDemo(page, "skyfire");
+  await startPlannedSession(page);
+  await page.getByRole("tab", { name: "Dice" }).click();
+  const skill = page.locator(".app-table__skillroll");
+  await skill.getByRole("combobox", { name: "Character" }).selectOption({ label: "Lee-Ann Jenkins" });
+  await skill.getByRole("combobox", { name: "Skill" }).selectOption({ label: "Medical Aid (Empathy)" });
+  await skill.getByRole("combobox", { name: "Gear bonus" }).selectOption({ label: "Personal medkit (+2)" });
+  const panel = skill.getByTestId("dice-panel");
+  await panel.getByTestId("roll-option-modifier").getByRole("button", { name: "Increase Modifier (dice)" }).click();
+  await panel.getByRole("button", { name: "Roll", exact: true }).click();
+  await expect(panel.getByTestId("describe")).toBeVisible();
+  // the roll log names the gear and the modifier
+  await expect(page.getByRole("list", { name: "Roll log" }).locator("li").first()).toContainText("Lee-Ann Jenkins: Medical Aid (Personal medkit +2, Modifier +1)");
+  await settle(page);
+  const b = (await skill.boundingBox())!;
+  const pad = 8;
+  await shot(page, "skill-roll-modifier", { clip: { x: Math.floor(b.x - pad), y: Math.floor(b.y - pad), width: Math.ceil(b.width + 2 * pad), height: Math.ceil(b.height + 2 * pad) } });
+});
+
+/** Skyfire Down's session 2 at "The ore run": the ore manifest revealed, the job's posting pinned to the player screen. */
+async function putOnPlayerScreen(page: Page) {
+  await loadDemo(page, "skyfire");
+  await startPlannedSession(page);
+  const scenes = page.getByRole("combobox", { name: "Scene" });
+  await scenes.selectOption((await scenes.locator("option", { hasText: "The ore run" }).getAttribute("value"))!);
+  const reveal = page.getByTestId("reveal-panel");
+  await reveal.getByRole("button", { name: "Reveal Ore manifest" }).click();
+  const off = reveal.getByTestId("off-screen");
+  await off.locator("summary").click();
+  await off.getByRole("button", { name: "Pin Posting: Ore to the spaceport to the player screen" }).click();
+  await expect(reveal.getByTestId("on-screen").locator("[data-onscreen]")).toHaveCount(2);
+  return reveal;
+}
+
+test("player-screen-control", async ({ page }) => {
+  // the GM decides what the player screen shows: this session's reveal (the ore manifest) and a pinned posting; the frictions stay off it
+  await page.setViewportSize({ width: 1440, height: 1500 });
+  const reveal = await putOnPlayerScreen(page);
+  await reveal.evaluate((e) => e.scrollIntoView({ block: "start" }));
+  await settle(page);
+  const b = (await reveal.boundingBox())!;
+  const pad = 8;
+  await shot(page, "player-screen-control", { clip: { x: Math.floor(b.x - pad), y: Math.floor(b.y - pad), width: Math.ceil(b.width + 2 * pad), height: Math.ceil(Math.min(b.height + 2 * pad, 1500 - b.y)) } });
+});
+
+test("player-screen-handouts", async ({ page, context }) => {
+  // the player screen follows: the manifest and the pinned posting only, no frictions, no rulebook page refs
+  await putOnPlayerScreen(page);
+  const popup = context.waitForEvent("page");
+  await page.getByRole("button", { name: "Player screen", exact: true }).click();
+  const players = await popup;
+  await players.setViewportSize({ width: 1440, height: 1600 });
+  const handouts = players.getByRole("region", { name: "Handouts" });
+  await expect(handouts.locator("[data-handout]")).toHaveCount(2);
+  await expect(handouts).not.toContainText("friction");
+  await expect(players.locator(".cf-page")).toHaveCount(0);
+  await settle(players);
+  // from the heading to the last handout (the column runs on to the grid row's height)
+  const h = (await handouts.boundingBox())!;
+  const last = (await handouts.locator("[data-handout]").last().boundingBox())!;
+  const pad = 8;
+  await shot(players, "player-screen-handouts", { clip: { x: Math.floor(h.x - pad), y: Math.floor(h.y - pad), width: Math.ceil(h.width + 2 * pad), height: Math.ceil(last.y + last.height - h.y + 2 * pad) } });
+});
+
 test("ship", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1300 });
   const base = await loadDemo(page, "skyfire");

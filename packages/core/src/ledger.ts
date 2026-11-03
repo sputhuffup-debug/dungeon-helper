@@ -8,6 +8,7 @@
  */
 import { compareCalendarDates, formatAmount, roundAmount, type CalendarDef, type CurrencyDef, type LedgerDef, type LedgerEffect, type LedgerLinks } from "@campaign-forge/module-sdk";
 import { now } from "./ids";
+import { getPath, setPath } from "./paths";
 import type { CampaignStore, NewRecord } from "./store";
 import type { Id, LedgerEntry, Visibility } from "./types";
 
@@ -32,6 +33,26 @@ export interface PostLedgerInput {
   visibility?: Visibility;
   /** Round to the currency's decimals (default: whole units). */
   currency?: Pick<CurrencyDef, "decimals">;
+  /** The account holder's money field (`LedgerDef.accountField`): an entry on a personal account moves it by the amount. */
+  accountField?: string;
+}
+
+const round4 = (n: number) => Math.round(n * 10000) / 10000;
+
+/** A holder's money as its field holds it (0 when unset). */
+function fieldMoney(store: CampaignStore, holder: Id, field: string): number | undefined {
+  const e = store.get("entities", holder);
+  if (!e) return undefined;
+  const v = getPath(e.fields, field);
+  return typeof v === "number" && Number.isFinite(v) ? v : 0;
+}
+
+/** Move a holder's money field by `by` (no-op for a holder that is gone). */
+function moveFieldMoney(store: CampaignStore, holder: Id, field: string, by: number): void {
+  const current = fieldMoney(store, holder, field);
+  if (current === undefined || by === 0) return;
+  const e = store.get("entities", holder)!;
+  store.update("entities", holder, { fields: setPath({ ...e.fields }, field, round4(current + by)) });
 }
 
 /** The entry already posted under `key`, if any. */
@@ -60,11 +81,17 @@ export function postLedgerEntry(store: CampaignStore, input: PostLedgerInput): {
   if (date) rec.inWorldDate = date;
   if (input.note?.trim()) rec.note = input.note.trim();
   if (input.account) rec.account = input.account;
+  const moves = !!input.account && !!input.accountField && fieldMoney(store, input.account, input.accountField) !== undefined;
+  if (moves) rec.accountField = input.accountField!;
   const links = cleanLinks(input.links);
   if (links) rec.links = links;
   if (input.key) rec.key = input.key;
   if (input.source) rec.source = input.source;
-  return { entry: store.insert("ledger", rec), duplicate: false };
+  return store.transact(() => {
+    const entry = store.insert("ledger", rec);
+    if (moves) moveFieldMoney(store, input.account!, input.accountField!, entry.amount);
+    return { entry, duplicate: false };
+  });
 }
 
 /** Post a `ledger` effect (from a procedure, travel or a hook). */
@@ -83,12 +110,28 @@ function cleanLinks(links: LedgerLinks | undefined): LedgerLinks | undefined {
   return Object.keys(out).length ? out : undefined;
 }
 
+/** Change an entry; one that moved its holder's money field moves it again (back by the old amount, on by the new). */
 export function updateLedgerEntry(store: CampaignStore, id: Id, patch: Partial<Pick<LedgerEntry, "amount" | "category" | "note" | "inWorldDate" | "realDate" | "account" | "links">>): LedgerEntry {
-  return store.update("ledger", id, patch);
+  return store.transact(() => {
+    const before = store.get("ledger", id);
+    const after = store.update("ledger", id, patch);
+    if (before?.accountField && (before.amount !== after.amount || before.account !== after.account)) {
+      if (before.account) moveFieldMoney(store, before.account, before.accountField, -before.amount);
+      if (after.account) moveFieldMoney(store, after.account, before.accountField, after.amount);
+      else return store.update("ledger", id, { accountField: undefined });
+    }
+    return after;
+  });
 }
 
+/** Delete an entry; one that moved its holder's money field moves it back. */
 export function removeLedgerEntry(store: CampaignStore, id: Id): boolean {
-  return store.remove("ledger", id);
+  return store.transact(() => {
+    const e = store.get("ledger", id);
+    const removed = store.remove("ledger", id);
+    if (removed && e?.account && e.accountField) moveFieldMoney(store, e.account, e.accountField, -e.amount);
+    return removed;
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -138,6 +181,25 @@ export function ledgerBalance(store: CampaignStore, filter: LedgerFilter = { acc
   return Math.round(total * 10000) / 10000;
 }
 
+/**
+ * A personal account's balance. With the holder's money field
+ * (`LedgerDef.accountField`) it is that field, since entries posted to the
+ * account already moved it; without one, the sum of the account's entries.
+ */
+export function accountBalance(store: CampaignStore, account: Id, accountField?: string): number {
+  const v = accountField ? fieldMoney(store, account, accountField) : undefined;
+  return v !== undefined ? v : ledgerBalance(store, { account });
+}
+
+/**
+ * What a personal account held before its entries: its balance less their
+ * sum (e.g. a PC's starting cash, or money the sheet gained off the books),
+ * so a running balance over the account's entries ends at its balance.
+ */
+export function accountOpening(store: CampaignStore, account: Id, accountField?: string): number {
+  return round4(accountBalance(store, account, accountField) - ledgerBalance(store, { account }));
+}
+
 /** Balance per account: `""` is the shared account, other keys are entity ids. */
 export function ledgerBalances(store: CampaignStore): Record<string, number> {
   const out: Record<string, number> = {};
@@ -154,9 +216,9 @@ export interface LedgerRow {
   balance: number;
 }
 
-/** Entries with a running balance over exactly those entries, in book order. */
-export function ledgerRows(store: CampaignStore, filter: LedgerFilter = {}, calendar?: CalendarDef): LedgerRow[] {
-  let balance = 0;
+/** Entries with a running balance over exactly those entries (from `opening`), in book order. */
+export function ledgerRows(store: CampaignStore, filter: LedgerFilter = {}, calendar?: CalendarDef, opening = 0): LedgerRow[] {
+  let balance = opening;
   return ledgerEntries(store, filter, calendar).map((entry) => {
     balance = Math.round((balance + entry.amount) * 10000) / 10000;
     return { entry, balance };

@@ -17,7 +17,8 @@ describe("DiceRollPanel with total-style engines", () => {
     expect(screen.getByTestId("dicepool")).toHaveTextContent("= 1d20 + 4 (advantage) vs DC 15");
     fireEvent.click(screen.getByRole("button", { name: "Roll" }));
     const expected = d20.roll(d20.buildPool({ attribute: 14, skill: 1, attributeId: "might", advantage: "advantage", dc: 15, modifier: 0 }), createRng("d20-ui"));
-    expect(onRolled).toHaveBeenCalledWith(expected);
+    // the options the GM changed come with the roll, as text for its log line
+    expect(onRolled).toHaveBeenCalledWith(expected, undefined, { options: { advantage: "advantage", dc: 15, modifier: 0 }, notes: ["Roll: advantage", "DC 15"] });
     expect(screen.getByTestId("roll-total")).toHaveTextContent(String(expected.total));
     expect(screen.getByTestId("roll-outcome")).toHaveTextContent(expected.successes ? "Success" : "Failure");
     expect(screen.queryByTestId("successes")).toBeNull();
@@ -25,6 +26,24 @@ describe("DiceRollPanel with total-style engines", () => {
     expect(container.querySelectorAll(".cf-dice__faces .cf-die")).toHaveLength(2);
     expect(container.querySelectorAll('.cf-dice__faces [data-dropped="true"]')).toHaveLength(1);
     expect(screen.queryByRole("button", { name: "Push" })).toBeNull();
+  });
+
+  it("offers a small dice modifier as a − / + stepper, adds it to the pool and names it with the roll", () => {
+    const pool = createDiceEngine({ engine: "pool" });
+    const onRolled = vi.fn();
+    render(<DiceRollPanel dice={pool} input={{ attribute: 2, skill: 1 }} rng={createRng("pool-ui")} onRolled={onRolled} />);
+    expect(rollOptionFields(pool.rollOptions).find((f) => f.key === "modifier")?.stepper).toBe(true);
+    // a d20 DC or a wide modifier stays a number box
+    expect(rollOptionFields(createDiceEngine({ engine: "d20" }).rollOptions).filter((f) => f.stepper)).toEqual([]);
+    const stepper = within(screen.getByTestId("roll-option-modifier"));
+    fireEvent.click(stepper.getByRole("button", { name: "Increase Modifier (dice)" }));
+    fireEvent.click(stepper.getByRole("button", { name: "Increase Modifier (dice)" }));
+    fireEvent.click(stepper.getByRole("button", { name: "Decrease Modifier (dice)" }));
+    expect(screen.getByTestId("dicepool")).toHaveTextContent("Modifier");
+    fireEvent.click(screen.getByRole("button", { name: "Roll" }));
+    const expected = pool.roll(pool.buildPool({ attribute: 2, skill: 1, modifier: 1 }), createRng("pool-ui"));
+    expect(onRolled).toHaveBeenCalledWith(expected, undefined, { options: { modifier: 1 }, notes: ["Modifier +1"] });
+    expect(expected.dice).toHaveLength(4);
   });
 
   it("shows 2d6 bands and d100 degrees", () => {

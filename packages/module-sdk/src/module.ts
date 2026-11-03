@@ -14,7 +14,7 @@ import { computeFields, defaultFieldsFor, fieldSchemaAt, schemaDefaults, validat
 import { runProcedure } from "./procedures";
 import { createTableRegistry } from "./tables";
 import { lifecycleConfig, lifecycleConfigIssues } from "./lifecycle";
-import { logicIssues } from "./logic";
+import { getPath, logicIssues } from "./logic";
 import { mapGeneratorIssues } from "./mapgen/check";
 import { attackRanges, planWeaponAttack, weaponListConfig, weaponPresets, weaponRowFrom } from "./weapons";
 import { catalogPresets, gearCatalogConfig, sheetFieldAt } from "./gear";
@@ -333,6 +333,24 @@ function checkGearCatalog(field: SheetField, def: EntityTypeDef, module: GameMod
     if (!r.subtypes?.length && !r.tags?.length) c.warn(fw, `catalog route to "${r.path}" matches nothing (no subtypes or tags)`);
   }
   if (catalogPresets(cfg, module.presets).length === 0) c.warn(fw, "the gear catalog matches no preset");
+  if (cfg.skillBonus) {
+    if (typeof cfg.skillBonus.path !== "string" || !cfg.skillBonus.path) c.error(fw, "catalog skillBonus needs a path");
+    else {
+      const skills = sheetSkillIds(def, module);
+      for (const p of catalogPresets(cfg, module.presets)) {
+        const map = getPath(p.fields, cfg.skillBonus.path);
+        if (map === undefined) continue;
+        if (!map || typeof map !== "object" || Array.isArray(map)) {
+          c.error(fw, `preset ${p.id}: skillBonus (${cfg.skillBonus.path}) is not a map of skill id to dice`);
+          continue;
+        }
+        for (const [k, v] of Object.entries(map)) {
+          if (!skills.has(k)) c.error(fw, `preset ${p.id}: skillBonus names "${k}", which is not a skill of the sheet`);
+          if (typeof v !== "number" || !Number.isInteger(v)) c.error(fw, `preset ${p.id}: skillBonus for "${k}" is not a whole number of dice`);
+        }
+      }
+    }
+  }
 }
 
 /** A `weapons` field: its config, the presets it offers, and that an attack with each rolls a skill the sheet has. */
@@ -817,6 +835,14 @@ function checkEconomy(module: GameModule, declaredModes: Set<PlayModeId>, c: Col
     }
     const cats = new Set((ledger.categories ?? []).map((x) => x.id));
     for (const t of ledger.accountEntityTypes ?? []) if (!types.has(t)) c.error(w, `accountEntityTypes references unknown entity type "${t}"`);
+    if (ledger.accountField !== undefined) {
+      if (!ledger.accountEntityTypes?.length) c.error(w, "accountField needs accountEntityTypes");
+      for (const t of ledger.accountEntityTypes ?? []) {
+        const def = module.entityTypes.find((x) => x.id === t);
+        const schema = def ? fieldSchemaAt(def, ledger.accountField) : undefined;
+        if (def && (!schema || !["number", "integer"].includes(String(schema.type)))) c.error(w, `accountField "${ledger.accountField}" is not a number field of ${t}`);
+      }
+    }
     for (const p of ledger.payouts ?? []) {
       const pw = `ledger:payout:${p.entityType}`;
       if (!types.has(p.entityType)) c.error(pw, `unknown entity type "${p.entityType}"`);

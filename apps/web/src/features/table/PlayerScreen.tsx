@@ -1,13 +1,14 @@
 /**
  * The shared screen for the players (`?view=players`, opened in its own
  * window): the clock, the current scene's read-aloud text, the scene's
- * generated map with fog (player projection only) and every handout the
- * players may see. Read-only; it follows the GM's tab through the
- * cross-tab sync of the same local store.
+ * generated map with fog (player projection only) and the handouts the GM
+ * put on it (revealed this session since the last "Clear the screen", and
+ * the pinned ones). Read-only, with no rulebook page refs; it follows the
+ * GM's tab through the cross-tab sync of the same local store.
  */
-import { canSee, handoutStaysWithGm, playerSceneTitle, type Handout, type Id } from "@campaign-forge/core";
+import { canSee, playerSceneTitle, type Handout, type Id } from "@campaign-forge/core";
 import { useMemo } from "react";
-import { Badge, EmptyState } from "../../components/ui";
+import { Badge, EmptyState, HidePageRefs } from "../../components/ui";
 import { combatantOf, combatOrder } from "../../state/d20Actions";
 import { useCampaign } from "../../state/hooks";
 import { hpState } from "./D20Combat";
@@ -23,6 +24,7 @@ import { arcsDefOf, crewNotesFor } from "../../state/arcActions";
 import { useMapVersion } from "../../state/hooks";
 import { playerRecapFor } from "../../state/recapActions";
 import { PlayerRecapView } from "../sessions/RecapText";
+import { playerScreenHandouts } from "../../state/tableActions";
 
 const noop = () => undefined;
 
@@ -139,11 +141,11 @@ export function PlayerScreen({ sessionId }: { sessionId: Id }) {
   const map = useSceneMap(scene);
   const clock = useModeTrackers().find((t) => t.kind === "clock");
   const all = useList("handouts");
-  const handouts = useMemo(
-    () => all.filter((h) => canSee(h.visibility, { role: "player" }) && handoutStaysWithGm(h, ctx.module.module) === undefined).sort((a, b) => (b.revealedIn === sessionId ? 1 : 0) - (a.revealedIn === sessionId ? 1 : 0) || b.updated.localeCompare(a.updated)),
-    [all, sessionId, ctx],
-  );
+  const ts = useSessionTrackerState(sessionId);
+  const session = useRecord("sessions", sessionId);
+  const handouts = useMemo(() => playerScreenHandouts(ctx, sessionId), [all, ts, session, sessionId, ctx]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
+    <HidePageRefs>
     <div className="cf-table-mode app-table app-player" data-testid="player-screen">
       <header className="app-table__header">
         <strong className="app-player__campaign">{meta.name}</strong>
@@ -171,10 +173,11 @@ export function PlayerScreen({ sessionId }: { sessionId: Id }) {
         <PlayerCombat sessionId={sessionId} />
         <section className="app-player__handouts" aria-label="Handouts">
           <h2 className="app-subtitle">Handouts</h2>
-          {handouts.length === 0 ? <p className="cf-muted">Nothing revealed yet.</p> : handouts.map((h) => <PlayerHandout key={h.id} handout={h} />)}
+          {handouts.length === 0 ? <p className="cf-muted">Nothing on the screen yet.</p> : handouts.map((h) => <PlayerHandout key={h.id} handout={h} />)}
         </section>
         <PlayerCrewNotes />
       </div>
     </div>
+    </HidePageRefs>
   );
 }

@@ -13,6 +13,7 @@ import {
   placeHuntToken,
   playerLayout,
   playerLive,
+  playerTracker,
   projectCampaignForViewer,
   recordSweep,
   removeHuntToken,
@@ -334,6 +335,29 @@ describe("sweeps and blips", () => {
     // a kept letter stays on the revealed token
     setHuntTokenState(store, mapId, third, "seen", { keepLetter: true });
     expect(token(map(), "Third").letter).toBe("B");
+  });
+
+  it("shows the players one screen per sweeper this step: sweeping again replaces it rather than stacking", () => {
+    const { store, mapId, map } = setup();
+    const lurker = placeHuntToken(store, mapId, { label: "Lurker", zone: "V2", mover: "creature" });
+    advanceHunt(store, mapId, "stretch");
+    for (let i = 0; i < 5; i++) recordSweep(store, mapId, { by: { name: "Dana", entity: "pc-dana" }, from: "A", sensor: TRACKER, def: DEF, at: `t${i}` });
+    recordSweep(store, mapId, { by: { name: "Lee", entity: "pc-lee" }, from: "A", sensor: TRACKER, def: DEF, at: "t9" });
+    const read = () => playerTracker(huntOf(liveOf(map())))!.sweeps.map((s) => [s.by, s.blips.map((b) => b.letter).join("")]);
+    expect(read()).toEqual([
+      ["Dana", ""],
+      ["Lee", ""],
+    ]);
+    // Dana sweeps again after the lurker moves: her newest screen replaces the old one, in its place
+    moveHuntToken(store, mapId, lurker, "V1");
+    recordSweep(store, mapId, { by: { name: "Dana", entity: "pc-dana" }, from: "A", sensor: TRACKER, def: DEF, at: "t10" });
+    expect(read()).toEqual([
+      ["Lee", ""],
+      ["Dana", "A"],
+    ]);
+    // the next step: only the last sweep, stale
+    advanceHunt(store, mapId, "stretch");
+    expect(playerTracker(huntOf(liveOf(map())))!.sweeps.map((s) => [s.by, s.stale])).toEqual([["Dana", true]]);
   });
 
   it("number blips past the set when every letter is held", () => {

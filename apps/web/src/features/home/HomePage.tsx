@@ -49,7 +49,8 @@ export function HomePage() {
   const onStart = () => {
     if (running) return openTable(running.id);
     if (nextPlanned) {
-      ctx.store.update("sessions", nextPlanned.id, { status: "running" });
+      const inWorldDate = ctx.store.meta().currentDate;
+      ctx.store.update("sessions", nextPlanned.id, { status: "running", ...(inWorldDate && !nextPlanned.inWorldDate ? { inWorldDate } : {}) });
       return openTable(nextPlanned.id);
     }
     const s = startSession(ctx);

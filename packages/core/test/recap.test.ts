@@ -223,15 +223,52 @@ describe("the players' recap is built from the player projection only", () => {
     x.store.update("sessions", x.s3.id, { recap: r });
     showSessionRecap(x.store, x.s3.id, true);
     const outputs = [JSON.stringify(r.players), JSON.stringify(snapshot), JSON.stringify(playerRecap(x.store.toJSON(), MODULE, x.s3.id)), recapMarkdown(r.players), recapReadAloud(r.players)];
+    // the stored players' side offers the GM's summary as a line switched off (the GM reads it first); nothing else of the GM's
+    const offered = r.players.flatMap((s) => s.lines).filter((l) => l.text.includes(SECRET.summary));
+    expect(offered).toEqual([expect.objectContaining({ key: "summary", ref: x.s2.id, off: true, optIn: true })]);
+    const withoutOffered = { ...r, players: r.players.map((s) => ({ ...s, lines: s.lines.filter((l) => !l.optIn) })) };
+    outputs[0] = JSON.stringify(withoutOffered.players);
     for (const out of outputs) for (const [k, v] of Object.entries(SECRET)) expect(out, k).not.toContain(v);
     // what the players do get: the opening, the handout and field they were shown, the clue under the player title, the contact and their favour
     const text = recapTexts(r, "players").join("\n");
-    expect(text).toContain("Session 2: The docks, played 8 Mar 2026.");
+    // the table's real-world date is not story: a session without an in-world date has none
+    expect(text).toContain("Session 2: The docks.");
+    expect(text).not.toContain("8 Mar 2026");
     expect(text).toContain("“A torn manifest”.");
     expect(text).toContain("You learnt Mara's role.");
     expect(text).toContain("The missing salt shipments: Two salt barges went missing on one route [found]");
     expect(text).toContain('"favours":{"owedToCrew":1,"owedByCrew":0}');
     expect(r.players.some((s) => s.id === "secrets")).toBe(false);
+  });
+
+  it("dates the opening line in the world, and offers the GM's summary to read aloud, off until the GM switches it on", () => {
+    const x = setup();
+    x.store.update("sessions", x.s2.id, { inWorldDate: "2183-06-12" });
+    generateSessionRecap(x.store, MODULE, x.s3.id, { at: "2026-03-14T18:00:00.000Z" });
+    const lines = () => x.store.get("sessions", x.s3.id)!.recap!.players.find((s) => s.id === "story")!.lines;
+    expect(lines().map((l) => l.text)).toEqual(["Session 2: The docks (2183-06-12).", SECRET.summary]);
+    expect(lines()[1]).toMatchObject({ key: "summary", off: true, optIn: true });
+    const read = () => JSON.stringify(playerRecap(x.store.toJSON(), MODULE, x.s3.id));
+    expect(read()).toContain("Session 2: The docks (2183-06-12).");
+    expect(read()).not.toContain(SECRET.summary);
+    // the GM switches it on: the players get it, and regenerating keeps the switch
+    updateRecapLine(x.store, x.s3.id, { audience: "players", section: "story", key: "summary", ref: x.s2.id }, { off: false });
+    expect(read()).toContain(SECRET.summary);
+    generateSessionRecap(x.store, MODULE, x.s3.id, { at: "2026-03-14T19:00:00.000Z" });
+    expect(lines()[1]!.off).toBeUndefined();
+    expect(read()).toContain(SECRET.summary);
+    // and off again stays off
+    updateRecapLine(x.store, x.s3.id, { audience: "players", section: "story", key: "summary", ref: x.s2.id }, { off: true });
+    generateSessionRecap(x.store, MODULE, x.s3.id, { at: "2026-03-14T20:00:00.000Z" });
+    expect(lines()[1]!.off).toBe(true);
+    expect(read()).not.toContain(SECRET.summary);
+  });
+
+  it("a session started now takes the campaign's in-world date", () => {
+    const x = setup();
+    x.store.updateMeta({ currentDate: "2183-07-01" });
+    expect(x.store.createSession({ status: "running" }).inWorldDate).toBe("2183-07-01");
+    expect(x.store.createSession({ status: "planned" }).inWorldDate).toBeUndefined();
   });
 
   it("is reached only through playerRecap: once shown, lines switched on, links to what players see", () => {

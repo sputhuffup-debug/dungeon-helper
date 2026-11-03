@@ -114,7 +114,7 @@ test("run a session at the table: demo campaign, clock, panic roll, reveal, wrap
   expect(errors).toEqual([]);
 });
 
-test("table mode keeps working offline and the player screen shows revealed handouts", async ({ page, context }) => {
+test("table mode keeps working offline and the player screen shows what the GM revealed this session", async ({ page, context }) => {
   await page.goto("/");
   await page.getByTestId("load-demo").click();
   await expect(page).toHaveURL(/\/home$/, { timeout: 30_000 });
@@ -125,10 +125,9 @@ test("table mode keeps working offline and the player screen shows revealed hand
   await page.getByRole("button", { name: "Player screen" }).click();
   const players = await popupPromise;
   await expect(players.getByTestId("player-screen")).toBeVisible();
-  // the crew's open friction is on the player screen from the start; their goals are not
-  await expect(players.locator("[data-handout]")).toHaveCount(5);
-  await expect(players.locator("[data-handout] h3").filter({ hasText: /: friction$/ })).toHaveCount(4);
-  await expect(players.locator("[data-handout] h3").filter({ hasText: /^Posting: / })).toHaveCount(1);
+  // nothing piles up from earlier: the crew's friction and the job's posting are theirs to see, but off the screen until shown or pinned
+  await expect(players.getByRole("region", { name: "Handouts" })).toContainText("Nothing on the screen yet.");
+  await expect(players.locator("[data-handout]")).toHaveCount(0);
   await expect(players.getByText("personal agenda")).toHaveCount(0);
 
   await context.setOffline(true);
@@ -138,6 +137,7 @@ test("table mode keeps working offline and the player screen shows revealed hand
   page.once("dialog", (d) => void d.accept());
   await reveal.getByRole("button", { name: /^Show .* to everyone$/ }).first().click();
   await expect(players.locator("[data-handout]").first()).toContainText(firstTitle.trim());
+  await expect(players.locator("[data-handout]")).toHaveCount(1);
   const clock = page.getByTestId("table-clock");
   await clock.getByRole("button", { name: "Advance one Stretch" }).click();
   await expect(players.getByTestId("clock-stretch")).toHaveText("1");

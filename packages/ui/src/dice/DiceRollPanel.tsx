@@ -2,19 +2,29 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { probeDice, rollEntered, type DiceSystem, type DieSpec, type RollResult, type Rng } from "@campaign-forge/module-sdk";
 import { Badge } from "../primitives/Badge";
 import { Button } from "../primitives/Button";
+import { Stepper } from "../primitives/Stepper";
 import { cx, humanize } from "../sheet/paths";
 import { DicePoolView } from "../widgets/dicepool";
 import { DieFace } from "./DieFace";
 import { DiceModeSwitch, useDiceRoller } from "./DiceRoller";
 import { EnterDice } from "./EnterDice";
-import { rollOptionFields, showsTotal, toneBadge, type RollOptionField } from "./outcome";
+import { rollOptionFields, rollOptionNotes, showsTotal, toneBadge, type RollOptionField } from "./outcome";
+
+/** What the panel adds about a roll it reports: the roll options the GM changed, as short text ("Modifier +1"). */
+export interface RollInfo {
+  options: Record<string, unknown>;
+  notes: string[];
+}
 
 export interface DiceRollPanelProps {
   dice: DiceSystem;
   /** Module-specific input for `buildPool` (attribute, skill, modifier...). */
   input: Record<string, unknown>;
-  /** A roll or push was made; `entered` holds the faces typed when the dice were rolled at the table. */
-  onRolled: (result: RollResult, entered?: number[]) => void;
+  /**
+   * A roll or push was made; `entered` holds the faces typed when the dice
+   * were rolled at the table, `info` the roll options the GM changed.
+   */
+  onRolled: (result: RollResult, entered?: number[], info?: RollInfo) => void;
   rng: Rng;
   allowPush?: boolean;
   storyPoints?: number;
@@ -78,7 +88,11 @@ function RollOptions({ fields, values, onChange }: { fields: RollOptionField[]; 
         return (
           <label key={f.key} className="cf-dice__option" htmlFor={fid}>
             <span>{f.label}</span>
-            {f.kind === "enum" ? (
+            {f.stepper ? (
+              <span data-testid={`roll-option-${f.key}`}>
+                <Stepper id={fid} value={typeof value === "number" ? value : Number(f.defaultValue ?? 0)} min={f.min} max={f.max} onChange={(n) => set(f.key, n)} label={f.label} />
+              </span>
+            ) : f.kind === "enum" ? (
               <select id={fid} className="cf-select" value={typeof value === "string" ? value : ""} onChange={(e) => set(f.key, e.target.value || undefined)} data-testid={`roll-option-${f.key}`}>
                 {f.defaultValue === undefined && <option value="">—</option>}
                 {f.values!.map((v) => (
@@ -127,6 +141,7 @@ export function DiceRollPanel({ dice, input, onRolled, rng, allowPush = true, st
   const [entered, setEntered] = useState<number[] | undefined>(initialEntered);
   const optionFields = useMemo(() => rollOptionFields(dice.rollOptions), [dice]);
   const [options, setOptions] = useState<Record<string, unknown>>(() => initialOptions(optionFields, input));
+  const startOptions = useRef(options);
   // Key the pool on the input's content so a parent passing a fresh inline
   // object on every render does not rebuild the pool or clear the result.
   const inputKey = JSON.stringify({ input: input ?? {}, options });
@@ -146,7 +161,12 @@ export function DiceRollPanel({ dice, input, onRolled, rng, allowPush = true, st
     setResult(r);
     setEntered(faces);
     setEntering(undefined);
-    if (faces) onRolled(r, faces);
+    const notes = rollOptionNotes(optionFields, options, startOptions.current);
+    const info = notes.length ? { options, notes } : undefined;
+    if (faces) {
+      if (info) onRolled(r, faces, info);
+      else onRolled(r, faces);
+    } else if (info) onRolled(r, undefined, info);
     else onRolled(r);
   };
   const roll = () => show(dice.roll(pool, rng));
