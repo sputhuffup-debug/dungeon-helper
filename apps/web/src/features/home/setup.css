@@ -29,9 +29,20 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  /* open steps are cards three to a row; done steps shrink to a one-line tick, so they never hold a tall row open */
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
   gap: var(--cf-space-2) var(--cf-space-4);
+}
+.setup-guide__steps > .setup-step {
+  flex: 1 1 calc((100% - 2 * var(--cf-space-4)) / 3);
+  min-width: min(100%, 300px);
+}
+.setup-guide__steps > .setup-step.is-done {
+  flex: 0 0 auto;
+  min-width: 0;
+  padding-block: var(--cf-space-1);
 }
 .setup-step {
   display: flex;
