@@ -37,15 +37,15 @@ test("recap: open session 2, toggle a line, show the read-aloud on the player sc
   const gmTitle = clueLine.split(":")[0]!;
   expect(secretLine.length).toBeGreaterThan(10);
 
-  // 3. the read-aloud: switch the crew kitty line off
+  // 3. the read-aloud: switch the crew funds line off
   await card.getByRole("tab", { name: /Read-aloud/ }).click();
   const read = card.getByTestId("recap-players");
   await expect(read).toContainText("Session 1: The offer, played 7 Nov 2026.");
   await expect(read).toContainText("Mara Quill is one of your contacts.");
   await expect(read).not.toContainText(gmTitle);
-  const kitty = read.getByTestId("recap-line").filter({ hasText: "Crew kitty carried over" });
-  await kitty.getByRole("checkbox").uncheck();
-  await expect(kitty).toHaveAttribute("data-off", "true");
+  const funds = read.getByTestId("recap-line").filter({ hasText: "Crew funds now" });
+  await funds.getByRole("checkbox").uncheck();
+  await expect(funds).toHaveAttribute("data-off", "true");
 
   // 4. show it on the player screen
   await card.getByTestId("recap-show").click();
@@ -56,7 +56,7 @@ test("recap: open session 2, toggle a line, show the read-aloud on the player sc
   await expect(shown).toBeVisible();
   await expect(shown).toContainText("Previously on Skyfire Down");
   await expect(shown).toContainText("Mara Quill");
-  await expect(shown).not.toContainText("Crew kitty carried over");
+  await expect(shown).not.toContainText("Crew funds now");
   const screen = players.getByTestId("player-screen");
   await expect(screen).not.toContainText(secretLine);
   await expect(screen).not.toContainText(gmTitle);

@@ -46,7 +46,7 @@ describe("Alien recap lines", () => {
     expect(sections.map((s) => s.id)).toEqual(["alien.jobs", "alien.clues", "alien.contacts", "alien.ship", "alien.hunt", "secrets"]);
     expect(sections.every((s) => s.audience === "gm")).toBe(true);
     const t = texts(gmSnapshot());
-    expect(t).toContain("The crew took the job Ore to the spaceport (for Geofund, $20,000 on delivery), bound for spaceport.");
+    expect(t).toContain("The crew took the job Ore to the spaceport (for Geofund, $20,000 on delivery), destination: spaceport.");
     expect(t.join("\n")).not.toContain("An old run");
     expect(t).toContain("GM-TITLE: A second manifest (from Mara Quill, on Ore to the spaceport).");
     expect(t).toContain("Mara Quill is a contact (friendly). Owes the crew a favour. Where to find them: the cargo stalls.");

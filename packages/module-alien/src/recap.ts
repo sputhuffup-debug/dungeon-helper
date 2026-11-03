@@ -60,7 +60,7 @@ function jobsSection(x: Ctx): RecapSectionDraft | undefined {
     }
     const where = str(job.fields.destination);
     const bits = [employer ? `for ${employer}` : "", pay ? `${pay} on delivery` : ""].filter(Boolean).join(", ");
-    lines.push({ key: "alien.job-taken", ref: job.id, text: `The crew took the job ${job.name}${bits ? ` (${bits})` : ""}${where ? `, bound for ${lowerFirst(stop(where))}` : ""}.`, links: [link(job)] });
+    lines.push({ key: "alien.job-taken", ref: job.id, text: `The crew took the job ${job.name}${bits ? ` (${bits})` : ""}${where ? `, destination: ${lowerFirst(stop(where))}` : ""}.`, links: [link(job)] });
   }
   return lines.length ? { id: "alien.jobs", title: "Jobs", audience: x.s.audience, order: 25, lines } : undefined;
 }
@@ -178,7 +178,8 @@ function shipSection(x: Ctx): RecapSectionDraft | undefined {
     lines.push({ key: "alien.travel", ref: t.id, text, links: ship ? [link(ship)] : [] });
   }
   const shared = x.s.ledger.filter((l) => !l.account);
-  for (const l of shared.slice(-6)) lines.push({ key: "alien.ledger", ref: l.id, text: `${money(l.amount, true)}: ${stop(l.note || l.category.replace(/-/g, " "))}.` });
+  // the read-aloud gives the players the total only; the GM sees the entries
+  if (x.gm) for (const l of shared.slice(-6)) lines.push({ key: "alien.ledger", ref: l.id, text: `${money(l.amount, true)}: ${stop(l.note || l.category.replace(/-/g, " "))}.` });
   if (shared.length) lines.push({ key: "alien.balance", text: `Crew funds now: ${money(x.s.balance)}.` });
   return lines.length ? { id: "alien.ship", title: "Ship and funds", audience: x.s.audience, order: 55, lines } : undefined;
 }
