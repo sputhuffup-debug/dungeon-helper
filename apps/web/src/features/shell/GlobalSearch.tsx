@@ -1,9 +1,12 @@
-/** Header search over the campaign: grouped by kind, keyboard navigable, Enter opens. */
+/** Header search over the campaign and its module's rule cards: grouped by kind, keyboard navigable, Enter opens. */
 import type { Id, SearchHit, SearchKind } from "@campaign-forge/core";
+import { searchRuleCards, type RuleCard } from "@campaign-forge/module-sdk";
+import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { PageRef } from "../../components/ui";
 import { EntityIcon } from "../../components/EntityIcon";
 import { useRecordLinks } from "../../components/EntityLinkContext";
-import { useCampaign, useMapVersion } from "../../state/hooks";
+import { useCampaign, useMapVersion, useMeta } from "../../state/hooks";
 
 const KIND_LABEL: Record<SearchKind, string> = {
   entity: "Entities",
@@ -14,9 +17,15 @@ const KIND_LABEL: Record<SearchKind, string> = {
   session: "Sessions",
 };
 const ORDER: SearchKind[] = ["entity", "note", "adventure", "scene", "handout", "session"];
+const RULE_LIMIT = 6;
+
+/** A campaign record, or one of the module's rule cards (opened on the Rules page). */
+type Hit = SearchHit | { kind: "rule"; id: string; name: string; card: RuleCard };
 
 export function GlobalSearch() {
   const ctx = useCampaign();
+  const meta = useMeta();
+  const navigate = useNavigate();
   const links = useRecordLinks();
   const version = useMapVersion("*");
   const [query, setQuery] = useState("");
@@ -28,9 +37,13 @@ export function GlobalSearch() {
     const hits = ctx.search.search(query, { limit: 30 });
     const by = new Map<SearchKind, SearchHit[]>();
     for (const h of hits) by.set(h.kind, [...(by.get(h.kind) ?? []), h]);
-    return ORDER.filter((k) => by.has(k)).map((k) => ({ kind: k, hits: by.get(k) ?? [] }));
+    const out: Array<{ kind: SearchKind | "rule"; label: string; hits: Hit[] }> = ORDER.filter((k) => by.has(k)).map((k) => ({ kind: k, label: KIND_LABEL[k], hits: by.get(k) ?? [] }));
+    // the module's rule cards for this play mode, with their page references
+    const rules = searchRuleCards(ctx.module.module.rules, query, { mode: meta.mode, limit: RULE_LIMIT });
+    if (rules.length) out.push({ kind: "rule", label: "Rules", hits: rules.map((r) => ({ kind: "rule" as const, id: r.card.id, name: r.card.title, card: r.card })) });
+    return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ctx.search, query, version]);
+  }, [ctx.search, ctx.module, meta.mode, query, version]);
   const flat = useMemo(() => groups.flatMap((g) => g.hits), [groups]);
 
   useEffect(() => {
@@ -47,11 +60,12 @@ export function GlobalSearch() {
     return () => document.removeEventListener("keydown", onKey);
   }, []);
 
-  const openHit = (hit: SearchHit) => {
+  const openHit = (hit: Hit) => {
     setOpen(false);
     setQuery("");
     inputRef.current?.blur();
-    openRecord(ctx, links, hit.kind, hit.id);
+    if (hit.kind === "rule") void navigate({ to: "/c/$campaignId/rules", params: { campaignId: ctx.campaignId }, search: { rule: hit.id } });
+    else openRecord(ctx, links, hit.kind, hit.id);
   };
 
   const onKey = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -100,11 +114,12 @@ export function GlobalSearch() {
           {flat.length === 0 && <div className="app-search__empty cf-muted">No matches</div>}
           {groups.map((g) => (
             <div key={g.kind} className="app-search__group">
-              <div className="app-search__group-title">{KIND_LABEL[g.kind]}</div>
+              <div className="app-search__group-title">{g.label}</div>
               {g.hits.map((h) => {
                 n += 1;
                 const i = n;
                 const def = h.kind === "entity" && h.type ? ctx.module.entityType(h.type) : undefined;
+                const rule = h.kind === "rule" ? h.card : undefined;
                 return (
                   <button
                     key={`${h.kind}:${h.id}`}
@@ -116,9 +131,10 @@ export function GlobalSearch() {
                     onMouseEnter={() => setIndex(i)}
                     onClick={() => openHit(h)}
                   >
-                    {h.kind === "entity" ? <EntityIcon icon={def?.icon} kind={def?.kind} size={14} /> : <EntityIcon icon="note" size={14} />}
+                    {h.kind === "entity" ? <EntityIcon icon={def?.icon} kind={def?.kind} size={14} /> : <EntityIcon icon={rule ? "book" : "note"} size={14} />}
                     <span className="app-search__name">{h.name}</span>
                     {def && <span className="cf-muted">{def.name}</span>}
+                    {rule && <PageRef page={rule.page} cite={rule.cite} original={rule.original} />}
                   </button>
                 );
               })}

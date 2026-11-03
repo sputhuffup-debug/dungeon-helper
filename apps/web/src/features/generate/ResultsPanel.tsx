@@ -30,12 +30,31 @@ export function outcomesOf(results: Record<string, unknown>): Array<{ key: strin
   return out;
 }
 
+/** A field value in words: lists by their items ("none" when empty), objects as "Key value" pairs, never JSON. */
+export function valueText(v: unknown): string {
+  if (v === undefined || v === null || v === "") return "nothing";
+  if (typeof v === "string") return v;
+  if (typeof v === "number" || typeof v === "boolean") return String(v);
+  if (Array.isArray(v)) {
+    if (v.length === 0) return "none";
+    const items = v.map((x) => (typeof x === "string" || typeof x === "number" ? String(x) : x && typeof x === "object" && typeof (x as { name?: unknown }).name === "string" ? (x as { name: string }).name : ""));
+    return items.every(Boolean) ? items.join(", ") : `${v.length} entr${v.length === 1 ? "y" : "ies"}`;
+  }
+  if (typeof v === "object") {
+    const parts = Object.entries(v as Record<string, unknown>)
+      .filter(([, x]) => typeof x === "string" || typeof x === "number" || typeof x === "boolean")
+      .map(([k, x]) => `${humanize(k).toLowerCase()} ${String(x)}`);
+    return parts.length ? parts.join(", ") : "new values";
+  }
+  return String(v);
+}
+
 export function describeEffect(e: Effect, name: (id: Id) => string, presetName: (id: string) => string = (id) => id, money: (amount: number) => string = (n) => `${n >= 0 ? "+" : ""}${n}`): string {
   switch (e.kind) {
     case "setField":
-      return `${name(e.entity)}: set ${humanize(e.path)} to ${JSON.stringify(e.value)}`;
+      return `${name(e.entity)}: ${humanize(e.path).toLowerCase()} set to ${valueText(e.value)}`;
     case "incrementField":
-      return `${name(e.entity)}: ${humanize(e.path)} ${e.by >= 0 ? "+" : "−"}${Math.abs(e.by)}`;
+      return `${name(e.entity)}: ${humanize(e.path).toLowerCase()} ${e.by >= 0 ? "+" : "−"}${Math.abs(e.by)}`;
     case "addCondition":
       return `${name(e.entity)}: gains ${e.condition.label}`;
     case "removeCondition":

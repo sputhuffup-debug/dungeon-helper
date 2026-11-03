@@ -2,10 +2,10 @@
  * Atlas: location tree, rosters per entity kind, and a relationship graph.
  * "Preview as player" runs every entity through `projectEntityForViewer`.
  */
-import { locationTree, projectEntityForViewer, relationshipLabel, type Entity, type TreeNode, type Viewer } from "@campaign-forge/core";
+import { locationTree, projectEntityForViewer, readableTags, relationshipLabel, type Entity, type TreeNode, type Viewer } from "@campaign-forge/core";
 import type { CoreEntityKind, EntityTypeDef } from "@campaign-forge/module-sdk";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { createContext, useContext, useMemo, useState } from "react";
 import { EntityIcon } from "../../components/EntityIcon";
 import { visibilityLabel, visibilityTone } from "../../components/VisibilitySelect";
 import { Badge, EmptyState, Tabs } from "../../components/ui";
@@ -15,6 +15,10 @@ import { BuildCharacterButton, CharacterProcedureLinks, DraftList, useCharacterB
 import { RelationshipGraph } from "./RelationshipGraph";
 
 const PLAYER: Viewer = { role: "player" };
+
+/** True while the Atlas previews as a player: entity links carry the preview into the entity page. */
+const PreviewContext = createContext(false);
+const usePreview = () => (useContext(PreviewContext) ? { as: "player" as const } : {});
 
 interface Group {
   id: string;
@@ -45,7 +49,8 @@ export function AtlasPage() {
   const navigate = useNavigate({ from: "/c/$campaignId/atlas" });
   const all = useList("entities");
   const relVersion = useMapVersion("relationships");
-  const [asPlayer, setAsPlayer] = useState(false);
+  const asPlayer = search.as === "player";
+  const setAsPlayer = (on: boolean) => void navigate({ search: (s) => ({ ...s, as: on ? ("player" as const) : undefined }), replace: true });
   const [tag, setTag] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
   const [text, setText] = useState("");
@@ -63,7 +68,8 @@ export function AtlasPage() {
   }, [all, asPlayer, typeById]);
   const visibleIds = useMemo(() => new Set(visible.map((e) => e.id)), [visible]);
 
-  const allTags = useMemo(() => [...new Set(all.flatMap((e) => e.tags))].sort(), [all]);
+  // the GM's own tags; machine tags ("within:...", "subtype:...") are data, not filters
+  const allTags = useMemo(() => [...new Set(all.flatMap((e) => readableTags(e.tags)))].sort(), [all]);
   const matches = (e: Entity) =>
     (!tag || e.tags.includes(tag)) && (!typeFilter || e.type === typeFilter) && (!text.trim() || e.name.toLowerCase().includes(text.trim().toLowerCase()));
 
@@ -107,7 +113,7 @@ export function AtlasPage() {
     {
       id: "graph",
       label: "Graph",
-      content: <RelationshipGraph entities={visible.filter(matches)} typeById={typeById} module={ctx.module.module} label={relationshipLabel} />,
+      content: <RelationshipGraph entities={visible.filter(matches)} typeById={typeById} module={ctx.module.module} label={relationshipLabel} asPlayer={asPlayer} />,
     },
   ];
 
@@ -136,7 +142,7 @@ export function AtlasPage() {
           </Link>
         </div>
       </header>
-      {asPlayer && <p className="app-note">Showing only what a player could see: GM-only entities and fields are hidden.</p>}
+      {asPlayer && <p className="app-note">Showing only what a player could see: GM-only entities and fields are hidden. Open an entity to see its page as players do.</p>}
       <div className="app-filters" role="group" aria-label="Filters">
         <input className="cf-input" type="search" placeholder="Filter by name" aria-label="Filter by name" value={text} onChange={(e) => setText(e.target.value)} />
         {typesForTab.length > 1 && (
@@ -158,14 +164,16 @@ export function AtlasPage() {
           ))}
         </select>
       </div>
+      <PreviewContext.Provider value={asPlayer}>
       <Tabs
         tabs={tabs}
         value={tabs.some((t) => t.id === tab) ? tab : "locations"}
         onChange={(id) => {
           setTypeFilter("");
-          void navigate({ search: { tab: id }, replace: true });
+          void navigate({ search: { tab: id, ...(asPlayer ? { as: "player" as const } : {}) }, replace: true });
         }}
       />
+      </PreviewContext.Provider>
     </div>
   );
 }
@@ -189,6 +197,7 @@ function TreeItem({ node, keep, typeById }: { node: TreeNode; keep: (n: TreeNode
   const [open, setOpen] = useState(true);
   const def = typeById.get(node.entity.type);
   const children = node.children.filter(keep);
+  const preview = usePreview();
   const subtype = node.entity.subtype ? def?.subtypes?.find((s) => s.id === node.entity.subtype)?.name ?? node.entity.subtype : undefined;
   return (
     <li role="treeitem" aria-expanded={children.length ? open : undefined} className="app-tree__item">
@@ -201,7 +210,7 @@ function TreeItem({ node, keep, typeById }: { node: TreeNode; keep: (n: TreeNode
           <span className="app-tree__toggle" />
         )}
         <EntityIcon icon={def?.icon} kind={def?.kind} size={14} />
-        <Link to="/c/$campaignId/entities/$entityId" params={{ campaignId, entityId: node.entity.id }} className="app-link-strong">
+        <Link to="/c/$campaignId/entities/$entityId" params={{ campaignId, entityId: node.entity.id }} search={preview} className="app-link-strong">
           {node.entity.name}
         </Link>
         {subtype && <span className="cf-muted">{subtype}</span>}
@@ -219,6 +228,7 @@ function TreeItem({ node, keep, typeById }: { node: TreeNode; keep: (n: TreeNode
 
 function EntityTable({ entities, typeById, kind, pc }: { entities: Entity[]; typeById: Map<string, EntityTypeDef>; kind?: CoreEntityKind; pc?: boolean }) {
   const { campaignId, module } = useCampaign();
+  const preview = usePreview();
   const refName = (list: string, id: string) => module.referenceItem(list, id)?.name;
   const sorted = [...entities].sort((a, b) => a.name.localeCompare(b.name));
   if (sorted.length === 0) {
@@ -259,7 +269,7 @@ function EntityTable({ entities, typeById, kind, pc }: { entities: Entity[]; typ
             return (
               <tr key={e.id}>
                 <td>
-                  <Link to="/c/$campaignId/entities/$entityId" params={{ campaignId, entityId: e.id }} className="app-link-strong">
+                  <Link to="/c/$campaignId/entities/$entityId" params={{ campaignId, entityId: e.id }} search={preview} className="app-link-strong">
                     {e.name}
                   </Link>
                 </td>
@@ -269,7 +279,7 @@ function EntityTable({ entities, typeById, kind, pc }: { entities: Entity[]; typ
                 </td>
                 <td className="cf-muted">{summaryLine(def, e, [], refName)}</td>
                 <td>
-                  {e.tags.map((t) => (
+                  {readableTags(e.tags).map((t) => (
                     <Badge key={t}>{t}</Badge>
                   ))}
                 </td>

@@ -343,6 +343,65 @@ h3 {
 .app-note--warning {
   background: var(--cf-warning-soft);
 }
+/* preview as player: the banner over an entity page seen through the player projection */
+.app-preview-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cf-space-2) var(--cf-space-3);
+  margin-bottom: var(--cf-space-4);
+  padding: var(--cf-space-3) var(--cf-space-4);
+  border: 1px solid var(--cf-accent);
+  border-radius: var(--cf-radius);
+  background: var(--cf-accent-soft);
+  overflow-wrap: anywhere;
+}
+.app-preview-sheet {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  align-items: start;
+  gap: var(--cf-space-4);
+  margin-top: var(--cf-space-4);
+}
+/* a small "More…" menu of less used actions */
+.app-menu {
+  position: relative;
+}
+.app-menu__body {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--cf-space-1);
+  min-width: 12rem;
+  padding: var(--cf-space-2);
+  border: 1px solid var(--cf-border-strong);
+  border-radius: var(--cf-radius);
+  background: var(--cf-elevated);
+  box-shadow: var(--cf-shadow);
+}
+.app-menu__body[hidden] {
+  display: none;
+}
+@media (max-width: 800px) {
+  /* the entity header is one column: the menu opens under its button, from the left */
+  .app-entity__actions .app-menu__body {
+    left: 0;
+    right: auto;
+  }
+}
+.app-menu__body .app-lifecycle-start {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cf-space-1);
+}
+.app-menu__body .cf-btn {
+  justify-content: flex-start;
+}
 .app-scroll-x {
   overflow-x: auto;
   max-width: 100%;
@@ -3882,4 +3941,11 @@ a.cf-btn {
   .prep-workbench__grid.has-agendas {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+/* the accept button's label names what it applies: it wraps inside a narrow column */
+.prep-accept {
+  max-width: 100%;
+  white-space: normal;
+  text-align: center;
+  padding-block: var(--cf-space-2);
 }

@@ -88,6 +88,9 @@ export function HomePage() {
           <Link to="/c/$campaignId/primer" params={{ campaignId }} className="cf-btn" data-testid="open-primer" title="The players' introduction to the campaign, for session 0">
             Campaign primer
           </Link>
+          <Link to="/c/$campaignId/gm-screen" params={{ campaignId }} search={{ view: "screen" }} className="cf-btn" data-testid="home-gm-screen" title="The module's quick reference: read it on screen or print it">
+            GM screen
+          </Link>
         </div>
       </header>
 

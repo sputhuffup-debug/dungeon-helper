@@ -38,12 +38,19 @@ const homeRoute = createRoute({
 
 export interface AtlasSearch {
   tab?: string;
+  /** "player": preview as player (carried into entity pages). */
+  as?: "player";
+}
+
+/** The preview-as-player flag in a page's search. */
+export function previewSearch(search: Record<string, unknown>): { as?: "player" } {
+  return search.as === "player" ? { as: "player" } : {};
 }
 
 const atlasRoute = createRoute({
   getParentRoute: () => campaignRoute,
   path: "atlas",
-  validateSearch: (search: Record<string, unknown>): AtlasSearch => (typeof search.tab === "string" ? { tab: search.tab } : {}),
+  validateSearch: (search: Record<string, unknown>): AtlasSearch => ({ ...(typeof search.tab === "string" ? { tab: search.tab } : {}), ...previewSearch(search) }),
   component: lazyRouteComponent(() => import("./features/atlas/AtlasPage"), "AtlasPage"),
 });
 
@@ -86,12 +93,14 @@ const buildRoute = createRoute({
 
 export interface EntitySearch {
   tab?: string;
+  /** "player": the page as a player sees it, read-only, with a banner and an exit. */
+  as?: "player";
 }
 
 const entityRoute = createRoute({
   getParentRoute: () => campaignRoute,
   path: "entities/$entityId",
-  validateSearch: (search: Record<string, unknown>): EntitySearch => (typeof search.tab === "string" ? { tab: search.tab } : {}),
+  validateSearch: (search: Record<string, unknown>): EntitySearch => ({ ...(typeof search.tab === "string" ? { tab: search.tab } : {}), ...previewSearch(search) }),
   component: lazyRouteComponent(() => import("./features/entities/EntityPage"), "EntityPage"),
 });
 
@@ -121,6 +130,7 @@ const referenceRoute = createRoute({
 const gmScreenRoute = createRoute({
   getParentRoute: () => campaignRoute,
   path: "gm-screen",
+  validateSearch: (s: Record<string, unknown>): { view?: "screen" } => (s.view === "screen" ? { view: "screen" } : {}),
   component: lazyRouteComponent(() => import("./features/gmscreen/GmScreenPage"), "GmScreenPage"),
 });
 

@@ -13,16 +13,23 @@ import { errorMessage } from "../../lib/format";
 import { useCampaign, useList, useMeta } from "../../state/hooks";
 import { activeLifecycles, isExempt, lifecycleStartOptions, startLifecycleFor, type LifecycleStartOption } from "../../state/tableActions";
 
-export function LifecycleStart({ entity, sessionId, onPrompts }: { entity: Entity; sessionId?: Id; onPrompts?: (prompts: Prompt[]) => void }) {
+/**
+ * `show` picks a part (default both): the running life cycles' badges, or the
+ * start buttons (`actions`), so an entity page can keep the badges in its
+ * header and tuck the start buttons into a menu. `quiet` draws the start
+ * buttons as ordinary buttons rather than red ones.
+ */
+export function LifecycleStart({ entity, sessionId, onPrompts, show = "all", quiet = false }: { entity: Entity; sessionId?: Id; onPrompts?: (prompts: Prompt[]) => void; show?: "all" | "badges" | "actions"; quiet?: boolean }) {
   const ctx = useCampaign();
   useMeta(); // campaign-scoped tracker state lives on the campaign record
   const options = useMemo(() => lifecycleStartOptions(ctx, entity), [ctx, entity]);
   const running = activeLifecycles(ctx, entity.id);
   const [open, setOpen] = useState<LifecycleStartOption | undefined>();
-  if (options.length === 0 && running.length === 0) return null;
+  const startable = options.filter((o) => o.role === "source" || !running.some((r) => r.def.id === o.def.id && r.instance.host === entity.id));
+  if ((show !== "actions" ? running.length : 0) + (show !== "badges" ? startable.length : 0) === 0) return null;
   return (
     <span className="app-lifecycle-start">
-      {running.map(({ def, config, instance }) => {
+      {show !== "actions" && running.map(({ def, config, instance }) => {
         const stage = lifecycleStage(config, instance.variant, instance.stage);
         const label = config.labels?.instance ?? def.name;
         const role = instance.host === entity.id ? label : `${config.labels?.creature ?? "Spawn"} from ${instance.hostName}`;
@@ -33,12 +40,11 @@ export function LifecycleStart({ entity, sessionId, onPrompts }: { entity: Entit
           </Badge>
         );
       })}
-      {options
-        .filter((o) => o.role === "source" || !running.some((r) => r.def.id === o.def.id && r.instance.host === entity.id))
-        .map((o) => {
+      {show !== "badges" &&
+        startable.map((o) => {
           const label = o.config.start?.label ?? "Start";
           return (
-            <Button key={o.def.id} size="sm" variant="danger" onClick={() => setOpen(o)} aria-label={`${label}: ${entity.name}`}>
+            <Button key={o.def.id} size="sm" variant={quiet ? "ghost" : "danger"} onClick={() => setOpen(o)} aria-label={`${label}: ${entity.name}`}>
               {label}
             </Button>
           );
