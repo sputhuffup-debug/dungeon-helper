@@ -1,0 +1,84 @@
+/* The Guide page: a module's walkthrough, chapter by chapter, each step with its screenshot. */
+.guide {
+  max-width: 920px;
+}
+.guide__header {
+  margin-block-end: var(--cf-space-4);
+}
+.guide__summary {
+  font-size: 1.05rem;
+  max-width: 70ch;
+}
+.guide__toc {
+  border: 1px solid var(--cf-border);
+  border-radius: var(--cf-radius);
+  background: var(--cf-surface);
+  padding: var(--cf-space-3) var(--cf-space-4);
+  margin-block-end: var(--cf-space-5);
+}
+.guide__toc ol {
+  margin: 0;
+  padding-inline-start: 1.4em;
+  columns: 2 220px;
+  column-gap: var(--cf-space-5);
+}
+.guide__toc li {
+  break-inside: avoid;
+  padding-block: 2px;
+}
+.guide__chapter {
+  margin-block-end: var(--cf-space-6);
+  /* clear of the sticky app header when a chapter link jumps here */
+  scroll-margin-top: 72px;
+}
+.guide__chapter-title {
+  font-size: 1.4rem;
+  margin-block: 0 var(--cf-space-2);
+  padding-block-end: var(--cf-space-2);
+  border-block-end: 1px solid var(--cf-border);
+}
+.guide-step {
+  margin-block: var(--cf-space-4) var(--cf-space-5);
+  scroll-margin-top: 72px;
+}
+.guide-step__title {
+  font-size: 1.1rem;
+  margin-block: 0 var(--cf-space-2);
+  display: flex;
+  align-items: baseline;
+  gap: var(--cf-space-2);
+  flex-wrap: wrap;
+}
+.guide-step__number {
+  color: var(--cf-accent);
+  font-variant-numeric: tabular-nums;
+}
+.guide-step__body p {
+  margin-block: 0 var(--cf-space-2);
+  max-width: 75ch;
+  line-height: 1.55;
+}
+.guide-ui {
+  font-style: normal;
+  font-weight: 600;
+}
+.guide-step__links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cf-space-2);
+  margin-block: var(--cf-space-2) var(--cf-space-3);
+}
+.guide-step__figure {
+  margin: 0;
+}
+.guide-step__figure img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--cf-border);
+  border-radius: var(--cf-radius);
+}
+.guide-notice {
+  margin-block: var(--cf-space-2) 0;
+}

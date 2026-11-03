@@ -213,6 +213,11 @@ export function ModuleSection({
           <Button onClick={onStart} aria-label={`Start a campaign: ${m.name}`}>
             Start a campaign
           </Button>
+          {m.hasGuide && (
+            <Link to="/guide/$moduleId" params={{ moduleId: m.id }} className="cf-btn cf-btn--ghost" aria-label={`Guide: ${m.name}`} data-testid="module-guide" title="A step-by-step guide from a new campaign to its first session">
+              Guide
+            </Link>
+          )}
           {demos.map((d) => (
             <Button key={d.kind} variant="ghost" onClick={() => onDemo(d.kind)} disabled={busy} data-testid={d.testId} title={d.title}>
               ▶ {d.label}

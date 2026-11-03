@@ -27,7 +27,9 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ["**/*.{js,css,html,svg,woff2}"],
+        // The Guide page's screenshots (docs/screenshots/guide-*.png, emitted as hashed assets) are
+        // precached with the text, so the guide reads offline; they are cropped and small (a few MB in all).
+        globPatterns: ["**/*.{js,css,html,svg,woff2}", "**/guide-*.png"],
         // Every chunk is precached for offline play, built-in data packs included: each JSON file of a
         // pack (`PackSource`) becomes its own lazy chunk, so a large pack (a whole SRD) is split into
         // part files that each stay well under this limit (aim for 2 MB a part). A chunk over it would

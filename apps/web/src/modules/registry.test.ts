@@ -29,6 +29,9 @@ describe("module registry", () => {
       if (entry.license) expect(entry.license).toEqual(manifest.license);
       if (entry.ruleset) expect(entry.ruleset).toBe(manifest.ruleset);
       if (entry.publisher) expect(entry.publisher).toBe(manifest.publisher);
+      // the campaign list links a Guide page exactly when the module has one
+      const { module } = await loadModuleById(entry.id);
+      expect(!!entry.hasGuide, `${entry.id} hasGuide`).toBe(!!module.guide);
     }
   }, 30_000);
 

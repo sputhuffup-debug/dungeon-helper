@@ -3,8 +3,8 @@
  * core's setup.ts and the sdk's campaign settings. Nothing here knows what
  * game it is: the steps, their links and the settings come from the module.
  */
-import { campaignSetup, showsSetupGuide, withSetupGuide, type CampaignSetup, type CampaignStore, type Id, type MapName } from "@campaign-forge/core";
-import type { SetupLinkState, SetupPage } from "@campaign-forge/module-sdk";
+import { campaignSetup, setupSnapshot, showsSetupGuide, withSetupGuide, type CampaignSetup, type CampaignStore, type Id, type MapName } from "@campaign-forge/core";
+import type { SetupLinkState, SetupPage, SetupSnapshot } from "@campaign-forge/module-sdk";
 import { useMemo } from "react";
 import type { CampaignContextValue } from "./CampaignProvider";
 import { useCampaign, useMapVersion, useMeta } from "./hooks";
@@ -23,6 +23,19 @@ function setupMaps(store: CampaignStore) {
 /** The campaign's setup guide, ticked from its data. */
 export function setupOf(ctx: Ctx): CampaignSetup {
   return campaignSetup(setupMaps(ctx.store), ctx.module.module);
+}
+
+/** The campaign as setup rules (and the Guide page's entity links) read it. */
+export function setupSnapshotOf(ctx: Ctx): SetupSnapshot {
+  return setupSnapshot(setupMaps(ctx.store), ctx.module.module);
+}
+
+/** The setup snapshot, kept up to date with the campaign. */
+export function useSetupSnapshot(): SetupSnapshot {
+  const ctx = useCampaign();
+  const version = useMapVersion("*");
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  return useMemo(() => setupSnapshotOf(ctx), [ctx, version]);
 }
 
 /** The setup guide, kept up to date with the campaign, and whether Home shows it. */

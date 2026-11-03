@@ -28,9 +28,16 @@ export function SetupGuide({ setup }: { setup: CampaignSetup }) {
       aria-label="Set up your campaign"
       data-testid="setup-guide"
       actions={
-        <Button variant="ghost" size="sm" onClick={hide} data-testid="setup-hide">
-          Hide this
-        </Button>
+        <>
+          {ctx.module.module.guide && (
+            <Link to="/c/$campaignId/guide" params={{ campaignId: ctx.campaignId }} className="cf-btn cf-btn--sm cf-btn--ghost" data-testid="setup-open-guide">
+              Step-by-step guide
+            </Link>
+          )}
+          <Button variant="ghost" size="sm" onClick={hide} data-testid="setup-hide">
+            Hide this
+          </Button>
+        </>
       }
     >
       <div className="setup-guide__progress">

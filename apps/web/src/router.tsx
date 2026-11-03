@@ -16,6 +16,13 @@ const campaignsRoute = createRoute({
   component: lazyRouteComponent(() => import("./features/campaigns/CampaignListPage"), "CampaignListPage"),
 });
 
+// A module's guide before there is a campaign (from the campaign list).
+const moduleGuideRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/guide/$moduleId",
+  component: lazyRouteComponent(() => import("./features/guide/GuidePage"), "ModuleGuidePage"),
+});
+
 export const campaignRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/c/$campaignId",
@@ -46,6 +53,13 @@ export interface AtlasSearch {
 export function previewSearch(search: Record<string, unknown>): { as?: "player" } {
   return search.as === "player" ? { as: "player" } : {};
 }
+
+// The module's step-by-step guide, its links pointing into this campaign.
+const guideRoute = createRoute({
+  getParentRoute: () => campaignRoute,
+  path: "guide",
+  component: lazyRouteComponent(() => import("./features/guide/GuidePage"), "GuidePage"),
+});
 
 const atlasRoute = createRoute({
   getParentRoute: () => campaignRoute,
@@ -177,9 +191,11 @@ const mapGenRoute = createRoute({ getParentRoute: () => campaignRoute, path: "ma
 
 export const routeTree = rootRoute.addChildren([
   campaignsRoute,
+  moduleGuideRoute,
   campaignRoute.addChildren([
     campaignIndexRoute,
     homeRoute,
+    guideRoute,
     atlasRoute,
     newEntityRoute,
     buildRoute,
