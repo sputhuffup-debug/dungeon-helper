@@ -58,7 +58,11 @@ test("job board: deal postings, take one, see its NPCs and brief, generate its s
   const title = (await second.locator("h3").innerText()).replace(/^Posting 2:\s*/, "").trim();
   const firstTitle = await cards.first().locator("h3").innerText();
   await second.locator("summary").click();
-  await second.getByRole("button", { name: `Re-roll Title for ${title}` }).click();
+  // the title comes from a short list, so one re-roll can land on the same one: re-roll until it changes
+  for (let i = 0; i < 5 && (await second.locator("h3").innerText()).includes(title); i++) {
+    await second.getByRole("button", { name: /^Re-roll Title for / }).click();
+    await page.waitForTimeout(100);
+  }
   await expect(second.locator("h3")).not.toContainText(title);
   await expect(cards.first().locator("h3")).toHaveText(firstTitle);
 
