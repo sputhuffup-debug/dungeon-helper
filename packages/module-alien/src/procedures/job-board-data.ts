@@ -42,9 +42,9 @@ export const PITCH_OPENERS: Record<FrameKey, string[]> = {
   ],
 };
 
-/** The job in one sentence: {what} is the cargo or mission, lower case. */
+/** The job in one sentence: {what} is the cargo or mission, lower case; {goes} agrees with it ("go" for plural cargo). */
 export const PITCH_WORK: Record<FrameKey, string[]> = {
-  truckers: ["The cargo is {what}, bound for {dest}.", "Pick up {what} and deliver it to {dest}, sealed.", "{What} goes to {dest}; the manifest is ready to sign."],
+  truckers: ["The cargo is {what}, bound for {dest}.", "Pick up {what} and deliver it to {dest}, sealed.", "{What} {goes} to {dest}; the manifest is ready to sign."],
   marines: ["The job is {what} at {dest}.", "Objective: {what}, at {dest}.", "{What}, at {dest}; the briefing comes after signing."],
   colonists: ["The work is {what} at {dest}.", "{What} at {dest}, with a full report on return.", "Get to {dest}, see to the {what}, and bring back the data."],
 };

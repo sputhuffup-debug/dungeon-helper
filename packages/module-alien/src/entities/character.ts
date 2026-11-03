@@ -15,6 +15,8 @@ import { OVERWHELMED_TRAUMA } from "../reference/mentalTraumas";
 import {
   ATTRIBUTE_IDS,
   CAREER_IDS,
+  CAREER_LABELS,
+  labelledEnum,
   RANGE_IDS,
   RANGE_LABELS,
   SKILL_BINDINGS,
@@ -32,7 +34,7 @@ import {
   textarea,
 } from "./common";
 import { DAMAGE_TYPES } from "./item";
-import { CAMPAIGN_ALLEGIANCES, FRICTION_KINDS, TENSION_CAP } from "../procedures/campaign-agenda-data";
+import { ALLEGIANCE_TEXT, CAMPAIGN_ALLEGIANCES, FRICTION_KIND_LABEL, FRICTION_KINDS, TENSION_CAP } from "../procedures/campaign-agenda-data";
 
 /** Talent ids the computed rules look for (reference/talents.ts, p. 51). */
 export const HARDENED_TALENT = "hardened";
@@ -63,7 +65,7 @@ const campaignAgendaSchema = {
         id: { type: "string" },
         title: { type: "string" },
         text: { type: "string" },
-        allegiance: { type: "string", enum: [...CAMPAIGN_ALLEGIANCES] },
+        allegiance: { type: "string", ...labelledEnum(CAMPAIGN_ALLEGIANCES, Object.fromEntries(CAMPAIGN_ALLEGIANCES.map((a) => [a, ALLEGIANCE_TEXT[a].label]))) },
         answersTo: { type: "string" },
         motive: { type: "string" },
         why: { type: "string" },
@@ -71,14 +73,14 @@ const campaignAgendaSchema = {
       },
     },
     beat: { type: "object", required: ["text"], properties: { n: { type: "integer", minimum: 0 }, text: { type: "string" }, job: { type: "string" } } },
-    status: { type: "string", enum: ["new", "advanced", "stalled"] },
+    status: { type: "string", ...labelledEnum(["new", "advanced", "stalled"]) },
     tension: { type: "integer", minimum: 0, maximum: TENSION_CAP },
     history: {
       type: "array",
       items: {
         type: "object",
         required: ["text", "outcome"],
-        properties: { goal: { type: "string" }, n: { type: "integer" }, job: { type: "string" }, text: { type: "string" }, outcome: { type: "string", enum: ["advanced", "stalled", "resolved"] } },
+        properties: { goal: { type: "string" }, n: { type: "integer" }, job: { type: "string" }, text: { type: "string" }, outcome: { type: "string", ...labelledEnum(["advanced", "stalled", "resolved"]) } },
       },
     },
     past: { type: "array", items: { type: "object", required: ["id", "title"], properties: { id: { type: "string" }, title: { type: "string" }, text: { type: "string" }, job: { type: "string" } } } },
@@ -90,7 +92,7 @@ const campaignAgendaSchema = {
         required: ["kind", "text"],
         properties: {
           key: { type: "string" },
-          kind: { type: "string", enum: [...FRICTION_KINDS] },
+          kind: { type: "string", ...labelledEnum(FRICTION_KINDS, FRICTION_KIND_LABEL) },
           tpl: { type: "string" },
           with: { type: "array", items: { type: "string" } },
           outsider: { type: "string" },
@@ -151,7 +153,7 @@ export const characterSchema = objectSchema(
   {
     isPC: { type: "boolean", default: false, description: "Player character (true) or NPC (false)." },
     android: { type: "boolean", default: false, description: "Androids cannot push, have no stress level and never panic (p. 25, 77)." },
-    career: { type: "string", enum: [...CAREER_IDS, ""], default: "", description: "Career id (alien.careers)." },
+    career: { type: "string", ...labelledEnum([...CAREER_IDS, ""], { ...CAREER_LABELS, "": "None" }), default: "", description: "Career id (alien.careers)." },
     attributes: {
       type: "object",
       additionalProperties: false,
@@ -658,21 +660,23 @@ const sections: SheetSection[] = [
     id: "background",
     title: "Background",
     columns: 1,
-    fields: [textarea("background", "Background", { rule: "alien.rule.pregenerated-characters" })],
+    // appearance is here, for PCs and NPCs alike (a career gives a PC one); the rest of the dossier is NPC-only
+    fields: [textarea("background", "Background", { rule: "alien.rule.pregenerated-characters" }), textarea("appearance", "Appearance")],
   },
   {
     id: "npc",
     title: "NPC dossier",
     columns: 2,
+    // NPCs only: a PC's sheet drops it unless something in it is filled in
+    when: { "!": { var: "fields.isPC" } },
     fields: [
       text("role", "Public role", { span: 6 }),
       text("trait", "Trait", { span: 6, rule: "alien.rule.npcs" }),
-      textarea("appearance", "Appearance", { span: 6 }),
       textarea("voice", "Voice", { span: 6 }),
+      textarea("tells", "Tells", { span: 6 }),
       textarea("goal", "Goal / wants (GM)", { span: 6, rule: "alien.rule.npcs" }),
       textarea("fears", "Fears", { span: 6 }),
-      textarea("secret", "Secret (GM)", { span: 6 }),
-      textarea("tells", "Tells", { span: 6 }),
+      textarea("secret", "Secret (GM)"),
       textarea("sampleLines", "Sample lines"),
       textarea("arc", "Arc by act", { mode: [CINEMATIC], rule: "alien.rule.three-acts" }),
     ],

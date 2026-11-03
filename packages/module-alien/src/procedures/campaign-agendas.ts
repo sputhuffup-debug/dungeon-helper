@@ -33,6 +33,7 @@
  * Produces no entities: the app writes accepted drafts into the characters
  * and their handouts.
  */
+import { labelledEnum } from "../entities/common";
 import type {
   AgendaDraftReport,
   AgendaDraftSlot,
@@ -1084,12 +1085,12 @@ export const campaignAgendasProcedure: Procedure = {
         type: "array",
         title: "Player characters",
         default: [],
-        items: { type: "object", properties: { id: { type: "string" }, name: { type: "string" }, goal: { type: "string", title: "Goal", enum: ["random", ...CAMPAIGN_GOAL_IDS], default: "random" } } },
+        items: { type: "object", properties: { id: { type: "string" }, name: { type: "string" }, goal: { type: "string", title: "Goal", ...labelledEnum(["random", ...CAMPAIGN_GOAL_IDS], { random: "Random", ...Object.fromEntries(CAMPAIGN_GOALS.map((g) => [g.id, g.name])) }), default: "random" } } },
       },
       friction: {
         type: "string",
         title: "Friction dial",
-        enum: [...FRICTION_DIAL],
+        ...labelledEnum(FRICTION_DIAL),
         default: "simmering",
         description: "How much open friction: calm (1 line per PC), simmering (2) or prickly (3). Never betrayal.",
       },

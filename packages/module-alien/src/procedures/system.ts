@@ -12,6 +12,7 @@
  * inner to outer) and names (system designation plus a roman numeral). The
  * book places bodies by temperature and leaves names to the GM.
  */
+import { ALLEGIANCE_LABELS, REGION_LABELS, labelledEnum } from "../entities/common";
 import { rollDice, type Procedure, type ProcedureContext, type ProducedEntity } from "@campaign-forge/module-sdk";
 import { input, isObj, list, num, obj, str } from "./helpers";
 
@@ -58,11 +59,11 @@ export const systemCreate: Procedure = {
   inputs: {
     type: "object",
     properties: {
-      starClass: { type: "string", enum: ["O", "B", "A", "F", "G", "K", "M"], default: "G", description: "Spectral class (p. 236)." },
-      brightness: { type: "string", enum: ["III", "IV", "V", "D"], default: "V", description: "Brightness class: III giant, IV subgiant, V main sequence, D white dwarf. No class I or II stars in charted space (p. 236)." },
-      region: { type: "string", enum: ["core", "outer-veil", "outer-rim", "frontier", "far-reach"], default: "frontier" },
-      allegiance: { type: "string", enum: ["uas", "3we", "upp", "icsc", "independent", "unknown"], default: "unknown" },
-      name: { type: "string", description: "System designation; generated when absent." },
+      starClass: { type: "string", title: "Spectral class", ...labelledEnum(["O", "B", "A", "F", "G", "K", "M"]), default: "G", description: "Spectral class (p. 236)." },
+      brightness: { type: "string", title: "Brightness class", ...labelledEnum(["III", "IV", "V", "D"], { III: "III (giant)", IV: "IV (subgiant)", V: "V (main sequence)", D: "D (white dwarf)" }), default: "V", description: "Brightness class: III giant, IV subgiant, V main sequence, D white dwarf. No class I or II stars in charted space (p. 236)." },
+      region: { type: "string", title: "Region", ...labelledEnum(["core", "outer-veil", "outer-rim", "frontier", "far-reach"], REGION_LABELS), default: "frontier" },
+      allegiance: { type: "string", title: "Allegiance", ...labelledEnum(["uas", "3we", "upp", "icsc", "independent", "unknown"], ALLEGIANCE_LABELS), default: "unknown" },
+      name: { type: "string", title: "Name", description: "System designation; generated when absent." },
     },
   },
   steps: [

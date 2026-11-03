@@ -23,6 +23,7 @@
  * Produces no entities: the app writes accepted drafts into the characters'
  * `agendas` (and the adventure's agenda handouts).
  */
+import { labelledEnum } from "../entities/common";
 import {
   rollTable,
   type AgendaDraftAct,
@@ -433,9 +434,9 @@ export const agendaDraftsProcedure: Procedure = {
         type: "array",
         title: "Player characters",
         default: [],
-        items: { type: "object", properties: { id: { type: "string" }, name: { type: "string" }, arc: { type: "string", title: "Arc", enum: ["random", ...ARC_IDS], default: "random" } } },
+        items: { type: "object", properties: { id: { type: "string" }, name: { type: "string" }, arc: { type: "string", title: "Arc", ...labelledEnum(["random", ...ARC_IDS], { random: "Random", ...Object.fromEntries(AGENDA_ARCS.map((a) => [a.id, a.name])) }), default: "random" } } },
       },
-      betrayal: { type: "string", title: "Betrayal dial", enum: [...BETRAYAL_DIAL], default: "frayed", description: "Loyal crew deals mostly loyal arcs; knives out deals traitors." },
+      betrayal: { type: "string", title: "Betrayal dial", ...labelledEnum(BETRAYAL_DIAL), default: "frayed", description: "Loyal crew deals mostly loyal arcs; knives out deals traitors." },
       minFriction: {
         type: "integer",
         minimum: 0,

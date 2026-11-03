@@ -12,6 +12,7 @@
  * `employer_of` (`sponsor_of` for expeditions), and chains into the Star
  * System Generator for the destination system.
  */
+import { FRAME_LABELS, labelledEnum } from "../entities/common";
 import type { Procedure, ProcedureContext, ProducedEntity } from "@campaign-forge/module-sdk";
 import { frameKey, input, isObj, list, num, obj, str } from "./helpers";
 
@@ -75,13 +76,14 @@ export const jobCreate: Procedure = {
   inputs: {
     type: "object",
     properties: {
-      frame: { type: "string", enum: ["space-truckers", "colonial-marines", "frontier-colonists"], default: "space-truckers" },
-      pcCount: { type: "integer", minimum: 1, default: 4 },
-      paymentRaises: { type: "integer", minimum: 0, description: "MANIPULATION successes spent on +20% payment each (p. 244)." },
-      bonusRolls: { type: "integer", minimum: 0, description: "MANIPULATION successes spent on bonus rewards, one roll each (p. 244). Marines: mercenary outfits only (p. 247)." },
+      frame: { type: "string", title: "Frame", ...labelledEnum(["space-truckers", "colonial-marines", "frontier-colonists"], FRAME_LABELS), default: "space-truckers" },
+      pcCount: { type: "integer", title: "PCs", minimum: 1, default: 4 },
+      paymentRaises: { type: "integer", title: "Payment raises", minimum: 0, description: "MANIPULATION successes spent on +20% payment each (p. 244)." },
+      bonusRolls: { type: "integer", title: "Bonus reward rolls", minimum: 0, description: "MANIPULATION successes spent on bonus rewards, one roll each (p. 244). Marines: mercenary outfits only (p. 247)." },
       marineCorps: {
         type: "string",
-        enum: ["uscmc", "space-operating-forces", "royal-marines-commandos"],
+        title: "Marine corps",
+        ...labelledEnum(["uscmc", "space-operating-forces", "royal-marines-commandos"], { uscmc: "USCMC", "space-operating-forces": "Space Operating Forces", "royal-marines-commandos": "Royal Marines Commandos" }),
         description: "Colonial Marines only: the corps giving the orders (p. 235). USCMC when absent.",
       },
     },
