@@ -7,7 +7,7 @@
  *
  * Nothing in this file names a rule from any game.
  */
-import type { AppliedDuration, ArcClueState, CiteRef, ContactStance, Effect, LedgerLinks, PageRef, ProgressionPoolId, RollRecord, SiteLayout, VisibilityLevel } from "@campaign-forge/module-sdk";
+import type { AppliedDuration, ArcClueState, CiteRef, ContactStance, Effect, LedgerLinks, PageRef, ProgressionPoolId, RecapLinkRef, RollRecord, SiteLayout, VisibilityLevel } from "@campaign-forge/module-sdk";
 
 export type Id = string; // ULID
 
@@ -244,6 +244,65 @@ export interface Session extends BaseRecord {
   checklist?: Record<string, boolean>;
   /** What the GM shared with the players from this session ("Share with players"), oldest first. GM-only. */
   shares?: ShareRecord[];
+  /**
+   * The "Previously on…" recap read at the start of this session (see
+   * recap.ts): the GM's version and the players' read-aloud, as generated
+   * from the campaign plus the GM's switches, edits and own lines. The
+   * session record stays GM-only; players reach the read-aloud only through
+   * `playerRecap`, and only once the GM shows or shares it.
+   */
+  recap?: SessionRecap;
+}
+
+/** What a recap covers: the last session, the last n sessions, or the story so far. */
+export type RecapSpan = { kind: "last" } | { kind: "last-n"; n: number } | { kind: "all" };
+
+/** A link in a recap line. */
+export interface RecapLink {
+  kind: RecapLinkRef["kind"];
+  id: Id;
+  /** The text in the line the link sits on. */
+  label: string;
+}
+
+/** One line of a stored recap. */
+export interface RecapLine {
+  /** With `ref`, identifies the line in its section (regenerating keeps the GM's choices by it). */
+  key: string;
+  ref?: Id;
+  text: string;
+  links?: RecapLink[];
+  /** The GM switched the line off: it is kept but not read or shown. */
+  off?: boolean;
+  /** The GM rewrote the text: regenerating keeps the GM's words. */
+  edited?: boolean;
+  /** A line the GM added. */
+  custom?: boolean;
+}
+
+export interface RecapSection {
+  id: string;
+  title: string;
+  /** "core", or the module contributor's id. */
+  source: string;
+  order: number;
+  lines: RecapLine[];
+}
+
+export interface SessionRecap {
+  span: RecapSpan;
+  /** The sessions it covers, oldest first. */
+  sessions: Id[];
+  /** When it was (re)generated. */
+  generated: string;
+  /** The GM's recap: everything, with what the players don't know. */
+  gm: RecapSection[];
+  /** The read-aloud for the players, built from the player projection only. */
+  players: RecapSection[];
+  /** Faction heat when it was generated, so the next session's recap can say what changed. */
+  baseline?: { heat?: Record<Id, number> };
+  /** When the GM put the read-aloud on the player screen; absent while it is not shown. */
+  shown?: string;
 }
 
 /**

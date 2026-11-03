@@ -5,6 +5,7 @@
  */
 import { d20AttackIssues, d20Attacks, d20CombatIssues } from "./d20combat";
 import { gmScreenIssues } from "./gmScreen";
+import { recapIssues } from "./recap";
 import { characterBuilderIssues } from "./characterBuilder";
 import { diceOutcomes, parseDiceExpression } from "./dice";
 import { computeFields, defaultFieldsFor, fieldSchemaAt, schemaDefaults, validateAgainstSchema, validateEntityFields } from "./entities";
@@ -1091,6 +1092,9 @@ export function checkModule(module: GameModule, options: CheckModuleOptions = {}
   // Character progression.
   checkProgression(module, declaredModes, c);
   checkArcs(module, declaredModes, c);
+
+  // "Previously on…" recap contributors (a dry run on empty snapshots).
+  for (const i of recapIssues(module)) (i.severity === "error" ? c.error.bind(c) : c.warn.bind(c))(i.where, i.message);
 
   // Declarative d20 combat.
   checkD20Combat(module, c);
