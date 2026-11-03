@@ -23,8 +23,13 @@ export interface SheetContextValue {
   resolveEntityName?: (id: string) => string | undefined;
   /** Asset id or URL -> displayable URL. */
   resolveAssetUrl?: (idOrUrl: string) => string | undefined;
-  /** Zone map widget's "open map" button. */
+  /** Zone map widget's "open map" button, with the map the widget shows (its value, or the one `resolveMap` found). */
   onOpenMap?: (mapId: string | undefined, field: SheetField) => void;
+  /**
+   * The zone map widget's map: the field's value, or (empty) a map the host
+   * finds another way, e.g. a saved map whose location is this record.
+   */
+  resolveMap?: (mapId: string | undefined, field: SheetField) => { id: string; name: string } | undefined;
   /**
    * Members of a named group of entities the host supplies (e.g. an adventure
    * builder's cast roles). Widgets configured with `config.castRoles` (ref) or

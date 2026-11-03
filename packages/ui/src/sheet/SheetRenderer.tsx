@@ -109,6 +109,7 @@ export function SheetRenderer(props: SheetRendererProps) {
     resolveEntityName,
     resolveAssetUrl,
     onOpenMap,
+    resolveMap,
     castMembers,
     dice,
     presetsFor,
@@ -133,8 +134,8 @@ export function SheetRenderer(props: SheetRendererProps) {
   }, [def, mode, sub, onlySections, onlyPaths]);
 
   const ctx = useMemo<SheetContextValue>(
-    () => ({ mode, tableMode, onRoll, onOpenRule, onPickEntity, resolveEntityName, resolveAssetUrl, onOpenMap, castMembers, dice, presetsFor, entitiesOf }),
-    [mode, tableMode, onRoll, onOpenRule, onPickEntity, resolveEntityName, resolveAssetUrl, onOpenMap, castMembers, dice, presetsFor, entitiesOf],
+    () => ({ mode, tableMode, onRoll, onOpenRule, onPickEntity, resolveEntityName, resolveAssetUrl, onOpenMap, resolveMap, castMembers, dice, presetsFor, entitiesOf }),
+    [mode, tableMode, onRoll, onOpenRule, onPickEntity, resolveEntityName, resolveAssetUrl, onOpenMap, resolveMap, castMembers, dice, presetsFor, entitiesOf],
   );
 
   const schemaFor = (path: string): JsonSchema | undefined => {

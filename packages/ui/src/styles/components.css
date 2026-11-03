@@ -758,6 +758,15 @@ td .cf-autogrow {
 }
 .cf-toast > span {
   min-width: 0;
+  flex: 1;
+}
+.cf-toast__count {
+  font-family: var(--cf-font-mono);
+  font-weight: 700;
+  color: var(--cf-muted);
+}
+.cf-toast__action {
+  flex-shrink: 0;
 }
 .cf-toast--danger {
   border-left-color: var(--cf-danger);
