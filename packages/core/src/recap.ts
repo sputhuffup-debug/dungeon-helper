@@ -309,7 +309,7 @@ const SECTION_TITLES: Record<RecapAudience, Partial<Record<keyof typeof RECAP_SE
     world: "In the world",
     scenes: "Scenes run",
     revealed: "Revealed and handed out",
-    met: "New in the story",
+    met: "Met",
     rewards: "Rewards",
     table: "At the table",
     wrapup: "Wrap-up answers",
@@ -354,6 +354,32 @@ interface CoreInput {
   doc?: ((id: Id) => Y.Doc | undefined) | undefined;
 }
 
+/** At most this many "who and where" lines. */
+const MET_MAX = 8;
+
+/**
+ * The people, places and factions the covered sessions put in front of the
+ * crew: the cast and place of each scene run, what was revealed whole, who a
+ * clue was found with and who the session's timeline entries name. Recorded
+ * play, never timestamps. PCs and contacts (they have lines of their own)
+ * are left out; only entities in the snapshot (for players, their projection).
+ */
+function metEntities(maps: CampaignMaps, covered: Session[], snapshot: RecapSnapshot): RecapEntity[] {
+  const ids = new Set<Id>();
+  const coveredIds = new Set(covered.map((s) => s.id));
+  for (const s of covered)
+    for (const id of s.scenesRun) {
+      const scene = maps.scenes[id];
+      if (!scene) continue;
+      for (const p of scene.participants) ids.add(p);
+      if (scene.location) ids.add(scene.location);
+    }
+  for (const r of snapshot.reveals) if (r.entity && !r.field) ids.add(r.entity);
+  for (const c of snapshot.clues) if (c.state === "found" && c.entity && c.foundIn && coveredIds.has(c.foundIn)) ids.add(c.entity);
+  for (const t of Object.values(maps.timeline)) if (t.session && coveredIds.has(t.session)) for (const id of t.entities) ids.add(id);
+  return snapshot.entities.filter((e) => ids.has(e.id) && !e.pc && !e.contact && (e.kind === "character" || e.kind === "location" || e.kind === "faction")).slice(0, MET_MAX);
+}
+
 const entityLink = (e: { id: Id; name: string }): RecapLinkRef => ({ kind: "entity", id: e.id, label: e.name });
 
 /** "Mara Quill: contact for the client" (the summary left out when it only repeats the name). */
@@ -396,7 +422,7 @@ function coreGmSections(x: CoreInput): RecapSectionDraft[] {
 
   // the world: timeline entries of the covered sessions (or made since)
   const world = Object.values(maps.timeline)
-    .filter((t) => (t.session && coveredIds.has(t.session)) || (snapshot.since !== undefined && t.created >= snapshot.since))
+    .filter((t) => !!t.session && coveredIds.has(t.session))
     .sort((a, b) => a.inWorldDate.localeCompare(b.inWorldDate) || a.created.localeCompare(b.created) || a.id.localeCompare(b.id))
     .map((t) => ({ key: "timeline", ref: t.id, text: `${t.inWorldDate}: ${t.text}${canSee(t.visibility, GROUP) ? "" : " (GM only)"}` }));
   add("world", world);
@@ -446,12 +472,10 @@ function coreGmSections(x: CoreInput): RecapSectionDraft[] {
   }
   add("revealed", revealed);
 
-  // who and what is new: people, places and factions added since (for the story so far, the ones the players know)
-  const met = snapshot.entities
-    .filter((e) => !e.pc && !e.contact && (e.kind === "character" || e.kind === "location" || e.kind === "faction"))
-    .filter((e) => (snapshot.since !== undefined ? e.created >= snapshot.since : e.visibility !== "gm"))
-    .slice(0, 12)
-    .map((e) => ({ key: "met", ref: e.id, text: `${metText(e)}${e.visibility === "gm" ? " (GM only)" : ""}.`, links: [entityLink(e)] }));
+  // who and what the crew met: people, places and factions the players can see that the covered sessions put in front of them
+  const met = metEntities(maps, covered, snapshot)
+    .filter((e) => e.visibility !== "gm")
+    .map((e) => ({ key: "met", ref: e.id, text: `${metText(e)}.`, links: [entityLink(e)] }));
   add("met", met);
 
   // rewards
@@ -526,14 +550,14 @@ function corePlayerSections(x: CoreInput): RecapSectionDraft[] {
   const first = snapshot.sessions[0];
   const last = snapshot.sessions[snapshot.sessions.length - 1];
   let opening: string;
-  if (!first || !last) opening = `Previously on ${snapshot.campaign}: nothing yet. This is where the story begins.`;
-  else if (snapshot.sessions.length === 1) opening = `Previously on ${snapshot.campaign}, in ${first.label}.`;
-  else opening = `${x.snapshot.since === undefined ? `The story of ${snapshot.campaign} so far` : `Previously on ${snapshot.campaign}`}, from Session ${first.number} to Session ${last.number}.`;
+  if (!first || !last) opening = "Nothing yet: this is where the story begins.";
+  else if (snapshot.sessions.length === 1) opening = `${first.label}, played ${recapDate(first.date)}.`;
+  else opening = `${snapshot.since === undefined ? "The story so far" : "The last sessions"}: Session ${first.number} (${recapDate(first.date)}) to Session ${last.number} (${recapDate(last.date)}).`;
   add("story", [{ key: "opening", text: opening }]);
 
   // the world: timeline entries the players may see
   const world = Object.values(view.timeline)
-    .filter((t) => (t.session && coveredIds.has(t.session)) || (snapshot.since !== undefined && t.created >= snapshot.since))
+    .filter((t) => !!t.session && coveredIds.has(t.session))
     .sort((a, b) => a.inWorldDate.localeCompare(b.inWorldDate) || a.created.localeCompare(b.created) || a.id.localeCompare(b.id))
     .map((t) => ({ key: "timeline", ref: t.id, text: t.text }));
   add("world", world);
@@ -569,12 +593,8 @@ function corePlayerSections(x: CoreInput): RecapSectionDraft[] {
   }
   add("revealed", found);
 
-  // who and where: people, places and factions they know of, new since
-  const met = snapshot.entities
-    .filter((e) => !e.pc && !e.contact && (e.kind === "character" || e.kind === "location" || e.kind === "faction"))
-    .filter((e) => snapshot.since === undefined || e.created >= snapshot.since)
-    .slice(0, 12)
-    .map((e) => ({ key: "met", ref: e.id, text: `${metText(e)}.`, links: [entityLink(e)] }));
+  // who and where: people, places and factions they can see that the covered sessions put in front of them
+  const met = metEntities(maps, covered, snapshot).map((e) => ({ key: "met", ref: e.id, text: `${metText(e)}.`, links: [entityLink(e)] }));
   add("met", met);
   return sections;
 }

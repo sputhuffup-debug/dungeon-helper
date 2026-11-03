@@ -133,7 +133,8 @@ function setup() {
   const s2 = store.createSession({ number: 2, date: "2026-03-08", title: "The docks", status: "done" });
   const s3 = store.createSession({ number: 3, date: "2026-03-15", title: "Salt and steel", status: "planned" });
   // session 2: a summary, a reveal of a handout and of one field, a clue found, a clue seeded, a contact, heat, a clock tick, loose ends
-  store.update("sessions", s2.id, { summary: SECRET.summary, scenesRun: [], attendees: store.meta().members.map((m) => m.id), wrapUp: { looseEnds: [SECRET.looseEnd], answers: { "x.trauma": { value: "failed", label: SECRET.answer, at: "2026-03-08T22:00:00Z" } } } });
+  const scene = store.createScene(undefined, { title: "At the docks", location: harbour.id, participants: [vosk.id, pc.id] });
+  store.update("sessions", s2.id, { summary: SECRET.summary, scenesRun: [scene.id], attendees: store.meta().members.map((m) => m.id), wrapUp: { looseEnds: [SECRET.looseEnd], answers: { "x.trauma": { value: "failed", label: SECRET.answer, at: "2026-03-08T22:00:00Z" } } } });
   fromMarkdown(registry.open(s2.logDoc), SECRET.log);
   reveal(store, { kind: "handout", id: handout.id }, s2.id);
   reveal(store, { kind: "entity", id: mara.id, field: "role" }, s2.id);
@@ -176,6 +177,10 @@ describe("building a recap", () => {
     expect(gm).toContain(SECRET.answer);
     expect(gm).toContain(`Waiting to be found, ${SECRET.gmTitle}: ${SECRET.seeded}, with Mara.`);
     expect(gm).toContain("Sam played.");
+    // the scene run, and who and where it put in front of the crew (the GM-only NPC and the PC left out)
+    expect(r.gm.find((s) => s.id === "scenes")!.lines.map((l) => l.text)).toEqual(["At the docks"]);
+    expect(r.gm.find((s) => s.id === "met")!.lines.map((l) => l.text)).toEqual(["Low Harbour."]);
+    expect(r.players.find((s) => s.id === "met")!.lines.map((l) => l.text)).toEqual(["Low Harbour."]);
     // the module's GM section merges into the core "secrets" section
     const secrets = r.gm.find((s) => s.id === "secrets")!;
     expect(secrets.title).toBe("What the players don't know");
@@ -221,7 +226,7 @@ describe("the players' recap is built from the player projection only", () => {
     for (const out of outputs) for (const [k, v] of Object.entries(SECRET)) expect(out, k).not.toContain(v);
     // what the players do get: the opening, the handout and field they were shown, the clue under the player title, the contact and their favour
     const text = recapTexts(r, "players").join("\n");
-    expect(text).toContain("Previously on Salt Roads, in Session 2: The docks.");
+    expect(text).toContain("Session 2: The docks, played 8 Mar 2026.");
     expect(text).toContain("“A torn manifest”.");
     expect(text).toContain("You learnt Mara's role.");
     expect(text).toContain("The missing salt shipments: Two salt barges went missing on one route [found]");
