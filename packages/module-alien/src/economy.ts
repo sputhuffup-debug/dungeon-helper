@@ -46,6 +46,8 @@ export const ledger: LedgerDef = {
   currency: { name: "UA dollar", plural: "UA dollars", symbol: "$", decimals: 0, locale: "en-US", page: 116 },
   defaultAccount: "Crew funds",
   accountEntityTypes: ["alien.character"],
+  // a PC's own money is the sheet's cash: the personal account reads it, and its entries move it
+  accountField: "cash",
   mode: [CAMPAIGN],
   rules: ["alien.rule.currencies", "alien.rule.job-payment", "alien.rule.salaries", "alien.rule.living-expenses"],
   categories: [
