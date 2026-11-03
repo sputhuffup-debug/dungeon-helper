@@ -17,7 +17,7 @@ test("dice rolled at the table (Alien): a skill roll, its push and a panic roll 
   page.on("pageerror", (e) => errors.push(e.message));
   await loadDemo(page, "load-demo");
   await page.getByRole("link", { name: "Sessions" }).click();
-  await page.getByRole("button", { name: "Start session 1" }).click();
+  await page.getByRole("button", { name: "Start session 2" }).click();
   await expect(page.getByTestId("table-mode")).toBeVisible();
 
   // the table's switch: every roll on the page asks for the dice

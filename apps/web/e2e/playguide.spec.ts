@@ -4,12 +4,12 @@ test("table mode hints: search the play guide, read the cues and roll for the be
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
 
-  // load the demo campaign and start session 1
+  // load the demo campaign and start its planned session (session 2)
   await page.goto("/");
   await page.getByTestId("load-demo").click();
   await expect(page).toHaveURL(/\/c\/[0-9A-Z]{26}\/home$/, { timeout: 30_000 });
   await page.getByRole("link", { name: "Sessions" }).click();
-  await page.getByRole("button", { name: "Start session 1" }).click();
+  await page.getByRole("button", { name: "Start session 2" }).click();
   await expect(page.getByTestId("table-mode")).toBeVisible();
 
   // the Hints tab sits right after Dice

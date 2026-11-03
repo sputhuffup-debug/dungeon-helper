@@ -88,7 +88,7 @@ test("session checklist: plan, tick and read guidance, run at the table, wrap up
 
   // 4. the finished session shows a compact completion summary per phase
   await page.getByRole("link", { name: "Sessions" }).click();
-  await page.locator('[data-session][data-status="done"]').getByRole("link").click();
+  await page.locator('[data-session][data-status="done"]').filter({ hasText: "The ore run" }).getByRole("link").click();
   await expect(page.getByTestId("session-status")).toHaveText("done");
   const summary = page.getByTestId("checklist-summary");
   await expect(summary.locator('[data-phase="prep"] .app-checklist__count')).toHaveText("2 of 12");

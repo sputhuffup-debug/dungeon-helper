@@ -13,11 +13,11 @@ test("run a session at the table: demo campaign, clock, panic roll, reveal, wrap
   // 2. start the planned session from the sessions page
   await page.getByRole("link", { name: "Sessions" }).click();
   await expect(page.getByTestId("sessions-page")).toBeVisible();
-  await page.getByRole("button", { name: "Start session 1" }).click();
+  await page.getByRole("button", { name: "Start session 2" }).click();
   await expect(page).toHaveURL(/\/table\/[0-9A-Z]{26}$/);
   const table = page.getByTestId("table-mode");
   await expect(table).toBeVisible();
-  await expect(page.getByTestId("table-session")).toContainText("Session 1");
+  await expect(page.getByTestId("table-session")).toContainText("Session 2");
   await expect(page.getByTestId("scene-title")).not.toBeEmpty();
 
   // 3. advance the clock one round
@@ -83,17 +83,17 @@ test("run a session at the table: demo campaign, clock, panic roll, reveal, wrap
   // 7. back on the campaign home; the session is done and the next one is planned
   await expect(page).toHaveURL(/\/home$/);
   await page.getByRole("link", { name: "Sessions" }).click();
-  await expect(page.locator('[data-session][data-status="done"]')).toHaveCount(1);
+  await expect(page.locator('[data-session][data-status="done"]')).toHaveCount(2);
   const planned = page.locator('[data-session][data-status="planned"]');
   await expect(planned).toHaveCount(1);
-  await expect(planned).toContainText("Session 2");
+  await expect(planned).toContainText("Session 3");
   await planned.getByRole("link").click();
   await expect(page.getByTestId("session-page")).toHaveAttribute("data-status", "planned");
   await expect(page.getByRole("textbox", { name: "Plan item 1" })).toHaveValue("Who wants the crate?");
 
   // the finished session shows its summary and timeline
   await page.getByRole("link", { name: "← Sessions" }).click();
-  await page.locator('[data-session][data-status="done"]').getByRole("link").click();
+  await page.locator('[data-session][data-status="done"]').filter({ hasText: "The ore run" }).getByRole("link").click();
   await expect(page.getByTestId("session-status")).toHaveText("done");
   await expect(page.getByTestId("session-summary")).toContainText("The crew takes the job.");
   await expect(page.getByTestId("session-timeline")).toContainText("The crew learns");
