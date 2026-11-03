@@ -926,6 +926,33 @@ export const exampleModule: GameModule = {
   styleNotes: ["Short, plain sentences."],
   narrativeFields,
   adventureBuilders: [questBuilder],
+  // A troubled place can be run as a quest: the fixture for the generic "Run this ..." flow and the wrap-up's close step.
+  adventureSources: [
+    {
+      id: "example.quest-at-place",
+      entityType: "example.place",
+      template: "example.template.quest",
+      label: "Run a quest here",
+      noun: "place",
+      when: { "!=": [{ var: "fields.danger" }, "quiet"] },
+      open: { "!=": [{ var: "fields.danger" }, "quiet"] },
+      outcomes: [
+        { id: "cleared", label: "Cleared", set: { path: "danger", value: "quiet" }, closes: true },
+        { id: "later", label: "Come back later" },
+      ],
+      prefill: (input) => {
+        const map = input.maps.find((m) => m.location === input.entity.id);
+        const foes = input.links.filter((l) => l.entity.kind === "creature").map((l) => l.entity.id);
+        return {
+          title: `Trouble at ${input.entity.name}`,
+          playerIntro: `Word reaches the heroes: ${input.entity.name} is ${String(input.entity.fields.danger ?? "uneasy")}.`,
+          gmSituation: `What waits there: ${input.links.map((l) => l.entity.name).join(", ") || "nobody knows"}.`,
+          scenes: { "2.1": { title: `The climax at ${input.entity.name}`, location: input.entity.id, ...(map ? { map: map.id } : {}), ...(foes.length ? { participants: foes } : {}), body: "The heroes reach the lair." } },
+          plan: ["1.1", "2.1"],
+        };
+      },
+    },
+  ],
   mapGenerators: [exampleSiteGenerator],
   playGuides: [examplePlayGuide],
   combat: {
