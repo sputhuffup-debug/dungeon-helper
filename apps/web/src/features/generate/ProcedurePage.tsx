@@ -4,11 +4,19 @@
  * re-roll, pin and "enter roll" (dice rolled at the table, one step or the
  * whole run step by step), a preview of what will be created, accept into
  * the campaign, chained procedures and recent runs.
+ *
+ * The page is the procedure's draft (core `GeneratorDraft`): seed, inputs,
+ * re-rolls, pins, entered dice and the GM's edits are saved to the campaign
+ * as they change, so leaving and coming back (or reloading) shows the same
+ * deal; "New deal" deals a fresh one. A search that asks for a run
+ * (`?run=`, `?chainFrom=`, `?pick=`) starts a new draft unless the draft
+ * already came from it; `?deal=` deals afresh and is dropped from the address.
+ * Once accepted, the main button is the next step and "Accept again" asks first.
  */
-import { loadAdventureSnapshot, plainText, type ClockMove, type GeneratorRun, type Id } from "@campaign-forge/core";
+import { draftIsOpen, generatorDraftOf, loadAdventureSnapshot, markDraftAccepted, plainText, type ClockMove, type GeneratorDraft, type GeneratorDraftAccept, type GeneratorDraftInput, type GeneratorRun, type Id } from "@campaign-forge/core";
 import { clueKindLabel, isDieRequest, probeDice, type AgendaDraftCharacter, type GeneratedGraph, type Procedure, type RollRecord } from "@campaign-forge/module-sdk";
 import { Link, useNavigate, useParams, useSearch } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Badge, Button, Card, EmptyState, PageRef, pushToast } from "../../components/ui";
 import { errorMessage, relativeTime } from "../../lib/format";
 import { acceptGenerated } from "../../state/prepActions";
@@ -30,6 +38,9 @@ import { OfferBoard } from "./OfferBoard";
 import { offersOf, withoutPartsOf } from "../../state/offerActions";
 import { arcsDefOf } from "../../state/arcActions";
 import { ArcClockTicker } from "../arcs/ArcClockTicker";
+import { ConfirmDialog } from "../../components/ConfirmDialog";
+import { AcceptedActions } from "./AcceptedActions";
+import { compactEdits, draftEditsOf, draftHasWork, draftSourceKey, writeDraft, type DraftEdits } from "../../state/draftActions";
 
 interface ProcedureSearch {
   pick?: string;
@@ -37,6 +48,7 @@ interface ProcedureSearch {
   chainFrom?: string;
   chain?: number;
   within?: string;
+  deal?: string;
 }
 
 export function ProcedurePage() {
@@ -59,7 +71,7 @@ export function ProcedurePage() {
       </div>
     );
   }
-  const key = `${procedureId}|${search.run ?? ""}|${search.chainFrom ?? ""}|${search.chain ?? ""}|${search.within ?? ""}|${search.pick ?? ""}`;
+  const key = `${procedureId}|${search.run ?? ""}|${search.chainFrom ?? ""}|${search.chain ?? ""}|${search.within ?? ""}|${search.pick ?? ""}|${search.deal ?? ""}`;
   return <Workbench key={key} procedure={procedure} search={search} />;
 }
 
@@ -68,18 +80,70 @@ interface Initial {
   within?: Id;
   origin?: { run: GeneratorRun; label: string };
   restoredFrom?: GeneratorRun;
+  /** The saved draft the page reopened (the same deal as the GM left it). */
+  draft?: GeneratorDraft;
+  /** What the search asked for (kept on the draft so the same request reopens it). */
+  source?: string;
+  pinnedRolls?: Record<string, RollRecord[]>;
+  edits?: DraftEdits;
+  accepted?: GeneratorDraftAccept;
+}
+
+/** The chained procedure's label, when the search chains from a run. */
+function chainOrigin(ctx: ReturnType<typeof useCampaign>, procedure: Procedure, search: ProcedureSearch): Initial["origin"] {
+  if (search.chainFrom === undefined || search.chain === undefined) return undefined;
+  const origin = ctx.store.get("generatorRuns", search.chainFrom);
+  const chain = origin ? ctx.module.procedure(origin.procedure)?.chains?.[search.chain] : undefined;
+  return origin && chain && chain.procedure === procedure.id ? { run: origin, label: chain.label } : undefined;
+}
+
+/** The page as the saved draft left it. */
+function fromDraft(ctx: ReturnType<typeof useCampaign>, procedure: Procedure, draft: GeneratorDraft, search: ProcedureSearch): Initial {
+  const request: GeneratorRequest = {
+    procedureId: procedure.id,
+    seed: draft.seed,
+    inputs: structuredClone(draft.inputs ?? {}),
+    stepSeeds: { ...(draft.stepSeeds ?? {}) },
+    pinned: structuredClone(draft.pinned ?? {}),
+    includeOptional: [...(draft.includeOptional ?? [])],
+    ...(draft.stepDice ? { stepDice: structuredClone(draft.stepDice) } : {}),
+    ...(draft.partSeeds ? { partSeeds: { ...draft.partSeeds } } : {}),
+    ...(draft.pinnedParts ? { pinnedParts: structuredClone(draft.pinnedParts) } : {}),
+  };
+  const init: Initial = { request, draft, edits: draftEditsOf(draft) };
+  if (draft.within) init.within = draft.within;
+  if (draft.source) init.source = draft.source;
+  if (draft.pinnedRolls) init.pinnedRolls = structuredClone(draft.pinnedRolls);
+  // the accept still counts while its run is in the campaign
+  if (draft.accepted && ctx.store.has("generatorRuns", draft.accepted.run)) init.accepted = draft.accepted;
+  const origin = chainOrigin(ctx, procedure, search);
+  if (origin) init.origin = origin;
+  if (search.run) {
+    const run = ctx.store.get("generatorRuns", search.run);
+    if (run && run.procedure === procedure.id) init.restoredFrom = run;
+  }
+  return init;
 }
 
 function useInitial(procedure: Procedure, search: ProcedureSearch): Initial {
   const ctx = useCampaign();
   return useMemo(() => {
+    const source = draftSourceKey(search);
+    const existing = generatorDraftOf(ctx.store, procedure.id);
+    // reopen the draft unless a fresh deal was asked for, or the search asks for something the draft did not come from
+    if (!search.deal && existing && (source === undefined || existing.source === source)) return fromDraft(ctx, procedure, existing, search);
+    const withSource = (init: Initial): Initial => (source ? { ...init, source } : init);
     const docText = (id: Id) => (ctx.registry.has(id) ? plainText(ctx.registry.open(id)) : "");
     const picked = pickedInputs(procedure, ctx.store, search.pick, docText);
     const inputs0 = initialInputs(procedure, ctx.store, ctx.module, { docText, picked });
     const base: GeneratorRequest = { procedureId: procedure.id, seed: newSeed(), inputs: inputs0, stepSeeds: {}, pinned: {}, includeOptional: [] };
     if (search.run) {
       const run = ctx.store.get("generatorRuns", search.run);
-      if (run && run.procedure === procedure.id) return { request: requestFromRun(procedure, run), restoredFrom: run };
+      if (run && run.procedure === procedure.id) {
+        const pinnedRolls: Record<string, RollRecord[]> = {};
+        for (const id of Object.keys(run.pinned ?? {})) pinnedRolls[id] = run.rolls.filter((r) => r.step === id);
+        return withSource({ request: requestFromRun(procedure, run), restoredFrom: run, pinnedRolls });
+      }
     }
     if (search.chainFrom !== undefined && search.chain !== undefined) {
       const origin = ctx.store.get("generatorRuns", search.chainFrom);
@@ -97,12 +161,12 @@ function useInitial(procedure: Procedure, search: ProcedureSearch): Initial {
         const within = search.within ?? origin.produced[0];
         const init: Initial = { request: { ...base, inputs }, origin: { run: origin, label: chain.label } };
         if (within) init.within = within;
-        return init;
+        return withSource(init);
       }
     }
     const init: Initial = { request: base };
     if (search.within) init.within = search.within;
-    return init;
+    return withSource(init);
     // computed once per mount (the page is keyed by its search)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -122,31 +186,30 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
   /** Steps waiting for dice rolled at the table, the first one shown (one step, or the whole run step by step). */
   const [enterQueue, setEnterQueue] = useState<string[]>([]);
   const [pinned, setPinned] = useState<Record<string, unknown>>(initial.request.pinned ?? {});
-  const [pinnedRolls, setPinnedRolls] = useState<Record<string, RollRecord[]>>(() => {
-    const out: Record<string, RollRecord[]> = {};
-    const run = initial.restoredFrom;
-    if (run?.pinned) for (const id of Object.keys(run.pinned)) out[id] = run.rolls.filter((r) => r.step === id);
-    return out;
-  });
+  const [pinnedRolls, setPinnedRolls] = useState<Record<string, RollRecord[]>>(() => initial.pinnedRolls ?? {});
   const [includeOptional, setIncludeOptional] = useState<string[]>(initial.request.includeOptional ?? []);
-  const [names, setNames] = useState<Record<string, string>>({});
+  const [names, setNames] = useState<Record<string, string>>(initial.edits?.names ?? {});
   const [within, setWithin] = useState<Id | undefined>(initial.within);
   const [compareTo, setCompareTo] = useState<GeneratedGraph | undefined>();
-  const [accepted, setAccepted] = useState<GeneratorRun | undefined>();
+  /** The accept the draft records (the run, when, what the page shows about it); cleared when the run changes. */
+  const [acceptMark, setAcceptMark] = useState<GeneratorDraftAccept | undefined>(initial.accepted);
+  const accepted = useMemo(() => (acceptMark ? ctx.store.get("generatorRuns", acceptMark.run) : undefined), [ctx.store, acceptMark]);
+  const setAccepted = (v: undefined) => setAcceptMark(v);
   /** One part of a step re-rolled or pinned on its own (agenda slots). */
   const [partSeeds, setPartSeeds] = useState<Record<string, string>>(initial.request.partSeeds ?? {});
   const [pinnedParts, setPinnedParts] = useState<Record<string, unknown>>(initial.request.pinnedParts ?? {});
   /** The GM's own text for agenda drafts. */
-  const [edits, setEdits] = useState<AgendaEdits>({});
+  const [edits, setEdits] = useState<AgendaEdits>(initial.edits?.agenda ?? {});
   /** The GM's own text for long-term agenda drafts (goal summary and beat per character). */
-  const [longEdits, setLongEdits] = useState<LongAgendaEdits>({});
+  const [longEdits, setLongEdits] = useState<LongAgendaEdits>((initial.edits?.longAgenda as LongAgendaEdits | undefined) ?? {});
   /** Effects the GM unticked before accepting (by index in the run's effects); what accepting applied. */
-  const [unticked, setUnticked] = useState<Set<number>>(() => new Set());
-  const [appliedNow, setAppliedNow] = useState<number[] | undefined>();
+  const [unticked, setUnticked] = useState<Set<number>>(() => new Set(initial.edits?.unticked ?? []));
+  const appliedNow = Array.isArray(acceptMark?.detail?.applied) ? (acceptMark.detail.applied as number[]) : undefined;
   /** Between jobs: the thread clocks move when the run is accepted (the GM can leave them be). */
-  const [clockSeed, setClockSeed] = useState(() => newSeed());
-  const [moveClocks, setMoveClocks] = useState(true);
-  const [clocksMoved, setClocksMoved] = useState<ClockMove[] | undefined>();
+  const [clockSeed, setClockSeed] = useState(() => initial.edits?.clockSeed ?? newSeed());
+  const [moveClocks, setMoveClocks] = useState(initial.edits?.moveClocks ?? true);
+  const clocksMoved = Array.isArray(acceptMark?.detail?.clocks) ? (acceptMark.detail.clocks as ClockMove[]) : undefined;
+  const [askNewDeal, setAskNewDeal] = useState(false);
 
   const outcome = useMemo((): { graph?: GeneratedGraph; error?: string } => {
     try {
@@ -159,12 +222,69 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
   const drafts = useMemo(() => agendaDraftsOf(graph), [graph]);
   const longDrafts = useMemo(() => (procedure.longAgendas ? longAgendaDraftsOf(graph) : undefined), [graph, procedure.longAgendas]);
   const offers = useMemo(() => (procedure.offers ? offersOf(graph) : undefined), [graph, procedure.offers]);
+  const offerKeys = useMemo(() => offers?.offers.map((o) => o.key), [offers]);
+
+  // The draft: saved to the campaign as the page changes (a fresh deal at once, edits a moment later), and on leaving.
+  const draftInput = useMemo((): GeneratorDraftInput => {
+    const nonEmpty = <T extends object>(v: T | undefined): T | undefined => (v && Object.keys(v).length > 0 ? v : undefined);
+    const draftEdits = compactEdits({ agenda: edits, longAgenda: longEdits, names, unticked: [...unticked].sort((a, b) => a - b), moveClocks, ...(clockSeed ? { clockSeed } : {}) });
+    const out: GeneratorDraftInput = { procedure: procedure.id, moduleId: ctx.module.manifest.id, moduleVersion: ctx.module.manifest.version, seed, inputs };
+    const opt = { stepSeeds: nonEmpty(stepSeeds), stepDice: nonEmpty(stepDice), pinned: nonEmpty(pinned), pinnedRolls: nonEmpty(pinnedRolls), partSeeds: nonEmpty(partSeeds), pinnedParts: nonEmpty(pinnedParts), includeOptional: includeOptional.length ? includeOptional : undefined, within, edits: draftEdits, source: initial.source, offerKeys: offerKeys?.length ? offerKeys : undefined, accepted: acceptMark };
+    for (const [k, v] of Object.entries(opt)) if (v !== undefined) (out as unknown as Record<string, unknown>)[k] = v;
+    return out;
+  }, [procedure.id, ctx.module, seed, inputs, stepSeeds, stepDice, pinned, pinnedRolls, partSeeds, pinnedParts, includeOptional, within, edits, longEdits, names, unticked, moveClocks, clockSeed, initial.source, offerKeys, acceptMark]);
+  const pendingSave = useRef<(() => void) | undefined>(undefined);
+  const fresh = useRef(!initial.draft);
+  const lastAccept = useRef(acceptMark);
+  const [saved, setSaved] = useState(!!initial.draft);
+  useEffect(() => {
+    const write = () => {
+      pendingSave.current = undefined;
+      try {
+        writeDraft(ctx, draftInput, { fresh: fresh.current });
+        setSaved(true);
+      } catch {
+        // a campaign closed under the page: nothing to keep
+      }
+      fresh.current = false;
+    };
+    if (fresh.current) {
+      write();
+      // a fresh deal asked for by the address: drop the request, so a reload reopens this draft
+      if (search.deal) {
+        const { deal: _deal, ...rest } = search;
+        void navigate({ to: "/c/$campaignId/generate/$procedureId", params: { campaignId, procedureId: procedure.id }, search: rest, replace: true });
+      }
+      return;
+    }
+    // an accept (or its mark cleared) is written at once: it is what the page says on coming back
+    if (acceptMark !== lastAccept.current) {
+      lastAccept.current = acceptMark;
+      write();
+      return;
+    }
+    setSaved(false);
+    pendingSave.current = write;
+    const t = window.setTimeout(write, 300);
+    return () => window.clearTimeout(t);
+    // the draft follows the page's state
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draftInput]);
+  useEffect(() => {
+    const flush = () => pendingSave.current?.();
+    window.addEventListener("pagehide", flush);
+    return () => {
+      window.removeEventListener("pagehide", flush);
+      flush();
+    };
+  }, []);
+  const liveDraft = useRecordDraft(procedure.id);
 
   // An adventure input reads the adventure's rich text (its hidden situation) once the docs have loaded.
   const adventureKeys = useMemo(() => Object.entries(inputProperties(procedure)).filter(([, s]) => isAdventureInput(s)).map(([k]) => k), [procedure]);
   const adventureIds = adventureKeys.map((k) => (inputs[k] as { id?: string } | undefined)?.id ?? "").join("|");
   useEffect(() => {
-    if (adventureKeys.length === 0 || initial.restoredFrom) return;
+    if (adventureKeys.length === 0 || initial.restoredFrom || initial.draft) return;
     let alive = true;
     void (async () => {
       for (const key of adventureKeys) {
@@ -277,6 +397,7 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
     pinnedParts,
     onReroll: (key: string) => {
       setCompareTo(graph);
+      setAccepted(undefined);
       setPartSeeds((p) => ({ ...p, [key]: newSeed() }));
     },
     onPin: (key: string) => {
@@ -304,6 +425,7 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
     const lock = c.lock;
     if (!lock) return;
     setCompareTo(graph);
+    setAccepted(undefined);
     setInputs((cur) => {
       const next: Record<string, unknown> = JSON.parse(JSON.stringify(cur));
       let node: unknown = next;
@@ -313,13 +435,15 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
       return next;
     });
   };
-  const editDraft = (key: string, text: string | undefined) =>
+  const editDraft = (key: string, text: string | undefined) => {
+    setAccepted(undefined);
     setEdits((e) => {
       const next = { ...e };
       if (text === undefined) delete next[key];
       else next[key] = text;
       return next;
     });
+  };
   const adventureId = adventureKeys.map((k) => (inputs[k] as { id?: string } | undefined)?.id).find((x): x is string => typeof x === "string");
 
   const accept = () => {
@@ -329,26 +453,45 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
       setEnterQueue([]);
       const root = res.entities[0];
       if (root) {
+        // the draft remembers the accept (written now, before the page leaves), so coming back says so
+        const mark = { run: res.run.id, at: new Date().toISOString() };
+        markDraftAccepted(ctx.store, procedure.id, mark);
+        lastAccept.current = mark;
+        setAcceptMark(mark);
         pushToast(`Accepted ${res.entities.length} entit${res.entities.length === 1 ? "y" : "ies"} into the campaign.`, { tone: "success" });
         void navigate({ to: "/c/$campaignId/entities/$entityId", params: { campaignId, entityId: root.id } });
       } else {
         // one step: the ticked effects are applied and (between jobs) the clocks move with the run
         const done: string[] = [];
+        const detail: Record<string, unknown> = {};
         if (effectsRun || clocksWithRun) {
           const out = applyRunEffects(ctx, res.run, { unticked, ...(clocksWithRun && moveClocks ? { clocks: { def: clocksWithRun, seed: clockSeed } } : {}) });
-          if (effectsRun) setAppliedNow(out.applied);
+          if (effectsRun) detail.applied = out.applied;
           if (out.result) done.push(`${out.result.applied.length} effect${out.result.applied.length === 1 ? "" : "s"} applied${out.result.skipped.length ? `, ${out.result.skipped.length} skipped` : ""}`);
-          if (clocksWithRun) setClocksMoved(out.moved ?? []);
+          if (clocksWithRun) detail.clocks = out.moved ?? [];
           const reached = (out.moved ?? []).flatMap((m) => m.reached).length;
           if (out.moved?.length) done.push(`clocks moved${reached ? ` (${reached} milestone${reached === 1 ? "" : "s"} reached)` : ""}`);
         }
-        setAccepted(res.run);
+        setAcceptMark({ run: res.run.id, at: new Date().toISOString(), ...(Object.keys(detail).length ? { detail } : {}) });
         pushToast(done.length ? `Run recorded: ${done.join("; ")}.` : "Run recorded.", { tone: "success" });
       }
     } catch (e) {
       pushToast(`Accept failed: ${errorMessage(e)}`, { tone: "danger" });
     }
   };
+
+  /** Deal afresh: a new seed and inputs read from the campaign again (what the address asked for is kept). */
+  const newDeal = () => {
+    setAskNewDeal(false);
+    pendingSave.current = undefined;
+    const { run: _run, deal: _deal, ...rest } = search;
+    void navigate({ to: "/c/$campaignId/generate/$procedureId", params: { campaignId, procedureId: procedure.id }, search: { ...rest, deal: newSeed() }, replace: true });
+  };
+  const markAccepted = (runId: Id | undefined, detail: Record<string, unknown>) => {
+    if (runId) setAcceptMark({ run: runId, at: new Date().toISOString(), detail });
+  };
+  const offersActed = offers ? offers.offers.filter((o) => liveDraft?.offers?.[o.key] && liveDraft.offers[o.key]!.as !== "discard").length : 0;
+  const root = accepted?.produced[0] ? ctx.store.get("entities", accepted.produced[0]) : undefined;
 
   return (
     <div className="app-page prep-workbench" data-testid="workbench">
@@ -365,9 +508,31 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
           </h1>
           {procedure.description && <p className="cf-muted prep-lead">{procedure.description}</p>}
         </div>
+        <div className="app-stack prep-deal">
+          <Button onClick={() => (draftHasWork(liveDraft) && !accepted ? setAskNewDeal(true) : newDeal())} data-testid="new-deal" title="Deal this procedure afresh: a new seed, inputs read from the campaign again. What you accepted stays.">
+            New deal
+          </Button>
+          <span className="cf-muted app-small" data-testid="draft-status" data-state={saved ? "saved" : "saving"}>
+            {saved ? "Draft kept in the campaign" : "Saving the draft…"}
+          </span>
+        </div>
       </header>
+      <ConfirmDialog open={askNewDeal} title={`Deal a new ${procedure.name}?`} confirmLabel="New deal" danger onCancel={() => setAskNewDeal(false)} onConfirm={newDeal}>
+        <p>
+          The re-rolls, pins and edits on this deal go{offers ? `, and its open ${procedure.offers?.noun ?? "offer"}s with it` : ""}. What you already accepted or kept stays in the campaign.
+        </p>
+      </ConfirmDialog>
 
       {!inMode && <p className="app-note app-note--warning">This procedure is meant for another play mode; it still runs.</p>}
+      {initial.draft && (
+        <p className="app-note" data-testid="draft-note">
+          {accepted
+            ? `You accepted this deal ${relativeTime(acceptMark?.at ?? accepted.created)}. It is kept here as it was; “New deal” deals a fresh one.`
+            : offers && offersActed > 0
+              ? `The board you dealt ${relativeTime(initial.draft.created)}, as you left it: ${offersActed} of ${offers.offers.length} ${procedure.offers?.noun ?? "offer"}s taken or kept. “New deal” deals a fresh one.`
+              : `Your draft from ${relativeTime(initial.draft.created)}, as you left it (seed ${initial.draft.seed}). “New deal” deals a fresh one.`}
+        </p>
+      )}
       {initial.restoredFrom && (
         <p className="app-note">
           Restored run from {relativeTime(initial.restoredFrom.created)} (seed <span className="cf-mono">{initial.restoredFrom.seed}</span>). Re-roll any step and accept to create new entities; the original run stays as it is.
@@ -407,8 +572,8 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
                   </span>
                 )}
                 {Object.keys(pinned).length > 0 && <Badge tone="warning">{Object.keys(pinned).length} pinned</Badge>}
-                {Object.keys(partSeeds).length > 0 && <Badge tone="accent">{Object.keys(partSeeds).length} slots re-rolled</Badge>}
-                {Object.keys(pinnedParts).length > 0 && <Badge tone="warning">{Object.keys(pinnedParts).length} slots pinned</Badge>}
+                {Object.keys(partSeeds).length > 0 && <Badge tone="accent">{Object.keys(partSeeds).length} slot{Object.keys(partSeeds).length === 1 ? "" : "s"} re-rolled</Badge>}
+                {Object.keys(pinnedParts).length > 0 && <Badge tone="warning">{Object.keys(pinnedParts).length} slot{Object.keys(pinnedParts).length === 1 ? "" : "s"} pinned</Badge>}
                 {Object.keys(stepDice).length > 0 && (
                   <Badge tone="accent" data-testid="entered-steps">
                     {Object.keys(stepDice).length} entered
@@ -448,7 +613,23 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
                   <AgendaDraftCards drafts={drafts} controls={partControls} edits={edits} onEdit={editDraft} onLock={lockArc} />
                 </>
               )}
-              {offers && procedure.offers && graph && <OfferBoard def={procedure.offers} set={offers} graph={graph} controls={offerControls} run={{ stepSeeds, pinned, partSeeds, pinnedParts }} />}
+              {offers && procedure.offers && graph && (
+                <OfferBoard
+                  procedure={procedure.id}
+                  def={procedure.offers}
+                  set={offers}
+                  graph={graph}
+                  controls={offerControls}
+                  run={{ stepSeeds, pinned, partSeeds, pinnedParts }}
+                  onMarked={(keys) =>
+                    setPinnedParts((p) => {
+                      const n = { ...p };
+                      for (const k of keys) if (graph.parts && Object.prototype.hasOwnProperty.call(graph.parts, k)) n[k] = graph.parts[k];
+                      return n;
+                    })
+                  }
+                />
+              )}
               {longDrafts && procedure.longAgendas && (
                 <>
                   {longDrafts.report && <AgendaReportCard report={longDrafts.report} title="No-betrayal check" />}
@@ -457,14 +638,15 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
                     set={longDrafts}
                     controls={partControls}
                     edits={longEdits}
-                    onEdit={(id, patch) =>
+                    onEdit={(id, patch) => {
+                      setAccepted(undefined);
                       setLongEdits((cur) => {
                         const n = { ...cur };
                         if (patch) n[id] = patch;
                         else delete n[id];
                         return n;
-                      })
-                    }
+                      });
+                    }}
                     onLock={lockArc}
                   />
                 </>
@@ -514,10 +696,10 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
           )}
           {graph && drafts ? (
             <>
-              <AgendaAccept drafts={drafts} edits={edits} graph={graph} adventureId={adventureId} run={{ stepSeeds, pinned, partSeeds, pinnedParts }} />
+              <AgendaAccept drafts={drafts} edits={edits} graph={graph} adventureId={adventureId} run={{ stepSeeds, pinned, partSeeds, pinnedParts }} accepted={acceptMark} onAccepted={(id, d) => markAccepted(id, { ...d })} />
             </>
           ) : graph && longDrafts && procedure.longAgendas ? (
-            <LongAgendaAccept def={procedure.longAgendas} set={longDrafts} edits={longEdits} graph={graph} run={{ stepSeeds, pinned, partSeeds, pinnedParts }} />
+            <LongAgendaAccept def={procedure.longAgendas} set={longDrafts} edits={longEdits} graph={graph} run={{ stepSeeds, pinned, partSeeds, pinnedParts }} accepted={acceptMark} onAccepted={(id, d) => markAccepted(id, { ...d })} />
           ) : offers && procedure.offers ? (
             <Card title="Accepting">
               <p className="cf-muted app-small" data-testid="offers-accept-note">
@@ -541,16 +723,40 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
                   }
                 />
               )}
-              <div className="app-row">
-                <Button variant="primary" size="lg" disabled={!graph || !!accepted} onClick={accept} data-testid="accept">
-                  {accepted ? "Accepted" : effectsRun || clocksWithRun ? acceptLabel(toApply.length, !!clocksWithRun && moveClocks) : "Accept into campaign"}
-                </Button>
-              </div>
+              {accepted ? (
+                <AcceptedActions
+                  note={
+                    <p>
+                      Accepted {relativeTime(acceptMark?.at ?? accepted.created)}
+                      {accepted.produced.length ? `: ${accepted.produced.length} record${accepted.produced.length === 1 ? "" : "s"} in the campaign` : ""}.
+                    </p>
+                  }
+                  onward={
+                    root ? (
+                      <Link to="/c/$campaignId/entities/$entityId" params={{ campaignId, entityId: root.id }} className="cf-btn cf-btn--primary cf-btn--lg" data-testid="accept-next">
+                        Open {root.name}
+                      </Link>
+                    ) : undefined
+                  }
+                  again={
+                    accepted.produced.length
+                      ? `Accepting again creates another copy of every record this run makes (${accepted.produced.length}): duplicates of what is already in the campaign.`
+                      : "Accepting again records the run a second time and applies its effects again (payments the ledger already holds are skipped): duplicates."
+                  }
+                  onAgain={accept}
+                />
+              ) : (
+                <div className="app-row">
+                  <Button variant="primary" size="lg" disabled={!graph} onClick={accept} data-testid="accept">
+                    {effectsRun || clocksWithRun ? acceptLabel(toApply.length, !!clocksWithRun && moveClocks) : "Accept into campaign"}
+                  </Button>
+                </div>
+              )}
             </>
           )}
-          {accepted && (
+          {accepted && !drafts && !longDrafts && !offers && (
             <>
-              <ResultsPanel results={accepted.results} runId={accepted.id} {...(appliedNow ? { applied: appliedNow } : {})} />
+              {accepted.produced.length === 0 && <ResultsPanel results={accepted.results} runId={accepted.id} {...(appliedNow ? { applied: appliedNow } : {})} />}
               {isBetweenJobs && <NextAfterBetweenJobs />}
               <ChainButtons run={accepted} />
             </>
@@ -558,7 +764,7 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
         </aside>
       </div>
 
-      <RecentRuns procedure={procedure} />
+      <RecentRuns procedure={procedure} draft={liveDraft} offerKeys={offerKeys} />
     </div>
   );
 }
@@ -578,11 +784,13 @@ function NextAfterBetweenJobs() {
   const arcsDef = arcsDefOf(ctx.module, meta.mode);
   const board = arcsDef?.boards?.[0] ? ctx.module.procedure(arcsDef.boards[0]) : undefined;
   const next = sortSessions(sessions.filter((s) => s.status === "planned"))[0];
+  // the next board is a fresh deal, not the board left from before the job
+  const dealNonce = useMemo(() => newSeed(), []);
   return (
     <Card title="Next" subtitle="The crew is settled. Deal what comes next." data-testid="between-jobs-next">
       <div className="app-row">
         {board && (
-          <Link to="/c/$campaignId/generate/$procedureId" params={{ campaignId: ctx.campaignId, procedureId: board.id }} className="cf-btn cf-btn--primary" data-testid="deal-next-board">
+          <Link to="/c/$campaignId/generate/$procedureId" params={{ campaignId: ctx.campaignId, procedureId: board.id }} search={{ deal: dealNonce }} className="cf-btn cf-btn--primary" data-testid="deal-next-board">
             Deal the next {board.name.toLowerCase()}
           </Link>
         )}
@@ -606,18 +814,39 @@ function NextAfterBetweenJobs() {
   );
 }
 
-function RecentRuns({ procedure }: { procedure: Procedure }) {
+/** The procedure's draft, live. */
+function useRecordDraft(procedureId: string): GeneratorDraft | undefined {
+  const ctx = useCampaign();
+  const drafts = useList("generatorDrafts");
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  return useMemo(() => generatorDraftOf(ctx.store, procedureId), [ctx.store, procedureId, drafts]);
+}
+
+function RecentRuns({ procedure, draft, offerKeys }: { procedure: Procedure; draft: GeneratorDraft | undefined; offerKeys: string[] | undefined }) {
   const ctx = useCampaign();
   const filter = useMemo(() => (r: GeneratorRun) => r.procedure === procedure.id, [procedure.id]);
   const runs = useList("generatorRuns", filter);
   const recent = useMemo(() => [...runs].sort((a, b) => (a.created < b.created ? 1 : -1)).slice(0, 10), [runs]);
+  const openDraft = draft && draftIsOpen(draft, offerKeys) ? draft : undefined;
+  const marked = Object.values(openDraft?.offers ?? {}).filter((o) => o.as !== "discard").length;
   return (
     <section className="app-section" aria-label="Recent runs">
       <h2 className="app-subtitle">Recent runs</h2>
-      {recent.length === 0 ? (
-        <p className="cf-muted">Accepted runs of this procedure are listed here with their seed.</p>
+      {recent.length === 0 && !openDraft ? (
+        <p className="cf-muted">Drafts and accepted runs of this procedure are listed here with their seed.</p>
       ) : (
         <ul className="app-list" data-testid="recent-runs">
+          {openDraft && (
+            <li className="app-list__row" data-testid="recent-draft">
+              <Badge tone="warning">Draft</Badge>
+              <span className="cf-mono">{openDraft.seed}</span>
+              <span className="cf-muted">
+                {offerKeys?.length ? `${marked} of ${offerKeys.length} ${procedure.offers?.noun ?? "offer"}s taken or kept · ` : "not accepted · "}
+                changed {relativeTime(openDraft.updated)}
+              </span>
+              <span className="cf-muted app-list__end">This page</span>
+            </li>
+          )}
           {recent.map((r) => {
             const first = r.produced[0] ? ctx.store.get("entities", r.produced[0]) : undefined;
             return (

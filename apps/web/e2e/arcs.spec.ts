@@ -52,6 +52,7 @@ test("arcs: deal a thread, seed its clue into a posting, take it, find the clue,
 
   // 4. take the job: the clue is seeded in it
   await seeded.getByTestId("offer-accept").click();
+  await seeded.getByTestId("offer-next").click();
   await expect(page.getByTestId("entity-page")).toBeVisible();
   const panel = page.getByTestId("arc-entity-panel");
   const clue = panel.getByTestId("arc-entity-clue").filter({ hasText: gmTitle });

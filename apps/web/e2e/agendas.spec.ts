@@ -50,7 +50,7 @@ test("agenda drafts for Cold Harbor: generate for the four PCs, re-roll a slot, 
   await expect(catchSlot.locator(".agenda-slot__text")).not.toHaveText(catchBefore);
   await expect(act1).not.toHaveValue(textBefore);
   await expect(rosa.getByRole("textbox", { name: "Rosa Ilunga, Act 2 agenda draft" })).toHaveValue(act2Before);
-  await expect(page.getByText("1 slots re-rolled")).toBeVisible();
+  await expect(page.getByText("1 slot re-rolled")).toBeVisible();
 
   // pin a slot, and lock an arc
   await rosa.getByRole("button", { name: "Pin Target for Rosa Ilunga, Act 2" }).click();

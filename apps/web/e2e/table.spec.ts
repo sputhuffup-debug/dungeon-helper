@@ -76,12 +76,12 @@ test("run a session at the table: demo campaign, clock, panic roll, reveal, wrap
   // campaign mode: the questions step holds the trauma checks (none without a panic of 9+)
   const remaining = wrap.getByRole("button", { name: "Remaining: No" });
   while ((await remaining.count()) > 0) await remaining.first().click();
-  await wrap.getByRole("button", { name: /^Next: Rewards/ }).click();
-  // XP comes from the award checklist: attendance is ticked for every PC; tick one more, then award
+  // XP comes from the award checklist, in the same step: attendance is ticked for every PC; tick one more, then award
   const awards = wrap.getByTestId("award-checklist");
   await awards.locator("input[type=checkbox]:not(:checked):not(:disabled)").first().check();
   await wrap.getByTestId("award-xp").click();
   await expect(wrap.getByTestId("awarded")).toHaveCount(4);
+  await wrap.getByRole("button", { name: /^Next: Rewards/ }).click();
   await wrap.getByRole("button", { name: /^Next: Timeline/ }).click();
   await expect(wrap.getByRole("textbox", { name: "Timeline text" }).first()).toHaveValue(/The crew learns/);
   await wrap.getByRole("button", { name: /^Next: Loose ends/ }).click();

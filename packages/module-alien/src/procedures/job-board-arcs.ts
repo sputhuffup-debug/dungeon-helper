@@ -280,7 +280,7 @@ export function arcHeat(part: Part, a: BoardArcs, key: string, brief: JobSiteBri
   pa.notes.push(note);
   const type = a.factionTypes[h.id] ?? "other";
   const sent = h.heat >= 3 && sendHostiles(brief, hostileGroupFor(type, h.heat), `${h.name} is hunting the crew (heat ${h.heat})`, h.heat >= 5);
-  pa.influences.push(`${h.name} heat ${h.heat} (${h.label}): ${lowerFirst(note)}${sent ? "; their people are at the site" : ""}`);
+  pa.influences.push(`${h.name} heat ${h.heat} (${h.label}): ${note.startsWith(h.name) ? note : lowerFirst(note)}${sent ? "; their people are at the site" : ""}`);
 }
 
 /** Pending "threat" and "complication" payoffs that land on this posting. */

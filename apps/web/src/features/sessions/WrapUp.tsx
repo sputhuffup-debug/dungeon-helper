@@ -1,15 +1,20 @@
 /**
- * Session wrap-up, step by step: summary, the module's end-of-session
- * prompts, rewards (the module's award checklist, then free entries),
- * timeline entries, loose ends and, when the session ran one of the
- * module's adventure sources (a job), closing it. Finishing marks the
- * session done, archives its tracker state, plans the next one and lands
- * on the next step: the module's between-jobs procedure for a record just
- * closed, else the next session's page.
+ * Session wrap-up, step by step: summary (drafted from what the session
+ * logged when empty), the end-of-session questions (the module's prompts and
+ * its award checklist, with the arcs' clues, heat and contacts; the step is
+ * left out when it would be empty), rewards (free entries), timeline
+ * entries, loose ends and, when the session ran one of the module's
+ * adventure sources (a job), closing it.
+ *
+ * Everything typed is saved on the session as a draft while the GM types
+ * (see wrapUpActions.ts), so leaving and coming back keeps it. Finishing
+ * commits: it marks the session done, archives its tracker state, plans the
+ * next one and lands on the next step: the module's between-jobs procedure
+ * for a record just closed, else the next session's page.
  */
 import type { Entity, Id } from "@campaign-forge/core";
 import type { Prompt } from "@campaign-forge/module-sdk";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AutoGrowText, Badge, Button, Card, PageRef, pushToast, useDiceRoller } from "../../components/ui";
 import { errorMessage } from "../../lib/format";
 import { useCampaign, useMeta, useRecord } from "../../state/hooks";
@@ -24,7 +29,6 @@ import {
   sessionLabel,
   sessionLogText,
   suggestTimeline,
-  summaryDraft,
   wrapUpOf,
   type TimelineDraft,
   type WrapUpAnswer,
@@ -33,11 +37,13 @@ import { SessionRollPanel, attributeIds, skillInput } from "../table/DicePanel";
 import { WrapChecklistPanel } from "./SessionChecklist";
 import { usePlayerCharacters } from "../table/hooks";
 import { BetweenJobsLink } from "../ship/BetweenJobsLink";
-import { AwardsStep } from "../progression/AwardsStep";
+import { AwardsStep, useAwardsShown } from "../progression/AwardsStep";
 import { LongAgendaWrapUp } from "../agendas/LongAgendas";
 import { ArcsWrapUp } from "../arcs/ArcsWrapUp";
 import { betweenJobsFor, closeStepLabel, CloseSourcesStep, useSessionSources } from "./CloseSources";
 import type { WrapUpLanding } from "./afterWrapUp";
+import { draftSessionSummary, mergeTimeline, saveWrapUpDraft, wrapUpDraftOf, type RewardDraft } from "../../state/wrapUpActions";
+import { arcsDefOf } from "../../state/arcActions";
 
 const BASE_STEPS = [
   { id: "summary", label: "Summary" },
@@ -47,14 +53,6 @@ const BASE_STEPS = [
   { id: "loose", label: "Loose ends" },
 ] as const;
 type StepId = (typeof BASE_STEPS)[number]["id"] | "close";
-
-interface RewardDraft {
-  key: number;
-  characterId: Id;
-  kind: string;
-  value: string;
-  note: string;
-}
 
 export interface WrapUpWizardProps {
   sessionId: Id;
@@ -68,14 +66,20 @@ export function WrapUpWizard({ sessionId, onCancel, onDone }: WrapUpWizardProps)
   const meta = useMeta();
   const session = useRecord("sessions", sessionId);
   const pcs = usePlayerCharacters();
-  const [step, setStep] = useState<StepId>("summary");
-  const [summary, setSummary] = useState<string | undefined>(session?.summary || undefined);
-  const [rewards, setRewards] = useState<RewardDraft[]>([]);
-  const [timeline, setTimeline] = useState<TimelineDraft[]>(() => suggestTimeline(ctx.store, sessionId));
+  // what the GM typed last time, kept on the session
+  const saved = useMemo(() => wrapUpDraftOf(ctx.store.get("sessions", sessionId)), [ctx.store, sessionId]);
+  const [step, setStep] = useState<StepId>(() => (saved.step as StepId | undefined) ?? "summary");
+  const [summary, setSummary] = useState<string | undefined>(saved.summary ?? (session?.summary || undefined));
+  /** The summary is the one drafted from the log, not yet the GM's words. */
+  const [summaryDrafted, setSummaryDrafted] = useState(saved.summaryDrafted === true);
+  const [rewards, setRewards] = useState<RewardDraft[]>(saved.rewards ?? []);
+  const [timeline, setTimeline] = useState<TimelineDraft[]>(() => mergeTimeline(saved.timeline, suggestTimeline(ctx.store, sessionId)));
   const [looseEnds, setLooseEnds] = useState<string>(() => {
+    if (saved.looseEnds !== undefined) return saved.looseEnds;
     const planned = plannedScenesOf(session).map((id) => ctx.store.get("scenes", id)).filter((s) => s && s.status === "planned");
     return planned.map((s) => `Not reached: ${s!.title}`).join("\n");
   });
+  const [savedAt, setSavedAt] = useState<string | undefined>(saved.at);
   const [busy, setBusy] = useState(false);
   // the module's prompts are built once (from the tracker state at wrap-up time)
   const basePrompts = useMemo(() => sessionEndPrompts(ctx, sessionId), [ctx, sessionId]);
@@ -85,27 +89,73 @@ export function WrapUpWizard({ sessionId, onCancel, onDone }: WrapUpWizardProps)
     return [...basePrompts, ...(wrapUpOf(session).followUps ?? []).filter((p) => !seen.has(p.id))];
   }, [basePrompts, session]);
 
+  // an empty summary is drafted from what the session logged (marked as a draft for the GM to edit)
+  const redraft = () =>
+    sessionLogText(ctx, sessionId)
+      .catch(() => "")
+      .then((text) => draftSessionSummary(ctx, sessionId, text));
   useEffect(() => {
     if (summary !== undefined) return;
     let alive = true;
-    sessionLogText(ctx, sessionId)
-      .then((text) => alive && setSummary(summaryDraft(text)))
-      .catch(() => alive && setSummary(""));
+    void redraft().then((text) => {
+      if (!alive) return;
+      setSummary(text);
+      setSummaryDrafted(text.trim() !== "");
+    });
     return () => {
       alive = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ctx, sessionId, summary]);
+
+  // every field is saved on the session as the GM types (a moment after the last key), and when the wrap-up closes
+  const pendingSave = useRef<(() => void) | undefined>(undefined);
+  const first = useRef(true);
+  useEffect(() => {
+    if (first.current) {
+      first.current = false;
+      return;
+    }
+    const write = () => {
+      pendingSave.current = undefined;
+      try {
+        const out = saveWrapUpDraft(ctx, sessionId, { ...(summary !== undefined ? { summary } : {}), summaryDrafted: summaryDrafted || undefined, looseEnds, rewards, timeline, step });
+        if (out?.at) setSavedAt(out.at);
+      } catch {
+        // the campaign closed under the wrap-up: nothing to keep
+      }
+    };
+    pendingSave.current = write;
+    const t = window.setTimeout(write, 400);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [summary, summaryDrafted, looseEnds, rewards, timeline, step]);
+  useEffect(() => {
+    const flush = () => pendingSave.current?.();
+    window.addEventListener("pagehide", flush);
+    return () => {
+      window.removeEventListener("pagehide", flush);
+      flush();
+    };
+  }, []);
 
   const sources = useSessionSources(sessionId);
   const closeLabel = closeStepLabel(ctx, sources);
-  const STEPS: Array<{ id: StepId; label: string }> = [...BASE_STEPS, ...(closeLabel ? [{ id: "close" as const, label: closeLabel }] : [])];
+  // the questions step holds the module's prompts, its award checklist and the arcs; with none of them it is left out
+  const awardsShown = useAwardsShown();
+  const arcsShown = !!arcsDefOf(ctx.module, meta.mode);
+  const askNothing = prompts.length === 0 && !awardsShown && !arcsShown;
+  const STEPS: Array<{ id: StepId; label: string }> = [...BASE_STEPS.filter((s) => s.id !== "prompts" || !askNothing), ...(closeLabel ? [{ id: "close" as const, label: closeLabel }] : [])];
 
   if (!session) return null;
-  const idx = STEPS.findIndex((s) => s.id === step);
+  const idx = Math.max(0, STEPS.findIndex((s) => s.id === step));
+  const current = STEPS[idx]!.id;
   const answeredCount = prompts.filter((p) => answers[p.id]).length;
 
   const finish = () => {
     setBusy(true);
+    // finishing commits what is typed: no draft write after it
+    pendingSave.current = undefined;
     try {
       const result = finishSession(ctx, sessionId, {
         summary: summary ?? "",
@@ -131,6 +181,9 @@ export function WrapUpWizard({ sessionId, onCancel, onDone }: WrapUpWizardProps)
         <div>
           <h1 className="app-title">Wrap up {sessionLabel(session)}</h1>
           <p className="cf-muted">Close the session: summary, questions, rewards, timeline, and what carries over.</p>
+          <p className="cf-muted app-small" data-testid="wrapup-saved" data-saved={savedAt ? "" : undefined}>
+            {savedAt ? "Everything you type is kept on the session until you finish." : "Everything you type is kept on the session as you go."}
+          </p>
         </div>
         {onCancel && (
           <Button variant="ghost" onClick={onCancel}>
@@ -141,7 +194,7 @@ export function WrapUpWizard({ sessionId, onCancel, onDone }: WrapUpWizardProps)
       <ol className="app-steps" aria-label="Wrap-up steps">
         {STEPS.map((s, i) => (
           <li key={s.id}>
-            <button type="button" className={`app-steps__step${s.id === step ? " is-active" : ""}${i < idx ? " is-done" : ""}`} aria-current={s.id === step ? "step" : undefined} onClick={() => setStep(s.id)}>
+            <button type="button" className={`app-steps__step${s.id === current ? " is-active" : ""}${i < idx ? " is-done" : ""}`} aria-current={s.id === current ? "step" : undefined} onClick={() => setStep(s.id)}>
               <span className="app-steps__num">{i + 1}</span>
               {s.label}
               {s.id === "prompts" && prompts.length > 0 && <span className="cf-muted"> {answeredCount}/{prompts.length}</span>}
@@ -152,21 +205,57 @@ export function WrapUpWizard({ sessionId, onCancel, onDone }: WrapUpWizardProps)
 
       <div className="app-wrapup__body">
         <div className="app-wrapup__main">
-          {step === "summary" && (
-            <Card title="Summary" subtitle="Drafted from the first lines of the session log. Edit freely.">
-              <textarea className="cf-textarea app-wrapup__summary" aria-label="Session summary" rows={8} value={summary ?? ""} placeholder={summary === undefined ? "Reading the log…" : "What happened this session?"} onChange={(e) => setSummary(e.target.value)} />
+          {current === "summary" && (
+            <Card
+              title="Summary"
+              subtitle={summaryDrafted ? "A draft from what the session logged: scenes, clues, what the players saw, panic, injuries, rolls of note and the hunt, then your own log lines. Edit it into your words." : "What happened this session, in your words. It opens next session's recap."}
+              actions={
+                <span className="app-row">
+                  {summaryDrafted && (
+                    <Badge tone="warning" data-testid="summary-drafted">
+                      Draft
+                    </Badge>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() =>
+                      void redraft().then((text) => {
+                        setSummary(text);
+                        setSummaryDrafted(text.trim() !== "");
+                      })
+                    }
+                    data-testid="summary-redraft"
+                    title="Replace the summary with a new draft from the session's log"
+                  >
+                    {summary ? "Draft again from the log" : "Draft from the log"}
+                  </Button>
+                </span>
+              }
+            >
+              <textarea
+                className="cf-textarea app-wrapup__summary"
+                aria-label="Session summary"
+                rows={8}
+                value={summary ?? ""}
+                placeholder={summary === undefined ? "Reading the log…" : "Nothing was logged to draft from. What happened this session?"}
+                onChange={(e) => {
+                  setSummary(e.target.value);
+                  setSummaryDrafted(false);
+                }}
+              />
             </Card>
           )}
 
-          {step === "prompts" && <PromptsStep sessionId={sessionId} prompts={prompts} answers={answers} pcs={pcs} />}
-          {step === "prompts" && <ArcsWrapUp sessionId={sessionId} />}
+          {current === "prompts" && (prompts.length > 0 || !awardsShown) && <PromptsStep sessionId={sessionId} prompts={prompts} answers={answers} pcs={pcs} />}
+          {current === "prompts" && <AwardsStep sessionId={sessionId} />}
+          {current === "prompts" && <ArcsWrapUp sessionId={sessionId} />}
 
-          {step === "rewards" && <LongAgendaWrapUp />}
-          {step === "rewards" && <AwardsStep sessionId={sessionId} />}
-          {step === "rewards" && <RewardsStep pcs={pcs} rewards={rewards} setRewards={setRewards} />}
-          {step === "rewards" && <BetweenJobsLink />}
+          {current === "rewards" && <LongAgendaWrapUp />}
+          {current === "rewards" && <RewardsStep pcs={pcs} rewards={rewards} setRewards={setRewards} />}
+          {current === "rewards" && <BetweenJobsLink />}
 
-          {step === "timeline" && (
+          {current === "timeline" && (
             <Card title="Timeline entries" subtitle={`Dated ${meta.currentDate ?? "(no in-world date set)"}, the campaign's current in-world date.`}>
               {timeline.length === 0 && <p className="cf-muted">No scenes were marked run and no handouts revealed. Add an entry by hand if something happened.</p>}
               <ul className="app-list" aria-label="Timeline entries">
@@ -184,13 +273,13 @@ export function WrapUpWizard({ sessionId, onCancel, onDone }: WrapUpWizardProps)
             </Card>
           )}
 
-          {step === "loose" && (
+          {current === "loose" && (
             <Card title="Loose ends" subtitle="One per line. They become the plan of the next session.">
               <textarea className="cf-textarea" aria-label="Loose ends" rows={6} value={looseEnds} placeholder="Who sent the signal?" onChange={(e) => setLooseEnds(e.target.value)} />
             </Card>
           )}
 
-          {step === "close" && <CloseSourcesStep sessionId={sessionId} sources={sources} />}
+          {current === "close" && <CloseSourcesStep sessionId={sessionId} sources={sources} />}
         </div>
         <aside className="app-wrapup__aside" aria-label="After the session checklist">
           <WrapChecklistPanel session={session} />

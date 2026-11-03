@@ -497,7 +497,6 @@ test("wrap-up-awards", async ({ page }) => {
   const wrap = page.getByTestId("wrapup");
   await wrap.getByRole("textbox", { name: "Session summary" }).fill("The crew took the Weyland-Yutani job and left the station.");
   await wrap.getByRole("button", { name: /^Next: End-of-session questions/ }).click();
-  await wrap.getByRole("button", { name: /^Next: Rewards/ }).click();
   const grid = wrap.getByTestId("award-checklist");
   const tick = async (q: string, cols: number[]) => {
     for (const i of cols) await grid.locator(`[data-question="alien.award.${q}"] input`).nth(i).check();
@@ -547,6 +546,50 @@ test("close-the-job", async ({ page }) => {
   await expect(close.getByTestId("payout-posted")).toBeVisible();
   await dismissToasts(page);
   await shot(page, "close-the-job");
+});
+
+test("job-board-taken", async ({ page }) => {
+  // the job board kept as dealt: the first posting taken (marked, with its job and "Run this job" as the next steps), the
+  // other two still open, "Keep the others as leads" below; the board survives leaving and coming back
+  await page.setViewportSize({ width: 1440, height: 1250 });
+  const base = await loadDemo(page, "skyfire");
+  await page.goto(`${base}/generate/alien.job-board`);
+  await page.getByTestId("seed").fill("readme-board");
+  const cards = page.getByTestId("offer-board").getByTestId("offer-card");
+  await expect(cards).toHaveCount(3);
+  await cards.first().getByTestId("offer-accept").click();
+  await expect(cards.first()).toHaveAttribute("data-state", "accept");
+  await expect(page.getByTestId("draft-status")).toHaveAttribute("data-state", "saved");
+  // left and opened again: the same board, said so
+  await nav(page, "Home").click();
+  await nav(page, "Generate").click();
+  await page.getByTestId("procedure-alien.job-board").click();
+  await expect(page.getByTestId("draft-note")).toContainText("1 of 3 postings");
+  await dismissToasts(page);
+  // the board itself: the taken posting on top, the next one below it
+  await page.getByTestId("offer-board").evaluate((e) => window.scrollTo(0, e.getBoundingClientRect().top + window.scrollY - 24));
+  await shot(page, "job-board-taken");
+});
+
+test("wrap-up-draft", async ({ page }) => {
+  // the wrap-up's summary drafted from what session 2 logged (the scene run, a panic roll, a critical injury), marked as a draft
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await loadDemo(page, "skyfire");
+  await startPlannedSession(page);
+  const stress = page.locator('[data-tracker="alien.stress"]');
+  await stress.getByRole("button", { name: "Panic roll" }).first().click();
+  await expect(page.getByTestId("roll-result")).toBeVisible();
+  await page.getByRole("dialog").getByRole("button", { name: "Done" }).click();
+  await page.getByRole("button", { name: /^Critical injury for / }).nth(1).click();
+  await expect(page.getByTestId("roll-result")).toBeVisible();
+  await page.getByRole("dialog").getByRole("button", { name: "Done" }).click();
+  await page.getByTestId("mark-run").click();
+  await page.getByTestId("end-session").click();
+  const wrap = page.getByTestId("wrapup");
+  await expect(wrap.getByRole("textbox", { name: "Session summary" })).toHaveValue(/^The crew played one scene/);
+  await expect(wrap.getByTestId("summary-drafted")).toBeVisible();
+  await dismissToasts(page);
+  await shot(page, "wrap-up-draft");
 });
 
 test("table-recap", async ({ page }) => {
