@@ -13,6 +13,7 @@ Campaign Forge knows nothing about any one game. Everything a game system brings
 | Character builder and level-up wizard | Yes (`characterBuilders`) | Yes |
 | A generator offered beside *+ New* for PCs (a life path), a gear list picker on the sheet | Yes (`createsCharacter` on a procedure, `catalog` on a `gear` field) | Yes |
 | Setup guide steps and campaign settings asked at creation | Yes (`setup`, `campaignSettings`) | Yes |
+| A step-by-step guide for the GM (the Guide page and a docs page) | Yes (`guide`) | Yes |
 | Dungeon map generator (floor plan, doors and secrets, room key, encounters, traps, treasure) | Yes (`mapGenerators` with the built-in `dungeon` engine) | Yes (the built-in engine, or any generator in code) |
 | Other combat rules, ship, travel, ledger, progression, campaign arcs, session recap lines, other map generators, adventure builders, adventure sources ("Run this job"), hooks | No (needs code) | Yes |
 
@@ -44,6 +45,7 @@ Then open the app, choose **Game modules… → Import data pack…** on the cam
 13. [Session recaps](recaps.md): the "Previously on…" recap core builds for every module, and the `recap` contributors a TypeScript module adds its own lines with (the snapshot they read, audiences, keys, the player-safety model).
 14. [Adventure sources](adventure-sources.md): "Run this job": a record (a job) made into an adventure from a template, filled from what the record holds, planned into the next session and closed at the wrap-up; and why template guidance is placeholder text, never content.
 15. [Setting up a campaign](setup.md): the "Set up your campaign" checklist on a new campaign's Home page (the core's steps, a module's own steps and order per mode, `done` rules over a campaign snapshot, links) and campaign settings asked at creation that procedure inputs default to.
-16. [TypeScript modules](typescript-modules.md): when you need code, and how to register a built-in module or pack (including large ones such as the 5th Edition SRD 5.1 & 5.2 in `packages/module-dnd5e-srd` and the ORC core rules for the second edition remaster in `packages/module-pf2e-orc`).
+16. [The GM's guide](guides.md): a module's step-by-step walkthrough from a new campaign to its first session, shown on the Guide page with "Take me there" links and generated into a docs page; its screenshots and offline images.
+17. [TypeScript modules](typescript-modules.md): when you need code, and how to register a built-in module or pack (including large ones such as the 5th Edition SRD 5.1 & 5.2 in `packages/module-dnd5e-srd` and the ORC core rules for the second edition remaster in `packages/module-pf2e-orc`).
 
 The published JSON Schemas are in `packages/module-sdk/schema/` (`module-pack.schema.json`, `module-pack-part.schema.json`, `module-supplement.schema.json`, `module-supplement-part.schema.json`). Point your editor at them with `"$schema"` for completion and inline errors. The contract they describe is `packages/module-sdk/src/types.ts`; the fixture pack `packages/module-example/packs/example-pack/` uses every feature of the format.

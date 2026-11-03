@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, describe, expect, it } from "vitest";
-import { FEATURES_DIR, MAX_SCREENSHOT_BYTES, SCREENSHOTS_DIR, checkScreenshots, markdownImages, markdownLinks, readDocs } from "../src/index";
+import { FEATURES_DIR, GUIDES_DIR, MAX_SCREENSHOT_BYTES, SCREENSHOTS_DIR, checkScreenshots, markdownImages, markdownLinks, readDocs } from "../src/index";
 
 const ROOT = resolve(fileURLToPath(new URL("../../../", import.meta.url)));
 
@@ -12,9 +12,10 @@ describe("README and feature page screenshots", () => {
   const report = checkScreenshots(ROOT, docs);
   const at = (i: { file: string; line: number; path: string }) => `${i.file}:${i.line} ${i.path}`;
 
-  it("reads the README and a feature page per area", () => {
+  it("reads the README, a feature page per area and the guide pages", () => {
     expect(docs.map((d) => d.file)).toContain("README.md");
     expect(docs.filter((d) => d.file.startsWith(`${FEATURES_DIR}/`)).length).toBeGreaterThan(0);
+    expect(docs.map((d) => d.file)).toContain(`${GUIDES_DIR}/alien-first-campaign.md`);
   });
 
   it("shows at least one screenshot in the README", () => {
@@ -43,6 +44,10 @@ describe("README and feature page screenshots", () => {
 
   it("the README links every feature page", () => {
     expect(report.unlinkedPages).toEqual([]);
+  });
+
+  it("the README or a feature page links every guide page", () => {
+    expect(report.unlinkedGuides).toEqual([]);
   });
 });
 
@@ -91,6 +96,22 @@ describe("checkScreenshots", () => {
     expect(r.unreferenced).toEqual([]);
     expect(r.brokenLinks.map((l) => l.target)).toEqual(["docs/features/missing.md"]);
     expect(r.unlinkedPages).toEqual(["docs/features/b.md"]);
+  });
+
+  it("checks guide pages' images and links, and that a page links each guide", () => {
+    mkdirSync(join(dir, GUIDES_DIR), { recursive: true });
+    writeFileSync(join(dir, GUIDES_DIR, "linked.md"), "x");
+    const docs = [
+      { file: "README.md", markdown: "![Shown](docs/screenshots/shown.png)" },
+      { file: `${FEATURES_DIR}/a.md`, markdown: "[Guide](../guides/linked.md) ![Big](../screenshots/big.png)" },
+      { file: `${GUIDES_DIR}/linked.md`, markdown: "![Stray](../screenshots/stray.png) ![Gone](../screenshots/gone.png) [Back](../features/a.md) [Nope](../features/nope.md)" },
+      { file: `${GUIDES_DIR}/orphan.md`, markdown: "text" },
+    ];
+    const r = checkScreenshots(dir, docs, 1024);
+    expect(r.unreferenced).toEqual([]);
+    expect(r.missing.map((i) => `${i.file} ${i.target}`)).toEqual([`${GUIDES_DIR}/linked.md docs/screenshots/gone.png`]);
+    expect(r.brokenLinks.map((l) => l.target)).toEqual(["docs/features/nope.md"]);
+    expect(r.unlinkedGuides).toEqual([`${GUIDES_DIR}/orphan.md`]);
   });
 
   it("reads local links but not images, URLs or anchors", () => {

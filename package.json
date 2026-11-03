@@ -16,6 +16,7 @@
     "table-lint": "pnpm --filter @campaign-forge/table-lint run lint-tables",
     "screenshots": "pnpm --filter @campaign-forge/web build && pnpm --filter @campaign-forge/web screenshots",
     "module-check": "pnpm --filter @campaign-forge/module-check run check",
+    "guides": "pnpm --filter @campaign-forge/guides run write",
     "create-module": "pnpm --filter @campaign-forge/create-module run create"
   },
   "devDependencies": {

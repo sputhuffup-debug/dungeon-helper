@@ -1,8 +1,9 @@
 /**
- * Checks that the docs and docs/screenshots/ agree: every image the README
- * or a feature page (docs/features/*.md) shows exists, every screenshot is
- * shown somewhere, each one stays small, every feature page is linked from
- * the README, and their local links point at files that exist. No browser
+ * Checks that the docs and docs/screenshots/ agree: every image the README,
+ * a feature page (docs/features/*.md) or a guide page (docs/guides/*.md)
+ * shows exists, every screenshot is shown somewhere, each one stays small,
+ * every feature page is linked from the README, every guide page from the
+ * README or a feature page, and their local links point at files that exist. No browser
  * needed; `pnpm screenshots` regenerates the images themselves.
  */
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
@@ -13,6 +14,9 @@ export const SCREENSHOTS_DIR = "docs/screenshots";
 
 /** Feature pages (app-wide and one per game module), relative to the repo root. */
 export const FEATURES_DIR = "docs/features";
+
+/** Guide pages (generated from the modules' guides by `pnpm guides`), relative to the repo root. */
+export const GUIDES_DIR = "docs/guides";
 
 /** The largest a screenshot may be. */
 export const MAX_SCREENSHOT_BYTES = 1024 * 1024;
@@ -96,6 +100,8 @@ export interface ScreenshotReport {
   brokenLinks: DocRef[];
   /** Feature pages the README does not link to. */
   unlinkedPages: string[];
+  /** Guide pages neither the README nor a feature page links to. */
+  unlinkedGuides: string[];
 }
 
 /**
@@ -120,14 +126,18 @@ export function checkScreenshots(root: string, docs: DocFile[] | string, maxByte
   const brokenLinks = links.filter((l) => !existsSync(resolve(root, l.target)));
   const readmeLinks = new Set(links.filter((l) => l.file === "README.md").map((l) => l.target));
   const unlinkedPages = files.map((f) => f.file).filter((f) => f.startsWith(`${FEATURES_DIR}/`) && !readmeLinks.has(f));
-  return { missing, unreferenced, oversized, images, brokenLinks, unlinkedPages };
+  const pageLinks = new Set(links.filter((l) => l.file === "README.md" || l.file.startsWith(`${FEATURES_DIR}/`)).map((l) => l.target));
+  const unlinkedGuides = files.map((f) => f.file).filter((f) => f.startsWith(`${GUIDES_DIR}/`) && !pageLinks.has(f));
+  return { missing, unreferenced, oversized, images, brokenLinks, unlinkedPages, unlinkedGuides };
 }
 
-/** The README and every feature page under `root`. */
+/** The README, every feature page and every guide page under `root`. */
 export function readDocs(root: string): DocFile[] {
   const out: DocFile[] = [{ file: "README.md", markdown: readFileSync(resolve(root, "README.md"), "utf8") }];
-  const dir = resolve(root, FEATURES_DIR);
-  if (existsSync(dir))
-    for (const f of readdirSync(dir).filter((x) => x.endsWith(".md")).sort()) out.push({ file: `${FEATURES_DIR}/${f}`, markdown: readFileSync(resolve(dir, f), "utf8") });
+  for (const folder of [FEATURES_DIR, GUIDES_DIR]) {
+    const dir = resolve(root, folder);
+    if (existsSync(dir))
+      for (const f of readdirSync(dir).filter((x) => x.endsWith(".md")).sort()) out.push({ file: `${folder}/${f}`, markdown: readFileSync(resolve(dir, f), "utf8") });
+  }
   return out;
 }
