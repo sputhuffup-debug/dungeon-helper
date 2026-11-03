@@ -9,12 +9,14 @@ import { Badge, DiceRollPanel, Drawer, EmptyState, SheetRenderer, pushToast, val
 import { updateEntityFields } from "../../state/actions";
 import { useCampaign, useComputed, useMeta, useSheetSources } from "../../state/hooks";
 import { isPlayerCharacter } from "../atlas/AtlasPage";
+import { useZoneMapField } from "../maps/LocationMaps";
 
 export function SheetTab({ entity, def }: { entity: Entity; def: EntityTypeDef | undefined }) {
   const ctx = useCampaign();
   const meta = useMeta();
   const computed = useComputed(entity);
   const sources = useSheetSources();
+  const mapField = useZoneMapField(entity.id);
   const [asPlayer, setAsPlayer] = useState(false);
   const [rule, setRule] = useState<string | undefined>();
   const [picking, setPicking] = useState<SheetField | undefined>();
@@ -117,6 +119,7 @@ export function SheetTab({ entity, def }: { entity: Entity; def: EntityTypeDef |
           dice={ctx.module.module.dice}
           presetsFor={sources.presetsFor}
           entitiesOf={sources.entitiesOf}
+          {...mapField}
         />
       )}
       <RuleDrawer ruleId={rule} onClose={() => setRule(undefined)} onOpenRule={setRule} />

@@ -15,7 +15,7 @@
  *
  * Module decisions (original, marked as such): how a hidden threat picks its
  * zone (the weights below), people keeping out of the ducts, rogue humans
- * moving one zone a stretch, a tracker counting range across walls and
+ * and NPCs moving one zone a stretch, the job's NPCs never labelled hostile, a tracker counting range across walls and
  * locked doors, the bearing of a blip, and blips going stale when the next
  * stretch or round begins. The A-J letters follow the Starter Set's signal
  * tokens.
@@ -55,7 +55,7 @@ export const creatureMover: MapMoverDef = {
   ],
 };
 
-/** A hostile android, or a crewmember's android turning on them. */
+/** A hostile android group on the site, or a job's android that turns on the crew. */
 export const androidMover: MapMoverDef = {
   id: "android",
   label: "Android",
@@ -64,9 +64,9 @@ export const androidMover: MapMoverDef = {
   from: {
     markers: [
       { kind: "hostile", when: { "==": [{ var: "kind" }, "android"] } },
-      { kind: "npc", when: { "==": [{ var: "turns" }, true] } },
+      // a job's android that turns on the crew (the job says so)
+      { kind: "npc", when: { and: [{ "==": [{ var: "turns" }, true] }, { "==": [{ var: "role" }, "android"] }] } },
     ],
-    entities: [{ type: "alien.character", when: isAndroid }],
   },
   prefer: { approach: 1, duct: 0.5, revealed: -0.5, trail: -0.4 },
   postures: {
@@ -81,15 +81,14 @@ export const androidMover: MapMoverDef = {
   ],
 };
 
-/** Rogue humans: hostile groups and the NPCs on the map. */
+/** Rogue humans: the site's hostile groups. */
 export const humanMover: MapMoverDef = {
   id: "humans",
   label: "Rogue humans",
   zones: { stretch: 1, round: 1 },
   ducts: false,
   from: {
-    markers: [{ kind: "hostile" }, { kind: "npc" }],
-    entities: [{ type: "alien.character", when: { "!": isAndroid } }],
+    markers: [{ kind: "hostile" }],
   },
   prefer: { approach: 0.5, stay: 0.5, revealed: -0.25, trail: -0.4 },
   postures: {
@@ -104,6 +103,46 @@ export const humanMover: MapMoverDef = {
     { text: "People keep out of the ducts.", original: true },
     { text: "Holding a room or guarding the objective, they stay near it; patrolling, they walk their waypoints and turn toward the crew; hurt, they fall back into cover.", original: true },
   ],
+};
+
+/**
+ * The NPCs on the map (the job's people: a contact, a survivor, an android
+ * crewmember) and the campaign's characters: named "NPC", never a hostile
+ * label, whatever they turn out to be. Module decision: they move like the
+ * crew, one zone a stretch, and keep to where the GM put them unless the GM
+ * moves them.
+ */
+const npcPrefer = { approach: 0, stay: 1, revealed: -0.25, trail: -0.4 };
+export const npcMover: MapMoverDef = {
+  id: "npc",
+  label: "NPC",
+  zones: { stretch: 1, round: 1 },
+  ducts: false,
+  from: {
+    markers: [{ kind: "npc", when: { "!=": [{ var: "role" }, "android"] } }],
+    entities: [{ type: "alien.character", when: { "!": isAndroid } }],
+  },
+  prefer: npcPrefer,
+  hurt: { approach: -1, stay: -0.5, cluttered: 1 },
+  notes: [
+    { text: "In stealth mode the crew moves one zone a stretch, then the GM moves the NPCs on the hidden map.", page: 55 },
+    { text: "The job's people stay where the GM put them unless the GM moves them; none of them is marked hostile here.", original: true },
+  ],
+};
+
+/** An android NPC (a synthetic crewmember or a job's android): like an NPC, but it may use the ducts. */
+export const androidNpcMover: MapMoverDef = {
+  id: "android-npc",
+  label: "NPC (android)",
+  zones: { stretch: 1, round: 1 },
+  ducts: true,
+  from: {
+    markers: [{ kind: "npc", when: { "==": [{ var: "role" }, "android"] } }],
+    entities: [{ type: "alien.character", when: isAndroid }],
+  },
+  prefer: npcPrefer,
+  hurt: { approach: -1, duct: 1.5, stay: -0.5 },
+  notes: [{ text: "Androids may use the ducts; people keep out of them.", original: true }],
 };
 
 const RANGE_TO_BAND: Record<string, string> = { short: "short", medium: "medium", long: "long", extreme: "extreme" };
@@ -142,7 +181,7 @@ export const ALIEN_HUNT: MapHuntDef = {
     { id: "stretch", label: "Stretch", page: 55 },
     { id: "round", label: "Round", page: 59 },
   ],
-  movers: [creatureMover, androidMover, humanMover],
+  movers: [creatureMover, androidMover, humanMover, npcMover, androidNpcMover],
   sensors: motionTrackers,
   gearPaths: ["gear"],
   blipLetters: [...SIGNAL_TOKEN_LETTERS],

@@ -1,10 +1,39 @@
 /** "Maps" section on a location's page: site maps placed at this location, and a button to add one. */
-import type { Entity, SiteMap } from "@campaign-forge/core";
+import type { Entity, Id, SiteMap } from "@campaign-forge/core";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { useMemo } from "react";
-import { Badge, Button, Card } from "../../components/ui";
+import { useCallback, useMemo } from "react";
+import { Badge, Button, Card, type SheetContextValue } from "../../components/ui";
 import { createSiteMap } from "../../state/prepActions";
 import { useCampaign, useList } from "../../state/hooks";
+
+/**
+ * The sheet's zone map field for a record: the map its field names, else a
+ * saved map whose location is the record (a generated site map first), so
+ * a job's site shows its site map even when the field was never set. "Open
+ * map" goes to the map page (`newTab`: in another tab, e.g. from table mode).
+ */
+export function useZoneMapField(entityId: Id | undefined, opts: { newTab?: boolean } = {}): Pick<SheetContextValue, "resolveMap" | "onOpenMap"> {
+  const ctx = useCampaign();
+  const navigate = useNavigate();
+  const maps = useList("maps");
+  const resolveMap = useCallback(
+    (id: string | undefined) => {
+      const m = id ? maps.find((x) => x.id === id) : (maps.find((x) => x.location === entityId && !!x.layout) ?? maps.find((x) => x.location === entityId));
+      return m ? { id: m.id, name: m.name } : undefined;
+    },
+    [maps, entityId],
+  );
+  const newTab = !!opts.newTab;
+  const onOpenMap = useCallback(
+    (id: string | undefined) => {
+      if (!id) return;
+      if (newTab) window.open(`${window.location.origin}/c/${ctx.campaignId}/maps/${id}`, "_blank", "noopener");
+      else void navigate({ to: "/c/$campaignId/maps/$mapId", params: { campaignId: ctx.campaignId, mapId: id } });
+    },
+    [ctx.campaignId, navigate, newTab],
+  );
+  return { resolveMap, onOpenMap };
+}
 
 export function LocationMaps({ entity }: { entity: Entity }) {
   const ctx = useCampaign();

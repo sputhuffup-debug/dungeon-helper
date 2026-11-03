@@ -172,12 +172,7 @@ function drawHunt(hunt: SiteMapHuntInput, o: { byId: Map<string, MapZoneData>; o
     const [x, y] = p;
     const r = 0.62;
     const diamond = `${fmt(x)},${fmt(y - r)} ${fmt(x + r)},${fmt(y)} ${fmt(x)},${fmt(y + r)} ${fmt(x - r)},${fmt(y)}`;
-    const initials = t.label
-      .split(/\s+/)
-      .map((w) => w[0] ?? "")
-      .join("")
-      .slice(0, 2)
-      .toUpperCase();
+    const initials = tokenInitials(t.label);
     const hidden = t.state === "hidden";
     out.push(
       el("g", { "data-hunt-token": t.id, "data-hunt-state": t.state, ...(t.letter ? { "data-hunt-letter": t.letter } : {}) }, [
@@ -658,6 +653,24 @@ export interface SiteMapDrawing {
 }
 
 const WALL = 0.22;
+
+/**
+ * Two letters for a token: the initials of the first two words (hyphens and
+ * spaces split words: "Ripley-Vance" is "RV", "Dana Okoye" is "DO"), else the
+ * first two letters of a single word ("Dana" is "Da").
+ */
+export function tokenInitials(label: string): string {
+  const words = label.split(/[\s\-–]+/).filter(Boolean);
+  if (words.length >= 2) return words.slice(0, 2).map((w) => w[0] ?? "").join("").toUpperCase();
+  const w = words[0] ?? "";
+  return w.length > 1 ? `${w[0]!.toUpperCase()}${w[1]!.toLowerCase()}` : w.toUpperCase();
+}
+
+/** The short name under a token on the player map: the first word, cut to twelve letters ("Ripley-Vance", "Dana"). */
+export function tokenShortName(label: string): string {
+  const first = label.trim().split(/\s+/)[0] ?? "";
+  return first.length > 12 ? `${first.slice(0, 11)}…` : first;
+}
 
 /** The palette for a palette option ("light" by default). */
 export function resolvePalette(p: SiteMapDrawOptions["palette"]): SiteMapPalette {
@@ -1344,16 +1357,16 @@ export function drawSiteMap(layout: SiteLayout, opts: SiteMapDrawOptions): SiteM
     ts.forEach((t, i) => {
       const x = tall ? cx : cx + (i - (ts.length - 1) / 2) * step;
       const y = tall ? cy + (tracking || w < 2.4 ? 1.4 : 0) + i * step : cy + anchor;
-      const initials = t.label
-        .split(/\s+/)
-        .map((w) => w[0] ?? "")
-        .join("")
-        .slice(0, 2)
-        .toUpperCase();
+      const initials = tokenInitials(t.label);
+      // the players read who is who at a glance: a lone token gets its short name under it (side by side, names would collide)
+      const name = view === "player" && !t.badge && ts.length === 1 ? tokenShortName(t.label) : "";
       liveNodes.push(
         el("g", { "data-token": t.id }, [
           el("circle", { cx: x, cy: y, r: 0.55, fill: t.gmOnly ? p.gmToken : p.token, stroke: p.halo, "stroke-width": 0.08, "stroke-dasharray": t.gmOnly ? "0.2 0.1" : undefined }),
           el("text", { x, y: y + 0.2, "text-anchor": "middle", "font-size": 0.52, "font-family": MAP_FONT, "font-weight": 700, fill: "#ffffff" }, [t.badge || initials || "?"]),
+          ...(name
+            ? [el("text", { x, y: y + 1.05, "text-anchor": "middle", "font-size": 0.42, "font-family": MAP_FONT, "font-weight": 700, fill: p.token, stroke: p.halo, "stroke-width": 0.12, "paint-order": "stroke", "data-token-name": t.id }, [name])]
+            : []),
           el("title", {}, [t.label]),
         ]),
       );

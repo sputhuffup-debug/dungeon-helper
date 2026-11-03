@@ -41,10 +41,29 @@ export function SessionLog({ sessionId }: { sessionId: Id }) {
   );
 }
 
-/** Recent tracker events (clock, rolls, reveals, effects), newest first. */
+/**
+ * Log entries newest first, with a run of the same text one after another
+ * (five sweeps with no movement) folded into its newest entry and a count.
+ * Entries that carry roll data are never folded: each roll is its own.
+ */
+export function collapseRepeats<T extends { text: string; at: string; data?: unknown }>(newestFirst: T[]): Array<T & { count: number; since?: string }> {
+  const out: Array<T & { count: number; since?: string }> = [];
+  for (const e of newestFirst) {
+    const last = out[out.length - 1];
+    if (last && last.text === e.text && !isRoll(e.data) && !isRoll(last.data)) {
+      last.count += 1;
+      last.since = e.at;
+      continue;
+    }
+    out.push({ ...e, count: 1 });
+  }
+  return out;
+}
+
+/** Recent tracker events (clock, rolls, reveals, effects), newest first; repeated lines show once with a count. */
 export function EventFeed({ sessionId, max = 30 }: { sessionId: Id; max?: number }) {
   const ts = useSessionTrackerState(sessionId);
-  const entries = useMemo(() => (ts ? [...ts.log].reverse().slice(0, max) : []), [ts, max]);
+  const entries = useMemo(() => (ts ? collapseRepeats([...ts.log].reverse()).slice(0, max) : []), [ts, max]);
   return (
     <Card title="Events">
       {entries.length === 0 ? (
@@ -52,9 +71,14 @@ export function EventFeed({ sessionId, max = 30 }: { sessionId: Id; max?: number
       ) : (
         <ul className="cf-tracker__log app-table__feed" aria-label="Session events">
           {entries.map((e, i) => (
-            <li key={i}>
+            <li key={i} data-count={e.count}>
               <span className="cf-tracker__log-time">{shortTime(e.at)}</span>
               <span>{e.text}</span>
+              {e.count > 1 && (
+                <Badge title={`${e.count} times since ${shortTime(e.since ?? e.at)}`} data-testid="event-count">
+                  ×{e.count}
+                </Badge>
+              )}
               {enteredFaces(e.data) && (
                 <Badge tone="accent" title={`Rolled at the table: ${enteredFaces(e.data)!.join(" ")}`} data-testid="event-entered">
                   entered
@@ -67,6 +91,9 @@ export function EventFeed({ sessionId, max = 30 }: { sessionId: Id; max?: number
     </Card>
   );
 }
+
+/** A dice roll's log entry (it carries the roll's seed). */
+const isRoll = (data: unknown): boolean => !!data && typeof data === "object" && typeof (data as { seed?: unknown }).seed === "string";
 
 /** Faces typed for a roll made with dice rolled at the table, from a log entry's data. */
 export function enteredFaces(data: unknown): number[] | undefined {

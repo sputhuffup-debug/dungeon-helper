@@ -83,6 +83,30 @@ describe("toasts", () => {
     fireEvent.click(screen.getByRole("button", { name: "Dismiss" }));
     expect(screen.queryByText("Saved")).toBeNull();
   });
+
+  it("counts the same text up instead of stacking it, and shows at most three", () => {
+    render(<ToastViewport />);
+    act(() => {
+      for (let i = 0; i < 5; i++) pushToast("Sweep by Dana: no movement", { timeout: 0 });
+    });
+    expect(screen.getAllByTestId("toast")).toHaveLength(1);
+    expect(screen.getByLabelText("5 times")).toBeInTheDocument();
+    act(() => {
+      for (const t of ["One", "Two", "Three"]) pushToast(t, { timeout: 0 });
+    });
+    expect(screen.getAllByTestId("toast").map((t) => t.firstChild?.textContent)).toEqual(["One", "Two", "Three"]);
+  });
+
+  it("runs a toast's action once and closes it", () => {
+    render(<ToastViewport />);
+    const undo = vi.fn();
+    act(() => {
+      pushToast("Revealed every zone", { timeout: 0, action: { label: "Undo", onClick: undo } });
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Undo" }));
+    expect(undo).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText("Revealed every zone")).toBeNull();
+  });
 });
 
 describe("useTheme", () => {

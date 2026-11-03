@@ -2,9 +2,10 @@
 import { getWorldMinutes, type Entity, type Id, type SiteMap } from "@campaign-forge/core";
 import { createRng, lifecycleState, type Effect, type Prompt, type TrackerDef } from "@campaign-forge/module-sdk";
 import { useMemo } from "react";
-import { TrackerHost, type TrackerEntity } from "../../components/ui";
+import { TrackerHost, clockState, clockUnits, pushToast, type ClockUnit, type TrackerEntity } from "../../components/ui";
+import { errorMessage } from "../../lib/format";
 import { useCampaign, useList, useMeta } from "../../state/hooks";
-import { playerCharacters, setClockState, setTrackerStateOf, trackerStateOf } from "../../state/tableActions";
+import { advanceTableClock, playerCharacters, setClockState, setTrackerStateOf, trackerStateOf } from "../../state/tableActions";
 import { useEntities, useSessionTrackerState, useTrackerEntities } from "./hooks";
 import { FundsReadout } from "../ship/FundsReadout";
 import "../ship/ship.css";
@@ -22,6 +23,50 @@ export function useModeTrackers(): TrackerDef[] {
   const { module } = useCampaign();
   const meta = useMeta();
   return useMemo(() => module.forMode(meta.mode).trackers, [module, meta.mode]);
+}
+
+export interface TableClock {
+  def: TrackerDef;
+  units: ClockUnit[];
+  counters: Record<string, number>;
+  /** The smallest unit: the table's one round counter. */
+  round: ClockUnit;
+  /** A unit's counter, or undefined when the clock has no such unit. */
+  value: (unitId: string) => number | undefined;
+  /** Advance one unit (logged); prompts raised by in-world time go to `onPrompts`. */
+  advance: (unitId: string, onPrompts?: (prompts: Prompt[]) => void) => void;
+}
+
+/**
+ * The mode's clock tracker in this session: the single source of the round
+ * (its smallest unit) and the stretch. The hunt and the initiative tracker
+ * read it and advance it; none keeps a round of its own.
+ */
+export function useTableClock(sessionId: Id): TableClock | undefined {
+  const ctx = useCampaign();
+  const def = useModeTrackers().find((t) => t.kind === "clock");
+  const ts = useSessionTrackerState(sessionId);
+  const raw = def ? ts?.state[def.id] : undefined;
+  return useMemo(() => {
+    if (!def) return undefined;
+    const units = clockUnits(def.config);
+    const counters = clockState(raw, units).counters;
+    return {
+      def,
+      units,
+      counters,
+      round: units[0]!,
+      value: (id) => (units.some((u) => u.id === id) ? (counters[id] ?? 0) : undefined),
+      advance: (unitId, onPrompts) => {
+        try {
+          const prompts = advanceTableClock(ctx, sessionId, def, unitId);
+          if (prompts.length) onPrompts?.(prompts);
+        } catch (e) {
+          pushToast(errorMessage(e), { tone: "danger" });
+        }
+      },
+    };
+  }, [ctx, sessionId, def, raw]);
 }
 
 export interface BoundTrackerProps extends TrackerHandlers {
@@ -44,6 +89,9 @@ export function BoundTracker({ sessionId, def, entities, map, readonly, classNam
   const campaignScope = def.scope === "campaign";
   const state = campaignScope ? trackerStateOf(ctx, sessionId, def) : ts?.state[def.id];
   const worldMinutes = getWorldMinutes(ctx.store);
+  // the initiative tracker reads and advances the table clock's round (one round counter)
+  const clock = useTableClock(sessionId);
+  const round = def.kind === "initiative" && clock ? { value: clock.counters[clock.round.id] ?? 0, label: clock.round.name, advance: () => clock.advance(clock.round.id, onPrompts) } : undefined;
   return (
     <TrackerHost
       def={def}
@@ -63,6 +111,7 @@ export function BoundTracker({ sessionId, def, entities, map, readonly, classNam
       worldMinutes={worldMinutes}
       {...(witnesses ? { witnesses } : {})}
       {...(map ? { zones: map.zones, borders: map.borders } : {})}
+      {...(round ? { round } : {})}
       readonly={readonly}
       className={className}
     />

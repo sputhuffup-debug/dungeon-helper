@@ -133,6 +133,52 @@ export function huntEntitySources(entities: Entity[], hunt: MapHuntDef): HuntSou
   return out;
 }
 
+/** Where a hidden token can come from, grouped for the GM's picker. */
+export interface HuntSourceGroups {
+  /** The map's marks that are not people (spawns, hostile groups), every act's. */
+  marks: HuntSource[];
+  /**
+   * The people on the map: one source per person across acts (an NPC mark
+   * per act becomes one, in the given act's zone when it has one), merged
+   * with the campaign record of the same name.
+   */
+  npcs: HuntSource[];
+  /** Other campaign records (creatures, people the map does not place). */
+  cast: HuntSource[];
+}
+
+/**
+ * The hidden-token sources of a map, grouped and deduplicated: marks, the
+ * NPCs on this map (people marks, once per person, with their record) and
+ * the rest of the cast. Sources already on the map (`placed`: marker and
+ * entity ids of its tokens) are left out.
+ */
+export function huntSourceGroups(layout: SiteLayout, hunt: MapHuntDef, entities: Entity[], opts: { act?: number; placed?: Iterable<string> } = {}): HuntSourceGroups {
+  const placed = new Set(opts.placed ?? []);
+  const kindOf = new Map(layout.markers.map((m) => [m.id, m]));
+  const all = huntMarkerSources(layout, hunt);
+  const marks = all.filter((s) => kindOf.get(s.marker ?? "")?.kind !== "npc" && !placed.has(s.marker ?? ""));
+  const cast = huntEntitySources(entities, hunt);
+  const byName = new Map<string, HuntSource[]>();
+  for (const s of all) {
+    const m = kindOf.get(s.marker ?? "");
+    if (m?.kind !== "npc") continue;
+    const name = (typeof m.data?.name === "string" ? m.data.name : m.label).trim().toLowerCase();
+    byName.set(name, [...(byName.get(name) ?? []), s]);
+  }
+  const merged = new Set<string>();
+  const npcs: HuntSource[] = [];
+  for (const [name, group] of byName) {
+    const actOf = (s: HuntSource) => kindOf.get(s.marker ?? "")?.act;
+    const pick = group.find((s) => opts.act !== undefined && actOf(s) === opts.act) ?? group.find((s) => actOf(s) === undefined) ?? [...group].sort((a, b) => (actOf(a) ?? 0) - (actOf(b) ?? 0))[0]!;
+    const entity = cast.find((c) => c.label.trim().toLowerCase() === name);
+    if (entity) merged.add(entity.key);
+    if (group.some((s) => placed.has(s.marker ?? "")) || (entity?.entity && placed.has(entity.entity))) continue;
+    npcs.push(entity ? { ...pick, label: entity.label, entity: entity.entity!, data: { ...entity.data, ...pick.data } } : pick);
+  }
+  return { marks, npcs, cast: cast.filter((c) => !merged.has(c.key) && !placed.has(c.entity ?? "")) };
+}
+
 // ---------------------------------------------------------------------------
 // tokens
 // ---------------------------------------------------------------------------

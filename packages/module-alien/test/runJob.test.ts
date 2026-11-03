@@ -9,7 +9,7 @@ import { describe, expect, it } from "vitest";
 import { adventureSourceIssues, runProcedure, templateSceneKey, type AdventureSourceInput, type ModuleManifest, type Offer, type OfferSet, type TemplateAdventure } from "@campaign-forge/module-sdk";
 import { alienModule } from "../src/index";
 import { jobBoard } from "../src/procedures/job-board";
-import { runJob, runJobPrefill } from "../src/runJob";
+import { runJob, runJobPeople, runJobPrefill } from "../src/runJob";
 import { jobCardTemplate } from "../src/templates/jobCard";
 import { tables } from "../src/tables/index";
 
@@ -109,5 +109,30 @@ describe("Run this job", () => {
     ]);
     const statuses = (alienModule.entityTypes.find((t) => t.id === "alien.job")!.schema.properties as Record<string, { enum?: string[] }>).status!.enum;
     for (const o of runJob.outcomes ?? []) if (o.set) expect(statuses).toContain(o.set.value);
+  });
+
+  it("names each NPC's agenda, wants and secret for the GM, and who turns on the crew", () => {
+    let turned = 0;
+    for (const seed of ["run-a", "run-b", "run-c", "run-d"]) {
+      for (const offer of postings(seed)) {
+        const input = inputFor(offer, { site: true });
+        const people = runJobPeople(input);
+        expect(runJobPeople(inputFor(offer, { site: true }))).toEqual(people);
+        const npcs = input.links.filter((l) => l.relationship === "involved_in" && l.entity.kind === "character");
+        expect(people.map((p) => p.entity).sort()).toEqual(npcs.map((l) => l.entity.id).sort());
+        const betrayers = (input.entity.fields.betrayers as string[] | undefined) ?? [];
+        for (const p of people) {
+          const l = npcs.find((x) => x.entity.id === p.entity)!;
+          const f = l.entity.fields as Record<string, unknown>;
+          if (typeof f.secret === "string" && f.secret) expect(p.notes).toContainEqual({ label: "Secret", text: f.secret });
+          if (typeof f.personalAgenda === "string" && f.personalAgenda) expect(p.notes).toContainEqual({ label: "Agenda", text: f.personalAgenda });
+          const turns = betrayers.includes(l.entity.name);
+          if (turns) turned++;
+          expect(p.stance).toEqual(turns ? { label: "Turns on the crew", tone: "danger" } : { label: "Does not turn on the crew", tone: "muted" });
+          if (l.note) expect(p.role).toBe(l.note);
+        }
+      }
+    }
+    expect(turned).toBeGreaterThan(0);
   });
 });

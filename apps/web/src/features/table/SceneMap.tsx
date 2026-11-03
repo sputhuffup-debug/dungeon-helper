@@ -4,6 +4,7 @@
  * live in the session's tracker state.
  */
 import type { Entity, Id, Scene, SiteMap } from "@campaign-forge/core";
+import type { Prompt } from "@campaign-forge/module-sdk";
 import { useMemo, useState } from "react";
 import { Card, ZoneMapView, type MapToken } from "../../components/ui";
 import { useAssetUrl, useCampaign, useList } from "../../state/hooks";
@@ -20,8 +21,23 @@ export function useSceneMap(scene: Scene | undefined): SiteMap | undefined {
   }, [maps, scene]);
 }
 
-export function SceneMap({ sessionId, map, participants, scene }: { sessionId: Id; map: SiteMap; participants: Entity[]; scene?: Scene | undefined }) {
-  if (map.layout) return <LiveSiteMap sessionId={sessionId} map={map} scene={scene} participants={participants} />;
+export function SceneMap({
+  sessionId,
+  map,
+  participants,
+  scene,
+  onPrompts,
+  focus,
+}: {
+  sessionId: Id;
+  map: SiteMap;
+  participants: Entity[];
+  scene?: Scene | undefined;
+  onPrompts?: ((prompts: Prompt[]) => void) | undefined;
+  /** Open framed on the revealed and occupied zones (phones). */
+  focus?: boolean;
+}) {
+  if (map.layout) return <LiveSiteMap sessionId={sessionId} map={map} scene={scene} participants={participants} {...(onPrompts ? { onPrompts } : {})} focus={!!focus} />;
   return <ImageSceneMap sessionId={sessionId} map={map} participants={participants} />;
 }
 

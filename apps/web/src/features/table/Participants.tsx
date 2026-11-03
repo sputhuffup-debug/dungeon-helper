@@ -1,10 +1,17 @@
-/** Quick-stat cards for the PCs and the scene's participants; a tap opens the full sheet in a drawer. */
+/**
+ * The PCs and the scene's participants as compact rows: name, stress pips,
+ * health with "Take a hit", conditions and a creature's turn; "More" opens
+ * the rest (quick stats, rolls, attacks, story points, life cycles). A tap
+ * on the name opens the full sheet in a drawer.
+ */
 import { creatureTurnFor, getPath, type Entity, type Id } from "@campaign-forge/core";
 import { validateEntityFields, type EntityTypeDef, type LoadedModule, type Prompt, type ReferenceList, type SheetField } from "@campaign-forge/module-sdk";
 import { useMemo, useState } from "react";
 import { EntityIcon } from "../../components/EntityIcon";
 import { RuleDrawer } from "../../components/RulePanel";
-import { Badge, Button, Card, Drawer, SheetRenderer, humanize, labelFromPath } from "../../components/ui";
+import { Badge, Button, Card, Drawer, SheetRenderer, humanize, labelFromPath, resolveBindPath } from "../../components/ui";
+import { useModeTrackers } from "./TrackersPanel";
+import { useZoneMapField } from "../maps/LocationMaps";
 import { updateEntityFields } from "../../state/actions";
 import { useCampaign, useMeta, useRecord, useSheetSources } from "../../state/hooks";
 import { computedOf } from "../../state/tableActions";
@@ -95,60 +102,108 @@ export function ParticipantCard({
   const attacks = !!onWeaponAttack && role === "PC" && (weaponsOf(module, entity)?.rows.length ?? 0) > 0;
   const computed = useMemo(() => computedOf(module, entity), [module, entity]);
   const stats = quickStats(module, def, entity, computed);
+  const stress = useStressPips(entity);
+  const [open, setOpen] = useState(false);
+  const hasMore = stats.length > 0 || !!storyPoints || !!lifecycle || rolls.length > 0 || specials || attacks;
   return (
-    <li className="app-participant" data-entity={entity.id}>
-      <button type="button" className="app-participant__name" onClick={() => onOpen(entity.id)} aria-label={`Open ${entity.name}`}>
-        <EntityIcon icon={def?.icon} kind={def?.kind} size={18} />
-        <span>{entity.name}</span>
-      </button>
-      <span className="cf-muted app-participant__type">{role ?? def?.name}</span>
-      <span className="app-participant__stats">
-        {stats.map((s) => (
-          <span key={s.path} className="app-stat" data-stat={s.path}>
-            <span className="app-stat__label">{s.label}</span>
-            {s.value && <span className="app-stat__value">{s.value}</span>}
+    <li className="app-participant" data-entity={entity.id} data-expanded={open ? "true" : "false"}>
+      <div className="app-participant__row">
+        <span className="app-participant__head">
+          <button type="button" className="app-participant__name" onClick={() => onOpen(entity.id)} aria-label={`Open ${entity.name}`}>
+            <EntityIcon icon={def?.icon} kind={def?.kind} size={18} />
+            <span>{entity.name}</span>
+          </button>
+          <span className="cf-muted app-participant__type">{role ?? def?.name}</span>
+        </span>
+        <span className="app-participant__vitals">
+        {stress && (
+          // a glance only (not buttons): the stress tracker has the controls
+          <span className="app-participant__stress" data-testid="participant-stress" data-value={stress.value} role="img" aria-label={`${entity.name}: ${stress.label.toLowerCase()} ${stress.value} of ${stress.max}`} title={`${stress.label} ${stress.value}/${stress.max}`}>
+            {Array.from({ length: stress.max }, (_, i) => (
+              <span key={i} className={`app-pip${i < stress.value ? (stress.warnAt !== undefined && stress.value >= stress.warnAt ? " app-pip--warn" : " app-pip--on") : ""}`} />
+            ))}
+            <span className="cf-mono app-small">{stress.value}</span>
           </span>
-        ))}
-      </span>
-      {entity.conditions && entity.conditions.length > 0 && (
-        <span className="app-participant__conditions">
-          {entity.conditions.map((c) => (
-            <Badge key={c.id} tone="warning" title={c.source}>
-              {c.label}
-              {c.value !== undefined ? ` ${c.value}` : ""}
-            </Badge>
-          ))}
+        )}
+        {entity.conditions && entity.conditions.length > 0 && (
+          <span className="app-participant__conditions">
+            {entity.conditions.map((c) => (
+              <Badge key={c.id} tone="warning" title={c.source}>
+                {c.label}
+                {c.value !== undefined ? ` ${c.value}` : ""}
+              </Badge>
+            ))}
+          </span>
+        )}
+        {combat && <ParticipantHealth entity={entity} combat={combat} />}
+        {takesTurns && (
+          <Button size="sm" variant="primary" onClick={() => combat!.onCreatureTurn(entity.id)} aria-label={`Creature turn: ${entity.name}`}>
+            Creature turn
+          </Button>
+        )}
         </span>
-      )}
-      {combat && <ParticipantHealth entity={entity} combat={combat} />}
-      {storyPoints && lifecycle && <StoryPointCard entity={entity} sessionId={lifecycle.sessionId} {...(act ? { act } : {})} />}
-      {lifecycle && <LifecycleStart entity={entity} sessionId={lifecycle.sessionId} onPrompts={lifecycle.onPrompts} />}
-      {(rolls.length > 0 || takesTurns || specials || attacks) && (
-        <span className="app-participant__rolls">
-          {rolls.map((r) => (
-            <Button key={r.id} size="sm" onClick={() => onRoll?.(r.id, entity.id)} aria-label={`${r.name} for ${entity.name}`}>
-              {r.name}
-            </Button>
-          ))}
-          {takesTurns && (
-            <Button size="sm" variant="primary" onClick={() => combat!.onCreatureTurn(entity.id)} aria-label={`Creature turn: ${entity.name}`}>
-              Creature turn
-            </Button>
+        {hasMore && (
+          <button type="button" className="cf-btn cf-btn--sm cf-btn--ghost app-participant__toggle" aria-expanded={open} aria-label={`More for ${entity.name}`} onClick={() => setOpen((o) => !o)} data-testid="participant-more">
+            {open ? "Less" : "More"}
+          </button>
+        )}
+      </div>
+      {open && (
+        <div className="app-participant__more" data-testid="participant-details">
+          {stats.length > 0 && (
+            <span className="app-participant__stats">
+              {stats.map((s) => (
+                <span key={s.path} className="app-stat" data-stat={s.path}>
+                  <span className="app-stat__label">{s.label}</span>
+                  {s.value && <span className="app-stat__value">{s.value}</span>}
+                </span>
+              ))}
+            </span>
           )}
-          {attacks && (
-            <Button size="sm" onClick={() => onWeaponAttack!(entity.id)} aria-label={`Attack with a weapon: ${entity.name}`}>
-              Attack
-            </Button>
+          {storyPoints && lifecycle && <StoryPointCard entity={entity} sessionId={lifecycle.sessionId} {...(act ? { act } : {})} />}
+          {lifecycle && <LifecycleStart entity={entity} sessionId={lifecycle.sessionId} onPrompts={lifecycle.onPrompts} />}
+          {(rolls.length > 0 || specials || attacks) && (
+            <span className="app-participant__rolls">
+              {rolls.map((r) => (
+                <Button key={r.id} size="sm" onClick={() => onRoll?.(r.id, entity.id)} aria-label={`${r.name} for ${entity.name}`}>
+                  {r.name}
+                </Button>
+              ))}
+              {attacks && (
+                <Button size="sm" onClick={() => onWeaponAttack!(entity.id)} aria-label={`Attack with a weapon: ${entity.name}`}>
+                  Attack
+                </Button>
+              )}
+              {specials && (
+                <Button size="sm" onClick={() => combat!.onSpecialAttack(entity.id)} aria-label={`Special attack for ${entity.name}`}>
+                  Special attack
+                </Button>
+              )}
+            </span>
           )}
-          {specials && (
-            <Button size="sm" onClick={() => combat!.onSpecialAttack(entity.id)} aria-label={`Special attack for ${entity.name}`}>
-              Special attack
-            </Button>
-          )}
-        </span>
+        </div>
       )}
     </li>
   );
+}
+
+/**
+ * The stress pips of a character row: the mode's stress tracker's bound
+ * field (`binds[0]`) and its maximum, read-only (the tracker has the
+ * controls). Undefined when the module has no stress tracker, the entity has
+ * no such field, or it is exempt (e.g. an android).
+ */
+function useStressPips(entity: Entity): { value: number; max: number; label: string; warnAt?: number } | undefined {
+  const def = useModeTrackers().find((t) => t.kind === "stress");
+  if (!def?.binds?.[0]) return undefined;
+  const cfg = def.config ?? {};
+  const exempt = typeof cfg.exemptField === "string" ? cfg.exemptField : undefined;
+  if (exempt && entity.fields[exempt]) return undefined;
+  const path = resolveBindPath(def.binds[0], { id: entity.id, name: entity.name, type: entity.type, fields: entity.fields });
+  const raw = getPath(entity.fields, path);
+  if (typeof raw !== "number") return undefined;
+  const max = typeof cfg.max === "number" ? cfg.max : 10;
+  return { value: raw, max, label: "Stress", ...(typeof cfg.warnAt === "number" ? { warnAt: cfg.warnAt } : {}) };
 }
 
 export function Participants({
@@ -203,6 +258,8 @@ export function EntityDrawer({ entityId, sessionId, onClose }: { entityId: Id | 
   const referenceLists = useMemo<Record<string, ReferenceList>>(() => Object.fromEntries(ctx.module.module.referenceLists.map((l) => [l.id, l])), [ctx.module]);
   const computed = useMemo(() => (entity ? computedOf(ctx.module, entity) : {}), [ctx.module, entity]);
   const errors = useMemo(() => (def && entity ? validateEntityFields(def, entity.fields).errors : []), [def, entity]);
+  // a place's zone map: its field, else the saved map whose location it is (a job's site map); opened in another tab
+  const mapField = useZoneMapField(entity?.id, { newTab: true });
 
   return (
     <>
@@ -233,6 +290,7 @@ export function EntityDrawer({ entityId, sessionId, onClose }: { entityId: Id | 
             onRoll={(skillId) => setRoll({ key: Date.now(), label: skillId, input: skillInput(ctx.module, entity, skillId).input })}
             presetsFor={sources.presetsFor}
             entitiesOf={sources.entitiesOf}
+            {...mapField}
           />
           {roll && (
             <Card title={`Roll: ${labelFromPath(roll.label)}`} elevated>
