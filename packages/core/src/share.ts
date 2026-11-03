@@ -421,13 +421,14 @@ export function planShare(snapshot: PlayerShare, baseline: ShareBaseline, opts: 
 }
 
 /** The record to keep for a share that went out. */
-export function shareRecordOf(plan: Pick<SharePlan, "share">, extra: { format?: ShareRecord["format"]; primer?: boolean; crewNotes?: boolean; member?: Id } = {}): ShareRecord {
+export function shareRecordOf(plan: Pick<SharePlan, "share">, extra: { format?: ShareRecord["format"]; primer?: boolean; crewNotes?: boolean; recap?: boolean; member?: Id } = {}): ShareRecord {
   const s = plan.share;
   const rec: ShareRecord = { at: s.at, handouts: s.handouts.map((h) => h.id), maps: Object.fromEntries(s.maps.map((m) => [m.id, [...m.visibleZones]])) };
   if (s.briefing?.sceneId) rec.scene = s.briefing.sceneId;
   if (s.party.length) rec.party = true;
   if (extra.primer) rec.primer = true;
   if (extra.crewNotes) rec.crewNotes = true;
+  if (extra.recap) rec.recap = true;
   if (extra.format) rec.format = extra.format;
   if (extra.member) rec.member = extra.member;
   return rec;
@@ -443,10 +444,11 @@ export function recordShare(store: CampaignStore, sessionId: Id, record: ShareRe
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
 /** A short chat message to go with a share, e.g. "Session 3 update: 2 new handouts and the map". */
-export function shareMessage(plan: Pick<SharePlan, "share" | "mapStatus" | "newHandouts">, extra: { primer?: boolean; crewNotes?: boolean } = {}): string {
+export function shareMessage(plan: Pick<SharePlan, "share" | "mapStatus" | "newHandouts">, extra: { primer?: boolean; crewNotes?: boolean; recap?: boolean } = {}): string {
   const s = plan.share;
   const parts: string[] = [];
   if (extra.primer) parts.push("the campaign primer");
+  if (extra.recap) parts.push("the recap of last time");
   if (extra.crewNotes) parts.push("the crew notes");
   if (s.briefing) parts.push(s.briefing.scene ? `the briefing for “${s.briefing.scene}”` : "the briefing");
   if (s.handouts.length) {

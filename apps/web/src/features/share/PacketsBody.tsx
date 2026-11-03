@@ -40,7 +40,9 @@ import { updateHandout } from "../../state/prepActions";
 import { logTable } from "../../state/tableActions";
 import { primerShareSections } from "./primerShare";
 import { crewNotesShareSections } from "./crewNotesShare";
+import { recapShareSections } from "./recapShare";
 import { arcsDefOf, crewNotesFor } from "../../state/arcActions";
+import { playerRecapFor } from "../../state/recapActions";
 import { buildShareFiles, canShareFiles, loadShareImages, packetsZip, sendFiles, shareFileStem, type LoadedImages } from "./shareExport";
 import { packetSections, shareTime, shareTitle, type ReadyImage, type ShareFormat, type ShareSection } from "./shareLayout";
 import { FormatFieldset, SharePreview, loadShareDocs, usePassable, type ShareCtx } from "./SharePreview";
@@ -97,6 +99,7 @@ export function PacketsBody({ onClose, sessionId, sceneId, primer }: { onClose: 
   const [withPrimer, setWithPrimer] = useState(primer?.defaultOn ?? false);
   const [primerSections, setPrimerSections] = useState<ShareSection[] | undefined>();
   const [withNotes, setWithNotes] = useState(false);
+  const [withRecap, setWithRecap] = useState(false);
   const arcsDef = arcsDefOf(ctx.module, meta.mode);
   const [at] = useState(() => new Date().toISOString());
   const [packets, setPackets] = useState<PlayerPacket[] | undefined>();
@@ -137,6 +140,9 @@ export function PacketsBody({ onClose, sessionId, sceneId, primer }: { onClose: 
   // each player's own crew notes: what the crew knows plus what they learnt alone
   const notesByPlayer = useMemo(() => new Map(arcsDef ? players.map((p) => [p.id, crewNotesFor(ctx, p.id)] as const) : []), [ctx, arcsDef, players, version]); // eslint-disable-line react-hooks/exhaustive-deps
   const notesOn = withNotes && [...notesByPlayer.values()].some((n) => !n.empty);
+  // the session's "Previously on…" read-aloud: the group's, player-safe, the same in every packet
+  const recap = useMemo(() => playerRecapFor(ctx, sessionId), [ctx, sessionId, version]); // eslint-disable-line react-hooks/exhaustive-deps
+  const recapOn = withRecap && !!recap;
   const plans = useMemo(() => {
     const out = new Map<Id, PlayerPlan>();
     for (const packet of packets ?? []) {
@@ -150,9 +156,9 @@ export function PacketsBody({ onClose, sessionId, sceneId, primer }: { onClose: 
       if (!p) return [];
       const updatedMaps = new Set(Object.entries(p.plan.mapStatus).filter(([, s]) => s === "updated").map(([id]) => id));
       const notes = notesOn ? crewNotesShareSections(notesByPlayer.get(p.packet.member.id)) : [];
-      return [...(primerOn ? primerSections! : []), ...packetSections({ share: p.plan.share, images: images.ready, format, updatedMaps }), ...notes];
+      return [...(primerOn ? primerSections! : []), ...(recapOn ? recapShareSections(recap) : []), ...packetSections({ share: p.plan.share, images: images.ready, format, updatedMaps }), ...notes];
     },
-    [primerOn, primerSections, images, format, notesOn, notesByPlayer],
+    [primerOn, primerSections, recapOn, recap, images, format, notesOn, notesByPlayer],
   );
 
   const selected = players.find((p) => p.id === selectedId) ?? players[0];
@@ -160,7 +166,7 @@ export function PacketsBody({ onClose, sessionId, sceneId, primer }: { onClose: 
   const sections = useMemo(() => sectionsOf(current), [sectionsOf, current]);
   const empty = sections.length === 0;
   const currentNotes = notesOn && selected ? !notesByPlayer.get(selected.id)?.empty : false;
-  const message = current ? packetMessage(current.plan, { primer: primerOn, crewNotes: currentNotes }) : "";
+  const message = current ? packetMessage(current.plan, { primer: primerOn, crewNotes: currentNotes, recap: recapOn }) : "";
 
   // the selected player's files, built ahead of the click (the share sheet needs the click's user activation)
   useEffect(() => {
@@ -176,7 +182,7 @@ export function PacketsBody({ onClose, sessionId, sceneId, primer }: { onClose: 
     };
   }, [current, sections, images, format, paper, passable, empty]);
 
-  const record = (p: PlayerPlan) => recordShare(ctx.store, sessionId, shareRecordOf(p.plan, { format, primer: primerOn, crewNotes: notesOn && !notesByPlayer.get(p.packet.member.id)?.empty, member: p.packet.member.id }));
+  const record = (p: PlayerPlan) => recordShare(ctx.store, sessionId, shareRecordOf(p.plan, { format, primer: primerOn, crewNotes: notesOn && !notesByPlayer.get(p.packet.member.id)?.empty, recap: recapOn, member: p.packet.member.id }));
 
   const sendSelected = async () => {
     if (!current || !files) return;
@@ -253,6 +259,12 @@ export function PacketsBody({ onClose, sessionId, sceneId, primer }: { onClose: 
             <label className="app-toggle">
               <input type="checkbox" className="cf-checkbox" checked={primerOn} onChange={() => setWithPrimer((v) => !v)} data-testid="packet-include-primer" />
               Campaign primer <span className="cf-muted">({primerSections.length} sections)</span>
+            </label>
+          )}
+          {recap && (
+            <label className="app-toggle">
+              <input type="checkbox" className="cf-checkbox" checked={recapOn} onChange={() => setWithRecap((v) => !v)} data-testid="packet-include-recap" />
+              Previously on… <span className="cf-muted">(the read-aloud)</span>
             </label>
           )}
           {INCLUDE.map(({ key, label }) => (

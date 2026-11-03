@@ -323,6 +323,8 @@ export interface ShareRecord {
   primer?: boolean;
   /** The crew notes were included. */
   crewNotes?: boolean;
+  /** The "Previously on…" read-aloud was included. */
+  recap?: boolean;
   format?: ShareFormat;
   /**
    * A player packet for this member (only their copy). Absent: a group share

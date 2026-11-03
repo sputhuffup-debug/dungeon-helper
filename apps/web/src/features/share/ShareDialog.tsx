@@ -28,7 +28,9 @@ import { logTable } from "../../state/tableActions";
 import { PacketsBody } from "./PacketsBody";
 import { primerShareSections } from "./primerShare";
 import { crewNotesShareSections } from "./crewNotesShare";
+import { recapShareSections } from "./recapShare";
 import { arcsDefOf, crewNotesFor } from "../../state/arcActions";
+import { playerRecapFor } from "../../state/recapActions";
 import { buildShareFiles, canShareFiles, loadShareImages, sendFiles, shareFileStem, type LoadedImages } from "./shareExport";
 import { shareSections, shareTime, shareTitle, type ShareFormat, type ShareSection } from "./shareLayout";
 import { FormatFieldset, SharePreview, loadShareDocs, usePassable, type ShareCtx } from "./SharePreview";
@@ -112,6 +114,9 @@ function ShareBody({ onClose, sessionId, sceneId, primer }: Omit<ShareDialogProp
   const [withPrimer, setWithPrimer] = useState(primer?.defaultOn ?? false);
   const [primerSections, setPrimerSections] = useState<ShareSection[] | undefined>();
   const [withNotes, setWithNotes] = useState(false);
+  const [withRecap, setWithRecap] = useState(false);
+  // the session's "Previously on…" read-aloud, player-safe (offered when the session has one)
+  const recap = useMemo(() => playerRecapFor(ctx, sessionId), [ctx, sessionId, version]); // eslint-disable-line react-hooks/exhaustive-deps
   const arcsDef = arcsDefOf(ctx.module, ctx.store.meta().mode);
   // the whole crew's notes (nothing a single player learnt alone)
   const notes = useMemo(() => (arcsDef ? crewNotesFor(ctx) : undefined), [ctx, arcsDef, version]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -147,16 +152,17 @@ function ShareBody({ onClose, sessionId, sceneId, primer }: Omit<ShareDialogProp
   const plan = useMemo(() => (snapshot ? planShare(snapshot, baseline, opts) : undefined), [snapshot, baseline, opts]);
   const primerOn = withPrimer && !!primerSections?.length;
   const notesOn = withNotes && !!notes && !notes.empty;
+  const recapOn = withRecap && !!recap;
   const passable = usePassable(ctx, version);
   const sections = useMemo(() => {
     if (!plan) return [];
     const updatedMaps = new Set(Object.entries(plan.mapStatus).filter(([, s]) => s === "updated").map(([id]) => id));
-    // the primer comes first: it introduces the campaign, and "only what's new" never filters it; the crew notes go last, as they stand
+    // the primer comes first: it introduces the campaign, and "only what's new" never filters it; then the recap of last time; the crew notes go last, as they stand
     const primerPart = primerOn ? primerSections! : [];
-    return [...primerPart, ...shareSections({ share: plan.share, images: images.ready, format, updatedMaps }), ...(notesOn ? crewNotesShareSections(notes) : [])];
-  }, [plan, images, format, primerOn, primerSections, notesOn, notes]);
+    return [...primerPart, ...(recapOn ? recapShareSections(recap) : []), ...shareSections({ share: plan.share, images: images.ready, format, updatedMaps }), ...(notesOn ? crewNotesShareSections(notes) : [])];
+  }, [plan, images, format, primerOn, primerSections, recapOn, recap, notesOn, notes]);
   const empty = sections.length === 0;
-  const message = plan ? shareMessage(plan, { primer: primerOn, crewNotes: notesOn }) : "";
+  const message = plan ? shareMessage(plan, { primer: primerOn, crewNotes: notesOn, recap: recapOn }) : "";
 
   // build the files ahead of the click: the share sheet needs the click's user activation, which a slow build would lose
   useEffect(() => {
@@ -181,7 +187,7 @@ function ShareBody({ onClose, sessionId, sceneId, primer }: Omit<ShareDialogProp
     try {
       const result = await sendFiles(files, { title, text: message, zipName: `${shareFileStem(snapshot)}.zip` });
       if (result === "cancelled") return;
-      recordShare(ctx.store, sessionId, shareRecordOf(plan, { format, primer: primerOn, crewNotes: notesOn }));
+      recordShare(ctx.store, sessionId, shareRecordOf(plan, { format, primer: primerOn, crewNotes: notesOn, recap: recapOn }));
       logTable(ctx, sessionId, `Shared with players: ${message}`);
       pushToast(result === "shared" ? "Shared. Next time only what is new goes out." : `Saved ${files.length === 1 ? files[0]!.name : `${files.length} files as a zip`}. Send it to the group chat.`, { tone: "success" });
       onClose();
@@ -225,6 +231,12 @@ function ShareBody({ onClose, sessionId, sceneId, primer }: Omit<ShareDialogProp
               <input type="checkbox" className="cf-checkbox" checked={primerOn} disabled={!primerSections?.length} onChange={() => setWithPrimer((v) => !v)} data-testid="share-include-primer" />
               Campaign primer
               {primerSections && primerSections.length === 0 ? <span className="cf-muted"> (empty)</span> : primerSections ? <span className="cf-muted"> ({primerSections.length} sections)</span> : null}
+            </label>
+          )}
+          {recap && (
+            <label className="app-toggle">
+              <input type="checkbox" className="cf-checkbox" checked={recapOn} onChange={() => setWithRecap((v) => !v)} data-testid="share-include-recap" />
+              Previously on… <span className="cf-muted">(the read-aloud)</span>
             </label>
           )}
           {INCLUDE.map(({ key, label }) => (

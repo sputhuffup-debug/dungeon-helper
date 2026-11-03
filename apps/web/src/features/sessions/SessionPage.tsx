@@ -24,6 +24,7 @@ import {
 import { isSessionZero } from "../../lib/sessionZero";
 import { useSessionTrackerState } from "../table/hooks";
 import { ChecklistSummary, SessionChecklist } from "./SessionChecklist";
+import { RecapCard } from "./RecapCard";
 
 // The end-of-session wrap-up loads when the GM ends a session.
 const WrapUpWizard = lazyView(() => import("./WrapUp").then((m) => m.WrapUpWizard), { what: "the wrap-up" });
@@ -168,6 +169,7 @@ function PlanSession({ session }: { session: Session }) {
   const set = (patch: Partial<Session>) => updateSession(ctx, session.id, patch);
   return (
     <div className="app-stack">
+      <RecapCard session={session} />
       <SessionChecklist session={session} focus={session.status === "running" ? "play" : "prep"} />
 
       <Card title="Details">
