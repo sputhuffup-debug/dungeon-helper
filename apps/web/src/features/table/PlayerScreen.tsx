@@ -5,7 +5,7 @@
  * players may see. Read-only; it follows the GM's tab through the
  * cross-tab sync of the same local store.
  */
-import { canSee, type Handout, type Id } from "@campaign-forge/core";
+import { canSee, handoutStaysWithGm, type Handout, type Id } from "@campaign-forge/core";
 import { useMemo } from "react";
 import { Badge, EmptyState } from "../../components/ui";
 import { combatantOf, combatOrder } from "../../state/d20Actions";
@@ -107,6 +107,7 @@ function PlayerRecap({ sessionId }: { sessionId: Id }) {
 }
 
 export function PlayerScreen({ sessionId }: { sessionId: Id }) {
+  const ctx = useCampaign();
   const meta = useMeta();
   const table = useTableState(sessionId);
   const scene = useRecord("scenes", table.sceneId);
@@ -114,8 +115,8 @@ export function PlayerScreen({ sessionId }: { sessionId: Id }) {
   const clock = useModeTrackers().find((t) => t.kind === "clock");
   const all = useList("handouts");
   const handouts = useMemo(
-    () => all.filter((h) => canSee(h.visibility, { role: "player" })).sort((a, b) => (b.revealedIn === sessionId ? 1 : 0) - (a.revealedIn === sessionId ? 1 : 0) || b.updated.localeCompare(a.updated)),
-    [all, sessionId],
+    () => all.filter((h) => canSee(h.visibility, { role: "player" }) && handoutStaysWithGm(h, ctx.module.module) === undefined).sort((a, b) => (b.revealedIn === sessionId ? 1 : 0) - (a.revealedIn === sessionId ? 1 : 0) || b.updated.localeCompare(a.updated)),
+    [all, sessionId, ctx],
   );
   return (
     <div className="cf-table-mode app-table app-player" data-testid="player-screen">

@@ -1790,6 +1790,13 @@ a.cf-btn {
 .app-reveal:last-child {
   border-bottom: 0;
 }
+.app-reveal--private {
+  border-left: 3px solid var(--cf-warning, #b7791f);
+  padding-left: var(--cf-space-2);
+}
+.app-reveal__note {
+  font-size: 0.875em;
+}
 .app-reveal__row {
   display: flex;
   align-items: center;

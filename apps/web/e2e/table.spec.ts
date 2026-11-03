@@ -44,13 +44,21 @@ test("run a session at the table: demo campaign, clock, panic roll, reveal, wrap
   await page.getByRole("dialog").getByRole("button", { name: "Done" }).click();
   await expect(page.getByTestId("roll-result")).toBeHidden();
 
-  // 5. reveal a handout
+  // 5. reveal a handout: the demo's are each PC's agenda, so there is no one-tap reveal; showing one to everyone asks first
   const reveal = page.getByTestId("reveal-panel");
-  const first = reveal.getByRole("button", { name: /^Reveal / }).first();
+  await expect(reveal.getByRole("button", { name: /^Reveal / })).toHaveCount(0);
+  const first = reveal.getByRole("button", { name: /^Show .* to everyone$/ }).first();
   const label = (await first.getAttribute("aria-label")) ?? "";
+  const title = label.replace(/^Show /, "").replace(/ to everyone$/, "");
+  page.once("dialog", (d) => void d.dismiss());
   await first.click();
-  await expect(reveal.getByRole("button", { name: label })).toBeDisabled();
-  await expect(reveal.getByRole("button", { name: label })).toHaveText("Revealed");
+  await expect(reveal.getByRole("button", { name: label })).toBeVisible();
+  page.once("dialog", (d) => void d.accept());
+  await first.click();
+  // revealed: the row now offers to hide it again
+  const hide = reveal.getByRole("button", { name: `Hide ${title} from the players` });
+  await expect(hide).toHaveText("Hide again");
+  await expect(reveal.getByRole("button", { name: label })).toHaveCount(0);
 
   // the running log takes a timestamped line
   await page.getByRole("tab", { name: "Log" }).click();
@@ -121,7 +129,9 @@ test("table mode keeps working offline and the player screen shows revealed hand
   await context.setOffline(true);
   const reveal = page.getByTestId("reveal-panel");
   const firstTitle = (await reveal.locator("[data-handout] .app-reveal__title").first().textContent()) ?? "";
-  await reveal.getByRole("button", { name: /^Reveal / }).first().click();
+  // the demo's handouts are each PC's agenda: showing one to everyone asks first
+  page.once("dialog", (d) => void d.accept());
+  await reveal.getByRole("button", { name: /^Show .* to everyone$/ }).first().click();
   await expect(players.locator("[data-handout]").first()).toContainText(firstTitle.trim());
   const clock = page.getByTestId("table-clock");
   await clock.getByRole("button", { name: "Advance one Stretch" }).click();

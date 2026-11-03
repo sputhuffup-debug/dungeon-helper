@@ -1,10 +1,11 @@
-/** Handouts (scene, act, adventure) and the scene's clues, each revealed with one tap and logged with the scene. */
-import { type Entity, type Handout, type Id, type Scene, type Visibility } from "@campaign-forge/core";
+/** Handouts (scene, act, adventure) and the scene's clues, revealed (or hidden again) and logged with the scene; personal handouts go to their player, not the shared screen. */
+import { canSee, handoutStaysWithGm, type Entity, type Handout, type Id, type Scene, type Visibility } from "@campaign-forge/core";
+import { GiveToPlayer } from "../../components/GiveToPlayer";
 import { useMemo, useState } from "react";
 import { Badge, Button, Card, type BadgeTone } from "../../components/ui";
 import { RichTextView } from "../../editor";
 import { useAssetUrl, useCampaign, useList, useRecord } from "../../state/hooks";
-import { revealEntityAtTable, revealHandout } from "../../state/tableActions";
+import { hideHandout, revealEntityAtTable, revealHandout } from "../../state/tableActions";
 import { useEntities } from "./hooks";
 
 const VIS: Record<Visibility["level"], { label: string; tone: BadgeTone }> = {
@@ -19,13 +20,26 @@ export function VisibilityBadge({ visibility }: { visibility: Visibility }) {
   return <Badge tone={v.tone}>{v.label}</Badge>;
 }
 
-function HandoutRow({ handout, onReveal, sessionId }: { handout: Handout; onReveal: () => void; sessionId: Id }) {
+/**
+ * One handout. Its button depends on who it is for: the module keeps some
+ * with the GM (no reveal at all); one written for a single character goes to
+ * that player's packet, and showing it to everyone asks first; anything else
+ * reveals with one tap. A revealed handout can be hidden again.
+ */
+function HandoutRow({ handout, onReveal, onHide, sessionId }: { handout: Handout; onReveal: () => void; onHide: () => void; sessionId: Id }) {
+  const ctx = useCampaign();
   const [open, setOpen] = useState(false);
   const character = useRecord("entities", handout.character);
   const url = useAssetUrl(open ? handout.asset : undefined);
   const revealed = handout.visibility.level === "revealed";
+  const staysWithGm = handoutStaysWithGm(handout, ctx.module.module);
+  const personal = !!handout.character && !canSee(handout.visibility, { role: "player" });
+  const showEveryone = () => {
+    const who = character ? `${character.name}'s` : "this";
+    if (window.confirm(`This puts ${who} handout "${handout.title}" on the screen every player sees. Show it to everyone?`)) onReveal();
+  };
   return (
-    <li className="app-reveal" data-handout={handout.id}>
+    <li className={`app-reveal${personal || staysWithGm ? " app-reveal--private" : ""}`} data-handout={handout.id}>
       <div className="app-reveal__row">
         <button type="button" className="app-linkbtn app-reveal__title" onClick={() => setOpen(!open)} aria-expanded={open}>
           {handout.title}
@@ -34,9 +48,26 @@ function HandoutRow({ handout, onReveal, sessionId }: { handout: Handout; onReve
         {character && <span className="cf-muted">for {character.name}</span>}
         <VisibilityBadge visibility={handout.visibility} />
         {revealed && handout.revealedIn === sessionId && <span className="cf-muted">this session</span>}
-        <Button variant={revealed ? "ghost" : "primary"} onClick={onReveal} disabled={revealed} aria-label={`Reveal ${handout.title}`}>
-          {revealed ? "Revealed" : "Reveal"}
-        </Button>
+        {staysWithGm ? (
+          <span className="cf-muted app-reveal__note" data-testid="reveal-gm-only">
+            {staysWithGm}
+          </span>
+        ) : revealed ? (
+          <Button variant="ghost" onClick={onHide} aria-label={`Hide ${handout.title} from the players`} data-testid="reveal-hide">
+            Hide again
+          </Button>
+        ) : personal ? (
+          <>
+            <GiveToPlayer handout={handout} />
+            <Button variant="ghost" onClick={showEveryone} aria-label={`Show ${handout.title} to everyone`} data-testid="reveal-everyone">
+              Show everyone…
+            </Button>
+          </>
+        ) : (
+          <Button variant="primary" onClick={onReveal} aria-label={`Reveal ${handout.title}`}>
+            Reveal
+          </Button>
+        )}
       </div>
       {open && (
         <div className="app-reveal__body">
@@ -78,7 +109,7 @@ export function RevealPanel({ sessionId, scene }: { sessionId: Id; scene: Scene 
           <h4 className="app-table__group-title">{g.title}</h4>
           <ul className="app-reveals">
             {g.items.map((h) => (
-              <HandoutRow key={h.id} handout={h} sessionId={sessionId} onReveal={() => revealHandout(ctx, sessionId, h.id, scene?.id)} />
+              <HandoutRow key={h.id} handout={h} sessionId={sessionId} onReveal={() => revealHandout(ctx, sessionId, h.id, scene?.id)} onHide={() => hideHandout(ctx, sessionId, h.id)} />
             ))}
           </ul>
         </section>

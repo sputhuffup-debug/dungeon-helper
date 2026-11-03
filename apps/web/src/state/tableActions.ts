@@ -37,6 +37,7 @@ import {
   type Session,
   type TimelineEvent,
   type TrackerState,
+  handoutStaysWithGm,
 } from "@campaign-forge/core";
 import {
   activeLifecyclesFor,
@@ -840,12 +841,26 @@ function tagLastReveal(store: CampaignStore, sessionId: Id, sceneId: Id | undefi
 /** Reveal a handout to the players in this session, logged with its scene. */
 export function revealHandout(ctx: Ctx, sessionId: Id, handoutId: Id, sceneId?: Id): void {
   const store = ctx.store;
+  const handout = store.get("handouts", handoutId);
+  // a handout the module keeps with the GM (the GM's own agenda card) is never revealed
+  if (handout && handoutStaysWithGm(handout, ctx.module.module) !== undefined) return;
   store.transact(() => {
     reveal(store, { kind: "handout", id: handoutId }, sessionId);
     tagLastReveal(store, sessionId, sceneId);
     checklistEvent(ctx, sessionId, "revealed");
     const h = store.get("handouts", handoutId);
     appendTrackerLog(store, sessionId, { tracker: REVEAL_LOG, text: `Revealed handout: ${h?.title ?? handoutId}`, data: { handout: handoutId, scene: sceneId } });
+  });
+}
+
+/** Take a revealed handout off the players' side again (back to GM only), logged with the session. */
+export function hideHandout(ctx: Ctx, sessionId: Id, handoutId: Id): void {
+  const store = ctx.store;
+  const h = store.get("handouts", handoutId);
+  if (!h) return;
+  store.transact(() => {
+    store.update("handouts", handoutId, { visibility: { level: "gm" }, revealedIn: undefined });
+    appendTrackerLog(store, sessionId, { tracker: REVEAL_LOG, text: `Hid handout: ${h.title}`, data: { handout: handoutId, hidden: true } });
   });
 }
 
