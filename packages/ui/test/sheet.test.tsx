@@ -344,3 +344,27 @@ describe("text fields with suggestions", () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 });
+
+describe("wide tables stay inside their card", () => {
+  it("an editable table shares its width between columns and scrolls in its own box", () => {
+    const TableWidget = getWidget("table")!;
+    const schema = { type: "array", items: { type: "object", properties: { d6: { type: "string" }, attack: { type: "string" }, damage: { type: "string" } } } };
+    const { container } = render(
+      <TableWidget id="w-attacks" field={{ path: "attacks", label: "Attacks", widget: "table" }} path="attacks" value={[{ d6: "1", attack: "Claw", damage: "2" }]} onChange={() => {}} schema={schema as WidgetProps["schema"]} fields={{}} computed={{}} readonly={false} referenceLists={{}} />,
+    );
+    const table = container.querySelector("table")!;
+    expect(table.parentElement!.className).toBe("cf-table-scroll");
+    expect(table.className).toContain("cf-table--edit");
+    expect(table.style.minWidth).toBe("15rem");
+    expect(container.querySelectorAll(".cf-table__action")).toHaveLength(2);
+  });
+
+  it("the skills table marks the columns a narrow box drops (the attribute's name, then the pool)", () => {
+    const { container } = render(<SheetRenderer def={hero} mode="standard" fields={heroFields()} onChange={() => {}} referenceLists={referenceLists} />);
+    const wrap = container.querySelector(".cf-skills__wrap")!;
+    expect(wrap.querySelector("thead .cf-skills__attr")).not.toBeNull();
+    expect(wrap.querySelector("thead .cf-skills__poolcol")).not.toBeNull();
+    expect(wrap.querySelector("tbody .cf-skills__attr")).not.toBeNull();
+    expect(screen.getByTestId("pool-fight").className).toContain("cf-skills__poolcol");
+  });
+});
