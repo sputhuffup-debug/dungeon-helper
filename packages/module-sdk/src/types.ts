@@ -727,6 +727,235 @@ export interface ArcsDef {
   rules?: string[];
 }
 
+// ---------------------------------------------------------------------------
+// Session recaps ("Previously on…")
+// ---------------------------------------------------------------------------
+
+/**
+ * Who a recap section is for: the GM (everything, with what the players do
+ * not know) or the players (the read-aloud, built from the player projection
+ * only).
+ */
+export type RecapAudience = "gm" | "players";
+
+/** A record a recap line points at, so the app can link it. */
+export interface RecapLinkRef {
+  kind: "entity" | "session" | "handout" | "scene" | "thread" | "map";
+  id: string;
+  /** The text in the line to turn into the link (usually the record's name). */
+  label: string;
+}
+
+/** One line a recap builder or module contributor writes: original, templated text, never book prose. */
+export interface RecapLineDraft {
+  /** With `ref`, identifies the line within its section, so a regenerated recap keeps the GM's switches and edits. */
+  key: string;
+  /** The record the line is about, when there is one. */
+  ref?: string;
+  text: string;
+  links?: RecapLinkRef[];
+}
+
+/** A section of a recap. Sections with the same id and audience merge (a module can add lines to a core section, e.g. `secrets`). */
+export interface RecapSectionDraft {
+  id: string;
+  title: string;
+  audience: RecapAudience;
+  /** Sort order; the core sections use 10 to 90 (`RECAP_SECTION_ORDER`). */
+  order?: number;
+  lines: RecapLineDraft[];
+}
+
+/** A session as a recap names it. */
+export interface RecapSessionRef {
+  id: string;
+  number: number;
+  title?: string;
+  /** ISO date. */
+  date: string;
+  /** "Session 3: The offer". */
+  label: string;
+}
+
+/** An entity as the recap snapshot carries it (for players: the projected entity, hidden fields removed). */
+export interface RecapEntity {
+  id: string;
+  type: string;
+  subtype?: string;
+  /** The entity type's kind (character, location, faction, job...). */
+  kind?: string;
+  name: string;
+  summary?: string;
+  fields: Record<string, unknown>;
+  created: string;
+  updated: string;
+  /** A player character. */
+  pc?: boolean;
+  /** GM snapshot: the visibility level of the entity itself. */
+  visibility?: VisibilityLevel;
+  /** A crew contact; for players only since, favours and where to find them. */
+  contact?: {
+    since: string;
+    stance?: ContactStance;
+    favours: { owedToCrew: number; owedByCrew: number };
+    foundAt?: string;
+    lastSeen?: { job?: string; session?: string };
+    betrayer?: boolean;
+  };
+  conditions?: string[];
+}
+
+/** A clue of a campaign thread. For players: found clues they may read, under the thread's player title, in its player text. */
+export interface RecapClue {
+  thread: string;
+  /** GM snapshot: the GM's title; players: the thread's player-facing title. */
+  threadTitle: string;
+  clue: string;
+  kind: string;
+  kindLabel: string;
+  /** GM snapshot: what it is; players: how the crew notes put it. */
+  text: string;
+  state: ArcClueState;
+  /** Session it was found in. */
+  foundIn?: string;
+  /** When it was found (ISO). */
+  foundAt?: string;
+  job?: string;
+  entity?: string;
+  /** GM snapshot: where it was placed. */
+  seeded?: { job?: string; entity?: string; slotLabel?: string };
+}
+
+/** A thread clock movement (GM snapshot only). */
+export interface RecapClockTick {
+  thread: string;
+  threadTitle: string;
+  by: number;
+  how: "roll" | "hand";
+  at: string;
+  session?: string;
+  ignored?: boolean;
+  note?: string;
+  filled: number;
+  segments: number;
+  /** Milestones the clock has reached, with their text. */
+  reached: Array<{ at: number; text: string }>;
+}
+
+/** A milestone payoff no board has used yet (GM snapshot only). */
+export interface RecapPayoff {
+  thread: string;
+  threadTitle: string;
+  milestone: number;
+  kind: string;
+  label: string;
+  text: string;
+}
+
+/** A faction's heat (GM snapshot only), with its value when the previous recap was made. */
+export interface RecapHeat {
+  id: string;
+  name: string;
+  heat: number;
+  label: string;
+  before?: number;
+  beforeLabel?: string;
+}
+
+export interface RecapLedgerEntry {
+  id: string;
+  amount: number;
+  category: string;
+  note?: string;
+  /** Personal account (an entity id); absent for the shared one. */
+  account?: string;
+  job?: string;
+  inWorldDate?: string;
+  created: string;
+}
+
+export interface RecapTravel {
+  id: string;
+  ship?: string;
+  fromName?: string;
+  toName: string;
+  status: "planned" | "arrived" | "cancelled";
+  departDate?: string;
+  arriveDate?: string;
+  summary?: string;
+  session?: string;
+  created: string;
+}
+
+/** The live hunt on a site map. For players: only threats revealed on their map. */
+export interface RecapHunt {
+  map: string;
+  mapName: string;
+  step: number;
+  tokens: Array<{ id: string; label: string; state: "hidden" | "detected" | "seen" | "gone"; hurt?: boolean }>;
+}
+
+/** Something revealed in a covered session. For players: only what their projection shows. */
+export interface RecapReveal {
+  session: string;
+  entity?: string;
+  field?: string;
+  handout?: string;
+}
+
+/**
+ * What a recap contributor reads. Core builds one per audience: the GM's
+ * from the whole campaign, the players' from the player projection only
+ * (`projectCampaignForViewer` with the group viewer), so a contributor cannot
+ * put what the players may not see in the read-aloud: GM-only entities and
+ * fields, unfound clues, GM thread titles, clocks, heat, payoffs and settings
+ * are simply not in a players snapshot.
+ */
+export interface RecapSnapshot {
+  audience: RecapAudience;
+  mode: PlayModeId;
+  campaign: string;
+  /** The session the recap is for. */
+  session: RecapSessionRef;
+  /** The sessions it covers, oldest first. */
+  sessions: RecapSessionRef[];
+  /** Records changed at or after this instant (ISO) count as since the covered sessions began; absent for the story so far. */
+  since?: string;
+  /** Campaign settings (GM snapshot only; `{}` for players). */
+  settings: Record<string, unknown>;
+  entities: RecapEntity[];
+  relationships: Array<{ type: string; from: string; to: string }>;
+  reveals: RecapReveal[];
+  clues: RecapClue[];
+  ticks: RecapClockTick[];
+  payoffs: RecapPayoff[];
+  heat: RecapHeat[];
+  /** Ledger entries posted since `since` (all of them for the story so far). */
+  ledger: RecapLedgerEntry[];
+  /** The shared account's balance now, from every entry the audience may see. */
+  balance: number;
+  travel: RecapTravel[];
+  hunts: RecapHunt[];
+}
+
+/**
+ * A module's recap contributor: called once with the GM snapshot and once
+ * with the players snapshot; returns sections for that audience (sections
+ * for the other audience are dropped). Pure and deterministic: same
+ * snapshot, same sections.
+ */
+export interface RecapContributor {
+  id: string;
+  label?: string;
+  mode?: PlayModeId[];
+  build(snapshot: RecapSnapshot): RecapSectionDraft[];
+}
+
+/** "Previously on…" session recaps: contributors that add the module's lines to the generic recap. TypeScript modules only. */
+export interface RecapDef {
+  contributors: RecapContributor[];
+}
+
 export interface ProducedEntity {
   /** Temporary id unique within the run; relationships reference it. */
   tempId: string;
@@ -1168,7 +1397,9 @@ export type SessionChecklistEvent =
   /** The next session is planned. */
   | "next-session-planned"
   /** End-of-session advancement awards (the module's `progression` award checklist) are posted at wrap-up. */
-  | "awards-given";
+  | "awards-given"
+  /** The "Previously on…" recap is shown on the player screen. */
+  | "recap-shown";
 
 export const SESSION_CHECKLIST_EVENTS: readonly SessionChecklistEvent[] = [
   "scenes-planned",
@@ -1180,6 +1411,7 @@ export const SESSION_CHECKLIST_EVENTS: readonly SessionChecklistEvent[] = [
   "timeline-confirmed",
   "next-session-planned",
   "awards-given",
+  "recap-shown",
 ];
 
 /** Id prefixes the core session checklist keeps for itself (defaults and the GM's own items). */
@@ -3498,6 +3730,8 @@ export interface GameModule {
   gmScreen?: GmScreenDef;
   /** Campaign arcs: threads with clues and clocks, faction heat, crew notes and contacts (the Arcs page). */
   arcs?: ArcsDef;
+  /** "Previously on…" recaps: contributors that add the module's lines (jobs, clues, contacts...) to the generic session recap. */
+  recap?: RecapDef;
   /** Step-by-step character builders (one per entity type) and their level-up steps. Packs can declare them. */
   characterBuilders?: CharacterBuilderDef[];
   /**

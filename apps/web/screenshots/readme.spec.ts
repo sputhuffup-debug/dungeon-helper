@@ -133,9 +133,10 @@ async function loadDemo(page: Page, which: keyof typeof DEMOS): Promise<string> 
   return page.url().replace(/\/home$/, "");
 }
 
-async function startSession1(page: Page) {
+/** Start the demo's planned session (session 2 in Skyfire Down, whose session 1 was played; session 1 in the others). */
+async function startPlannedSession(page: Page) {
   await nav(page, "Sessions").click();
-  await page.getByRole("button", { name: "Start session 1" }).click();
+  await page.getByRole("button", { name: /^Start session \d+$/ }).click();
   await expect(page.getByTestId("table-mode")).toBeVisible();
   await expect(page.getByTestId("timer")).toHaveText("00:00");
 }
@@ -232,14 +233,14 @@ test("generator", async ({ page }) => {
 
 test("table-mode", async ({ page }) => {
   await loadDemo(page, "skyfire");
-  await startSession1(page);
+  await startPlannedSession(page);
   await shot(page, "table-mode");
 });
 
 test("table-hints", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await loadDemo(page, "skyfire");
-  await startSession1(page);
+  await startPlannedSession(page);
   await page.getByRole("tab", { name: "Hints" }).click();
   const entry = page.locator('[data-entry="observation"]');
   await entry.getByRole("button", { name: /^Observation/ }).first().click();
@@ -250,7 +251,7 @@ test("table-hints", async ({ page }) => {
 test("enter-dice", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1300 });
   await loadDemo(page, "skyfire");
-  await startSession1(page);
+  await startPlannedSession(page);
   // the group rolls physical dice: table mode asks for the faces instead of rolling
   await page.getByRole("tab", { name: "Dice" }).click();
   await page.getByTestId("dice-mode-enter").first().click();
@@ -359,7 +360,7 @@ function skyfireBoardJob(): string {
 /** Session 1 in table mode on "The ore run": the job's site map with the live hunt. */
 async function openHunt(page: Page) {
   await loadDemo(page, "skyfire");
-  await startSession1(page);
+  await startPlannedSession(page);
   const scenes = page.getByRole("combobox", { name: "Scene" });
   await scenes.selectOption((await scenes.locator("option", { hasText: "The ore run" }).getAttribute("value"))!);
   const live = page.getByTestId("live-map");
@@ -438,10 +439,42 @@ test("alien-arc-board", async ({ page }) => {
   await shot(page, "alien-arc-board");
 });
 
+test("previously-on", async ({ page }) => {
+  // Skyfire Down's session 2: the "Previously on…" card with the GM's recap of session 1 (the job, the clue under the GM title,
+  // Mara Quill as a contact, the funds, the hunt, loose ends and what the players don't know), one loose end switched off
+  await page.setViewportSize({ width: 1440, height: 2400 });
+  await loadDemo(page, "skyfire");
+  await nav(page, "Sessions").click();
+  await page.locator('[data-session][data-status="planned"]').getByRole("link").click();
+  const card = page.getByTestId("recap-card");
+  const gm = card.getByTestId("recap-gm");
+  await expect(gm.getByRole("region", { name: "What the players don't know" })).toBeVisible();
+  await gm.getByRole("region", { name: "Loose ends" }).getByRole("checkbox").last().uncheck();
+  await settle(page);
+  const box = (await card.boundingBox())!;
+  const pad = 16;
+  await shot(page, "previously-on", { clip: { x: Math.floor(box.x - pad), y: Math.floor(box.y - pad), width: Math.ceil(box.width + pad * 2), height: Math.ceil(box.height + pad * 2) } });
+});
+
+test("previously-on-player", async ({ page, context }) => {
+  // the read-aloud on the player screen, once the GM shows it: built from the player projection only
+  const base = await loadDemo(page, "skyfire");
+  await nav(page, "Sessions").click();
+  await page.locator('[data-session][data-status="planned"]').getByRole("link").click();
+  const sessionId = page.url().split("/").pop()!;
+  await page.getByTestId("recap-show").click();
+  await expect(page.getByTestId("recap-show")).toHaveText("Hide from player screen");
+  const players = await context.newPage();
+  await players.setViewportSize({ width: 1280, height: 900 });
+  await players.goto(`${base}/table/${sessionId}?view=players`);
+  await expect(players.getByTestId("player-recap")).toContainText("Mara Quill");
+  await shot(players, "previously-on-player");
+});
+
 test("crew-notes", async ({ page, context }) => {
   // the player screen's crew notes: the clue found in session 1 under the thread's player title, Mara Quill and her favour
   await loadDemo(page, "skyfire");
-  await startSession1(page);
+  await startPlannedSession(page);
   const popup = context.waitForEvent("page");
   await page.getByRole("button", { name: "Player screen" }).click();
   const players = await popup;
@@ -459,7 +492,7 @@ test("crew-notes", async ({ page, context }) => {
 test("wrap-up-awards", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1250 });
   await loadDemo(page, "skyfire");
-  await startSession1(page);
+  await startPlannedSession(page);
   await page.getByTestId("end-session").click();
   const wrap = page.getByTestId("wrapup");
   await wrap.getByRole("textbox", { name: "Session summary" }).fill("The crew took the Weyland-Yutani job and left the station.");
@@ -491,7 +524,7 @@ test("creature-turn", async ({ page }) => {
   // wide enough for the four PCs in one row of participant cards, tall enough for that row under the turn card
   await page.setViewportSize({ width: 2100, height: 1800 });
   await loadDemo(page, "cinematic");
-  await startSession1(page);
+  await startPlannedSession(page);
   const sceneSelect = page.getByRole("combobox", { name: "Scene" });
   await sceneSelect.selectOption((await sceneSelect.locator("option", { hasText: "The Cold Lab" }).getAttribute("value"))!);
   const hugger = page.getByRole("list", { name: "Scene participants" }).locator("li", { hasText: "Facehugger" });
@@ -712,7 +745,7 @@ test("share-players", async ({ page }) => {
   // Cold Harbor session 1 at the table: "Share with players" previews the phone cards (briefing, fogged map, the revealed relay log, the party)
   await page.setViewportSize({ width: 1440, height: 1000 });
   await loadDemo(page, "cinematic");
-  await startSession1(page);
+  await startPlannedSession(page);
   await page.getByTestId("share-players").click();
   const dialog = page.getByTestId("share-dialog");
   await dialog.getByTestId("share-include-party").check();
@@ -725,7 +758,7 @@ test("player-packets", async ({ page }) => {
   // Skyfire Down session 1: Share, Player packets: the four players, and Priya's packet as the web page she gets (her sheet, her agenda, the note shared with her alone)
   await page.setViewportSize({ width: 1440, height: 1100 });
   await loadDemo(page, "skyfire");
-  await startSession1(page);
+  await startPlannedSession(page);
   await page.getByTestId("share-players").click();
   await page.getByRole("tab", { name: /Player packets/ }).click();
   const dialog = page.getByTestId("packets-dialog");
@@ -841,7 +874,7 @@ test("dnd5e-roll", async ({ page }) => {
 test("dnd5e-table", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1300 });
   await loadDemo(page, "dnd5e");
-  await startSession1(page);
+  await startPlannedSession(page);
   await expect(page.getByRole("heading", { name: "Ambush at the toll-house" })).toBeVisible();
   // everyone in the opening fight on the initiative tracker, rolled d20 + initiative, highest first
   const init = page.locator('[data-tracker="dnd5e-srd.tracker.initiative"]');
@@ -896,7 +929,7 @@ test("dnd5e-origins", async ({ page }) => {
 test("dnd5e-hints", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await loadDemo(page, "dnd5e");
-  await startSession1(page);
+  await startPlannedSession(page);
   await page.getByRole("tab", { name: "Hints" }).click();
   const entry = page.locator('[data-entry="stealth"]');
   await entry.getByRole("button", { name: /^Stealth/ }).first().click();
@@ -934,7 +967,7 @@ async function combatClip(page: Page, last: Locator) {
 test("dnd5e-combat", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 2600 });
   await loadDemo(page, "dnd5e");
-  await startSession1(page);
+  await startPlannedSession(page);
   const combat = page.getByTestId("d20-combat");
   // the dice are rolled at the table and typed in: initiative puts the wolf first and Wren second
   await page.getByTestId("dice-mode-enter").first().click();
@@ -1009,7 +1042,7 @@ async function openPf2ePc(page: Page, name: string) {
 
 test("orc-dungeon", async ({ page, context }) => {
   await loadDemo(page, "pf2e");
-  await startSession1(page);
+  await startPlannedSession(page);
   // the xulgath den scene: the generated cave, live, with the first rooms found
   const scenes = page.getByRole("combobox", { name: "Scene" });
   const value = await scenes.locator("option", { hasText: "The xulgath den" }).getAttribute("value");
@@ -1082,7 +1115,7 @@ test("pf2e-encounter", async ({ page }) => {
 test("orc-combat", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 2600 });
   await loadDemo(page, "pf2e");
-  await startSession1(page);
+  await startPlannedSession(page);
   const combat = page.getByTestId("d20-combat");
   await page.getByTestId("dice-mode-enter").first().click();
   await combat.getByTestId("roll-initiative-all").click();

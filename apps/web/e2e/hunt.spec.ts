@@ -18,7 +18,7 @@ test("the live hunt: a suggested move, a sweep, blips on the player screen, and 
   await page.getByTestId("load-demo").click();
   await expect(page).toHaveURL(/\/c\/[0-9A-Z]{26}\/home$/, { timeout: 30_000 });
   await nav(page, "Sessions").click();
-  await page.getByRole("button", { name: "Start session 1" }).click();
+  await page.getByRole("button", { name: "Start session 2" }).click();
   await expect(page.getByTestId("table-mode")).toBeVisible();
   const sceneSelect = page.getByRole("combobox", { name: "Scene" });
   await sceneSelect.selectOption((await sceneSelect.locator("option", { hasText: "The ore run" }).getAttribute("value"))!);

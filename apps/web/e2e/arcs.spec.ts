@@ -65,14 +65,15 @@ test("arcs: deal a thread, seed its clue into a posting, take it, find the clue,
   await page.goto(`${base}/arcs`);
   const col = page.locator(`[data-testid=arc-stage]`).filter({ has: page.locator(`[data-clue]`) });
   await expect(col.first()).toBeVisible();
-  const foundCard = page.locator(`[data-testid=arc-clue][data-state=found]`).filter({ has: page.getByRole("link", { name: /found in Session 1/ }) });
+  // the demo's clue was found in session 1; this one in session 2, the session the demo has planned
+  const foundCard = page.locator(`[data-testid=arc-clue][data-state=found]`).filter({ has: page.getByRole("link", { name: /found in Session [12]/ }) });
   await expect(foundCard).toHaveCount(2);
   const threadCol = page.locator(`[data-thread="${threadId}"]`);
   await expect(threadCol).toHaveCount(1);
   const newFound = page.locator(`[data-testid=arc-clue][data-state=found]`).filter({ hasNot: page.getByText("Two manifests") });
   const foundPlayerText = (await newFound.first().locator(".arc-clue__player").innerText()).replace(/^Crew notes:\s*/, "").trim();
   const unseenPlayer = (await page.locator(`[data-testid=arc-clue][data-state=unseen]`).first().locator(".arc-clue__player").innerText()).replace(/^Crew notes:\s*/, "").trim();
-  const sessionHref = await foundCard.first().getByRole("link", { name: /found in Session 1/ }).getAttribute("href");
+  const sessionHref = await foundCard.first().getByRole("link", { name: /found in Session [12]/ }).getAttribute("href");
   const sessionId = sessionHref!.split("/").pop()!;
 
   // 6. the player screen's crew notes: the found clue under the player title; no GM title, no unseen clue

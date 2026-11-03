@@ -9,7 +9,7 @@ test("xenomorph life cycle: start an infection on a PC, advance the clock, the c
   await page.getByTestId("load-demo").click();
   await expect(page).toHaveURL(/\/c\/[0-9A-Z]{26}\/home$/, { timeout: 30_000 });
   await page.getByRole("link", { name: "Sessions" }).click();
-  await page.getByRole("button", { name: "Start session 1" }).click();
+  await page.getByRole("button", { name: "Start session 2" }).click();
   await expect(page.getByTestId("table-mode")).toBeVisible();
 
   // start an infection from a player character's card

@@ -7,7 +7,7 @@ test("progression: XP awarded at wrap-up, spent on a skill on the Progression ta
   page.on("pageerror", (e) => errors.push(e.message));
   await page.setViewportSize({ width: 1400, height: 1000 });
 
-  // 1. Skyfire Down: start session 1 and wrap it up
+  // 1. Skyfire Down: start session 2 (session 1 was played) and wrap it up
   await page.goto("/");
   await page.getByTestId("load-demo").click();
   await expect(page).toHaveURL(/\/c\/[0-9A-Z]{26}\/home$/, { timeout: 30_000 });
@@ -50,7 +50,7 @@ test("progression: XP awarded at wrap-up, spent on a skill on the Progression ta
   await expect(tab).toBeVisible();
   const history = tab.getByTestId("advancement-history");
   await expect(history).toContainText("The last run to");
-  await expect(history).toContainText("Session 1");
+  await expect(history).toContainText("Session 2");
   const pool = tab.getByTestId("pool-experience");
   const before = Number(await pool.innerText());
   expect(before).toBeGreaterThanOrEqual(5);

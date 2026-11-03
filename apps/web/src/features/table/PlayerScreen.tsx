@@ -21,6 +21,8 @@ import { BoundTracker, useModeTrackers } from "./TrackersPanel";
 import { CrewNotesView } from "../arcs/CrewNotesView";
 import { arcsDefOf, crewNotesFor } from "../../state/arcActions";
 import { useMapVersion } from "../../state/hooks";
+import { playerRecapFor } from "../../state/recapActions";
+import { PlayerRecapView } from "../sessions/RecapText";
 
 const noop = () => undefined;
 
@@ -96,6 +98,14 @@ function PlayerCrewNotes() {
   );
 }
 
+/** The "Previously on…" read-aloud, while the GM shows it (the player projection's recap only). */
+function PlayerRecap({ sessionId }: { sessionId: Id }) {
+  const ctx = useCampaign();
+  const version = useMapVersion("*");
+  const recap = useMemo(() => playerRecapFor(ctx, sessionId, { requireShown: true }), [ctx, sessionId, version]); // eslint-disable-line react-hooks/exhaustive-deps
+  return recap ? <PlayerRecapView recap={recap} /> : null;
+}
+
 export function PlayerScreen({ sessionId }: { sessionId: Id }) {
   const meta = useMeta();
   const table = useTableState(sessionId);
@@ -119,6 +129,7 @@ export function PlayerScreen({ sessionId }: { sessionId: Id }) {
         </div>
       )}
       <div className="app-player__grid">
+        <PlayerRecap sessionId={sessionId} />
         <section className="app-player__scene" aria-label="Scene">
           {scene ? (
             <>

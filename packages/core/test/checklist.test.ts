@@ -73,6 +73,7 @@ describe("moduleChecklistItems", () => {
     const auto = DEFAULT_SESSION_CHECKLIST.filter((i) => i.autoWhen).map((i) => `${i.id}:${i.autoWhen}`);
     expect(auto).toEqual([
       "prep.scenes:scenes-planned",
+      "play.recap:recap-shown",
       "play.notes:log-written",
       "play.reveals:revealed",
       "wrap.rewards:prompts-answered",

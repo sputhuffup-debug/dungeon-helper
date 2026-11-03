@@ -76,6 +76,7 @@ import {
   zonePath,
   addPlayer,
   addContact,
+  generateSessionRecap,
   applyArcTicks,
   applyOfferArcLinks,
   arcsSnapshot,
@@ -573,6 +574,9 @@ export function buildDemoCampaign(opts: BuildDemoOptions = {}): DemoCampaign {
   // -- the arcs in play: the clue found in session 1, Mara Quill a contact, heat, a clock moved between jobs --
   setupArcsInPlay(store, { threads, board, session: session.id, employer: employer.id, homeSite, seed });
 
+  // -- session 1 played, session 2 planned with its "Previously on…" recap --
+  setupSessionTwo(store, registry, { session: session.id, board, employer, homeSite, host });
+
   const maps = store.toJSON();
   const resolve = nameResolver(store);
   const docs: Record<Id, string> = {};
@@ -906,6 +910,41 @@ function setupArcsInPlay(store: CampaignStore, s: { threads: ArcThread[]; board:
     const plan = planArcTicks({ arcs: Object.fromEntries(store.list("arcs").map((t) => [t.id, t])) }, arcs, `${s.seed}/between-jobs`).filter((p) => p.thread === second.id);
     applyArcTicks(store, plan, { session: s.session, note: "Between jobs" });
   }
+}
+
+// ---------------------------------------------------------------------------
+// session 2 and its recap
+// ---------------------------------------------------------------------------
+
+/** Session 2, planned after session 1 was played, and the instant its recap was generated (fixed, so the build stays deterministic). */
+export const DEMO_SESSION_2 = { number: 2, date: "2026-11-14", title: "The ore run", recapAt: "2026-11-13T18:00:00.000Z" } as const;
+
+/**
+ * Session 1 ("The offer") is played and wrapped up: everyone came, the GM
+ * wrote a summary and carried loose ends forward. Session 2 is planned with
+ * those loose ends as its plan and a "Previously on…" recap built from
+ * session 1 by the app's recap builder: the ore job, Mara Quill's clue,
+ * Mara as a contact, the heat, the clock that moved, the crew funds and the
+ * hunt so far, plus the read-aloud for the players.
+ */
+function setupSessionTwo(store: CampaignStore, registry: RichTextRegistry, s: { session: Id; board: DemoBoard; employer: Entity; homeSite: Entity; host: Entity }): void {
+  const mara = store.get("entities", s.board.contact)!;
+  const job = s.board.job;
+  const members = store.meta().members.map((m) => m.id);
+  const looseEnds = [
+    `${mara.name} still owes the crew a favour; she may know more than she let on.`,
+    `${s.employer.name} has noticed the crew. Decide who comes asking.`,
+    `${s.host.name} is carrying an embryo: check the life-cycle tracker before anyone sleeps.`,
+  ];
+  const two = store.createSession({ number: DEMO_SESSION_2.number, date: DEMO_SESSION_2.date, title: DEMO_SESSION_2.title, status: "planned", attendees: members });
+  store.update("sessions", s.session, {
+    status: "done",
+    attendees: members,
+    summary: `The crew took ${job.name} at ${s.homeSite.name}. ${mara.name} brokered it and let slip who might really be behind the cargo; she ended the night owing the crew a favour. ${s.employer.name} took an interest in the crew.`,
+    wrapUp: { looseEnds, nextSession: two.id },
+  });
+  store.update("sessions", two.id, { nextPlan: [...looseEnds] });
+  generateSessionRecap(store, alienModule, two.id, { at: DEMO_SESSION_2.recapAt, doc: (id) => registry.open(id) });
 }
 
 /**

@@ -12,7 +12,7 @@ Campaign Forge knows nothing about any one game. Everything a game system brings
 | d20 combat (attacks, AC and saves, damage modifiers, conditions with helper text) | Yes (`d20Combat`) | Yes |
 | Character builder and level-up wizard | Yes (`characterBuilders`) | Yes |
 | Dungeon map generator (floor plan, doors and secrets, room key, encounters, traps, treasure) | Yes (`mapGenerators` with the built-in `dungeon` engine) | Yes (the built-in engine, or any generator in code) |
-| Other combat rules, ship, travel, ledger, progression, campaign arcs, other map generators, adventure builders, hooks | No (needs code) | Yes |
+| Other combat rules, ship, travel, ledger, progression, campaign arcs, session recap lines, other map generators, adventure builders, hooks | No (needs code) | Yes |
 
 Both are checked by the same tools and loaded by the same registry. Start with a data pack; move to TypeScript when you need something only code can do. To add options to a module that already exists (a background, a subclass, a house rule), write a [supplement](supplements.md) instead.
 
@@ -39,6 +39,7 @@ Then open the app, choose **Game modules… → Import data pack…** on the cam
 10. [Character builder](character-builder.md): the step-by-step wizard that makes a player character (choices, grants, sub-choices, ability score methods, validation) and levels one up.
 11. [Map generators](map-generators.md): the built-in `dungeon` engine a pack configures (site types and floor plan archetypes, doors and secrets, room purposes, encounters, traps and treasure picked from the module's own content, what accepting a map adds to the campaign).
 12. [Campaign arcs](arcs.md): the arc board a TypeScript module declares (threads, clues seeded into jobs, clocks between jobs, faction heat, crew notes, contacts) and how its boards read it.
-13. [TypeScript modules](typescript-modules.md): when you need code, and how to register a built-in module or pack (including large ones such as the 5th Edition SRD 5.1 & 5.2 in `packages/module-dnd5e-srd` and the ORC core rules for the second edition remaster in `packages/module-pf2e-orc`).
+13. [Session recaps](recaps.md): the "Previously on…" recap core builds for every module, and the `recap` contributors a TypeScript module adds its own lines with (the snapshot they read, audiences, keys, the player-safety model).
+14. [TypeScript modules](typescript-modules.md): when you need code, and how to register a built-in module or pack (including large ones such as the 5th Edition SRD 5.1 & 5.2 in `packages/module-dnd5e-srd` and the ORC core rules for the second edition remaster in `packages/module-pf2e-orc`).
 
 The published JSON Schemas are in `packages/module-sdk/schema/` (`module-pack.schema.json`, `module-pack-part.schema.json`, `module-supplement.schema.json`, `module-supplement-part.schema.json`). Point your editor at them with `"$schema"` for completion and inline errors. The contract they describe is `packages/module-sdk/src/types.ts`; the fixture pack `packages/module-example/packs/example-pack/` uses every feature of the format.

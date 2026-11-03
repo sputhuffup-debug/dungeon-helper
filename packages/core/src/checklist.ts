@@ -90,7 +90,7 @@ export const DEFAULT_SESSION_CHECKLIST: readonly ChecklistItem[] = [
   core("prep.materials", "prep", "Gather what you need at the table", "Maps, handouts, stat blocks, music, and anything you want to show rather than describe."),
   core("prep.logistics", "prep", "Confirm the basics", "Time, place or call link, who is coming, and how long you have."),
   // At the table
-  core("play.recap", "play", "Start with a recap", "Ask a player to recap the last session. It shows you what they remember and care about."),
+  core("play.recap", "play", "Start with a recap", "Read the “Previously on…” recap or show it on the player screen, or ask a player to recap the last session: it shows you what they remember and care about.", "recap-shown"),
   core("play.check-in", "play", "Check in on tone and comfort", "A quick reminder of the tone and any lines or veils. Invite people to speak up during play."),
   core("play.spotlight", "play", "Share the spotlight", "Notice who has not had a moment yet and turn the next scene toward them."),
   core("play.notes", "play", "Note names and promises", "Write down every name you invent and every promise you make, so they stay consistent.", "log-written"),

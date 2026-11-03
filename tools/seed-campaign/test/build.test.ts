@@ -77,7 +77,11 @@ describe("buildDemoCampaign", () => {
     expect(Object.values(maps.handouts).filter((h) => h.kind === "agenda" && h.visibility.level === "some_players")).toHaveLength(4);
     expect(Object.keys(maps.timeline)).toHaveLength(2);
     const sessions = Object.values(maps.sessions);
-    expect(sessions).toHaveLength(1);
+    // session 1 played, session 2 planned (with its recap, see recap.test.ts)
+    expect(sessions.map((s) => [s.number, s.status])).toEqual([
+      [1, "done"],
+      [2, "planned"],
+    ]);
     expect(sessions[0]!.nextPlan.length).toBeGreaterThan(0);
     expect(Object.values(maps.notes).filter((n) => n.attachedTo?.kind === "campaign" && n.attachedTo.id === maps.meta.id)).toHaveLength(1);
   });

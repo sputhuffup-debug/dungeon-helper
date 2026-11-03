@@ -56,7 +56,7 @@ test("Alien weapons: a new PC from the Atlas gets a preset rifle and a custom kn
 
   // table mode: the Dice tab offers an attack with each weapon; the group rolls physical dice
   await page.getByRole("link", { name: "Sessions" }).click();
-  await page.getByRole("button", { name: "Start session 1" }).click();
+  await page.getByRole("button", { name: "Start session 2" }).click();
   await expect(page.getByTestId("table-mode")).toBeVisible();
   await page.getByRole("tab", { name: "Dice" }).click();
   await page.getByTestId("dice-mode-enter").first().click();

@@ -1553,7 +1553,8 @@
                         "loose-ends-carried",
                         "timeline-confirmed",
                         "next-session-planned",
-                        "awards-given"
+                        "awards-given",
+                        "recap-shown"
                       ]
                     }
                   }
