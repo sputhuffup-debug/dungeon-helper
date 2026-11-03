@@ -734,6 +734,43 @@ test("rules", async ({ page }) => {
   await shot(page, "rules");
 });
 
+test("search-rules", async ({ page }) => {
+  await loadDemo(page, "skyfire");
+  // the pointer out of the way first: a hover would move the highlighted hit
+  await page.mouse.move(0, 0);
+  await page.getByRole("searchbox", { name: "Search campaign" }).fill("panic");
+  const results = page.getByRole("listbox", { name: "Search results" });
+  await expect(results.getByText("Rules", { exact: true })).toBeVisible();
+  await expect(results.getByRole("option", { name: /Panic roll/ })).toContainText("p. 72");
+  // not shot(): it blurs the search box, which closes the results
+  await page.waitForTimeout(400);
+  await settle(page);
+  await page.screenshot({ path: file("search-rules"), animations: "disabled", caret: "hide", clip: { x: 0, y: 0, width: 1040, height: 560 } });
+});
+
+test("preview-as-player", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await loadDemo(page, "skyfire");
+  await nav(page, "Atlas").click();
+  await page.getByTestId("preview-as-player").check();
+  await page.getByRole("tab", { name: /^Jobs/ }).click();
+  // the job taken from the board: its posting and its contact, as the players see them
+  await page.getByRole("table").getByRole("link", { name: "Ore to the spaceport" }).click();
+  await expect(page.getByTestId("player-preview-banner")).toBeVisible();
+  await expect(page.getByTestId("player-preview-sheet")).toContainText("Posting");
+  await expect(page.getByTestId("player-preview-sheet")).not.toContainText("Employer's real intent");
+  await shot(page, "preview-as-player");
+});
+
+test("gm-screen-onscreen", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1100 });
+  const base = await loadDemo(page, "skyfire");
+  await page.getByTestId("home-gm-screen").click();
+  await expect(page).toHaveURL(`${base}/gm-screen?view=screen`);
+  await expect(page.getByTestId("gm-screen-onscreen").getByRole("heading", { name: "GM side" })).toBeVisible();
+  await shot(page, "gm-screen-onscreen");
+});
+
 // ---------------------------------------------------------------------------
 // Cold Harbor Relay (cinematic)
 // ---------------------------------------------------------------------------
@@ -1317,8 +1354,8 @@ test("pf2e-encounter", async ({ page }) => {
   await page.getByRole("spinbutton", { name: "Party level" }).fill("3");
   await page.getByRole("combobox", { name: "Threat" }).selectOption("severe");
   await expect(page.getByTestId("step-budget")).toContainText("120");
-  await expect(page.getByTestId("step-shape")).toContainText("pf2e-orc.encounter.budget-120");
-  await expect(page.getByTestId("step-g1")).toContainText("pf2e-orc.creature.level-");
+  await expect(page.getByTestId("step-shape")).toContainText("Encounter shape (120 XP");
+  await expect(page.getByTestId("step-g1")).toContainText("Creatures of level ");
   await expect(page.getByTestId("step-result-budget")).toHaveText("120 XP");
   await expect(page.getByTestId("step-result-shape")).toHaveText(/^\d+ × party level/);
   await expect(page.getByTestId("step-result-g1list")).toHaveText(/^\d+ × .+$/);
