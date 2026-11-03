@@ -51,7 +51,7 @@ const cast: AdventureBuilderDef["cast"] = [
     label: "Player characters",
     entityType: "alien.character",
     defaults: { isPC: true },
-    fields: ["career", "talents", "attributes", "skills", "gear", "signatureItem", "background"],
+    fields: ["career", "talents", "attributes", "skills", "gear", "weapons", "signatureItem", "background"],
     min: 1,
   },
   {
@@ -73,6 +73,7 @@ const cast: AdventureBuilderDef["cast"] = [
       "skills",
       "talents",
       "gear",
+      "weapons",
       "android",
       "secretAndroid",
       "coverAttributes",

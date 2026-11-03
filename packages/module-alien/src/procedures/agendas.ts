@@ -449,7 +449,7 @@ export const agendaDraftsProcedure: Procedure = {
         title: "Campaign",
         "x-campaign": {
           kinds: ["character", "location", "item", "clue", "creature", "faction"],
-          fields: ["android", "secretAndroid", "career", "role", "factionType"],
+          fields: ["android", "secretAndroid", "career", "role", "factionType", "buddy", "rival"],
           relationships: ["buddy_of", "rival_of"],
         },
         description: "The campaign's people, places and things the agendas can aim at.",

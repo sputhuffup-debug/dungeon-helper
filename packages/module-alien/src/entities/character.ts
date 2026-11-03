@@ -1,4 +1,15 @@
-import { OWNER_VISIBILITY, weaponRowFrom, type EntityPreset, type EntityTypeDef, type JsonLogicRule, type SheetSection, type WeaponAttackConfig, type WeaponListConfig } from "@campaign-forge/module-sdk";
+import {
+  OWNER_VISIBILITY,
+  weaponRowFrom,
+  type EntityPreset,
+  type EntityTypeDef,
+  type GearCatalogConfig,
+  type JsonLogicRule,
+  type SheetField,
+  type SheetSection,
+  type WeaponAttackConfig,
+  type WeaponListConfig,
+} from "@campaign-forge/module-sdk";
 import { CAMPAIGN, CINEMATIC } from "../modes";
 import { OVERWHELMED_TRAUMA } from "../reference/mentalTraumas";
 import {
@@ -189,8 +200,9 @@ export const characterSchema = objectSchema(
           name: { type: "string" },
           weight: { type: "number", minimum: 0, default: 1, description: "Regular item = 1, light 1/2 or 1/4, tiny 0, heavy 2+ (p. 28)." },
           qty: { type: "integer", minimum: 0, default: 1 },
-          supply: intField(0, undefined, undefined, "Supply rating for consumables (p. 28-29)."),
+          supply: intField(0, undefined, undefined, "Supply rating for consumables, or an item's power supply (p. 28-29)."),
           itemId: { type: "string", description: "Linked alien.item entity id." },
+          presetId: { type: "string", description: "Item preset the row was picked from (e.g. alien.item.motion-tracker)." },
         },
       },
     },
@@ -207,8 +219,8 @@ export const characterSchema = objectSchema(
     trait: stringField("One-line personality trait (NPCs)."),
     goal: stringField("What this character wants; GM-only by default."),
     appearance: stringField(),
-    buddy: stringField("Free text; the real link is the buddy_of relationship (p. 27)."),
-    rival: stringField("Free text; the real link is the rival_of relationship (p. 27)."),
+    buddy: stringField("Another PC, by entity id (older campaigns may hold a typed name). A buddy_of relationship counts too (p. 27)."),
+    rival: stringField("Another PC, by entity id (older campaigns may hold a typed name). A rival_of relationship counts too (p. 27)."),
     background: stringField("Who the character is and where they come from; for pregenerated PCs, written to fit the plot (p. 157)."),
     // NPC dossier (appearance, trait and goal above are the book's four basics, p. 156).
     role: stringField("Public role or job aboard, e.g. Pilot."),
@@ -410,6 +422,9 @@ export const WEAPON_ATTACK: WeaponAttackConfig = {
   rules: ["alien.rule.attack-close", "alien.rule.attack-ranged", "alien.rule.damage-armor", "alien.rule.weapons"],
 };
 
+/** A price as the gear tables give it: the dollar cost, or the printed text for a range or "Varies". */
+const costText: JsonLogicRule = { if: [{ var: "costText" }, { var: "costText" }, { cat: ["$", { var: "cost" }] }] };
+
 /** The Weapons section's list: presets from the gear tables (vehicle-mounted weapons left out), campaign items, or blank rows. */
 export const WEAPONS_CONFIG: WeaponListConfig = {
   presets: {
@@ -441,7 +456,7 @@ export const WEAPONS_CONFIG: WeaponListConfig = {
     { label: "Damage", display: damageText },
     { label: "Range", display: rangeText },
     { key: "weight", label: "Weight", numeric: true },
-    { label: "Cost", display: { if: [{ var: "costText" }, { var: "costText" }, { cat: ["$", { var: "cost" }] }] }, numeric: true },
+    { label: "Cost", display: costText, numeric: true },
   ],
   weightKey: "weight",
   totalComputed: "encumbrance",
@@ -454,6 +469,54 @@ export function weaponRowFromPreset(preset: EntityPreset): Record<string, unknow
   return weaponRowFrom(WEAPONS_CONFIG, preset, { presetId: preset.id });
 }
 
+/** Buddy and rival: a pick of the campaign's other PCs (p. 27); a name typed in an older campaign shows until the GM links it. */
+const crewmate = (path: "buddy" | "rival", label: string): SheetField => ({
+  path,
+  label,
+  widget: "ref",
+  span: 6,
+  mode: [CAMPAIGN],
+  rule: "alien.rule.buddies-rivals",
+  entityTypes: ["alien.character"],
+  config: { pick: "select", pc: true },
+});
+
+/**
+ * The Gear field's "From the gear list…": every portable item preset of
+ * chapter 5 (vehicle-mounted weapons, mainframes and fixed installations left out),
+ * grouped by the book's gear headings. Weapons go to the Weapons list with
+ * their stats; everything else (suits and armor, the motion trackers, tools,
+ * medical supplies, drugs, food) becomes a gear row with its weight, its
+ * power supply where it has one, and the preset it came from.
+ */
+export const GEAR_CATALOG: GearCatalogConfig = {
+  presets: {
+    entityType: "alien.item",
+    excludeTags: ["weapon:vehicle", "gear:computer-mainframes"],
+    where: { "!=": [{ var: "fields.portable" }, false] },
+    groups: [
+      { tag: "weapon:ranged", label: "Ranged weapons" },
+      { tag: "weapon:melee", label: "Melee weapons" },
+      { tag: "weapon:explosive", label: "Explosives" },
+      { tag: "gear:suits-armor", label: "Suits and armor" },
+      { tag: "gear:vision-devices", label: "Vision devices" },
+      { tag: "gear:diagnostics-display", label: "Diagnostics and display" },
+      { tag: "gear:tools", label: "Tools" },
+      { tag: "gear:medical-supplies", label: "Medical supplies" },
+      { tag: "gear:pharmaceuticals", label: "Pharmaceuticals" },
+      { tag: "gear:food-drink", label: "Food and drink" },
+      { tag: "gear:data-storage", label: "Data storage" },
+    ],
+  },
+  columns: [
+    { label: "Cost", display: costText, numeric: true },
+    { key: "weight", label: "Weight", numeric: true },
+  ],
+  copy: { weight: "weight", supply: "power" },
+  presetKey: "presetId",
+  routes: [{ path: "weapons", subtypes: ["weapon"] }],
+};
+
 const sections: SheetSection[] = [
   {
     id: "identity",
@@ -463,8 +526,8 @@ const sections: SheetSection[] = [
       checkbox("isPC", "Player character"),
       checkbox("android", "Android", { rule: "alien.rule.androids" }),
       select("career", "Career", { ref: "alien.careers" }, { span: 6, rule: "alien.rule.careers" }),
-      text("buddy", "Buddy", { span: 6, mode: [CAMPAIGN], rule: "alien.rule.buddies-rivals" }),
-      text("rival", "Rival", { span: 6, mode: [CAMPAIGN], rule: "alien.rule.buddies-rivals" }),
+      crewmate("buddy", "Buddy"),
+      crewmate("rival", "Rival"),
       text("signatureItem", "Signature item", { span: 6, rule: "alien.rule.signature-item" }),
       number("cash", "Cash ($)", { rule: "alien.rule.cash" }),
     ],
@@ -553,6 +616,7 @@ const sections: SheetSection[] = [
           itemEntityType: "alien.item",
           totalComputed: "encumbrance",
           limitComputed: "encumbranceLimit",
+          catalog: GEAR_CATALOG as unknown as Record<string, unknown>,
         },
       },
     ],

@@ -18,8 +18,8 @@ describe("rogue humans on the site map", () => {
         const p = npcPresets.find((x) => x.id === id);
         expect(p, id).toBeDefined();
         const skills = p!.fields.skills as Record<string, number>;
-        const armed = (p!.fields.gear as Array<{ name: string }>).some((x) => /rifle|pistol|revolver|shotgun|gun|knife|baton/i.test(x.name));
-        // a combat skill, or a weapon in the book's gear line (the homesteader's shotgun), or an android's strength
+        const armed = ((p!.fields.weapons ?? []) as unknown[]).length > 0 || (p!.fields.gear as Array<{ name: string }>).some((x) => /rifle|pistol|revolver|shotgun|gun|knife|baton/i.test(x.name));
+        // a combat skill, or a weapon in the book's gear line (the homesteader's shotgun, now on its Weapons list), or an android's strength
         expect((skills.rangedCombat ?? 0) + (skills.closeCombat ?? 0) > 0 || armed).toBe(true);
       }
     }

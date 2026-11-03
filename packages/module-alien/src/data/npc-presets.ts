@@ -1,5 +1,5 @@
 import type { AlienPreset } from "./types";
-import { itemPresets } from "./items";
+import { placeKit } from "../entities/kit";
 
 /**
  * Typical NPCs (Evolved Edition p. 258-259; NPC guidance p. 155-157).
@@ -11,9 +11,10 @@ import { itemPresets } from "./items";
  *
  * The book gives these NPCs no career, trait, goal or appearance; the GM
  * supplies those when using one (p. 157), so the presets leave them empty.
- * Gear keeps the book's wording; `itemId` links the item preset where one
- * exists, and the weight is read from that preset (otherwise the book's gear
- * weight, or 0 for tiny items).
+ * Gear keeps the book's wording; where an item preset exists the row links
+ * it (`presetId`) and takes its weight, otherwise the book's gear weight, or
+ * 0 for tiny items. Weapons go to the Weapons list with the gear tables'
+ * stats (entities/kit.ts).
  */
 
 type Skills = Partial<Record<
@@ -45,27 +46,6 @@ interface NpcSpec {
 
 const PAGE: [number, number] = [258, 259];
 
-const itemsById = new Map(itemPresets.map((p) => [p.id, p]));
-const normalize = (s: string): string => s.toLowerCase().replace(/[^a-z0-9]/g, "");
-const itemsByName = new Map(itemPresets.map((p) => [normalize(p.name), p]));
-
-/** Find the item preset for a gear line: candidate ids first, then an exact name match. */
-function resolveItem(g: GearSpec) {
-  for (const id of g.items ?? []) {
-    const hit = itemsById.get(`alien.item.${id}`);
-    if (hit) return hit;
-  }
-  return itemsByName.get(normalize(g.name));
-}
-
-function gearLine(g: GearSpec): Record<string, unknown> {
-  const item = resolveItem(g);
-  const w = item?.fields["weight"];
-  const line: Record<string, unknown> = { name: g.name, weight: typeof w === "number" ? w : (g.weight ?? 0), qty: g.qty ?? 1 };
-  if (item) line.itemId = item.id;
-  return line;
-}
-
 function npc(spec: NpcSpec): AlienPreset {
   const { id, name, summary, android = false, attributes, skills, talent, gear = [], cash = 0 } = spec;
   return {
@@ -82,7 +62,7 @@ function npc(spec: NpcSpec): AlienPreset {
       skills,
       talents: talent ? [{ id: talent, count: 1 }] : [],
       stress: 0,
-      gear: gear.map(gearLine),
+      ...placeKit(gear.map((g) => ({ ...g, weight: g.weight ?? 0 }))),
       cash,
     },
   };

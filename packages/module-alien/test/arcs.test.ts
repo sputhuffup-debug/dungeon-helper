@@ -212,8 +212,9 @@ describe("the job board without arcs", () => {
       }
     return createHash("sha256").update(out.join("\n")).digest("hex");
   }
-  // recorded before the arcs were added to the board
-  const BEFORE_ARCS = "eb4f0fc995aa137f9b4be6e10528dfbb6f257ad604380ddfc77e3f6ed1ca5ed7";
+  // recorded before the arcs were added to the board; re-recorded once when the typical NPCs' kit moved
+  // their weapons to the Weapons list (the NPCs' gear rows changed, nothing the board deals did)
+  const BEFORE_ARCS = "c2a5552704afa2f085d588586019824cd10d99b60b7a29c08f2ba38500878358";
 
   it("is byte-identical to the board before arcs", () => {
     expect(baseline()).toBe(BEFORE_ARCS);

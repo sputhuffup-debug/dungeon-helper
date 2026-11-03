@@ -146,6 +146,7 @@ export function hostileStatLine(presetId: string): string {
     .sort((x, y) => y[1] - x[1])
     .slice(0, 3)
     .map(([k, v]) => `${k.replace(/([A-Z])/g, " $1").replace(/^./, (c) => c.toUpperCase())} ${v}`);
-  const weapon = ((p.fields.gear ?? []) as Array<{ name: string; itemId?: string }>).find((x) => /rifle|pistol|revolver|shotgun|gun|knife|baton/i.test(x.name))?.name;
+  const carried = [...((p.fields.weapons ?? []) as Array<{ name: string }>), ...((p.fields.gear ?? []) as Array<{ name: string }>)];
+  const weapon = carried.find((x) => /rifle|pistol|revolver|shotgun|gun|knife|baton/i.test(x.name))?.name;
   return `${p.name}: STR ${a.strength} AGI ${a.agility} WIT ${a.wits} EMP ${a.empathy}; ${skills.join(", ")}${weapon ? `; ${weapon}` : ""}`;
 }

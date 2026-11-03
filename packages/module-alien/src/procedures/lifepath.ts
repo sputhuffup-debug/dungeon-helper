@@ -25,6 +25,7 @@
  * paychecks and gear picks are kept in the step result's `rolls` list).
  */
 import { rollTable, type Procedure, type ProcedureContext, type Rng } from "@campaign-forge/module-sdk";
+import { placeKit } from "../entities/kit";
 import { careerItems } from "../reference/careers";
 import { careerTalents } from "../reference/talents";
 import {
@@ -629,6 +630,7 @@ export const lifepath: Procedure = {
     "The appendix's life path generator: origin, early life, a life event, a career with one to three terms, and a psych evaluation, with every roll kept as provenance.",
   page: [282, 289],
   mode: ["campaign"],
+  createsCharacter: { entityType: "alien.character", label: "Roll a Life Path", pc: true },
   inputs: {
     type: "object",
     properties: {
@@ -727,6 +729,8 @@ export const lifepath: Procedure = {
     const psych = str(obj(ctx, "psych").label);
     const givenName = ctx.inputs.name;
     const name = typeof givenName === "string" && givenName.trim() !== "" ? givenName.trim() : `New ${careerName.toLowerCase()}`;
+    // the career gear, matched to the gear tables: weapons to the Weapons list, the rest as gear
+    const kit = placeKit(total.gear.map((g) => ({ name: g, weight: 1 })));
     const from = [str(originRes.supernation), affiliation, home].filter(Boolean).join(", ");
     return {
       entities: [
@@ -746,7 +750,8 @@ export const lifepath: Procedure = {
             stress: 0,
             personalAgenda: "",
             agendas: [],
-            gear: total.gear.map((g) => ({ name: g, weight: 1, qty: 1 })),
+            gear: kit.gear,
+            weapons: kit.weapons,
             signatureItem: "",
             cash: total.cash,
             storyPoints: 0,

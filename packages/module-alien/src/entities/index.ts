@@ -11,7 +11,9 @@ import { jobType } from "./job";
 import { encounterType } from "./encounter";
 
 export * from "./common";
-export { characterType, characterComputed, characterSchema, weaponRowSchema, weaponRowFromPreset, WEAPON_STAT_KEYS, WEAPON_ATTACK, WEAPONS_CONFIG, HARDENED_TALENT, SEEN_IT_ALL_TALENT } from "./character";
+export { characterType, characterComputed, characterSchema, weaponRowSchema, weaponRowFromPreset, WEAPON_STAT_KEYS, WEAPON_ATTACK, WEAPONS_CONFIG, GEAR_CATALOG, HARDENED_TALENT, SEEN_IT_ALL_TALENT } from "./character";
+export { CAREER_GEAR_ITEMS, kitItem, placeKit } from "./kit";
+export type { KitLine } from "./kit";
 export { creatureType } from "./creature";
 export { locationType } from "./location";
 export { factionType } from "./faction";

@@ -1,7 +1,8 @@
 /**
  * Targets for the agenda generator, from the campaign: the party (with buddy
- * and rival links), the adventure's NPCs, its locations and site map rooms,
- * key items and clues, creatures and corporations. Where the campaign has
+ * and rival links, from the sheets' Buddy and Rival or the buddy_of and
+ * rival_of relationships), the adventure's NPCs, its locations and site map
+ * rooms, key items and clues, creatures and corporations. Where the campaign has
  * none, the module's fallback tables fill in ("the specimen", "the shuttle
  * bay"), preferring rows whose words appear in the adventure's premise or
  * hidden situation. Pools are plain JSON (they are stored with the run) and
@@ -172,6 +173,14 @@ export function buildCast(inputs: Record<string, unknown>): Cast {
     party = Array.from({ length: n }, (_, i) => ({ id: `pc-${i + 1}`, name: `PC ${i + 1}`, inCampaign: false, index: -1, buddies: [], rivals: [] }));
   }
   const partyIds = new Set(party.map((p) => p.id));
+  /** A buddy or rival on the sheet: another PC's id, or (older campaigns) a crewmate's name typed by hand. */
+  const crewmateOn = (m: PartyMember, key: "buddy" | "rival"): string | undefined => {
+    const v = fieldOf(byId.get(m.id), key);
+    if (typeof v !== "string" || !v.trim()) return undefined;
+    if (partyIds.has(v) && v !== m.id) return v;
+    const name = v.trim().toLowerCase();
+    return party.find((o) => o.id !== m.id && o.name.trim().toLowerCase() === name)?.id;
+  };
   for (const m of party) {
     const e = byId.get(m.id);
     const career = fieldOf(e, "career");
@@ -183,6 +192,16 @@ export function buildCast(inputs: Record<string, unknown>): Cast {
       if (!other || other === m.id || !partyIds.has(other)) continue;
       if (r.type === "buddy_of" && !m.buddies.includes(other)) m.buddies.push(other);
       if (r.type === "rival_of" && !m.rivals.includes(other)) m.rivals.push(other);
+    }
+  }
+  // the sheet's Buddy and Rival link both ways, like the symmetric relationships
+  for (const m of party) {
+    for (const [key, list] of [["buddy", "buddies"], ["rival", "rivals"]] as const) {
+      const other = crewmateOn(m, key);
+      const o = other ? party.find((x) => x.id === other) : undefined;
+      if (!o) continue;
+      if (!m[list].includes(o.id)) m[list].push(o.id);
+      if (!o[list].includes(m.id)) o[list].push(m.id);
     }
   }
 
