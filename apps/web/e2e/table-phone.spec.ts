@@ -47,7 +47,9 @@ test("a session at 390×844: tab bar to the map, the crew and the dice; one roun
   await expect(live).toBeVisible();
   const viewport = live.locator(".cf-map__viewport");
   const vp = (await viewport.boundingBox())!;
-  expect(vp.y).toBeLessThan(844 / 2);
+  // a big map on screen without scrolling: at least 300 px of it above the tab bar (font metrics move its top a little)
+  const barTop = (await bar.boundingBox())!.y;
+  expect(barTop - vp.y).toBeGreaterThanOrEqual(300);
   expect(vp.height).toBeGreaterThan(280);
   await expect(live.getByTestId("map-focus")).toBeVisible();
   // zones big enough to tap: the framed zoom is well above the whole-deck fit

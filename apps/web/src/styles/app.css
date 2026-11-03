@@ -3846,3 +3846,20 @@ a.cf-btn {
 .app-thisjob .app-reveal__body {
   margin: var(--cf-space-1) 0;
 }
+
+/* the live map's card already names the map: no second name above the deck tabs */
+.app-livemap .cf-map__toolbar > .cf-toolbar__title {
+  display: none;
+}
+/* on a phone the Map tab says what this is: keep the map's name and the act, drop the heading */
+.app-table--narrow .app-livemap > .cf-card__header .cf-card__title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.app-table--narrow .app-livemap > .cf-card__header {
+  padding-block: var(--cf-space-2);
+}
