@@ -110,6 +110,8 @@ export interface WrapUpRecord {
   nextSession?: Id;
   /** Prompts raised by earlier answers (e.g. a roll after a failed check), kept so a reload still shows them. */
   followUps?: Prompt[];
+  /** What the GM typed in the wrap-up so far (see wrapUpActions.ts); finishing commits it and drops it. */
+  draft?: Record<string, unknown>;
 }
 
 // ---------------------------------------------------------------------------
@@ -1085,7 +1087,9 @@ export function finishSession(ctx: Ctx, sessionId: Id, input: FinishSessionInput
       next = store.update("sessions", next.id, { nextPlan: [...next.nextPlan, ...looseEnds.filter((l) => !next!.nextPlan.includes(l))] });
     }
 
-    const wrapUp: WrapUpRecord = { ...wrapUpOf(session), looseEnds, timeline: timeline.map((t) => t.id) };
+    // the typed draft is committed now: the session keeps what finishing stored, not the draft
+    const { draft: _draft, ...kept } = wrapUpOf(session);
+    const wrapUp: WrapUpRecord = { ...kept, looseEnds, timeline: timeline.map((t) => t.id) };
     const updated = store.update("sessions", sessionId, {
       status: "done",
       summary: input.summary.trim(),

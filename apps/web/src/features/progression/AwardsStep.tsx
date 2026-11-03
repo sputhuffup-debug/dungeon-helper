@@ -24,6 +24,7 @@ import {
   type SessionAct,
 } from "../../state/progressionActions";
 import { usePlayerCharacters } from "../table/hooks";
+import { saveWrapUpDraft, wrapUpDraftOf } from "../../state/wrapUpActions";
 import "./progression.css";
 
 /** The advancing PCs, kept in step with the store. */
@@ -32,6 +33,15 @@ function useAdvancingPcs(): Entity[] {
   const { mode } = useMeta();
   const pcs = usePlayerCharacters();
   return useMemo(() => pcs.filter((e) => entityAdvances(module, mode, e)), [pcs, module, mode]);
+}
+
+/** Whether the award checklist has anything to ask (the module's progression has questions and a PC advances). */
+export function useAwardsShown(): boolean {
+  const ctx = useCampaign();
+  const { mode } = useMeta();
+  const pcs = useAdvancingPcs();
+  const def = progressionOf(ctx.module, mode);
+  return useMemo(() => !!def && pcs.length > 0 && (awardQuestionsOf(ctx, "session").length > 0 || awardQuestionsOf(ctx, "act").length > 0), [ctx, def, pcs]);
 }
 
 export function AwardsStep({ sessionId }: { sessionId: Id }) {
@@ -66,7 +76,11 @@ function SessionAwards({ sessionId, pcs, questions }: { sessionId: Id; pcs: Enti
   const log = useList("advancement");
   const rows = useMemo(() => Object.fromEntries(pcs.map((pc) => [pc.id, awardRowsFor(ctx, pc, sessionId, "session")])) as Record<Id, AwardRow[]>, [ctx, pcs, sessionId]);
   const posted = useMemo(() => Object.fromEntries(pcs.map((pc) => [pc.id, sessionAwardsOf(ctx, sessionId, pc.id)])), [ctx, pcs, sessionId, log]);
-  const [ticks, setTicks] = useState<Record<Id, string[]>>(() => Object.fromEntries(pcs.map((pc) => [pc.id, (rows[pc.id] ?? []).filter((r) => r.ticked).map((r) => r.question.id)])));
+  // the ticks the GM left in the wrap-up's draft, else those the log answers
+  const [ticks, setTicks] = useState<Record<Id, string[]>>(() => {
+    const saved = wrapUpDraftOf(ctx.store.get("sessions", sessionId)).awardTicks ?? {};
+    return Object.fromEntries(pcs.map((pc) => [pc.id, saved[pc.id] ?? (rows[pc.id] ?? []).filter((r) => r.ticked).map((r) => r.question.id)]));
+  });
   const pools = { experience: poolOf(ctx.module, mode, "experience"), story: poolOf(ctx.module, mode, "story") };
   const label = (pool: "experience" | "story") => pools[pool]?.label ?? pool;
   const ticked = (pcId: Id) => {
@@ -79,7 +93,11 @@ function SessionAwards({ sessionId, pcs, questions }: { sessionId: Id; pcs: Enti
     for (const q of questions) if (ids.has(q.id)) out[q.pool ?? "experience"] = (out[q.pool ?? "experience"] ?? 0) + (q.amount ?? 1);
     return out;
   };
-  const toggle = (pcId: Id, qid: string, on: boolean) => setTicks((t) => ({ ...t, [pcId]: on ? [...new Set([...(t[pcId] ?? []), qid])] : (t[pcId] ?? []).filter((x) => x !== qid) }));
+  const toggle = (pcId: Id, qid: string, on: boolean) => {
+    const next = { ...ticks, [pcId]: on ? [...new Set([...(ticks[pcId] ?? []), qid])] : (ticks[pcId] ?? []).filter((x) => x !== qid) };
+    setTicks(next);
+    saveWrapUpDraft(ctx, sessionId, { awardTicks: next });
+  };
   const pending = pcs.filter((pc) => !(posted[pc.id]?.length) && (ticks[pc.id]?.length ?? 0) > 0);
   const award = () => {
     try {

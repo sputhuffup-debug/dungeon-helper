@@ -20,9 +20,8 @@ test("progression: XP awarded at wrap-up, spent on a skill on the Progression ta
   await wrap.getByRole("button", { name: /^Next: End-of-session questions/ }).click();
   const remaining = wrap.getByRole("button", { name: "Remaining: No" });
   while ((await remaining.count()) > 0) await remaining.first().click();
-  await wrap.getByRole("button", { name: /^Next: Rewards/ }).click();
 
-  // 2. the award checklist: nine questions, attendance ticked for all four PCs; everyone got
+  // 2. the award checklist (in the questions step): nine questions, attendance ticked for all four PCs; everyone got
   //    through a dangerous event, made a discovery and earned money
   const grid = wrap.getByTestId("award-checklist");
   await expect(grid.locator("tbody tr")).toHaveCount(9);
@@ -35,6 +34,7 @@ test("progression: XP awarded at wrap-up, spent on a skill on the Progression ta
   await wrap.getByTestId("award-xp").click();
   await expect(wrap.getByTestId("awarded")).toHaveCount(4);
   await expect(wrap.getByTestId("award-xp")).toBeDisabled();
+  await wrap.getByRole("button", { name: /^Next: Rewards/ }).click();
   await wrap.getByRole("button", { name: /^Next: Timeline/ }).click();
   await wrap.getByRole("button", { name: /^Next: Loose ends/ }).click();
   // the demo's accepted job waits in the last step; finishing never needs it closed, and lands on the next session's page
