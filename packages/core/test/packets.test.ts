@@ -197,6 +197,23 @@ describe("handouts a module keeps with the GM", () => {
     const p = playerPacketSnapshot({ maps, module: strict, memberId: s.ana.id, sessionId: s.session.id, doc: (id) => s.registry.open(id), at: "t" });
     expect(JSON.stringify(p)).not.toContain("SECRET-GM-CARD");
   });
+
+  it("never shows a handout the module keeps with the GM, even once revealed to everyone", () => {
+    const s = seed();
+    const gmCard = s.store.createHandout({ title: "SECRET-GM-CARD", kind: "agenda", character: s.heroA.id, purpose: "gm-card", visibility: { level: "gm" } });
+    s.store.update("handouts", gmCard.id, { visibility: { level: "revealed", revealedIn: s.session.id } });
+    const strict: PacketModule = { ...module, ownerHandouts: [{ kind: "agenda", when: "given", gmOnlyPurposes: ["gm-card"], gmOnlyNote: "Stays with you." }] };
+    const maps = s.store.toJSON();
+    const h = maps.handouts[gmCard.id]!;
+    expect(canSeeHandout(h, { role: "gm" }, maps, strict)).toBe(true);
+    expect(canSeeHandout(h, { role: "player" }, maps, strict)).toBe(false);
+    expect(canSeeHandout(h, memberViewer(maps, s.ana.id), maps, strict)).toBe(false);
+    expect(canSeeHandout(h, memberViewer(maps, s.ben.id), maps, strict)).toBe(false);
+    for (const memberId of [s.ana.id, s.ben.id]) {
+      const p = playerPacketSnapshot({ maps, module: strict, memberId, sessionId: s.session.id, doc: (id) => s.registry.open(id), at: "t" });
+      expect(JSON.stringify(p)).not.toContain("SECRET-GM-CARD");
+    }
+  });
 });
 
 describe("playerPacketSnapshot", () => {

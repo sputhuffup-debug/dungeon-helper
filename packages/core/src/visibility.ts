@@ -78,11 +78,16 @@ export function handoutStaysWithGm(handout: Pick<Handout, "kind" | "purpose">, m
   return rule ? (rule.gmOnlyNote ?? "This handout stays with the GM.") : undefined;
 }
 
-/** May the viewer see this handout? Its visibility, or it was given to the player of its character (never one the module keeps with the GM). */
+/**
+ * May the viewer see this handout? Its visibility, or it was given to the
+ * player of its character. A handout the module keeps with the GM is never
+ * seen by a player, even if it was revealed or marked for players by mistake.
+ */
 export function canSeeHandout(handout: Pick<Handout, "visibility" | "character" | "toOwner" | "kind" | "purpose">, viewer: Viewer, maps: Pick<CampaignMaps, "entities">, module: ModuleTypes | undefined): boolean {
+  if (viewer.role === "gm") return true;
+  if (handoutStaysWithGm(handout, module) !== undefined) return false;
   if (canSee(handout.visibility, viewer)) return true;
   if (!handout.character || !viewerOwns(viewer, maps.entities[handout.character] ?? { id: handout.character })) return false;
-  if (handoutStaysWithGm(handout, module) !== undefined) return false;
   return handout.toOwner === true || !!module?.ownerHandouts?.some((r) => r.kind === handout.kind && r.when === "always");
 }
 
