@@ -1,0 +1,110 @@
+/* "Set up your campaign" on Home: a numbered checklist, the next step stands out. */
+.setup-guide {
+  border-color: var(--cf-accent);
+  margin-block-end: var(--cf-space-4);
+}
+.setup-guide__progress {
+  display: flex;
+  align-items: center;
+  gap: var(--cf-space-3);
+  margin-block-end: var(--cf-space-3);
+}
+.setup-guide__count {
+  font-weight: 600;
+  white-space: nowrap;
+}
+.setup-guide__bar {
+  flex: 1;
+  height: 6px;
+  border-radius: var(--cf-radius-pill);
+  background: var(--cf-accent-soft);
+  overflow: hidden;
+}
+.setup-guide__bar > span {
+  display: block;
+  height: 100%;
+  background: var(--cf-accent);
+}
+.setup-guide__steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  /* open steps are cards three to a row; done steps shrink to a one-line tick, so they never hold a tall row open */
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--cf-space-2) var(--cf-space-4);
+}
+.setup-guide__steps > .setup-step {
+  flex: 1 1 calc((100% - 2 * var(--cf-space-4)) / 3);
+  min-width: min(100%, 300px);
+}
+.setup-guide__steps > .setup-step.is-done {
+  flex: 0 0 auto;
+  min-width: 0;
+  padding-block: var(--cf-space-1);
+}
+.setup-step {
+  display: flex;
+  gap: var(--cf-space-3);
+  align-items: flex-start;
+  padding: var(--cf-space-2);
+  border-radius: var(--cf-radius);
+  min-width: 0;
+}
+.setup-step.is-next {
+  background: var(--cf-accent-soft);
+}
+.setup-step__mark {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  border: 2px solid var(--cf-border-strong);
+  font-size: var(--cf-text-sm);
+  font-weight: 600;
+  color: var(--cf-muted);
+}
+.setup-step.is-next .setup-step__mark {
+  border-color: var(--cf-accent);
+  color: var(--cf-accent-strong);
+}
+.setup-step.is-done .setup-step__mark {
+  border-color: var(--cf-success);
+  background: var(--cf-success);
+  color: var(--cf-text-inverse);
+}
+.setup-step__body {
+  min-width: 0;
+  flex: 1;
+}
+.setup-step__line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--cf-space-1) var(--cf-space-2);
+  min-height: 1.75rem;
+  padding-block-start: 0.15rem;
+}
+.setup-step__label {
+  font-weight: 600;
+}
+.setup-step.is-done .setup-step__label {
+  color: var(--cf-muted);
+  font-weight: 500;
+}
+.setup-step__count {
+  font-size: var(--cf-text-sm);
+}
+.setup-step__hint {
+  margin: var(--cf-space-1) 0 0;
+  font-size: var(--cf-text-sm);
+}
+.setup-step__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cf-space-2);
+  margin-block-start: var(--cf-space-2);
+}

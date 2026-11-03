@@ -15,6 +15,7 @@ import { useModuleList } from "../../modules/useModules";
 import { ModuleLicenseView } from "../modules/ModuleLicense";
 import { ModulesDialog } from "../modules/ModulesDialog";
 import type { DemoKind } from "../../state/tableActions";
+import type { CampaignSettingDef, CampaignSettingOption, LoadedModule } from "@campaign-forge/module-sdk";
 
 // The campaign list is the first page: the store actions (Yjs documents,
 // bundle import, demo data, game modules) load only when a button needs them.
@@ -260,6 +261,49 @@ function CampaignCards({ campaigns, label, onDelete }: { campaigns: CampaignInde
   );
 }
 
+/**
+ * The module's campaign settings asked at creation, for a play mode. Kept
+ * here (not the sdk's `campaignSettingsFor`) so the front page never pulls in
+ * the sdk's runtime; the sdk's helpers check the result when it is saved.
+ */
+function creationSettings(loaded: LoadedModule | undefined, mode: string): CampaignSettingDef[] {
+  return (loaded?.module.campaignSettings ?? []).filter((d) => d.atCreation && d.kind !== "entity" && (!d.mode || d.mode.length === 0 || d.mode.includes(mode)));
+}
+
+function settingOptions(def: CampaignSettingDef, loaded: LoadedModule | undefined, mode: string): CampaignSettingOption[] {
+  if (def.options?.length) return def.options;
+  const list = loaded?.module.referenceLists.find((l) => l.id === def.list);
+  return (list?.items ?? []).filter((i) => !i.mode || i.mode.length === 0 || i.mode.includes(mode)).map((i) => ({ value: i.id, label: i.name, ...(i.summary ? { hint: i.summary } : {}) }));
+}
+
+/** One setting asked at creation: a choice as radio buttons (with each option's hint), text as a text box. */
+function CreationSetting({ def, loaded, mode, value, onChange }: { def: CampaignSettingDef; loaded: LoadedModule | undefined; mode: string; value: string; onChange: (v: string) => void }) {
+  if (def.kind === "text") {
+    return (
+      <label className="app-label">
+        {def.label}
+        <input className="cf-input" value={value} onChange={(e) => onChange(e.target.value)} />
+        {def.hint && <span className="cf-muted">{def.hint}</span>}
+      </label>
+    );
+  }
+  return (
+    <fieldset className="app-fieldset" data-setting={def.key}>
+      <legend className="app-label">{def.label}</legend>
+      {def.hint && <p className="cf-muted app-fieldset__hint">{def.hint}</p>}
+      {settingOptions(def, loaded, mode).map((o) => (
+        <label key={o.value} className="app-radio">
+          <input type="radio" name={`setting-${def.key}`} value={o.value} checked={value === o.value} onChange={() => onChange(o.value)} />
+          <span>
+            <strong>{o.label}</strong>
+            {o.hint && <span className="cf-muted"> — {o.hint}</span>}
+          </span>
+        </label>
+      ))}
+    </fieldset>
+  );
+}
+
 function CreateCampaignDialog({ open, initialModuleId, onClose, onCreated }: { open: boolean; initialModuleId?: string | undefined; onClose: () => void; onCreated: (id: string) => void }) {
   const modules = useModuleList();
   const [modulesOpen, setModulesOpen] = useState(false);
@@ -270,13 +314,19 @@ function CreateCampaignDialog({ open, initialModuleId, onClose, onCreated }: { o
   const [loadError, setLoadError] = useState<string | undefined>();
   const [busy, setBusy] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  const [loaded, setLoaded] = useState<LoadedModule | undefined>();
+  // the GM's answers to the module's creation settings (e.g. the campaign frame), by key
+  const [answers, setAnswers] = useState<Record<string, string>>({});
   const entry = moduleEntry(moduleId);
+  const asked = loaded?.manifest.id === moduleId ? creationSettings(loaded, mode) : [];
+  const answerOf = (d: CampaignSettingDef) => answers[d.key] ?? d.default ?? "";
 
   // opened from a module's section: preselect that module and its default mode
   useEffect(() => {
     if (open && initialModuleId && moduleEntry(initialModuleId)) {
       setModuleId(initialModuleId);
       setMode(moduleEntry(initialModuleId)?.defaultMode ?? "");
+      setAnswers({});
     }
   }, [open, initialModuleId]);
 
@@ -286,7 +336,9 @@ function CreateCampaignDialog({ open, initialModuleId, onClose, onCreated }: { o
     if (!open) return;
     let alive = true;
     setLoadError(undefined);
-    loadModuleById(moduleId).catch((e: unknown) => alive && setLoadError(errorMessage(e)));
+    loadModuleById(moduleId)
+      .then((m) => alive && setLoaded(m))
+      .catch((e: unknown) => alive && setLoadError(errorMessage(e)));
     return () => {
       alive = false;
     };
@@ -295,14 +347,17 @@ function CreateCampaignDialog({ open, initialModuleId, onClose, onCreated }: { o
   const chooseModule = (id: string) => {
     setModuleId(id);
     setMode(moduleEntry(id)?.defaultMode ?? "");
+    setAnswers({});
   };
 
   const submit = async () => {
     setBusy(true);
     try {
       const { createCampaign } = await actions();
-      const id = await createCampaign({ name, moduleId, mode, gmName });
+      const settings = Object.fromEntries(asked.map((d) => [d.key, answerOf(d)]).filter(([, v]) => v !== ""));
+      const id = await createCampaign({ name, moduleId, mode, gmName, settings });
       setName("");
+      setAnswers({});
       onCreated(id);
     } catch (e) {
       pushToast(`Could not create the campaign: ${errorMessage(e)}`, { tone: "danger" });
@@ -377,6 +432,9 @@ function CreateCampaignDialog({ open, initialModuleId, onClose, onCreated }: { o
             </label>
           ))}
         </fieldset>
+        {asked.map((d) => (
+          <CreationSetting key={d.key} def={d} loaded={loaded} mode={mode} value={answerOf(d)} onChange={(v) => setAnswers((a) => ({ ...a, [d.key]: v }))} />
+        ))}
         {modeDef && entry?.dataStatus !== "verified" && (
           <p className="app-note app-note--warning">{entry?.dataStatus === "partially-verified" ? "Module data is partially verified against its source: spot-checked, not checked line by line." : "Module data is unverified against the rulebook."}</p>
         )}

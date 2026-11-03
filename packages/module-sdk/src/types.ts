@@ -3816,6 +3816,181 @@ export interface CharacterBuilderDef {
 }
 
 // ---------------------------------------------------------------------------
+// Campaign setup: the "Set up your campaign" guide and settings asked at creation
+// ---------------------------------------------------------------------------
+
+/**
+ * App pages a setup step can link to. Search params go in `SetupLink.params`
+ * (the Atlas takes `tab`, e.g. "pcs"; Settings takes `section`: "campaign",
+ * "players" or "setup").
+ */
+export type SetupPage = "home" | "atlas" | "settings" | "ship" | "arcs" | "sessions" | "adventures" | "generate" | "primer" | "rules";
+
+export const SETUP_PAGES: readonly SetupPage[] = ["home", "atlas", "settings", "ship", "arcs", "sessions", "adventures", "generate", "primer", "rules"];
+
+/**
+ * Where a setup step is done. Exactly one of `page`, `procedure`,
+ * `newEntity` or `entity` is set.
+ */
+export interface SetupLink {
+  /** The button text, e.g. "Roll a Life Path". */
+  label: string;
+  /** An app page. */
+  page?: SetupPage;
+  /** Search params for `page`, e.g. `{ "tab": "pcs" }`. */
+  params?: Record<string, string | number>;
+  /** A procedure to open in Generate. */
+  procedure?: string;
+  /** The New entity page for this type; `pc` starts it as a player character. */
+  newEntity?: { type: string; pc?: boolean; preset?: string };
+  /**
+   * Open an entity: the first, by name, this JSONLogic rule matches (the rule
+   * sees one `SetupSnapshotEntity` at a time). The link is hidden while none
+   * matches, e.g. "Open the job" before a job is taken.
+   */
+  entity?: JsonLogicRule;
+  /** The step's main action: shown as the primary button. */
+  primary?: boolean;
+}
+
+/**
+ * One step of the setup guide on a new campaign's Home page. A step ticks
+ * itself from campaign data, never from clicks: `done` is JSONLogic over a
+ * `SetupSnapshot`. Module step ids are namespaced with the module id
+ * (e.g. "alien.setup.ship"); "setup." is the core's own prefix.
+ */
+export interface SetupStepDef {
+  id: string;
+  /** The checklist line, e.g. "Choose the crew's ship". */
+  label: string;
+  /** One short sentence under the label. */
+  hint?: string;
+  /** Play modes the step applies to; all when absent. */
+  mode?: PlayModeId[];
+  /** Truthy when the step is done (JSONLogic over the `SetupSnapshot`). */
+  done: JsonLogicRule;
+  /** Optional count shown with the step, e.g. "2 of 4" PCs: `count` and `of` are JSONLogic over the snapshot. */
+  progress?: { count: JsonLogicRule; of: JsonLogicRule };
+  /** Where it is done; the first `primary` link (else the first) is the main button. */
+  links?: SetupLink[];
+  page?: PageRef;
+  cite?: CiteRef;
+}
+
+/**
+ * The order of the guide in some play modes: core steps to leave out
+ * (`hide`) and step ids in the order they show (`order`; steps it does not
+ * name follow in their default order: core steps, then the module's).
+ */
+export interface SetupLayout {
+  /** Modes this layout is for; every mode when absent. The first layout that fits the campaign's mode is used. */
+  mode?: PlayModeId[];
+  hide?: string[];
+  order?: string[];
+}
+
+/** The module's part of the setup guide: its own steps and how the guide is ordered. Packs can declare it. */
+export interface SetupDef {
+  steps: SetupStepDef[];
+  layouts?: SetupLayout[];
+}
+
+/** The generic steps the core adds for every module (their ids, for `SetupLayout`). */
+export const CORE_SETUP_STEP_IDS: readonly string[] = ["setup.pcs", "setup.players", "setup.session"];
+
+/** One entity as a setup test reads it. */
+export interface SetupSnapshotEntity {
+  id: string;
+  name: string;
+  type: string;
+  kind?: string;
+  subtype?: string;
+  tags: string[];
+  /** A player character (flagged as one, or played by a player). */
+  pc: boolean;
+  /** The player member who plays it. */
+  owner?: string;
+  visibility: string;
+  fields: Record<string, unknown>;
+  /** Handouts for this character (`Handout.character`), e.g. its agenda cards. */
+  handouts: Array<{ kind: string; purpose?: string }>;
+}
+
+/**
+ * What a setup step's `done`, `progress` and `entity` rules read: plain,
+ * sorted campaign data. `counts` saves the common filters.
+ */
+export interface SetupSnapshot {
+  mode: PlayModeId;
+  /** `meta.settings` (the crew's ship, campaign settings, ...). */
+  settings: Record<string, unknown>;
+  /** Every entity id, for `{"in": [{"var": "settings.ship"}, {"var": "entityIds"}]}`. */
+  entityIds: string[];
+  entities: SetupSnapshotEntity[];
+  /** The player characters (`entities` with `pc`). */
+  pcs: SetupSnapshotEntity[];
+  players: Array<{ id: string; name: string; characters: number }>;
+  /** Sessions by number; `scenes` counts the scenes planned into it. */
+  sessions: Array<{ id: string; number: number; status: string; scenes: number }>;
+  adventures: Array<{ id: string; title: string; status: string; source?: string; builder?: string }>;
+  /** Arc threads. */
+  arcs: Array<{ id: string; status: string }>;
+  counts: {
+    entities: number;
+    pcs: number;
+    /** PCs no player plays yet. */
+    unownedPcs: number;
+    players: number;
+    sessions: number;
+    plannedSessions: number;
+    playedSessions: number;
+    adventures: number;
+    arcs: number;
+    maps: number;
+    notes: number;
+    handouts: number;
+  };
+}
+
+/** One option of a `choice` campaign setting. */
+export interface CampaignSettingOption {
+  value: string;
+  label: string;
+  hint?: string;
+}
+
+/**
+ * A campaign-level setting the module declares, kept in `meta.settings`
+ * under `key`. The New campaign dialog asks those with `atCreation`; the
+ * Settings page shows them all. A procedure input with the same name as
+ * `key` starts from the setting's value (still changeable per run), e.g. a
+ * campaign frame every job generator asks for.
+ */
+export interface CampaignSettingDef {
+  key: string;
+  label: string;
+  /** One short sentence shown with the field. */
+  hint?: string;
+  /** `choice`: one of `options` (or of a reference list's items); `entity`: an entity of `entityTypes`; `text`: free text. */
+  kind: "choice" | "entity" | "text";
+  options?: CampaignSettingOption[];
+  /** `choice`: the options are this reference list's items (id and name, summary as hint). */
+  list?: string;
+  /** `entity`: the types offered (the first is the one "+ New…" creates). */
+  entityTypes?: string[];
+  /** The value a new campaign starts with. */
+  default?: string;
+  /** Ask it in the New campaign dialog. */
+  atCreation?: boolean;
+  mode?: PlayModeId[];
+  page?: PageRef;
+  cite?: CiteRef;
+}
+
+/** `meta.settings` keys the core and app keep for themselves (plus the "tracker:" prefix). */
+export const RESERVED_SETTING_KEYS: readonly string[] = ["sessionChecklist", "setupGuide", "worldMinutes", "gmScreen", "characterDrafts"];
+
+// ---------------------------------------------------------------------------
 // The module
 // ---------------------------------------------------------------------------
 
@@ -3874,6 +4049,10 @@ export interface GameModule {
    * `OWNER_VISIBILITY`).
    */
   ownerHandouts?: OwnerHandoutDef[];
+  /** The module's steps of the "Set up your campaign" guide on a new campaign's Home page, and its order. Packs can declare it. */
+  setup?: SetupDef;
+  /** Campaign-level settings (e.g. the campaign frame), asked at creation when marked; same-named procedure inputs default to them. Packs can declare them. */
+  campaignSettings?: CampaignSettingDef[];
   /** Upgrade stored entity fields from an older module version. */
   migrations?: Array<{ from: string; to: string; migrate: (entity: { type: string; fields: Record<string, unknown> }) => Record<string, unknown> }>;
 }

@@ -1895,6 +1895,252 @@
       ],
       "additionalProperties": false
     },
+    "setupLink": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "page": {
+          "type": "string",
+          "enum": [
+            "home",
+            "atlas",
+            "settings",
+            "ship",
+            "arcs",
+            "sessions",
+            "adventures",
+            "generate",
+            "primer",
+            "rules"
+          ]
+        },
+        "params": {
+          "type": "object",
+          "additionalProperties": {
+            "type": [
+              "string",
+              "number"
+            ]
+          },
+          "description": "Search params for the page, e.g. { \"tab\": \"pcs\" } (Atlas) or { \"section\": \"players\" } (Settings)."
+        },
+        "procedure": {
+          "$ref": "#/definitions/id"
+        },
+        "newEntity": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "$ref": "#/definitions/id"
+            },
+            "pc": {
+              "type": "boolean"
+            },
+            "preset": {
+              "$ref": "#/definitions/id"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        },
+        "entity": {
+          "description": "JSONLogic over one snapshot entity: the first match (by name) opens; the link hides while none matches."
+        },
+        "primary": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "label"
+      ],
+      "additionalProperties": false,
+      "description": "Where a setup step is done: exactly one of page, procedure, newEntity or entity."
+    },
+    "setupStep": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "hint": {
+          "type": "string"
+        },
+        "mode": {
+          "$ref": "#/definitions/modes"
+        },
+        "done": {
+          "description": "JSONLogic over the setup snapshot; truthy when the step is done. See docs/modules/setup.md."
+        },
+        "progress": {
+          "type": "object",
+          "properties": {
+            "count": {
+              "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+            },
+            "of": {
+              "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+            }
+          },
+          "required": [
+            "count",
+            "of"
+          ],
+          "additionalProperties": false
+        },
+        "links": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/setupLink"
+          }
+        },
+        "page": {
+          "$ref": "#/definitions/page"
+        },
+        "cite": {
+          "$ref": "#/definitions/cite"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "done"
+      ],
+      "additionalProperties": false
+    },
+    "setupLayout": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "$ref": "#/definitions/modes"
+        },
+        "hide": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          }
+        },
+        "order": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "setup": {
+      "type": "object",
+      "properties": {
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/setupStep"
+          }
+        },
+        "layouts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/setupLayout"
+          }
+        }
+      },
+      "required": [
+        "steps"
+      ],
+      "additionalProperties": false,
+      "description": "The pack's steps of the \"Set up your campaign\" guide on a new campaign's Home page, and its order per mode. See docs/modules/setup.md."
+    },
+    "campaignSettingOption": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "hint": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "label"
+      ],
+      "additionalProperties": false
+    },
+    "campaignSetting": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]*$",
+          "maxLength": 64
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "hint": {
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "choice",
+            "entity",
+            "text"
+          ]
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/campaignSettingOption"
+          }
+        },
+        "list": {
+          "$ref": "#/definitions/id"
+        },
+        "entityTypes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/id"
+          }
+        },
+        "default": {
+          "type": "string"
+        },
+        "atCreation": {
+          "type": "boolean"
+        },
+        "mode": {
+          "$ref": "#/definitions/modes"
+        },
+        "page": {
+          "$ref": "#/definitions/page"
+        },
+        "cite": {
+          "$ref": "#/definitions/cite"
+        }
+      },
+      "required": [
+        "key",
+        "label",
+        "kind"
+      ],
+      "additionalProperties": false,
+      "description": "A campaign-level setting in meta.settings; same-named procedure inputs default to it. See docs/modules/setup.md."
+    },
     "ownerHandout": {
       "type": "object",
       "properties": {

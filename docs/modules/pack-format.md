@@ -26,6 +26,8 @@ A data pack is a JSON object. The SDK validates it (`validatePack`), joins its p
   "primer": { "sections": [] }, // optional; campaign primer prompts and starter text (see Campaign primer)
   "d20Combat": {},          // optional; attacks, AC, saves, damage modifiers and conditions (see d20 combat)
   "gmScreen": { "panels": [] }, // optional; the printable GM screen (see GM screen)
+  "setup": { "steps": [] }, // optional; the pack's steps of the "Set up your campaign" guide (see Setting up a campaign)
+  "campaignSettings": [],   // optional; campaign-level settings, some asked at creation (see Setting up a campaign)
   "characterBuilders": [],  // optional; step-by-step character builders (see Character builder)
   "ownerHandouts": [],      // optional; handout kinds that reach the player of the character they are for (see Sheets and widgets)
   "mapGenerators": [],      // optional; built-in map engines configured as data (see Map generators)
@@ -174,6 +176,8 @@ Starter text is the pack author's own words (`original: true`), or openly licens
 `gmScreen` (main file only) is the pack's printable GM screen: panels of references to its own rule cards (whole or an excerpt), tables, reference lists, d20 conditions and play guide tips, plus short original quick-rules notes. The app prints it as a tri-fold (GM side and player side) or as cards. Without one, the app builds a screen from the rule cards by tag. See [GM screen](gm-screen.md) for every block kind.
 
 ## Character builder
+
+`setup` and `campaignSettings` (main file only) shape the "Set up your campaign" checklist on a new campaign's Home page and the settings the New campaign dialog asks (a procedure input with a setting's name starts from its value). Every rule is JSONLogic over a plain campaign snapshot. See [Setting up a campaign](setup.md).
 
 `characterBuilders` (main file only) are step-by-step wizards that make a player character and level one up: choice steps over reference lists, fixed options or values worked out from earlier picks, with grants that write the character's fields and sub-choices a pick brings; an ability score step with arrays, point buy, rolls or typed scores; typed fields; a review page. Every rule is JSONLogic. See [Character builder](character-builder.md).
 

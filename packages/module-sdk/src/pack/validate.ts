@@ -418,6 +418,22 @@ function mapGeneratorChecks(defs: unknown, packId: string, w: Walker): void {
   });
 }
 
+/** The setup guide: namespaced step ids and JSONLogic in every rule. */
+function setupChecks(def: Record<string, unknown>, packId: string, w: Walker): void {
+  asList(def.steps).forEach((st, i) => {
+    if (typeof st.id === "string" && !st.id.startsWith(`${packId}.`)) w.error(["setup", "steps", i, "id"], `setup step id "${st.id}" must start with "${packId}." (ids are namespaced by the pack id)`);
+    checkLogicAt(st.done, ["setup", "steps", i, "done"], w);
+    const progress = st.progress as Record<string, unknown> | undefined;
+    if (progress) {
+      checkLogicAt(progress.count, ["setup", "steps", i, "progress", "count"], w);
+      checkLogicAt(progress.of, ["setup", "steps", i, "progress", "of"], w);
+    }
+    asList(st.links).forEach((l, j) => {
+      if (l.entity !== undefined) checkLogicAt(l.entity, ["setup", "steps", i, "links", j, "entity"], w);
+    });
+  });
+}
+
 /** JSONLogic in a pack's GM screen: list blocks' `where`. */
 function gmScreenLogicChecks(def: Record<string, unknown>, w: Walker): void {
   asList(def.panels).forEach((p, i) => asList(p.blocks).forEach((b, j) => checkLogicAt(b.where, ["gmScreen", "panels", i, "blocks", j, "where"], w)));
@@ -466,6 +482,7 @@ export function validatePack(input: unknown): PackValidation<ModulePack> {
   }
   if (p.d20Combat) d20CombatLogicChecks(p.d20Combat as unknown as Record<string, unknown>, w);
   if (p.gmScreen) gmScreenLogicChecks(p.gmScreen as unknown as Record<string, unknown>, w);
+  if (p.setup) setupChecks(p.setup as unknown as Record<string, unknown>, p.manifest.id, w);
   if (p.characterBuilders) characterBuilderLogicChecks(p.characterBuilders, w);
   if (p.mapGenerators) mapGeneratorChecks(p.mapGenerators, p.manifest.id, w);
   if (!p.manifest.modes.some((m) => m.id === p.manifest.defaultMode)) w.error(["manifest", "defaultMode"], `"${p.manifest.defaultMode}" is not one of the declared modes`);

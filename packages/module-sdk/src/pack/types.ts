@@ -14,6 +14,7 @@ import type { DiceEngineConfig } from "../engines/types";
 import type { PackMapGenerator } from "../mapgen/types";
 import type {
   CalendarDef,
+  CampaignSettingDef,
   D20CombatDef,
   EntityPreset,
   EntityTypeDef,
@@ -33,6 +34,7 @@ import type {
   RelationshipTypeDef,
   RollTable,
   RuleCard,
+  SetupDef,
   Template,
   TrackerDef,
 } from "../types";
@@ -175,6 +177,10 @@ export interface ModulePack extends PackCollections {
   d20Combat?: D20CombatDef;
   /** A printable GM screen built from the pack's own content (main file only). */
   gmScreen?: GmScreenDef;
+  /** Steps of the "Set up your campaign" guide and its order (main file only). */
+  setup?: SetupDef;
+  /** Campaign-level settings, some asked at creation; same-named procedure inputs default to them (main file only). */
+  campaignSettings?: CampaignSettingDef[];
   /** Handout kinds that reach the player of the character they are for (player packets; main file only). */
   ownerHandouts?: OwnerHandoutDef[];
   /** Step-by-step character builders (main file only). */

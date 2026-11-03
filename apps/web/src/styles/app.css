@@ -517,6 +517,12 @@ h3 {
   font-size: var(--cf-text-sm);
   cursor: pointer;
 }
+.app-fieldset__hint,
+.app-setting__hint {
+  margin: 0;
+  font-size: var(--cf-text-sm);
+  font-weight: 400;
+}
 .app-input--date {
   width: 12ch;
 }
@@ -3862,4 +3868,9 @@ a.cf-btn {
 }
 .app-table--narrow .app-livemap > .cf-card__header {
   padding-block: var(--cf-space-2);
+}
+
+/* Settings cards a link scrolls to (`?section=`): clear the sticky header */
+.cf-card[id^="settings-"] {
+  scroll-margin-top: 7rem;
 }

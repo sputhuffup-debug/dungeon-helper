@@ -32,3 +32,4 @@ export * from "./arcs";
 export * from "./recap";
 export * from "./adventureSource";
 export * from "./drafts";
+export * from "./setup";
