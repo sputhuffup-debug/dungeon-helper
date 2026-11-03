@@ -185,12 +185,16 @@ function shipSection(x: Ctx): RecapSectionDraft | undefined {
 }
 
 const TOKEN_STATE: Record<string, string> = { hidden: "is still hidden", detected: "is on the motion tracker", seen: "has been seen by the crew", gone: "is out of play" };
+/** The job's people on the map (the hunt's NPC movers): placed to track where they are, not hiding from the crew. */
+const NPC_MOVERS = new Set(["npc", "android-npc"]);
+const NPC_STATE: Record<string, string> = { hidden: "has not met the crew on the map yet", detected: "is on the motion tracker", seen: "has met the crew", gone: "is out of play" };
 
 function huntSection(x: Ctx): RecapSectionDraft | undefined {
   const lines: RecapLineDraft[] = [];
   for (const h of x.s.hunts) {
     for (const t of h.tokens) {
-      const text = x.gm ? `${h.mapName}, ${h.step} ${h.step === 1 ? "move" : "moves"} in: ${t.label} ${TOKEN_STATE[t.state] ?? t.state}${t.hurt ? ", hurt" : ""}.` : `On ${h.mapName}, the crew saw ${t.label}.`;
+      const states = t.mover && NPC_MOVERS.has(t.mover) ? NPC_STATE : TOKEN_STATE;
+      const text = x.gm ? `${h.mapName}, ${h.step} ${h.step === 1 ? "move" : "moves"} in: ${t.label} ${states[t.state] ?? t.state}${t.hurt ? ", hurt" : ""}.` : `On ${h.mapName}, the crew saw ${t.label}.`;
       lines.push({ key: "alien.hunt", ref: `${h.map}:${t.id}`, text, links: [{ kind: "map", id: h.map, label: h.mapName }] });
     }
   }
