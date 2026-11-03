@@ -95,6 +95,16 @@ The lines are worked out once the run is done (also for pinned steps) and land i
 
 `relationships[]`: `{ type, from, to, note?, when? }` between tempIds. A relationship (or `within`) pointing at an entity that a `when` left out is dropped with it.
 
+### Procedures that make a character
+
+A procedure that makes a character (a life path, a random hero) says so with `createsCharacter: { entityType, label, pc? }`: the app offers it as `label` (e.g. "Roll a Life Path") beside *+ New* on the Atlas's PCs tab and in its empty state (with `pc: true`), and on the new-entity page for `entityType` while the form makes a player character. It opens the procedure in Generate; accepting opens the new character. Packs declare it the same way:
+
+```json
+{ "id": "my-pack.proc.hero", "name": "Random hero", "createsCharacter": { "entityType": "my-pack.hero", "label": "Roll a hero", "pc": true }, "steps": [...], "produce": {...} }
+```
+
+`module-check` fails a `createsCharacter` that names an unknown entity type or has no label. The preview of a run reads fields as the sheet shows them: reference list ids by their item's name (a career, talents with their count), list rows by name and quantity, entity references by name, so a produced character reads "Career Officer", not its id. Produce the gear a character gets where the sheet keeps it: in a TypeScript module, the module-sdk's `addCatalogItem` places an item preset the way the gear list does (a weapon on the weapons list with its stats, the rest as a gear row); see [The gear list](sheets.md#the-gear-list). The Alien module's `alien.lifepath` is the example.
+
 ### Inputs from the campaign
 
 A procedure's `inputs` is a JSON Schema; the workbench builds its form from it and fills what the campaign already knows. Three hints (keys starting with `x-`, allowed in packs) ask for campaign data instead of a typed value:
