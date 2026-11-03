@@ -6,15 +6,16 @@
  * character page's agenda tab. Game-agnostic: everything shown comes from
  * the module's procedure and its def.
  */
-import { longAgendaHandoutsOf, longAgendaOverwrites, longAgendaRecordOf, longAgendaTension, longAgendaWrites, getPath, type Entity, type Id, type LongAgendaEdit } from "@campaign-forge/core";
+import { longAgendaHandoutsOf, longAgendaOverwrites, longAgendaRecordOf, longAgendaTension, longAgendaWrites, getPath, type Entity, type GeneratorDraftAccept, type Id, type LongAgendaEdit } from "@campaign-forge/core";
 import type { GeneratedGraph, LongAgendaDef, LongAgendaDraftCharacter, LongAgendaDraftSet, Procedure } from "@campaign-forge/module-sdk";
 import { Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Badge, Button, Card, Dialog, EmptyState, PageRef, pushToast } from "../../components/ui";
-import { errorMessage } from "../../lib/format";
+import { errorMessage, relativeTime } from "../../lib/format";
 import { useCampaign, useList, useMeta } from "../../state/hooks";
 import { acceptLongAgendaDrafts, charactersWithLongAgendas, longAgendaDraftsOf, longAgendaProcedureOf, nextJobLabel, runNextBeats, setTension } from "../../state/longAgendaActions";
 import { SlotRow, type AgendaSlotControls } from "../generate/AgendaDrafts";
+import { AcceptedActions } from "../generate/AcceptedActions";
 import { newSeed } from "../generate/runner";
 
 export type LongAgendaEdits = Record<Id, LongAgendaEdit>;
@@ -203,26 +204,34 @@ export function LongAgendaAccept({
   edits,
   graph,
   run,
+  accepted,
+  onAccepted,
 }: {
   def: LongAgendaDef;
   set: LongAgendaDraftSet;
   edits: LongAgendaEdits;
   graph: GeneratedGraph;
   run: { stepSeeds: Record<string, string>; pinned: Record<string, unknown>; partSeeds: Record<string, string>; pinnedParts: Record<string, unknown> };
+  /** The draft's last accept, when this deal was already accepted. */
+  accepted?: GeneratorDraftAccept | undefined;
+  /** Accepting recorded a run: the page marks its draft accepted. */
+  onAccepted?: (runId: Id | undefined, detail: { written: Id[] }) => void;
 }) {
   const ctx = useCampaign();
+  useList("entities");
   const [busy, setBusy] = useState(false);
   const [asking, setAsking] = useState<ReturnType<typeof longAgendaOverwrites> | undefined>();
-  const [done, setDone] = useState<Id[] | undefined>();
+  const done = accepted ? (Array.isArray(accepted.detail?.written) ? (accepted.detail.written as unknown[]).filter((x): x is Id => typeof x === "string") : []) : undefined;
   const writes = longAgendaWrites(def, set, edits);
   const skipped = set.characters.filter((c) => !c.inCampaign).length;
+  const firstDone = done?.map((id) => ctx.store.get("entities", id)).find((e) => e !== undefined);
 
   const write = async (skip: Id[]) => {
     setAsking(undefined);
     setBusy(true);
     try {
       const res = await acceptLongAgendaDrafts(ctx, { def, set, edits, skip, graph, ...run });
-      setDone(res.written);
+      onAccepted?.(res.run?.id, { written: res.written });
       pushToast(`Wrote ${res.written.length} long-term agenda${res.written.length === 1 ? "" : "s"} and their handouts.`, { tone: "success" });
     } catch (e) {
       pushToast(`Accept failed: ${errorMessage(e)}`, { tone: "danger" });
@@ -241,24 +250,39 @@ export function LongAgendaAccept({
         Writes each character&apos;s goal into their sheet, a GM-only agenda handout (goal and beat) and a players&apos; friction handout, linked to the character.
         {skipped > 0 ? ` ${skipped} placeholder character${skipped === 1 ? " is" : "s are"} not in the campaign and skipped.` : ""}
       </p>
-      <Button variant="primary" size="lg" disabled={busy || writes.length === 0} onClick={start} data-testid="long-agenda-accept">
-        {done ? "Accept again" : "Accept agendas"}
-      </Button>
-      {done && (
-        <div className="app-note" data-testid="long-agenda-accepted">
-          <p>
-            Wrote {done.length} long-term agenda{done.length === 1 ? "" : "s"}.
-          </p>
-          <ul className="app-list">
-            {done.map((id) => (
-              <li key={id}>
-                <Link to="/c/$campaignId/entities/$entityId" params={{ campaignId: ctx.campaignId, entityId: id }} search={{ tab: "agenda" }} className="app-link-strong">
-                  {ctx.store.get("entities", id)?.name ?? id}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
+      {done ? (
+        <AcceptedActions
+          note={
+            <div data-testid="long-agenda-accepted">
+              <p>
+                Wrote {done.length} long-term agenda{done.length === 1 ? "" : "s"}. Accepted{accepted ? ` ${relativeTime(accepted.at)}` : ""}.
+              </p>
+              <ul className="app-list">
+                {done.map((id) => (
+                  <li key={id}>
+                    <Link to="/c/$campaignId/entities/$entityId" params={{ campaignId: ctx.campaignId, entityId: id }} search={{ tab: "agenda" }} className="app-link-strong">
+                      {ctx.store.get("entities", id)?.name ?? id}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          }
+          onward={
+            firstDone && (
+              <Link to="/c/$campaignId/entities/$entityId" params={{ campaignId: ctx.campaignId, entityId: firstDone.id }} search={{ tab: "agenda" }} className="cf-btn cf-btn--primary cf-btn--lg" data-testid="long-agenda-open-first">
+                Open {firstDone.name}&apos;s agenda
+              </Link>
+            )
+          }
+          again="Accepting again writes this deal's goals and beats over each character's agenda and handouts once more, and records a second run. To deal new beats after a job, use the job flow on a character's agenda instead."
+          onAgain={start}
+          busy={busy}
+        />
+      ) : (
+        <Button variant="primary" size="lg" disabled={busy || writes.length === 0} onClick={start} data-testid="long-agenda-accept">
+          Accept agendas
+        </Button>
       )}
       <Dialog
         open={asking !== undefined}

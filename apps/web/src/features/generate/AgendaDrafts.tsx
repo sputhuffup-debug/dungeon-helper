@@ -6,14 +6,15 @@
  * the drafts into each character's agendas (and the adventure's agenda
  * cards), asking before it replaces text the GM wrote.
  */
-import type { Id } from "@campaign-forge/core";
+import type { GeneratorDraftAccept, Id } from "@campaign-forge/core";
 import type { AgendaDraftCharacter, AgendaDraftReport, AgendaDraftSet, AgendaDraftSlot, GeneratedGraph } from "@campaign-forge/module-sdk";
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Badge, Button, Card, Dialog, IconButton, PageRef, pushToast } from "../../components/ui";
-import { errorMessage } from "../../lib/format";
+import { errorMessage, relativeTime } from "../../lib/format";
 import { acceptAgendaDrafts, agendaOverwrites, type AgendaOverwrite, type AgendaWrite } from "../../state/agendaActions";
 import { useCampaign } from "../../state/hooks";
+import { AcceptedActions } from "./AcceptedActions";
 
 /** The run's agenda drafts, when its results carry a well-formed set. */
 export function agendaDraftsOf(graph: GeneratedGraph | undefined): AgendaDraftSet | undefined {
@@ -221,27 +222,34 @@ export function AgendaAccept({
   graph,
   adventureId,
   run,
+  accepted,
+  onAccepted,
 }: {
   drafts: AgendaDraftSet;
   edits: AgendaEdits;
   graph: GeneratedGraph;
   adventureId?: Id | undefined;
   run: { stepSeeds: Record<string, string>; pinned: Record<string, unknown>; partSeeds: Record<string, string>; pinnedParts: Record<string, unknown> };
+  /** The draft's last accept, when this deal was already accepted. */
+  accepted?: GeneratorDraftAccept | undefined;
+  /** Accepting recorded a run: the page marks its draft accepted. */
+  onAccepted?: (runId: Id | undefined, detail: { written: number; kept: number }) => void;
 }) {
   const ctx = useCampaign();
   const [busy, setBusy] = useState(false);
   const [overwrites, setOverwrites] = useState<AgendaOverwrite[] | undefined>();
-  const [done, setDone] = useState<{ written: number; kept: number } | undefined>();
+  const done = accepted ? { written: Number(accepted.detail?.written ?? 0), kept: Number(accepted.detail?.kept ?? 0) } : undefined;
   const writes = agendaWrites(drafts, edits);
   const adventure = adventureId ? ctx.store.get("adventures", adventureId) : undefined;
   const skipped = drafts.characters.filter((c) => !c.inCampaign).length;
+  const firstWritten = writes.map((w) => ctx.store.get("entities", w.characterId)).find((e) => e !== undefined);
 
   const write = async (keepExisting: boolean) => {
     setOverwrites(undefined);
     setBusy(true);
     try {
       const res = await acceptAgendaDrafts(ctx, { adventureId: adventure?.id, field: drafts.field, writes, keepExisting, graph, ...run });
-      setDone({ written: res.written, kept: res.kept });
+      onAccepted?.(res.run?.id, { written: res.written, kept: res.kept });
       pushToast(`Wrote ${res.written} agenda${res.written === 1 ? "" : "s"}${res.kept ? `, kept ${res.kept} of yours` : ""}.`, { tone: "success" });
     } catch (e) {
       pushToast(`Accept failed: ${errorMessage(e)}`, { tone: "danger" });
@@ -268,25 +276,41 @@ export function AgendaAccept({
         Writes each character&apos;s agendas{adventure ? ` and the ${adventure.title || "adventure"} agenda cards` : ""}. Nothing you wrote is replaced without asking.
         {skipped > 0 ? ` ${skipped} placeholder character${skipped === 1 ? " is" : "s are"} not in the campaign and ${skipped === 1 ? "is" : "are"} skipped.` : ""}
       </p>
-      <Button variant="primary" size="lg" disabled={busy || writes.length === 0} onClick={() => void start()} data-testid="agenda-accept">
-        {done ? "Accept again" : "Accept agendas"}
-      </Button>
-      {done && (
-        <p className="app-note" data-testid="agenda-accepted">
-          Wrote {done.written} agenda{done.written === 1 ? "" : "s"}
-          {done.kept ? `, kept ${done.kept} of yours` : ""}.{" "}
-          {adventure && (
-            <Link
-              to="/c/$campaignId/adventures/$adventureId"
-              params={{ campaignId: ctx.campaignId, adventureId: adventure.id }}
-              search={{ view: "agendas" }}
-              className="app-link-strong"
-              data-testid="agenda-cards-open"
-            >
-              Open the agenda cards
-            </Link>
-          )}
-        </p>
+      {done ? (
+        <AcceptedActions
+          note={
+            <p data-testid="agenda-accepted">
+              Wrote {done.written} agenda{done.written === 1 ? "" : "s"}
+              {done.kept ? `, kept ${done.kept} of yours` : ""}. Accepted{accepted ? ` ${relativeTime(accepted.at)}` : ""}.
+            </p>
+          }
+          onward={
+            adventure ? (
+              <Link
+                to="/c/$campaignId/adventures/$adventureId"
+                params={{ campaignId: ctx.campaignId, adventureId: adventure.id }}
+                search={{ view: "agendas" }}
+                className="cf-btn cf-btn--primary cf-btn--lg"
+                data-testid="agenda-cards-open"
+              >
+                Open the agenda cards
+              </Link>
+            ) : (
+              firstWritten && (
+                <Link to="/c/$campaignId/entities/$entityId" params={{ campaignId: ctx.campaignId, entityId: firstWritten.id }} className="cf-btn cf-btn--primary cf-btn--lg" data-testid="agenda-open-first">
+                  Open {firstWritten.name}&apos;s agendas
+                </Link>
+              )
+            )
+          }
+          again="Accepting again writes this deal's agendas into the characters once more (asking before it replaces text you wrote) and records a second run."
+          onAgain={() => void start()}
+          busy={busy}
+        />
+      ) : (
+        <Button variant="primary" size="lg" disabled={busy || writes.length === 0} onClick={() => void start()} data-testid="agenda-accept">
+          Accept agendas
+        </Button>
       )}
       <Dialog
         open={overwrites !== undefined}

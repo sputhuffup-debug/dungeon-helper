@@ -1,5 +1,5 @@
-/** `/generate`: the module's procedures for the campaign's play mode, plus recent runs. */
-import type { GeneratorRun } from "@campaign-forge/core";
+/** `/generate`: the module's procedures for the campaign's play mode, plus recent runs (open drafts first, marked as drafts). */
+import { draftIsOpen, generatorDrafts, type GeneratorRun } from "@campaign-forge/core";
 import { Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { Badge, EmptyState, PageRef } from "../../components/ui";
@@ -15,6 +15,9 @@ export function GeneratePage() {
   const modeName = ctx.module.manifest.modes.find((m) => m.id === meta.mode)?.name ?? meta.mode;
   const runs = useList("generatorRuns");
   const recent = useMemo(() => [...runs].sort((a: GeneratorRun, b: GeneratorRun) => (a.created < b.created ? 1 : -1)).slice(0, 8), [runs]);
+  const draftList = useList("generatorDrafts");
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const drafts = useMemo(() => generatorDrafts(ctx.store).filter((d) => draftIsOpen(d) && ctx.module.procedure(d.procedure)).slice(0, 5), [ctx.store, ctx.module, draftList]);
 
   return (
     <div className="app-page">
@@ -50,10 +53,32 @@ export function GeneratePage() {
       <SiteMapGenerators />
       <section className="app-section" aria-label="Recent runs">
         <h2 className="app-subtitle">Recent runs</h2>
-        {recent.length === 0 ? (
+        {recent.length === 0 && drafts.length === 0 ? (
           <p className="cf-muted">Nothing generated yet.</p>
         ) : (
-          <ul className="app-list">
+          <ul className="app-list" data-testid="generate-recent">
+            {drafts.map((d) => {
+              const proc = ctx.module.procedure(d.procedure);
+              const taken = Object.values(d.offers ?? {}).filter((o) => o.as !== "discard").length;
+              return (
+                <li key={d.id} className="app-list__row" data-testid="recent-draft" data-procedure={d.procedure}>
+                  <Badge tone="warning">Draft</Badge>
+                  <strong>{proc?.name ?? d.procedure}</strong>
+                  {d.offerKeys?.length ? (
+                    <span className="cf-muted">
+                      {taken} of {d.offerKeys.length} {proc?.offers?.noun ?? "offer"}s taken or kept
+                    </span>
+                  ) : (
+                    <span className="cf-muted">not accepted</span>
+                  )}
+                  <span className="cf-mono cf-muted">{d.seed}</span>
+                  <span className="cf-muted">{relativeTime(d.updated)}</span>
+                  <Link to="/c/$campaignId/generate/$procedureId" params={{ campaignId, procedureId: d.procedure }} className="cf-btn cf-btn--sm app-list__end">
+                    Open the draft
+                  </Link>
+                </li>
+              );
+            })}
             {recent.map((r) => {
               const first = r.produced[0] ? ctx.store.get("entities", r.produced[0]) : undefined;
               return (

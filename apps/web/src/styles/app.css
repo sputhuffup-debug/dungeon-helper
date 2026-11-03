@@ -3332,6 +3332,21 @@ a.cf-btn {
 .offer-card.is-pinned {
   border-color: var(--cf-warning);
 }
+/* taken or kept: stays on the board, marked (its pin is how it stays as dealt, not shown as a pin) */
+.offer-card.is-done {
+  border-color: var(--cf-success);
+}
+.offer-board__foot {
+  flex-wrap: wrap;
+}
+/* the workbench's "New deal" and draft status, at the top right */
+.prep-deal {
+  align-items: flex-end;
+  gap: var(--cf-space-1);
+}
+.prep-accepted__onward {
+  flex-wrap: wrap;
+}
 .offer-card__head {
   display: flex;
   justify-content: space-between;
