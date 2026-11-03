@@ -346,6 +346,8 @@ h3 {
 .app-scroll-x {
   overflow-x: auto;
   max-width: 100%;
+  /* the containing block of screen-reader-only text inside, so it scrolls with the table instead of widening the page */
+  position: relative;
 }
 .app-filters {
   display: flex;
@@ -1834,6 +1836,57 @@ a.cf-btn {
 .app-reveal__image {
   max-width: 100%;
   border-radius: var(--cf-radius);
+}
+/* what the player screen shows now, with "Clear the screen" */
+.app-reveal__screen {
+  border: 1px solid var(--cf-border);
+  border-radius: var(--cf-radius);
+  padding: var(--cf-space-2) var(--cf-space-3);
+  margin-bottom: var(--cf-space-2);
+  background: var(--cf-bg);
+}
+.app-reveal__screen .app-table__group-title {
+  margin: 0;
+}
+.app-reveal__onscreen {
+  list-style: none;
+  margin: var(--cf-space-1) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cf-space-1);
+}
+.app-reveal__onscreen > li {
+  min-width: 0;
+}
+.app-reveal__offscreen {
+  margin-top: var(--cf-space-2);
+  padding-top: var(--cf-space-2);
+  border-top: 1px dashed var(--cf-border);
+}
+.app-reveal__offscreen > summary {
+  cursor: pointer;
+  font-size: var(--cf-text-sm);
+}
+.app-reveal__offscreen .app-reveal__onscreen > li > .app-grow {
+  color: var(--cf-muted);
+}
+.app-reveal__onscreen > li > .app-grow {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.app-table__screen {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--cf-space-1);
+}
+/* the header's spacer takes only the room left over, so its buttons stay on one line on a desktop */
+.app-table__header > .app-grow {
+  flex: 1 1 0;
+}
+/* a skill roll's gear pick, above its panel */
+.app-table__gearpick {
+  max-width: 24rem;
 }
 
 /* roll result */

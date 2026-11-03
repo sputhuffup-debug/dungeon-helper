@@ -6,9 +6,9 @@
  * logs the faces the GM typed (`entered`) instead.
  */
 import { getPath, type Entity, type Id, type TrackerState } from "@campaign-forge/core";
-import { computeFields, createRng, poolValue, type DicePool, type EntityTypeDef, type LoadedModule, type PlayModeId, type RollResult, type Rng, type SheetField } from "@campaign-forge/module-sdk";
+import { computeFields, createRng, gearSkillBonuses, poolValue, type DicePool, type EntityTypeDef, type LoadedModule, type PlayModeId, type RollResult, type Rng, type SheetField } from "@campaign-forge/module-sdk";
 import { useMemo, useRef, useState } from "react";
-import { Badge, Button, Card, DiceRollPanel, DieFace, RollLog, Stepper, humanize, pushToast, resolveBindPath, showsTotal, specById, toneBadge, useDiceRoller, type RollLogEntry } from "../../components/ui";
+import { Badge, Button, Card, DiceRollPanel, DieFace, RollLog, Stepper, humanize, pushToast, resolveBindPath, showsTotal, specById, toneBadge, useDiceRoller, type RollInfo, type RollLogEntry } from "../../components/ui";
 import { errorMessage } from "../../lib/format";
 import { useCampaign, useMeta, useRecord } from "../../state/hooks";
 import { entityAdvances, poolOf, spendStoryPoint, storyUses } from "../../state/progressionActions";
@@ -188,12 +188,15 @@ export function SessionRollPanel({
   initialResult,
   initialEntered,
   modeSwitch,
+  detail,
   onResult,
 }: {
   sessionId: Id;
   entity?: Entity;
   label: string;
   input: Record<string, unknown>;
+  /** What else went into the pool, for the log line (e.g. "Binoculars +2"). */
+  detail?: string[];
   initialResult?: RollResult;
   /** Faces typed for `initialResult`, when it was rolled at the table. */
   initialEntered?: number[];
@@ -249,10 +252,11 @@ export function SessionRollPanel({
       hideModeSwitch={!modeSwitch}
       pushInput={entity ? { entity: entity.id } : undefined}
       title={entity ? `${entity.name}: ${label}` : label}
-      onRolled={(r: RollResult, entered?: number[]) => {
+      onRolled={(r: RollResult, entered?: number[], info?: RollInfo) => {
         const pushed = r.pushes > lastPushes.current;
         lastPushes.current = r.pushes;
-        recordPoolRoll(ctx, sessionId, { label: `${entity ? `${entity.name}: ` : ""}${label}${pushed ? " (pushed)" : ""}`, seed, result: r, ...(entity ? { entityId: entity.id } : {}), ...enteredField(entered) });
+        const extras = [...(detail ?? []), ...(info?.notes ?? [])];
+        recordPoolRoll(ctx, sessionId, { label: `${entity ? `${entity.name}: ` : ""}${label}${extras.length ? ` (${extras.join(", ")})` : ""}${pushed ? " (pushed)" : ""}`, seed, result: r, ...(entity ? { entityId: entity.id } : {}), ...enteredField(entered) });
         if (pushed && entity) {
           const path = stressPathFor(ctx.module, entity);
           if (path) applySessionEffects(ctx, sessionId, [{ kind: "incrementField", entity: entity.id, path, by: 1, min: 0 }]);
@@ -383,12 +387,48 @@ export function SkillRoll({ sessionId, pcs, others = [] }: { sessionId: Id; pcs:
         choice.startsWith("weapon:") ? (
           <WeaponAttackPanel key={picked.key} sessionId={sessionId} attackerId={pc.id} index={Number(choice.slice("weapon:".length))} targets={[...pcs, ...others]} />
         ) : (
-          <SessionRollPanel key={picked.key} sessionId={sessionId} entity={pc} label={picked.label} input={picked.input} />
+          <GearSkillRoll key={picked.key} sessionId={sessionId} entity={pc} skillId={choice.startsWith("attr:") ? undefined : choice} label={picked.label} input={picked.input} />
         )
       ) : (
         <p className="cf-muted">Pick a character and a skill.</p>
       )}
     </Card>
+  );
+}
+
+/**
+ * A skill roll with the gear that helps it: the module's `skillBonus` gear
+ * the character carries for this skill, as a pick that adds its dice to the
+ * pool (and its name to the log line). Without such gear it is the plain panel.
+ */
+export function GearSkillRoll({ sessionId, entity, skillId, label, input }: { sessionId: Id; entity: Entity; skillId: string | undefined; label: string; input: Record<string, unknown> }) {
+  const ctx = useCampaign();
+  const fresh = useRecord("entities", entity.id) ?? entity;
+  const { input: key, bonuses } = useMemo(
+    () => (skillId ? gearSkillBonuses(ctx.module.entityType(fresh.type), fresh.fields, skillId, { preset: (id) => ctx.module.preset(id), item: (id) => ctx.store.get("entities", id) }) : { input: "gear", bonuses: [] }),
+    [ctx, fresh, skillId],
+  );
+  const [row, setRow] = useState("");
+  const chosen = bonuses.find((b) => String(b.row) === row);
+  const signed = (n: number) => (n > 0 ? `+${n}` : `−${-n}`);
+  const withGear = chosen ? { ...input, [key]: (typeof input[key] === "number" ? (input[key] as number) : 0) + chosen.dice } : input;
+  return (
+    <>
+      {bonuses.length > 0 && (
+        <label className="app-label app-table__gearpick">
+          Gear
+          <select className="cf-select" aria-label="Gear bonus" value={row} onChange={(e) => setRow(e.target.value)} data-testid="gear-bonus">
+            <option value="">No gear</option>
+            {bonuses.map((b) => (
+              <option key={b.row} value={String(b.row)}>
+                {b.name} ({signed(b.dice)})
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
+      <SessionRollPanel sessionId={sessionId} entity={entity} label={label} input={withGear} {...(chosen ? { detail: [`${chosen.name} ${signed(chosen.dice)}`] } : {})} />
+    </>
   );
 }
 

@@ -73,10 +73,15 @@ test("campaign agendas: generate, accept, mark a job's outcome, see the next bea
   await page.getByRole("button", { name: "Player screen" }).click();
   const players = await popup;
   await expect(players.getByTestId("player-screen")).toBeVisible();
+  // nothing is on the screen until the GM puts it there; the friction handouts are the players' to see, so they can be pinned
+  await expect(players.locator("[data-handout]")).toHaveCount(0);
+  const off = page.getByTestId("reveal-panel").getByTestId("off-screen");
+  await off.locator("summary").click();
+  await expect(off.locator("[data-offscreen]").filter({ hasText: ": friction" })).toHaveCount(4);
+  await expect(off).not.toContainText("personal agenda");
+  await off.getByRole("button", { name: `Pin ${name}: friction to the player screen` }).click();
   await expect(players.locator("[data-handout] h3").filter({ hasText: `${name}: friction` })).toHaveCount(1);
-  // the four friction handouts and the job board posting the crew took
-  await expect(players.locator("[data-handout]")).toHaveCount(5);
-  await expect(players.locator("[data-handout] h3").filter({ hasText: /^Posting: / })).toHaveCount(1);
+  await expect(players.locator("[data-handout]")).toHaveCount(1);
   await expect(players.getByText("personal agenda")).toHaveCount(0);
   await expect(players.getByText(nextBeat)).toHaveCount(0);
 

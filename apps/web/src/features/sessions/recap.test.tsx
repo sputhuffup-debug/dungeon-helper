@@ -56,8 +56,13 @@ describe("the recap card", () => {
     view.rerender(<Card ctx={ctx} sessionId={sessionId} />);
     fireEvent.click(screen.getByRole("tab", { name: /Read-aloud/ }));
     const players = screen.getByTestId("recap-players");
-    expect(players.textContent).toContain("Session 1: The offer, played 7 Nov 2026.");
+    // dated in the world; the GM's summary is offered, switched off ("your words")
+    const one = ctx.store.list("sessions").find((s) => s.number === 1)!;
+    expect(players.textContent).toContain(`Session 1: The offer (${one.inWorldDate}).`);
     expect(players.textContent).not.toContain(gmTitle);
+    const offered = within(players).getByTestId("recap-optin").closest("[data-testid='recap-line']")!;
+    expect(offered.getAttribute("data-off")).toBe("true");
+    expect(offered.textContent).toContain(one.summary!);
     fireEvent.click(screen.getByTestId("recap-show"));
     expect(ctx.store.get("sessions", sessionId)!.recap!.shown).toBeTruthy();
     expect(checklistStateOf(ctx.store.get("sessions", sessionId))["play.recap"]).toBe(true);
@@ -76,6 +81,9 @@ describe("the recap card", () => {
     expect(screenText).not.toContain(gmTitle);
     expect(screenText).not.toContain("What the players don't know");
     expect(screenText).not.toContain(text);
+    // the summary stays off the screen until the GM switches it on
+    expect(screenText).not.toContain(one.summary!);
+    expect(screenText).not.toContain("7 Nov 2026");
   });
 
   it("is not on the player screen until the GM shows it", async () => {

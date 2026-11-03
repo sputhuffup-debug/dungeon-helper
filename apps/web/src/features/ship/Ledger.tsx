@@ -1,10 +1,21 @@
-/** Funds: balances (summed from entries, never stored), the ledger with a running balance, a category filter, adding entries and CSV export. */
-import { ledgerBalance, ledgerBalances, ledgerRows, type Id } from "@campaign-forge/core";
+/**
+ * Funds: balances (summed from entries, never stored; a personal account
+ * reads its holder's money field, e.g. a PC's sheet cash, when the module
+ * names one), the ledger with a running balance, a category filter, adding
+ * entries and CSV export.
+ */
+import { ledgerBalance, ledgerBalances, ledgerRows, type Entity, type Id } from "@campaign-forge/core";
 import type { LedgerCategoryDef, LedgerDef } from "@campaign-forge/module-sdk";
 import { useMemo, useState, type FormEvent } from "react";
 import { AutoGrowText, Badge, Button, Card, IconButton, PageRef, pushToast } from "../../components/ui";
 import { useCampaign, useList, useMeta } from "../../state/hooks";
-import { addLedgerEntry, deleteLedgerEntry, exportLedgerCsv, money } from "../../state/shipActions";
+import { addLedgerEntry, deleteLedgerEntry, exportLedgerCsv, money, personalAccount } from "../../state/shipActions";
+
+/** The entities that hold a personal account: the module's account types, player characters only. */
+function useAccountHolders(def: LedgerDef): Entity[] {
+  const types = def.accountEntityTypes ?? [];
+  return useList("entities").filter((e) => types.includes(e.type) && (e.fields.isPC === true || !!e.ownerMemberId));
+}
 
 function categoryLabel(def: LedgerDef, id: string): string {
   return def.categories.find((c) => c.id === id)?.label ?? id;
@@ -14,7 +25,13 @@ export function FundsSummary({ def }: { def: LedgerDef }) {
   const ctx = useCampaign();
   const entries = useList("ledger");
   const balance = useMemo(() => ledgerBalance(ctx.store, { account: null }), [ctx.store, entries]);
-  const personal = useMemo(() => Object.entries(ledgerBalances(ctx.store)).filter(([k]) => k !== ""), [ctx.store, entries]);
+  const holders = useAccountHolders(def);
+  // every holder (its sheet's money when the module names the field), then any other account with entries
+  const personal = useMemo(() => {
+    const out: Array<[Id, number]> = def.accountField ? holders.map((h) => [h.id, personalAccount(ctx, h.id).balance]) : [];
+    for (const [k, v] of Object.entries(ledgerBalances(ctx.store))) if (k !== "" && !out.some(([id]) => id === k)) out.push([k, def.accountField ? personalAccount(ctx, k).balance : v]);
+    return out;
+  }, [ctx, entries, holders, def.accountField]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <div className="ship-funds" data-testid="funds">
       <div className="ship-funds__main">
@@ -26,9 +43,11 @@ export function FundsSummary({ def }: { def: LedgerDef }) {
       {personal.length > 0 && (
         <ul className="ship-funds__accounts" aria-label="Personal accounts">
           {personal.map(([id, amount]) => (
-            <li key={id} className="app-stat">
+            <li key={id} className="app-stat" data-account={id}>
               <span className="app-stat__label">{ctx.store.get("entities", id)?.name ?? id}</span>
-              <span className="app-stat__value">{money(ctx, amount)}</span>
+              <span className="app-stat__value" data-testid="account-balance">
+                {money(ctx, amount)}
+              </span>
             </li>
           ))}
         </ul>
@@ -43,9 +62,12 @@ export function LedgerCard({ def, shipId }: { def: LedgerDef; shipId?: Id }) {
   const [category, setCategory] = useState<string>("");
   const [account, setAccount] = useState<string>("");
   const filter = useMemo(() => ({ ...(category ? { categories: [category] } : {}), ...(account === "" ? {} : { account: account === "shared" ? null : account }) }), [category, account]);
-  const rows = useMemo(() => ledgerRows(ctx.store, filter, ctx.module.module.calendar), [ctx.store, ctx.module, filter, entries]);
-  const accountTypes = def.accountEntityTypes ?? [];
-  const holders = useList("entities").filter((e) => accountTypes.includes(e.type) && (e.fields.isPC === true || !!e.ownerMemberId));
+  const holders = useAccountHolders(def);
+  const personalId = account !== "" && account !== "shared" ? account : undefined;
+  // one personal account: its running balance starts from what it held before its entries (the sheet's starting cash)
+  const holder = useList("entities").find((e) => e.id === personalId);
+  const opening = useMemo(() => (personalId && def.accountField && !category ? personalAccount(ctx, personalId).opening : 0), [ctx, personalId, def.accountField, category, entries, holder]); // eslint-disable-line react-hooks/exhaustive-deps
+  const rows = useMemo(() => ledgerRows(ctx.store, filter, ctx.module.module.calendar, opening), [ctx.store, ctx.module, filter, entries, opening]);
   const usedCategories = useMemo(() => new Set(entries.map((e) => e.category)), [entries]);
 
   return (
@@ -104,7 +126,17 @@ export function LedgerCard({ def, shipId }: { def: LedgerDef; shipId?: Id }) {
               </tr>
             </thead>
             <tbody>
-              {rows.length === 0 && (
+              {opening !== 0 && (
+                <tr data-testid="ledger-opening">
+                  <td className="cf-mono ship-nowrap">–</td>
+                  <td className="ship-nowrap">On the sheet</td>
+                  <td className="cf-muted">{rows.length ? "Before these entries" : "Not on the books yet"}</td>
+                  <td className="ship-num cf-mono" />
+                  <td className={`ship-num cf-mono${opening < 0 ? " is-negative" : ""}`}>{money(ctx, opening)}</td>
+                  <td />
+                </tr>
+              )}
+              {rows.length === 0 && opening === 0 && (
                 <tr>
                   <td colSpan={6} className="cf-muted">
                     No entries{category ? " in this category" : ""} yet.
@@ -138,7 +170,11 @@ export function LedgerCard({ def, shipId }: { def: LedgerDef; shipId?: Id }) {
             </tbody>
           </table>
         </div>
-        {(category || account) && <p className="cf-muted">The balance column runs over the entries shown.</p>}
+        {personalId && def.accountField ? (
+          <p className="cf-muted">The balance column runs from what the sheet held before these entries; an entry on this account changes the sheet too.</p>
+        ) : (
+          (category || account) && <p className="cf-muted">The balance column runs over the entries shown.</p>
+        )}
         <AddEntryForm def={def} holders={holders.map((h) => ({ id: h.id, name: h.name }))} {...(shipId ? { shipId } : {})} />
       </div>
     </Card>

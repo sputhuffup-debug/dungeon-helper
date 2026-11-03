@@ -40,7 +40,12 @@ test("recap: open session 2, toggle a line, show the read-aloud on the player sc
   // 3. the read-aloud: switch the crew funds line off
   await card.getByRole("tab", { name: /Read-aloud/ }).click();
   const read = card.getByTestId("recap-players");
-  await expect(read).toContainText("Session 1: The offer, played 7 Nov 2026.");
+  // dated in the world, not by the table's real date; the GM's summary is offered but starts off
+  await expect(read).toContainText(/Session 1: The offer \(\d{4}-\d{2}-\d{2}\)\./);
+  await expect(read).not.toContainText("7 Nov 2026");
+  const summary = read.getByTestId("recap-line").filter({ has: page.getByTestId("recap-optin") });
+  await expect(summary).toHaveAttribute("data-off", "true");
+  const summaryText = (await summary.getByTestId("recap-line-text").innerText()).trim();
   await expect(read).toContainText("Mara Quill is one of your contacts.");
   await expect(read).not.toContainText(gmTitle);
   const funds = read.getByTestId("recap-line").filter({ hasText: "Crew funds now" });
@@ -57,6 +62,7 @@ test("recap: open session 2, toggle a line, show the read-aloud on the player sc
   await expect(shown).toContainText("Previously on Skyfire Down");
   await expect(shown).toContainText("Mara Quill");
   await expect(shown).not.toContainText("Crew funds now");
+  await expect(shown).not.toContainText(summaryText);
   const screen = players.getByTestId("player-screen");
   await expect(screen).not.toContainText(secretLine);
   await expect(screen).not.toContainText(gmTitle);

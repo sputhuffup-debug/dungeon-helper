@@ -39,6 +39,9 @@ import {
   type TimelineEvent,
   type TrackerState,
   handoutStaysWithGm,
+  canSee,
+  showSessionRecap,
+  type Handout,
 } from "@campaign-forge/core";
 import {
   activeLifecyclesFor,
@@ -96,6 +99,8 @@ export interface TableState {
   timer?: { running: boolean; since?: string; accumulatedMs: number };
   /** A found arc clue the GM put on the player screen ("Reveal" in table mode), shown by its crew-notes text. */
   spotlight?: { thread: Id; clue: Id };
+  /** "Clear the screen": handouts revealed before this instant (ISO) leave the player screen; pinned ones stay. */
+  screenClearedAt?: string;
 }
 
 export interface WrapUpAnswer {
@@ -316,6 +321,9 @@ export function startPlannedSession(ctx: Ctx, sessionId: Id): Session {
     if (!session) throw new Error(`sessions/${sessionId} not found`);
     const patch: Partial<Session> = { status: "running" };
     if (session.attendees.length === 0) patch.attendees = store.meta().members.map((m) => m.id);
+    // played on the campaign's current in-world date (the recap dates "last time" by it)
+    const inWorldDate = store.meta().currentDate;
+    if (!session.inWorldDate && inWorldDate) patch.inWorldDate = inWorldDate;
     const updated = store.update("sessions", sessionId, patch);
     // the first scene still to play, never one of an adventure that is over (a finished job)
     const order = sessionSceneOrder(store, updated, ctx.module);
@@ -688,7 +696,8 @@ export function rollZoneTable(ctx: Ctx, sessionId: Id, input: { zoneTable: MapZo
 export function effectContext(ctx: Ctx, sessionId?: Id): EffectContext {
   const currency = ctx.module.module.ledger?.currency;
   const mod = ctx.module.module;
-  return { ...(sessionId ? { sessionId } : {}), preset: (id) => ctx.module.preset(id), ...(currency ? { currency } : {}), ...(mod.progression ? { advancement: mod } : {}) };
+  const accountField = ctx.module.module.ledger?.accountField;
+  return { ...(sessionId ? { sessionId } : {}), preset: (id) => ctx.module.preset(id), ...(currency ? { currency } : {}), ...(accountField ? { ledgerAccountField: accountField } : {}), ...(mod.progression ? { advancement: mod } : {}) };
 }
 
 /** Apply effects for the session (tracker onEffects, prompt answers). */
@@ -929,6 +938,93 @@ export function hideHandout(ctx: Ctx, sessionId: Id, handoutId: Id): void {
   store.transact(() => {
     store.update("handouts", handoutId, { visibility: { level: "gm" }, revealedIn: undefined });
     appendTrackerLog(store, sessionId, { tracker: REVEAL_LOG, text: `Hid handout: ${h.title}`, data: { handout: handoutId, hidden: true } });
+  });
+}
+
+/** When the handout was last revealed in the session (its reveal entry), if it was. */
+function lastRevealAt(session: Pick<Session, "reveals"> | undefined, handoutId: Id): string | undefined {
+  let at: string | undefined;
+  for (const r of session?.reveals ?? []) if (r.handout === handoutId && (!at || r.at > at)) at = r.at;
+  return at;
+}
+
+/**
+ * What the player screen shows now, newest reveal first, then the pinned
+ * ones: handouts revealed in this session since the GM last cleared the
+ * screen, and every pinned handout. Only what every player may see, and
+ * never a handout the module keeps with the GM; a personal handout reaches
+ * its player through "Give to player", never this screen.
+ */
+export function playerScreenHandouts(ctx: Pick<Ctx, "store" | "module">, sessionId: Id): Handout[] {
+  const store = ctx.store;
+  const session = store.get("sessions", sessionId);
+  const cleared = tableStateOf(sessionTrackerState(store, sessionId)?.state).screenClearedAt;
+  const shown: Array<{ h: Handout; at: string }> = [];
+  const pinned: Handout[] = [];
+  for (const h of store.list("handouts")) {
+    if (!canSee(h.visibility, { role: "player" }) || handoutStaysWithGm(h, ctx.module.module) !== undefined) continue;
+    const at = h.revealedIn === sessionId && h.visibility.level === "revealed" ? (lastRevealAt(session, h.id) ?? h.updated) : undefined;
+    if (at && (!cleared || at > cleared)) shown.push({ h, at });
+    else if (h.pinned) pinned.push(h);
+  }
+  shown.sort((a, b) => b.at.localeCompare(a.at) || a.h.title.localeCompare(b.h.title));
+  pinned.sort((a, b) => a.title.localeCompare(b.title) || a.id.localeCompare(b.id));
+  return [...shown.map((x) => x.h), ...pinned];
+}
+
+/** What "Clear the screen" took off, so its Undo can put it back. */
+export interface ClearedScreen {
+  screenClearedAt?: string;
+  spotlight?: TableState["spotlight"];
+  recapShown: boolean;
+}
+
+/**
+ * "Clear the screen": take every handout revealed so far, the clue in the
+ * spotlight and the recap off the player screen (pinned handouts stay; the
+ * scene stays). Logged; returns what it took off, for `restorePlayerScreen`.
+ */
+export function clearPlayerScreen(ctx: Ctx, sessionId: Id): ClearedScreen {
+  const store = ctx.store;
+  return store.transact(() => {
+    const current = tableStateOf(getTrackerState(store, sessionId).state);
+    const session = store.get("sessions", sessionId);
+    const before: ClearedScreen = { recapShown: !!session?.recap?.shown, ...(current.screenClearedAt ? { screenClearedAt: current.screenClearedAt } : {}), ...(current.spotlight ? { spotlight: current.spotlight } : {}) };
+    const next: TableState = { ...current, screenClearedAt: nowIso() };
+    delete next.spotlight;
+    // the table state is merged on update: clear it first so a removed key goes
+    updateTrackerState(store, sessionId, TABLE_STATE, undefined);
+    updateTrackerState(store, sessionId, TABLE_STATE, next);
+    if (session?.recap?.shown) showSessionRecap(store, sessionId, false);
+    appendTrackerLog(store, sessionId, { tracker: REVEAL_LOG, text: "Cleared the player screen", data: { cleared: true } });
+    return before;
+  });
+}
+
+/** Undo "Clear the screen": put back what it took off. */
+export function restorePlayerScreen(ctx: Ctx, sessionId: Id, before: ClearedScreen): void {
+  const store = ctx.store;
+  store.transact(() => {
+    const current = tableStateOf(getTrackerState(store, sessionId).state);
+    const next: TableState = { ...current };
+    if (before.screenClearedAt) next.screenClearedAt = before.screenClearedAt;
+    else delete next.screenClearedAt;
+    if (before.spotlight) next.spotlight = before.spotlight;
+    updateTrackerState(store, sessionId, TABLE_STATE, undefined);
+    updateTrackerState(store, sessionId, TABLE_STATE, next);
+    if (before.recapShown && store.get("sessions", sessionId)?.recap) showSessionRecap(store, sessionId, true);
+    appendTrackerLog(store, sessionId, { tracker: REVEAL_LOG, text: "Put the player screen back", data: { cleared: false } });
+  });
+}
+
+/** Pin a handout to the player screen (it stays through "Clear the screen" and across sessions), or unpin it. Logged. */
+export function pinHandout(ctx: Ctx, sessionId: Id, handoutId: Id, pinned: boolean): void {
+  const store = ctx.store;
+  const h = store.get("handouts", handoutId);
+  if (!h) return;
+  store.transact(() => {
+    store.update("handouts", handoutId, { pinned: pinned || undefined });
+    appendTrackerLog(store, sessionId, { tracker: REVEAL_LOG, text: `${pinned ? "Pinned to" : "Unpinned from"} the player screen: ${h.title}`, data: { handout: handoutId, pinned } });
   });
 }
 

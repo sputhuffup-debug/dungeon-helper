@@ -180,6 +180,11 @@ function RecapLineRow({ session, audience, section, line }: { session: Session; 
           <RecapText text={line.text} links={line.links} campaignId={ctx.campaignId} />
           {line.edited && <Badge className="app-recap__badge">edited</Badge>}
           {line.custom && <Badge className="app-recap__badge">yours</Badge>}
+          {line.optIn && (
+            <Badge className="app-recap__badge" title="Your own words (e.g. the wrap-up summary), off until you switch it on: read it through for secrets first" data-testid="recap-optin">
+              your words
+            </Badge>
+          )}
         </span>
       )}
       {editing === undefined && (

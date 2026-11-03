@@ -42,7 +42,7 @@ import { PlayGuidePanel, usePlayGuides } from "./PlayGuidePanel";
 import { formatDuration, useCrossTabSync, useEntities, usePlayerCharacters, useSessionScenes, useSessionTrackerState, useTableState, useTick } from "./hooks";
 import { EntityDrawer, Participants } from "./Participants";
 import { PlayerScreen } from "./PlayerScreen";
-import { RevealPanel } from "./RevealPanel";
+import { RevealPanel, useClearPlayerScreen } from "./RevealPanel";
 import { RollResultDialog } from "./RollResultDialog";
 import { SceneCard } from "./SceneCard";
 import { TableRecap } from "./TableRecap";
@@ -202,6 +202,7 @@ function GmTable({ sessionId }: { sessionId: Id }) {
     }
   };
 
+  const clearScreen = useClearPlayerScreen(sessionId);
   const openPlayerScreen = () => {
     const url = `${window.location.origin}/c/${campaignId}/table/${sessionId}?view=players`;
     const w = window.open(url, `cf-players-${sessionId}`, "popup,width=1100,height=800");
@@ -283,7 +284,14 @@ function GmTable({ sessionId }: { sessionId: Id }) {
         {narrow && <span className="app-table__header-break" aria-hidden />}
         <Timer sessionId={sessionId} running={!!table.timer?.running} timer={table.timer} />
         <span className="app-grow" />
-        {!narrow && <Button onClick={openPlayerScreen}>Player screen</Button>}
+        {!narrow && (
+          <span className="app-table__screen" role="group" aria-label="Player screen controls">
+            <Button onClick={openPlayerScreen}>Player screen</Button>
+            <Button variant="ghost" onClick={clearScreen} data-testid="header-clear-screen" title="Take what you revealed off the player screen; pinned handouts stay">
+              Clear screen
+            </Button>
+          </span>
+        )}
         {narrow ? (
           <details className="app-table__menu" data-testid="table-menu">
             <summary className="cf-btn">More…</summary>
@@ -295,6 +303,9 @@ function GmTable({ sessionId }: { sessionId: Id }) {
               }}
             >
               <Button onClick={openPlayerScreen}>Player screen</Button>
+              <Button onClick={clearScreen} data-testid="header-clear-screen">
+                Clear the player screen
+              </Button>
               {session && isSessionZero(session) && (
                 <Button onClick={() => setSharing("primer")} data-testid="share-primer" title="Send the campaign primer to the group chat">
                   Share primer

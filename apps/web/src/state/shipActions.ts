@@ -4,6 +4,8 @@
  * `travel` definitions. Nothing here knows what game it is.
  */
 import {
+  accountBalance,
+  accountOpening,
   applyEffects,
   ledgerEntryByKey,
   crewShip,
@@ -80,9 +82,17 @@ export function runningSession(store: CampaignStore): Id | undefined {
 // ledger
 // ---------------------------------------------------------------------------
 
-export function addLedgerEntry(ctx: Ctx, input: Omit<PostLedgerInput, "currency" | "source">): LedgerEntry {
+/** Add the GM's entry; one on a personal account moves the holder's money field (e.g. a PC's cash) when the module names it. */
+export function addLedgerEntry(ctx: Ctx, input: Omit<PostLedgerInput, "currency" | "source" | "accountField">): LedgerEntry {
   const currency = ctx.module.module.ledger?.currency;
-  return postLedgerEntry(ctx.store, { ...input, source: { kind: "manual" }, ...(currency ? { currency } : {}) }).entry;
+  const accountField = ctx.module.module.ledger?.accountField;
+  return postLedgerEntry(ctx.store, { ...input, source: { kind: "manual" }, ...(currency ? { currency } : {}), ...(accountField ? { accountField } : {}) }).entry;
+}
+
+/** A personal account's balance (the holder's money field when the module names one) and what it held before its entries. */
+export function personalAccount(ctx: Ctx, holder: Id): { balance: number; opening: number } {
+  const field = ctx.module.module.ledger?.accountField;
+  return { balance: accountBalance(ctx.store, holder, field), opening: accountOpening(ctx.store, holder, field) };
 }
 
 export function deleteLedgerEntry(ctx: Ctx, id: Id): void {
