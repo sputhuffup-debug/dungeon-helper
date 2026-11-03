@@ -194,6 +194,7 @@ export function procedureFromPack(proc: PackProcedure, presets?: PresetLookup): 
   if (proc.original !== undefined) out.original = proc.original;
   if (proc.mode !== undefined) out.mode = [...proc.mode];
   if (proc.inputs !== undefined) out.inputs = proc.inputs;
+  if (proc.createsCharacter !== undefined) out.createsCharacter = { ...proc.createsCharacter };
   if (proc.chains !== undefined) {
     out.chains = proc.chains.map((c) => {
       const chain: NonNullable<Procedure["chains"]>[number] = { procedure: c.procedure, label: c.label };

@@ -17,6 +17,7 @@ import { lifecycleConfig, lifecycleConfigIssues } from "./lifecycle";
 import { logicIssues } from "./logic";
 import { mapGeneratorIssues } from "./mapgen/check";
 import { attackRanges, planWeaponAttack, weaponListConfig, weaponPresets, weaponRowFrom } from "./weapons";
+import { catalogPresets, gearCatalogConfig, sheetFieldAt } from "./gear";
 import { CORE_NARRATIVE_FIELDS, REVIEW_COLLECTIONS, REVIEW_CONTEXT_KEYS, narrativeEntityType } from "./review";
 import {
   type AdventureBuilderDef,
@@ -263,6 +264,7 @@ function checkEntityType(def: EntityTypeDef, module: GameModule, declaredModes: 
           if (!module.entityTypes.some((et) => et.id === t)) c.error(fw, `entityTypes references unknown entity type "${t}"`);
         }
         if (field.widget === "weapons") checkWeaponsField(field, schemaOwner, module, fw, c);
+        if (field.widget === "gear" && field.config?.catalog !== undefined) checkGearCatalog(field, schemaOwner, module, fw, c);
       }
     }
   };
@@ -308,6 +310,29 @@ function sheetSkillIds(def: EntityTypeDef, module: GameModule): Set<string> {
     }
   }
   return out;
+}
+
+/** A `gear` field's catalog: its preset source, columns, copied keys and routes. */
+function checkGearCatalog(field: SheetField, def: EntityTypeDef, module: GameModule, fw: string, c: Collector): void {
+  const cfg = gearCatalogConfig(field);
+  if (!cfg) {
+    c.error(fw, "gear catalog needs presets.entityType");
+    return;
+  }
+  if (!module.entityTypes.some((t) => t.id === cfg.presets.entityType)) c.error(fw, `gear catalog references unknown entity type "${cfg.presets.entityType}"`);
+  if (cfg.presets.where !== undefined) checkLogic(cfg.presets.where, fw, "catalog presets.where", c);
+  for (const col of cfg.columns ?? []) if (col.display !== undefined) checkLogic(col.display, fw, `catalog column "${col.label}"`, c);
+  const rowSchema = fieldSchemaAt(def, `${field.path}.0`);
+  const rowKeys = rowSchema && typeof rowSchema.properties === "object" ? new Set(Object.keys(rowSchema.properties as object)) : undefined;
+  if (rowKeys) {
+    for (const k of [...Object.keys(cfg.copy ?? {}), cfg.presetKey ?? "presetId", cfg.qtyKey ?? "qty"]) if (!rowKeys.has(k)) c.error(fw, `catalog row key "${k}" is not a property of the gear rows`);
+  }
+  for (const r of cfg.routes ?? []) {
+    const target = sheetFieldAt(def, r.path);
+    if (!target) c.error(fw, `catalog route to "${r.path}", which is not a field of the sheet`);
+    if (!r.subtypes?.length && !r.tags?.length) c.warn(fw, `catalog route to "${r.path}" matches nothing (no subtypes or tags)`);
+  }
+  if (catalogPresets(cfg, module.presets).length === 0) c.warn(fw, "the gear catalog matches no preset");
 }
 
 /** A `weapons` field: its config, the presets it offers, and that an attack with each rolls a skill the sheet has. */
@@ -397,6 +422,13 @@ function checkProcedureStatic(proc: Procedure, module: GameModule, declaredModes
   }
   for (const chain of proc.chains ?? []) {
     if (!module.procedures.some((p) => p.id === chain.procedure)) c.error(where, `chains into unknown procedure "${chain.procedure}"`);
+  }
+  const creates = proc.createsCharacter;
+  if (creates) {
+    const t = module.entityTypes.find((x) => x.id === creates.entityType);
+    if (!t) c.error(where, `createsCharacter names unknown entity type "${creates.entityType}"`);
+    else if (t.kind !== "character") c.warn(where, `createsCharacter names "${creates.entityType}", which is not a character type`);
+    if (!creates.label || !creates.label.trim()) c.error(where, "createsCharacter needs a label");
   }
   const long = proc.longAgendas;
   if (long) {

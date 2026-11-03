@@ -14,6 +14,7 @@ import type { DiceEngineConfig } from "../engines/types";
 import type { PackMapGenerator } from "../mapgen/types";
 import type {
   CalendarDef,
+  CreatesCharacterDef,
   CampaignSettingDef,
   D20CombatDef,
   EntityPreset,
@@ -142,6 +143,8 @@ export interface PackProcedure {
   produce: PackProduce;
   /** Procedures to offer after acceptance; `inputs` maps input names to JSONLogic over the context. */
   chains?: Array<{ procedure: string; label: string; inputs?: Record<string, JsonLogicRule> }>;
+  /** The procedure makes a character: offered as `label` beside "+ Character" (see `Procedure.createsCharacter`). */
+  createsCharacter?: CreatesCharacterDef;
 }
 
 /** The collections a pack (or a part of one) can carry. */

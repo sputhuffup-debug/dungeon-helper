@@ -15,6 +15,7 @@ export * from "./tables";
 export * from "./procedures";
 export * from "./entities";
 export * from "./weapons";
+export * from "./gear";
 export * from "./module";
 export * from "./lifecycle";
 export * from "./review";
