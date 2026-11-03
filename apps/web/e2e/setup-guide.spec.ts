@@ -53,7 +53,8 @@ test("setup guide: a new campaign is walked from blank to its first session, eac
   await step(page, "alien.setup.crew").getByRole("link", { name: "Roll a Life Path" }).click();
   await expect(page).toHaveURL(/\/generate\/alien\.lifepath$/);
   await page.getByTestId("accept").click();
-  await expect(page.getByTestId("accepted-note")).toBeVisible();
+  // accepting a Life Path opens the new PC's page
+  await expect(page).toHaveURL(/\/entities\/[0-9A-Z]{26}$/, { timeout: 15_000 });
   await home(page, base);
   await expect(step(page, "alien.setup.crew")).toContainText("1 of 4");
   await step(page, "alien.setup.crew").getByRole("link", { name: "+ Character" }).click();
