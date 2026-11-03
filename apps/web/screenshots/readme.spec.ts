@@ -248,6 +248,41 @@ test("table-hints", async ({ page }) => {
   await shot(page, "table-hints");
 });
 
+test("table-phone", async ({ page }) => {
+  // table mode on a phone: the Map tab of the bottom tab bar, the job's site framed on what the crew has seen
+  await page.setViewportSize({ width: 390, height: 844 });
+  await loadDemo(page, "skyfire");
+  await page.goto(page.url().replace(/\/home$/, "/sessions"));
+  await page.getByRole("button", { name: /^Start session \d+$/ }).click();
+  await expect(page.getByTestId("table-mode")).toHaveAttribute("data-layout", "panels");
+  await expect(page.getByTestId("timer")).toHaveText("00:00");
+  const scenes = page.getByTestId("table-panel-scene").getByRole("combobox", { name: "Scene" });
+  await scenes.selectOption((await scenes.locator("option", { hasText: "The ore run" }).getAttribute("value"))!);
+  await page.getByTestId("table-tab-map").click();
+  const live = page.getByTestId("table-panel-map").getByTestId("live-map");
+  await expect(live.getByTestId("hunt-token")).toHaveCount(2);
+  await settle(page);
+  await live.getByTestId("map-focus").click();
+  await shot(page, "table-phone");
+});
+
+test("table-this-job", async ({ page }) => {
+  // "This job" at the table: the job's clues with Mark found and Reveal, and its people's agendas and secrets (GM only)
+  await page.setViewportSize({ width: 1440, height: 1400 });
+  await loadDemo(page, "skyfire");
+  await startPlannedSession(page);
+  const scenes = page.getByRole("combobox", { name: "Scene" });
+  await scenes.selectOption((await scenes.locator("option", { hasText: "The ore run" }).getAttribute("value"))!);
+  const job = page.getByTestId("this-job");
+  await expect(job.getByTestId("this-job-clue")).toHaveCount(2);
+  await job.evaluate((e) => e.scrollIntoView({ block: "start" }));
+  await settle(page);
+  const a = (await job.boundingBox())!;
+  const pad = 8;
+  const clip = { x: Math.floor(a.x - pad), y: Math.floor(a.y - pad), width: Math.ceil(a.width + pad * 2), height: Math.ceil(Math.min(a.height + pad * 2, 1400 - a.y)) };
+  await shot(page, "table-this-job", { clip });
+});
+
 test("enter-dice", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1300 });
   await loadDemo(page, "skyfire");
@@ -573,7 +608,7 @@ test("rules", async ({ page }) => {
 // ---------------------------------------------------------------------------
 
 test("creature-turn", async ({ page }) => {
-  // wide enough for the four PCs in one row of participant cards, tall enough for that row under the turn card
+  // a wide left column, tall enough for the whole turn card
   await page.setViewportSize({ width: 2100, height: 1800 });
   await loadDemo(page, "cinematic");
   await startPlannedSession(page);
@@ -615,17 +650,13 @@ test("creature-turn", async ({ page }) => {
   await expect(turn.getByTestId("attack-successes")).not.toHaveText(/^0 /);
   await expect(turn.getByTestId("target-ranges").locator("li", { hasText: "Rosa Ilunga" })).toContainText("same zone");
 
-  // frame the left column from the turn card to the end of the PCs' participant cards (health bars and all)
-  const participants = page.getByRole("list", { name: "Player characters" });
+  // frame the turn card (the live map follows it in the left column)
   await turn.evaluate((e) => e.scrollIntoView({ block: "start" }));
   await settle(page);
   const a = (await turn.boundingBox())!;
-  const b = (await participants.boundingBox())!;
   const pad = 12;
-  const x = Math.floor(Math.min(a.x, b.x) - pad);
-  const y = Math.floor(a.y - pad);
-  const clip = { x, y, width: Math.ceil(Math.max(a.x + a.width, b.x + b.width) + pad - x), height: Math.ceil(b.y + b.height + 4 - y) };
-  expect(clip.y + clip.height, "the PCs fit under the turn card").toBeLessThanOrEqual(page.viewportSize()!.height);
+  const clip = { x: Math.floor(a.x - pad), y: Math.floor(a.y - pad), width: Math.ceil(a.width + pad * 2), height: Math.ceil(a.height + pad * 2) };
+  expect(clip.y + clip.height, "the turn card fits").toBeLessThanOrEqual(page.viewportSize()!.height);
   await shot(page, "creature-turn", { clip });
 });
 
