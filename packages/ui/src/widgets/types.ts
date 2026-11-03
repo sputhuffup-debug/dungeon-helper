@@ -9,6 +9,11 @@ export interface WidgetProps {
   path: string;
   value: unknown;
   onChange: (value: unknown) => void;
+  /**
+   * Replace the whole fields object, for a widget that also writes another
+   * field (the gear picker sends a weapon to the weapons list).
+   */
+  onChangeFields?: (fields: Record<string, unknown>) => void;
   /** Sub-schema at `path`, when the entity schema declares one. */
   schema?: JsonSchema;
   def?: EntityTypeDef;

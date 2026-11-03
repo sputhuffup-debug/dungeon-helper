@@ -63,12 +63,12 @@ A field: `{ path, label?, widget?, rule?, mode?, readonly?, span?, options?, ent
 | `select`, `multiselect`, `tags` | enums, lists of strings | `ref` (reference list) |
 | `skills` | an object of skill ratings | `ref` (reference list whose items have `attribute`), `attributesPath` (default `attributes`), `min`, `max`, or an inline `skills` list; `levels` (named ratings shown as a select, e.g. `[{ "value": 0, "label": "—" }, { "value": 1, "label": "Proficient" }, { "value": 2, "label": "Expertise" }]`), `labels` (column headings: `skill`, `attribute`, `attributeValue`, `value`, `pool`), `hideZero` (list only rated skills, with a "Show all" toggle) |
 | `talents` | a list of `{ id, count }` picked from a reference list | `ref`, `maxStack` |
-| `conditions`, `gear` | conditions; a gear list with weights | `limitComputed` (a computed limit), `totalComputed` (a computed total shown instead of the gear's own weight, e.g. gear plus weapons), `qty` |
+| `conditions`, `gear` | conditions; a gear list with weights | `limitComputed` (a computed limit), `totalComputed` (a computed total shown instead of the gear's own weight, e.g. gear plus weapons), `qty`; `catalog`: the *From the gear list…* picker, see [The gear list](#the-gear-list) |
 | `weapons` | a list of weapons with their stats as columns, an "Add weapon" picker over the module's presets, "From campaign items", "Custom weapon" and inline editing | see [The weapons widget](#the-weapons-widget) |
 | `supply`, `stress` | pips | `supplyMax`, `warnAt` |
 | `computed` | a computed value (read-only) | |
 | `dicepool` | a pool shown as a breakdown | `computed` |
-| `ref`, `reflist` | links to other entities | `entityTypes` on the field |
+| `ref`, `reflist` | links to other entities | `entityTypes` on the field; `ref` with `pick: "select"`: a dropdown of the campaign's entities of those types (never the sheet's own), `pc: true` for player characters only. A value that is no entity's id (a name typed in an older campaign) shows as typed, with *Link to …* when an entity has that name |
 | `list`, `object`, `table`, `statblock` | nested data, edited by schema | `columns`, `keys`, `valueWidget` |
 | `entries` | a list of named texts (traits, actions, features), read like a stat block ("**Name.** text", Markdown) with an Edit toggle | `nameKey` (default `name`), `textKey` (default `desc`) |
 | `image`, `zonemap` | an image asset; a zone map | |
@@ -97,3 +97,14 @@ A `weapons` field holds a list of rows (`{ name, ... }`, the row schema is the a
 - `attack` (optional): how a row attacks in table mode. `ranges` (nearest first), `minRangeKey`/`maxRangeKey`, and JSONLogic over `{ weapon, range, rangeIndex, minIndex, maxIndex, closer, beyond }` for the `skill` rolled (one the sheet's skills widget offers), extra `pool` input numbers for the dice system (a gear bonus, a range penalty), the base `damage`, `extraSuccessesAddDamage`, `armorPiercing` and the hit `source` passed to the module's armor rule, and `notes`. Table mode then offers "Attack with …" in the Dice tab's skill roll and an Attack button on the PC's card: pick the range, roll (or enter the dice), read the damage and apply it to a target that has combat health.
 
 `pnpm module-check` checks the config: copied, edited and column keys exist in the row schema, sources and computed values exist, and an attack with every offered preset at every band it reaches rolls a skill the sheet has.
+
+### The gear list
+
+A `gear` field with `config.catalog` (a `GearCatalogConfig`, `module-sdk` `src/types.ts`) gets *From the gear list…*: a searchable picker over the module's item presets, grouped, each with its columns and page, that adds the picked item where it belongs and stays open, saying where each one went.
+
+- `presets`: `{ entityType, subtypes?, tags?, excludeTags?, where?, groups? }`: the presets offered; `where` is JSONLogic over `{ id, name, subtype, tags, fields }` (e.g. `{ "!=": [{ "var": "fields.portable" }, false] }` to leave out fixed installations); `groups` (`{ tag, label }`) in order, the rest under "Other".
+- `columns`: what the picker shows after the name (`{ key?, label, display?, numeric? }`, as the weapons widget's columns, read from the preset's fields).
+- `copy`: row key <- preset field (`{ "weight": "weight", "supply": "power" }`); the row also gets `qtyKey` (default `qty`) and the preset id under `presetKey` (default `presetId`). Picking an item already on the list raises its quantity.
+- `routes`: `[{ path, subtypes?, tags?, label? }]`: presets that go to another list of the sheet instead. A route to a `weapons` field builds the row with that field's own config, so a weapon lands on the weapons list with its stats and table-mode attacks work.
+
+Generators place gear the same way: `addCatalogItem(def, gearField, fields, preset, { name?, qty? })` returns the fields with the item added (a weapon as `qty` rows of its list), and `catalogPlacement` says where one would go. The Alien character sheet is the example: the gear tables' portable items, weapons routed to Weapons, and its life path and typical NPCs placing their kit with it. `pnpm module-check` checks the catalog: the source type, the row keys against the gear rows' schema, the routes against the sheet's fields, and that it offers something.

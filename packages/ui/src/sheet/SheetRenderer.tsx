@@ -114,6 +114,7 @@ export function SheetRenderer(props: SheetRendererProps) {
     dice,
     presetsFor,
     entitiesOf,
+    entityId,
   } = props;
 
   const computed = useMemo(() => computedProp ?? computeFields(def, fields), [computedProp, def, fields]);
@@ -134,8 +135,8 @@ export function SheetRenderer(props: SheetRendererProps) {
   }, [def, mode, sub, onlySections, onlyPaths]);
 
   const ctx = useMemo<SheetContextValue>(
-    () => ({ mode, tableMode, onRoll, onOpenRule, onPickEntity, resolveEntityName, resolveAssetUrl, onOpenMap, resolveMap, castMembers, dice, presetsFor, entitiesOf }),
-    [mode, tableMode, onRoll, onOpenRule, onPickEntity, resolveEntityName, resolveAssetUrl, onOpenMap, resolveMap, castMembers, dice, presetsFor, entitiesOf],
+    () => ({ mode, tableMode, onRoll, onOpenRule, onPickEntity, resolveEntityName, resolveAssetUrl, onOpenMap, resolveMap, castMembers, dice, presetsFor, entitiesOf, entityId }),
+    [mode, tableMode, onRoll, onOpenRule, onPickEntity, resolveEntityName, resolveAssetUrl, onOpenMap, resolveMap, castMembers, dice, presetsFor, entitiesOf, entityId],
   );
 
   const schemaFor = (path: string): JsonSchema | undefined => {
@@ -262,6 +263,9 @@ function SheetFieldView({ field, span, def, fields, computed, readonly, referenc
         return;
       }
       onChange(setPath(fields, path, next));
+    },
+    onChangeFields: (next) => {
+      if (!isReadonly) onChange(next);
     },
   };
 

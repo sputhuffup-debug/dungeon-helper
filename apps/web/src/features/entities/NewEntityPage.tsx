@@ -12,7 +12,7 @@ import { Badge, Button, Card, PageRef, SheetRenderer } from "../../components/ui
 import { humanize } from "../../lib/format";
 import { createEntity, createEntityFromPreset } from "../../state/actions";
 import { useCampaign, useMeta, useSheetSources } from "../../state/hooks";
-import { BuildCharacterButton, useCharacterBuilder } from "../builder/entry";
+import { BuildCharacterButton, CharacterProcedureLinks, useCharacterBuilder, useCharacterProcedures } from "../builder/entry";
 
 /** Values the form starts with for the creation fields: `isPC` from the PCs tab, when the type has it. */
 function initialDraft(def: EntityTypeDef | undefined, pc: number | undefined): Record<string, unknown> {
@@ -54,6 +54,10 @@ export function NewEntityPage() {
     }
     setDraft(out);
   };
+
+  // a player character can also be rolled (e.g. a life path) instead of made by hand
+  const pcProcedures = useCharacterProcedures({ entityType: typeId, pc: true });
+  const offerProcedures = pcProcedures.length > 0 && (draftFields.isPC === true || (search.pc === 1 && !createPaths.includes("isPC")));
 
   const grouped = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -128,6 +132,17 @@ export function NewEntityPage() {
               <p className="cf-muted">{builder.description ?? "Step by step: every choice the rules ask for, with its source."}</p>
             </div>
             <BuildCharacterButton entityType={typeId} label="Build step by step" />
+          </div>
+        )}
+        {offerProcedures && (
+          <div className="cb-callout" data-testid="procedure-callout">
+            <div>
+              <strong>{pcProcedures.map((p) => p.name).join(" or ")}</strong>
+              <p className="cf-muted">{pcProcedures.length === 1 && pcProcedures[0]!.description ? pcProcedures[0]!.description : "Roll a player character with every step and its source."}</p>
+            </div>
+            <span className="app-row">
+              <CharacterProcedureLinks entityType={typeId} pc />
+            </span>
           </div>
         )}
         <fieldset className="app-fieldset">

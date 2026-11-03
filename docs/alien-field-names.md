@@ -54,13 +54,13 @@ campaignAgenda: {                               // campaign, GM-only (alien.camp
   history: [{ goal, n?, job?, text, outcome }], past: [{ id, title, text, job? }],
   secret: { id, text, topic }, friction: [{ key, kind, tpl, with: [ids], outsider?, text }]
 }
-gear: [{ name: string, weight: number, qty: number, supply?: number, itemId?: string }]
+gear: [{ name: string, weight: number, qty: number, supply?: number, itemId?: string, presetId?: string }]   // weapons go to `weapons`
 signatureItem: string
 cash: number
 storyPoints: number 0..3   // cinematic; a stored pool, every change logged in the advancement log
 xp: number                 // campaign; a stored pool, every award and spend logged in the advancement log
 trait: string; goal: string; appearance: string
-buddy: string; rival: string   // free text; relationships are the real link
+buddy: string; rival: string   // another PC's entity id (older campaigns: a typed name); buddy_of / rival_of relationships count too
 criticalInjuries: [{ id, label, page? }]
 mentalTraumas: [{ id, label, page? }]
 lifePath: object           // provenance of life-path rolls, optional

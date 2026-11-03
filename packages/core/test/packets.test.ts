@@ -29,6 +29,7 @@ import {
   setPlayerCharacters,
   shareBaseline,
   shareRecordOf,
+  sheetValueText,
   DEFAULT_PACKET_OPTIONS,
   type Id,
   type PacketModule,
@@ -122,6 +123,26 @@ function packet(s: Seed, memberId: Id, maps = s.store.toJSON()) {
 const GM_SECRETS = ["SECRET-GM-NPC", "SECRET-NPC-ROLE", "SECRET-GM-HANDOUT", "SECRET-GM-NOTE", "SECRET-ANA-SECRET", "SECRET-BEN-SECRET", "SECRET-BEN-PC-SUMMARY", "SECRET-ANA-SHAME", "SECRET-BEN-SHAME", "SECRET-BEN-AGENDA-UNGIVEN", "CONTACT-ANA", "CONTACT-BEN", "GM-SECTION-TITLE", "BEN-ROLE"];
 const ANA_PRIVATE = ["ANA-OWNER-DRIVE", "ANA-GOAL", "ANA-ONLY-HANDOUT", "ANA-ONLY-BODY", "ANA-PHOTO", "ANA-AGENDA"];
 const BEN_PRIVATE = ["BEN-HIDDEN-PC", "BEN-OWNER-DRIVE", "BEN-GOAL", "BEN-CARD", "BEN-CONDITION"];
+
+describe("sheetValueText", () => {
+  const cx = {
+    referenceName: (list: string, id: string) => ({ "x.careers": { "company-agent": "Company Agent" }, "x.talents": { "personal-safety": "Personal Safety" } } as Record<string, Record<string, string>>)[list]?.[id],
+    entityName: (id: string) => (id === "01JB0000000000000000000000" ? "Bo Lantern" : undefined),
+    isEntity: (id: string) => id === "01JB0000000000000000000000" || id === "01JC0000000000000000000000",
+  };
+  it("names reference ids, list rows with their count, and entity references", () => {
+    expect(sheetValueText({ path: "career", widget: "select", options: { ref: "x.careers" } }, "company-agent", cx)).toBe("Company Agent");
+    expect(sheetValueText({ path: "talents", widget: "talents", options: { ref: "x.talents" } }, [{ id: "personal-safety", count: 1 }], cx)).toBe("Personal Safety");
+    expect(sheetValueText({ path: "talents", widget: "talents", config: { ref: "x.talents" } }, [{ id: "personal-safety", count: 2 }], cx)).toBe("Personal Safety ×2");
+    expect(sheetValueText({ path: "gear", widget: "gear" }, [{ name: "Comm unit", qty: 1 }, { name: "Naproleve", qty: 4 }], cx)).toBe("Comm unit, Naproleve ×4");
+    expect(sheetValueText({ path: "buddy", widget: "ref" }, "01JB0000000000000000000000", cx)).toBe("Bo Lantern");
+  });
+  it("shows an older typed name in a ref field as written, never a hidden or missing record's id", () => {
+    expect(sheetValueText({ path: "buddy", widget: "ref" }, "Parker", cx)).toBe("Parker");
+    expect(sheetValueText({ path: "buddy", widget: "ref" }, "01JC0000000000000000000000", cx)).toBe("");
+    expect(sheetValueText({ path: "buddy", widget: "ref" }, "01JD0000000000000000000000", cx)).toBe("");
+  });
+});
 
 describe("owner-visible fields", () => {
   it("collects x-visibility owner paths from the schema", () => {

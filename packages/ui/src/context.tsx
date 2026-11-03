@@ -7,6 +7,8 @@ export interface SheetEntityRef {
   name: string;
   subtype?: string;
   fields: Record<string, unknown>;
+  /** A player character (ref fields with `config.pc` offer only these). */
+  pc?: boolean;
 }
 
 /** Callbacks and services the sheet widgets can reach without prop drilling. */
@@ -45,8 +47,10 @@ export interface SheetContextValue {
   dice?: DiceSystem;
   /** The module's presets of an entity type (the weapons widget's "Add weapon" picker). Without it the picker is not offered. */
   presetsFor?: (entityType: string) => EntityPreset[];
-  /** The campaign's entities of a type (the weapons widget's "From campaign items"). Without it that choice is not offered. */
+  /** The campaign's entities of a type (the weapons widget's "From campaign items", a ref field's `config.pick: "select"`). Without it those are not offered. */
   entitiesOf?: (entityType: string) => SheetEntityRef[];
+  /** The id of the entity the sheet shows, when it is saved (a ref field never offers the entity itself). */
+  entityId?: string;
 }
 
 export const SheetContext = createContext<SheetContextValue>({ tableMode: false });

@@ -501,6 +501,23 @@ export interface Procedure {
    * discarded from the board. The procedure's own `produce` is not used.
    */
   offers?: OfferDef;
+  /**
+   * The procedure makes a character (e.g. a life path): the app offers it,
+   * as `label`, beside "+ Character" on the Atlas's PCs tab (`pc`: it makes
+   * player characters) and on the new-entity page for `entityType`. Its
+   * produced entity of that type is the character. Packs can declare it.
+   */
+  createsCharacter?: CreatesCharacterDef;
+}
+
+/** How a character-making procedure is offered (see `Procedure.createsCharacter`). */
+export interface CreatesCharacterDef {
+  /** The entity type it makes (a character kind). */
+  entityType: string;
+  /** The button, e.g. "Roll a Life Path". */
+  label: string;
+  /** It makes player characters: offered on the PCs tab. */
+  pc?: boolean;
 }
 
 /** How the app accepts one offer of a board (see `Procedure.offers`). */
@@ -1184,6 +1201,41 @@ export interface WeaponPresetSource {
   excludeTags?: string[];
   /** Picker groups in order: the presets carrying `tag`. Presets in no group are listed under "Other". */
   groups?: Array<{ tag: string; label: string }>;
+}
+
+/**
+ * A gear field's "From the gear list…" picker (`config.catalog` of a `gear`
+ * sheet field): a searchable, grouped list of the module's item presets
+ * that adds the picked one as a row. A preset a `route` matches goes to that
+ * list field of the sheet instead (e.g. weapons to the Weapons list, built
+ * with that field's own `WeaponListConfig`). Packs can declare it.
+ */
+export interface GearCatalogConfig {
+  /** The presets offered: of `entityType`, one of `subtypes` (any when absent), with one of `tags`, none of `excludeTags`. */
+  presets: {
+    entityType: string;
+    subtypes?: string[];
+    tags?: string[];
+    excludeTags?: string[];
+    /** JSONLogic over `{ id, name, subtype, tags, fields }`; presets it rejects are left out (e.g. fixed installations). */
+    where?: JsonLogicRule;
+    /** Picker groups in order: the presets carrying `tag`. Presets in no group are listed under "Other". */
+    groups?: Array<{ tag: string; label: string }>;
+  };
+  /** Columns the picker shows after the name (JSONLogic `display` over the preset's fields); its page is always shown. */
+  columns?: WeaponColumn[];
+  /** Row key <- preset field path copied into a gear row besides its name (e.g. `{ "weight": "weight" }`). */
+  copy?: Record<string, string>;
+  /** Row key recording the preset a row came from (default `presetId`). */
+  presetKey?: string;
+  /** Row key of the quantity: picking an item already on the list raises it (default `qty`). */
+  qtyKey?: string;
+  /**
+   * Presets that go to another list of the sheet: the first route whose
+   * `subtypes` or `tags` match sends the preset to the field at `path`. A
+   * `weapons` field builds the row from its own config.
+   */
+  routes?: Array<{ path: string; subtypes?: string[]; tags?: string[]; label?: string }>;
 }
 
 /**

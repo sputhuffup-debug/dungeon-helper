@@ -252,6 +252,15 @@ describe("sweeps and blips", () => {
     expect(carriedSensors(undefined, { fields: {} })).toEqual([]);
   });
 
+  it("find a sensor by the preset a gear row was picked from, or a linked item's preset", () => {
+    const hunt: MapHuntDef = { ...HUNT, sensors: [{ ...HUNT.sensors![0]!, carried: { names: ["Motion tracker"], presets: ["x.item.tracker"] } }] };
+    expect(carriedSensors(hunt, { fields: { gear: [{ name: "Dented scanner", presetId: "x.item.tracker" }] } }).map((s) => s.id)).toEqual(["tracker"]);
+    expect(carriedSensors(hunt, { fields: { gear: [{ name: "Scanner", itemId: "item-1" }] } }, (id) => (id === "item-1" ? "x.item.tracker" : undefined)).map((s) => s.id)).toEqual(["tracker"]);
+    // an older preset kit links the preset id itself
+    expect(carriedSensors(hunt, { fields: { gear: [{ name: "Scanner", itemId: "x.item.tracker" }] } }).map((s) => s.id)).toEqual(["tracker"]);
+    expect(carriedSensors(hunt, { fields: { gear: [{ name: "Scanner", presetId: "x.item.torch" }] } })).toEqual([]);
+  });
+
   it("read bearings on the deck plan, ducts from the room they open into", () => {
     const l = huntLayout();
     expect(zoneBearing(l, "A", "B")).toEqual({ direction: "E" });

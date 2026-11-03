@@ -1170,6 +1170,7 @@ const definitions: Record<string, JsonSchema> = {
       steps: list(ref("procedureStep"), { minItems: 1 }),
       produce: ref("produce"),
       chains: list(object<NonNullable<PackProcedure["chains"]>[number]>()({ procedure: ref("id"), label: text, inputs: { type: "object", additionalProperties: logic } }, ["procedure", "label"])),
+      createsCharacter: object<NonNullable<PackProcedure["createsCharacter"]>>()({ entityType: ref("id"), label: text, pc: bool }, ["entityType", "label"]),
     },
     ["id", "name", "steps", "produce"],
   ),

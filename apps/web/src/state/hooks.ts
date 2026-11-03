@@ -146,7 +146,7 @@ export function useSheetSources(): { presetsFor: (entityType: string) => EntityP
           .list("entities")
           .filter((e) => e.type === entityType)
           .sort((a, b) => a.name.localeCompare(b.name))
-          .map((e) => ({ id: e.id, name: e.name, fields: e.fields, ...(e.subtype ? { subtype: e.subtype } : {}) })),
+          .map((e) => ({ id: e.id, name: e.name, fields: e.fields, ...(e.subtype ? { subtype: e.subtype } : {}), ...(e.fields.isPC === true || e.ownerMemberId ? { pc: true } : {}) })),
     }),
     [store, module],
   );

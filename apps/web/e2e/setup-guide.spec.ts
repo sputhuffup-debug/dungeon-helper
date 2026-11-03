@@ -11,9 +11,19 @@ import { expect, test, type Page } from "@playwright/test";
 const guide = (page: Page) => page.getByTestId("setup-guide");
 const step = (page: Page, id: string) => guide(page).locator(`[data-step="${id}"]`);
 
-async function home(page: Page, base: string) {
-  await page.goto(`${base}/home`);
+// in-app navigation, not a reload: the campaign saves to IndexedDB in the background, and a reload
+// straight after a change can come before the save lands (base stays in the signature for the callers)
+const sidebar = (page: Page, name: string) => page.getByRole("navigation", { name: "Campaign" }).getByRole("link", { name, exact: true });
+
+async function home(page: Page, _base: string) {
+  await sidebar(page, "Home").click();
+  await expect(page).toHaveURL(/\/home$/);
   await expect(page.getByTestId("campaign-name")).toBeVisible();
+}
+
+async function settings(page: Page) {
+  await sidebar(page, "Settings").click();
+  await expect(page).toHaveURL(/\/settings/);
 }
 
 async function expectDone(page: Page, id: string, done: number) {
@@ -148,7 +158,7 @@ test("setup guide: a new campaign is walked from blank to its first session, eac
   await expect(page.getByRole("button", { name: "Start this session" })).toHaveClass(/cf-btn--primary/);
 
   // 11. Settings: every step done; nothing to show
-  await page.goto(`${base}/settings?section=setup`);
+  await settings(page);
   await expect(page.getByTestId("setup-guide-status")).toContainText("All 8 steps done.");
   await expect(page.getByTestId("setup-show")).toHaveCount(0);
   expect(errors).toEqual([]);
@@ -173,7 +183,7 @@ test("setup guide: 'Hide this' hides it, Settings shows it again; demos never sh
   await expect(guide(page)).toHaveCount(0);
   await expect(page.getByTestId("start-session")).toHaveClass(/cf-btn--primary/);
 
-  await page.goto(`${base}/settings?section=setup`);
+  await settings(page);
   await expect(page.getByTestId("setup-guide-status")).toHaveText("0 of 5 steps done.");
   await page.getByTestId("setup-show").click();
   await expect(page.getByTestId("setup-guide-status")).toContainText("Shown on Home.");

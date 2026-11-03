@@ -1101,7 +1101,7 @@ export const campaignAgendasProcedure: Procedure = {
         title: "Campaign",
         "x-campaign": {
           kinds: ["character", "location", "faction", "job", "vehicle"],
-          fields: ["career", "employer", "factionType", "role"],
+          fields: ["career", "employer", "factionType", "role", "buddy", "rival"],
           relationships: ["buddy_of", "rival_of", "employer_of", "sponsor_of"],
         },
         description: "The crew (with buddies and rivals), NPCs, places, the ship and the job's employer.",

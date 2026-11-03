@@ -91,6 +91,19 @@ describe("new entity form: the fields the sheet asks for at creation", () => {
     expect(npc.fields.isPC).not.toBe(true);
   });
 
+  it("offers the module's character procedure (Roll a Life Path) for a player character, not for an NPC", async () => {
+    const ctx = await renderPage(alienId, { type: "alien.character", pc: 1 });
+    const callout = screen.getByTestId("procedure-callout");
+    fireEvent.click(within(callout).getByRole("button", { name: "Roll a Life Path" }));
+    expect(nav.navigate).toHaveBeenCalledWith(expect.objectContaining({ to: "/c/$campaignId/generate/$procedureId", params: { campaignId: ctx.campaignId, procedureId: "alien.lifepath" } }));
+    // unticking Player character makes it an NPC: no life path
+    fireEvent.click(screen.getByTestId("create-fields").querySelector<HTMLInputElement>('[data-path="isPC"] input[type="checkbox"]')!);
+    expect(screen.queryByTestId("procedure-callout")).toBeNull();
+    cleanup();
+    await renderPage(exampleId, { type: "example.hero", pc: 1 });
+    expect(screen.queryByTestId("procedure-callout")).toBeNull();
+  });
+
   it("asks nothing more for a type whose sheet declares no creation fields", async () => {
     await renderPage(exampleId, { type: "example.hero" });
     expect(screen.queryByTestId("create-fields")).toBeNull();

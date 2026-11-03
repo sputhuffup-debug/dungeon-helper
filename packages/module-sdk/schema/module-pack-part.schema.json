@@ -5225,6 +5225,26 @@
             ],
             "additionalProperties": false
           }
+        },
+        "createsCharacter": {
+          "type": "object",
+          "properties": {
+            "entityType": {
+              "$ref": "#/definitions/id"
+            },
+            "label": {
+              "type": "string",
+              "minLength": 1
+            },
+            "pc": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "entityType",
+            "label"
+          ],
+          "additionalProperties": false
         }
       },
       "required": [

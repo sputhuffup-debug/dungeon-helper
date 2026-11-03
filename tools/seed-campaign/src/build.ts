@@ -278,6 +278,7 @@ export function buildDemoCampaign(opts: BuildDemoOptions = {}): DemoCampaign {
   // -- player characters: Life Path, then a name from the career list ------
   const usedNames = new Set<string>();
   const pcs: Entity[] = [];
+  const pcRuns = new Map<Id, Id>();
   const lifepath = requireProcedure(mod, "alien.lifepath");
   for (let n = 1; n <= PC_COUNT; n++) {
     const graph = run(lifepath, `${seed}/pc${n}`, {});
@@ -306,16 +307,25 @@ export function buildDemoCampaign(opts: BuildDemoOptions = {}): DemoCampaign {
       fields["signatureItem"] = pick(prng.fork("signature"), signature);
       edited.push("signatureItem");
     }
-    const weaponIds = CREW_WEAPONS[str(pc.fields["career"])] ?? ["knife"];
-    fields["weapons"] = weaponIds.map((id) => weaponRowFromPreset(requirePreset(mod, `alien.item.${id}`)));
+    // the crew's loadout, after any weapon the life path already put on the Weapons list
+    const rolled = (Array.isArray(pc.fields["weapons"]) ? pc.fields["weapons"] : []) as Array<Record<string, unknown>>;
+    const weaponIds = (CREW_WEAPONS[str(pc.fields["career"])] ?? ["knife"]).filter((id) => !rolled.some((w) => w["presetId"] === `alien.item.${id}`));
+    fields["weapons"] = [...rolled, ...weaponIds.map((id) => weaponRowFromPreset(requirePreset(mod, `alien.item.${id}`)))];
     edited.push("weapons");
     const updated = store.update("entities", pc.id, { name: pcName, fields, tags: [...pc.tags, "crew"] });
     for (const path of ["name", ...edited]) recordEdit(store, accepted.run.id, pc.id, path);
     pcs.push(updated);
+    pcRuns.set(pc.id, accepted.run.id);
   }
   const [pc1, pc2, pc3, pc4] = pcs as [Entity, Entity, Entity, Entity];
   store.createRelationship("buddy_of", pc1.id, pc2.id, "Shipped out together twice before", PLAYERS);
   store.createRelationship("rival_of", pc3.id, pc4.id, "Both want the first officer's bunk", PLAYERS);
+  // the sheets' Buddy and Rival name the same crewmates (each PC picks one of the others, p. 27)
+  for (const [pc, key, other] of [[pc1, "buddy", pc2], [pc2, "buddy", pc1], [pc3, "rival", pc4], [pc4, "rival", pc3]] as const) {
+    const current = store.get("entities", pc.id)!;
+    pcs[pcs.indexOf(pc)] = store.update("entities", pc.id, { fields: { ...current.fields, [key]: other.id } });
+    recordEdit(store, pcRuns.get(pc.id)!, pc.id, key);
+  }
 
   // -- the ship ------------------------------------------------------------
   const ship = presetToEntity(store, shipPreset, {
@@ -972,7 +982,7 @@ function setupLiveHunt(store: CampaignStore, registry: RichTextRegistry, s: { ma
   // the marshal draws the M314 from the ship's locker (her career's gear list carries one, p. 96)
   const sweeper = s.pcs.find((pc) => pc.tags.includes(DEMO_HUNT.sweeper)) ?? s.pcs[0]!;
   const gear = [...((store.get("entities", sweeper.id)!.fields["gear"] as Array<Record<string, unknown>> | undefined) ?? [])];
-  gear.push({ name: DEMO_HUNT.tracker, weight: 1, qty: 1, supply: 5 });
+  gear.push({ name: DEMO_HUNT.tracker, weight: 1, qty: 1, supply: 5, presetId: "alien.item.motion-tracker" });
   store.update("entities", sweeper.id, { fields: { ...store.get("entities", sweeper.id)!.fields, gear } });
   const sensor = carriedSensors(hunt, store.get("entities", sweeper.id)!)[0];
   if (!sensor) throw new Error("demo hunt: the sweeper carries no motion tracker");

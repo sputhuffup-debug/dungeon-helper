@@ -148,7 +148,7 @@ test("build a fifth edition character in the Thornwick Crossing demo, resume it,
   // 10. in the Atlas, a PC
   await page.goto(`${base}/atlas?tab=pcs`);
   const row = page.getByRole("tabpanel").getByRole("row").filter({ hasText: "Hilda Stonebrook" });
-  await expect(row).toContainText("fighter");
+  await expect(row).toContainText("Class Fighter");
   await expect(page.getByTestId("character-drafts")).not.toContainText("Hill Dwarf Fighter");
 
   // 11. level up once: a second fighter level, average hit points

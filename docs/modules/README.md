@@ -11,6 +11,7 @@ Campaign Forge knows nothing about any one game. Everything a game system brings
 | Ships with the app | Yes, when registered as a built-in pack | Yes, when registered |
 | d20 combat (attacks, AC and saves, damage modifiers, conditions with helper text) | Yes (`d20Combat`) | Yes |
 | Character builder and level-up wizard | Yes (`characterBuilders`) | Yes |
+| A generator offered beside *+ New* for PCs (a life path), a gear list picker on the sheet | Yes (`createsCharacter` on a procedure, `catalog` on a `gear` field) | Yes |
 | Setup guide steps and campaign settings asked at creation | Yes (`setup`, `campaignSettings`) | Yes |
 | Dungeon map generator (floor plan, doors and secrets, room key, encounters, traps, treasure) | Yes (`mapGenerators` with the built-in `dungeon` engine) | Yes (the built-in engine, or any generator in code) |
 | Other combat rules, ship, travel, ledger, progression, campaign arcs, session recap lines, other map generators, adventure builders, adventure sources ("Run this job"), hooks | No (needs code) | Yes |

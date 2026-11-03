@@ -275,6 +275,39 @@ test("alien-weapons", async ({ page }) => {
   await shot(page, "alien-weapons");
 });
 
+test("lifepath-preview", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const base = await loadDemo(page, "skyfire");
+  await page.goto(`${base}/atlas`);
+  await page.getByRole("tab", { name: /^PCs/ }).click();
+  // Roll a Life Path beside + New; the preview reads the career, talents, gear and weapons by name
+  await page.getByRole("button", { name: "Roll a Life Path" }).first().click();
+  await expect(page).toHaveURL(/\/generate\/alien\.lifepath$/);
+  await page.getByTestId("seed").fill("crew-2");
+  const preview = page.getByTestId("preview");
+  await expect(preview.locator('[data-field="weapons"] dd')).toHaveText("M4A3 Service Pistol");
+  await page.getByTestId("preview-name-pc").fill("Rook Calder");
+  await shot(page, "lifepath-preview");
+});
+
+test("gear-picker", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const base = await loadDemo(page, "skyfire");
+  await page.goto(`${base}/atlas`);
+  await page.getByRole("tab", { name: /^PCs/ }).click();
+  await page.getByRole("tabpanel").getByRole("link", { name: "Oliver Bryant" }).click();
+  const gear = page.locator('[data-section="gear"]');
+  await gear.evaluate((e) => e.scrollIntoView({ block: "start" }));
+  await gear.getByTestId("gear-from-list").click();
+  const picker = page.getByTestId("gear-picker");
+  // a tracker goes to Gear, a knife to Weapons; the list stays open and says where each went
+  await picker.getByRole("button", { name: "Add Combat Knife" }).click();
+  await picker.getByRole("button", { name: "Add M314 Motion Tracker" }).click();
+  await expect(picker.getByTestId("gear-picker-status")).toHaveText("Added M314 Motion Tracker to Gear.");
+  await picker.locator('[data-group="gear:vision-devices"]').evaluate((e) => e.scrollIntoView({ block: "start" }));
+  await shot(page, "gear-picker");
+});
+
 test("generator", async ({ page }) => {
   const base = await loadDemo(page, "skyfire");
   await page.goto(`${base}/generate`);

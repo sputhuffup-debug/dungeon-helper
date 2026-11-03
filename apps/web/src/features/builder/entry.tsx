@@ -2,9 +2,11 @@
  * Ways into the character builder: *Build a character* (the Atlas PCs tab,
  * the new-entity page), the unfinished drafts to resume, and *Level up* on a
  * character's sheet. They show only for modules that declare a builder.
+ * Procedures that make a character (`Procedure.createsCharacter`, e.g. a life
+ * path) are offered the same way, beside "+ Character".
  */
 import type { Entity } from "@campaign-forge/core";
-import { canLevelUp, type CharacterBuilderDef } from "@campaign-forge/module-sdk";
+import { canLevelUp, type CharacterBuilderDef, type Procedure } from "@campaign-forge/module-sdk";
 import { useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { Button } from "../../components/ui";
@@ -16,6 +18,45 @@ import "./builder.css";
 export function useCharacterBuilder(entityType?: string): CharacterBuilderDef | undefined {
   const ctx = useCampaign();
   return useMemo(() => ctx.module.characterBuildersFor(entityType)[0], [ctx.module, entityType]);
+}
+
+/**
+ * The module's procedures that make a character in the campaign's play mode:
+ * of `entityType` when given, player-character ones only with `pc`.
+ */
+export function useCharacterProcedures(opts: { entityType?: string; pc?: boolean } = {}): Procedure[] {
+  const ctx = useCampaign();
+  const meta = useMeta();
+  const { entityType, pc } = opts;
+  return useMemo(
+    () =>
+      ctx.module
+        .forMode(meta.mode)
+        .procedures.filter((p) => p.createsCharacter && (!entityType || p.createsCharacter.entityType === entityType) && (pc === undefined || (p.createsCharacter.pc === true) === pc)),
+    [ctx.module, meta.mode, entityType, pc],
+  );
+}
+
+/** A button per character-making procedure (e.g. *Roll a Life Path*), opening it in Generate. */
+export function CharacterProcedureLinks({ entityType, pc, primary = false }: { entityType?: string; pc?: boolean; primary?: boolean }) {
+  const ctx = useCampaign();
+  const navigate = useNavigate();
+  const procedures = useCharacterProcedures({ entityType, pc });
+  return (
+    <>
+      {procedures.map((p) => (
+        <Button
+          key={p.id}
+          variant={primary ? "primary" : "default"}
+          onClick={() => void navigate({ to: "/c/$campaignId/generate/$procedureId", params: { campaignId: ctx.campaignId, procedureId: p.id } })}
+          data-testid="character-procedure"
+          data-procedure={p.id}
+        >
+          {p.createsCharacter!.label}
+        </Button>
+      ))}
+    </>
+  );
 }
 
 export function BuildCharacterButton({ entityType, variant = "primary", label = "Build a character" }: { entityType?: string; variant?: "primary" | "default"; label?: string }) {

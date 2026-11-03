@@ -524,7 +524,7 @@ export function huntTokenKey(token: Pick<HuntToken, "marker" | "label" | "home">
 // sensors and sweeps
 // ---------------------------------------------------------------------------
 
-/** The sensors an entity carries (gear rows by name, or a linked item entity's preset). */
+/** The sensors an entity carries (gear rows by name, the preset a row was picked from, or a linked item entity's preset). */
 export function carriedSensors(hunt: MapHuntDef | undefined, entity: Pick<Entity, "fields">, itemPreset?: (itemId: string) => string | undefined): MapSensorDef[] {
   if (!hunt?.sensors?.length) return [];
   const rows: Array<Record<string, unknown>> = [];
@@ -533,7 +533,15 @@ export function carriedSensors(hunt: MapHuntDef | undefined, entity: Pick<Entity
     if (Array.isArray(v)) for (const r of v) if (r && typeof r === "object") rows.push(r as Record<string, unknown>);
   }
   const names = new Set(rows.map((r) => (typeof r.name === "string" ? r.name.trim().toLowerCase() : "")).filter(Boolean));
-  const presets = new Set(rows.map((r) => (typeof r.itemId === "string" && itemPreset ? itemPreset(r.itemId) : undefined)).filter((x): x is string => !!x));
+  const presets = new Set<string>();
+  for (const r of rows) {
+    if (typeof r.presetId === "string") presets.add(r.presetId);
+    if (typeof r.itemId === "string") {
+      const p = itemPreset?.(r.itemId);
+      // an item entity's preset, or (older preset kits) the preset id itself
+      presets.add(p ?? r.itemId);
+    }
+  }
   return hunt.sensors.filter((s) => (s.carried.names ?? []).some((n) => names.has(n.toLowerCase())) || (s.carried.presets ?? []).some((p) => presets.has(p)));
 }
 

@@ -72,10 +72,32 @@ const isRec = (v: unknown): v is Record<string, unknown> => typeof v === "object
 const humanize = (s: string): string => s.replace(/[-_]+/g, " ").replace(/([a-z])([A-Z])/g, "$1 $2").replace(/^./, (c) => c.toUpperCase());
 const inMode = (item: { mode?: string[] }, mode: string) => !item.mode || item.mode.length === 0 || item.mode.includes(mode);
 
-interface ValueContext {
-  referenceName: PlayerShareInput["referenceName"];
-  /** Names of entities the player may see. */
-  visibleNames: Map<Id, string>;
+/** What `sheetValueText` needs to name references. */
+export interface SheetValueContext {
+  /** A reference list item's name (a career, a talent). */
+  referenceName?: (listId: string, itemId: string) => string | undefined;
+  /** The name of an entity a `ref` value points to, when it may be shown. */
+  entityName: (id: Id) => string | undefined;
+  /**
+   * True when `id` is one of the campaign's entities (shown or not). A `ref`
+   * value that is none is older free text (e.g. a buddy typed by name) and is
+   * shown as written.
+   */
+  isEntity?: (id: Id) => boolean;
+}
+type ValueContext = SheetValueContext;
+
+/** The reference list a field's values come from: `options.ref`, else `config.ref`. */
+function refListOf(f: SheetField | undefined): string | undefined {
+  if (f?.options && !Array.isArray(f.options)) return f.options.ref;
+  return typeof f?.config?.ref === "string" ? f.config.ref : undefined;
+}
+
+/** A `ref` value that is free text rather than an entity id (older data): not an entity, and not shaped like an id. */
+function legacyRefText(v: string, cx: ValueContext): string {
+  const t = v.trim();
+  if (!t || cx.isEntity?.(t) !== false || /^[0-9A-HJKMNP-TV-Z]{26}$/.test(t)) return "";
+  return t;
 }
 
 /** One value of a row object (a gear line, a talent, a condition): its name and count. */
@@ -83,7 +105,7 @@ function rowName(v: unknown, f: SheetField | undefined, cx: ValueContext): strin
   if (typeof v === "string") return v;
   if (typeof v === "number") return String(v);
   if (!isRec(v)) return "";
-  const ref = f?.options && !Array.isArray(f.options) ? f.options.ref : undefined;
+  const ref = refListOf(f);
   let name = typeof v.name === "string" ? v.name : typeof v.label === "string" ? v.label : typeof v.text === "string" ? v.text : "";
   if (!name && typeof v.id === "string") name = (ref ? cx.referenceName?.(ref, v.id) : undefined) ?? humanize(v.id);
   if (!name) return "";
@@ -92,16 +114,25 @@ function rowName(v: unknown, f: SheetField | undefined, cx: ValueContext): strin
   return `${lead}${name}${count !== undefined && count > 1 ? ` ×${count}` : ""}`;
 }
 
-/** A sheet value as one line of text ("" when there is nothing to show). */
+/**
+ * A sheet value as one line of text ("" when there is nothing to show):
+ * reference list ids by their item's name (a career, talents with their
+ * count), list rows by name and quantity, entity references by the entity's
+ * name. Used by player packets and by previews of generated entities.
+ */
+export function sheetValueText(f: SheetField | undefined, v: unknown, cx: SheetValueContext): string {
+  return sheetValue(f, v, cx);
+}
+
 function sheetValue(f: SheetField | undefined, v: unknown, cx: ValueContext): string {
   if (v === undefined || v === null) return "";
   const widget = f?.widget;
   if (widget === "image" || widget === "zonemap" || widget === "richtext") return "";
-  if (widget === "ref") return typeof v === "string" ? (cx.visibleNames.get(v) ?? "") : "";
+  if (widget === "ref") return typeof v === "string" ? (cx.entityName(v) ?? legacyRefText(v, cx)) : "";
   if (widget === "reflist")
     return Array.isArray(v)
       ? v
-          .map((id) => (typeof id === "string" ? cx.visibleNames.get(id) : undefined))
+          .map((id) => (typeof id === "string" ? cx.entityName(id) : undefined))
           .filter(Boolean)
           .join(", ")
       : "";
@@ -204,7 +235,8 @@ export function playerPacketSnapshot(input: PlayerPacketInput): PlayerPacket {
   const viewer = memberViewer(maps, memberId);
   const share = playerShareSnapshot({ ...input, module, viewer });
   const projected = projectCampaignForViewer(maps, module, viewer);
-  const cx: ValueContext = { referenceName: input.referenceName, visibleNames: new Map(Object.values(projected.entities).map((e) => [e.id, e.name] as const)) };
+  const visibleNames = new Map(Object.values(projected.entities).map((e) => [e.id, e.name] as const));
+  const cx: ValueContext = { referenceName: input.referenceName, entityName: (id) => visibleNames.get(id), isEntity: (id) => id in maps.entities };
   const characters: PacketCharacter[] = [];
   for (const id of charactersOfMember(maps, memberId)) {
     const raw = maps.entities[id];
