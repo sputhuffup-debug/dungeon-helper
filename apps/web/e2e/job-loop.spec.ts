@@ -28,6 +28,8 @@ test("job loop: take a job, run it, play it with its site map and NPCs, close it
   const card = page.getByTestId("offer-board").getByTestId("offer-card").first();
   const taken = (await card.locator("h3").innerText()).replace(/^Posting 1:\s*/, "").trim();
   await card.getByTestId("offer-accept").click();
+  await expect(card).toHaveAttribute("data-state", "accept");
+  await card.getByTestId("offer-next").click();
   await expect(page).toHaveURL(/\/entities\/[0-9A-Z]{26}$/);
   const jobUrl = page.url();
   const jobId = jobUrl.split("/").pop()!;
@@ -119,7 +121,9 @@ test("job loop: take a job, run it, play it with its site map and NPCs, close it
   const accept = page.getByTestId("accept");
   await expect(accept).toHaveText(/^Accept and apply \d+ effects? and move the clocks$/);
   await accept.click();
-  await expect(accept).toHaveText("Accepted");
+  // accepted: said so, "Accept again" demoted (it asks first), the next step below
+  await expect(page.getByTestId("accepted-note")).toContainText("Accepted");
+  await expect(page.getByTestId("accept-again")).toBeVisible();
   await expect(page.getByTestId("arc-tick-done")).toContainText("Moved with the run");
   await expect(page.getByRole("button", { name: "Applied" })).toBeVisible();
 

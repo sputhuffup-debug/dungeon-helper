@@ -557,6 +557,62 @@ export interface GeneratorRun extends BaseRecord {
   editedFields: Array<{ entity: Id; path: string }>;
 }
 
+/** What the GM did with one offer of a drafted board (a posting taken, kept as a lead, put on the arc board, discarded). */
+export interface GeneratorDraftOffer {
+  as: "accept" | "keep" | "arc" | "discard";
+  /** The record it made (the job, the thread), and its name then. */
+  record?: Id;
+  name?: string;
+  /** The run accepting it recorded. */
+  run?: Id;
+  at: string;
+}
+
+/** The draft's last accept: the run it recorded and what the page shows about it (records written, effects applied). */
+export interface GeneratorDraftAccept {
+  run: Id;
+  at: string;
+  /** Page-specific details (records written, effects applied, clocks moved), kept so a reopened page can say what happened. */
+  detail?: Record<string, unknown>;
+}
+
+/**
+ * The generator workbench's current deal for one procedure (GM only, one per
+ * procedure per campaign): what it takes to show the same run again after
+ * navigating away or reloading (seed, inputs, re-rolls, pins, entered dice
+ * and the GM's own edits), what was done with each offer of a board, and the
+ * last accept. "New deal" replaces it. The player projection holds none, so
+ * drafts never reach shares, packets or the player screen; bundles carry them
+ * like every other map, so a re-imported campaign keeps its boards.
+ */
+export interface GeneratorDraft extends BaseRecord {
+  procedure: string;
+  moduleId: string;
+  moduleVersion: string;
+  seed: string;
+  inputs: Record<string, unknown>;
+  stepSeeds?: Record<string, string>;
+  stepDice?: Record<string, number[]>;
+  pinned?: Record<string, unknown>;
+  /** The rolls of pinned steps, as they were when pinned. */
+  pinnedRolls?: Record<string, RollRecord[]>;
+  partSeeds?: Record<string, string>;
+  pinnedParts?: Record<string, unknown>;
+  includeOptional?: string[];
+  /** Results nest within this entity. */
+  within?: Id;
+  /** The GM's own text and choices on the draft (agenda wording, names, unticked effects), under the app's keys. */
+  edits?: Record<string, unknown>;
+  /** What started it when it was not a plain visit ("run:<id>", "chain:<run>:<n>", "pick:<value>"): the same request reopens it. */
+  source?: string;
+  /** The board's offers, in order, when the procedure deals one. */
+  offerKeys?: string[];
+  /** Offer key -> what was done with it. */
+  offers?: Record<string, GeneratorDraftOffer>;
+  /** Set once the whole run is accepted; cleared when the GM changes the run again. */
+  accepted?: GeneratorDraftAccept;
+}
+
 export interface TrackerState extends BaseRecord {
   session: Id;
   /** Tracker id -> arbitrary state (clock, initiative order, countdown, logs). */
@@ -830,6 +886,8 @@ export interface CampaignMaps {
   notes: Record<Id, Note>;
   maps: Record<Id, SiteMap>;
   generatorRuns: Record<Id, GeneratorRun>;
+  /** The generator workbench's current deal, one per procedure (GM-only). */
+  generatorDrafts: Record<Id, GeneratorDraft>;
   trackerState: Record<Id, TrackerState>;
   assets: Record<Id, Asset>;
   ledger: Record<Id, LedgerEntry>;
@@ -854,6 +912,7 @@ export const MAP_NAMES: MapName[] = [
   "notes",
   "maps",
   "generatorRuns",
+  "generatorDrafts",
   "trackerState",
   "assets",
   "ledger",

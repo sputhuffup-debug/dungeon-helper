@@ -72,6 +72,10 @@ test("job board: deal postings, take one, see its NPCs and brief, generate its s
   await expect(board.getByTestId("offers-discarded")).toContainText("1 posting discarded");
   const taken = firstTitle.replace(/^Posting 1:\s*/, "").trim();
   await cards.first().getByTestId("offer-accept").click();
+  // the taken posting stays on the board, marked, with the job as the next step
+  await expect(cards.first()).toHaveAttribute("data-state", "accept");
+  await expect(cards).toHaveCount(2);
+  await cards.first().getByTestId("offer-next").click();
   await expect(page).toHaveURL(/\/entities\/[0-9A-Z]{26}$/);
   await expect(page.getByTestId("entity-page")).toContainText(taken);
   const jobUrl = page.url();
