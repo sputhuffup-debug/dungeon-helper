@@ -46,7 +46,9 @@ test("the live hunt: a suggested move, a sweep, blips on the player screen, and 
 
   // the next stretch: the GM is asked, and accepts the stalker's suggested move
   await panel.getByTestId("hunt-next-stretch").click();
-  await expect(panel.getByTestId("hunt-prompt")).toContainText("Stretch 3 begins. Move hidden threats? Sweep?");
+  // the hunt follows the table clock (one round counter): the header's stretch 1
+  await expect(panel.getByTestId("hunt-prompt")).toContainText("Stretch 1 begins. Move hidden threats? Sweep?");
+  await expect(page.getByTestId("table-clock").getByTestId("clock-stretch")).toHaveText("1");
   const before = (await stalker.getAttribute("data-zone"))!;
   const to = (await stalker.getByTestId("hunt-suggestion").getAttribute("data-to"))!;
   expect(to).not.toBe(before);

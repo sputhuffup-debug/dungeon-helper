@@ -55,6 +55,19 @@ export function useMapView(viewportRef: RefObject<HTMLDivElement | null>, width:
     setView({ zoom, x: (vw - width * zoom) / 2, y: (vh - height * zoom) / 2 });
   }, [viewportRef, width, height]);
 
+  /** Fit a box of the image (in pixels) into the viewport, centred. */
+  const fitBox = useCallback(
+    (box: { x: number; y: number; w: number; h: number }) => {
+      const el = viewportRef.current;
+      const vw = el?.clientWidth ?? 0;
+      const vh = el?.clientHeight ?? 0;
+      if (vw <= 0 || vh <= 0 || box.w <= 0 || box.h <= 0) return;
+      const zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, Math.min(vw / box.w, vh / box.h) * 0.95));
+      setView({ zoom, x: vw / 2 - (box.x + box.w / 2) * zoom, y: vh / 2 - (box.y + box.h / 2) * zoom });
+    },
+    [viewportRef],
+  );
+
   const onWheel = useCallback(
     (e: WheelEvent<HTMLDivElement>) => {
       e.preventDefault();
@@ -73,7 +86,7 @@ export function useMapView(viewportRef: RefObject<HTMLDivElement | null>, width:
     [viewportRef, view],
   );
 
-  return { view, setView, zoomAt, fit, onWheel, toImage };
+  return { view, setView, zoomAt, fit, fitBox, onWheel, toImage };
 }
 
 export interface MapStageProps {

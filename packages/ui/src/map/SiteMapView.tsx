@@ -98,6 +98,53 @@ export interface SiteMapViewProps {
   toolbar?: boolean | undefined;
   /** Extra toolbar content (left of the zoom buttons). */
   actions?: ReactNode;
+  /**
+   * Zones to frame instead of the whole deck (e.g. the revealed and occupied
+   * zones on a phone): the first fit opens on the deck holding most of them,
+   * zoomed to them with a margin, and the toolbar gains a "Focus" button.
+   * "Fit" still shows the whole deck.
+   */
+  focus?: string[] | undefined;
+}
+
+/** Grid units kept around focused zones, and the smallest box a focus frames (so one room is not blown up to the whole screen). */
+const FOCUS_PAD = 2;
+const FOCUS_MIN = 14;
+
+/** The box (grid units, drawing coordinates: deck origin plus the 1-unit margin) around the focus zones on a deck. */
+export function focusBox(layout: SiteLayout, deck: string | undefined, zones: string[] | undefined): { x: number; y: number; w: number; h: number } | undefined {
+  if (!zones?.length) return undefined;
+  const ids = new Set(zones);
+  const polys = layout.zones.filter((z) => ids.has(z.id) && z.deck === deck).map((z) => z.poly);
+  if (polys.length === 0) return undefined;
+  let x0 = Infinity;
+  let y0 = Infinity;
+  let x1 = -Infinity;
+  let y1 = -Infinity;
+  for (const p of polys)
+    for (const [x, y] of p) {
+      x0 = Math.min(x0, x);
+      y0 = Math.min(y0, y);
+      x1 = Math.max(x1, x);
+      y1 = Math.max(y1, y);
+    }
+  const margin = 1;
+  const w = Math.max(FOCUS_MIN, x1 - x0 + FOCUS_PAD * 2);
+  const h = Math.max(FOCUS_MIN * 0.75, y1 - y0 + FOCUS_PAD * 2);
+  const cx = (x0 + x1) / 2 + margin;
+  const cy = (y0 + y1) / 2 + margin;
+  return { x: cx - w / 2, y: cy - h / 2, w, h };
+}
+
+/** The deck holding most of the zones (the first such deck in layout order). */
+export function busiestDeck(layout: SiteLayout, zones: string[] | undefined): string | undefined {
+  if (!zones?.length) return undefined;
+  const ids = new Set(zones);
+  const counts = new Map<string, number>();
+  for (const z of layout.zones) if (ids.has(z.id)) counts.set(z.deck, (counts.get(z.deck) ?? 0) + 1);
+  let best: string | undefined;
+  for (const d of layout.decks) if ((counts.get(d.id) ?? 0) > (best ? (counts.get(best) ?? 0) : 0)) best = d.id;
+  return best;
 }
 
 /** Pixels per grid unit on screen. */
@@ -126,9 +173,10 @@ export function SiteMapView({
   className,
   toolbar = true,
   actions,
+  focus,
 }: SiteMapViewProps) {
   const prefix = useId().replace(/[^a-zA-Z0-9_-]/g, "");
-  const [innerDeck, setInnerDeck] = useState<string | undefined>(layout.decks[0]?.id);
+  const [innerDeck, setInnerDeck] = useState<string | undefined>(() => busiestDeck(layout, focus) ?? layout.decks[0]?.id);
   const deck = deckProp ?? (layout.decks.some((d) => d.id === innerDeck) ? innerDeck : layout.decks[0]?.id);
   const [gridOn, setGridOn] = useState(gridProp ?? view !== "tracking");
   const grid = gridProp ?? gridOn;
@@ -140,7 +188,14 @@ export function SiteMapView({
   const width = drawing.width * scale;
   const height = drawing.height * scale;
   const viewportRef = useViewportRef();
-  const { view: stage, setView, zoomAt, fit, onWheel } = useMapView(viewportRef, width, height);
+  const { view: stage, setView, zoomAt, fit: fitAll, fitBox, onWheel } = useMapView(viewportRef, width, height);
+  const focusKey = (focus ?? []).join("|");
+  const box = useMemo(() => focusBox(layout, deck, focusKey ? focusKey.split("|") : undefined), [layout, deck, focusKey]);
+  const focusOn = () => {
+    if (box) fitBox({ x: box.x * scale, y: box.y * scale, w: box.w * scale, h: box.h * scale });
+    else fitAll();
+  };
+  const fit = focus ? focusOn : fitAll;
   const panRef = useRef<null | { sx: number; sy: number; ox: number; oy: number; zone?: string | undefined; link?: { deck: string; zone: string } | undefined }>(null);
   // Pointer capture on the stage can retarget `click` to the viewport, so a
   // press and release without movement on a zone selects it; `click` (and
@@ -159,6 +214,21 @@ export function SiteMapView({
     fit();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deck, view]);
+  // a map mounted while hidden (a tab not shown yet) has no size to fit: fit when it first gets one
+  const fitRef = useRef(fit);
+  fitRef.current = fit;
+  useEffect(() => {
+    const el = viewportRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    let hidden = el.clientWidth === 0 || el.clientHeight === 0;
+    const ro = new ResizeObserver(() => {
+      const now = el.clientWidth === 0 || el.clientHeight === 0;
+      if (hidden && !now) fitRef.current();
+      hidden = now;
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [viewportRef]);
 
   const pickDeck = (id: string) => {
     setInnerDeck(id);
@@ -224,7 +294,12 @@ export function SiteMapView({
             <Button size="sm" onClick={() => zoomAt(1.25)} aria-label="Zoom in">
               +
             </Button>
-            <Button size="sm" variant="ghost" onClick={fit}>
+            {focus && box && (
+              <Button size="sm" variant="ghost" onClick={focusOn} title="Frame the zones the crew has seen and stands in" data-testid="map-focus">
+                Focus
+              </Button>
+            )}
+            <Button size="sm" variant="ghost" onClick={fitAll}>
               Fit
             </Button>
           </ToolbarGroup>

@@ -90,8 +90,11 @@ export function initiativeOrder(participants: Participant[], rolled: boolean): P
  * asks for each participant's die and adds their modifier, and drawn cards
  * can be typed in; both are marked "entered".
  */
-export function InitiativeTracker({ def, state, onChange, entities = [], rng, onLog, readonly, className }: TrackerProps) {
+export function InitiativeTracker({ def, state, onChange, entities = [], rng, onLog, readonly, className, round: tableRound }: TrackerProps) {
   const init = initiativeState(state);
+  // the table's round counter, when the app keeps one; else the tracker's own
+  const round = tableRound?.value ?? init.round;
+  const roundLabel = tableRound?.label ?? "Round";
   const rolled = def.config?.method === "roll";
   const rollDiceExpr = typeof def.config?.dice === "string" ? def.config.dice : "1d20";
   const deckSize = typeof def.config?.cards === "number" ? def.config.cards : 10;
@@ -175,8 +178,15 @@ export function InitiativeTracker({ def, state, onChange, entities = [], rng, on
     if (!a || !b) return;
     commit({ participants: init.participants.map((p) => (p.id === a.id ? { ...p, card: b.card } : p.id === b.id ? { ...p, card: a.card } : p)) });
   };
+  // a new round: everyone may act again (the cards stay; draw again for a fresh order)
   const nextRound = () => {
-    commit({ round: init.round + 1, participants: init.participants.map((p) => ({ ...p, acted: false })) });
+    const participants = init.participants.map((p) => ({ ...p, acted: false }));
+    if (tableRound) {
+      commit({ participants });
+      tableRound.advance();
+      return;
+    }
+    commit({ round: init.round + 1, participants });
     onLog?.(`Round ${init.round + 1}`);
   };
 
@@ -186,7 +196,9 @@ export function InitiativeTracker({ def, state, onChange, entities = [], rng, on
       className={className}
       actions={
         <>
-          <Badge tone="accent">Round {init.round}</Badge>
+          <Badge tone="accent" data-testid="initiative-round">
+            {roundLabel} {round}
+          </Badge>
           {!readonly && (
             <>
               <Button size="sm" onClick={() => draw(false)} disabled={init.participants.length === 0}>

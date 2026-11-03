@@ -7,7 +7,7 @@
  * NPCs and the arc clue seeded with the job. The wrap-up closes the job as
  * done, failed or carried over. Module-original wiring; no book text.
  */
-import type { AdventureSceneFill, AdventureSourceDef, AdventureSourceFill, AdventureSourceInput, AdventureSourceLink } from "@campaign-forge/module-sdk";
+import type { AdventureSceneFill, AdventureSourceDef, AdventureSourceFill, AdventureSourceInput, AdventureSourceLink, AdventureSourcePerson } from "@campaign-forge/module-sdk";
 import { CAMPAIGN } from "./modes";
 import { jobCardTemplate } from "./templates/jobCard";
 
@@ -148,6 +148,30 @@ export function runJobPrefill(input: AdventureSourceInput): AdventureSourceFill 
   return fill;
 }
 
+/**
+ * The job's people for the GM at the table and on the job page: each NPC's
+ * agenda, wants and secret from their sheet, and whether they turn on the
+ * crew (the job's betrayers, p. 244). GM only; module-original wording.
+ */
+export function runJobPeople(input: AdventureSourceInput): AdventureSourcePerson[] {
+  const betrayers = new Set(strs(input.entity.fields.betrayers));
+  return jobNpcs(input).map((l) => {
+    const f = l.entity.fields;
+    const notes = [
+      str(f.personalAgenda) && { label: "Agenda", text: str(f.personalAgenda) },
+      str(f.goal) && { label: "Wants", text: str(f.goal) },
+      str(f.secret) && { label: "Secret", text: str(f.secret) },
+    ].filter((n): n is { label: string; text: string } => !!n);
+    const turns = betrayers.has(l.entity.name);
+    return {
+      entity: l.entity.id,
+      ...(l.note ? { role: l.note } : {}),
+      notes,
+      stance: turns ? { label: "Turns on the crew", tone: "danger" as const } : { label: "Does not turn on the crew", tone: "muted" as const },
+    };
+  });
+}
+
 export const runJob: AdventureSourceDef = {
   id: RUN_JOB_ID,
   entityType: "alien.job",
@@ -163,4 +187,5 @@ export const runJob: AdventureSourceDef = {
     { id: "carried", label: "Carried over", tone: "muted" },
   ],
   prefill: runJobPrefill,
+  people: runJobPeople,
 };

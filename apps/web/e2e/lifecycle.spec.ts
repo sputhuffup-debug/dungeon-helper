@@ -14,6 +14,8 @@ test("xenomorph life cycle: start an infection on a PC, advance the clock, the c
 
   // start an infection from a player character's card
   const pcs = page.getByRole("list", { name: "Player characters" });
+  // (compact rows: "Start infection" is under each PC's "More")
+  for (const more of await pcs.getByTestId("participant-more").all()) await more.click();
   const start = pcs.getByRole("button", { name: /^Start infection: / }).first();
   const host = ((await start.getAttribute("aria-label")) ?? "").replace("Start infection: ", "");
   expect(host).not.toBe("");

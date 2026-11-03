@@ -121,6 +121,8 @@ test("progression: Story Points at the table in cinematic play, awarded for the 
   const card = page.getByRole("list", { name: "Player characters" }).locator("li").first();
   const name = (await card.locator(".app-participant__name").innerText()).trim();
   const id = (await card.getAttribute("data-entity"))!;
+  // (a compact row: the Story Points card is under "More")
+  await card.getByTestId("participant-more").click();
   const sp = card.getByTestId("story-points");
   await expect(sp).toHaveAttribute("data-value", "0");
   await card.getByRole("button", { name: `Award a Story Point to ${name} for act 1` }).click();

@@ -4,6 +4,7 @@ import {
   advanceHunt,
   carriedSensors,
   huntMarkerSources,
+  huntSourceGroups,
   huntOf,
   liveOf,
   moveHuntToken,
@@ -136,6 +137,34 @@ describe("hidden threat tokens", () => {
     expect(lurker).toMatchObject({ zone: "V2", home: "V2", state: "hidden", mover: "creature", marker: "M2", data: { speed: 1, state: "active" }, route: ["V1"], routeAt: 0, trail: [] });
     // the plain tokens and pings are untouched
     expect(liveOf(map()).tokens).toEqual([]);
+  });
+
+  it("groups sources: marks, the NPCs on this map once each across acts (with their record), then the rest of the cast", () => {
+    const layout = huntLayout();
+    // the same NPC marked in every act, as a job's site map does
+    layout.markers.push(
+      { id: "N1", kind: "npc", zone: "A", label: "Tara Zanelli", act: 1, gmOnly: true, data: { name: "Tara Zanelli", role: "survivor" } },
+      { id: "N2", kind: "npc", zone: "B", label: "Tara Zanelli", act: 2, gmOnly: true, data: { name: "Tara Zanelli", role: "survivor" } },
+      { id: "N3", kind: "npc", zone: "D", label: "Tara Zanelli", act: 3, gmOnly: true, data: { name: "Tara Zanelli", role: "survivor" } },
+    );
+    const hunt: MapHuntDef = { ...HUNT, movers: HUNT.movers.map((m) => (m.id === "people" ? { ...m, from: { ...m.from, entities: [{ type: "fixture.npc" }] } } : m)) };
+    const store = newStore();
+    const tara = store.createEntity({ type: "fixture.npc", name: "Tara Zanelli" });
+    const ken = store.createEntity({ type: "fixture.npc", name: "Ken Ibana" });
+    const groups = huntSourceGroups(layout, hunt, [tara, ken], { act: 2 });
+    expect(groups.marks.map((s) => s.label)).toEqual(["Lurker"]);
+    expect(groups.npcs.map((s) => [s.label, s.zone, s.entity, s.marker])).toEqual([
+      ["Thug", "E", undefined, "M4"],
+      ["Tara Zanelli", "B", tara.id, "N2"],
+    ]);
+    expect(groups.cast.map((s) => s.label)).toEqual(["Ken Ibana"]);
+    // placed: Tara (any act's mark, or her record) and the lurker leave the picker
+    const after = huntSourceGroups(layout, hunt, [tara, ken], { act: 1, placed: ["N3", "M2"] });
+    expect(after.marks).toEqual([]);
+    expect(after.npcs.map((s) => s.label)).toEqual(["Thug"]);
+    expect(huntSourceGroups(layout, hunt, [tara, ken], { placed: [tara.id] }).npcs.map((s) => s.label)).toEqual(["Thug"]);
+    // without an act, the first act's zone
+    expect(huntSourceGroups(layout, hunt, [tara]).npcs.find((s) => s.label === "Tara Zanelli")!.zone).toBe("A");
   });
 
   it("moves zone by zone with a short GM-only trail, stamped with the step", () => {

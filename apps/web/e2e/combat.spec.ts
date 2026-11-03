@@ -79,6 +79,8 @@ test("combat at the table: a creature turn against a PC, damage to the creature 
   await expect(hugger.getByRole("meter", { name: `${huggerName} health` })).toHaveAttribute("aria-valuenow", "0");
 
   // 4. a special attack from Rosa's card, opposed by Teo
+  // (a compact row: the special attack is under "More")
+  await pcs.getByRole("button", { name: "More for Rosa Ilunga" }).click();
   await pcs.getByRole("button", { name: "Special attack for Rosa Ilunga" }).click();
   const special = page.getByTestId("special-attack");
   await expect(special.getByRole("combobox", { name: "Special attack character" })).toHaveValue(/.+/);

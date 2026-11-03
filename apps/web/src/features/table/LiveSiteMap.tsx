@@ -24,6 +24,7 @@ import {
   moveToken,
   placeToken,
   removeToken,
+  restoreLive,
   revealZones,
   setAct,
   setBorderState,
@@ -36,7 +37,8 @@ import {
   type Scene,
   type SiteMap,
 } from "@campaign-forge/core";
-import type { MapGeneratorDef, MapLegendEntry, MapZoneData } from "@campaign-forge/module-sdk";
+import type { MapGeneratorDef, MapLegendEntry, MapZoneData, Prompt } from "@campaign-forge/module-sdk";
+import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Badge, Button, Card, MapLegend, PageRef, SiteMapView, pushToast, useDiceRoller } from "../../components/ui";
@@ -50,7 +52,7 @@ import { clearPingsOnStretch, clockStamp, ensureLive, huntSignal, huntStepPassed
 import { useInitiativeCurrent } from "./Combat";
 import { HuntPanel, type HuntPrompt } from "./HuntPanel";
 import { RollSource } from "./RollSource";
-import { useModeTrackers } from "./TrackersPanel";
+import { useModeTrackers, useTableClock } from "./TrackersPanel";
 
 const TOOLS: Array<{ id: LiveTool; label: string; hint: string }> = [
   { id: "select", label: "Select", hint: "Click a zone to see and change it." },
@@ -71,7 +73,23 @@ function flagTarget(e: MapLegendEntry): { flag: string; value: unknown } | undef
   return "flag" in e.target ? { flag: e.target.flag, value: e.target.value ?? true } : undefined;
 }
 
-export function LiveSiteMap({ sessionId, map, scene, participants }: { sessionId: Id; map: SiteMap; scene: Scene | undefined; participants: Entity[] }) {
+export function LiveSiteMap({
+  sessionId,
+  map,
+  scene,
+  participants,
+  onPrompts,
+  focus,
+}: {
+  sessionId: Id;
+  map: SiteMap;
+  scene: Scene | undefined;
+  participants: Entity[];
+  /** Prompts in-world time raised when the hunt moved the clock. */
+  onPrompts?: (prompts: Prompt[]) => void;
+  /** Open framed on the revealed and occupied zones (a phone), not the whole deck. */
+  focus?: boolean;
+}) {
   const ctx = useCampaign();
   const store = ctx.store;
   const def = useMapGenerator(map);
@@ -105,13 +123,21 @@ export function LiveSiteMap({ sessionId, map, scene, participants }: { sessionId
   const huntState = huntOf(live);
   const pcs = usePlayerCharacters();
   const initiative = useInitiativeCurrent(sessionId);
-  const signal = clock ? huntSignal(clock.config, ts?.state[clock.id], initiative?.round) : huntSignal(undefined, undefined, initiative?.round);
+  // one round counter: with a table clock the hunt follows the clock alone (the initiative tracker advances the clock too)
+  const signal = clock ? huntSignal(clock.config, ts?.state[clock.id], undefined) : huntSignal(undefined, undefined, initiative?.round);
   const lastSignal = useRef<{ stretch: string; round: string } | undefined>(undefined);
   const [prompt, setPrompt] = useState<HuntPrompt | undefined>();
   const [moving, setMoving] = useState<string | undefined>();
+  const tableClock = useTableClock(sessionId);
   const advance = (kind: string) => {
     const next = advanceHunt(store, map.id, kind);
-    setPrompt({ step: next.step, kind });
+    setPrompt({ step: tableClock?.value(kind) ?? next.step, kind });
+  };
+  // "Next stretch" / "Next round" in the hunt panel move the table clock and the hunt follows it
+  // (with no threat in play only the clock moves: nothing to ask); without a clock unit for the step, the hunt counts it
+  const nextStep = (kind: string) => {
+    if (tableClock?.value(kind) !== undefined) tableClock.advance(kind, onPrompts);
+    else advance(kind);
   };
   useEffect(() => {
     const prev = lastSignal.current;
@@ -148,6 +174,22 @@ export function LiveSiteMap({ sessionId, map, scene, participants }: { sessionId
   const [range, setRange] = useState<{ from?: string | undefined; to?: string | undefined }>({});
   const reading = useMemo(() => (range.from && range.to ? measureRange(layout, live, def, range.from, range.to) : undefined), [layout, live, def, range]);
   const fogged = useMemo(() => unrevealed(layout, live), [layout, live]);
+  const [resetting, setResetting] = useState(false);
+  // "Reveal all" un-fogs the whole site on the player screen: an undo puts the fog back on the zones it opened
+  const revealAll = () => {
+    const opened = layout.zones.map((z) => z.id).filter((id) => !live.revealed.includes(id));
+    revealZones(store, map.id, opened);
+    pushToast(`Every zone of ${map.name} is on the player screen.`, { action: { label: "Undo", onClick: () => revealZones(store, map.id, opened, false) } });
+  };
+  // a phone opens the map on what the crew has seen and where the tokens stand
+  // (where the tokens stand first: their deck, with the zones revealed on it; else every revealed zone)
+  const focusZones = useMemo(() => {
+    if (!focus) return undefined;
+    const occupied = live.tokens.map((t) => t.zone);
+    const decks = new Set(occupied.map((z) => byId.get(z)?.deck));
+    const revealed = occupied.length ? live.revealed.filter((z) => decks.has(byId.get(z)?.deck)) : live.revealed;
+    return [...new Set([...occupied, ...revealed])];
+  }, [focus, live.revealed, live.tokens, byId]);
 
   const onZone = (zone: string) => {
     switch (tool) {
@@ -210,6 +252,11 @@ export function LiveSiteMap({ sessionId, map, scene, participants }: { sessionId
         ))}
         <span className="app-grow cf-muted">{tools.find((t) => t.id === tool)?.hint}</span>
         <Badge>{live.revealed.length} revealed</Badge>
+        {fogged.length > 0 && (
+          <Button size="sm" variant="ghost" onClick={revealAll} data-testid="map-reveal-all" title="Show every zone on the player screen (you can undo it)">
+            Reveal all
+          </Button>
+        )}
         {live.pings.length > 0 && (
           <Button size="sm" variant="ghost" onClick={() => clearPings(store, map.id)}>
             Clear {live.pings.length} ping{live.pings.length === 1 ? "" : "s"}
@@ -231,6 +278,7 @@ export function LiveSiteMap({ sessionId, map, scene, participants }: { sessionId
         palette={palette}
         title={map.name}
         className="app-livemap__map"
+        focus={focusZones}
       />
 
       <RangePanel layout={layout} label={label} range={range} setRange={setRange} reading={reading} />
@@ -245,7 +293,8 @@ export function LiveSiteMap({ sessionId, map, scene, participants }: { sessionId
           suggestions={suggestions}
           prompt={prompt}
           onDismissPrompt={() => setPrompt(undefined)}
-          onAdvance={advance}
+          onAdvance={nextStep}
+          stepNumber={tableClock?.value(huntState.stepKind ?? hunt.hunt!.steps[0]?.id ?? "") ?? huntState.step}
           moving={moving}
           onMove={(id) => {
             setMoving(id);
@@ -274,14 +323,30 @@ export function LiveSiteMap({ sessionId, map, scene, participants }: { sessionId
         <summary>Legend</summary>
         <MapLegend legend={legend} view="gm" palette={palette} />
       </details>
-      <div className="app-row">
-        <Button size="sm" variant="ghost" onClick={() => revealZones(store, map.id, layout.zones.map((z) => z.id))}>
-          Reveal all
-        </Button>
-        <Button size="sm" variant="ghost" onClick={() => startLive(store, map.id, live.act)}>
-          Reset the map
-        </Button>
-      </div>
+      <details className="app-livemap__more" data-testid="map-more">
+        <summary>More map actions</summary>
+        <div className="app-row">
+          <p className="cf-muted app-small app-grow">Start the map over: the crew's tokens, the explored zones, doors, flags, pings and the hunt are cleared; the start zone is revealed again.</p>
+          <Button size="sm" variant="danger" onClick={() => setResetting(true)} data-testid="map-reset">
+            Reset the map…
+          </Button>
+        </div>
+      </details>
+      <ConfirmDialog
+        open={resetting}
+        title="Reset the map?"
+        confirmLabel="Reset the map"
+        danger
+        onCancel={() => setResetting(false)}
+        onConfirm={() => {
+          setResetting(false);
+          const before = liveOf(map);
+          startLive(store, map.id, live.act);
+          pushToast(`${map.name} was reset.`, { tone: "warning", action: { label: "Undo", onClick: () => restoreLive(store, map.id, before) } });
+        }}
+      >
+        <p>This clears the PCs' positions, every explored zone, the doors and flags changed in play, the pings and the hidden threats on {map.name}. The players' map goes back to the start zone.</p>
+      </ConfirmDialog>
     </Card>
   );
 }

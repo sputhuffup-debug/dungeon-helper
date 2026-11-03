@@ -970,6 +970,8 @@ h3 {
     border-right: 0;
     border-top: 1px solid var(--cf-border);
     z-index: 20;
+    /* nine labels share a phone's width: wider fonts scroll the bar, never the page */
+    overflow-x: auto;
   }
   .app-nav__link {
     flex-direction: column;
@@ -3448,4 +3450,416 @@ a.cf-btn {
   padding: var(--cf-space-1) var(--cf-space-2);
   border-left: 3px solid var(--cf-warning);
   background: var(--cf-warning-soft);
+}
+
+/* ---------------------------------------------- table layout: compact rows */
+.app-participants {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cf-space-1);
+}
+.app-participant {
+  gap: 0;
+  padding: var(--cf-space-1) var(--cf-space-3);
+}
+.app-participant__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cf-space-1) var(--cf-space-3);
+  min-width: 0;
+}
+.app-participant__row .app-participant__name {
+  font-size: var(--cf-text-md);
+}
+.app-participant__stress {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--cf-space-1);
+}
+.app-participant__toggle {
+  margin-left: auto;
+}
+.app-participant__more {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cf-space-2);
+  margin-top: var(--cf-space-1);
+  padding: var(--cf-space-2) 0 var(--cf-space-1);
+  border-top: 1px dashed var(--cf-border);
+}
+
+/* "This job" at the table (GM only) */
+.app-thisjob__people {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cf-space-3);
+}
+.app-thisjob__person {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cf-space-1);
+}
+.app-thisjob__lines {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--cf-space-1);
+}
+.app-thisjob__notes {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 2px var(--cf-space-3);
+  margin: 0;
+  font-size: var(--cf-text-sm);
+}
+.app-thisjob__note {
+  display: contents;
+}
+.app-thisjob__note dt {
+  color: var(--cf-muted);
+  font-size: var(--cf-text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding-top: 2px;
+}
+.app-thisjob__note dd {
+  margin: 0;
+}
+
+/* the player screen: a clue the GM just revealed */
+.app-player__spotlight {
+  grid-column: 1 / -1;
+  padding: var(--cf-space-3) var(--cf-space-4);
+  border-left: 4px solid var(--cf-accent);
+  border-radius: var(--cf-radius);
+  background: var(--cf-elevated);
+}
+.app-player__spotlight-text {
+  margin: var(--cf-space-1) 0;
+  font-size: var(--cf-text-lg);
+}
+
+/* the live map's rarely used actions */
+.app-livemap__more {
+  margin: var(--cf-space-2) 0 0;
+}
+.app-livemap__more > summary {
+  cursor: pointer;
+  color: var(--cf-muted);
+}
+.app-livemap__more > .app-row {
+  margin-top: var(--cf-space-2);
+  align-items: center;
+}
+
+/* --------------------- phones and tablets: panels behind a bottom tab bar */
+.app-table.app-table--narrow {
+  overflow: hidden;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+}
+.app-table--narrow .app-table__header {
+  gap: var(--cf-space-2);
+  padding: var(--cf-space-2) var(--cf-space-4);
+}
+.app-table--narrow .app-table__title {
+  font-size: var(--cf-text-md);
+}
+.app-table--narrow .app-table__header .cf-btn,
+.app-table--narrow .app-table__menu > summary {
+  min-height: 40px;
+  padding: 0 var(--cf-space-3);
+  font-size: var(--cf-text-sm);
+}
+.app-table__menu {
+  position: relative;
+}
+.app-table__menu > summary {
+  list-style: none;
+  cursor: pointer;
+}
+.app-table__menu > summary::-webkit-details-marker {
+  display: none;
+}
+.app-table__menu-body {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cf-space-2);
+  padding: var(--cf-space-2);
+  border: 1px solid var(--cf-border-strong);
+  border-radius: var(--cf-radius);
+  background: var(--cf-elevated);
+  box-shadow: var(--cf-shadow);
+  white-space: nowrap;
+}
+.app-table--narrow .app-table__clock {
+  overflow-x: auto;
+  padding: 0 var(--cf-space-4);
+  scrollbar-width: none;
+}
+.app-table--narrow .app-table__clock .cf-tracker,
+.app-table--narrow .app-table__clock .cf-tracker__body,
+.app-table--narrow .app-table__clock .cf-clock__units {
+  flex-wrap: nowrap;
+}
+.app-table--narrow .app-table__clock .cf-clock__unit {
+  flex-shrink: 0;
+  gap: var(--cf-space-1);
+  padding: 2px var(--cf-space-1);
+}
+.app-table--narrow .app-table__clock .cf-btn {
+  min-height: 40px;
+}
+.app-table__panels {
+  min-height: 0;
+  position: relative;
+}
+.app-table__panel {
+  height: 100%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cf-space-3);
+  padding: var(--cf-space-3) var(--cf-space-4) var(--cf-space-5);
+}
+.app-table__panel[hidden] {
+  display: none;
+}
+.app-table__panel > * {
+  flex-shrink: 0;
+}
+.app-table__panel--map .cf-map__viewport {
+  height: max(320px, calc(100dvh - 330px));
+}
+.app-table__panel .cf-card {
+  min-width: 0;
+}
+.app-table__hints > summary {
+  cursor: pointer;
+  font-weight: 700;
+  padding: var(--cf-space-2) 0;
+}
+.app-table__dicemode {
+  justify-content: flex-end;
+}
+.app-table__tabbar {
+  border-top: 1px solid var(--cf-border);
+  background: var(--cf-surface);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+.app-table__tabbar-list {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.app-table__tabbar-tab {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 56px;
+  padding: var(--cf-space-1) 0;
+  border: 0;
+  border-top: 3px solid transparent;
+  background: none;
+  color: var(--cf-muted);
+  font: inherit;
+  font-size: var(--cf-text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+.app-table__tabbar-tab.is-active {
+  color: var(--cf-accent-strong);
+  border-top-color: var(--cf-accent);
+  background: var(--cf-elevated);
+}
+.app-table__tabbar-tab:focus-visible {
+  outline: 2px solid var(--cf-focus);
+  outline-offset: -2px;
+}
+.app-table__tabbar-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+.app-table__tabbar-dot {
+  position: absolute;
+  top: 8px;
+  right: calc(50% - 20px);
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--cf-danger);
+}
+.app-table.app-table--narrow {
+  grid-template-columns: minmax(0, 1fr);
+}
+.app-table--narrow .app-table__header {
+  flex-wrap: wrap;
+  row-gap: var(--cf-space-1);
+}
+.app-table--narrow .app-table__header-break {
+  flex-basis: 100%;
+  height: 0;
+}
+.app-table--narrow .app-table__title {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.app-table--narrow .app-table__title strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.app-table--narrow .app-table__timer-value {
+  font-size: var(--cf-text-md);
+  min-width: 5ch;
+}
+.app-table--narrow .app-table__clock .cf-tracker__header {
+  flex-direction: row;
+  align-items: center;
+  flex-shrink: 0;
+  gap: var(--cf-space-1);
+}
+.app-table--narrow .app-table__clock .cf-tracker__title {
+  white-space: nowrap;
+  font-size: var(--cf-text-sm);
+}
+.app-table--narrow .app-table__clock .cf-tracker__title .cf-page {
+  display: none;
+}
+/* the map panel: deck buttons in one scrolling row, the map as tall as the screen allows */
+.app-table__panel--map .cf-map__toolbar {
+  flex-wrap: wrap;
+}
+.app-table__panel--map .cf-sitemap__decks {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  max-width: 100%;
+  scrollbar-width: thin;
+}
+.app-table__panel--map .cf-sitemap__deckgroup {
+  flex-direction: row;
+  flex-shrink: 0;
+}
+.app-table__panel--map .cf-sitemap__ducts {
+  flex-wrap: nowrap;
+}
+.app-table__panel--map .app-livemap__tools > .app-grow {
+  display: none;
+}
+.app-table__panel--map .app-livemap {
+  padding: var(--cf-space-2);
+}
+/* a participant row: name | stress, health, take a hit | more; on a narrow card the vitals take a second line */
+.app-participants {
+  container-type: inline-size;
+}
+.app-participant .app-participant__row {
+  display: grid;
+  grid-template-columns: minmax(0, max-content) minmax(0, 1fr) auto;
+  grid-template-areas: "head vitals more";
+}
+.app-participant__head {
+  grid-area: head;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--cf-space-2);
+  min-width: 0;
+}
+.app-participant__head .app-participant__name > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.app-participant__vitals {
+  grid-area: vitals;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cf-space-1) var(--cf-space-3);
+  min-width: 0;
+}
+.app-participant .app-participant__toggle {
+  grid-area: more;
+  margin-left: 0;
+}
+.app-participant__vitals .app-participant__health {
+  flex-wrap: nowrap;
+}
+@container (max-width: 620px) {
+  .app-participant .app-participant__row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "head more" "vitals vitals";
+  }
+}
+/* the phone map: the deck plan first, the tools under it */
+.app-table__panel--map .app-livemap > .cf-card__body {
+  display: flex;
+  flex-direction: column;
+}
+.app-table__panel--map .app-livemap__map {
+  order: -1;
+}
+.app-table__panel--map .cf-map__viewport {
+  height: max(300px, calc(100dvh - 400px));
+  min-height: 300px;
+}
+.app-table--narrow .app-table__header > .app-grow {
+  flex: 1 1 0;
+}
+.app-participant__vitals .cf-health {
+  flex-wrap: nowrap;
+}
+.app-participant__stress {
+  gap: 2px;
+}
+.app-pip {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1.5px solid var(--cf-border-strong);
+}
+.app-pip--on {
+  background: var(--cf-accent);
+  border-color: var(--cf-accent);
+}
+.app-pip--warn {
+  background: var(--cf-warning);
+  border-color: var(--cf-warning);
+}
+.app-participant__stress > .cf-mono {
+  margin-left: 4px;
+}
+.app-thisjob__actions {
+  padding-bottom: var(--cf-space-2);
+}
+.app-thisjob .app-reveal__body {
+  margin: var(--cf-space-1) 0;
+}
+
+/* the live map's card already names the map: no second name above the deck tabs */
+.app-livemap .cf-map__toolbar > .cf-toolbar__title {
+  display: none;
+}
+/* on a phone the Map tab says what this is: keep the map's name and the act, drop the heading */
+.app-table--narrow .app-livemap > .cf-card__header .cf-card__title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.app-table--narrow .app-livemap > .cf-card__header {
+  padding-block: var(--cf-space-2);
 }

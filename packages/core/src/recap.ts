@@ -266,7 +266,7 @@ export function recapSnapshot(input: RecapSnapshotInput): RecapSnapshot {
     const raw = maps.maps[m.id]?.live?.hunt;
     if (!raw || (raw.step === 0 && raw.tokens.length === 0)) continue;
     if (gm) {
-      hunts.push({ map: m.id, mapName: m.name, step: raw.step, tokens: raw.tokens.map((t) => ({ id: t.id, label: t.label, state: t.state, ...(t.hurt ? { hurt: true } : {}) })) });
+      hunts.push({ map: m.id, mapName: m.name, step: raw.step, tokens: raw.tokens.map((t) => ({ id: t.id, label: t.label, state: t.state, ...(t.hurt ? { hurt: true } : {}), ...(t.mover ? { mover: t.mover } : {}) })) });
       continue;
     }
     // players: the threats on their own map (the projection keeps only those revealed as seen)
