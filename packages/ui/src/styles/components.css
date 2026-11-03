@@ -690,10 +690,13 @@ td .cf-autogrow {
   width: min(420px, 92vw);
   background: var(--cf-surface);
   border-left: 1px solid var(--cf-border-strong);
-  box-shadow: var(--cf-shadow);
   display: flex;
   flex-direction: column;
-  transition: transform 180ms ease;
+  /* closed: off screen, no shadow spilling over the page's edge, out of the tab order once it has slid away */
+  visibility: hidden;
+  transition:
+    transform 180ms ease,
+    visibility 0s linear 180ms;
 }
 .cf-drawer--right .cf-drawer__panel {
   right: 0;
@@ -713,6 +716,9 @@ td .cf-autogrow {
 }
 .cf-drawer--open .cf-drawer__panel {
   transform: translateX(0);
+  visibility: visible;
+  box-shadow: var(--cf-shadow);
+  transition: transform 180ms ease;
 }
 .cf-drawer__header {
   display: flex;

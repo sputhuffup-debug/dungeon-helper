@@ -9,6 +9,7 @@
 import { Fragment, useMemo, useState } from "react";
 import {
   blankWeaponRow,
+  enumLabel,
   groupWeaponPresets,
   weaponColumnText,
   weaponListConfig,
@@ -58,7 +59,7 @@ function RowInput({ rowSchema, keyName, value, onChange, label }: { rowSchema: J
         {s.default === undefined && <option value="">—</option>}
         {(s.enum as unknown[]).map((v) => (
           <option key={String(v)} value={String(v)}>
-            {humanize(String(v))}
+            {enumLabel(s, v) ?? humanize(String(v))}
           </option>
         ))}
       </select>
