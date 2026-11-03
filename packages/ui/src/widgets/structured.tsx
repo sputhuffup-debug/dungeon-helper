@@ -189,7 +189,9 @@ export function TableField(props: WidgetProps) {
   const update = (i: number, key: string, v: unknown) => onChange(rows.map((r, j) => (j === i ? { ...(isRecord(r) ? r : {}), [key]: v } : r)));
   return (
     <div>
-      <table className="cf-table" id={id}>
+      {/* editable columns share the width (an input's default size would push the table past its card); a narrow card scrolls the table, never the page */}
+      <div className="cf-table-scroll">
+      <table className={`cf-table${readonly ? "" : " cf-table--edit"}`} id={id} style={readonly ? undefined : { minWidth: `${cols.length * 5}rem` }}>
         <thead>
           <tr>
             {cols.map((c) => (
@@ -197,7 +199,7 @@ export function TableField(props: WidgetProps) {
                 {c.label ?? humanize(c.key)}
               </th>
             ))}
-            {!readonly && <th scope="col" />}
+            {!readonly && <th scope="col" className="cf-table__action" />}
           </tr>
         </thead>
         <tbody>
@@ -216,7 +218,7 @@ export function TableField(props: WidgetProps) {
                 </td>
               ))}
               {!readonly && (
-                <td>
+                <td className="cf-table__action">
                   <IconButton size="sm" variant="ghost" label={`Remove row ${i + 1}`} icon="×" onClick={() => onChange(rows.filter((_, j) => j !== i))} />
                 </td>
               )}
@@ -224,6 +226,7 @@ export function TableField(props: WidgetProps) {
           ))}
         </tbody>
       </table>
+      </div>
       {!readonly && (
         <Button size="sm" onClick={() => onChange([...rows, itemSchema ? schemaDefaults(itemSchema) : {}])}>
           Add row

@@ -338,6 +338,8 @@ th .cf-badge--edition {
 .cf-stepper {
   display: inline-flex;
   align-items: stretch;
+  /* never wider than its cell: the value box (a number input, ~20 characters by default) shrinks first */
+  max-width: 100%;
   border: 1px solid var(--cf-border-strong);
   border-radius: var(--cf-radius);
   overflow: hidden;
@@ -1162,6 +1164,39 @@ td .cf-autogrow {
   line-height: 1;
 }
 
+.cf-skills__wrap {
+  /* a narrow column (a cast card, a side panel) scrolls the table instead of cutting off its steppers */
+  max-width: 100%;
+  overflow-x: auto;
+  container-type: inline-size;
+}
+@container (max-width: 420px) {
+  /* the attribute's value sits in the next column: drop its name, tighten the cells and the stepper */
+  .cf-skills .cf-skills__attr {
+    display: none;
+  }
+  .cf-skills th,
+  .cf-skills td {
+    padding-inline: var(--cf-space-1);
+  }
+  .cf-skills .cf-stepper__btn {
+    min-width: 28px;
+  }
+  .cf-skills .cf-stepper__btn {
+    padding: 0;
+  }
+  .cf-skills .cf-stepper__value {
+    min-width: 30px;
+    width: 30px;
+    padding: 0;
+  }
+}
+@container (max-width: 300px) {
+  /* a very narrow column (a cast card): the pool is the attribute plus the skill, so it goes first */
+  .cf-skills .cf-skills__poolcol {
+    display: none;
+  }
+}
 .cf-skills {
   width: 100%;
   border-collapse: collapse;
@@ -1474,6 +1509,21 @@ span.cf-weapons__name {
   width: 100%;
   border-collapse: collapse;
   font-size: var(--cf-text-sm);
+}
+.cf-table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.cf-table--edit {
+  table-layout: fixed;
+}
+.cf-table--edit .cf-input,
+.cf-table--edit .cf-select,
+.cf-table--edit .cf-textarea {
+  min-width: 0;
+}
+.cf-table__action {
+  width: 2.75rem;
 }
 .cf-table th,
 .cf-table td {

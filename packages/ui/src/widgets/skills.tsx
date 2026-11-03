@@ -92,14 +92,16 @@ export function SkillsField(props: WidgetProps) {
         <thead>
           <tr>
             <th scope="col">{head.skill}</th>
-            <th scope="col">{head.attribute}</th>
+            <th scope="col" className="cf-skills__attr">
+              {head.attribute}
+            </th>
             <th scope="col" className="cf-skills__num">
               {head.attributeValue}
             </th>
             <th scope="col" className="cf-skills__num">
               {head.value}
             </th>
-            <th scope="col" className="cf-skills__num">
+            <th scope="col" className="cf-skills__num cf-skills__poolcol">
               {head.pool}
             </th>
             {ctx.onRoll && <th scope="col" />}
@@ -121,7 +123,7 @@ export function SkillsField(props: WidgetProps) {
             return (
               <tr key={r.id} data-skill={r.id}>
                 <th scope="row">{r.name}</th>
-                <td className="cf-muted">{r.attribute ? humanize(r.attribute) : "—"}</td>
+                <td className="cf-muted cf-skills__attr">{r.attribute ? humanize(r.attribute) : "—"}</td>
                 <td className="cf-skills__num">{attrValue}</td>
                 <td className="cf-skills__num">
                   {readonly ? (
@@ -139,7 +141,7 @@ export function SkillsField(props: WidgetProps) {
                     <Stepper value={skillValue} min={min} max={maxFor(r.id)} onChange={(n) => set(r.id, n)} label={r.name} />
                   )}
                 </td>
-                <td className="cf-skills__num cf-skills__pool" data-testid={`pool-${r.id}`}>
+                <td className="cf-skills__num cf-skills__pool cf-skills__poolcol" data-testid={`pool-${r.id}`}>
                   {pool}
                 </td>
                 {ctx.onRoll && (
