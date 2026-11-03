@@ -58,6 +58,8 @@ export interface ModuleEntry extends StaticManifest {
   license?: ModuleLicense;
   publisher?: string;
   ruleset?: string;
+  /** The module has a guide (`GameModule.guide`): the campaign list links its Guide page. */
+  hasGuide?: boolean;
   /** Imported packs: when and from which files. */
   importedAt?: string;
   files?: string[];
@@ -65,7 +67,7 @@ export interface ModuleEntry extends StaticManifest {
 }
 
 /** A built-in data pack: its static manifest plus where its JSON files come from. */
-function builtinPack(manifest: StaticManifest & Pick<ModuleEntry, "dev" | "license" | "publisher" | "ruleset">, source: () => Promise<PackSource>): ModuleEntry {
+function builtinPack(manifest: StaticManifest & Pick<ModuleEntry, "dev" | "license" | "publisher" | "ruleset" | "hasGuide">, source: () => Promise<PackSource>): ModuleEntry {
   return {
     ...manifest,
     source: "builtin",
@@ -99,6 +101,7 @@ const BUILTIN: ModuleEntry[] = [
     dataStatus: "verified",
     source: "builtin",
     format: "ts",
+    hasGuide: true,
     load: () => import("@campaign-forge/module-alien").then((m) => m.alienModule),
   },
   {
@@ -128,6 +131,7 @@ const BUILTIN: ModuleEntry[] = [
       defaultMode: "delve",
       dataStatus: "verified",
       dev: true,
+      hasGuide: true,
       ruleset: "Lanternlight",
       publisher: "Campaign Forge",
       license: {

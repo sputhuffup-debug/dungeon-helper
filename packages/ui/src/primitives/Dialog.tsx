@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
 import { cx } from "../sheet/paths";
 import { IconButton } from "./Button";
 
@@ -16,6 +16,8 @@ export interface DialogProps {
 /** A native <dialog> shown modally while `open`. */
 export function Dialog({ open, onClose, title, children, footer, className, dismissable = true }: DialogProps) {
   const ref = useRef<HTMLDialogElement>(null);
+  // one id per dialog: two can be open at once (a picker over the dialog that opened it)
+  const titleId = `cf-dialog-title-${useId()}`;
 
   useEffect(() => {
     const el = ref.current;
@@ -35,7 +37,7 @@ export function Dialog({ open, onClose, title, children, footer, className, dism
     <dialog
       ref={ref}
       className={cx("cf-dialog", className)}
-      aria-labelledby={title ? "cf-dialog-title" : undefined}
+      aria-labelledby={title ? titleId : undefined}
       onCancel={(e) => {
         e.preventDefault();
         if (dismissable) onClose?.();
@@ -48,7 +50,7 @@ export function Dialog({ open, onClose, title, children, footer, className, dism
       {open && (
         <>
           <div className="cf-dialog__header">
-            <h2 className="cf-dialog__title" id="cf-dialog-title">
+            <h2 className="cf-dialog__title" id={titleId}>
               {title}
             </h2>
             {onClose && <IconButton label="Close" icon="×" variant="ghost" onClick={onClose} />}

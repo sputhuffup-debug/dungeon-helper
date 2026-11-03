@@ -92,6 +92,11 @@ export function HomePage() {
           <Link to="/c/$campaignId/gm-screen" params={{ campaignId }} search={{ view: "screen" }} className="cf-btn" data-testid="home-gm-screen" title="The module's quick reference: read it on screen or print it">
             GM screen
           </Link>
+          {ctx.module.module.guide && (
+            <Link to="/c/$campaignId/guide" params={{ campaignId }} className="cf-btn" data-testid="home-guide" title={ctx.module.module.guide.title}>
+              Guide
+            </Link>
+          )}
         </div>
       </header>
 

@@ -18,7 +18,9 @@ test("the campaign list groups starting, demos and campaigns by game module", as
   await expect(page.getByTestId("campaign-name")).toHaveText("Thornwick Crossing", { timeout: 30_000 });
   await page.goto("/");
   await expect(dnd5e.getByRole("link", { name: "Thornwick Crossing" })).toBeVisible();
-  await expect(alien.getByRole("link")).toHaveCount(0);
+  // no campaign cards (its Guide button is the section's only link)
+  await expect(alien.getByRole("list").getByRole("link")).toHaveCount(0);
+  await expect(alien.getByRole("link", { name: /^Guide: / })).toBeVisible();
   await expect(alien.getByText("No campaigns with this module yet.")).toBeVisible();
 
   // "Start a campaign" opens New campaign with that module already chosen

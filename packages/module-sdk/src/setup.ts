@@ -179,7 +179,8 @@ export function initialCampaignSettings(module: Pick<GameModule, "campaignSettin
 
 type CheckedModule = Pick<GameModule, "manifest" | "setup" | "campaignSettings" | "entityTypes" | "procedures" | "referenceLists" | "presets">;
 
-function checkLink(l: SetupLink, where: string, module: CheckedModule, err: (where: string, message: string) => void): void {
+/** A setup (or guide) link: a label, exactly one target, and targets the module knows. */
+export function checkSetupLink(l: SetupLink, where: string, module: Pick<GameModule, "entityTypes" | "procedures" | "presets">, err: (where: string, message: string) => void): void {
   const targets = [l.page !== undefined, l.procedure !== undefined, l.newEntity !== undefined, l.entity !== undefined].filter(Boolean).length;
   if (!l || typeof l.label !== "string" || !l.label.trim()) err(where, "a link needs a label");
   if (targets !== 1) err(where, `link "${l?.label}" needs exactly one of page, procedure, newEntity or entity`);
@@ -228,7 +229,7 @@ export function setupIssues(module: CheckedModule): SetupIssue[] {
     for (const m of s.mode ?? []) if (!declared.has(m)) err(where, `mode "${m}" is not declared by the module`);
     for (const m of logicIssues(s.done)) err(where, `done: ${m}`);
     if (s.progress) for (const m of [...logicIssues(s.progress.count), ...logicIssues(s.progress.of)]) err(where, `progress: ${m}`);
-    for (const l of s.links ?? []) checkLink(l, where, module, err);
+    for (const l of s.links ?? []) checkSetupLink(l, where, module, err);
     const modes = s.mode && s.mode.length ? s.mode : [...declared];
     for (const mode of modes) {
       const empty = emptySetupSnapshot(mode);

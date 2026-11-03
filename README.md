@@ -7,7 +7,7 @@ For Alien, Campaign Forge is a companion to the rulebook, not a replacement. The
 ## What it does
 
 - **Local-first.** Campaigns live in the browser, work offline at the table and export to a zip bundle. No server, no accounts.
-- **Set up your campaign.** A new campaign's Home page walks you to session 1 with a checklist that ticks itself from the campaign's data.
+- **Set up your campaign.** A new campaign's Home page walks you to session 1 with a checklist that ticks itself from the campaign's data, and a step-by-step guide with screenshots shows each page on the way ([Your first Alien campaign](docs/guides/alien-first-campaign.md)).
 - **Prep.** Adventures, scenes, sessions, a timeline, handouts and linked notes; characters and places rendered from each game's sheet; seeded generators with full roll provenance; printed GM booklets.
 - **At the table.** Scene cards, clocks, initiative, trackers and a Hints tab that says what each stat is for in the story and who is best at it. d20 combat with attacks, damage, saves and conditions whose helper text says what they do. Roll in the app or type in the physical dice your table rolled.
 - **For the players.** A session 0 campaign primer, *Share with players*: the player view as phone cards, a PDF or a web page for the group chat, with nothing GM-only in it, and a private packet per player with their own sheet, agenda and what was shared with them alone.
@@ -46,8 +46,9 @@ tools/table-lint        dice coverage, page refs, data-status report, spot-check
 tools/seed-campaign     builds the demo campaigns
 tools/module-check      validates a module, data pack or supplement (pnpm module-check --all)
 tools/create-module     scaffolds a new module, data pack or supplement
-tools/docs-check        screenshots in the README and docs/features are present, used and small; local links resolve
-docs/                   feature pages (docs/features), architecture seed, module author guide, verification notes, screenshots
+tools/guides            writes each module's guide to docs/guides (pnpm guides) and checks it is current
+tools/docs-check        screenshots in the README, docs/features and docs/guides are present, used and small; local links resolve
+docs/                   feature pages (docs/features), guides (docs/guides), architecture seed, module author guide, verification notes, screenshots
 ```
 
 ## Getting started
@@ -58,7 +59,8 @@ pnpm dev          # web app on http://localhost:5173
 pnpm test         # unit tests and module conformance
 pnpm typecheck
 pnpm table-lint   # lints every table in every module
-pnpm screenshots  # builds the app and regenerates every screenshot (README and docs/features) from the demo campaigns
+pnpm screenshots  # builds the app and regenerates every screenshot (README, docs/features and the guides' steps)
+pnpm guides       # writes docs/guides from the modules' guides
 ```
 
 Re-run one screenshot by name once the app is built: `pnpm --filter @campaign-forge/web screenshots -g creature-turn`. Images go to `docs/screenshots/` (or `SCREENSHOTS_DIR`).

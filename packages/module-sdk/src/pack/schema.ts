@@ -89,6 +89,10 @@ import type {
   CampaignSettingDef,
   CampaignSettingOption,
   SetupDef,
+  GuideChapterDef,
+  GuideDef,
+  GuideImage,
+  GuideStepDef,
   SetupLayout,
   SetupLink,
   SetupPage,
@@ -589,6 +593,34 @@ const definitions: Record<string, JsonSchema> = {
   setup: object<SetupDef>()({ steps: list(ref("setupStep")), layouts: list(ref("setupLayout")) }, ["steps"], {
     description: "The pack's steps of the \"Set up your campaign\" guide on a new campaign's Home page, and its order per mode. See docs/modules/setup.md.",
   }),
+  guideImage: object<GuideImage>()(
+    {
+      key: str({ pattern: "^[a-z0-9][a-z0-9-]*$", description: "The image's file is guide-<module id>-<key>.png in docs/screenshots/." }),
+      alt: text,
+    },
+    ["key", "alt"],
+  ),
+  guideStep: object<GuideStepDef>()(
+    {
+      id: str({ pattern: "^[a-z0-9][a-z0-9-]*$" }),
+      title: text,
+      body: list(str({ minLength: 1 }), { minItems: 1, description: "Short paragraphs; *Label* marks a button or label as the app shows it." }),
+      image: ref("guideImage"),
+      links: list(ref("setupLink"), { description: "Take me there: where the step is done, as a setup link." }),
+      page: ref("page"),
+      cite: ref("cite"),
+    },
+    ["id", "title", "body"],
+  ),
+  guideChapter: object<GuideChapterDef>()(
+    { id: str({ pattern: "^[a-z0-9][a-z0-9-]*$" }), title: text, intro: str(), steps: list(ref("guideStep"), { minItems: 1 }) },
+    ["id", "title", "steps"],
+  ),
+  guide: object<GuideDef>()(
+    { id: ref("id"), title: text, summary: text, mode: ref("modes"), chapters: list(ref("guideChapter"), { minItems: 1 }) },
+    ["id", "title", "summary", "chapters"],
+    { description: "A step-by-step guide for the GM, from a new campaign to its first session, shown on the app's Guide page. See docs/modules/guides.md." },
+  ),
   campaignSettingOption: object<CampaignSettingOption>()({ value: text, label: text, hint: str() }, ["value", "label"]),
   campaignSetting: object<CampaignSettingDef>()(
     {
@@ -1210,6 +1242,7 @@ export const MODULE_PACK_SCHEMA: JsonSchema = {
       d20Combat: ref("d20Combat"),
       gmScreen: ref("gmScreen"),
       setup: ref("setup"),
+      guide: ref("guide"),
       campaignSettings: list(ref("campaignSetting")),
       ownerHandouts: list(ref("ownerHandout")),
       characterBuilders: list(ref("characterBuilder")),

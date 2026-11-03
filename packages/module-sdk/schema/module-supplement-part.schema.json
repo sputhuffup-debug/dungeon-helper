@@ -2059,6 +2059,132 @@
       "additionalProperties": false,
       "description": "The pack's steps of the \"Set up your campaign\" guide on a new campaign's Home page, and its order per mode. See docs/modules/setup.md."
     },
+    "guideImage": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]*$",
+          "description": "The image's file is guide-<module id>-<key>.png in docs/screenshots/."
+        },
+        "alt": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "key",
+        "alt"
+      ],
+      "additionalProperties": false
+    },
+    "guideStep": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]*$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "body": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "description": "Short paragraphs; *Label* marks a button or label as the app shows it."
+        },
+        "image": {
+          "$ref": "#/definitions/guideImage"
+        },
+        "links": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/setupLink"
+          },
+          "description": "Take me there: where the step is done, as a setup link."
+        },
+        "page": {
+          "$ref": "#/definitions/page"
+        },
+        "cite": {
+          "$ref": "#/definitions/cite"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "body"
+      ],
+      "additionalProperties": false
+    },
+    "guideChapter": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]*$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "intro": {
+          "type": "string"
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/guideStep"
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "steps"
+      ],
+      "additionalProperties": false
+    },
+    "guide": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mode": {
+          "$ref": "#/definitions/modes"
+        },
+        "chapters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/guideChapter"
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "summary",
+        "chapters"
+      ],
+      "additionalProperties": false,
+      "description": "A step-by-step guide for the GM, from a new campaign to its first session, shown on the app's Guide page. See docs/modules/guides.md."
+    },
     "campaignSettingOption": {
       "type": "object",
       "properties": {
