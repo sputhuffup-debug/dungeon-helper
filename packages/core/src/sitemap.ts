@@ -758,6 +758,11 @@ function writeLive(store: CampaignStore, mapId: Id, fn: (live: SiteMapLiveState,
   });
 }
 
+/** Put back a live state taken earlier (an undo of "Reveal all" or "Reset the map"). */
+export function restoreLive(store: CampaignStore, mapId: Id, live: SiteMapLiveState): SiteMapLiveState {
+  return writeLive(store, mapId, () => clone(live));
+}
+
 /** Start (or restart) live play on a map: the act, a clean slate, and the start zone revealed. */
 export function startLive(store: CampaignStore, mapId: Id, act = 1): SiteMapLiveState {
   return writeLive(store, mapId, (_l, map) => {

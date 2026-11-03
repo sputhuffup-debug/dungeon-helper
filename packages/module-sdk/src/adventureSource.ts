@@ -170,6 +170,19 @@ export function adventureSourceIssues(module: Pick<GameModule, "adventureSources
     } catch (e) {
       err(where, `prefill threw on an empty input: ${e instanceof Error ? e.message : String(e)}`);
     }
+    if (d.people !== undefined) {
+      if (typeof d.people !== "function") err(where, "people must be a function");
+      else {
+        try {
+          const a = d.people(emptyAdventureSourceInput(d.entityType, d.mode?.[0] ?? module.manifest?.defaultMode ?? "default"));
+          const b = d.people(emptyAdventureSourceInput(d.entityType, d.mode?.[0] ?? module.manifest?.defaultMode ?? "default"));
+          if (!Array.isArray(a)) err(where, "people must return a list");
+          else if (JSON.stringify(a) !== JSON.stringify(b)) err(where, "people is not deterministic on an empty input");
+        } catch (e) {
+          err(where, `people threw on an empty input: ${e instanceof Error ? e.message : String(e)}`);
+        }
+      }
+    }
   }
   return out;
 }
