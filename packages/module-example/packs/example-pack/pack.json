@@ -731,6 +731,33 @@
       }
     ]
   },
+  "setup": {
+    "steps": [
+      {
+        "id": "example-pack.setup.site",
+        "label": "Map the first site",
+        "hint": "The ruin the first delve goes into.",
+        "done": { "some": [{ "var": "entities" }, { "==": [{ "var": "type" }, "example-pack.site"] }] },
+        "links": [
+          { "label": "+ Site", "newEntity": { "type": "example-pack.site" }, "primary": true },
+          { "label": "Roll a delve", "procedure": "example-pack.proc.delve" }
+        ],
+        "cite": "LRD, Delving"
+      }
+    ],
+    "layouts": [{ "mode": ["delve"], "hide": ["setup.session"], "order": ["example-pack.setup.site"] }]
+  },
+  "campaignSettings": [
+    {
+      "key": "village",
+      "label": "Home village",
+      "hint": "Where the delvers sleep between trips.",
+      "kind": "choice",
+      "options": [{ "value": "brindle", "label": "Brindle" }, { "value": "orrow", "label": "Orrow" }],
+      "atCreation": true,
+      "mode": ["saga"]
+    }
+  ],
   "characterBuilders": [
     {
       "id": "example-pack.builder",

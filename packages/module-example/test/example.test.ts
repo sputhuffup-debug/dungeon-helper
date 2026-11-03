@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
+  campaignSettingsFor,
   checkModule,
+  composeSetupSteps,
   computeFields,
+  CORE_SETUP_STEP_IDS,
+  emptySetupSnapshot,
+  evaluateSetupSteps,
+  initialCampaignSettings,
   createRng,
   dependentSteps,
   defaultFieldsFor,
@@ -183,5 +189,25 @@ describe("combat fixture", () => {
     const attacks = exampleModule.tables.find((t) => t.id === defaultFieldsFor(beast).attackTable)!;
     for (const row of attacks.rows) expect(row.result).toMatchObject({ name: expect.any(String), dice: expect.any(Number), damage: expect.any(Number), effect: expect.any(String) });
     for (const s of combat.specialAttacks ?? []) expect(s.page).toBeDefined();
+  });
+});
+
+describe("exampleModule setup guide and campaign settings", () => {
+  const core = CORE_SETUP_STEP_IDS.map((id) => ({ id, label: id, done: false }));
+
+  it("orders its steps among the core's per mode, and leaves the players step out in hardcore play", () => {
+    expect(composeSetupSteps(core, exampleModule.setup, "standard").map((s) => s.id)).toEqual(["setup.pcs", "example.setup.wagon", "setup.players", "setup.session"]);
+    expect(composeSetupSteps(core, exampleModule.setup, "hardcore").map((s) => s.id)).toEqual(["example.setup.doom", "setup.pcs", "setup.session", "example.setup.wagon"]);
+  });
+
+  it("ticks the wagon step once a wagon exists, and asks the march (and the omen in hardcore) at creation", () => {
+    const snap = emptySetupSnapshot("standard");
+    const wagon = { id: "w", name: "Old Bess", type: "example.wagon", kind: "vehicle", tags: [], pc: false, visibility: "gm", fields: {}, handouts: [] };
+    const step = exampleModule.setup!.steps.filter((s) => s.id === "example.setup.wagon");
+    expect(evaluateSetupSteps(step, snap)[0]!.done).toBe(false);
+    expect(evaluateSetupSteps(step, { ...snap, entities: [wagon], entityIds: ["w"] })[0]!.done).toBe(true);
+    expect(campaignSettingsFor(exampleModule, "standard", { atCreation: true }).map((d) => d.key)).toEqual(["march"]);
+    expect(campaignSettingsFor(exampleModule, "hardcore", { atCreation: true }).map((d) => d.key)).toEqual(["march", "omen"]);
+    expect(initialCampaignSettings(exampleModule, "standard")).toEqual({ march: "north" });
   });
 });

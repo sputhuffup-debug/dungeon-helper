@@ -86,6 +86,13 @@ import type {
   RollTable,
   RollTone,
   RuleCard,
+  CampaignSettingDef,
+  CampaignSettingOption,
+  SetupDef,
+  SetupLayout,
+  SetupLink,
+  SetupPage,
+  SetupStepDef,
   SessionChecklistEvent,
   SessionChecklistPhase,
   SheetField,
@@ -202,6 +209,7 @@ const CHECKLIST_PHASES = ["prep", "play", "wrap"] as const satisfies readonly Se
 const MAP_BORDER_KINDS = ["open", "wall", "door", "hatch", "blast", "access", "stairs", "shaft", "bars", "rubble"] as const satisfies readonly MapBorderKind[];
 const MAP_MARKER_KINDS = ["start", "spawn", "waypoint", "clue", "npc", "win", "label", "hazard", "trap", "treasure", "hostile"] as const satisfies readonly MapMarkerKind[];
 const MAP_ZONE_KINDS = ["room", "corridor", "crawlspace", "shaft", "exterior", "out-of-bounds"] as const satisfies readonly MapZoneKind[];
+const SETUP_PAGE_IDS = ["home", "atlas", "settings", "ship", "arcs", "sessions", "adventures", "generate", "primer", "rules"] as const satisfies readonly SetupPage[];
 const CHECKLIST_EVENTS = [
   "scenes-planned", "log-written", "revealed", "prompts-answered", "summary-saved", "loose-ends-carried", "timeline-confirmed", "next-session-planned", "awards-given", "recap-shown",
 ] as const satisfies readonly SessionChecklistEvent[];
@@ -550,6 +558,56 @@ const definitions: Record<string, JsonSchema> = {
     ["id", "title", "prompt"],
   ),
   primer: object<PrimerDef>()({ sections: list(ref("primerSection"), { minItems: 1 }) }, ["sections"]),
+  setupLink: object<SetupLink>()(
+    {
+      label: text,
+      page: oneOfValues<SetupPage>()(SETUP_PAGE_IDS),
+      params: { type: "object", additionalProperties: { type: ["string", "number"] }, description: "Search params for the page, e.g. { \"tab\": \"pcs\" } (Atlas) or { \"section\": \"players\" } (Settings)." },
+      procedure: ref("id"),
+      newEntity: object<NonNullable<SetupLink["newEntity"]>>()({ type: ref("id"), pc: bool, preset: ref("id") }, ["type"]),
+      entity: { ...logic, description: "JSONLogic over one snapshot entity: the first match (by name) opens; the link hides while none matches." },
+      primary: bool,
+    },
+    ["label"],
+    { description: "Where a setup step is done: exactly one of page, procedure, newEntity or entity." },
+  ),
+  setupStep: object<SetupStepDef>()(
+    {
+      id: ref("id"),
+      label: text,
+      hint: str(),
+      mode: ref("modes"),
+      done: { ...logic, description: "JSONLogic over the setup snapshot; truthy when the step is done. See docs/modules/setup.md." },
+      progress: object<NonNullable<SetupStepDef["progress"]>>()({ count: logic, of: logic }, ["count", "of"]),
+      links: list(ref("setupLink")),
+      page: ref("page"),
+      cite: ref("cite"),
+    },
+    ["id", "label", "done"],
+  ),
+  setupLayout: object<SetupLayout>()({ mode: ref("modes"), hide: list(ref("id")), order: list(ref("id")) }, []),
+  setup: object<SetupDef>()({ steps: list(ref("setupStep")), layouts: list(ref("setupLayout")) }, ["steps"], {
+    description: "The pack's steps of the \"Set up your campaign\" guide on a new campaign's Home page, and its order per mode. See docs/modules/setup.md.",
+  }),
+  campaignSettingOption: object<CampaignSettingOption>()({ value: text, label: text, hint: str() }, ["value", "label"]),
+  campaignSetting: object<CampaignSettingDef>()(
+    {
+      key: str({ pattern: "^[A-Za-z][A-Za-z0-9_-]*$", maxLength: 64 }),
+      label: text,
+      hint: str(),
+      kind: { enum: ["choice", "entity", "text"] },
+      options: list(ref("campaignSettingOption")),
+      list: ref("id"),
+      entityTypes: list(ref("id")),
+      default: str(),
+      atCreation: bool,
+      mode: ref("modes"),
+      page: ref("page"),
+      cite: ref("cite"),
+    },
+    ["key", "label", "kind"],
+    { description: "A campaign-level setting in meta.settings; same-named procedure inputs default to it. See docs/modules/setup.md." },
+  ),
   ownerHandout: object<OwnerHandoutDef>()({ kind: str(), when: { type: "string", enum: ["always", "given"] }, gmOnlyPurposes: list(str()), gmOnlyNote: text }, ["kind"], { description: "A handout kind that reaches the player of the character it is for (`character`): always, or once the GM gives it. See docs/modules/sheets.md#owner-visible-fields." }),
 
   // Declarative d20 combat
@@ -1150,6 +1208,8 @@ export const MODULE_PACK_SCHEMA: JsonSchema = {
       primer: ref("primer"),
       d20Combat: ref("d20Combat"),
       gmScreen: ref("gmScreen"),
+      setup: ref("setup"),
+      campaignSettings: list(ref("campaignSetting")),
       ownerHandouts: list(ref("ownerHandout")),
       characterBuilders: list(ref("characterBuilder")),
       mapGenerators: list(ref("mapGenerator"), { maxItems: 8 }),

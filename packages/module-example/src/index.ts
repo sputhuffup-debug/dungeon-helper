@@ -741,6 +741,35 @@ export const exampleModule: GameModule = {
       { id: "origins", title: "Origins", side: "players", blocks: [{ kind: "list", list: "example.origins", columns: ["bonus"] }] },
     ],
   },
+  // the setup guide: a step of its own, placed between the core's, and one core step left out in hardcore play
+  setup: {
+    steps: [
+      {
+        id: "example.setup.wagon",
+        label: "Hitch the party wagon",
+        hint: "The heroes' wagon carries their gear between towns.",
+        done: { some: [{ var: "entities" }, { "==": [{ var: "type" }, "example.wagon"] }] },
+        links: [{ label: "+ Wagon", newEntity: { type: "example.wagon" }, primary: true }],
+        page: 30,
+      },
+      {
+        id: "example.setup.doom",
+        label: "Pick the doom omen",
+        mode: ["hardcore"],
+        done: { "!!": [{ var: "settings.omen" }] },
+        links: [{ label: "Settings", page: "settings", params: { section: "campaign" }, primary: true }],
+      },
+    ],
+    layouts: [
+      { mode: ["standard"], order: ["setup.pcs", "example.setup.wagon"] },
+      { mode: ["hardcore"], hide: ["setup.players"], order: ["example.setup.doom"] },
+    ],
+  },
+  campaignSettings: [
+    { key: "march", label: "Home march", hint: "Where the heroes start.", kind: "choice", options: [{ value: "north", label: "The North March" }, { value: "south", label: "The South March" }], default: "north", atCreation: true },
+    { key: "omen", label: "Doom omen", kind: "choice", list: "example.origins", mode: ["hardcore"], atCreation: true },
+    { key: "camp", label: "Base camp", kind: "entity", entityTypes: ["example.place"] },
+  ],
   primer: {
     sections: [
       { id: "setting", title: "The marches", prompt: "The borderland the heroes travel.", starter: "A cold march of ruined keeps and toll roads.", original: true },
