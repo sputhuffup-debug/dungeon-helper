@@ -141,7 +141,7 @@ test("build a remaster character in the Hollowmere demo, create it and level it 
   // 11. in the Atlas, a PC
   await page.goto(`${base}/atlas?tab=pcs`);
   const row = page.getByRole("tabpanel").getByRole("row").filter({ hasText: "Odile Marchbank" });
-  await expect(row).toContainText("fighter");
+  await expect(row).toContainText("Class Fighter");
 
   // 12. level up once: a class feat and a skill feat at 2nd level; 12 more Hit Points
   await row.getByRole("link", { name: "Odile Marchbank" }).click();
