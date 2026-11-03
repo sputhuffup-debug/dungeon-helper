@@ -178,7 +178,7 @@ test("SRD 5.1 & 5.2 pack: a campaign, a PC and a Goblin, a skill roll at the tab
   // 9. the encounter generator picks SRD monsters with their stat blocks
   await page.goto(`${base}/generate`);
   await page.getByTestId("procedure-dnd5e-srd.proc.encounter").click();
-  await expect(page.getByTestId("step-foe")).toContainText("dnd5e-srd.encounter.forest-1");
+  await expect(page.getByTestId("step-foe")).toContainText("Forest encounters (levels 1–4)");
   await expect(page.getByTestId("step-foe")).toContainText(/CR (1\/8|1\/4|1\/2|1|2|3)/);
   // the steps read as lines for the GM, not as the result objects (no preset ids)
   await expect(page.getByTestId("step-result-foe")).toHaveText(/^[A-Z][\w ()',-]+ \(CR [\d/]+, \d+ XP each\)$/);

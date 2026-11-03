@@ -135,7 +135,9 @@ test("ORC core rules pack: the Hollowmere demo, derived sheets, four degrees, cr
   await page.goto(`${base}/generate`);
   await page.getByTestId("procedure-pf2e-orc.proc.encounter").click();
   await expect(page.getByTestId("step-budget")).toContainText("80");
-  await expect(page.getByTestId("step-shape")).toContainText("pf2e-orc.encounter.budget-80");
+  // each step names its table, not its id
+  await expect(page.getByTestId("step-shape")).toContainText("Encounter shape (80 XP");
+  await expect(page.getByTestId("step-shape")).not.toContainText("pf2e-orc.encounter.budget-80");
   // the steps read as lines for the GM, not as the result objects (no preset ids or internal keys)
   await expect(page.getByTestId("step-result-budget")).toHaveText("80 XP");
   await expect(page.getByTestId("step-result-shape")).toHaveText(/^\d+ × party level/);

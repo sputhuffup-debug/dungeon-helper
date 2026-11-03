@@ -8,7 +8,7 @@
  * or none when the roll is "no encounter".
  */
 import type { Procedure, ProcedureContext } from "@campaign-forge/module-sdk";
-import { REGION_IDS } from "../entities/common";
+import { REGION_IDS, REGION_LABELS, labelledEnum } from "../entities/common";
 import { REMOTE_REGIONS } from "../tables/encounters";
 import { input, isObj, obj, str } from "./helpers";
 
@@ -23,6 +23,20 @@ export const WHERE_TABLES: Record<string, string> = {
   "colony-operations": "alien.encounters.colony.operations",
   "colony-spaceport": "alien.encounters.colony.spaceport",
   "colony-industrial": "alien.encounters.colony.industrial",
+};
+
+/** How the input names each place. */
+const WHERE_LABELS: Record<string, string> = {
+  "star-system": "Star system",
+  "ship-reaction": "Ship reaction",
+  "surface-uninhabited": "Planet surface, uninhabited",
+  "surface-colonized": "Planet surface, colonized",
+  "colony-general": "Colony, general",
+  "colony-public": "Colony, public areas",
+  "colony-habitation": "Colony, habitation",
+  "colony-operations": "Colony, operations",
+  "colony-spaceport": "Colony, spaceport",
+  "colony-industrial": "Colony, industrial",
 };
 
 const SURFACE_NONE = "No encounter";
@@ -78,16 +92,18 @@ export const encounterCheck: Procedure = {
   inputs: {
     type: "object",
     properties: {
-      where: { type: "string", enum: Object.keys(WHERE_TABLES), default: "star-system" },
+      where: { type: "string", title: "Where", ...labelledEnum(Object.keys(WHERE_TABLES), WHERE_LABELS), default: "star-system" },
       region: {
         type: "string",
-        enum: [...REGION_IDS, "uncharted"],
+        title: "Region",
+        ...labelledEnum([...REGION_IDS, "uncharted"], REGION_LABELS),
         default: "core",
         description: "Star system encounters only: Outer Rim, Frontier or Far Reach shift the tens digit by -3, uncharted space by -5 (p. 254).",
       },
       colonySize: {
         type: "string",
-        enum: ["start-up", "young", "established"],
+        title: "Colony size",
+        ...labelledEnum(["start-up", "young", "established"], { "start-up": "Start-up" }),
         default: "young",
         description: "General colony encounters only: an established colony adds 1 to the tens digit (p. 252).",
       },

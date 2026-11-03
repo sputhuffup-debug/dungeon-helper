@@ -13,6 +13,7 @@
  * Produces one planet, one colony when inhabited (within the planet) and one
  * faction per faction roll, each `stationed_at` the colony.
  */
+import { REGION_LABELS, labelledEnum } from "../entities/common";
 import { rollDice, type Procedure, type ProcedureContext, type ProducedEntity, type ProducedRelationship } from "@campaign-forge/module-sdk";
 import { PLANET_NAMES } from "../tables/world";
 import { bool, input, isObj, list, num, obj, str } from "./helpers";
@@ -68,17 +69,18 @@ export const worldCreate: Procedure = {
   inputs: {
     type: "object",
     properties: {
-      region: { type: "string", enum: ["core", "outer-veil", "outer-rim", "frontier", "far-reach"], default: "frontier" },
+      region: { type: "string", title: "Region", ...labelledEnum(["core", "outer-veil", "outer-rim", "frontier", "far-reach"], REGION_LABELS), default: "frontier" },
       allegianceBloc: {
         type: "string",
-        enum: ["american-arm", "anglo-japanese-arm", "icsc", "upp"],
+        title: "Allegiance bloc",
+        ...labelledEnum(["american-arm", "anglo-japanese-arm", "icsc", "upp"], { "american-arm": "American Arm", "anglo-japanese-arm": "Anglo-Japanese Arm", icsc: "ICSC", upp: "UPP" }),
         default: "american-arm",
         description: "Where the colony lies: decides the allegiance table (p. 241). UPP colonies always owe allegiance to the UPP.",
       },
-      inhabited: { type: "boolean", default: true, description: "A colonized main world. Off for unexplored bodies, which skip the colony tables (p. 240)." },
-      planetType: { type: "string", enum: ["terrestrial", "ice"], default: "terrestrial", description: "Ice planets (star system generator, p. 243): size −2, always frozen, ice terrain table." },
-      gasGiantMoon: { type: "boolean", description: "A moon of a gas giant: size −4 (p. 237)." },
-      name: { type: "string", description: "Planet name; when absent, inhabited worlds take a suggested name (p. 236) and others an LV designation." },
+      inhabited: { type: "boolean", title: "Inhabited", default: true, description: "A colonized main world. Off for unexplored bodies, which skip the colony tables (p. 240)." },
+      planetType: { type: "string", title: "Planet type", ...labelledEnum(["terrestrial", "ice"], { terrestrial: "Terrestrial planet", ice: "Ice planet" }), default: "terrestrial", description: "Ice planets (star system generator, p. 243): size −2, always frozen, ice terrain table." },
+      gasGiantMoon: { type: "boolean", title: "Moon of a gas giant", description: "A moon of a gas giant: size −4 (p. 237)." },
+      name: { type: "string", title: "Name", description: "Planet name; when absent, inhabited worlds take a suggested name (p. 236) and others an LV designation." },
     },
   },
   steps: [

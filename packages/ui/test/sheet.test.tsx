@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { useState } from "react";
-import { computeFields, type ReferenceList, type SheetField } from "@campaign-forge/module-sdk";
+import { computeFields, type EntityTypeDef, type ReferenceList, type SheetField } from "@campaign-forge/module-sdk";
 import { SheetRenderer, TalentsField, getWidget, registerWidget, type WidgetProps } from "../src/index";
 import { hero, heroFields, referenceLists } from "./fixtures";
 
@@ -366,5 +366,51 @@ describe("wide tables stay inside their card", () => {
     expect(wrap.querySelector("thead .cf-skills__poolcol")).not.toBeNull();
     expect(wrap.querySelector("tbody .cf-skills__attr")).not.toBeNull();
     expect(screen.getByTestId("pool-fight").className).toContain("cf-skills__poolcol");
+  });
+});
+
+describe("enum labels and section conditions", () => {
+  const def: EntityTypeDef = {
+    id: "x.job",
+    kind: "job",
+    name: "Job",
+    plural: "Jobs",
+    schema: {
+      type: "object",
+      properties: {
+        isPC: { type: "boolean" },
+        frame: { type: "string", enum: ["space-truckers", "colonial-marines"], enumLabels: ["Space Truckers", "Colonial Marines"] },
+        status: { type: "string", enum: ["offered", "accepted"], enumLabels: ["Offered", "Accepted"] },
+        voice: { type: "string" },
+      },
+    },
+    sheet: {
+      sections: [
+        { id: "brief", title: "Briefing", fields: [{ path: "frame", label: "Frame", widget: "select", options: ["space-truckers", "colonial-marines"] }, { path: "status", label: "Status" }] },
+        { id: "npc", title: "NPC dossier", when: { "!": { var: "fields.isPC" } }, fields: [{ path: "voice", label: "Voice" }] },
+      ],
+    },
+  };
+
+  it("shows enum values by their labels, in field options and schema enums alike", () => {
+    render(<SheetRenderer def={def} mode="standard" fields={{ frame: "space-truckers", status: "accepted" }} onChange={() => {}} />);
+    const frame = screen.getByRole("combobox", { name: "Frame" });
+    expect(within(frame).getByRole("option", { name: "Space Truckers" })).toBeInTheDocument();
+    expect(within(frame).queryByRole("option", { name: "space-truckers" })).toBeNull();
+    expect(screen.getByRole("combobox", { name: "Status" })).toHaveDisplayValue("Accepted");
+  });
+
+  it("shows the label read-only too", () => {
+    render(<SheetRenderer def={def} mode="standard" fields={{ frame: "colonial-marines" }} onChange={() => {}} readonly />);
+    expect(screen.getByText("Colonial Marines")).toBeInTheDocument();
+  });
+
+  it("drops a section whose when-rule fails, unless it holds a value", () => {
+    const { container, rerender } = render(<SheetRenderer def={def} mode="standard" fields={{ isPC: false }} onChange={() => {}} />);
+    expect(sectionIds(container)).toEqual(["brief", "npc"]);
+    rerender(<SheetRenderer def={def} mode="standard" fields={{ isPC: true }} onChange={() => {}} />);
+    expect(sectionIds(container)).toEqual(["brief"]);
+    rerender(<SheetRenderer def={def} mode="standard" fields={{ isPC: true, voice: "Gravelly" }} onChange={() => {}} />);
+    expect(sectionIds(container)).toEqual(["brief", "npc"]);
   });
 });

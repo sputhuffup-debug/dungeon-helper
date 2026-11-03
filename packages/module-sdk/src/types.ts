@@ -20,7 +20,13 @@
 /** A JSONLogic rule object. Evaluated with json-logic-js against a data context. */
 export type JsonLogicRule = Record<string, unknown> | number | string | boolean | null;
 
-/** A JSON Schema (draft-07 compatible) object. Kept loose so modules stay data. */
+/**
+ * A JSON Schema (draft-07 compatible) object. Kept loose so modules stay data.
+ * One extension: `enumLabels`, a list parallel to `enum` with each value's
+ * display label (`enumLabel` reads it); the app shows these, never the raw
+ * values. `title` names a property wherever the app labels one (procedure
+ * inputs, sheet fields without a label).
+ */
 export type JsonSchema = Record<string, unknown>;
 
 export type PlayModeId = string;
@@ -1150,7 +1156,7 @@ export interface SheetField {
   readonly?: boolean;
   /** Grid span 1..12. */
   span?: number;
-  /** For select widgets: enum values or a reference list id (e.g. "alien.skills"). */
+  /** For select widgets: enum values (labelled by the schema's `enumLabels`) or a reference list id (e.g. "alien.skills"). */
   options?: string[] | { ref: string };
   /** For ref widgets: entity types allowed. */
   entityTypes?: string[];
@@ -1166,6 +1172,13 @@ export interface SheetSection {
   fields: SheetField[];
   /** Collapsed by default. */
   collapsed?: boolean;
+  /**
+   * Only for the entities this JSONLogic rule (over `{ fields }`) is true for,
+   * e.g. `{ "!": { "var": "fields.isPC" } }` for a section that only NPCs
+   * need. A section holding a filled-in value shows anyway: `when` drops
+   * sections that do not apply, it never hides data.
+   */
+  when?: JsonLogicRule;
 }
 
 export interface SheetLayout {

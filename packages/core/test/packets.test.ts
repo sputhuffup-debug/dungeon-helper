@@ -30,6 +30,7 @@ import {
   shareBaseline,
   shareRecordOf,
   sheetValueText,
+  viewerSheetOf,
   DEFAULT_PACKET_OPTIONS,
   type Id,
   type PacketModule,
@@ -141,6 +142,39 @@ describe("sheetValueText", () => {
     expect(sheetValueText({ path: "buddy", widget: "ref" }, "Parker", cx)).toBe("Parker");
     expect(sheetValueText({ path: "buddy", widget: "ref" }, "01JC0000000000000000000000", cx)).toBe("");
     expect(sheetValueText({ path: "buddy", widget: "ref" }, "01JD0000000000000000000000", cx)).toBe("");
+  });
+});
+
+describe("enum labels in sheet text", () => {
+  const cx = { entityName: () => undefined };
+  const schema = { type: "string", enum: ["outer-rim"], enumLabels: ["Outer Rim"] };
+  it("names an enum value by the schema's labels; without labels a select is humanized", () => {
+    expect(sheetValueText({ path: "region", widget: "select" }, "outer-rim", cx, schema)).toBe("Outer Rim");
+    expect(sheetValueText({ path: "region", widget: "select" }, "outer-rim", cx)).toBe("Outer rim");
+    expect(sheetValueText({ path: "regions", widget: "multiselect" }, ["outer-rim"], cx, { type: "array", items: schema })).toBe("Outer Rim");
+  });
+});
+
+describe("viewerSheetOf (preview as player)", () => {
+  const cx = { entityName: () => undefined };
+  it("shows a player the sheet the projection leaves, GM sections dropped whole", () => {
+    const s = seed();
+    const maps = s.store.toJSON();
+    const view = viewerSheetOf(s.heroA, module, maps, { role: "player" }, cx)!;
+    expect(view.name).toBe("Ada Vance");
+    const text = JSON.stringify(view);
+    expect(text).toContain("Pilot");
+    for (const secret of ["SECRET-ANA-SECRET", "SECRET-ANA-SHAME", "ANA-OWNER-DRIVE", "ANA-GOAL", "GM-SECTION-TITLE"]) expect(text).not.toContain(secret);
+  });
+  it("is undefined for an entity players cannot see, and hides a GM-only portrait", () => {
+    const s = seed();
+    const maps = s.store.toJSON();
+    expect(viewerSheetOf(s.npc, module, maps, { role: "player" }, cx)).toBeUndefined();
+    const visible = s.store.update("entities", s.npc.id, { visibility: { level: "players" } })!;
+    const view = viewerSheetOf(visible, module, s.store.toJSON(), { role: "player" }, cx)!;
+    // the portrait asset stays GM-only; the fields follow the entity's visibility
+    expect(view.portrait).toBeUndefined();
+    expect(JSON.stringify(view)).toContain("SECRET-NPC-ROLE");
   });
 });
 

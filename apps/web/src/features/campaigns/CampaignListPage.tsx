@@ -183,7 +183,7 @@ export function CampaignListPage() {
 }
 
 /** One game system: start a campaign, its demos, and the campaigns that use it. */
-function ModuleSection({
+export function ModuleSection({
   module: m,
   campaigns,
   busy,
@@ -210,7 +210,7 @@ function ModuleSection({
           <p className="cf-muted app-module-group__line">{moduleLine(m)}</p>
         </div>
         <div className="app-row">
-          <Button onClick={onStart} aria-label={`Start a ${m.name} campaign`}>
+          <Button onClick={onStart} aria-label={`Start a campaign: ${m.name}`}>
             Start a campaign
           </Button>
           {demos.map((d) => (

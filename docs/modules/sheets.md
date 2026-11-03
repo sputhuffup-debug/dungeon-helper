@@ -35,7 +35,7 @@ The owner then sees the field in their player packet and player sheet whatever i
 
 ## The schema (safe subset)
 
-`schema` is a JSON Schema (draft-07) for the entity's `fields`. Defaults (`default`) fill a new entity. Use `type`, `properties`, `required`, `additionalProperties`, `items`, `enum`, `const`, `minimum`, `maximum`, `minLength`, `maxLength`, `minItems`, `maxItems`, `anyOf`, `oneOf`, `allOf`, `definitions` and local `$ref` (`"#/definitions/..."`), `title`, `description`, `format`. Packs may not use `pattern`, `patternProperties`, `propertyNames`, `$data`, `$async`, `$id`, `$schema` or remote `$ref`.
+`schema` is a JSON Schema (draft-07) for the entity's `fields`. Defaults (`default`) fill a new entity. Use `type`, `properties`, `required`, `additionalProperties`, `items`, `enum`, `const`, `minimum`, `maximum`, `minLength`, `maxLength`, `minItems`, `maxItems`, `anyOf`, `oneOf`, `allOf`, `definitions` and local `$ref` (`"#/definitions/..."`), `title`, `description`, `format`, and one extension: `enumLabels`, a list parallel to `enum` with each value's display label (`"enum": ["outer-rim"], "enumLabels": ["Outer Rim"]`). Selects, read-only sheets, summaries, packets and procedure inputs show the labels, never the raw values, so give every enum the GM sees its labels; a procedure input's `title` names it on the Generate page. Packs may not use `pattern`, `patternProperties`, `propertyNames`, `$data`, `$async`, `$id`, `$schema` or remote `$ref`.
 
 ## Computed values (rule 4)
 
@@ -43,7 +43,7 @@ Never store what can be derived. `computed` maps a name to JSONLogic over `{ fie
 
 ## Layout
 
-`sheet.sections[]`: `{ id, title, columns?, collapsed?, mode?, fields[] }`. `sheet.summary`: paths shown in list rows and quick-stat cards. `sheet.create`: paths the new-entity form asks for before the entity is saved, with the sheet's own widgets (the Alien character sheet asks for `isPC` and `weapons`, so a PC can get starting weapons as it is created).
+`sheet.sections[]`: `{ id, title, columns?, collapsed?, mode?, when?, fields[] }`. `when` is JSONLogic over `{ fields }`: the section shows only for entities it is true for (the Alien NPC dossier has `{ "!": { "var": "fields.isPC" } }`, so a PC's sheet drops it). A section holding a filled-in value shows anyway, so `when` never hides data. `sheet.summary`: paths shown in list rows and quick-stat cards. `sheet.create`: paths the new-entity form asks for before the entity is saved, with the sheet's own widgets (the Alien character sheet asks for `isPC` and `weapons`, so a PC can get starting weapons as it is created).
 
 A field: `{ path, label?, widget?, rule?, mode?, readonly?, span?, options?, entityTypes?, config? }`.
 

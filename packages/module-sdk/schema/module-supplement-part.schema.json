@@ -1116,6 +1116,9 @@
         },
         "collapsed": {
           "type": "boolean"
+        },
+        "when": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
         }
       },
       "required": [

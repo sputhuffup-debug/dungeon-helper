@@ -16,6 +16,7 @@ const PATHS: Record<string, string> = {
   bug: "M12 7a4 4 0 0 1 4 4v4a4 4 0 0 1-8 0v-4a4 4 0 0 1 4-4Zm-6 4h2m8 0h2M6 16h2m8 0h2M9 4l1.5 3M15 4l-1.5 3",
   swords: "M4 4l9 9m-2 2-2 2-2-2 2-2M20 4l-9 9m2 2 2 2 2-2-2-2",
   note: "M5 3h10l4 4v14H5Zm10 0v4h4M8 12h8M8 16h6",
+  book: "M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2Zm0 0v16",
   dot: "M12 12m-5 0a5 5 0 1 0 10 0 5 5 0 1 0-10 0",
 };
 

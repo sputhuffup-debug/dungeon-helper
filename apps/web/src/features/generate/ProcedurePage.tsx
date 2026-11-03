@@ -28,10 +28,10 @@ import { LongAgendaAccept, LongAgendaDraftCards, type LongAgendaEdits } from "..
 import { longAgendaDraftsOf } from "../../state/longAgendaActions";
 import { initialInputs, inputProperties, isAdventureInput, pickedInputs } from "./prefill";
 import { PreviewPanel } from "./PreviewPanel";
-import { EffectsPicker, plainEffectsOf, ResultsPanel } from "./ResultsPanel";
-import { crewShipDefOf } from "../../state/shipActions";
+import { describeEffect, EffectsPicker, isEffect, plainEffectsOf, ResultsPanel } from "./ResultsPanel";
+import { crewShipDefOf, money } from "../../state/shipActions";
 import { planNextSession, sortSessions } from "../../state/tableActions";
-import { changedSteps, contextFromRun, newSeed, requestFromRun, runGenerator, stepRun, stepViews, withoutDependentDice, type GeneratorRequest } from "./runner";
+import { changedSteps, contextFromRun, newSeed, requestFromRun, runGenerator, stepRun, stepViews, withoutDependentDice, type DescribeValue, type GeneratorRequest } from "./runner";
 import { StepList } from "./StepList";
 import { ChainButtons } from "./ChainButtons";
 import { OfferBoard } from "./OfferBoard";
@@ -492,6 +492,16 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
   };
   const offersActed = offers ? offers.offers.filter((o) => liveDraft?.offers?.[o.key] && liveDraft.offers[o.key]!.as !== "discard").length : 0;
   const root = accepted?.produced[0] ? ctx.store.get("entities", accepted.produced[0]) : undefined;
+  // effects in a step's result read as the Effects list does: names, money, no ids
+  const describeStepValue: DescribeValue = (o) =>
+    isEffect(o)
+      ? describeEffect(
+          o,
+          (id) => ctx.store.get("entities", id)?.name ?? "someone",
+          (id) => ctx.module.preset(id)?.name ?? id,
+          (n) => money(ctx, n, { sign: true }),
+        )
+      : undefined;
 
   return (
     <div className="app-page prep-workbench" data-testid="workbench">
@@ -501,7 +511,7 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
             <Link to="/c/$campaignId/generate" params={{ campaignId }} className="app-link-strong">
               Generate
             </Link>{" "}
-            / {procedure.id}
+            / {procedure.name}
           </p>
           <h1 className="app-title">
             {procedure.name} <PageRef page={procedure.page} cite={procedure.cite} original={procedure.original} />
@@ -657,6 +667,8 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
             <section aria-label="Steps" className="app-stack">
               <h2 className="app-subtitle">Steps</h2>
               <StepList
+                describe={describeStepValue}
+                tableName={(id) => ctx.module.table(id)?.name}
                 steps={steps}
                 changed={changed}
                 pinnedRolls={pinnedRolls}
@@ -747,7 +759,7 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
                 />
               ) : (
                 <div className="app-row">
-                  <Button variant="primary" size="lg" disabled={!graph} onClick={accept} data-testid="accept">
+                  <Button variant="primary" size="lg" disabled={!graph} onClick={accept} data-testid="accept" className="prep-accept">
                     {effectsRun || clocksWithRun ? acceptLabel(toApply.length, !!clocksWithRun && moveClocks) : "Accept into campaign"}
                   </Button>
                 </div>

@@ -5,6 +5,7 @@
  * object lists as an editable table, and nested objects as fieldsets.
  * Fields filled from an adventure carry a "from adventure" badge.
  */
+import { enumLabel as sdkEnumLabel, type JsonSchema } from "@campaign-forge/module-sdk";
 import type { ReactNode } from "react";
 import { Badge, Button, IconButton, SchemaValueEditor } from "../../components/ui";
 import { humanize } from "../../lib/format";
@@ -47,10 +48,7 @@ export function BriefForm({ schema, value, onChange, fromAdventure = [] }: Brief
 
 /** Display label for an enum value: the schema's `enumLabels` when given, else the value humanized. */
 export function enumLabel(schema: Schema | undefined, value: unknown): string {
-  const labels = (schema as { enumLabels?: unknown } | undefined)?.enumLabels;
-  const i = schema?.enum?.findIndex((x) => x === value) ?? -1;
-  if (Array.isArray(labels) && i >= 0 && typeof labels[i] === "string") return labels[i] as string;
-  return humanize(String(value));
+  return sdkEnumLabel(schema as JsonSchema | undefined, value) ?? humanize(String(value));
 }
 
 /** An enum as a select with the schema's labels; "Generator decides" when there is no default. */

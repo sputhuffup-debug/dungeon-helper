@@ -196,30 +196,56 @@ export function changedSteps(before: GeneratedGraph | undefined, after: Generate
 // ---------------------------------------------------------------------------
 
 const HIDDEN_KEYS = new Set(["cumulative"]);
+/** Record ids (ULIDs) and other machine ids: never shown in a step's line, only under Raw result. */
+const ID_LIKE = /^[0-9A-HJKMNP-TV-Z]{26}$/;
+const isIdKey = (k: string) => k === "id" || k === "key" || /Id$|Ids$/.test(k) || k === "links";
 
-/** Compact one-line rendering of a step result: strings as is, objects as "k: v, ...". */
-export function summarizeValue(value: unknown, max = 220): string {
-  const text = summarize(value, 0);
+/** A readable line for one object, when the caller knows its shape (an effect); `undefined` falls back to the generic line. */
+export type DescribeValue = (value: Record<string, unknown>) => string | undefined;
+
+/**
+ * Compact one-line rendering of a step result for the GM: strings as is; an
+ * object by its `label` (or name, text, title) alone; an object without one
+ * as "Key: value" pairs with readable keys, ids left out. The whole object
+ * stays one click away under the step's Raw result.
+ */
+export function summarizeValue(value: unknown, max = 220, describe?: DescribeValue): string {
+  const text = summarize(value, 0, describe);
   return text.length > max ? `${text.slice(0, max - 1)}…` : text;
 }
 
-function summarize(value: unknown, depth: number): string {
+function humanKey(k: string): string {
+  const spaced = k.replace(/[_-]+/g, " ").replace(/([a-z0-9])([A-Z])/g, "$1 $2").trim().toLowerCase();
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+}
+
+function summarize(value: unknown, depth: number, describe?: DescribeValue): string {
   if (value === undefined || value === null) return "—";
-  if (typeof value === "string") return value;
+  if (typeof value === "string") return ID_LIKE.test(value) ? "" : value;
   if (typeof value === "number") return Number.isInteger(value) ? String(value) : value.toFixed(2);
   if (typeof value === "boolean") return value ? "yes" : "no";
   if (Array.isArray(value)) {
     if (value.length === 0) return "none";
-    return value.map((v) => summarize(v, depth + 1)).join(depth === 0 ? "; " : ", ");
+    return value
+      .map((v) => summarize(v, depth + 1, describe))
+      .filter(Boolean)
+      .join(depth === 0 ? "; " : ", ");
   }
   if (typeof value === "object") {
     const obj = value as Record<string, unknown>;
-    if (depth > 2) return "{…}";
-    const label = obj.label ?? obj.name;
-    const rest = Object.entries(obj).filter(([k, v]) => !HIDDEN_KEYS.has(k) && k !== "label" && k !== "name" && v !== undefined && v !== "" && v !== label);
-    const inner = rest.map(([k, v]) => `${k}: ${summarize(v, depth + 1)}`).join(", ");
-    if (typeof label === "string" && label) return inner ? `${label} (${inner})` : label;
-    return depth === 0 ? inner : `{${inner}}`;
+    const described = describe?.(obj);
+    if (described !== undefined) return described;
+    for (const k of ["label", "name", "text", "title"]) {
+      const v = obj[k];
+      if (typeof v === "string" && v.trim()) return v;
+    }
+    if (depth > 1) return "";
+    const parts = Object.entries(obj)
+      .filter(([k, v]) => !HIDDEN_KEYS.has(k) && !isIdKey(k) && v !== undefined && v !== "")
+      .map(([k, v]) => [k, summarize(v, depth + 1, describe)] as const)
+      .filter(([, t]) => t !== "")
+      .map(([k, t]) => `${humanKey(k)}: ${t}`);
+    return depth === 0 ? parts.join(", ") : parts.length ? `(${parts.join(", ")})` : "";
   }
   return String(value);
 }

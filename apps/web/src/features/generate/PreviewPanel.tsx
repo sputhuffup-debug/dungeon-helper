@@ -6,7 +6,7 @@
  * results stay behind each step's "Raw result" toggle.
  */
 import { sheetValueText, type SheetValueContext } from "@campaign-forge/core";
-import type { GeneratedGraph } from "@campaign-forge/module-sdk";
+import { fieldSchemaAt, type GeneratedGraph } from "@campaign-forge/module-sdk";
 import { EntityIcon } from "../../components/EntityIcon";
 import { Badge, Card } from "../../components/ui";
 import { humanize } from "../../lib/format";
@@ -71,7 +71,7 @@ export function PreviewPanel({ graph, names, onRename }: { graph: GeneratedGraph
                 <dl className="app-dl">
                   {keyFields.map(([k, v]) => {
                     const field = sheetFieldOf(def, k);
-                    const text = typeof v === "boolean" ? (v ? "Yes" : "No") : field ? sheetValueText(field, v, cx) : "";
+                    const text = typeof v === "boolean" ? (v ? "Yes" : "No") : field ? sheetValueText(field, v, cx, def ? fieldSchemaAt(def, k) : undefined) : "";
                     return (
                       <div key={k} className="app-dl__row" data-field={k}>
                         <dt>{field?.label ?? humanize(k)}</dt>

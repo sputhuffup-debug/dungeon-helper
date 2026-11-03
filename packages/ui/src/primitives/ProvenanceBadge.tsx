@@ -65,7 +65,8 @@ export function ProvenanceBadge({ kind, rolls, detail, label, onReroll, classNam
   );
 }
 
-export function RollRecordList({ rolls }: { rolls: RollRecord[] }) {
+/** `tableName` names a roll's table (its id when it gives none). */
+export function RollRecordList({ rolls, tableName }: { rolls: RollRecord[]; tableName?: (id: string) => string | undefined }) {
   return (
     <ul className="cf-prov__rolls">
       {rolls.map((r, i) => (
@@ -80,10 +81,10 @@ export function RollRecordList({ rolls }: { rolls: RollRecord[] }) {
           <span className="cf-prov__roll-dice">
             {r.dice} → [{r.raw.join(", ")}]{r.modifier ? ` ${r.modifier > 0 ? "+" : ""}${r.modifier}` : ""} = {r.total}
           </span>
-          <span className="cf-muted">{r.table ?? ""}</span>
+          <span className="cf-muted">{r.table ? (tableName?.(r.table) ?? r.table) : ""}</span>
           {r.nested && r.nested.length > 0 && (
             <div style={{ gridColumn: "1 / -1", paddingLeft: 12 }}>
-              <RollRecordList rolls={r.nested} />
+              <RollRecordList rolls={r.nested} {...(tableName ? { tableName } : {})} />
             </div>
           )}
         </li>

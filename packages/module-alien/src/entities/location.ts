@@ -1,7 +1,9 @@
 import type { EntityTypeDef, SheetLayout } from "@campaign-forge/module-sdk";
 import {
   ALLEGIANCE_IDS,
+  ALLEGIANCE_LABELS,
   REGION_IDS,
+  REGION_LABELS,
   checkbox,
   enumField,
   intField,
@@ -25,8 +27,8 @@ const regionField = select("region", "Region", [...REGION_IDS], { span: 4, rule:
 const allegianceField = select("allegiance", "Allegiance", [...ALLEGIANCE_IDS], { span: 4, rule: "alien.rule.allegiance" });
 
 export const locationSchema = objectSchema({
-  region: enumField(REGION_IDS, undefined, "Region of charted space (p. 180-181)."),
-  allegiance: enumField(ALLEGIANCE_IDS),
+  region: enumField(REGION_IDS, undefined, "Region of charted space (p. 180-181).", REGION_LABELS),
+  allegiance: enumField(ALLEGIANCE_IDS, undefined, undefined, ALLEGIANCE_LABELS),
   description: stringField(),
   // star-system
   starClass: enumField(STAR_CLASSES, undefined, "Spectral class (p. 243)."),
@@ -61,7 +63,7 @@ export const locationSchema = objectSchema({
   keyResources: stringArray(),
   colonies: stringArray("Colony names or entity ids on this world."),
   // colony
-  colonySize: enumField(COLONY_SIZES, undefined, "(p. 240)"),
+  colonySize: enumField(COLONY_SIZES, undefined, "(p. 240)", { "start-up": "Start-up" }),
   missions: stringArray("Colony missions (p. 241)."),
   factions: {
     type: "array",

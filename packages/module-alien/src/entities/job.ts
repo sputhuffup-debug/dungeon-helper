@@ -1,12 +1,12 @@
 import type { EntityTypeDef } from "@campaign-forge/module-sdk";
-import { FRAME_IDS, enumField, intField, number, numberField, objectSchema, select, stringArray, stringField, tags, text, textarea } from "./common";
+import { FRAME_IDS, FRAME_LABELS, enumField, intField, number, numberField, objectSchema, select, stringArray, stringField, tags, text, textarea } from "./common";
 import { CAMPAIGN } from "../modes";
 
 export const JOB_TYPES = ["job", "mission", "expedition"] as const;
 export const JOB_STATUSES = ["offered", "accepted", "done", "failed", "declined"] as const;
 
 export const jobSchema = objectSchema({
-  frame: enumField(FRAME_IDS, "space-truckers", "Campaign frame this job belongs to (p. 234)."),
+  frame: enumField(FRAME_IDS, "space-truckers", "Campaign frame this job belongs to (p. 234).", FRAME_LABELS),
   jobType: enumField(JOB_TYPES, "job", "Job (truckers), mission (marines) or expedition (colonists) (p. 244)."),
   distance: intField(0, 5, 0, "Systems away, D6-1 (p. 244)."),
   difficulty: intField(1, 3, 1, "D3; also the number of complications (p. 244)."),

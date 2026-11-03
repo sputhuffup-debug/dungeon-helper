@@ -14,13 +14,13 @@
  * material is never in the projection. Nothing here names a game.
  */
 import type { GameModule, LongAgendaDef, SheetField, SheetSection } from "@campaign-forge/module-sdk";
-import { computeFields, ownerVisiblePaths } from "@campaign-forge/module-sdk";
+import { computeFields, enumLabel, fieldSchemaAt, ownerVisiblePaths, sectionApplies, type JsonSchema } from "@campaign-forge/module-sdk";
 import { longAgendaMarkdown, longAgendaRecordOf } from "./longAgendas";
 import { charactersOfMember, memberViewer } from "./members";
 import { getPath } from "./paths";
 import { planShare, playerShareSnapshot, shareBaseline, type PlayerShare, type PlayerShareInput, type ShareBaseline, type ShareImage, type ShareOptions, type SharePlan } from "./share";
 import type { CampaignMaps, Entity, Id, Session } from "./types";
-import { canSeeField, findEntityType, projectCampaignForViewer, viewerOwns, type ModuleTypes, type Viewer } from "./visibility";
+import { canSee, canSeeField, findEntityType, projectCampaignForViewer, projectEntityForViewer, viewerOwns, type ModuleTypes, type Viewer } from "./visibility";
 
 /** A module as packets read it: entity types, owner handout kinds, and procedures (for a long-term agenda). */
 export type PacketModule = ModuleTypes & Partial<Pick<GameModule, "procedures">>;
@@ -120,11 +120,11 @@ function rowName(v: unknown, f: SheetField | undefined, cx: ValueContext): strin
  * count), list rows by name and quantity, entity references by the entity's
  * name. Used by player packets and by previews of generated entities.
  */
-export function sheetValueText(f: SheetField | undefined, v: unknown, cx: SheetValueContext): string {
-  return sheetValue(f, v, cx);
+export function sheetValueText(f: SheetField | undefined, v: unknown, cx: SheetValueContext, schema?: JsonSchema): string {
+  return sheetValue(f, v, cx, schema);
 }
 
-function sheetValue(f: SheetField | undefined, v: unknown, cx: ValueContext): string {
+function sheetValue(f: SheetField | undefined, v: unknown, cx: ValueContext, schema?: JsonSchema): string {
   if (v === undefined || v === null) return "";
   const widget = f?.widget;
   if (widget === "image" || widget === "zonemap" || widget === "richtext") return "";
@@ -142,9 +142,12 @@ function sheetValue(f: SheetField | undefined, v: unknown, cx: ValueContext): st
     if (!v.trim()) return "";
     const options = f?.options;
     if (options && !Array.isArray(options)) return cx.referenceName?.(options.ref, v) ?? humanize(v);
+    const label = enumLabel(schema, v);
+    if (label) return label;
     if (widget === "select") return humanize(v);
     return v.trim();
   }
+  if (Array.isArray(v) && enumLabel(schema, v[0]) !== undefined) return v.map((x) => enumLabel(schema, x) ?? (typeof x === "string" ? humanize(x) : "")).filter(Boolean).join(", ");
   if (Array.isArray(v)) return v.map((x) => rowName(x, f, cx)).filter(Boolean).join(", ");
   if (isRec(v)) {
     // a map of levels (skills): the ones above zero, by name
@@ -167,11 +170,10 @@ function sheetValue(f: SheetField | undefined, v: unknown, cx: ValueContext): st
  * field, is a GM section and is left out whole, title and all (its title may
  * say what it hides).
  */
-function packetCharacter(raw: Entity, projected: Entity, module: PacketModule | undefined, maps: CampaignMaps, assets: CampaignMaps["assets"], viewer: Viewer, cx: ValueContext): PacketCharacter {
+function packetCharacter(raw: Entity, projected: Entity, module: PacketModule | undefined, mode: string, assets: CampaignMaps["assets"], viewer: Viewer, cx: ValueContext): PacketCharacter {
   const def = findEntityType(module, raw.type);
   const sub = raw.subtype ? def?.subtypes?.find((s) => s.id === raw.subtype) : undefined;
   const sheet = sub?.sheet ?? def?.sheet;
-  const mode = maps.meta.mode;
   let computed: Record<string, unknown> = {};
   if (def) {
     try {
@@ -193,7 +195,7 @@ function packetCharacter(raw: Entity, projected: Entity, module: PacketModule | 
   const ownerField = (path: string) => ownerPaths.some((p) => path === p || path.startsWith(`${p}.`));
   const sections: PacketCharacter["sections"] = [];
   for (const section of (sheet?.sections ?? []) as SheetSection[]) {
-    if (!inMode(section, mode)) continue;
+    if (!inMode(section, mode) || !sectionApplies(section, projected.fields)) continue;
     const fields = section.fields.filter((f) => inMode(f, mode));
     // a section that opens on a field the player may not see, and holds nothing shown to a character's own player, is a GM section: left out, title and all
     const lead = fields.find((f) => f.widget !== "computed" && getPath(raw.fields, f.path) !== undefined);
@@ -205,7 +207,7 @@ function packetCharacter(raw: Entity, projected: Entity, module: PacketModule | 
       // computed values come from projected fields only; a stored field must be in the projection
       const v = isComputed ? computed[f.path] : getPath(projected.fields, f.path);
       if (isRec(v) && f.widget !== "skills" && !f.options) continue;
-      const value = sheetValue(f, v, cx);
+      const value = sheetValue(f, v, cx, def ? fieldSchemaAt(def, f.path) : undefined);
       if (!value) continue;
       rows.push({ label: f.label ?? humanize(f.path.split(".").pop() ?? f.path), value });
     }
@@ -220,6 +222,21 @@ function packetCharacter(raw: Entity, projected: Entity, module: PacketModule | 
     out.portrait = { asset: asset.id, name: asset.name, mime: asset.mime, ...(asset.width !== undefined ? { width: asset.width } : {}), ...(asset.height !== undefined ? { height: asset.height } : {}) };
   }
   return out;
+}
+
+/**
+ * Any entity's sheet as a viewer sees it, the way a player packet shows a
+ * character: the sections and rows the projection leaves (GM sections left
+ * out whole), conditions, and the portrait when the viewer may see it. For
+ * the GM's "preview as player". `undefined` when the viewer may not see the
+ * entity at all. Reads only the projected entity, like packets do.
+ */
+export function viewerSheetOf(raw: Entity, module: PacketModule | undefined, maps: Pick<CampaignMaps, "meta" | "assets">, viewer: Viewer, cx: SheetValueContext): PacketCharacter | undefined {
+  const projected = projectEntityForViewer(raw, findEntityType(module, raw.type), viewer);
+  if (!projected) return undefined;
+  const image = projected.image ? maps.assets[projected.image] : undefined;
+  const assets = image && canSee(image.visibility, viewer) ? { [image.id]: image } : {};
+  return packetCharacter(raw, projected, module, maps.meta.mode, assets, viewer, cx);
 }
 
 /**
@@ -241,7 +258,7 @@ export function playerPacketSnapshot(input: PlayerPacketInput): PlayerPacket {
   for (const id of charactersOfMember(maps, memberId)) {
     const raw = maps.entities[id];
     const p = projected.entities[id];
-    if (raw && p) characters.push(packetCharacter(raw, p, module, maps, projected.assets, viewer, cx));
+    if (raw && p) characters.push(packetCharacter(raw, p, module, maps.meta.mode, projected.assets, viewer, cx));
   }
   return { ...share, for: member.name, member: { id: member.id, name: member.name }, characters };
 }

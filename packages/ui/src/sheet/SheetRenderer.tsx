@@ -4,6 +4,7 @@ import {
   fieldSchemaAt,
   getPath,
   schemaAt,
+  sectionApplies,
   setPath,
   sheetFieldsForMode,
   type EntityTypeDef,
@@ -148,7 +149,7 @@ export function SheetRenderer(props: SheetRendererProps) {
   return (
     <SheetContextProvider value={ctx}>
       <div className={cx("cf-sheet", tableMode && "cf-table-mode", className)} data-entity-type={def.id}>
-        {sections.map((section) => (
+        {sections.filter((section) => sectionApplies(section, fields)).map((section) => (
           <SheetSectionView
             key={section.id}
             section={section}

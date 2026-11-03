@@ -1,5 +1,5 @@
 import type { ComponentType } from "react";
-import type { EntityTypeDef, JsonSchema, PlayModeId, ReferenceItem, ReferenceList, SheetField } from "@campaign-forge/module-sdk";
+import { enumLabel, type EntityTypeDef, type JsonSchema, type PlayModeId, type ReferenceItem, type ReferenceList, type SheetField } from "@campaign-forge/module-sdk";
 import { isRecord } from "../sheet/paths";
 
 /** Props every sheet widget receives from the renderer. */
@@ -49,10 +49,10 @@ export function referenceItems(lists: Record<string, ReferenceList>, ref: string
   return list.items.filter((i) => inMode(i, mode));
 }
 
-/** Options for select-like widgets: field.options (array or {ref}), then schema enum. */
+/** Options for select-like widgets: field.options (array or {ref}), then schema enum; enum values labelled by the schema's `enumLabels`. */
 export function resolveOptions(field: SheetField, schema: JsonSchema | undefined, lists: Record<string, ReferenceList>, mode?: PlayModeId): Option[] {
   const opts = field.options;
-  if (Array.isArray(opts)) return opts.map((v) => ({ value: v, label: v }));
+  if (Array.isArray(opts)) return opts.map((v) => ({ value: v, label: enumLabel(schema, v) ?? v }));
   if (isRecord(opts) && typeof opts.ref === "string") {
     return referenceItems(lists, opts.ref, mode).map((i) => ({ value: i.id, label: i.name, item: i }));
   }
@@ -61,7 +61,7 @@ export function resolveOptions(field: SheetField, schema: JsonSchema | undefined
     return referenceItems(lists, cfgRef, mode).map((i) => ({ value: i.id, label: i.name, item: i }));
   }
   const en = schema?.enum ?? (isRecord(schema?.items) ? (schema?.items as JsonSchema).enum : undefined);
-  if (Array.isArray(en)) return en.map((v) => ({ value: String(v), label: String(v) }));
+  if (Array.isArray(en)) return en.map((v) => ({ value: String(v), label: enumLabel(schema, v) ?? String(v) }));
   return [];
 }
 

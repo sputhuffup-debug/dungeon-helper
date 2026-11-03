@@ -1,11 +1,11 @@
 import type { EntityTypeDef } from "@campaign-forge/module-sdk";
-import { ALLEGIANCE_IDS, checkbox, enumField, intField, objectSchema, select, stringField, text, textarea } from "./common";
+import { ALLEGIANCE_IDS, ALLEGIANCE_LABELS, checkbox, enumField, intField, objectSchema, select, stringField, text, textarea } from "./common";
 
 export const FACTION_TYPES = ["corporation", "government", "military", "colonial", "other"] as const;
 
 export const factionSchema = objectSchema({
   factionType: enumField(FACTION_TYPES, "other"),
-  allegiance: enumField(ALLEGIANCE_IDS, "unknown"),
+  allegiance: enumField(ALLEGIANCE_IDS, "unknown", undefined, ALLEGIANCE_LABELS),
   history: stringField(),
   products: stringField("Products and services (corporations)."),
   military: stringField("Military assets (governments, militaries)."),

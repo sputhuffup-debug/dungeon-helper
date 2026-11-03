@@ -2,7 +2,7 @@
 import { playerMembers, type Entity } from "@campaign-forge/core";
 import type { EntityTypeDef, Prompt } from "@campaign-forge/module-sdk";
 import { Link, useNavigate, useParams, useSearch } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { EntityIcon } from "../../components/EntityIcon";
 import { TagInput } from "../../components/TagInput";
@@ -16,6 +16,7 @@ import { NotesTab } from "./NotesTab";
 import { RelationshipsTab } from "./RelationshipsTab";
 import { SheetTab } from "./SheetTab";
 import { TimelineTab } from "./TimelineTab";
+import { PlayerPreview } from "./PlayerPreview";
 import { EntityPrepPanels } from "../generate/EntityPrepPanels";
 import { LifecycleStart } from "../table/LifecycleStart";
 import { LevelUpButton } from "../builder/entry";
@@ -59,6 +60,8 @@ export function EntityPage() {
     );
   }
 
+  if (search.as === "player") return <PlayerPreview entity={entity} />;
+
   const advancing = entityAdvances(ctx.module, meta.mode, entity);
   // long-term agendas: player characters, when the module keeps them in this mode
   const agendas = !!longAgendaProcedureOf(ctx.module, meta.mode) && isPlayerCharacter(entity) && def?.kind === "character";
@@ -80,6 +83,37 @@ export function EntityPage() {
         ]}
       />
       <EntityPrepPanels entity={entity} def={def} />
+    </div>
+  );
+}
+
+/** The header's "More" menu: less used actions (preview as player, a life cycle's start, delete). Stays open while a dialog it opened is up. */
+function EntityMenu({ children }: { children: ReactNode }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !document.querySelector("dialog[open]")) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+  return (
+    <div className="app-menu" ref={ref}>
+      <Button variant="ghost" aria-expanded={open} aria-haspopup="true" onClick={() => setOpen((o) => !o)} data-testid="entity-more">
+        More…
+      </Button>
+      <div className="app-menu__body" hidden={!open}>
+        {children}
+      </div>
     </div>
   );
 }
@@ -193,12 +227,18 @@ function EntityHeader({ entity, def }: { entity: Entity; def: EntityTypeDef | un
       </div>
       <div className="app-entity__actions">
         <LevelUpButton entity={entity} />
-        <LifecycleStart entity={entity} onPrompts={(raised) => setPrompts((p) => [...p, ...raised])} />
+        <LifecycleStart entity={entity} show="badges" />
         <RunFromEntityButton entity={entity} />
         <PayoutButton entity={entity} />
-        <Button variant="ghost" onClick={() => setConfirmDelete(true)}>
-          Delete
-        </Button>
+        <EntityMenu>
+          <Link to="/c/$campaignId/entities/$entityId" params={{ campaignId: ctx.campaignId, entityId: entity.id }} search={{ as: "player" }} className="cf-btn cf-btn--sm cf-btn--ghost" data-testid="entity-preview-as-player">
+            Preview as player
+          </Link>
+          <LifecycleStart entity={entity} show="actions" quiet onPrompts={(raised) => setPrompts((p) => [...p, ...raised])} />
+          <Button size="sm" variant="ghost" onClick={() => setConfirmDelete(true)}>
+            Delete
+          </Button>
+        </EntityMenu>
       </div>
       <PromptDialog prompt={prompts[0]} onAnswer={onAnswer} onCancel={() => setPrompts((p) => p.slice(1))} resolveEntityName={(id) => ctx.store.get("entities", id)?.name} />
       <ConfirmDialog

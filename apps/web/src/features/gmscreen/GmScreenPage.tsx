@@ -3,10 +3,12 @@
  * (its `gmScreen`, or panels built from its rule cards), for the campaign's
  * play mode. Pick the panels and their order and size, the paper, tri-fold
  * or cards and fold marks; preview both sides at scale; download the PDF.
+ * "On screen" (`?view=screen`) shows the same panels as cards, to read at the
+ * table without printing.
  * The choices are saved with the campaign (`meta.settings.gmScreen`).
  */
 import type { GmScreenSize } from "@campaign-forge/module-sdk";
-import { Link } from "@tanstack/react-router";
+import { Link, useSearch } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Badge, Button, Card, IconButton, pushToast } from "../../components/ui";
 import { slug } from "../../lib/download";
@@ -17,6 +19,7 @@ import { useCampaign, useMeta } from "../../state/hooks";
 import { sendFiles } from "../share/shareExport";
 import { pageSvg, SCREEN_FORMATS, SCREEN_PAPERS, type ScreenFormat, type ScreenPaper } from "./gmScreenLayout";
 import { buildGmScreen, gmScreenPdf, movePanel, readChoices, withChoices, type GmScreenChoices, type PanelChoice } from "./gmScreenModel";
+import { ScreenView } from "./ScreenView";
 import "./gmscreen.css";
 
 const SIZE_LABELS: Record<GmScreenSize, string> = { third: "One fold", half: "Two folds", full: "Whole side" };
@@ -24,6 +27,8 @@ const SIZE_LABELS: Record<GmScreenSize, string> = { third: "One fold", half: "Tw
 export function GmScreenPage() {
   const ctx = useCampaign();
   const meta = useMeta();
+  const search = useSearch({ from: "/c/$campaignId/gm-screen" });
+  const onScreen = search.view === "screen";
   const [busy, setBusy] = useState(false);
   const module = ctx.module.module;
   const choices = useMemo(() => readChoices(meta.settings, defaultPaper()), [meta.settings]);
@@ -62,10 +67,18 @@ export function GmScreenPage() {
       <header className="app-page__header">
         <h1 className="app-title">GM screen</h1>
         <div className="app-row">
+          <div className="app-row" role="group" aria-label="View">
+            <Link to="/c/$campaignId/gm-screen" params={{ campaignId: ctx.campaignId }} search={{ view: "screen" }} className={`cf-btn${onScreen ? " cf-btn--active" : ""}`} aria-current={onScreen ? "page" : undefined} data-testid="gm-screen-view-screen">
+              On screen
+            </Link>
+            <Link to="/c/$campaignId/gm-screen" params={{ campaignId: ctx.campaignId }} search={{}} className={`cf-btn${onScreen ? "" : " cf-btn--active"}`} aria-current={onScreen ? undefined : "page"} data-testid="gm-screen-view-print">
+              Print
+            </Link>
+          </div>
           <Link to="/c/$campaignId/rules" params={{ campaignId: ctx.campaignId }} className="cf-btn">
             Rules
           </Link>
-          <Button variant="primary" onClick={() => void download()} disabled={busy || build.layout.pages.length === 0} data-testid="gm-screen-download">
+          <Button variant={onScreen ? "default" : "primary"} onClick={() => void download()} disabled={busy || build.layout.pages.length === 0} data-testid="gm-screen-download">
             {busy ? "Making the PDF…" : "Download PDF"}
           </Button>
         </div>
@@ -76,6 +89,9 @@ export function GmScreenPage() {
           : `${ctx.module.manifest.name}'s quick reference, built from the module's own rule cards, tables and lists for ${modeName.toLowerCase()} play.`}{" "}
         {choices.format === "trifold" ? "Print both sides on one sheet (flip on the long edge) and fold on the marks." : "Two cards to a sheet: cut on the middle line."}
       </p>
+      {onScreen ? (
+        <ScreenView choices={build.choices} />
+      ) : (
       <div className="app-gmscreen">
         <div className="app-gmscreen__options">
           <Card title="Print">
@@ -147,6 +163,7 @@ export function GmScreenPage() {
           ))}
         </section>
       </div>
+      )}
     </div>
   );
 }
