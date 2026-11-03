@@ -23,6 +23,8 @@ export interface EffectContext {
   ledgerSource?: { kind: "procedure" | "travel" | "payout" | "effect"; id?: Id };
   /** Rounds ledger amounts to the module currency. */
   currency?: Pick<CurrencyDef, "decimals">;
+  /** The account holder's money field (`LedgerDef.accountField`): a ledger effect on a personal account moves it. */
+  ledgerAccountField?: string;
   /** The module's progression (and lookups) for `award` effects; without it they are skipped. */
   advancement?: AdvancementModule;
 }
@@ -116,7 +118,7 @@ export function applyEffects(store: CampaignStore, effects: Effect[], ctx: Effec
       if (effect.kind === "ledger") {
         const links = { ...(ctx.ledgerLinks ?? {}), ...(effect.links ?? {}) };
         if (session !== undefined && !links.session) links.session = session;
-        const posted = postLedgerEffect(store, { ...effect, links }, { source: ctx.ledgerSource ?? { kind: "effect" }, ...(ctx.currency ? { currency: ctx.currency } : {}) });
+        const posted = postLedgerEffect(store, { ...effect, links }, { source: ctx.ledgerSource ?? { kind: "effect" }, ...(ctx.currency ? { currency: ctx.currency } : {}), ...(ctx.ledgerAccountField ? { accountField: ctx.ledgerAccountField } : {}) });
         if (posted.duplicate) {
           skipped.push({ effect, reason: `already posted (${effect.key})` });
           continue;

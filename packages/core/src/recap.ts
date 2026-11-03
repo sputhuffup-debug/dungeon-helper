@@ -107,7 +107,7 @@ export function recapSince(covered: readonly Pick<Session, "created">[], span: R
   return covered.reduce((min, s) => (s.created < min ? s.created : min), covered[0]!.created);
 }
 
-const sessionRef = (s: Session): RecapSessionRef => ({ id: s.id, number: s.number, date: s.date, label: shareSessionLabel(s), ...(s.title ? { title: s.title } : {}) });
+const sessionRef = (s: Session): RecapSessionRef => ({ id: s.id, number: s.number, date: s.date, label: shareSessionLabel(s), ...(s.title ? { title: s.title } : {}), ...(s.inWorldDate ? { inWorldDate: s.inWorldDate } : {}) });
 
 // ---------------------------------------------------------------------------
 // snapshots
@@ -546,14 +546,22 @@ function corePlayerSections(x: CoreInput): RecapSectionDraft[] {
   };
   const coveredIds = new Set(covered.map((s) => s.id));
 
-  // the opening line: which sessions this covers (session numbers and titles, as shares name them)
+  // the opening line: which sessions this covers (session numbers and titles, as shares name them),
+  // dated in the world when the session kept a date (the table's real-world date is not story)
   const first = snapshot.sessions[0];
   const last = snapshot.sessions[snapshot.sessions.length - 1];
+  const when = (s: RecapSessionRef) => (s.inWorldDate ? ` (${s.inWorldDate})` : "");
   let opening: string;
   if (!first || !last) opening = "Nothing yet: this is where the story begins.";
-  else if (snapshot.sessions.length === 1) opening = `${first.label}, played ${recapDate(first.date)}.`;
-  else opening = `${snapshot.since === undefined ? "The story so far" : "The last sessions"}: Session ${first.number} (${recapDate(first.date)}) to Session ${last.number} (${recapDate(last.date)}).`;
-  add("story", [{ key: "opening", text: opening }]);
+  else if (snapshot.sessions.length === 1) opening = `${first.label}${when(first)}.`;
+  else opening = `${snapshot.since === undefined ? "The story so far" : "The last sessions"}: Session ${first.number}${when(first)} to Session ${last.number}${when(last)}.`;
+  const story: RecapLineDraft[] = [{ key: "opening", text: opening }];
+  // the GM's wrap-up summary, offered to read aloud but switched off: it is the GM's own text and may name secrets
+  for (const s of covered) {
+    const summary = s.summary?.trim();
+    if (summary) story.push({ key: "summary", ref: s.id, text: covered.length > 1 ? `Session ${s.number}: ${summary}` : summary, off: true });
+  }
+  add("story", story);
 
   // the world: timeline entries the players may see
   const world = Object.values(view.timeline)
@@ -631,6 +639,10 @@ function toSections(drafts: RecapSectionDraft[], audience: RecapAudience, source
       ids.add(id);
       const line: RecapLine = { key: l.key, text: l.text.trim() };
       if (typeof l.ref === "string" && l.ref) line.ref = l.ref;
+      if (l.off === true) {
+        line.off = true;
+        line.optIn = true;
+      }
       const links = (Array.isArray(l.links) ? l.links : []).filter((k): k is RecapLinkRef => isRec(k) && typeof k.id === "string" && typeof k.label === "string" && !!k.label && (!allowedLinks || allowedLinks(k)));
       if (links.length) line.links = links.map((k) => ({ kind: k.kind, id: k.id, label: k.label }));
       lines.push(line);
@@ -715,7 +727,11 @@ function mergeSide(prev: RecapSection[], fresh: RecapSection[], audience: RecapA
       const id = lineId(pl);
       const match = into?.lines.find((l) => lineId(l) === id);
       if (match && !pl.custom) {
-        if (pl.off) match.off = true;
+        if (match.optIn && pl.optIn) {
+          // a line that starts off keeps the GM's switch either way
+          if (pl.off) match.off = true;
+          else delete match.off;
+        } else if (pl.off) match.off = true;
         if (pl.edited) {
           match.text = pl.text;
           match.edited = true;

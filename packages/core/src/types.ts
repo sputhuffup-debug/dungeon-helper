@@ -242,6 +242,8 @@ export interface Scene extends BaseRecord {
 export interface Session extends BaseRecord {
   number: number;
   date: string; // ISO date
+  /** The in-world date it was played on (the campaign's current date when it started), if the campaign keeps one. */
+  inWorldDate?: string;
   title?: string;
   attendees: Id[]; // member ids
   scenesRun: Id[];
@@ -293,6 +295,12 @@ export interface RecapLine {
   edited?: boolean;
   /** A line the GM added. */
   custom?: boolean;
+  /**
+   * Generated switched off (the GM's own words, such as the wrap-up summary):
+   * it reaches the players only once the GM switches it on, and regenerating
+   * keeps the GM's switch either way.
+   */
+  optIn?: boolean;
 }
 
 export interface RecapSection {
@@ -386,6 +394,12 @@ export interface Handout extends BaseRecord {
   purpose?: string;
   /** Template guidance for the empty body (`body`); never shown to the players. */
   guide?: TemplateGuide;
+  /**
+   * The GM pinned it to the player screen: it stays there across sessions
+   * and through "Clear the screen" until unpinned, but only while the
+   * players may see it (a hidden or GM-kept handout never shows).
+   */
+  pinned?: boolean;
 }
 
 export interface Note extends BaseRecord {
@@ -653,6 +667,12 @@ export interface LedgerEntry extends BaseRecord {
   /** Real-world date (ISO yyyy-mm-dd) the entry belongs to; `created` keeps the exact time. */
   realDate: string;
   account?: Id;
+  /**
+   * The account holder's field this entry moved when it was posted (the
+   * module's `LedgerDef.accountField`, e.g. a PC's `cash`); deleting or
+   * changing the entry moves it back.
+   */
+  accountField?: string;
   links?: LedgerLinks;
   /** Idempotency key: at most one entry per key (e.g. one payment per job). */
   key?: string;

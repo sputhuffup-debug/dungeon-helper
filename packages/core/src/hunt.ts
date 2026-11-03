@@ -703,14 +703,18 @@ export interface PlayerTrackerState {
 }
 
 /**
- * What the players' tracker readout shows: this step's sweeps, else the last
- * one (stale). Built by copying allowed fields: a blip's letter, band and
- * direction only, never its token, zone or distance.
+ * What the players' tracker readout shows: this step's sweeps (the latest of
+ * each sweeper and sensor, so sweeping again replaces the screen rather than
+ * stacking another), else the last one (stale). Built by copying allowed
+ * fields: a blip's letter, band and direction only, never its token, zone or
+ * distance.
  */
 export function playerTracker(hunt: HuntState | undefined): PlayerTrackerState | undefined {
   const sweeps = hunt?.sweeps ?? [];
   if (!hunt || sweeps.length === 0) return undefined;
-  const current = sweeps.filter((s) => s.step === hunt.step);
+  const latest = new Map<string, HuntSweep>();
+  for (const s of sweeps) if (s.step === hunt.step) latest.set(`${s.by.entity ?? s.by.name}|${s.sensor}`, s);
+  const current = sweeps.filter((s) => latest.get(`${s.by.entity ?? s.by.name}|${s.sensor}`) === s);
   const shown = current.length ? current : sweeps.slice(-1);
   const seen = new Set(hunt.tokens.filter((t) => t.state === "seen").map((t) => t.id));
   return {

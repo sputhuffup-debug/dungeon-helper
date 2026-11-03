@@ -17,7 +17,7 @@ There is no AI layer: every line is a templated sentence filled from data. Same 
 It writes two recaps, apart:
 
 - **The GM's** (`recap.gm`): each covered session with its summary and a line or two of its log, timeline entries of those sessions, scenes run, what was revealed, who and where the crew met (the cast and place of the scenes run, whole-entity reveals, whoever a clue was found with), rewards, who played, the wrap-up's answers, loose ends (the wrap-up's `looseEnds` and the target session's plan), and **What the players don't know** (section id `secrets`): clues placed in a job or with an NPC that the crew has not found, and contacts who betrayed the crew.
-- **The players' read-aloud** (`recap.players`): which sessions it covers, timeline entries they may see, handouts and fields revealed to them, who and where they met. Built from the player projection only (see below).
+- **The players' read-aloud** (`recap.players`): which sessions it covers (named with their in-world date, `Session.inWorldDate`, when the session has one; never the real-world date), timeline entries they may see, handouts and fields revealed to them, who and where they met. Built from the player projection only (see below). The GM's wrap-up summary of each covered session is offered as a line that starts switched off (`optIn`): it is the GM's own text, so it reaches the players only once the GM switches it on.
 
 Then each contributor of the module adds sections for each audience. Sections with the same `id` merge, so a module can add lines to a core section such as `secrets`. Sections sort by `order`; the core ones use 10 to 100 (`RECAP_SECTION_ORDER` in the sdk), a module section without one sits at 45.
 
@@ -39,7 +39,7 @@ export const moonModule: GameModule = { /* … */ recap: { contributors: [shipRe
 
 `build` is called twice, once with the GM's snapshot and once with the players'. Return sections for the snapshot's `audience`; sections for the other audience are dropped. Keep it pure: no clock, no randomness.
 
-Each line has a `key` and, when it is about one record, a `ref` (the record's id). Together they identify the line in its section: when the GM regenerates, a line with the same key and ref keeps its on/off switch and, if the GM rewrote it, the GM's text. Use the same key for the same kind of line every time. `links` name records the app turns into links: `label` is the text in the line to link (usually the record's name).
+Each line has a `key` and, when it is about one record, a `ref` (the record's id). Together they identify the line in its section: when the GM regenerates, a line with the same key and ref keeps its on/off switch and, if the GM rewrote it, the GM's text. Use the same key for the same kind of line every time. A line drafted with `off: true` starts switched off for the GM to read and switch on (for text that may hold more than the players should hear); regenerating keeps the GM's switch either way. `links` name records the app turns into links: `label` is the text in the line to link (usually the record's name).
 
 ### The snapshot
 
