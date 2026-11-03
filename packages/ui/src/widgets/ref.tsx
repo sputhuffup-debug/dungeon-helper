@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useSheetContext } from "../context";
 import { Button, IconButton } from "../primitives/Button";
 import { cx } from "../sheet/paths";
@@ -49,11 +50,78 @@ function CastRefSelect({ id, value, onChange, readonly, field, invalid }: Widget
   );
 }
 
-/** A single entity reference: resolved name, pick and clear. */
+/** Looks like a record id (a ULID), not a name someone typed. */
+const ID_SHAPE = /^[0-9A-HJKMNP-TV-Z]{26}$/;
+const sameName = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
+
+/**
+ * `config.pick: "select"`: a dropdown of the campaign's entities of the
+ * field's `entityTypes` (only player characters with `config.pc`), never the
+ * entity itself. A value that is no entity's id is older free text: it is
+ * shown as typed, kept until the GM picks someone, and "Link to …" converts
+ * it in one click when an entity has that name.
+ */
+function RefSelect({ id, value, onChange, readonly, field, invalid }: WidgetProps) {
+  const { entitiesOf, resolveEntityName, entityId } = useSheetContext();
+  const current = typeof value === "string" ? value : "";
+  const types = field.entityTypes ?? [];
+  const pcOnly = field.config?.pc === true;
+  const options = useMemo(() => {
+    const seen = new Set<string>();
+    const out: Array<{ id: string; name: string }> = [];
+    for (const t of types) {
+      for (const e of entitiesOf?.(t) ?? []) {
+        if (seen.has(e.id) || e.id === entityId || (pcOnly && !e.pc)) continue;
+        seen.add(e.id);
+        out.push({ id: e.id, name: e.name });
+      }
+    }
+    return out;
+  }, [types, entitiesOf, entityId, pcOnly]);
+  const resolved = current ? resolveEntityName?.(current) : undefined;
+  const legacy = current && resolved === undefined && !ID_SHAPE.test(current) ? current.trim() : "";
+  const match = legacy ? options.find((o) => sameName(o.name, legacy)) : undefined;
+  const label = resolved ?? (legacy || (current ? "Missing record" : "None"));
+  if (readonly) return <span className={cx("cf-ref__name", !current && "cf-ref__name--empty")}>{label}</span>;
+  const missing = current && !options.some((o) => o.id === current);
+  return (
+    <div className="cf-ref cf-ref--select">
+      <select
+        id={id}
+        className={cx("cf-select", invalid && "cf-select--invalid")}
+        value={current}
+        onChange={(e) => onChange(e.target.value === "" ? undefined : e.target.value)}
+        data-legacy={legacy ? "true" : undefined}
+      >
+        <option value="">None</option>
+        {missing && <option value={current}>{legacy ? `“${legacy}” (typed)` : label}</option>}
+        {options.map((o) => (
+          <option key={o.id} value={o.id}>
+            {o.name}
+          </option>
+        ))}
+      </select>
+      {legacy && (
+        <span className="cf-ref__legacy cf-muted">
+          {match ? (
+            <Button size="sm" onClick={() => onChange(match.id)}>
+              Link to {match.name}
+            </Button>
+          ) : (
+            "Typed by hand: pick who it is."
+          )}
+        </span>
+      )}
+    </div>
+  );
+}
+
+/** A single entity reference: resolved name, pick and clear (or a dropdown with `config.pick: "select"`). */
 export function RefField(props: WidgetProps) {
   const { value, onChange, readonly, field } = props;
-  const { onPickEntity, castMembers } = useSheetContext();
+  const { onPickEntity, castMembers, entitiesOf } = useSheetContext();
   if (castMembers && stringList(field.config?.castRoles).length > 0) return <CastRefSelect {...props} />;
+  if (field.config?.pick === "select" && (entitiesOf || readonly)) return <RefSelect {...props} />;
   const id = typeof value === "string" && value ? value : undefined;
   const everyone = typeof field.config?.everyoneValue === "string" && id === field.config.everyoneValue;
   return (

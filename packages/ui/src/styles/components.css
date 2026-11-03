@@ -1257,6 +1257,21 @@ td .cf-autogrow {
   flex: 1;
 }
 
+.cf-gear__wrap {
+  /* a phone-width card scrolls the gear table in its own box instead of the page */
+  max-width: 100%;
+  overflow-x: auto;
+  container-type: inline-size;
+}
+@container (max-width: 420px) {
+  .cf-gear th,
+  .cf-gear td {
+    padding-inline: 2px;
+  }
+  .cf-gear__num {
+    width: 52px;
+  }
+}
 .cf-gear {
   width: 100%;
   border-collapse: collapse;
@@ -1393,6 +1408,8 @@ span.cf-weapons__name {
 }
 .cf-weapons__group {
   overflow-x: auto;
+  /* a group scrolled into view keeps its title clear of the sticky search */
+  scroll-margin-top: 96px;
 }
 .cf-weapons__group-title {
   margin: 0;
@@ -2560,4 +2577,16 @@ span.cf-weapons__name {
 }
 .cf-guide__outcome--push dt {
   color: var(--cf-warning);
+}
+
+/* The gear list picker's note under its search: what the last Add did */
+.cf-gear__added {
+  margin: var(--cf-space-1) 0 0;
+  font-size: var(--cf-text-xs);
+}
+.cf-ref__legacy {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--cf-space-2);
+  font-size: var(--cf-text-xs);
 }
