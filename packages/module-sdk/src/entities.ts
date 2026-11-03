@@ -149,6 +149,57 @@ export function sheetFieldsForMode(def: EntityTypeDef, mode: PlayModeId): SheetS
   return out;
 }
 
+/**
+ * Whether a section's `when` lets it show for these fields (true without
+ * one). A section holding a filled-in value always shows, so `when` never
+ * hides data: it only drops sections that do not apply (an NPC dossier on a
+ * player character). A rule that fails to evaluate shows the section.
+ */
+export function sectionApplies(section: Pick<SheetSection, "when" | "fields">, fields: Record<string, unknown>): boolean {
+  if (section.when === undefined) return true;
+  let ok: unknown = true;
+  try {
+    ok = evaluateLogic(section.when, { fields });
+  } catch {
+    ok = true;
+  }
+  if (ok) return true;
+  return section.fields.some((f) => filled(pathValue(fields, f.path.replace(/\[\]/g, ""))));
+}
+
+function pathValue(obj: Record<string, unknown>, path: string): unknown {
+  let cur: unknown = obj;
+  for (const seg of path.split(".")) {
+    if (!cur || typeof cur !== "object") return undefined;
+    cur = (cur as Record<string, unknown>)[seg];
+  }
+  return cur;
+}
+
+function filled(v: unknown): boolean {
+  if (v === undefined || v === null || v === "" || v === false) return false;
+  if (Array.isArray(v)) return v.length > 0;
+  if (typeof v === "object") return Object.values(v as Record<string, unknown>).some(filled);
+  return true;
+}
+
+/**
+ * The display label of an enum value: the schema's `enumLabels` (a list of
+ * labels parallel to `enum`, on the schema or on its `items`) when it names
+ * one, else `undefined`. Modules give every enum shown to the GM labels, so
+ * no raw id ("space-truckers") reaches a screen.
+ */
+export function enumLabel(schema: JsonSchema | undefined, value: unknown): string | undefined {
+  if (!schema) return undefined;
+  const own = Array.isArray(schema.enum) ? schema : schema.items && typeof schema.items === "object" && !Array.isArray(schema.items) ? (schema.items as JsonSchema) : undefined;
+  const values = own?.enum;
+  const labels = own?.enumLabels;
+  if (!Array.isArray(values) || !Array.isArray(labels)) return undefined;
+  const i = values.findIndex((x) => x === value || String(x) === String(value));
+  const label = i >= 0 ? labels[i] : undefined;
+  return typeof label === "string" && label ? label : undefined;
+}
+
 function resolveRef(schema: JsonSchema, root: JsonSchema): JsonSchema {
   const ref = schema.$ref;
   if (typeof ref !== "string" || !ref.startsWith("#/")) return schema;
