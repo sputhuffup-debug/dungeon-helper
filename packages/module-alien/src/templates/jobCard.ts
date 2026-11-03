@@ -19,7 +19,7 @@ export const jobCardScaffold: TemplateAdventure = {
       goal: "Take the job, haggle, load up and leave.",
       pacing: "Short. One scene with the employer, one for supplies and goodbyes.",
       scenes: [
-        { id: "briefing", title: "Briefing", purpose: "Briefing: the employer or sponsor makes the offer. Link the job.", mandatory: true },
+        { id: "briefing", title: "Briefing", purpose: "Briefing: the employer or sponsor makes the offer.", mandatory: true },
         { id: "preparation", title: "Preparation", purpose: "Preparation: shopping, supply checks, a word with a rival.", mandatory: false },
       ],
     },
@@ -39,7 +39,7 @@ export const jobCardScaffold: TemplateAdventure = {
       goal: "Do the job. The complications land here.",
       pacing: "One scene per complication; stealth mode if anything is hunting.",
       scenes: [
-        { id: "arrival", title: "Arrival", purpose: "Arrival: the crew reaches the site. Link the site and its map.", mandatory: true },
+        { id: "arrival", title: "Arrival", purpose: "Arrival: the crew reaches the site.", mandatory: true },
         { id: "complication", title: "Complication", purpose: "Complication: the first complication lands.", mandatory: true },
         { id: "twist", title: "The twist", purpose: "The twist: the second complication or the plot twist.", mandatory: false },
       ],

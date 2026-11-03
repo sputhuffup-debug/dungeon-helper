@@ -84,9 +84,15 @@ export function SceneEditor({ scene }: { scene: Scene }) {
                   <Link to="/c/$campaignId/maps/$mapId" params={{ campaignId: ctx.campaignId, mapId: map.id }} className="cf-btn cf-btn--sm" data-testid="open-scene-map">
                     Open {map.name}
                   </Link>
-                  <Badge>
-                    {map.zones.length} zone{map.zones.length === 1 ? "" : "s"}
-                  </Badge>
+                  {(() => {
+                    // a generated site map keeps its zones in its layout; an imported image has drawn ones
+                    const n = map.layout ? map.layout.zones.length : map.zones.length;
+                    return (
+                      <Badge>
+                        {n} zone{n === 1 ? "" : "s"}
+                      </Badge>
+                    );
+                  })()}
                 </>
               ) : (
                 <span className="cf-muted">None</span>
