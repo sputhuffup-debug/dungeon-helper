@@ -97,8 +97,9 @@ function AddRelationshipDialog({ open, onClose, entity, options }: { open: boole
 
   return (
     <>
+      {/* stays open under the picker: closing it to open the picker fired its onClose and lost the dialog */}
       <Dialog
-        open={open && !picking}
+        open={open}
         onClose={onClose}
         title={`Link ${entity.name}`}
         footer={
