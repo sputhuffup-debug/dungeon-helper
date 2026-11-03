@@ -1,4 +1,9 @@
-/** Campaign home: next session, active adventures, open hooks, job board, recent edits, quick create. */
+/**
+ * Campaign home: next session, active adventures, open hooks, job board,
+ * recent edits, quick create. A new campaign leads with the setup guide
+ * until it is set up (or the GM hides it); its session button steps back
+ * meanwhile.
+ */
 import { fieldSchemaAt, type EntityTypeDef } from "@campaign-forge/module-sdk";
 import type { Entity, Id, MapName } from "@campaign-forge/core";
 import { Link, useNavigate } from "@tanstack/react-router";
@@ -9,7 +14,9 @@ import { Badge, Button, Card, EmptyState } from "../../components/ui";
 import { adventureTitle, formatDate, humanize, relativeTime } from "../../lib/format";
 import { createNote, startSession } from "../../state/actions";
 import { useCampaign, useList, useMapVersion, useMeta } from "../../state/hooks";
+import { useCampaignSetup } from "../../state/setupActions";
 import { summaryLine } from "../entities/summary";
+import { SetupGuide } from "./SetupGuide";
 
 export function HomePage() {
   const ctx = useCampaign();
@@ -19,6 +26,7 @@ export function HomePage() {
   const sessions = useList("sessions");
   const adventures = useList("adventures");
   const acts = useList("acts");
+  const setup = useCampaignSetup();
 
   const running = sessions.find((s) => s.status === "running");
   const nextPlanned = useMemo(
@@ -83,6 +91,8 @@ export function HomePage() {
         </div>
       </header>
 
+      {setup.shown && <SetupGuide setup={setup} />}
+
       <div className="app-grid">
         <Card title="Next session">
           {running ? (
@@ -113,7 +123,7 @@ export function HomePage() {
           ) : (
             <div className="app-stack">
               <p className="cf-muted">No session planned.</p>
-              <Button variant="primary" onClick={onStart} data-testid="start-session">
+              <Button variant={setup.shown ? "default" : "primary"} onClick={onStart} data-testid="start-session">
                 Start a session
               </Button>
             </div>

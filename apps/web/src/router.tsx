@@ -124,9 +124,15 @@ const gmScreenRoute = createRoute({
   component: lazyRouteComponent(() => import("./features/gmscreen/GmScreenPage"), "GmScreenPage"),
 });
 
+export interface SettingsSearch {
+  /** A card to scroll to: "campaign", "players" or "setup". */
+  section?: string;
+}
+
 const settingsRoute = createRoute({
   getParentRoute: () => campaignRoute,
   path: "settings",
+  validateSearch: (search: Record<string, unknown>): SettingsSearch => (typeof search.section === "string" && search.section !== "" ? { section: search.section } : {}),
   component: lazyRouteComponent(() => import("./features/settings/SettingsPage"), "SettingsPage"),
 });
 

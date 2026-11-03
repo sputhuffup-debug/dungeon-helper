@@ -71,6 +71,31 @@ describe("Ship page", () => {
     expect(within(card).getByText("Salt")).toBeTruthy();
   });
 
+  it("makes a new vehicle from the picker and chooses it in one go", async () => {
+    const { ctx } = await setup();
+    render(
+      <Harness ctx={ctx}>
+        <ShipPage />
+      </Harness>,
+    );
+    const picker = screen.getByTestId("ship-picker");
+    expect(within(picker).getByRole("option", { name: "+ New wagon…" })).toBeTruthy();
+    act(() => {
+      fireEvent.change(picker, { target: { value: "__new__" } });
+    });
+    expect(ctx.store.meta().settings["wagon"]).toBeUndefined();
+    act(() => {
+      fireEvent.change(screen.getByTestId("quick-create-name"), { target: { value: "Thunder" } });
+    });
+    act(() => {
+      fireEvent.click(screen.getByTestId("quick-create-submit"));
+    });
+    const made = ctx.store.list("entities").find((e) => e.name === "Thunder");
+    expect(made?.type).toBe("example.wagon");
+    expect(ctx.store.meta().settings["wagon"]).toBe(made!.id);
+    expect(within(screen.getByTestId("ship-card")).getByRole("heading", { name: "Thunder" })).toBeTruthy();
+  });
+
   it("adds ledger entries, signs them by category and sums the balance", async () => {
     const { ctx, wagon } = await setup();
     ctx.store.updateMeta({ settings: { wagon: wagon.id } });

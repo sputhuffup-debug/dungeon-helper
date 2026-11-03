@@ -1,7 +1,14 @@
-/** Settings: campaign name, mode, in-world date, members, dice on this device, session checklist, printouts (GM screen), export/import, delete, module info. */
+/**
+ * Settings: campaign name, mode, in-world date and the module's campaign
+ * settings, members, the setup guide, dice on this device, session
+ * checklist, printouts (GM screen), export/import, delete, module info.
+ * `?section=campaign|players|setup` scrolls to that card (the setup guide's
+ * links land there).
+ */
 import { exportMarkdown } from "@campaign-forge/core";
-import { Link, useNavigate } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { campaignSettingsFor } from "@campaign-forge/module-sdk";
+import { Link, useNavigate, useSearch } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { Badge, Button, Card, usePhysicalDicePreference } from "../../components/ui";
 import { downloadFile, slug } from "../../lib/download";
@@ -11,6 +18,9 @@ import { useCampaign, useList, useMeta } from "../../state/hooks";
 import { pushToast } from "../../components/ui";
 import { ChecklistSettings } from "./ChecklistSettings";
 import { PlayersCard } from "./PlayersCard";
+import { CampaignSettingsFields } from "./CampaignSettingsFields";
+import { SetupGuideCard } from "./SetupGuideCard";
+import { setCampaignSetting } from "../../state/setupActions";
 import { describeSupplement, moduleEntry, supplementProblems } from "../../modules/registry";
 import { ModuleLicenseView, safeHttpUrl } from "../modules/ModuleLicense";
 
@@ -28,6 +38,14 @@ export function SettingsPage() {
   const warnings = ctx.module.report.issues.filter((i) => i.severity === "warning");
   const entry = moduleEntry(manifest.id);
   const sourceUrl = safeHttpUrl(manifest.sourceBook?.url);
+  const { section } = useSearch({ from: "/c/$campaignId/settings" });
+  const settingDefs = campaignSettingsFor(ctx.module.module, meta.mode);
+
+  // a link to one card (the setup guide's): bring it into view once the page has rendered
+  useEffect(() => {
+    if (!section) return;
+    document.getElementById(`settings-${section}`)?.scrollIntoView({ block: "start" });
+  }, [section]);
 
   const run = async (label: string, fn: () => Promise<unknown> | unknown) => {
     setBusy(true);
@@ -44,7 +62,7 @@ export function SettingsPage() {
     <div className="app-page app-page--narrow">
       <h1 className="app-title">Settings</h1>
 
-      <Card title="Campaign">
+      <Card title="Campaign" id="settings-campaign">
         <div className="app-form">
           <label className="app-label">
             Name
@@ -82,10 +100,13 @@ export function SettingsPage() {
               }}
             />
           </label>
+          {settingDefs.length > 0 && <CampaignSettingsFields defs={settingDefs} onChange={(key, value) => setCampaignSetting(ctx, key, value)} />}
         </div>
       </Card>
 
       <PlayersCard />
+
+      <SetupGuideCard />
 
       <DiceSettings />
 

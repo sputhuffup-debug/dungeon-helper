@@ -35,7 +35,7 @@ export function PlayersCard() {
   };
 
   return (
-    <Card title="Players" subtitle="Who plays which PC. Share a handout with one player, then send each player their own packet from Share. Players have no accounts in this version." data-testid="players-card">
+    <Card title="Players" subtitle="Who plays which PC. Share a handout with one player, then send each player their own packet from Share. Players have no accounts in this version." id="settings-players" data-testid="players-card">
       <ul className="app-list app-players">
         {gms.map((m) => (
           <li key={m.id} className="app-list__row">

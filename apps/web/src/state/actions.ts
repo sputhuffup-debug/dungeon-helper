@@ -26,6 +26,7 @@ import {
   reveal,
   setPath,
   unregisterCampaign,
+  withSetupGuide,
   type Asset,
   type CampaignMaps,
   type CampaignMeta,
@@ -38,7 +39,7 @@ import {
   type Visibility,
   MAP_NAMES,
 } from "@campaign-forge/core";
-import { defaultFieldsFor, type EntityPreset, type LoadedModule } from "@campaign-forge/module-sdk";
+import { defaultFieldsFor, initialCampaignSettings, type EntityPreset, type LoadedModule } from "@campaign-forge/module-sdk";
 import * as Y from "yjs";
 import { defaultCampaignDate } from "../lib/calendar";
 import { downloadFile, slug } from "../lib/download";
@@ -61,16 +62,25 @@ export interface CreateCampaignInput {
   moduleId: string;
   mode?: string;
   gmName?: string;
+  /** Values for the module's campaign settings asked at creation (e.g. the campaign frame); defaults fill the rest. */
+  settings?: Record<string, unknown>;
 }
 
-/** Create a campaign on this device and return its id. */
+/**
+ * Create a campaign on this device and return its id. It starts with the
+ * module's campaign settings (the GM's choices, else their defaults) and
+ * with the setup guide switched on for its Home page.
+ */
 export async function createCampaign(input: CreateCampaignInput): Promise<Id> {
   const module = await loadModuleById(input.moduleId);
+  const mode = input.mode ?? module.manifest.defaultMode;
+  const settings = { ...initialCampaignSettings(module.module, mode, input.settings ?? {}), ...withSetupGuide({ settings: {} }, true) };
   const store = CampaignStore.create({
+    settings,
     name: input.name.trim() || "Untitled campaign",
     moduleId: module.manifest.id,
     moduleVersion: module.manifest.version,
-    mode: input.mode ?? module.manifest.defaultMode,
+    mode,
     calendarId: module.module.calendar.id,
     currentDate: defaultCampaignDate(module.module.calendar),
     gmName: input.gmName?.trim() || "GM",

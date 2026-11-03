@@ -8,10 +8,11 @@ import type { Entity } from "@campaign-forge/core";
 import { getPath, type CrewShipDef, type EntityTypeDef } from "@campaign-forge/module-sdk";
 import { Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Badge, Card, EmptyState, PageRef } from "../../components/ui";
+import { Badge, Card, EmptyState, PageRef, pushToast } from "../../components/ui";
 import { humanize } from "../../lib/format";
 import { useCampaign, useComputed, useList, useMeta, useRecord } from "../../state/hooks";
 import { chooseCrewShip, crewShipDefOf, ledgerDefOf, money, travelDefOf, whereIsShip } from "../../state/shipActions";
+import { QuickCreateDialog } from "../entities/QuickCreateDialog";
 import { SheetTab } from "../entities/SheetTab";
 import { FundsSummary, LedgerCard } from "./Ledger";
 import { TravelLog, TravelPlanner } from "./TravelPlanner";
@@ -75,22 +76,55 @@ export function ShipPage() {
   );
 }
 
-function ShipPicker({ def, ship }: { def: CrewShipDef; ship?: Entity }) {
+/** The `<select>` value of "+ New ship…": opens the quick create dialog instead of choosing. */
+const NEW_SHIP = "__new__";
+
+/**
+ * The crew's vehicle: pick one of the campaign's, or "+ New …" makes one
+ * (blank or from a preset) and chooses it in one go.
+ */
+export function ShipPicker({ def, ship }: { def: CrewShipDef; ship?: Entity }) {
   const ctx = useCampaign();
   const all = useList("entities");
+  const [creating, setCreating] = useState(false);
   const candidates = useMemo(() => all.filter((e) => def.entityTypes.includes(e.type)).sort((a, b) => a.name.localeCompare(b.name)), [all, def]);
+  const noun = (def.label ?? "ship").toLowerCase();
+  const typeName = ctx.module.entityType(def.entityTypes[0] ?? "")?.name.toLowerCase() ?? noun;
   return (
-    <label className="app-label ship-picker">
-      <span>Crew's {(def.label ?? "ship").toLowerCase()}</span>
-      <select className="cf-select" aria-label={`Crew's ${(def.label ?? "ship").toLowerCase()}`} value={ship?.id ?? ""} onChange={(e) => chooseCrewShip(ctx, e.target.value || undefined)} data-testid="ship-picker">
-        <option value="">None chosen</option>
-        {candidates.map((c) => (
-          <option key={c.id} value={c.id}>
-            {c.name}
-          </option>
-        ))}
-      </select>
-    </label>
+    <>
+      <label className="app-label ship-picker">
+        <span>Crew's {noun}</span>
+        <select
+          className="cf-select"
+          aria-label={`Crew's ${noun}`}
+          value={ship?.id ?? ""}
+          onChange={(e) => {
+            if (e.target.value === NEW_SHIP) setCreating(true);
+            else chooseCrewShip(ctx, e.target.value || undefined);
+          }}
+          data-testid="ship-picker"
+        >
+          <option value="">None chosen</option>
+          {candidates.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+          <option value={NEW_SHIP}>+ New {typeName}…</option>
+        </select>
+      </label>
+      <QuickCreateDialog
+        open={creating}
+        types={def.entityTypes}
+        title={`New ${typeName}`}
+        onClose={() => setCreating(false)}
+        onCreated={(entity) => {
+          chooseCrewShip(ctx, entity.id);
+          setCreating(false);
+          pushToast(`${entity.name} is the crew's ${noun}`, { tone: "success" });
+        }}
+      />
+    </>
   );
 }
 
@@ -120,7 +154,7 @@ function ShipCard({ def, ship }: { def: CrewShipDef; ship?: Entity }) {
     return (
       <Card title={def.label ?? "Ship"} data-testid="ship-card">
         <div className="app-stack">
-          <p className="cf-muted">Pick which {(def.label ?? "ship").toLowerCase()} is the crew's own. Its state then shows here, and travel uses it.</p>
+          <p className="cf-muted">Pick which {(def.label ?? "ship").toLowerCase()} is the crew's own, or make a new one. Its state then shows here, and travel uses it.</p>
           <ShipPicker def={def} />
         </div>
       </Card>
