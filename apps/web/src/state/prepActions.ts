@@ -24,7 +24,19 @@ import {
   type SiteMap,
   type Visibility,
 } from "@campaign-forge/core";
-import type { Effect, GeneratedGraph, LoadedModule, Template, TemplateAdventure, TemplateScene } from "@campaign-forge/module-sdk";
+import {
+  sceneTitleFromPurpose as sdkSceneTitle,
+  templateSceneKey,
+  templateText,
+  type AdventureSceneFill,
+  type AdventureSourceFill,
+  type Effect,
+  type GeneratedGraph,
+  type LoadedModule,
+  type Template,
+  type TemplateAdventure,
+  type TemplateScene,
+} from "@campaign-forge/module-sdk";
 import type { CampaignContextValue } from "./CampaignProvider";
 import { effectContext } from "./tableActions";
 
@@ -61,16 +73,9 @@ export async function writeMarkdownDoc(ctx: DocCtx, docId: Id, markdown: string)
 // adventures from templates
 // ---------------------------------------------------------------------------
 
-/** "Arrival: the crew reaches..." -> "Arrival"; long purposes are cut to a few words. */
+/** "Arrival: the crew reaches..." -> "Arrival"; a bracketed aside is dropped, long purposes are cut to a few words. */
 export function sceneTitleFromPurpose(purpose: string, fallback = "Scene"): string {
-  const text = purpose.replace(/[_*`]/g, "").trim();
-  if (!text) return fallback;
-  const colon = text.indexOf(":");
-  if (colon > 0 && colon <= 40) return text.slice(0, colon).trim();
-  const firstSentence = text.split(/(?<=[.!?])\s/)[0]?.replace(/[.!?]$/, "") ?? text;
-  if (firstSentence.length <= 40) return firstSentence;
-  const words = firstSentence.split(/\s+/).slice(0, 5).join(" ");
-  return `${words}…`;
+  return sdkSceneTitle(purpose, fallback);
 }
 
 export function isTemplateAdventure(scaffold: Template["scaffold"]): scaffold is TemplateAdventure {
@@ -83,41 +88,86 @@ export interface InstantiateOptions {
   /** Keep an empty title (no template title, nothing typed) instead of "New adventure"; guided builders review it. */
   allowEmptyTitle?: boolean;
   status?: Adventure["status"];
+  /** What an adventure source filled in (e.g. "Run this job"), by template scene key. */
+  fill?: AdventureSourceFill;
+  /** The record the adventure runs. */
+  source?: NonNullable<Adventure["source"]>;
+}
+
+/** Guidance kept beside a record, without empty entries; undefined when there is none. */
+function guideOf(entries: Record<string, string>): Record<string, string> | undefined {
+  const out = Object.fromEntries(Object.entries(entries).filter(([, v]) => !!v.trim()));
+  return Object.keys(out).length ? out : undefined;
 }
 
 /**
  * Create an adventure from a module adventure template (or blank when
  * `template` is undefined): acts with goal and pacing notes, scenes with
  * their Markdown body and a mandatory/optional event, per-act handout
- * scaffolds, and the player intro / GM situation / epilogue bodies.
+ * scaffolds, and the player intro / GM situation / epilogue bodies. Template
+ * guidance (underscored paragraphs) is kept as placeholder text (`guide`),
+ * never written as content. With `fill`, an adventure source's text,
+ * places, maps and people go into the sections and scenes it names.
  */
 export async function instantiateAdventureTemplate(ctx: DocCtx, template: Template | undefined, opts: InstantiateOptions = {}): Promise<Adventure> {
+  return (await instantiateWithKeys(ctx, template, opts)).adventure;
+}
+
+/** As `instantiateAdventureTemplate`, with the scene id made for each template scene key. */
+export async function instantiateWithKeys(ctx: DocCtx, template: Template | undefined, opts: InstantiateOptions = {}): Promise<{ adventure: Adventure; scenes: Record<string, Id> }> {
   const scaffold = template && isTemplateAdventure(template.scaffold) ? template.scaffold : undefined;
+  const fill = opts.fill;
   const writes: Array<[Id, string]> = [];
+  const sceneKeys: Record<string, Id> = {};
   const adventure = ctx.store.transact(() => {
+    const premise = templateText(scaffold?.premise);
+    const intro = templateText(scaffold?.playerIntro);
+    const situation = templateText(scaffold?.gmSituation);
+    const epilogue = templateText(scaffold?.epilogue);
+    // a title like "<Scenario title>" is a placeholder: guidance, not a title
+    const placeholderTitle = /^<.*>$/.test(scaffold?.title?.trim() ?? "");
+    const templateTitle = placeholderTitle ? undefined : scaffold?.title;
     const input: Parameters<CampaignStore["createAdventure"]>[0] = {
-      title: opts.title?.trim() || scaffold?.title || (opts.allowEmptyTitle ? "" : "New adventure"),
+      title: opts.title?.trim() || fill?.title?.trim() || templateTitle || (opts.allowEmptyTitle ? "" : "New adventure"),
       status: opts.status ?? "planned",
       withDocs: true,
     };
-    if (scaffold?.premise) input.premise = plainTemplateText(scaffold.premise);
+    const premiseText = fill?.premise ?? premise.content;
+    if (premiseText) input.premise = plainTemplateText(premiseText);
     if (template) input.templateId = template.id;
     const adv = ctx.store.createAdventure(input);
-    if (scaffold?.fields) ctx.store.update("adventures", adv.id, { fields: clone(scaffold.fields) });
-    if (scaffold?.playerIntro && adv.playerIntroDoc) writes.push([adv.playerIntroDoc, scaffold.playerIntro]);
-    if (scaffold?.gmSituation && adv.gmSituationDoc) writes.push([adv.gmSituationDoc, scaffold.gmSituation]);
-    if (scaffold?.epilogue && adv.epilogueDoc) writes.push([adv.epilogueDoc, scaffold.epilogue]);
+    const patch: Partial<Adventure> = {};
+    if (scaffold?.fields) patch.fields = clone(scaffold.fields);
+    const guide = guideOf({ title: placeholderTitle ? scaffold!.title.trim().slice(1, -1) : "", premise: premise.guide, playerIntro: intro.guide, gmSituation: situation.guide, epilogue: epilogue.guide });
+    if (guide) patch.guide = guide;
+    if (opts.source) patch.source = { ...opts.source };
+    if (Object.keys(patch).length) ctx.store.update("adventures", adv.id, patch);
+    const introText = fill?.playerIntro ?? intro.content;
+    const situationText = fill?.gmSituation ?? situation.content;
+    const epilogueText = fill?.epilogue ?? epilogue.content;
+    if (introText && adv.playerIntroDoc) writes.push([adv.playerIntroDoc, introText]);
+    if (situationText && adv.gmSituationDoc) writes.push([adv.gmSituationDoc, situationText]);
+    if (epilogueText && adv.epilogueDoc) writes.push([adv.epilogueDoc, epilogueText]);
 
     for (const ta of scaffold?.acts ?? []) {
       const actInput: Parameters<CampaignStore["createAct"]>[1] = { number: ta.number, goal: ta.goal, withPacingDoc: true };
       if (ta.title) actInput.title = ta.title;
       const act = ctx.store.createAct(adv.id, actInput);
-      if (ta.fields) ctx.store.update("acts", act.id, { fields: clone(ta.fields) });
-      if (ta.pacing && act.pacingDoc) writes.push([act.pacingDoc, ta.pacing]);
-      for (const ts of ta.scenes ?? []) {
-        const scene = createSceneFromTemplate(ctx.store, act.id, ts);
-        if (ts.body) writes.push([scene.bodyDoc, ts.body]);
-      }
+      const pacing = templateText(ta.pacing);
+      const actPatch: Partial<Act> = {};
+      if (ta.fields) actPatch.fields = clone(ta.fields);
+      if (pacing.guide) actPatch.guide = { pacing: pacing.guide };
+      if (Object.keys(actPatch).length) ctx.store.update("acts", act.id, actPatch);
+      if (pacing.content && act.pacingDoc) writes.push([act.pacingDoc, pacing.content]);
+      (ta.scenes ?? []).forEach((ts, i) => {
+        const key = templateSceneKey(ta.number, i, ts);
+        const sf = fill?.scenes?.[key];
+        const scene = createSceneFromTemplate(ctx.store, act.id, ts, sf);
+        sceneKeys[key] = scene.id;
+        const body = [templateText(ts.body).content, sf?.body ?? ""].filter((x) => x.trim()).join("\n\n");
+        if (body) writes.push([scene.bodyDoc, body]);
+        if (sf?.readAloud && scene.readAloudDoc) writes.push([scene.readAloudDoc, sf.readAloud]);
+      });
       const handoutIds: Id[] = [];
       for (const th of ta.handouts ?? []) {
         const level = th.visibility ?? "some_players";
@@ -130,26 +180,37 @@ export async function instantiateAdventureTemplate(ctx: DocCtx, template: Templa
           withBody: true,
         });
         handoutIds.push(handout.id);
-        if (th.body && handout.bodyDoc) writes.push([handout.bodyDoc, th.body]);
+        const body = templateText(th.body);
+        if (body.guide) ctx.store.update("handouts", handout.id, { guide: { body: body.guide } });
+        if (body.content && handout.bodyDoc) writes.push([handout.bodyDoc, body.content]);
       }
       if (handoutIds.length) ctx.store.update("acts", act.id, { handouts: handoutIds });
     }
     return ctx.store.get("adventures", adv.id) as Adventure;
   });
   await Promise.all(writes.map(([id, md]) => writeMarkdownDoc(ctx, id, md)));
-  return adventure;
+  return { adventure, scenes: sceneKeys };
 }
 
-function createSceneFromTemplate(store: CampaignStore, actId: Id, ts: TemplateScene): Scene {
+function createSceneFromTemplate(store: CampaignStore, actId: Id, ts: TemplateScene, fill?: AdventureSceneFill): Scene {
   const mandatory = ts.mandatory === true;
+  const has = (id: string | undefined) => !!id && store.has("entities", id);
+  const participants = (fill?.participants ?? []).filter(has);
   const scene = store.createScene(actId, {
-    title: sceneTitleFromPurpose(ts.purpose),
+    title: fill?.title?.trim() || ts.title?.trim() || sceneTitleFromPurpose(ts.purpose),
     tags: [mandatory ? "mandatory" : "optional"],
-    events: [{ id: newId(), text: ts.purpose, mandatory }],
+    events: [{ id: newId(), text: ts.purpose, mandatory }, ...(fill?.events ?? []).map((e) => ({ id: newId(), text: e.text, mandatory: e.mandatory === true }))],
     withReadAloudDoc: true,
     ...(ts.purpose ? { purpose: ts.purpose } : {}),
+    ...(has(fill?.location) ? { location: fill!.location! } : {}),
+    ...(fill?.map && store.has("maps", fill.map) ? { map: fill.map } : {}),
+    ...(participants.length ? { participants } : {}),
   });
-  return ts.fields ? store.update("scenes", scene.id, { fields: clone(ts.fields) }) : scene;
+  const patch: Partial<Scene> = {};
+  if (ts.fields) patch.fields = clone(ts.fields);
+  const guide = templateText(ts.body).guide;
+  if (guide) patch.guide = { body: guide };
+  return Object.keys(patch).length ? store.update("scenes", scene.id, patch) : scene;
 }
 
 // ---------------------------------------------------------------------------

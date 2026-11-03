@@ -7,7 +7,7 @@
  */
 import { appendTrackerLog, creatureTurnFor, type Id } from "@campaign-forge/core";
 import type { Effect, Prompt } from "@campaign-forge/module-sdk";
-import { Link, useNavigate, useParams, useSearch } from "@tanstack/react-router";
+import { Link, useParams, useSearch } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { lazyView } from "../../components/lazyView";
 import { Badge, Button, DiceModeSwitch, EmptyState, PromptDialog, Tabs, pushToast, useDiceRoller, type PromptAnswer } from "../../components/ui";
@@ -31,6 +31,7 @@ import {
 import { isSessionZero } from "../../lib/sessionZero";
 import { routeStoryPointEffects, type SessionAct } from "../../state/progressionActions";
 import { SessionChecklist, useLogNotesAutoTick } from "../sessions/SessionChecklist";
+import { useLandAfterWrapUp } from "../sessions/afterWrapUp";
 import { CreatureTurnCard, TakeHitDialog, useInitiativeCurrent, type CombatHandlers } from "./Combat";
 import { D20CombatPanel } from "./D20Combat";
 import { DicePanel } from "./DicePanel";
@@ -41,6 +42,7 @@ import { PlayerScreen } from "./PlayerScreen";
 import { RevealPanel } from "./RevealPanel";
 import { RollResultDialog } from "./RollResultDialog";
 import { SceneCard } from "./SceneCard";
+import { TableRecap } from "./TableRecap";
 import { SceneMap, useSceneMap } from "./SceneMap";
 import { SpecialAttackDialog, useSpecialAttacks } from "./SpecialAttacks";
 import { WeaponAttackDialog } from "./WeaponAttack";
@@ -63,8 +65,8 @@ export function TableModePage() {
 function GmTable({ sessionId }: { sessionId: Id }) {
   const ctx = useCampaign();
   const roller = useDiceRoller();
-  const navigate = useNavigate();
   const campaignId = ctx.campaignId;
+  const land = useLandAfterWrapUp(campaignId);
   const session = useRecord("sessions", sessionId);
   const { offline } = useOfflineStatus();
   const table = useTableState(sessionId);
@@ -262,12 +264,13 @@ function GmTable({ sessionId }: { sessionId: Id }) {
           <WrapUpWizard
             sessionId={sessionId}
             onCancel={() => setWrapping(false)}
-            onDone={() => void navigate({ to: "/c/$campaignId/home", params: { campaignId } })}
+            onDone={(_next, landing) => land(landing)}
           />
         </div>
       ) : (
         <div className="app-table__grid">
           <div className="app-table__col">
+            <TableRecap sessionId={sessionId} />
             <SceneCard sessionId={sessionId} scenes={scenes} scene={scene} onOpenEntity={setDrawer} />
             {turnCreature && (
               <CreatureTurnCard

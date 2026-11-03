@@ -20,6 +20,7 @@ import { EntityPrepPanels } from "../generate/EntityPrepPanels";
 import { LifecycleStart } from "../table/LifecycleStart";
 import { LevelUpButton } from "../builder/entry";
 import { PayoutButton } from "../ship/PayoutButton";
+import { RunFromEntityButton } from "../adventures/RunFromEntity";
 import { applyGeneratorEffects } from "../../state/prepActions";
 import { entityAdvances } from "../../state/progressionActions";
 import { longAgendaProcedureOf } from "../../state/longAgendaActions";
@@ -193,6 +194,7 @@ function EntityHeader({ entity, def }: { entity: Entity; def: EntityTypeDef | un
       <div className="app-entity__actions">
         <LevelUpButton entity={entity} />
         <LifecycleStart entity={entity} onPrompts={(raised) => setPrompts((p) => [...p, ...raised])} />
+        <RunFromEntityButton entity={entity} />
         <PayoutButton entity={entity} />
         <Button variant="ghost" onClick={() => setConfirmDelete(true)}>
           Delete

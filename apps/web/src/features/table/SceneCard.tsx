@@ -70,7 +70,11 @@ export function SceneCard({ sessionId, scenes, scene, onOpenEntity }: SceneCardP
       subtitle={[adventure?.title, act ? `Act ${act.number}${act.title ? `: ${act.title}` : ""}` : undefined, `Scene ${index + 1} of ${scenes.length}`].filter(Boolean).join(" · ")}
     >
       {nav}
-      {scene.purpose && <p className="app-table__purpose">{scene.purpose}</p>}
+      {scene.purpose && (
+        <p className="app-table__purpose" title="For you: the players never see this">
+          {scene.purpose}
+        </p>
+      )}
       {location && (
         <p className="app-row">
           <span className="cf-muted">Location</span>
@@ -109,7 +113,7 @@ export function SceneCard({ sessionId, scenes, scene, onOpenEntity }: SceneCardP
       </section>
       <details className="app-table__body">
         <summary>Scene notes</summary>
-        <RichTextView docId={scene.bodyDoc} placeholder="No notes." />
+        <RichTextView docId={scene.bodyDoc} placeholder={scene.guide?.body ?? "No notes."} />
       </details>
       {scene.events.length > 0 && (
         <ul className="app-table__events" aria-label="Events">

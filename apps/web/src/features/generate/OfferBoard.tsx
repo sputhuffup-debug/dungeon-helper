@@ -13,7 +13,8 @@ import { useState } from "react";
 import { Badge, Button, IconButton, Markdown, pushToast } from "../../components/ui";
 import { errorMessage } from "../../lib/format";
 import { acceptOffer } from "../../state/offerActions";
-import { useCampaign } from "../../state/hooks";
+import { useCampaign, useRecord } from "../../state/hooks";
+import { RunFromEntityButton } from "../adventures/RunFromEntity";
 import { SlotRow, type AgendaSlotControls } from "./AgendaDrafts";
 
 export interface OfferRun {
@@ -21,6 +22,12 @@ export interface OfferRun {
   pinned: Record<string, unknown>;
   partSeeds: Record<string, string>;
   pinnedParts: Record<string, unknown>;
+}
+
+/** "Run this job" beside an accepted offer, when the module runs its record as an adventure. */
+function RunTaken({ id }: { id: Id }) {
+  const entity = useRecord("entities", id);
+  return entity ? <RunFromEntityButton entity={entity} size="sm" /> : null;
 }
 
 export function OfferBoard({ def, set, graph, controls, run }: { def: OfferDef; set: OfferSet; graph: GeneratedGraph; controls: AgendaSlotControls & { onRerollOffer: (key: string) => void }; run: OfferRun }) {
@@ -120,7 +127,8 @@ export function OfferBoard({ def, set, graph, controls, run }: { def: OfferDef; 
                     <Link to="/c/$campaignId/entities/$entityId" params={{ campaignId: ctx.campaignId, entityId: done.id }} className="app-link-strong">
                       {done.name}
                     </Link>
-                  )}
+                  )}{" "}
+                  {!done.arc && !done.kept && <RunTaken id={done.id} />}
                 </span>
               ) : (
                 <>

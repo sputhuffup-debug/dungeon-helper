@@ -1,7 +1,10 @@
 /**
- * For procedures that produce no entities (shore leave): the outcomes the
- * run recorded and its suggested effects, which the GM applies in one click.
- * Prompt effects become yes/no questions whose answers apply their effects.
+ * For procedures that produce no entities (shore leave, between jobs): the
+ * outcomes the run recorded and its suggested effects. Before accepting,
+ * `EffectsPicker` lists the effects with a checkbox each (effects the ledger
+ * already holds are left out); accepting applies the ticked ones in the same
+ * step, and the results then show what was applied. Prompt effects become
+ * yes/no questions whose answers apply their effects.
  */
 import type { Id } from "@campaign-forge/core";
 import type { Effect, Prompt } from "@campaign-forge/module-sdk";
@@ -11,16 +14,9 @@ import { humanize } from "../../lib/format";
 import { applyGeneratorEffects } from "../../state/prepActions";
 import { money } from "../../state/shipActions";
 import { useCampaign } from "../../state/hooks";
+import { alreadyPosted, effectsOf, plainEffectsOf } from "../../state/runEffects";
 
-export function isEffect(v: unknown): v is Effect {
-  return typeof v === "object" && v !== null && typeof (v as { kind?: unknown }).kind === "string" && ["setField", "incrementField", "addCondition", "removeCondition", "log", "prompt", "ledger"].includes((v as { kind: string }).kind);
-}
-
-/** Effects found in a run's results (`results.effects`). */
-export function effectsOf(results: Record<string, unknown>): Effect[] {
-  const raw = results.effects;
-  return Array.isArray(raw) ? raw.filter(isEffect) : [];
-}
+export { alreadyPosted, effectsOf, isEffect, plainEffectsOf } from "../../state/runEffects";
 
 /** Arrays of `{ name, summary }` objects in the results (per-character outcomes). */
 export function outcomesOf(results: Record<string, unknown>): Array<{ key: string; items: Array<{ name: string; summary: string; choice?: string }> }> {
@@ -59,7 +55,39 @@ export function describeEffect(e: Effect, name: (id: Id) => string, presetName: 
   }
 }
 
-export function ResultsPanel({ results, runId }: { results: Record<string, unknown>; runId?: Id }) {
+
+/** Before accepting: the effects accepting will apply, each with a checkbox; those the ledger already holds are listed apart, unticked. */
+export function EffectsPicker({ results, unticked, onToggle }: { results: Record<string, unknown>; unticked: ReadonlySet<number>; onToggle: (index: number, on: boolean) => void }) {
+  const ctx = useCampaign();
+  const name = (id: Id) => ctx.store.get("entities", id)?.name ?? id;
+  const presetName = (id: string) => ctx.module.preset(id)?.name ?? id;
+  const all = plainEffectsOf(results);
+  const posted = all.filter((x) => alreadyPosted(ctx.store, x.e));
+  const plain = all.filter((x) => !alreadyPosted(ctx.store, x.e));
+  if (all.length === 0) return null;
+  const count = plain.filter((x) => !unticked.has(x.i)).length;
+  return (
+    <Card title="Effects" subtitle={`Accepting applies the ${count} ticked effect${count === 1 ? "" : "s"}. Untick what you don't want.`} data-testid="effects-picker">
+      <ul className="app-list" data-testid="effects">
+        {plain.map(({ e, i }) => (
+          <li key={i} className="app-list__row">
+            <label className="app-toggle">
+              <input type="checkbox" checked={!unticked.has(i)} onChange={(ev) => onToggle(i, ev.target.checked)} />
+              {describeEffect(e, name, presetName, (n) => money(ctx, n, { sign: true }))}
+            </label>
+          </li>
+        ))}
+      </ul>
+      {posted.length > 0 && (
+        <p className="cf-muted app-small" data-testid="effects-posted">
+          Already on the ledger, so not applied again: {posted.map(({ e }) => describeEffect(e, name, presetName, (n) => money(ctx, n, { sign: true }))).join("; ")}.
+        </p>
+      )}
+    </Card>
+  );
+}
+
+export function ResultsPanel({ results, runId, applied: appliedNow }: { results: Record<string, unknown>; runId?: Id; /** Indices of the effects accepting applied (the effects are then shown as done). */ applied?: number[] }) {
   const ctx = useCampaign();
   const name = (id: Id) => ctx.store.get("entities", id)?.name ?? id;
   const presetName = (id: string) => ctx.module.preset(id)?.name ?? id;
@@ -67,8 +95,8 @@ export function ResultsPanel({ results, runId }: { results: Record<string, unkno
   const effects = useMemo(() => effectsOf(results), [results]);
   const plain = effects.map((e, i) => ({ e, i })).filter((x) => x.e.kind !== "prompt");
   const prompts = effects.filter((e): e is Extract<Effect, { kind: "prompt" }> => e.kind === "prompt").map((e) => e.prompt);
-  const [selected, setSelected] = useState<Set<number>>(() => new Set(plain.map((x) => x.i)));
-  const [applied, setApplied] = useState(false);
+  const [selected, setSelected] = useState<Set<number>>(() => new Set(appliedNow ?? plain.filter((x) => !alreadyPosted(ctx.store, x.e)).map((x) => x.i)));
+  const [applied, setApplied] = useState(appliedNow !== undefined);
   const [answered, setAnswered] = useState<Record<string, "yes" | "no">>({});
 
   const apply = () => {

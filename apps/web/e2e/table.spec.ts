@@ -86,11 +86,15 @@ test("run a session at the table: demo campaign, clock, panic roll, reveal, wrap
   await expect(wrap.getByRole("textbox", { name: "Timeline text" }).first()).toHaveValue(/The crew learns/);
   await wrap.getByRole("button", { name: /^Next: Loose ends/ }).click();
   await wrap.getByRole("textbox", { name: "Loose ends" }).fill("Who wants the crate?");
+  // the demo's accepted job waits in the last step; finishing never needs it closed, and lands on the next session's page
+  await wrap.getByRole("button", { name: /^Next: Close the job/ }).click();
+  await expect(wrap.getByTestId("close-source")).toHaveCount(1);
   await wrap.getByTestId("finish-session").click();
+  await expect(page).toHaveURL(/\/sessions\/[0-9A-Z]{26}$/);
+  await expect(page.getByTestId("session-page")).toHaveAttribute("data-status", "planned");
 
-  // 7. back on the campaign home; the session is done and the next one is planned
-  await expect(page).toHaveURL(/\/home$/);
-  await page.getByRole("link", { name: "Sessions" }).click();
+  // 7. on the next session's page; the session is done and the next one is planned
+  await page.getByRole("navigation", { name: "Campaign" }).getByRole("link", { name: "Sessions", exact: true }).click();
   await expect(page.locator('[data-session][data-status="done"]')).toHaveCount(2);
   const planned = page.locator('[data-session][data-status="planned"]');
   await expect(planned).toHaveCount(1);

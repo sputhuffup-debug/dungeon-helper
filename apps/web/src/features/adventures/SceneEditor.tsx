@@ -158,7 +158,7 @@ export function SceneEditor({ scene }: { scene: Scene }) {
       </Card>
 
       <Card title="Scene notes" subtitle="Triggers, NPC behaviour, what happens if… Type @ to link an entity.">
-        <RichTextEditor docId={scene.bodyDoc} label="Scene body" placeholder="Write the scene… type @ to link or create an entity" />
+        <RichTextEditor docId={scene.bodyDoc} label="Scene body" placeholder={scene.guide?.body ?? "Write the scene… type @ to link or create an entity"} />
       </Card>
     </div>
   );

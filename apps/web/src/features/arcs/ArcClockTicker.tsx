@@ -3,7 +3,8 @@
  * (an ignored thread moves further), previewed before anything moves; the
  * GM applies the roll, re-rolls the seed, or moves a clock by hand on the
  * board. Milestones a tick reaches show their payoff suggestions, which the
- * next job board picks up.
+ * next job board picks up. Inside the between-jobs procedure the ticker is
+ * `linked`: accepting the run moves the clocks (a checkbox leaves them be).
  */
 import { applyArcTicks, planArcTicks, type ArcMilestone, type ClockMove } from "@campaign-forge/core";
 import { payoffLabel, type ArcsDef } from "@campaign-forge/module-sdk";
@@ -14,11 +15,23 @@ import { useCampaign, useList } from "../../state/hooks";
 import { newSeed } from "../generate/runner";
 import { ClockBar } from "./ClockBar";
 
-export function ArcClockTicker({ def, seed: fixedSeed }: { def: ArcsDef; seed?: string }) {
+/** The ticker inside a procedure whose accept moves the clocks: the seed and the choice live with the procedure. */
+export interface LinkedTicker {
+  seed: string;
+  onReroll: () => void;
+  include: boolean;
+  onInclude: (on: boolean) => void;
+  /** What accepting moved (once accepted). */
+  moved?: ClockMove[];
+}
+
+export function ArcClockTicker({ def, seed: fixedSeed, linked }: { def: ArcsDef; seed?: string; linked?: LinkedTicker }) {
   const ctx = useCampaign();
   const threads = useList("arcs");
-  const [seed, setSeed] = useState(() => fixedSeed ?? newSeed());
-  const [moves, setMoves] = useState<ClockMove[] | undefined>();
+  const [ownSeed, setSeed] = useState(() => fixedSeed ?? newSeed());
+  const [ownMoves, setMoves] = useState<ClockMove[] | undefined>();
+  const seed = linked?.seed ?? ownSeed;
+  const moves = linked?.moved ?? ownMoves;
   const plan = useMemo(() => (def.tick ? planArcTicks({ arcs: Object.fromEntries(threads.map((t) => [t.id, t])) }, def, seed) : []), [threads, def, seed]);
   if (!def.tick) return null;
   const tick = def.tick;
@@ -67,15 +80,34 @@ export function ArcClockTicker({ def, seed: fixedSeed }: { def: ArcsDef; seed?: 
           })}
         </ul>
       )}
-      <div className="app-row">
-        <Button variant="primary" onClick={apply} disabled={plan.length === 0} data-testid="arc-tick-apply">
-          Move the clocks
-        </Button>
-        <Button variant="ghost" onClick={() => setSeed(newSeed())} disabled={plan.length === 0} data-testid="arc-tick-reroll">
-          Re-roll
-        </Button>
-        <span className="cf-muted app-small cf-mono">seed {seed}</span>
-      </div>
+      {linked ? (
+        linked.moved ? (
+          <p className="cf-muted app-small" data-testid="arc-tick-done">
+            {linked.moved.length ? `Moved with the run: ${linked.moved.map((m) => `${m.thread.title} ${m.from}→${m.to}`).join(", ")}.` : "The clocks were left as they were."}
+          </p>
+        ) : (
+          <div className="app-row">
+            <label className="app-toggle">
+              <input type="checkbox" checked={linked.include} disabled={plan.length === 0} onChange={(e) => linked.onInclude(e.target.checked)} data-testid="arc-tick-include" />
+              Move the clocks when I accept
+            </label>
+            <Button variant="ghost" onClick={linked.onReroll} disabled={plan.length === 0} data-testid="arc-tick-reroll">
+              Re-roll
+            </Button>
+            <span className="cf-muted app-small cf-mono">seed {seed}</span>
+          </div>
+        )
+      ) : (
+        <div className="app-row">
+          <Button variant="primary" onClick={apply} disabled={plan.length === 0} data-testid="arc-tick-apply">
+            Move the clocks
+          </Button>
+          <Button variant="ghost" onClick={() => setSeed(newSeed())} disabled={plan.length === 0} data-testid="arc-tick-reroll">
+            Re-roll
+          </Button>
+          <span className="cf-muted app-small cf-mono">seed {seed}</span>
+        </div>
+      )}
       {moves && moves.some((m) => m.reached.length) && (
         <div className="app-note" data-testid="arc-tick-reached">
           {moves
