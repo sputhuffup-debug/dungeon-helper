@@ -6,7 +6,7 @@
  * validation checklist. Save the result to the campaign as a site map.
  * `map=` re-opens a saved generated map with its seed, brief and stage seeds.
  */
-import { castMembers, type Adventure, type Entity, type Id, type SiteMap } from "@campaign-forge/core";
+import { adventureOfSource, castMembers, type Adventure, type Entity, type Id, type SiteMap } from "@campaign-forge/core";
 import type { EntityMapBrief, MapGeneratorDef, MapGeneratorResult } from "@campaign-forge/module-sdk";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
@@ -239,6 +239,9 @@ function Workbench({
       if (saved && !asNew) input.mapId = saved.id;
       const map = saveGeneratedMap(ctx, result, input);
       const fresh = !saved || asNew;
+      // the adventure made from the entity ("Run this job") gets the map on its scenes at the site
+      const ran = source && fresh && input.locationId ? adventureOfSource(ctx.store.list("adventures"), source.entity.id) : undefined;
+      if (ran && input.locationId) linkMapToScenes(ctx.store, map.id, ran.id, input.locationId);
       if (acceptable && addEntities && fresh) {
         const accepted = acceptMapEntities(ctx, { mapId: map.id, locationId: location || undefined, siteName: name, adventureId: adventure?.id });
         const count = (kind: string) => accepted.entities.filter((e) => ctx.module.entityType(e.type)?.kind === kind).length;

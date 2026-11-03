@@ -5,7 +5,7 @@
  * players may see. Read-only; it follows the GM's tab through the
  * cross-tab sync of the same local store.
  */
-import { canSee, handoutStaysWithGm, type Handout, type Id } from "@campaign-forge/core";
+import { canSee, handoutStaysWithGm, playerSceneTitle, type Handout, type Id } from "@campaign-forge/core";
 import { useMemo } from "react";
 import { Badge, EmptyState } from "../../components/ui";
 import { combatantOf, combatOrder } from "../../state/d20Actions";
@@ -134,7 +134,7 @@ export function PlayerScreen({ sessionId }: { sessionId: Id }) {
         <section className="app-player__scene" aria-label="Scene">
           {scene ? (
             <>
-              <h2 className="app-player__scene-title">{scene.title}</h2>
+              <h2 className="app-player__scene-title">{playerSceneTitle(scene.title)}</h2>
               {scene.readAloudDoc ? <RichTextView docId={scene.readAloudDoc} className="app-table__readaloud-text" /> : null}
               {map?.layout && <PlayerSiteMap map={map} />}
             </>

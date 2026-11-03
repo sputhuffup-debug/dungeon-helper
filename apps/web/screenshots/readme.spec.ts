@@ -509,6 +509,58 @@ test("wrap-up-awards", async ({ page }) => {
   await shot(page, "wrap-up-awards");
 });
 
+/** Skyfire Down's job from the board, run as an adventure ("Run this job"): lands on the adventure page. */
+async function runBoardJob(page: Page, base: string) {
+  await page.goto(`${base}/atlas`);
+  await page.getByRole("tab", { name: /^Jobs/ }).click();
+  await page.getByRole("tabpanel").getByRole("link", { name: skyfireBoardJob(), exact: true }).click();
+  await page.getByTestId("run-from-entity").click();
+  await expect(page.getByTestId("adventure-source")).toContainText("Site map:");
+}
+
+test("run-this-job", async ({ page }) => {
+  // the job board's job run as a Job card: the link back to the job and its site map, the scenes, and the arrival
+  // set at the job's site, on its map, with the job's three NPCs (the GM's notes from the job below)
+  await page.setViewportSize({ width: 1440, height: 1250 });
+  const base = await loadDemo(page, "skyfire");
+  await runBoardJob(page, base);
+  await page.getByTestId("outline-scene").filter({ hasText: "Arrival" }).getByRole("button").first().click();
+  await expect(page.getByTestId("scene-title")).toHaveValue(/^Arrival/);
+  await dismissToasts(page);
+  await shot(page, "run-this-job");
+});
+
+test("close-the-job", async ({ page }) => {
+  // the wrap-up's last step: the job the session ran, closed as done, its pay collected (with an undo), its adventure done,
+  // and the way to between jobs
+  await page.setViewportSize({ width: 1440, height: 1100 });
+  const base = await loadDemo(page, "skyfire");
+  await runBoardJob(page, base);
+  await startPlannedSession(page);
+  await page.getByTestId("end-session").click();
+  const wrap = page.getByTestId("wrapup");
+  await wrap.getByRole("textbox", { name: "Session summary" }).fill("The crew landed at the site and got the ore out, short one crate.");
+  await wrap.getByRole("list", { name: "Wrap-up steps" }).getByRole("button", { name: /Close the jobs?$/ }).click();
+  const close = wrap.getByTestId("close-source").first();
+  await close.getByTestId("close-outcome-done").click();
+  await close.getByTestId("payout").click();
+  await expect(close.getByTestId("payout-posted")).toBeVisible();
+  await dismissToasts(page);
+  await shot(page, "close-the-job");
+});
+
+test("table-recap", async ({ page }) => {
+  // session 2 started from Home: "Previously on…" at the top of the table, shown on the player screen, until the first scene is run
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await loadDemo(page, "skyfire");
+  await page.getByRole("button", { name: "Start this session" }).click();
+  await expect(page.getByTestId("table-mode")).toBeVisible();
+  const recap = page.getByTestId("table-recap");
+  await recap.getByTestId("table-recap-show").click();
+  await expect(recap).toContainText("On the player screen");
+  await shot(page, "table-recap");
+});
+
 test("rules", async ({ page }) => {
   const base = await loadDemo(page, "skyfire");
   await page.goto(`${base}/rules`);

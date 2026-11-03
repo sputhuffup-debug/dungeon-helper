@@ -21,12 +21,12 @@ export function OverviewEditor({ adventure, onSelect }: { adventure: Adventure; 
       )}
       {adventure.playerIntroDoc && (
         <Card title="Player introduction" subtitle="Read aloud at the start. Players may see this.">
-          <RichTextEditor docId={adventure.playerIntroDoc} label="Player introduction" placeholder="The briefing the players hear…" />
+          <RichTextEditor docId={adventure.playerIntroDoc} label="Player introduction" placeholder={adventure.guide?.playerIntro ?? "The briefing the players hear…"} />
         </Card>
       )}
       {adventure.gmSituationDoc && (
         <Card title="The situation (GM only)" subtitle="What is really going on.">
-          <RichTextEditor docId={adventure.gmSituationDoc} label="GM situation" placeholder="Who knows what, what the threat wants, the countdown…" />
+          <RichTextEditor docId={adventure.gmSituationDoc} label="GM situation" placeholder={adventure.guide?.gmSituation ?? "Who knows what, what the threat wants, the countdown…"} />
         </Card>
       )}
       <Card title="Acts">
@@ -52,7 +52,7 @@ export function OverviewEditor({ adventure, onSelect }: { adventure: Adventure; 
       </Card>
       {adventure.epilogueDoc && (
         <Card title="Epilogue">
-          <RichTextEditor docId={adventure.epilogueDoc} label="Epilogue" placeholder="What happens to the survivors…" />
+          <RichTextEditor docId={adventure.epilogueDoc} label="Epilogue" placeholder={adventure.guide?.epilogue ?? "What happens to the survivors…"} />
         </Card>
       )}
     </div>

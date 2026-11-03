@@ -5,6 +5,8 @@
  * checklist's "Start with a recap". Nothing here knows what game it is.
  */
 import {
+  getTrackerState,
+  updateTrackerState,
   addRecapLine,
   generateSessionRecap,
   playerRecap,
@@ -20,7 +22,7 @@ import {
 } from "@campaign-forge/core";
 import type { RecapAudience } from "@campaign-forge/module-sdk";
 import type { CampaignContextValue } from "./CampaignProvider";
-import { checklistEvent } from "./tableActions";
+import { checklistEvent, TABLE_STATE, tableStateOf } from "./tableActions";
 
 type Ctx = Pick<CampaignContextValue, "store" | "module">;
 type DocCtx = Ctx & Pick<CampaignContextValue, "registry">;
@@ -69,6 +71,14 @@ export function showRecapOnPlayerScreen(ctx: Ctx, sessionId: Id, shown: boolean)
     const r = showSessionRecap(ctx.store, sessionId, shown);
     if (shown) checklistEvent(ctx, sessionId, "recap-shown");
     return r;
+  });
+}
+
+/** Table mode: put the "Previously on…" card away for this session (kept in the table state, so every tab follows). */
+export function dismissTableRecap(ctx: Ctx, sessionId: Id): void {
+  ctx.store.transact(() => {
+    const current = tableStateOf(getTrackerState(ctx.store, sessionId).state);
+    updateTrackerState(ctx.store, sessionId, TABLE_STATE, { ...current, recapDismissed: true });
   });
 }
 

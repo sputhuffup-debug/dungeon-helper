@@ -168,6 +168,13 @@ export interface Relationship extends BaseRecord {
 // ---------------------------------------------------------------------------
 
 export type AdventureStatus = "planned" | "active" | "done";
+
+/**
+ * Template guidance kept beside a record, by the field it explains (e.g.
+ * `playerIntro`, `body`): the app shows it as placeholder text while the
+ * field is empty. It is never content: it never reaches the players.
+ */
+export type TemplateGuide = Partial<Record<string, string>>;
 export type SceneStatus = "planned" | "run" | "skipped";
 
 export interface Adventure extends BaseRecord {
@@ -189,6 +196,10 @@ export interface Adventure extends BaseRecord {
   cast?: Record<string, Id[]>;
   /** The adventure builder this adventure was made with, if any. */
   builderId?: string;
+  /** Template guidance for the empty sections (`premise`, `playerIntro`, `gmSituation`, `epilogue`). */
+  guide?: TemplateGuide;
+  /** The campaign record it runs (a module adventure source, e.g. a job): the link back to it. */
+  source?: { entity: Id; def: string };
 }
 
 export interface Act extends BaseRecord {
@@ -201,6 +212,8 @@ export interface Act extends BaseRecord {
   scenes: Id[]; // ordered
   /** Module-defined fields (kind "act"). */
   fields?: Record<string, unknown>;
+  /** Template guidance (`pacing`). */
+  guide?: TemplateGuide;
 }
 
 export interface Scene extends BaseRecord {
@@ -222,6 +235,8 @@ export interface Scene extends BaseRecord {
   tags: string[];
   /** Module-defined fields (kind "scene"). */
   fields?: Record<string, unknown>;
+  /** Template guidance for the GM (`body`, `readAloud`); never shown to the players. */
+  guide?: TemplateGuide;
 }
 
 export interface Session extends BaseRecord {
@@ -369,6 +384,8 @@ export interface Handout extends BaseRecord {
    * friction), so the tool updates it in place rather than adding another.
    */
   purpose?: string;
+  /** Template guidance for the empty body (`body`); never shown to the players. */
+  guide?: TemplateGuide;
 }
 
 export interface Note extends BaseRecord {

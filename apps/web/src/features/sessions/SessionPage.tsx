@@ -25,6 +25,7 @@ import { isSessionZero } from "../../lib/sessionZero";
 import { useSessionTrackerState } from "../table/hooks";
 import { ChecklistSummary, SessionChecklist } from "./SessionChecklist";
 import { RecapCard } from "./RecapCard";
+import { useLandAfterWrapUp } from "./afterWrapUp";
 
 // The end-of-session wrap-up loads when the GM ends a session.
 const WrapUpWizard = lazyView(() => import("./WrapUp").then((m) => m.WrapUpWizard), { what: "the wrap-up" });
@@ -38,6 +39,7 @@ export function SessionPage() {
   const ctx = useCampaign();
   const navigate = useNavigate();
   const campaignId = ctx.campaignId;
+  const land = useLandAfterWrapUp(campaignId);
   const session = useRecord("sessions", sessionId);
   const [wrapping, setWrapping] = useState(false);
   const [sharing, setSharing] = useState(false);
@@ -54,7 +56,14 @@ export function SessionPage() {
   if (wrapping && session.status === "running") {
     return (
       <div className="app-page">
-        <WrapUpWizard sessionId={sessionId} onCancel={() => setWrapping(false)} onDone={() => void navigate({ to: "/c/$campaignId/home", params: { campaignId } })} />
+        <WrapUpWizard
+          sessionId={sessionId}
+          onCancel={() => setWrapping(false)}
+          onDone={(_next, landing) => {
+            setWrapping(false);
+            land(landing);
+          }}
+        />
       </div>
     );
   }

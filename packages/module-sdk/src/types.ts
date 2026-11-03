@@ -1337,9 +1337,23 @@ export interface EntityPreset {
 
 export type TemplateKind = "campaign" | "adventure" | "act" | "scene" | "session" | "checklist";
 
+/**
+ * Template text and guidance. In a template's text (premise, player intro,
+ * GM situation, epilogue, act pacing, scene and handout bodies) a paragraph
+ * wrapped in underscores, `_like this_`, is guidance for the GM: the app
+ * shows it as placeholder text on the empty field and never writes it into
+ * the record, so it never reaches the players (see `templateText`). Other
+ * paragraphs are content. A scene's `purpose` is GM-facing; its title (which
+ * the players see) is `title`, else a few words of the purpose.
+ */
 export interface TemplateScene {
+  /** Stable id within the template (e.g. "arrival"), so an adventure source can fill this scene. */
+  id?: string;
+  /** The scene's title (players see it on the player screen): short, no guidance. Derived from `purpose` when absent. */
+  title?: string;
+  /** What the scene is for (GM-facing). */
   purpose: string;
-  /** Markdown body. */
+  /** Markdown body (GM notes). Underscored paragraphs are guidance. */
   body?: string;
   mandatory?: boolean;
   /** Seeds the scene's module-defined fields (narrative kind "scene"). */
@@ -1465,6 +1479,103 @@ export interface Template {
    */
   appliesTo?: "session" | "session-zero";
   scaffold: TemplateAdventure | TemplateAct | TemplateScene | TemplateChecklist | Record<string, unknown>;
+}
+
+// ---------------------------------------------------------------------------
+// Adventure sources: run a campaign record as an adventure ("Run this job")
+// ---------------------------------------------------------------------------
+
+/**
+ * A campaign record the GM can run as an adventure, e.g. an accepted job:
+ * the app creates an adventure from `template` (its acts and scenes), fills
+ * it from the record and what the campaign links to it (`prefill`), links
+ * the two both ways and plans the scenes `plan` names into the next
+ * session. After play the wrap-up offers `outcomes` for a record still
+ * `open`. The core never learns what the record means: the module says what
+ * goes where. See docs/modules/adventure-sources.md.
+ */
+export interface AdventureSourceDef {
+  id: string;
+  /** The entity type it reads (e.g. "alien.job"). */
+  entityType: string;
+  /** The adventure template whose acts and scenes it fills (`kind: "adventure"`). */
+  template: string;
+  /** Button label, e.g. "Run this job". */
+  label: string;
+  /** What the record is called in the app's text ("job"). Defaults to the entity type's name, lower case. */
+  noun?: string;
+  mode?: PlayModeId[];
+  /** When the record can be run: JSONLogic over `{ fields }`. Always when absent. */
+  when?: JsonLogicRule;
+  /** The record still waits for an outcome after play: JSONLogic over `{ fields }`. Never when absent. */
+  open?: JsonLogicRule;
+  /** How the wrap-up can close it ("done", "failed", "carried over"). */
+  outcomes?: AdventureSourceOutcome[];
+  /**
+   * What to fill. Pure and deterministic: same input, same output. Only
+   * `title`, `playerIntro` and a scene's `title` and `readAloud` may reach
+   * the players; keep secrets in `gmSituation` and scene bodies.
+   */
+  prefill(input: AdventureSourceInput): AdventureSourceFill;
+}
+
+export interface AdventureSourceOutcome {
+  id: string;
+  label: string;
+  /** Field set on the record when the GM picks it. */
+  set?: { path: string; value: unknown };
+  /** The record is finished: its adventure can be marked done. */
+  closes?: boolean;
+  tone?: "success" | "danger" | "warning" | "muted";
+}
+
+/** A record linked to the source, either way. */
+export interface AdventureSourceLink {
+  relationship: string;
+  /** "out": source -> entity; "in": entity -> source. */
+  direction: "out" | "in";
+  note?: string;
+  entity: EntitySnapshot & { kind?: CoreEntityKind; summary?: string; visibility?: VisibilityLevel };
+}
+
+/** What the core hands `prefill`: the record, its links, the site maps of linked places and the arc clues seeded with it. */
+export interface AdventureSourceInput {
+  mode: PlayModeId;
+  /** The record; `gmFields` lists the field paths the players may not see (keep them out of player-facing text). */
+  entity: EntitySnapshot & { summary?: string; visibility?: VisibilityLevel; gmFields?: string[] };
+  links: AdventureSourceLink[];
+  /** Saved site maps whose location is one of the linked records. */
+  maps: Array<{ id: string; name: string; location: string; generated?: boolean }>;
+  /** Campaign arc clues seeded with the record. */
+  clues: Array<{ thread: string; threadTitle: string; clue: string; text: string; state: ArcClueState; slotLabel?: string; entity?: string }>;
+}
+
+/** One template scene, filled. Ids are campaign ids taken from the input. */
+export interface AdventureSceneFill {
+  title?: string;
+  /** GM notes, Markdown. */
+  body?: string;
+  /** Player-facing read-aloud, Markdown. */
+  readAloud?: string;
+  location?: string;
+  map?: string;
+  participants?: string[];
+  /** Extra events after the template's (the GM's checklist), e.g. a seeded clue to find. */
+  events?: Array<{ text: string; mandatory?: boolean }>;
+}
+
+export interface AdventureSourceFill {
+  title?: string;
+  premise?: string;
+  /** Player-facing, Markdown. */
+  playerIntro?: string;
+  /** GM only, Markdown. */
+  gmSituation?: string;
+  epilogue?: string;
+  /** By template scene id (`TemplateScene.id`, else "<act number>.<scene number>"). */
+  scenes?: Record<string, AdventureSceneFill>;
+  /** Template scene ids planned into the next session, in order. */
+  plan?: string[];
 }
 
 // ---------------------------------------------------------------------------
@@ -3708,6 +3819,8 @@ export interface GameModule {
   narrativeFields?: NarrativeFieldsDef[];
   /** Guided adventure builders with their review checklists. */
   adventureBuilders?: AdventureBuilderDef[];
+  /** Campaign records the GM can run as an adventure ("Run this job"), and how the wrap-up closes them. */
+  adventureSources?: AdventureSourceDef[];
   /** Site map generators. */
   mapGenerators?: MapGeneratorDef[];
   /** GM hints at the table for each rollable stat and skill. */

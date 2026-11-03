@@ -3,7 +3,7 @@ import { FRAME_IDS, enumField, intField, number, numberField, objectSchema, sele
 import { CAMPAIGN } from "../modes";
 
 export const JOB_TYPES = ["job", "mission", "expedition"] as const;
-export const JOB_STATUSES = ["offered", "accepted", "done", "declined"] as const;
+export const JOB_STATUSES = ["offered", "accepted", "done", "failed", "declined"] as const;
 
 export const jobSchema = objectSchema({
   frame: enumField(FRAME_IDS, "space-truckers", "Campaign frame this job belongs to (p. 234)."),

@@ -13,8 +13,8 @@
  * single viewer. A player packet (packets.ts) runs the same snapshot with
  * one player's viewer (`memberViewer`) instead. Nothing here names a game.
  */
-import type { EntityTypeDef, MapLegendEntry, SheetField, SheetLayout } from "@campaign-forge/module-sdk";
-import { computeFields } from "@campaign-forge/module-sdk";
+import type { EntityTypeDef, MapLegendEntry, SheetField, SheetLayout, TemplateAdventure } from "@campaign-forge/module-sdk";
+import { computeFields, templateGuidance } from "@campaign-forge/module-sdk";
 import type * as Y from "yjs";
 import { getPath } from "./paths";
 import { toMarkdown } from "./richtext";
@@ -115,6 +115,37 @@ export interface PlayerShareInput {
    * them alone and what their own characters show them.
    */
   viewer?: Viewer | undefined;
+}
+
+/**
+ * A scene title as the players read it: a GM's aside in brackets left by a
+ * template ("(link the location)", cut short as "(link…") is dropped.
+ */
+export function playerSceneTitle(title: string): string {
+  return title.replace(/\s*\((?:link|see|e\.g\.)[^)]*(?:\)|…|$)/gi, "").trim();
+}
+
+const plainWords = (text: string) =>
+  text
+    .replace(/[_*`#>-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+
+/**
+ * Text that is only a template's guidance, written into an adventure by an
+ * older version of the app (before guidance became placeholder text): it is
+ * never sent to the players.
+ */
+export function isTemplateGuidance(text: string, module: ModuleTypes | undefined, templateId: string | undefined): boolean {
+  if (!templateId) return false;
+  const t = module?.templates?.find((x) => x.id === templateId);
+  const scaffold = t?.scaffold as TemplateAdventure | undefined;
+  if (!scaffold || !Array.isArray(scaffold.acts)) return false;
+  const words = plainWords(text);
+  if (!words) return false;
+  const guides = [...templateGuidance(scaffold), scaffold.playerIntro ?? "", scaffold.gmSituation ?? "", scaffold.premise ?? "", scaffold.epilogue ?? ""].map(plainWords).filter(Boolean);
+  return guides.includes(words);
 }
 
 /** "Session 3: The offer", or "Session 3". */
@@ -260,7 +291,8 @@ export function playerShareSnapshot(input: PlayerShareInput): PlayerShare {
   const scene = input.sceneId ? maps.scenes[input.sceneId] : undefined;
   if (scene) {
     const briefing: ShareBriefing = { sceneId: scene.id };
-    if (scene.title.trim()) briefing.scene = scene.title.trim();
+    const title = playerSceneTitle(scene.title);
+    if (title) briefing.scene = title;
     const readAloud = scene.readAloudDoc ? bodyText(input.doc(scene.readAloudDoc), visibleNames) : undefined;
     if (readAloud) briefing.readAloud = readAloud;
     const act = scene.act ? maps.acts[scene.act] : undefined;
@@ -268,7 +300,7 @@ export function playerShareSnapshot(input: PlayerShareInput): PlayerShare {
     if (adventure) {
       briefing.adventure = adventure.title;
       const intro = adventure.playerIntroDoc ? bodyText(input.doc(adventure.playerIntroDoc), visibleNames) : undefined;
-      if (intro) briefing.intro = intro;
+      if (intro && !isTemplateGuidance(intro, module, adventure.templateId)) briefing.intro = intro;
     }
     out.briefing = briefing;
     const map = sceneMapOf(maps, scene);
