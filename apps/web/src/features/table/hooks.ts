@@ -46,15 +46,17 @@ export function useTrackerEntities(entities: Entity[]): TrackerEntity[] {
 
 /** Scenes table mode steps through (planned scenes, else adventure order), live. */
 export function useSessionScenes(sessionId: Id): Scene[] {
-  const { store } = useCampaign();
+  const { store, module } = useCampaign();
   const session = useRecord("sessions", sessionId);
   const v1 = useMapVersion("scenes");
   const v2 = useMapVersion("acts");
   const v3 = useMapVersion("adventures");
+  // a record closed elsewhere (a job marked done) drops its adventure from the fallback order
+  const v4 = useMapVersion("entities");
   return useMemo(
-    () => (session ? sessionSceneOrder(store, session) : []),
+    () => (session ? sessionSceneOrder(store, session, module) : []),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [store, session, v1, v2, v3],
+    [store, module, session, v1, v2, v3, v4],
   );
 }
 

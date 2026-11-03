@@ -27,7 +27,7 @@ export interface Viewer {
 export const GM_VIEWER: Viewer = { role: "gm" };
 
 /** Modules are consulted for entity type definitions (and map legends and owner handout kinds, when given). */
-export type ModuleTypes = Pick<GameModule, "entityTypes"> & Partial<Pick<GameModule, "mapGenerators" | "ownerHandouts">>;
+export type ModuleTypes = Pick<GameModule, "entityTypes"> & Partial<Pick<GameModule, "mapGenerators" | "ownerHandouts" | "templates">>;
 
 /** Does this player play the character? */
 export function viewerOwns(viewer: Viewer, entity: Pick<Entity, "id" | "ownerMemberId"> | undefined): boolean {
@@ -219,7 +219,13 @@ export function projectCampaignForViewer(maps: CampaignMaps, module: ModuleTypes
   const timeline = pick(maps.timeline);
   for (const t of Object.values(timeline)) t.entities = t.entities.filter((id) => id in entities);
   const handouts: Record<Id, Handout> = {};
-  for (const h of Object.values(maps.handouts)) if (canSeeHandout(h, viewer, maps, module)) handouts[h.id] = clone(h);
+  for (const h of Object.values(maps.handouts)) {
+    if (!canSeeHandout(h, viewer, maps, module)) continue;
+    const copy = clone(h);
+    // template guidance is the GM's placeholder text, never the players'
+    delete copy.guide;
+    handouts[h.id] = copy;
+  }
   const siteMaps = pick(maps.maps);
   for (const m of Object.values(siteMaps)) projectSiteMapInPlace(m, module);
   const assets = pick(maps.assets);

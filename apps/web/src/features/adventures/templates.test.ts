@@ -55,9 +55,13 @@ describe("adventure templates", () => {
     expect(adventure.title).toBe("Hope's Last Day");
     expect(adventure.templateId).toBe("alien.template.cinematic-adventure");
     expect(adventure.acts).toHaveLength(3);
-    expect(text(ctx, adventure.playerIntroDoc)).toContain("What's the story, Mother?");
-    expect(text(ctx, adventure.gmSituationDoc)).toContain("GM-only");
-    expect(text(ctx, adventure.epilogueDoc)).toContain("sign-off message");
+    // content is written; underscored guidance stays placeholder text (`guide`), never content
+    expect(text(ctx, adventure.playerIntroDoc)).toBe("What's the story, Mother?");
+    expect(adventure.guide?.playerIntro).toContain("Read aloud by the GM");
+    expect(text(ctx, adventure.gmSituationDoc)).toBe("");
+    expect(adventure.guide?.gmSituation).toContain("GM-only");
+    expect(text(ctx, adventure.epilogueDoc)).toBe("");
+    expect(adventure.guide?.epilogue).toContain("sign-off message");
 
     const acts = adventure.acts.map((id) => ctx.store.get("acts", id)!);
     expect(acts.map((a) => [a.number, a.title])).toEqual([
@@ -81,7 +85,8 @@ describe("adventure templates", () => {
     const optionalIndex = scaffold.acts.flatMap((a) => a.scenes ?? []).findIndex((sc) => !sc.mandatory);
     expect(scenes[optionalIndex]?.events[0]?.mandatory).toBe(false);
     expect(scenes[optionalIndex]?.tags).toContain("optional");
-    expect(text(ctx, scenes[0]?.bodyDoc)).toContain(plainTemplateText(firstScene.body!));
+    expect(text(ctx, scenes[0]?.bodyDoc)).toBe("");
+    expect(scenes[0]?.guide?.body).toBe(plainTemplateText(firstScene.body!));
 
     for (const [i, act] of acts.entries()) {
       const handouts = actHandouts(ctx.store, act);
@@ -91,7 +96,8 @@ describe("adventure templates", () => {
         expect(h.kind).toBe("agenda");
         expect(h.visibility.level).toBe("some_players");
         expect(h.attachedTo).toEqual({ kind: "act", id: act.id });
-        expect(text(ctx, h.bodyDoc)).toContain(plainTemplateText(planned[0]!.body!));
+        expect(text(ctx, h.bodyDoc)).toBe("");
+        expect(h.guide?.body).toBe(plainTemplateText(planned[0]!.body!));
       }
     }
     expect(ctx.store.count("handouts")).toBe(scaffold.acts.reduce((n, a) => n + (a.handouts?.length ?? 0), 0));
@@ -140,19 +146,21 @@ describe("adventure templates", () => {
     expect(ctx.store.get("acts", act4.id)?.handouts).toEqual([agenda.id]);
 
     const md = await bookletMarkdown(ctx, adventure.id);
-    expect(md).toMatch(/^# <Scenario title>/);
+    // a placeholder title ("<Scenario title>") is guidance too
+    expect(md).toMatch(/^# New adventure/);
     expect(md).toContain("## Player introduction");
     expect(md).toContain("What's the story, Mother?");
     expect(md).toContain("(mandatory)");
     expect(md).not.toMatch(/\[\[/);
     expect(md).not.toContain("\\_");
-    expect(md).toContain("*Who is present, what the crew is here to do.*"); // first scene body of the Alien cinematic scaffold
+    expect(md).not.toContain("Who is present, what the crew is here to do."); // first scene body of the Alien cinematic scaffold: guidance, not content
     expect(adventureDocIds(ctx.store, adventure.id).length).toBeGreaterThan(30);
 
     const cards = await agendaCards(ctx, adventure.id);
     expect(cards).toHaveLength(19);
     expect(cards.at(-1)?.character).toBe("Ripley");
-    expect(cards[0]?.body).toMatch(/secret agenda/);
+    // the agenda card's template guidance never reaches the printed card
+    expect(cards[0]?.body ?? "").not.toMatch(/secret agenda/);
 
     deleteAct(ctx, a2!);
     expect(ctx.store.get("adventures", adventure.id)?.acts).not.toContain(a2);

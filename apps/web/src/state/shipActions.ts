@@ -5,6 +5,7 @@
  */
 import {
   applyEffects,
+  ledgerEntryByKey,
   crewShip,
   currentLocation,
   departTravel,
@@ -21,7 +22,7 @@ import {
   type LedgerEntry,
   type PostLedgerInput,
 } from "@campaign-forge/core";
-import { computeFields, getPath, type CrewShipDef, type LedgerDef, type LedgerPayoutDef, type LoadedModule, type PlayModeId, type TravelDef } from "@campaign-forge/module-sdk";
+import { computeFields, getPath, setPath, type CrewShipDef, type LedgerDef, type LedgerPayoutDef, type LoadedModule, type PlayModeId, type TravelDef } from "@campaign-forge/module-sdk";
 import { downloadFile, slug } from "../lib/download";
 import type { CampaignContextValue } from "./CampaignProvider";
 import { effectContext } from "./tableActions";
@@ -125,9 +126,16 @@ export interface PayoutResult {
   duplicate: boolean;
 }
 
+/**
+ * A payout's ledger entry remembers the field value it replaced, so "Undo"
+ * can put it back (the store keeps extra keys; export and import carry it).
+ */
+type PayoutEntry = LedgerEntry & { revert?: { entity: Id; path: string; value: unknown } };
+
 /** Post an entity's payout once (keyed by category and entity) and mark the entity done. */
 export function postPayout(ctx: Ctx, entity: Entity, payout: LedgerPayoutDef): PayoutResult {
   return ctx.store.transact(() => {
+    const before = payout.setOnPost ? getPath(ctx.store.get("entities", entity.id)?.fields ?? entity.fields, payout.setOnPost.path) : undefined;
     const ship = theCrewShip(ctx);
     const res = postLedgerEntry(ctx.store, {
       amount: payoutAmount(ctx, entity, payout),
@@ -149,8 +157,34 @@ export function postPayout(ctx: Ctx, entity: Entity, payout: LedgerPayoutDef): P
       });
       cur[path.at(-1)!] = payout.setOnPost.value;
       ctx.store.update("entities", entity.id, { fields });
+      ctx.store.update("ledger", res.entry.id, { revert: { entity: entity.id, path: payout.setOnPost.path, value: before ?? null } } as Partial<PayoutEntry>);
     }
     return res;
+  });
+}
+
+/** The payout entry posted for an entity, if any. */
+export function postedPayout(ctx: Ctx, entity: Pick<Entity, "id">, payout: LedgerPayoutDef): LedgerEntry | undefined {
+  return ledgerEntryByKey(ctx.store, payoutKey(payout, entity.id));
+}
+
+/** Take a payout back: remove its ledger entry and put the field it set back as it was. */
+export function undoPayout(ctx: Ctx, entity: Pick<Entity, "id">, payout: LedgerPayoutDef): boolean {
+  return ctx.store.transact(() => {
+    const entry = postedPayout(ctx, entity, payout) as PayoutEntry | undefined;
+    if (!entry) return false;
+    removeLedgerEntry(ctx.store, entry.id);
+    const revert = entry.revert;
+    const current = ctx.store.get("entities", entity.id);
+    if (revert && current && payout.setOnPost && JSON.stringify(getPath(current.fields, revert.path)) === JSON.stringify(payout.setOnPost.value)) {
+      let fields: Record<string, unknown>;
+      if (revert.value === null || revert.value === undefined) {
+        fields = { ...current.fields };
+        if (!revert.path.includes(".")) delete fields[revert.path];
+      } else fields = setPath({ ...current.fields }, revert.path, revert.value);
+      ctx.store.update("entities", entity.id, { fields });
+    }
+    return true;
   });
 }
 

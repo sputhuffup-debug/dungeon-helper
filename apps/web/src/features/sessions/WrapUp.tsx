@@ -1,8 +1,11 @@
 /**
  * Session wrap-up, step by step: summary, the module's end-of-session
  * prompts, rewards (the module's award checklist, then free entries),
- * timeline entries and loose ends. Finishing marks the
- * session done, archives its tracker state and plans the next one.
+ * timeline entries, loose ends and, when the session ran one of the
+ * module's adventure sources (a job), closing it. Finishing marks the
+ * session done, archives its tracker state, plans the next one and lands
+ * on the next step: the module's between-jobs procedure for a record just
+ * closed, else the next session's page.
  */
 import type { Entity, Id } from "@campaign-forge/core";
 import type { Prompt } from "@campaign-forge/module-sdk";
@@ -33,15 +36,17 @@ import { BetweenJobsLink } from "../ship/BetweenJobsLink";
 import { AwardsStep } from "../progression/AwardsStep";
 import { LongAgendaWrapUp } from "../agendas/LongAgendas";
 import { ArcsWrapUp } from "../arcs/ArcsWrapUp";
+import { betweenJobsFor, closeStepLabel, CloseSourcesStep, useSessionSources } from "./CloseSources";
+import type { WrapUpLanding } from "./afterWrapUp";
 
-const STEPS = [
+const BASE_STEPS = [
   { id: "summary", label: "Summary" },
   { id: "prompts", label: "End-of-session questions" },
   { id: "rewards", label: "Rewards" },
   { id: "timeline", label: "Timeline" },
   { id: "loose", label: "Loose ends" },
 ] as const;
-type StepId = (typeof STEPS)[number]["id"];
+type StepId = (typeof BASE_STEPS)[number]["id"] | "close";
 
 interface RewardDraft {
   key: number;
@@ -54,7 +59,8 @@ interface RewardDraft {
 export interface WrapUpWizardProps {
   sessionId: Id;
   onCancel?: () => void;
-  onDone: (nextSessionId: Id | undefined) => void;
+  /** Called after finishing, with where to go next. */
+  onDone: (nextSessionId: Id | undefined, landing: WrapUpLanding) => void;
 }
 
 export function WrapUpWizard({ sessionId, onCancel, onDone }: WrapUpWizardProps) {
@@ -90,6 +96,10 @@ export function WrapUpWizard({ sessionId, onCancel, onDone }: WrapUpWizardProps)
     };
   }, [ctx, sessionId, summary]);
 
+  const sources = useSessionSources(sessionId);
+  const closeLabel = closeStepLabel(ctx, sources);
+  const STEPS: Array<{ id: StepId; label: string }> = [...BASE_STEPS, ...(closeLabel ? [{ id: "close" as const, label: closeLabel }] : [])];
+
   if (!session) return null;
   const idx = STEPS.findIndex((s) => s.id === step);
   const answeredCount = prompts.filter((p) => answers[p.id]).length;
@@ -104,7 +114,11 @@ export function WrapUpWizard({ sessionId, onCancel, onDone }: WrapUpWizardProps)
         looseEnds: looseEnds.split("\n"),
       });
       pushToast(`${sessionLabel(result.session)} wrapped up${result.next ? `; ${sessionLabel(result.next)} is planned` : ""}.`, { tone: "success" });
-      onDone(result.next?.id);
+      // a record just closed (a finished job) goes on to between jobs; otherwise the next session's page
+      const closed = sources.find((s) => s.def.outcomes?.some((o) => o.id === s.outcome && o.closes));
+      const between = closed ? betweenJobsFor(ctx, meta.mode, closed.entity) : undefined;
+      const landing: WrapUpLanding = between ? { kind: "procedure", procedureId: between.procedureId, ...(between.pick ? { pick: between.pick } : {}) } : { kind: "session", sessionId: result.next?.id ?? sessionId };
+      onDone(result.next?.id, landing);
     } catch (e) {
       pushToast(`Could not finish the session: ${errorMessage(e)}`, { tone: "danger" });
       setBusy(false);
@@ -175,6 +189,8 @@ export function WrapUpWizard({ sessionId, onCancel, onDone }: WrapUpWizardProps)
               <textarea className="cf-textarea" aria-label="Loose ends" rows={6} value={looseEnds} placeholder="Who sent the signal?" onChange={(e) => setLooseEnds(e.target.value)} />
             </Card>
           )}
+
+          {step === "close" && <CloseSourcesStep sessionId={sessionId} sources={sources} />}
         </div>
         <aside className="app-wrapup__aside" aria-label="After the session checklist">
           <WrapChecklistPanel session={session} />

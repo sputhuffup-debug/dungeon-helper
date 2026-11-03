@@ -6,6 +6,7 @@
 import { d20AttackIssues, d20Attacks, d20CombatIssues } from "./d20combat";
 import { gmScreenIssues } from "./gmScreen";
 import { recapIssues } from "./recap";
+import { adventureSourceIssues } from "./adventureSource";
 import { characterBuilderIssues } from "./characterBuilder";
 import { diceOutcomes, parseDiceExpression } from "./dice";
 import { computeFields, defaultFieldsFor, fieldSchemaAt, schemaDefaults, validateAgainstSchema, validateEntityFields } from "./entities";
@@ -503,6 +504,32 @@ function checkTemplate(t: Template, moduleId: string, declaredModes: Set<PlayMod
   if (t.appliesTo !== undefined && t.kind !== "checklist") c.error(where, "appliesTo is only for checklist templates");
   if (t.appliesTo !== undefined && t.appliesTo !== "session" && t.appliesTo !== "session-zero") c.error(where, `unknown appliesTo "${String(t.appliesTo)}"`);
   if (t.kind === "checklist" && t.appliesTo === "session" && t.scaffold && typeof t.scaffold === "object") checkSessionChecklist(t, moduleId, declaredModes, c);
+}
+
+/**
+ * Template text is read by the GM (and some of it by the players): it names
+ * things in words, never by a raw entity type id ("link the job", not "link
+ * the alien.job entity").
+ */
+function checkTemplateTypeIds(module: GameModule, c: Collector): void {
+  const ids = module.entityTypes.map((t) => t.id).filter((id) => id.includes("."));
+  if (ids.length === 0) return;
+  const texts = (v: unknown, out: string[]): string[] => {
+    if (typeof v === "string") out.push(v);
+    else if (Array.isArray(v)) for (const x of v) texts(x, out);
+    else if (v && typeof v === "object") for (const [k, x] of Object.entries(v as Record<string, unknown>)) if (k !== "entityType" && k !== "entityTypes" && k !== "fields") texts(x, out);
+    return out;
+  };
+  for (const t of module.templates) {
+    const found = new Set<string>();
+    for (const s of texts(t.scaffold, [])) {
+      for (const id of ids) {
+        const named = new RegExp(`(^|[^\\w.-])${id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![\\w-]|\\.\\w)`).test(s);
+        if (named && s.trim() !== id) found.add(id);
+      }
+    }
+    for (const id of found) c.error(`template:${t.id}`, `template text names the raw type id "${id}"; say it in words`);
+  }
 }
 
 /** A session checklist template: phases, namespaced unique ids, declared modes, pages and auto-tick events. */
@@ -1058,6 +1085,8 @@ export function checkModule(module: GameModule, options: CheckModuleOptions = {}
   for (const t of module.trackers) checkTracker(t, module, declaredModes, c);
   checkUnique(module.templates, (t) => t.id, (t) => `template:${t.id}`, "template", c);
   for (const t of module.templates) checkTemplate(t, manifest?.id ?? "", declaredModes, c);
+  checkTemplateTypeIds(module, c);
+  for (const i of adventureSourceIssues(module)) (i.severity === "error" ? c.error.bind(c) : c.warn.bind(c))(i.where, i.message);
 
   // Narrative fields and adventure builders.
   if (module.narrativeFields !== undefined && !Array.isArray(module.narrativeFields)) c.error("narrativeFields", "narrativeFields must be a list");

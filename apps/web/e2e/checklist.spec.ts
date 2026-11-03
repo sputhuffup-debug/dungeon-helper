@@ -85,11 +85,15 @@ test("session checklist: plan, tick and read guidance, run at the table, wrap up
   await wrap.getByRole("button", { name: /^Next: Loose ends/ }).click();
   await wrap.getByRole("textbox", { name: "Loose ends" }).fill("Who wants the crate?");
   // finishing is never blocked by unticked items
+  // the demo's accepted job waits in the last step; finishing never needs it closed, and lands on the next session's page
+  await wrap.getByRole("button", { name: /^Next: Close the job/ }).click();
+  await expect(wrap.getByTestId("close-source")).toHaveCount(1);
   await wrap.getByTestId("finish-session").click();
-  await expect(page).toHaveURL(/\/home$/);
+  await expect(page).toHaveURL(/\/sessions\/[0-9A-Z]{26}$/);
+  await expect(page.getByTestId("session-page")).toHaveAttribute("data-status", "planned");
 
   // 4. the finished session shows a compact completion summary per phase
-  await page.getByRole("link", { name: "Sessions" }).click();
+  await page.getByRole("navigation", { name: "Campaign" }).getByRole("link", { name: "Sessions", exact: true }).click();
   await page.locator('[data-session][data-status="done"]').filter({ hasText: "The ore run" }).getByRole("link").click();
   await expect(page.getByTestId("session-status")).toHaveText("done");
   const summary = page.getByTestId("checklist-summary");

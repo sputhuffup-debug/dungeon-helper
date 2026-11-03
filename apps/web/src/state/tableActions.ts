@@ -7,6 +7,7 @@
 import {
   CampaignStore,
   RichTextRegistry,
+  adventureClosed,
   advanceWorldMinutes,
   appendTrackerLog,
   applyEffects,
@@ -90,6 +91,8 @@ export type PlannedSession = Session & { plannedScenes?: Id[] };
 
 export interface TableState {
   sceneId?: Id;
+  /** The GM dismissed the "Previously on…" card at the top of the table. */
+  recapDismissed?: boolean;
   timer?: { running: boolean; since?: string; accumulatedMs: number };
 }
 
@@ -178,12 +181,35 @@ export function scenesInAdventureOrder(store: CampaignStore): Scene[] {
   return out;
 }
 
-/** The scene list table mode steps through: the session's planned scenes, else adventure order. */
-export function sessionSceneOrder(store: CampaignStore, session: Session): Scene[] {
+/**
+ * Adventures table mode skips when it picks scenes by itself: marked done,
+ * or run from a record the module no longer counts as open (a job marked
+ * done or failed).
+ */
+export function closedAdventureIds(store: CampaignStore, module: Pick<LoadedModule, "module"> | undefined): Set<Id> {
+  const entities = Object.fromEntries(store.list("entities").map((e) => [e.id, e]));
+  return new Set(store.list("adventures").filter((a) => adventureClosed({ entities }, module?.module ?? {}, a)).map((a) => a.id));
+}
+
+/** The adventure a scene belongs to, through its act. */
+function adventureOfScene(store: CampaignStore, scene: Scene): Id | undefined {
+  return scene.act ? store.get("acts", scene.act)?.adventure : undefined;
+}
+
+/**
+ * The scene list table mode steps through: the session's planned scenes,
+ * else adventure order without the closed adventures.
+ */
+export function sessionSceneOrder(store: CampaignStore, session: Session, module?: Pick<LoadedModule, "module">): Scene[] {
   const planned = plannedScenesOf(session)
     .map((id) => store.get("scenes", id))
     .filter((s): s is Scene => !!s);
-  return planned.length ? planned : scenesInAdventureOrder(store);
+  if (planned.length) return planned;
+  const closed = closedAdventureIds(store, module);
+  return scenesInAdventureOrder(store).filter((s) => {
+    const a = adventureOfScene(store, s);
+    return !a || !closed.has(a);
+  });
 }
 
 /** Tracker state of a session: the live one, else the most recent archived one. */
@@ -287,8 +313,14 @@ export function startPlannedSession(ctx: Ctx, sessionId: Id): Session {
     const patch: Partial<Session> = { status: "running" };
     if (session.attendees.length === 0) patch.attendees = store.meta().members.map((m) => m.id);
     const updated = store.update("sessions", sessionId, patch);
-    const order = sessionSceneOrder(store, updated);
-    const first = order.find((s) => s.status === "planned") ?? order[0];
+    // the first scene still to play, never one of an adventure that is over (a finished job)
+    const order = sessionSceneOrder(store, updated, ctx.module);
+    const closed = closedAdventureIds(store, ctx.module);
+    const open = order.filter((s) => {
+      const a = adventureOfScene(store, s);
+      return !a || !closed.has(a);
+    });
+    const first = open.find((s) => s.status === "planned") ?? open[0];
     const table: TableState = { timer: { running: true, since: nowIso(), accumulatedMs: 0 } };
     if (first) table.sceneId = first.id;
     const current = tableStateOf(getTrackerState(store, sessionId).state);

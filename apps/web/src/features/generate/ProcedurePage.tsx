@@ -5,13 +5,14 @@
  * whole run step by step), a preview of what will be created, accept into
  * the campaign, chained procedures and recent runs.
  */
-import { loadAdventureSnapshot, plainText, type GeneratorRun, type Id } from "@campaign-forge/core";
+import { loadAdventureSnapshot, plainText, type ClockMove, type GeneratorRun, type Id } from "@campaign-forge/core";
 import { clueKindLabel, isDieRequest, probeDice, type AgendaDraftCharacter, type GeneratedGraph, type Procedure, type RollRecord } from "@campaign-forge/module-sdk";
 import { Link, useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Badge, Button, Card, EmptyState, PageRef, pushToast } from "../../components/ui";
 import { errorMessage, relativeTime } from "../../lib/format";
 import { acceptGenerated } from "../../state/prepActions";
+import { applyRunEffects, effectsToApply } from "../../state/runEffects";
 import { useCampaign, useList, useMeta } from "../../state/hooks";
 import { InputForm } from "./InputForm";
 import { AgendaAccept, AgendaDraftCards, agendaDraftsOf, AgendaReportCard, type AgendaEdits } from "./AgendaDrafts";
@@ -19,7 +20,9 @@ import { LongAgendaAccept, LongAgendaDraftCards, type LongAgendaEdits } from "..
 import { longAgendaDraftsOf } from "../../state/longAgendaActions";
 import { initialInputs, inputProperties, isAdventureInput, pickedInputs } from "./prefill";
 import { PreviewPanel } from "./PreviewPanel";
-import { ResultsPanel } from "./ResultsPanel";
+import { EffectsPicker, plainEffectsOf, ResultsPanel } from "./ResultsPanel";
+import { crewShipDefOf } from "../../state/shipActions";
+import { planNextSession, sortSessions } from "../../state/tableActions";
 import { changedSteps, contextFromRun, newSeed, requestFromRun, runGenerator, stepRun, stepViews, withoutDependentDice, type GeneratorRequest } from "./runner";
 import { StepList } from "./StepList";
 import { ChainButtons } from "./ChainButtons";
@@ -137,6 +140,13 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
   const [edits, setEdits] = useState<AgendaEdits>({});
   /** The GM's own text for long-term agenda drafts (goal summary and beat per character). */
   const [longEdits, setLongEdits] = useState<LongAgendaEdits>({});
+  /** Effects the GM unticked before accepting (by index in the run's effects); what accepting applied. */
+  const [unticked, setUnticked] = useState<Set<number>>(() => new Set());
+  const [appliedNow, setAppliedNow] = useState<number[] | undefined>();
+  /** Between jobs: the thread clocks move when the run is accepted (the GM can leave them be). */
+  const [clockSeed, setClockSeed] = useState(() => newSeed());
+  const [moveClocks, setMoveClocks] = useState(true);
+  const [clocksMoved, setClocksMoved] = useState<ClockMove[] | undefined>();
 
   const outcome = useMemo((): { graph?: GeneratedGraph; error?: string } => {
     try {
@@ -177,6 +187,11 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
   const withinEntity = within ? ctx.store.get("entities", within) : undefined;
   const inMode = ctx.module.forMode(meta.mode).procedures.some((p) => p.id === procedure.id);
   const arcsDef = arcsDefOf(ctx.module, meta.mode);
+  // a run that creates nothing but carries effects (shore leave, between jobs): accepting applies them
+  const effectsRun = !!graph && graph.produced.entities.length === 0 && plainEffectsOf(graph.results).length > 0;
+  const clocksWithRun = arcsDef?.tick && arcsDef.betweenJobs === procedure.id ? arcsDef : undefined;
+  const isBetweenJobs = procedure.id === crewShipDefOf(ctx.module, meta.mode)?.betweenJobs || procedure.id === arcsDef?.betweenJobs;
+  const toApply = effectsRun && graph ? effectsToApply(ctx.store, graph.results, unticked) : [];
 
   const edit = <T,>(setter: (v: T) => void) => (v: T) => {
     setCompareTo(undefined);
@@ -317,8 +332,18 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
         pushToast(`Accepted ${res.entities.length} entit${res.entities.length === 1 ? "y" : "ies"} into the campaign.`, { tone: "success" });
         void navigate({ to: "/c/$campaignId/entities/$entityId", params: { campaignId, entityId: root.id } });
       } else {
+        // one step: the ticked effects are applied and (between jobs) the clocks move with the run
+        const done: string[] = [];
+        if (effectsRun || clocksWithRun) {
+          const out = applyRunEffects(ctx, res.run, { unticked, ...(clocksWithRun && moveClocks ? { clocks: { def: clocksWithRun, seed: clockSeed } } : {}) });
+          if (effectsRun) setAppliedNow(out.applied);
+          if (out.result) done.push(`${out.result.applied.length} effect${out.result.applied.length === 1 ? "" : "s"} applied${out.result.skipped.length ? `, ${out.result.skipped.length} skipped` : ""}`);
+          if (clocksWithRun) setClocksMoved(out.moved ?? []);
+          const reached = (out.moved ?? []).flatMap((m) => m.reached).length;
+          if (out.moved?.length) done.push(`clocks moved${reached ? ` (${reached} milestone${reached === 1 ? "" : "s"} reached)` : ""}`);
+        }
         setAccepted(res.run);
-        pushToast("Run recorded.", { tone: "success" });
+        pushToast(done.length ? `Run recorded: ${done.join("; ")}.` : "Run recorded.", { tone: "success" });
       }
     } catch (e) {
       pushToast(`Accept failed: ${errorMessage(e)}`, { tone: "danger" });
@@ -473,7 +498,20 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
         </div>
 
         <aside className="app-stack prep-workbench__side">
-          {arcsDef && arcsDef.betweenJobs === procedure.id && <ArcClockTicker def={arcsDef} />}
+          {clocksWithRun ? (
+            <ArcClockTicker
+              def={clocksWithRun}
+              linked={{
+                seed: clockSeed,
+                onReroll: () => setClockSeed(newSeed()),
+                include: moveClocks,
+                onInclude: setMoveClocks,
+                ...(clocksMoved && accepted ? { moved: clocksMoved } : {}),
+              }}
+            />
+          ) : (
+            arcsDef && arcsDef.betweenJobs === procedure.id && <ArcClockTicker def={arcsDef} />
+          )}
           {graph && drafts ? (
             <>
               <AgendaAccept drafts={drafts} edits={edits} graph={graph} adventureId={adventureId} run={{ stepSeeds, pinned, partSeeds, pinnedParts }} />
@@ -488,17 +526,32 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
             </Card>
           ) : (
             <>
-              {graph && <PreviewPanel graph={graph} names={names} onRename={(tempId, name) => setNames((n) => ({ ...n, [tempId]: name }))} />}
+              {graph && !effectsRun && <PreviewPanel graph={graph} names={names} onRename={(tempId, name) => setNames((n) => ({ ...n, [tempId]: name }))} />}
+              {graph && effectsRun && !accepted && (
+                <EffectsPicker
+                  results={graph.results}
+                  unticked={unticked}
+                  onToggle={(i, on) =>
+                    setUnticked((cur) => {
+                      const n = new Set(cur);
+                      if (on) n.delete(i);
+                      else n.add(i);
+                      return n;
+                    })
+                  }
+                />
+              )}
               <div className="app-row">
                 <Button variant="primary" size="lg" disabled={!graph || !!accepted} onClick={accept} data-testid="accept">
-                  {accepted ? "Accepted" : "Accept into campaign"}
+                  {accepted ? "Accepted" : effectsRun || clocksWithRun ? acceptLabel(toApply.length, !!clocksWithRun && moveClocks) : "Accept into campaign"}
                 </Button>
               </div>
             </>
           )}
           {accepted && (
             <>
-              <ResultsPanel results={accepted.results} runId={accepted.id} />
+              <ResultsPanel results={accepted.results} runId={accepted.id} {...(appliedNow ? { applied: appliedNow } : {})} />
+              {isBetweenJobs && <NextAfterBetweenJobs />}
               <ChainButtons run={accepted} />
             </>
           )}
@@ -507,6 +560,49 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
 
       <RecentRuns procedure={procedure} />
     </div>
+  );
+}
+
+/** "Accept and apply 3 effects and move the clocks". */
+function acceptLabel(effects: number, clocks: boolean): string {
+  const parts = [effects ? `apply ${effects} effect${effects === 1 ? "" : "s"}` : "", clocks ? "move the clocks" : ""].filter(Boolean);
+  return parts.length ? `Accept and ${parts.join(" and ")}` : "Accept into campaign";
+}
+
+/** After between jobs: deal the next board of offers (the arcs' board), plan the next session. */
+function NextAfterBetweenJobs() {
+  const ctx = useCampaign();
+  const meta = useMeta();
+  const navigate = useNavigate();
+  const sessions = useList("sessions");
+  const arcsDef = arcsDefOf(ctx.module, meta.mode);
+  const board = arcsDef?.boards?.[0] ? ctx.module.procedure(arcsDef.boards[0]) : undefined;
+  const next = sortSessions(sessions.filter((s) => s.status === "planned"))[0];
+  return (
+    <Card title="Next" subtitle="The crew is settled. Deal what comes next." data-testid="between-jobs-next">
+      <div className="app-row">
+        {board && (
+          <Link to="/c/$campaignId/generate/$procedureId" params={{ campaignId: ctx.campaignId, procedureId: board.id }} className="cf-btn cf-btn--primary" data-testid="deal-next-board">
+            Deal the next {board.name.toLowerCase()}
+          </Link>
+        )}
+        {next ? (
+          <Link to="/c/$campaignId/sessions/$sessionId" params={{ campaignId: ctx.campaignId, sessionId: next.id }} className="cf-btn" data-testid="plan-next-session">
+            Plan the next session (Session {next.number})
+          </Link>
+        ) : (
+          <Button
+            onClick={() => {
+              const s = planNextSession(ctx);
+              void navigate({ to: "/c/$campaignId/sessions/$sessionId", params: { campaignId: ctx.campaignId, sessionId: s.id } });
+            }}
+            data-testid="plan-next-session"
+          >
+            Plan the next session
+          </Button>
+        )}
+      </div>
+    </Card>
   );
 }
 

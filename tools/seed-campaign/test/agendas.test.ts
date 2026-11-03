@@ -10,7 +10,10 @@ function coldHarborInputs() {
   const mod = loadModule(alienModule, { skipProcedureRuns: true });
   const props = (agendaDraftsProcedure.inputs as { properties: Record<string, Record<string, unknown>> }).properties;
   const hint = props.campaign![CAMPAIGN_INPUT_HINT] as CampaignInputHint;
-  const campaign = campaignSnapshot(demo.store, hint, (t) => mod.entityType(t)?.kind);
+  const snapshot = campaignSnapshot(demo.store, hint, (t) => mod.entityType(t)?.kind);
+  // record ids are random on each build, so records made in the same millisecond can come in any order; sort them
+  // by name so the generator sees the same campaign on every run (in the app, one campaign keeps its ids)
+  const campaign = { ...snapshot, entities: [...snapshot.entities].sort((a, b) => a.name.localeCompare(b.name) || a.type.localeCompare(b.type)) };
   const adventure = adventureSnapshot(demo.store, demo.ids.adventure, (id) => plainText(demo.registry.open(id)))!;
   const pcs = (adventure.cast.pcs ?? []).map((id) => ({ id, name: demo.store.get("entities", id)!.name, arc: "random" }));
   return { demo, inputs: { campaign, adventure, pcs, betrayal: "frayed" } };

@@ -2,6 +2,7 @@
 export * from "./types";
 export * from "./arcs";
 export * from "./recap";
+export * from "./adventureSource";
 export * from "./rng";
 export * from "./dice";
 export * from "./d20combat";

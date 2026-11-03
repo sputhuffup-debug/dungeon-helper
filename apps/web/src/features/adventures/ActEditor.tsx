@@ -41,7 +41,7 @@ export function ActEditor({ act }: { act: Act }) {
       </Card>
       <Card title="Pacing notes">
         {act.pacingDoc ? (
-          <RichTextEditor docId={act.pacingDoc} label="Pacing notes" placeholder="Tempo, pressure, when to end the act…" />
+          <RichTextEditor docId={act.pacingDoc} label="Pacing notes" placeholder={act.guide?.pacing ?? "Tempo, pressure, when to end the act…"} />
         ) : (
           <Button size="sm" onClick={() => ensureDoc(ctx, "acts", act.id, "pacingDoc")}>
             Add pacing notes
@@ -131,7 +131,7 @@ function HandoutRow({ handout }: { handout: Handout }) {
             </div>
           </div>
           {handout.bodyDoc ? (
-            <RichTextEditor docId={handout.bodyDoc} label={`${handout.title} body`} placeholder="Write the handout…" />
+            <RichTextEditor docId={handout.bodyDoc} label={`${handout.title} body`} placeholder={handout.guide?.body ?? "Write the handout…"} />
           ) : (
             <p className="cf-muted">This handout has no text body.</p>
           )}

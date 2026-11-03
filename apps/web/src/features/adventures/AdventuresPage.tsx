@@ -1,12 +1,13 @@
 /** `/adventures`: adventure cards with a status filter and a "New adventure" dialog over the module's guided builders and templates. */
 import type { Adventure, AdventureStatus } from "@campaign-forge/core";
-import type { Template } from "@campaign-forge/module-sdk";
+import { sourceRunnable, type Template } from "@campaign-forge/module-sdk";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Badge, Button, Dialog, EmptyState, PageRef, pushToast } from "../../components/ui";
 import { adventureTitle, errorMessage, relativeTime } from "../../lib/format";
 import { instantiateBuilder } from "../../state/builderActions";
 import { instantiateAdventureTemplate, isTemplateAdventure } from "../../state/prepActions";
+import { adventureForEntity, runFromEntity, sourceNoun } from "../../state/sourceActions";
 import { useCampaign, useList, useMeta } from "../../state/hooks";
 
 export const ADVENTURE_STATUSES: AdventureStatus[] = ["planned", "active", "done"];
@@ -118,6 +119,8 @@ function NewAdventureDialog({ open, onClose }: { open: boolean; onClose: () => v
   const [templateId, setTemplateId] = useState<string | undefined>(undefined);
   const [title, setTitle] = useState("");
   const [busy, setBusy] = useState(false);
+  const [sourceId, setSourceId] = useState("");
+  const entities = useList("entities");
   const templates = useMemo(() => {
     const list = allModes ? ctx.module.templatesFor("adventure") : ctx.module.templatesFor("adventure", meta.mode);
     return list.filter((t) => isTemplateAdventure(t.scaffold));
@@ -125,16 +128,25 @@ function NewAdventureDialog({ open, onClose }: { open: boolean; onClose: () => v
   const builders = useMemo(() => ctx.module.buildersFor(allModes ? undefined : meta.mode), [ctx.module, meta.mode, allModes]);
   const chosen: string = templateId === undefined ? (templates[0]?.id ?? "blank") : templateId;
   const modeName = (id: string) => ctx.module.manifest.modes.find((m) => m.id === id)?.name ?? id;
+  // a template an adventure source fills (the Job card): pick the record to fill it from
+  const sourceDef = (ctx.module.module.adventureSources ?? []).find((d) => d.template === chosen && (allModes || !d.mode?.length || d.mode.includes(meta.mode)));
+  const sourceOptions = sourceDef ? entities.filter((e) => e.type === sourceDef.entityType && (sourceRunnable(sourceDef, e.fields) || !!adventureForEntity(ctx, e.id))).sort((a, b) => a.name.localeCompare(b.name)) : [];
+  const picked = sourceDef && sourceId ? sourceOptions.find((e) => e.id === sourceId) : undefined;
 
   const create = async () => {
     setBusy(true);
     try {
       const builder = chosen.startsWith("builder:") ? ctx.module.builder(chosen.slice("builder:".length)) : undefined;
       const template: Template | undefined = chosen === "blank" || builder ? undefined : ctx.module.template(chosen);
-      const adventure = builder ? await instantiateBuilder(ctx, builder, { title }) : await instantiateAdventureTemplate(ctx, template, { title });
+      const adventure = picked
+        ? (await runFromEntity(ctx, picked.id, meta.mode, { title })).adventure
+        : builder
+          ? await instantiateBuilder(ctx, builder, { title })
+          : await instantiateAdventureTemplate(ctx, template, { title });
       onClose();
       setTitle("");
       setTemplateId(undefined);
+      setSourceId("");
       void navigate({ to: "/c/$campaignId/adventures/$adventureId", params: { campaignId: ctx.campaignId, adventureId: adventure.id }, search: {} });
     } catch (e) {
       pushToast(`Could not create the adventure: ${errorMessage(e)}`, { tone: "danger" });
@@ -222,6 +234,21 @@ function NewAdventureDialog({ open, onClose }: { open: boolean; onClose: () => v
             Show templates for other play modes
           </label>
         </fieldset>
+        {sourceDef && (
+          <label className="app-label" data-testid="template-source">
+            <span>Fill it from a {sourceNoun(ctx, sourceDef)}</span>
+            <select className="cf-select" aria-label={`Fill it from a ${sourceNoun(ctx, sourceDef)}`} value={sourceId} onChange={(e) => setSourceId(e.target.value)}>
+              <option value="">None: an empty {templates.find((t) => t.id === chosen)?.name.toLowerCase() ?? "template"}</option>
+              {sourceOptions.map((e) => (
+                <option key={e.id} value={e.id}>
+                  {e.name}
+                  {adventureForEntity(ctx, e.id) ? " (has its adventure: opens it)" : ""}
+                </option>
+              ))}
+            </select>
+            {sourceOptions.length === 0 && <span className="cf-muted app-small">No {sourceNoun(ctx, sourceDef)} to run yet.</span>}
+          </label>
+        )}
       </form>
     </Dialog>
   );

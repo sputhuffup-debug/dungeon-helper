@@ -37,8 +37,12 @@ test("progression: XP awarded at wrap-up, spent on a skill on the Progression ta
   await expect(wrap.getByTestId("award-xp")).toBeDisabled();
   await wrap.getByRole("button", { name: /^Next: Timeline/ }).click();
   await wrap.getByRole("button", { name: /^Next: Loose ends/ }).click();
+  // the demo's accepted job waits in the last step; finishing never needs it closed, and lands on the next session's page
+  await wrap.getByRole("button", { name: /^Next: Close the job/ }).click();
+  await expect(wrap.getByTestId("close-source")).toHaveCount(1);
   await wrap.getByTestId("finish-session").click();
-  await expect(page).toHaveURL(/\/home$/);
+  await expect(page).toHaveURL(/\/sessions\/[0-9A-Z]{26}$/);
+  await expect(page.getByTestId("session-page")).toHaveAttribute("data-status", "planned");
 
   // 3. a PC's Progression tab: the pool, the history (the last run, this session) and Spend XP
   await page.goto(`${base}/atlas`);

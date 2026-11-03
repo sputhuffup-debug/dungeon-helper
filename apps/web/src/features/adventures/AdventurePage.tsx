@@ -23,6 +23,7 @@ import { bookletMarkdown } from "./booklet";
 import { CommitInput, CommitTextarea } from "./fields";
 import { GuidedBuilder, ViewToggle } from "./guided/GuidedBuilder";
 import { OverviewEditor } from "./OverviewEditor";
+import { SourceBanner } from "./RunFromEntity";
 import { SceneEditor } from "./SceneEditor";
 
 // The print views (booklet, agenda cards) bring their own fonts and print CSS: loaded when first opened.
@@ -132,8 +133,9 @@ function Builder({ adventure, node }: { adventure: Adventure; node: string | und
             )}
           </p>
           {guided && <ViewToggle adventureId={adventure.id} current="outline" />}
-          <CommitInput value={adventure.title} label="Adventure title" placeholder="Untitled adventure" className="app-entity__name" onCommit={(v) => updateAdventure(ctx, adventure.id, { title: v.trim() || adventure.title })} testId="adventure-title" />
-          <CommitTextarea value={adventure.premise ?? ""} label="Premise" placeholder="The premise in one paragraph" rows={2} onCommit={(v) => updateAdventure(ctx, adventure.id, { premise: v.trim() || undefined })} />
+          <SourceBanner adventure={adventure} />
+          <CommitInput value={adventure.title} label="Adventure title" placeholder={adventure.guide?.title ?? "Untitled adventure"} className="app-entity__name" onCommit={(v) => updateAdventure(ctx, adventure.id, { title: v.trim() || adventure.title })} testId="adventure-title" />
+          <CommitTextarea value={adventure.premise ?? ""} label="Premise" placeholder={adventure.guide?.premise ?? "The premise in one paragraph"} rows={2} onCommit={(v) => updateAdventure(ctx, adventure.id, { premise: v.trim() || undefined })} />
           <div className="prep-builder__lists">
             <div className="app-label">
               <span>Hooks in</span>

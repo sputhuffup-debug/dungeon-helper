@@ -68,11 +68,13 @@ test("ship page: funds and ledger, travel to another system, then between jobs p
   await expect(page.getByTestId("workbench")).toBeVisible();
   await expect(page.getByTestId("input-job")).not.toHaveValue("");
   await expect(page.getByTestId("input-ship")).not.toHaveValue("");
-  await page.getByTestId("accept").click();
-  const effects = page.getByTestId("effects");
+  // the effects are listed before accepting, and accepting applies them (and moves the thread clocks) in one step
+  const effects = page.getByTestId("effects-picker").getByTestId("effects");
   await expect(effects).toContainText("Ledger +$4,000: Payment: Haul");
-  await page.getByRole("button", { name: /^Apply \d+ effects?$/ }).click();
+  await expect(page.getByTestId("accept")).toHaveText(/^Accept and apply \d+ effects? and move the clocks$/);
+  await page.getByTestId("accept").click();
   await expect(page.getByRole("button", { name: "Applied" })).toBeVisible();
+  await expect(page.getByTestId("between-jobs-next").getByTestId("deal-next-board")).toHaveText("Deal the next job board");
 
   await nav(page, "Ship").click();
   const paid = page.getByTestId("ledger-row").filter({ hasText: "Payment: Haul" });
