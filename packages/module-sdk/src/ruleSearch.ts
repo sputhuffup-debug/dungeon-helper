@@ -2,7 +2,8 @@
  * Search over a module's rule cards, for the app's global search: a card
  * whose title holds the query ranks first, then one whose tags do, then one
  * whose summary does. Each word of the query must match somewhere in the
- * card. Pure and game-agnostic.
+ * card; a title that starts with the query ranks above one that only
+ * holds it. Pure and game-agnostic.
  */
 import type { PlayModeId, RuleCard } from "./types";
 
@@ -34,7 +35,8 @@ export function searchRuleCards(rules: readonly RuleCard[], query: string, opts:
       }
       score += s;
     }
-    if (all) hits.push({ card, score });
+    // a title that starts with the query reads as the card asked for
+    if (all) hits.push({ card, score: score + (title.startsWith(words.join(" ")) ? 5 : 0) });
   }
   hits.sort((a, b) => b.score - a.score || a.card.title.localeCompare(b.card.title));
   return opts.limit !== undefined ? hits.slice(0, opts.limit) : hits;
