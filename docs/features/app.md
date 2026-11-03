@@ -8,6 +8,7 @@ What Campaign Forge does for every game system. Features that belong to one game
 
 - **Local-first PWA.** The campaign lives in the browser (IndexedDB), works offline at the table, and exports to a self-describing zip bundle at any time. No server, no accounts.
 - **One place per game system.** The campaign list groups everything by game module: start a campaign, load its demos and open its campaigns from that system's section.
+- **Set up your campaign.** A new campaign's Home page leads with an ordered checklist to its first session: each step links straight to where it is done and ticks itself from the campaign's data (never from a click), with "3 of 8 done" progress. Every game system gets the generic steps (player characters, players and who plays whom, the first session); a module or data pack adds its own and reorders them per play mode (`setup`). *Hide this* turns it off and Settings shows it again; it disappears once every step is done. Modules can also declare campaign settings the New campaign dialog asks once (`campaignSettings`), which same-named generator inputs then start from, and pickers that would dead-end on "none yet" (the crew's vehicle, a home base) offer *+ New…* to make one from a preset and choose it in one go. See [Setting up a campaign](../modules/setup.md).
 - **Campaign structure.** Adventures, acts, scenes, sessions, timeline, handouts, notes with `@` entity references and backlinks.
 - **World entities.** Characters, creatures, locations, factions, items, vehicles, ships, clues, jobs and encounters, each rendered from the module's JSON Schema sheet layout, linked by typed relationships.
 - **Character builder.** Modules and data packs can declare a step-by-step builder for their player characters (`characterBuilders`): choices over reference lists, fixed options or values worked out from earlier picks, with grants that write the sheet's stored fields and the sub-choices a pick brings; an ability score step (arrays, point buy, rolls in the app or dice typed from the table, typed scores); typed fields; a review with the sheet preview and every grant beside its source; and level-up steps for an existing character. *Build a character* appears on the Atlas PCs tab and the new-entity page, *Level up* on a character's sheet; unfinished drafts are kept in the campaign and resumed from the PCs tab. Everything is JSONLogic, so a pack declares it without code. See [Character builder](../modules/character-builder.md).
@@ -49,6 +50,10 @@ The shots use the demo campaigns (load them from the campaign list); most show t
 **Campaign list**: each game system has its own section with a button to start a campaign, its demos and the campaigns that use it; import and game modules stay at the top.
 
 ![Campaign list](../screenshots/campaign-list.png)
+
+**Set up your campaign**: a blank campaign's Home page after the crew and the players are in; the ship is next.
+
+![The setup guide on a new campaign's Home page](../screenshots/setup-guide.png)
 
 **Campaign home**: next session, adventures and open hooks.
 

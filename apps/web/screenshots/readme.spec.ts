@@ -194,6 +194,59 @@ test("home", async ({ page }) => {
   await shot(page, "home");
 });
 
+/** A blank Alien campaign made in the New campaign dialog, with the Colonial Marines frame. */
+async function newAlienCampaign(page: Page, name: string): Promise<string> {
+  await page.goto("/");
+  await page.getByRole("button", { name: "New campaign" }).click();
+  const dialog = page.getByRole("dialog", { name: "New campaign" });
+  await dialog.getByLabel("Name", { exact: true }).fill(name);
+  await dialog.getByRole("group", { name: "Campaign frame" }).getByRole("radio", { name: /^Colonial Marines/ }).check();
+  await dialog.getByRole("button", { name: "Create campaign" }).click();
+  await expect(page).toHaveURL(/\/c\/[0-9A-Z]{26}\/home$/);
+  return page.url().replace(/\/home$/, "");
+}
+
+test("new-campaign-framework", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/");
+  await page.getByRole("button", { name: "New campaign" }).click();
+  const dialog = page.getByRole("dialog", { name: "New campaign" });
+  await dialog.getByLabel("Name", { exact: true }).fill("Outer Rim Haulers");
+  const frame = dialog.getByRole("group", { name: "Campaign frame" });
+  await frame.getByRole("radio", { name: /^Colonial Marines/ }).check();
+  await expect(frame.getByRole("radio", { name: /^Colonial Marines/ })).toBeChecked();
+  await shot(page, "new-campaign-framework");
+});
+
+test("setup-guide", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const base = await newAlienCampaign(page, "Outer Rim Haulers");
+  // four PCs by hand and the four players who play them; the ship comes next.
+  // In-app navigation only: a reload would restart the seeded randomness and repeat record ids.
+  const guide = page.getByTestId("setup-guide");
+  const crew = ["Ada Rook", "Bo Lantern", "Cy Varga", "Di Moss"];
+  for (const pc of crew) {
+    await guide.locator('[data-step="alien.setup.crew"]').getByRole("link", { name: "+ Character" }).click();
+    await page.getByTestId("entity-name").fill(pc);
+    await page.getByTestId("create-entity").click();
+    await expect(page).toHaveURL(/\/entities\/[0-9A-Z]{26}/);
+    await nav(page, "Home").click();
+  }
+  await guide.locator('[data-step="setup.players"]').getByRole("link", { name: "Add players" }).click();
+  await expect(page).toHaveURL(new RegExp(`^${base.replace(/[/.]/g, "\\$&")}/settings`));
+  const players = page.getByTestId("players-card");
+  for (const [i, name] of ["Sam", "Priya", "Mateo", "Jun"].entries()) {
+    await players.getByTestId("player-new-name").fill(name);
+    await players.getByTestId("player-add").click();
+    await players.getByRole("checkbox", { name: `${name} plays ${crew[i]}` }).check();
+  }
+  await nav(page, "Home").click();
+  await expect(page.getByTestId("setup-progress")).toHaveText("2 of 8 done");
+  await expect(page.getByTestId("setup-guide").locator('[data-step="alien.setup.ship"]')).toHaveAttribute("aria-current", "step");
+  await dismissToasts(page);
+  await shot(page, "setup-guide");
+});
+
 test("character-sheet", async ({ page }) => {
   const base = await loadDemo(page, "skyfire");
   await page.goto(`${base}/atlas`);
