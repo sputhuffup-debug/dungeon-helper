@@ -615,7 +615,9 @@ test("wrap-up-draft", async ({ page }) => {
   await stress.getByRole("button", { name: "Panic roll" }).first().click();
   await expect(page.getByTestId("roll-result")).toBeVisible();
   await page.getByRole("dialog").getByRole("button", { name: "Done" }).click();
-  await page.getByRole("button", { name: /^Critical injury for / }).nth(1).click();
+  // the second PC's rolls are under its row's "More"
+  await page.getByRole("list", { name: "Player characters" }).getByTestId("participant-more").nth(1).click();
+  await page.getByRole("button", { name: /^Critical injury for / }).first().click();
   await expect(page.getByTestId("roll-result")).toBeVisible();
   await page.getByRole("dialog").getByRole("button", { name: "Done" }).click();
   await page.getByTestId("mark-run").click();
