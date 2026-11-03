@@ -65,7 +65,7 @@ import {
   type SessionChecklistEvent,
   type TrackerDef,
 } from "@campaign-forge/module-sdk";
-import { appendPanic, clockState, clockUnits, type ClockUnit, type PromptAnswer } from "@campaign-forge/ui";
+import { advanceClockCounters, appendPanic, clockLogText, clockState, clockUnits, type ClockUnit, type PromptAnswer } from "@campaign-forge/ui";
 import * as Y from "yjs";
 import { installSupplement } from "../modules/importPack";
 import { loadModuleById, supplementMeta, whenImportedModulesLoaded } from "../modules/registry";
@@ -94,6 +94,8 @@ export interface TableState {
   /** The GM dismissed the "Previously on…" card at the top of the table. */
   recapDismissed?: boolean;
   timer?: { running: boolean; since?: string; accumulatedMs: number };
+  /** A found arc clue the GM put on the player screen ("Reveal" in table mode), shown by its crew-notes text. */
+  spotlight?: { thread: Id; clue: Id };
 }
 
 export interface WrapUpAnswer {
@@ -341,6 +343,38 @@ export function setCurrentScene(ctx: Ctx, sessionId: Id, sceneId: Id | undefined
     updateTrackerState(store, sessionId, TABLE_STATE, { ...current, sceneId });
     const scene = sceneId ? store.get("scenes", sceneId) : undefined;
     if (scene) appendTrackerLog(store, sessionId, { tracker: TABLE_LOG, text: `Scene: ${scene.title}`, data: { scene: scene.id } });
+  });
+}
+
+/**
+ * Advance (or revert) one unit of the mode's clock tracker, as its own
+ * buttons do: the one round counter of the table, which the hunt's and the
+ * initiative tracker's "Next round" also move. Logged; returns the prompts
+ * in-world time raised.
+ */
+export function advanceTableClock(ctx: Ctx, sessionId: Id, def: TrackerDef, unitId: string, by = 1): Prompt[] {
+  return ctx.store.transact(() => {
+    const units = clockUnits(def.config);
+    const state = getTrackerState(ctx.store, sessionId).state[def.id];
+    const counters = advanceClockCounters(units, clockState(state, units).counters, unitId, by);
+    if (!counters) return [];
+    const prompts = setClockState(ctx, sessionId, def, { ...(isRecord(state) ? state : {}), counters });
+    appendTrackerLog(ctx.store, sessionId, { tracker: def.id, text: clockLogText(units, counters, unitId, by) });
+    return prompts;
+  });
+}
+
+/** Put a found clue on the player screen (or take it off with undefined). */
+export function setSpotlight(ctx: Ctx, sessionId: Id, spotlight: TableState["spotlight"]): void {
+  const store = ctx.store;
+  store.transact(() => {
+    const current = tableStateOf(getTrackerState(store, sessionId).state);
+    const next: TableState = { ...current };
+    if (spotlight) next.spotlight = spotlight;
+    else delete next.spotlight;
+    // the table state is merged on update: clear it first so a removed key goes
+    updateTrackerState(store, sessionId, TABLE_STATE, undefined);
+    updateTrackerState(store, sessionId, TABLE_STATE, next);
   });
 }
 

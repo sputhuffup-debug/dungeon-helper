@@ -1,8 +1,11 @@
 /**
  * `/c/$campaignId/table/$sessionId`: table mode. A full-height surface in
  * large type (`cf-table-mode`) for running a session: clock and timer in the
- * header, the current scene, participants, reveals and the map on the left,
- * trackers, dice, the module's play-guide hints and the running log on the right. `?view=players` renders
+ * header, the current scene, the live map high up, participants as compact
+ * rows, "This job" and reveals on the left, trackers, dice, the module's
+ * play-guide hints and the running log on the right. Below desktop width the
+ * same parts are full-height panels behind a bottom tab bar (Scene, Map,
+ * Crew, Dice, Log). The header clock is the table's one round counter. `?view=players` renders
  * the read-only player screen instead. Everything is local.
  */
 import { appendTrackerLog, creatureTurnFor, type Id } from "@campaign-forge/core";
@@ -43,6 +46,8 @@ import { RevealPanel } from "./RevealPanel";
 import { RollResultDialog } from "./RollResultDialog";
 import { SceneCard } from "./SceneCard";
 import { TableRecap } from "./TableRecap";
+import { ThisJob } from "./ThisJob";
+import { NARROW_TABLE, useMediaQuery } from "../../lib/useMediaQuery";
 import { SceneMap, useSceneMap } from "./SceneMap";
 import { SpecialAttackDialog, useSpecialAttacks } from "./SpecialAttacks";
 import { WeaponAttackDialog } from "./WeaponAttack";
@@ -53,6 +58,16 @@ import { BoundTracker, TrackersPanel, useModeTrackers, type TrackerHandlers } fr
 const WrapUpWizard = lazyView(() => import("../sessions/WrapUp").then((m) => m.WrapUpWizard), { what: "the wrap-up" });
 // "Share with players" (card drawing, PDF writer, zip) loads when the GM opens it.
 const ShareDialog = lazyView(() => import("../share/ShareDialog").then((m) => m.ShareDialog), { what: "sharing", loading: () => null });
+
+type TablePanelId = "scene" | "map" | "crew" | "dice" | "log";
+/** The phone and tablet tab bar: each a full-height panel, one tap away. */
+const TABLE_PANELS: Array<{ id: TablePanelId; label: string; icon: string }> = [
+  { id: "scene", label: "Scene", icon: "▤" },
+  { id: "map", label: "Map", icon: "⌖" },
+  { id: "crew", label: "Crew", icon: "☰" },
+  { id: "dice", label: "Dice", icon: "⚄" },
+  { id: "log", label: "Log", icon: "✎" },
+];
 
 export function TableModePage() {
   const { sessionId } = useParams({ from: "/c/$campaignId/table/$sessionId" });
@@ -96,6 +111,8 @@ function GmTable({ sessionId }: { sessionId: Id }) {
   const [wrapping, setWrapping] = useState(false);
   const [sharing, setSharing] = useState<"session" | "primer" | undefined>();
   const [tab, setTab] = useState("trackers");
+  const narrow = useMediaQuery(NARROW_TABLE);
+  const [panel, setPanel] = useState<TablePanelId>("scene");
   const hasGuide = usePlayGuides().length > 0;
   const resolveName = useCallback((id: string) => ctx.store.get("entities", id)?.name ?? id, [ctx.store]);
 
@@ -216,8 +233,40 @@ function GmTable({ sessionId }: { sessionId: Id }) {
     );
   }
 
+  // the table's parts, laid out as two columns on a desktop and as panels behind a tab bar on phones and tablets
+  const recapCard = <TableRecap sessionId={sessionId} />;
+  const sceneCard = <SceneCard sessionId={sessionId} scenes={scenes} scene={scene} onOpenEntity={setDrawer} />;
+  const creatureTurn = turnCreature && (
+    <CreatureTurnCard
+      key={turnCreature.id}
+      sessionId={sessionId}
+      creature={turnCreature}
+      targets={turnTargets}
+      participants={everyone}
+      map={map}
+      {...(initiative && initiative.entityId === turnCreature.id ? { current: { round: initiative.round, card: initiative.card } } : {})}
+      onClose={closeTurn}
+      onOperationRoll={setRoll}
+    />
+  );
+  const d20Panel = ctx.module.module.d20Combat && <D20CombatPanel sessionId={sessionId} pcs={pcs} others={others} onOpen={setDrawer} />;
+  const participantsCard = <Participants pcs={pcs} others={others} onOpen={setDrawer} onRoll={(op, id) => handlers.onRollOperation(op, id)} lifecycle={{ sessionId, onPrompts: handlers.onPrompts }} combat={combat} act={currentAct} onWeaponAttack={setAttackPc} />;
+  const thisJob = <ThisJob sessionId={sessionId} scene={scene} map={map} onOpen={setDrawer} />;
+  const revealPanel = <RevealPanel sessionId={sessionId} scene={scene} />;
+  const mapView = map && <SceneMap sessionId={sessionId} map={map} scene={scene} participants={everyone} onPrompts={handlers.onPrompts} focus={narrow} />;
+  const trackersPanel = <TrackersPanel sessionId={sessionId} trackers={panelTrackers} pcs={pcs} participants={others} map={map} handlers={handlers} />;
+  const dicePanel = <DicePanel sessionId={sessionId} pcs={pcs} others={others} />;
+  const hintsPanel = hasGuide ? <PlayGuidePanel sessionId={sessionId} pcs={pcs} others={others} /> : null;
+  const checklistPanel = <SessionChecklist session={session} focus="play" title="Checklist" className="app-table__checklist" />;
+  const logPanel = (
+    <div className="app-stack">
+      <SessionLog sessionId={sessionId} />
+      <EventFeed sessionId={sessionId} />
+    </div>
+  );
+
   return (
-    <div className="cf-table-mode app-table" data-testid="table-mode">
+    <div className={`cf-table-mode app-table${narrow ? " app-table--narrow" : ""}`} data-testid="table-mode" data-layout={narrow ? "panels" : "columns"}>
       <header className="app-table__header">
         <Link to="/c/$campaignId/sessions/$sessionId" params={{ campaignId, sessionId }} className="cf-btn cf-btn--ghost" aria-label="Leave table mode">
           ← Leave
@@ -231,23 +280,54 @@ function GmTable({ sessionId }: { sessionId: Id }) {
             </Badge>
           )}
         </div>
+        {narrow && <span className="app-table__header-break" aria-hidden />}
         <Timer sessionId={sessionId} running={!!table.timer?.running} timer={table.timer} />
         <span className="app-grow" />
-        <Button onClick={openPlayerScreen}>Player screen</Button>
-        {session && isSessionZero(session) && (
-          <Button onClick={() => setSharing("primer")} data-testid="share-primer" title="Send the campaign primer to the group chat">
-            Share primer
-          </Button>
+        {!narrow && <Button onClick={openPlayerScreen}>Player screen</Button>}
+        {narrow ? (
+          <details className="app-table__menu" data-testid="table-menu">
+            <summary className="cf-btn">More…</summary>
+            <div
+              className="app-table__menu-body"
+              onClick={(e) => {
+                const menu = e.currentTarget.closest("details");
+                if (menu && (e.target as Element).closest("button")) menu.open = false;
+              }}
+            >
+              <Button onClick={openPlayerScreen}>Player screen</Button>
+              {session && isSessionZero(session) && (
+                <Button onClick={() => setSharing("primer")} data-testid="share-primer" title="Send the campaign primer to the group chat">
+                  Share primer
+                </Button>
+              )}
+              <Button onClick={() => setSharing("session")} data-testid="share-players" title="Send the player view to the group chat: images or a PDF">
+                Share with players
+              </Button>
+              {session.status === "running" && !wrapping && (
+                <Button variant="danger" onClick={() => setWrapping(true)} data-testid="end-session">
+                  End session
+                </Button>
+              )}
+            </div>
+          </details>
+        ) : (
+          <>
+            {session && isSessionZero(session) && (
+              <Button onClick={() => setSharing("primer")} data-testid="share-primer" title="Send the campaign primer to the group chat">
+                Share primer
+              </Button>
+            )}
+            <Button onClick={() => setSharing("session")} data-testid="share-players" title="Send the player view to the group chat: images or a PDF">
+              Share with players
+            </Button>
+          </>
         )}
-        <Button onClick={() => setSharing("session")} data-testid="share-players" title="Send the player view to the group chat: images or a PDF">
-          Share with players
-        </Button>
         {session.status === "planned" && (
           <Button variant="primary" onClick={() => startPlannedSession(ctx, sessionId)}>
             Start session
           </Button>
         )}
-        {session.status === "running" && !wrapping && (
+        {session.status === "running" && !wrapping && !narrow && (
           <Button variant="danger" onClick={() => setWrapping(true)} data-testid="end-session">
             End session
           </Button>
@@ -267,28 +347,96 @@ function GmTable({ sessionId }: { sessionId: Id }) {
             onDone={(_next, landing) => land(landing)}
           />
         </div>
+      ) : narrow ? (
+        // phones and tablets: one full-height panel at a time, a tab bar at the bottom
+        <>
+          <div className="app-table__panels" data-panel={panel}>
+            {TABLE_PANELS.map((p) => (
+              <section
+                key={p.id}
+                id={`table-panel-${p.id}`}
+                role="tabpanel"
+                aria-labelledby={`table-tab-${p.id}`}
+                className={`app-table__panel app-table__panel--${p.id}`}
+                hidden={panel !== p.id}
+                data-testid={`table-panel-${p.id}`}
+              >
+                {p.id === "scene" && (
+                  <>
+                    {recapCard}
+                    {sceneCard}
+                    {thisJob}
+                    {revealPanel}
+                    {hasGuide && (
+                      <details className="app-table__hints">
+                        <summary>Hints</summary>
+                        {hintsPanel}
+                      </details>
+                    )}
+                  </>
+                )}
+                {p.id === "map" && (mapView ?? <EmptyState title="No map for this scene" text="Give the scene a map, or set it at a place that has one." />)}
+                {p.id === "crew" && (
+                  <>
+                    {creatureTurn}
+                    {d20Panel}
+                    {participantsCard}
+                    {trackersPanel}
+                  </>
+                )}
+                {p.id === "dice" && (
+                  <>
+                    <div className="app-row app-table__dicemode">
+                      <DiceModeSwitch physical={roller.physical} onChange={roller.setPhysical} />
+                    </div>
+                    {dicePanel}
+                  </>
+                )}
+                {p.id === "log" && (
+                  <>
+                    {logPanel}
+                    {checklistPanel}
+                  </>
+                )}
+              </section>
+            ))}
+          </div>
+          <nav className="app-table__tabbar" aria-label="Table panels">
+            <div role="tablist" className="app-table__tabbar-list">
+              {TABLE_PANELS.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  role="tab"
+                  id={`table-tab-${p.id}`}
+                  aria-selected={panel === p.id}
+                  aria-controls={`table-panel-${p.id}`}
+                  className={`app-table__tabbar-tab${panel === p.id ? " is-active" : ""}`}
+                  onClick={() => setPanel(p.id)}
+                  data-testid={`table-tab-${p.id}`}
+                >
+                  <span className="app-table__tabbar-icon" aria-hidden>
+                    {p.icon}
+                  </span>
+                  <span>{p.label}</span>
+                  {p.id === "crew" && turnCreature && <span className="app-table__tabbar-dot" title="A creature's turn" />}
+                </button>
+              ))}
+            </div>
+          </nav>
+        </>
       ) : (
         <div className="app-table__grid">
           <div className="app-table__col">
-            <TableRecap sessionId={sessionId} />
-            <SceneCard sessionId={sessionId} scenes={scenes} scene={scene} onOpenEntity={setDrawer} />
-            {turnCreature && (
-              <CreatureTurnCard
-                key={turnCreature.id}
-                sessionId={sessionId}
-                creature={turnCreature}
-                targets={turnTargets}
-                participants={everyone}
-                map={map}
-                {...(initiative && initiative.entityId === turnCreature.id ? { current: { round: initiative.round, card: initiative.card } } : {})}
-                onClose={closeTurn}
-                onOperationRoll={setRoll}
-              />
-            )}
-            {ctx.module.module.d20Combat && <D20CombatPanel sessionId={sessionId} pcs={pcs} others={others} onOpen={setDrawer} />}
-            <Participants pcs={pcs} others={others} onOpen={setDrawer} onRoll={(op, id) => handlers.onRollOperation(op, id)} lifecycle={{ sessionId, onPrompts: handlers.onPrompts }} combat={combat} act={currentAct} onWeaponAttack={setAttackPc} />
-            <RevealPanel sessionId={sessionId} scene={scene} />
-            {map && <SceneMap sessionId={sessionId} map={map} scene={scene} participants={[...pcs, ...others]} />}
+            {recapCard}
+            {sceneCard}
+            {creatureTurn}
+            {/* the live map high in the column: the GM's main surface when the scene has one */}
+            {mapView}
+            {d20Panel}
+            {participantsCard}
+            {thisJob}
+            {revealPanel}
           </div>
           <div className="app-table__col">
             <Tabs
@@ -297,20 +445,11 @@ function GmTable({ sessionId }: { sessionId: Id }) {
               value={tab === "hints" && !hasGuide ? "trackers" : tab}
               onChange={setTab}
               tabs={[
-                { id: "trackers", label: "Trackers", content: <TrackersPanel sessionId={sessionId} trackers={panelTrackers} pcs={pcs} participants={others} map={map} handlers={handlers} /> },
-                { id: "dice", label: "Dice", content: <DicePanel sessionId={sessionId} pcs={pcs} others={others} /> },
-                ...(hasGuide ? [{ id: "hints", label: "Hints", content: <PlayGuidePanel sessionId={sessionId} pcs={pcs} others={others} /> }] : []),
-                { id: "checklist", label: "Checklist", content: <SessionChecklist session={session} focus="play" title="Checklist" className="app-table__checklist" /> },
-                {
-                  id: "log",
-                  label: "Log",
-                  content: (
-                    <div className="app-stack">
-                      <SessionLog sessionId={sessionId} />
-                      <EventFeed sessionId={sessionId} />
-                    </div>
-                  ),
-                },
+                { id: "trackers", label: "Trackers", content: trackersPanel },
+                { id: "dice", label: "Dice", content: dicePanel },
+                ...(hasGuide ? [{ id: "hints", label: "Hints", content: hintsPanel }] : []),
+                { id: "checklist", label: "Checklist", content: checklistPanel },
+                { id: "log", label: "Log", content: logPanel },
               ]}
             />
           </div>

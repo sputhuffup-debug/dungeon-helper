@@ -12,8 +12,7 @@
  */
 import {
   carriedSensors,
-  huntEntitySources,
-  huntMarkerSources,
+  huntSourceGroups,
   huntOf,
   liveOf,
   moveHuntToken,
@@ -60,7 +59,10 @@ interface HuntPanelProps {
   suggestions: HuntMoveSuggestion[];
   prompt: HuntPrompt | undefined;
   onDismissPrompt: () => void;
+  /** "Next stretch" / "Next round": the app moves the table clock, which the hunt follows. */
   onAdvance: (kind: string) => void;
+  /** The number shown with the current step: the table clock's counter for it (one round counter), else the hunt's own count. */
+  stepNumber?: number;
   /** The token the "Move threat" map tool moves, and choosing it. */
   moving: Id | undefined;
   onMove: (token: Id | undefined) => void;
@@ -97,7 +99,7 @@ function useCandidateEntities(map: SiteMap, participants: Entity[], pcs: Entity[
   }, [map.location, participants, pcs, relationships, entities]);
 }
 
-export function HuntPanel({ sessionId, map, def, pcs, participants, label, suggestions, prompt, onDismissPrompt, onAdvance, moving, onMove, selectedZone }: HuntPanelProps) {
+export function HuntPanel({ sessionId, map, def, pcs, participants, label, suggestions, prompt, onDismissPrompt, onAdvance, stepNumber, moving, onMove, selectedZone }: HuntPanelProps) {
   const ctx = useCampaign();
   const store = ctx.store;
   const hunt = def.hunt!;
@@ -112,14 +114,13 @@ export function HuntPanel({ sessionId, map, def, pcs, participants, label, sugge
 
   // sources: the map's marks, and the cast (scene participants, a job's NPCs)
   const candidates = useCandidateEntities(map, participants, pcs);
-  const sources = useMemo(() => {
-    const placed = new Set(state.tokens.flatMap((t) => [t.marker, t.entity].filter((x): x is string => !!x)));
-    const marks = huntMarkerSources(layout, hunt).filter((s) => !s.marker || !placed.has(s.marker));
-    const cast = huntEntitySources(candidates, hunt).filter((s) => !s.entity || !placed.has(s.entity));
-    return { marks, cast };
-  }, [layout, hunt, candidates, state.tokens]);
+  // the map's NPCs once each (not once per act), with their records; never under a hostile label
+  const sources = useMemo(
+    () => huntSourceGroups(layout, hunt, candidates, { act: live.act, placed: state.tokens.flatMap((t) => [t.marker, t.entity].filter((x): x is string => !!x)) }),
+    [layout, hunt, candidates, state.tokens, live.act],
+  );
   const [sourceKey, setSourceKey] = useState("");
-  const source: HuntSource | undefined = [...sources.marks, ...sources.cast].find((s) => s.key === sourceKey);
+  const source: HuntSource | undefined = [...sources.marks, ...sources.npcs, ...sources.cast].find((s) => s.key === sourceKey);
   const placeAt = source?.zone ?? selectedZone;
 
   // sweeps: every PC on the map carrying a sensor
@@ -174,7 +175,10 @@ export function HuntPanel({ sessionId, map, def, pcs, participants, label, sugge
     <section className="app-hunt" aria-label="Hidden threats" data-testid="hunt-panel">
       <header className="app-row app-hunt__head">
         <strong className="app-grow">
-          Hidden threats <span className="cf-muted">· {stepDef ? `${stepDef.label} ${state.step}` : `Step ${state.step}`}</span>
+          Hidden threats{" "}
+          <span className="cf-muted" data-testid="hunt-step">
+            · {stepDef ? `${stepDef.label} ${stepNumber ?? state.step}` : `Step ${stepNumber ?? state.step}`}
+          </span>
         </strong>
         <Badge title="Hidden tokens, trails and suggestions never reach the player screen, shares or packets; blips show a range band and a direction only.">GM only</Badge>
         {steps.map((s) => (
@@ -324,6 +328,15 @@ export function HuntPanel({ sessionId, map, def, pcs, participants, label, sugge
               {sources.marks.map((s) => (
                 <option key={s.key} value={s.key}>
                   {s.label} ({moverLabel(s.mover)}, {label(s.zone!)})
+                </option>
+              ))}
+            </optgroup>
+          )}
+          {sources.npcs.length > 0 && (
+            <optgroup label="NPCs on this map">
+              {sources.npcs.map((s) => (
+                <option key={s.key} value={s.key}>
+                  {s.label} ({moverLabel(s.mover)}{s.zone ? `, ${label(s.zone)}` : ""})
                 </option>
               ))}
             </optgroup>

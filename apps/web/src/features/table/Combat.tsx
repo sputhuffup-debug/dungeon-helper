@@ -24,7 +24,7 @@ import {
   type BrokenEntry,
 } from "@campaign-forge/core";
 import type { RollResult } from "@campaign-forge/module-sdk";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Badge, Button, Card, Dialog, DieFace, HealthBar, PageRef, Stepper, initiativeOrder, initiativeState, pushToast, specById, useDiceRoller } from "../../components/ui";
 import { errorMessage } from "../../lib/format";
 import {
@@ -52,7 +52,7 @@ import { useMapGenerator } from "../maps/siteMapFiles";
 import { useSessionTrackerState } from "./hooks";
 import { nearestFirst, rangeText, rangesFrom, type TargetRange } from "./siteMapLive";
 import { RollSource } from "./RollSource";
-import { useModeTrackers } from "./TrackersPanel";
+import { useModeTrackers, useTableClock } from "./TrackersPanel";
 
 /** What the table page hands participant cards so they can open combat dialogs. */
 export interface CombatHandlers {
@@ -89,10 +89,13 @@ export function useTargetRanges(sessionId: Id, map: SiteMap | undefined, from: I
 export function useInitiativeCurrent(sessionId: Id): { entityId: Id; name: string; round: number; card: number } | undefined {
   const def = useModeTrackers().find((t) => t.kind === "initiative");
   const ts = useSessionTrackerState(sessionId);
+  // the round is the table clock's when there is one (one round counter)
+  const clock = useTableClock(sessionId);
   if (!def) return undefined;
   const init = initiativeState(ts?.state[def.id]);
   const current = initiativeOrder(init.participants, def.config?.method === "roll").find((p) => !p.acted && p.card !== null);
-  return current?.entityId ? { entityId: current.entityId, name: current.name, round: init.round, card: current.card! } : undefined;
+  const round = clock ? (clock.counters[clock.round.id] ?? 0) : init.round;
+  return current?.entityId ? { entityId: current.entityId, name: current.name, round, card: current.card! } : undefined;
 }
 
 // ---------------------------------------------------------------------------
@@ -362,21 +365,100 @@ export function TakeHitDialog({
   onOperationRoll?: (roll: OperationRoll) => void;
 }) {
   const entity = useRecord("entities", entityId);
+  // one primary action: "Apply" in the form; the footer only closes ("Cancel" until a hit is applied, then "Done"),
+  // and closing with a hit typed in but never applied asks first
+  const [applied, setApplied] = useState(0);
+  const [pending, setPending] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const close = () => {
+    setApplied(0);
+    setPending(false);
+    setConfirming(false);
+    onClose();
+  };
+  const tryClose = () => (pending ? setConfirming(true) : close());
   return (
-    <Dialog open={!!entity} onClose={onClose} title={entity ? `Take a hit: ${entity.name}` : "Take a hit"} className="app-combat__dialog cf-table-mode" footer={<Button onClick={onClose}>Done</Button>}>
-      {entity && <TakeHitForm key={entity.id} sessionId={sessionId} entity={entity} participants={participants} map={map} onOperationRoll={onOperationRoll} />}
+    <Dialog
+      open={!!entity}
+      onClose={tryClose}
+      title={entity ? `Take a hit: ${entity.name}` : "Take a hit"}
+      className="app-combat__dialog cf-table-mode"
+      footer={
+        confirming ? (
+          <div className="app-row" role="alert" data-testid="take-hit-discard">
+            <span className="app-grow">The hit you set up was not applied. Close anyway?</span>
+            <Button variant="ghost" onClick={() => setConfirming(false)}>
+              Keep it open
+            </Button>
+            <Button variant="danger" onClick={close}>
+              Discard the hit
+            </Button>
+          </div>
+        ) : (
+          <Button variant={applied > 0 ? "primary" : "ghost"} onClick={tryClose}>
+            {applied > 0 ? "Done" : "Cancel"}
+          </Button>
+        )
+      }
+    >
+      {entity && (
+        <TakeHitForm
+          key={entity.id}
+          sessionId={sessionId}
+          entity={entity}
+          participants={participants}
+          map={map}
+          onOperationRoll={onOperationRoll}
+          onApplied={() => setApplied((n) => n + 1)}
+          onPending={(p) => {
+            setPending(p);
+            if (!p) setConfirming(false);
+          }}
+        />
+      )}
     </Dialog>
   );
 }
 
-function TakeHitForm({ sessionId, entity, participants, map, onOperationRoll }: { sessionId: Id; entity: Entity; participants: Entity[]; map: SiteMap | undefined; onOperationRoll?: (roll: OperationRoll) => void }) {
+function TakeHitForm({
+  sessionId,
+  entity,
+  participants,
+  map,
+  onOperationRoll,
+  onApplied,
+  onPending,
+}: {
+  sessionId: Id;
+  entity: Entity;
+  participants: Entity[];
+  map: SiteMap | undefined;
+  onOperationRoll?: (roll: OperationRoll) => void;
+  onApplied?: () => void;
+  /** Whether the form holds a hit not applied yet (changed since the last apply). */
+  onPending?: (pending: boolean) => void;
+}) {
   const ctx = useCampaign();
-  const [amount, setAmount] = useState(1);
-  const [extra, setExtra] = useState(0);
-  const [ap, setAp] = useState(false);
-  const [weak, setWeak] = useState(false);
-  const [source, setSource] = useState("");
+  const [amount, setAmountRaw] = useState(1);
+  const [extra, setExtraRaw] = useState(0);
+  const [ap, setApRaw] = useState(false);
+  const [weak, setWeakRaw] = useState(false);
+  const [source, setSourceRaw] = useState("");
   const [outcome, setOutcome] = useState<HitApplied | undefined>();
+  // a change since the dialog opened (or since the last hit applied) is a hit not applied yet
+  const [touched, setTouched] = useState(false);
+  useEffect(() => onPending?.(touched), [touched, onPending]);
+  const touch =
+    <T,>(set: (v: T) => void) =>
+    (v: T) => {
+      set(v);
+      setTouched(true);
+    };
+  const setAmount = touch(setAmountRaw);
+  const setExtra = touch(setExtraRaw);
+  const setAp = touch(setApRaw);
+  const setWeak = touch(setWeakRaw);
+  const setSource = touch(setSourceRaw);
   const req: HitRequest = { amount, extraSuccesses: extra, armorPiercing: ap, weakSpot: weak, ...(source.trim() ? { source: source.trim() } : {}) };
   const health = healthState(ctx.module, entity);
   const sources = knownSources(ctx);
@@ -394,6 +476,8 @@ function TakeHitForm({ sessionId, entity, participants, map, onOperationRoll }: 
   const apply = () => {
     try {
       setOutcome(takeHit(ctx, sessionId, entity.id, req));
+      setTouched(false);
+      onApplied?.();
     } catch (e) {
       pushToast(errorMessage(e), { tone: "danger" });
     }

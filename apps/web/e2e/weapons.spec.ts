@@ -76,8 +76,10 @@ test("Alien weapons: a new PC from the Atlas gets a preset rifle and a custom kn
   await expect(attack.getByTestId("weapon-damage")).toContainText("2 base + 1 for extra success");
   await expect(page.getByRole("list", { name: "Roll log" })).toContainText("Dana Reyes: Armat M41A Pulse Rifle (Ranged Combat, Short)");
 
-  // the PC's card has an Attack button for the same panel
-  await page.locator(`.app-participant`).filter({ hasText: "Dana Reyes" }).getByRole("button", { name: "Attack with a weapon: Dana Reyes" }).click();
+  // the PC's row has an Attack button for the same panel, under "More"
+  const dana = page.locator(`.app-participant`).filter({ hasText: "Dana Reyes" });
+  await dana.getByRole("button", { name: "More for Dana Reyes" }).click();
+  await dana.getByRole("button", { name: "Attack with a weapon: Dana Reyes" }).click();
   const dialog = page.getByRole("dialog", { name: "Attack: Dana Reyes" });
   await dialog.getByRole("combobox", { name: "Weapon" }).selectOption({ label: "Attack with Knife" });
   await expect(dialog.getByRole("combobox", { name: "Range" }).locator("option")).toHaveText(["Adjacent"]);

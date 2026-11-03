@@ -14,6 +14,8 @@ import { useCampaign, useList, useMeta } from "../../state/hooks";
 import { mapGeneratorsFor } from "../../state/mapgenActions";
 import { enumLabel } from "../mapgen/BriefForm";
 import type { Schema } from "../generate/prefill";
+import { sourceDefFor } from "../../state/sourceActions";
+import { PersonNoteLines, useSourcePeople } from "../table/ThisJob";
 
 /** The first map generator (for this mode) that reads a brief from the entity, with the brief. */
 export function entityBrief(generators: MapGeneratorDef[], entity: Pick<Entity, "id" | "name" | "type" | "fields">): { generator: MapGeneratorDef; brief: EntityMapBrief } | undefined {
@@ -53,6 +55,9 @@ export function JobPanel({ entity }: { entity: Entity }) {
     .filter((r) => (r.to === entity.id || r.from === entity.id) && r.type !== "within")
     .map((r) => ({ r, other: ctx.store.get("entities", r.from === entity.id ? r.to : r.from) }))
     .filter((x): x is { r: Relationship; other: Entity } => !!x.other && ctx.module.entityType(x.other.type)?.kind === "character");
+  // the module's GM notes on each person (agenda, secret, whether they turn on the crew), as at the table
+  const personNotes = useSourcePeople(entity, sourceDefFor(ctx, entity, meta.mode));
+  const notesOf = (id: Id) => personNotes.find((x) => x.entity === id && (x.notes.length > 0 || !!x.stance));
   const sites = found?.brief.site ? sitesOf((id) => ctx.store.get("entities", id), relationships, entity.id, found.brief.site.relationship) : [];
   const siteMaps: SiteMap[] = maps.filter((m) => m.location && sites.some((s) => s.id === m.location) && !!m.layout);
   if (people.length === 0 && handouts.length === 0 && !found) return null;
@@ -77,6 +82,7 @@ export function JobPanel({ entity }: { entity: Entity }) {
                     <Badge tone={open ? "success" : "warning"}>{open ? "players see" : "GM only until met"}</Badge>
                   </div>
                   {other.summary && <p className="cf-muted app-small">{other.summary}</p>}
+                  {notesOf(other.id) && <PersonNoteLines person={notesOf(other.id)!} />}
                 </li>
               );
             })}
