@@ -13,6 +13,7 @@ When the GM rolls a skill from a sheet or at the table, the app builds the roll 
 | `attributeId`, `skillId` | What is rolled |
 | `fields`, `computed` | The character's stored fields and computed values, for JSONLogic in the engine config |
 | `modifier` and the engine's options | Set by the GM in the roll panel (see `rollOptions` below) |
+| `gear` | Dice from a carried item the GM picks on a table-mode skill roll (`skillBonus` on the sheet's gear list); the engine config decides what they are, e.g. a gear die kind counting `{ "var": "gear" }` |
 
 Numbers in an engine config marked "JSONLogic" may be a number or a JSONLogic rule over this input, e.g. `{ "var": "computed.proficiencyBonus" }`.
 
@@ -75,7 +76,7 @@ Roll a handful of dice; each face in `success` counts once. Generalizes Year Zer
 | `push` | `{ "max": 1 }` | Re-roll every die that is not a success; `lockBanes: true` keeps banes too. `false`: no push. |
 | `labels` | | Outcome labels. |
 
-Roll panel option: **Modifier (dice)**. Results keep the success-count display.
+Roll panel option: **Modifier (dice)**, a − / + stepper. A gear die kind can count the roll input's `gear` (`"count": { "var": "gear" }`): the dice of the item the GM picks on a table-mode skill roll (see `skillBonus` in [the gear list](sheets.md#the-gear-list)). Results keep the success-count display.
 
 ## `2d6`
 
@@ -148,6 +149,6 @@ A table's 2d6 or d66 is offered as one number (its total) with an "each die" swi
 
 ## Your own dice system (TypeScript only)
 
-Implement `DiceSystem` (`buildPool`, `roll`, optional `push`, `describe`, optional `operations`). Set `resultStyle: "total"` and fill `total` / `outcome` when the result is a number rather than a success count, and `rollOptions` (a JSON Schema object of integer, number, boolean or string-enum properties) for options the roll panel should offer. The determinism check in `module-check` rolls it twice per seed.
+Implement `DiceSystem` (`buildPool`, `roll`, optional `push`, `describe`, optional `operations`). Set `resultStyle: "total"` and fill `total` / `outcome` when the result is a number rather than a success count, and `rollOptions` (a JSON Schema object of integer, number, boolean or string-enum properties) for options the roll panel should offer (an integer with a minimum, a maximum within 20 of it and a default shows as a − / + stepper; the log line of a roll names the options the GM changed). The determinism check in `module-check` rolls it twice per seed.
 
 Name the dice you roll so a GM entering physical dice sees what to roll: `rng.int(1, 6, { label: "Stress die", die: "stress" })` (the `die` is the DieSpec id, for its colour). Dice that read as one number at the table (a sum, a d66) can share a `group` (`facesGroup("2d6")` from the SDK makes one). Unlabelled dice still work, named by their range ("d6"). The determinism check confirms that typing back the faces an app roll used gives the same result, push and dice operations included (`enteredReplayProblem`).

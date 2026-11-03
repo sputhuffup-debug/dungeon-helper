@@ -771,6 +771,8 @@ export interface RecapLineDraft {
   ref?: string;
   text: string;
   links?: RecapLinkRef[];
+  /** Start switched off: the GM reads it and switches it on (for the GM's own words, such as a session summary in the players' recap). */
+  off?: boolean;
 }
 
 /** A section of a recap. Sections with the same id and audience merge (a module can add lines to a core section, e.g. `secrets`). */
@@ -790,6 +792,8 @@ export interface RecapSessionRef {
   title?: string;
   /** ISO date. */
   date: string;
+  /** The in-world date it was played on, when the campaign keeps one. */
+  inWorldDate?: string;
   /** "Session 3: The offer". */
   label: string;
 }
@@ -1236,6 +1240,15 @@ export interface GearCatalogConfig {
    * `weapons` field builds the row from its own config.
    */
   routes?: Array<{ path: string; subtypes?: string[]; tags?: string[]; label?: string }>;
+  /**
+   * Gear that adds dice to a skill roll: `path` is the preset's (or linked
+   * item's) field holding a map of skill id -> dice, e.g.
+   * `{ "observation": 2 }`. Table mode's skill roll offers each carried row
+   * whose map names the rolled skill, and adds the chosen row's dice to the
+   * roll input under `input` (default `gear`; the dice system decides what it
+   * adds, e.g. a pool pack's gear die kind counting `{ "var": "gear" }`).
+   */
+  skillBonus?: { path: string; input?: string };
 }
 
 /**
@@ -3007,6 +3020,13 @@ export interface LedgerDef {
   defaultAccount: string;
   /** Entity types that may hold a personal account (e.g. PCs). */
   accountEntityTypes?: string[];
+  /**
+   * The holder's field that keeps its money (e.g. a PC sheet's `cash`). With
+   * it, a personal account's balance is that field, and an entry posted to
+   * the account moves the field by its amount (deleting the entry moves it
+   * back), so the sheet and the ledger never count the same money twice.
+   */
+  accountField?: string;
   payouts?: LedgerPayoutDef[];
   mode?: PlayModeId[];
   rules?: string[];

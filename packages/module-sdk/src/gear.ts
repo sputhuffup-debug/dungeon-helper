@@ -162,3 +162,61 @@ export function addCatalogItem(
   }
   return { fields: setPath({ ...fields }, placement.path, rows), placement };
 }
+
+/** A carried gear row that adds dice to a skill roll (`GearCatalogConfig.skillBonus`). */
+export interface GearSkillBonus {
+  /** Index of the row in the gear list. */
+  row: number;
+  name: string;
+  /** Dice it adds (negative for gear that hinders, e.g. a bulky suit). */
+  dice: number;
+}
+
+/**
+ * The gear on a character's sheet that changes a roll of `skillId`: each row
+ * of the type's catalog gear field whose linked item (`itemId`, through
+ * `lookup.item`) or preset (the catalog's `presetKey`, through
+ * `lookup.preset`) maps the skill to a number of dice at `skillBonus.path`.
+ * Rows with a quantity of 0 are left out, and a second row of the same name
+ * and dice is shown once. `input` is the roll input key the dice go to.
+ */
+export function gearSkillBonuses(
+  def: EntityTypeDef | undefined,
+  fields: Record<string, unknown>,
+  skillId: string,
+  lookup: { preset?: (id: string) => Pick<EntityPreset, "fields"> | undefined; item?: (id: string) => { fields: Record<string, unknown> } | undefined },
+): { input: string; bonuses: GearSkillBonus[] } {
+  const field = gearCatalogFieldOf(def);
+  const cfg = gearCatalogConfig(field);
+  const spec = cfg?.skillBonus;
+  const input = spec?.input ?? "gear";
+  if (!field || !cfg || !spec?.path) return { input, bonuses: [] };
+  const rows = getPath(fields, field.path);
+  if (!Array.isArray(rows)) return { input, bonuses: [] };
+  const presetKey = cfg.presetKey ?? "presetId";
+  const qtyKey = cfg.qtyKey ?? "qty";
+  const out: GearSkillBonus[] = [];
+  const seen = new Set<string>();
+  rows.forEach((r, row) => {
+    if (!isRecord(r) || typeof r.name !== "string" || !r.name.trim()) return;
+    if (typeof r[qtyKey] === "number" && (r[qtyKey] as number) <= 0) return;
+    const sources: Array<Record<string, unknown> | undefined> = [
+      typeof r.itemId === "string" ? lookup.item?.(r.itemId)?.fields : undefined,
+      typeof r[presetKey] === "string" ? lookup.preset?.(r[presetKey] as string)?.fields : undefined,
+    ];
+    for (const src of sources) {
+      const map = src ? getPath(src, spec.path) : undefined;
+      if (!isRecord(map)) continue;
+      const n = map[skillId];
+      if (typeof n !== "number" || !Number.isFinite(n) || n === 0) break;
+      const name = r.name.trim();
+      const key = `${name}|${n}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        out.push({ row, name, dice: Math.trunc(n) });
+      }
+      break;
+    }
+  });
+  return { input, bonuses: out };
+}

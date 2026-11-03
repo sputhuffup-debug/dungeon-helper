@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addCatalogItem, catalogPlacement, catalogPresets, gearCatalogConfig, gearCatalogFieldOf, groupCatalogPresets, sheetFieldAt } from "../src/gear";
+import { addCatalogItem, catalogPlacement, catalogPresets, gearCatalogConfig, gearCatalogFieldOf, gearSkillBonuses, groupCatalogPresets, sheetFieldAt } from "../src/gear";
 import { checkModule } from "../src/module";
 import { procedureFromPack } from "../src/pack/loader";
 import { CONTRACT_VERSION, type EntityPreset, type EntityTypeDef, type GameModule, type GearCatalogConfig, type WeaponListConfig } from "../src/types";
@@ -112,5 +112,45 @@ describe("a procedure that makes a character", () => {
   it("is carried over from a data pack", () => {
     const proc = procedureFromPack({ id: "x.roll", name: "Roll", steps: [{ id: "a", value: 1 }], produce: { entities: [] }, createsCharacter: { entityType: "x.hero", label: "Roll a hero", pc: true } } as never);
     expect(proc.createsCharacter).toEqual({ entityType: "x.hero", label: "Roll a hero", pc: true });
+  });
+});
+
+describe("gear that adds dice to a skill roll", () => {
+  const withBonus = { ...catalog, skillBonus: { path: "bonus" } } as GearCatalogConfig;
+  const bonusDef = { id: "x.hero", sheet: { sections: [{ id: "gear", title: "Gear", fields: [{ path: "gear", widget: "gear", config: { catalog: withBonus } }] }] } } as unknown as EntityTypeDef;
+  const items: Record<string, EntityPreset> = {
+    "x.item.glass": { id: "x.item.glass", entityType: "x.item", name: "Spyglass", fields: { bonus: { look: 2 } } },
+    "x.item.suit": { id: "x.item.suit", entityType: "x.item", name: "Heavy suit", fields: { bonus: { climb: -1, look: 0 } } },
+    "x.item.rope": { id: "x.item.rope", entityType: "x.item", name: "Rope", fields: {} },
+  };
+  const lookup = { preset: (id: string) => items[id], item: (id: string) => (id === "own-glass" ? { fields: { bonus: { look: 3 } } } : undefined) };
+
+  it("offers the carried rows whose preset or linked item names the skill, with their dice", () => {
+    const fields = {
+      gear: [
+        { name: "Spyglass", qty: 1, presetId: "x.item.glass" },
+        { name: "Spyglass", qty: 1, presetId: "x.item.glass" },
+        { name: "Heavy suit", qty: 1, presetId: "x.item.suit" },
+        { name: "Rope", qty: 1, presetId: "x.item.rope" },
+        { name: "Lost glass", qty: 0, presetId: "x.item.glass" },
+        { name: "Grandad's glass", qty: 1, itemId: "own-glass", presetId: "x.item.glass" },
+      ],
+    };
+    expect(gearSkillBonuses(bonusDef, fields, "look", lookup)).toEqual({
+      input: "gear",
+      bonuses: [
+        { row: 0, name: "Spyglass", dice: 2 },
+        { row: 5, name: "Grandad's glass", dice: 3 },
+      ],
+    });
+    // gear that hinders shows too, as negative dice
+    expect(gearSkillBonuses(bonusDef, fields, "climb", lookup).bonuses).toEqual([{ row: 2, name: "Heavy suit", dice: -1 }]);
+    expect(gearSkillBonuses(bonusDef, fields, "swim", lookup).bonuses).toEqual([]);
+  });
+
+  it("offers nothing without skillBonus on the catalog, and names the roll input it uses", () => {
+    expect(gearSkillBonuses(def, { gear: [{ name: "Spyglass", presetId: "x.item.glass" }] }, "look", lookup).bonuses).toEqual([]);
+    const own = { id: "x.hero", sheet: { sections: [{ id: "gear", title: "Gear", fields: [{ path: "gear", widget: "gear", config: { catalog: { ...withBonus, skillBonus: { path: "bonus", input: "kit" } } } }] }] } } as unknown as EntityTypeDef;
+    expect(gearSkillBonuses(own, { gear: [] }, "look", lookup).input).toBe("kit");
   });
 });
