@@ -34,11 +34,16 @@ export interface RollOptionField {
   key: string;
   label: string;
   kind: "number" | "boolean" | "enum";
+  /** A small whole-number range with a default (e.g. dice −10 to +10): the panel shows a − / + stepper. */
+  stepper?: boolean;
   min?: number;
   max?: number;
   values?: string[];
   defaultValue?: unknown;
 }
+
+/** Widest integer range shown as a stepper rather than a number box. */
+const STEPPER_RANGE = 20;
 
 /** The fields of a dice system's `rollOptions` schema the roll panel can render. Other properties are ignored. */
 export function rollOptionFields(schema: JsonSchema | undefined): RollOptionField[] {
@@ -48,8 +53,32 @@ export function rollOptionFields(schema: JsonSchema | undefined): RollOptionFiel
     if (!s || typeof s !== "object") continue;
     const label = typeof s.title === "string" ? s.title : humanize(key);
     if (Array.isArray(s.enum) && s.enum.every((v) => typeof v === "string")) out.push({ key, label, kind: "enum", values: s.enum as string[], defaultValue: s.default });
-    else if (s.type === "integer" || s.type === "number") out.push({ key, label, kind: "number", ...(typeof s.minimum === "number" ? { min: s.minimum } : {}), ...(typeof s.maximum === "number" ? { max: s.maximum } : {}), defaultValue: s.default });
+    else if (s.type === "integer" || s.type === "number") {
+      const stepper = s.type === "integer" && typeof s.minimum === "number" && typeof s.maximum === "number" && s.maximum - s.minimum <= STEPPER_RANGE && typeof s.default === "number";
+      out.push({ key, label, kind: "number", ...(typeof s.minimum === "number" ? { min: s.minimum } : {}), ...(typeof s.maximum === "number" ? { max: s.maximum } : {}), defaultValue: s.default, ...(stepper ? { stepper: true } : {}) });
+    }
     else if (s.type === "boolean") out.push({ key, label, kind: "boolean", defaultValue: s.default });
+  }
+  return out;
+}
+
+const signed = (n: number) => (n > 0 ? `+${n}` : n < 0 ? `−${-n}` : "0");
+
+/**
+ * The roll options the GM changed from where the panel started, as short
+ * text for a log line: "Modifier +1", "DC 15", "Roll: advantage".
+ */
+export function rollOptionNotes(fields: RollOptionField[], values: Record<string, unknown>, start: Record<string, unknown>): string[] {
+  const out: string[] = [];
+  for (const f of fields) {
+    // "Modifier (dice)" reads "Modifier +1" in a log line
+    const label = f.label.replace(/\s*\([^)]*\)$/, "") || f.label;
+    const v = values[f.key];
+    if (v === undefined || JSON.stringify(v) === JSON.stringify(start[f.key] ?? f.defaultValue)) continue;
+    if (f.kind === "boolean") {
+      if (v === true) out.push(label);
+    } else if (f.kind === "enum") out.push(`${label}: ${humanize(String(v)).toLowerCase()}`);
+    else if (typeof v === "number") out.push(`${label} ${f.stepper || (f.min !== undefined && f.min < 0) ? signed(v) : v}`);
   }
   return out;
 }
