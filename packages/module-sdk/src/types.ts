@@ -4037,6 +4037,74 @@ export interface SetupSnapshot {
   };
 }
 
+// ---------------------------------------------------------------------------
+// The module's guide: a step-by-step walkthrough for the GM (the Guide page)
+// ---------------------------------------------------------------------------
+
+/**
+ * A "Take me there" link of a guide step: the same shape as a setup step's
+ * link (exactly one of `page`, `procedure`, `newEntity` or `entity`). In a
+ * campaign the app turns it into a link to that page of the campaign; an
+ * `entity` link is hidden until an entity matches.
+ */
+export type GuideLink = SetupLink;
+
+/** A screenshot of a guide step. */
+export interface GuideImage {
+  /**
+   * The image's key (lowercase letters, digits and `-`). Its file is
+   * `guide-<module id>-<key>.png` in the repository's `docs/screenshots/`
+   * (see `guideImageFile`); the screenshot script writes it.
+   */
+  key: string;
+  /** Alt text: what the image shows. */
+  alt: string;
+}
+
+/**
+ * One step of a guide: what to click and why. `body` is a few short
+ * paragraphs of plain text; `*Label*` marks a button or label as the app
+ * shows it (rendered as emphasis, and kept as Markdown in the docs page).
+ */
+export interface GuideStepDef {
+  /** Unique in the guide: lowercase letters, digits and `-`. */
+  id: string;
+  title: string;
+  body: string[];
+  image?: GuideImage;
+  /** Where the step is done; the first is the main "Take me there". */
+  links?: GuideLink[];
+  page?: PageRef;
+  cite?: CiteRef;
+}
+
+/** A chapter of a guide: a few steps toward one goal ("Make the crew"). */
+export interface GuideChapterDef {
+  /** Unique in the guide: lowercase letters, digits and `-`. */
+  id: string;
+  title: string;
+  /** One or two sentences under the title. */
+  intro?: string;
+  steps: GuideStepDef[];
+}
+
+/**
+ * The module's guide: a walkthrough from a new campaign to its first session
+ * (making characters, places and people, connecting them, an adventure, a
+ * session), shown on the app's Guide page and generated into the docs. The
+ * id is namespaced with the module id ("alien.first-campaign"). Packs can
+ * declare it.
+ */
+export interface GuideDef {
+  id: string;
+  title: string;
+  /** One or two sentences: who it is for and where it ends. */
+  summary: string;
+  /** Play modes it is written for; every mode when absent. */
+  mode?: PlayModeId[];
+  chapters: GuideChapterDef[];
+}
+
 /** One option of a `choice` campaign setting. */
 export interface CampaignSettingOption {
   value: string;
@@ -4136,6 +4204,8 @@ export interface GameModule {
   ownerHandouts?: OwnerHandoutDef[];
   /** The module's steps of the "Set up your campaign" guide on a new campaign's Home page, and its order. Packs can declare it. */
   setup?: SetupDef;
+  /** A step-by-step guide for the GM: from a new campaign to its first session (the Guide page, and the docs). Packs can declare it. */
+  guide?: GuideDef;
   /** Campaign-level settings (e.g. the campaign frame), asked at creation when marked; same-named procedure inputs default to them. Packs can declare them. */
   campaignSettings?: CampaignSettingDef[];
   /** Upgrade stored entity fields from an older module version. */

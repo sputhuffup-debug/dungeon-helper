@@ -747,6 +747,39 @@
     ],
     "layouts": [{ "mode": ["delve"], "hide": ["setup.session"], "order": ["example-pack.setup.site"] }]
   },
+  "guide": {
+    "id": "example-pack.first-delve",
+    "title": "Your first delve",
+    "summary": "From a new campaign to the first trip into the dark.",
+    "mode": ["delve"],
+    "chapters": [
+      {
+        "id": "site",
+        "title": "Map a site",
+        "intro": "Every delve starts with a place to go.",
+        "steps": [
+          {
+            "id": "site",
+            "title": "Add the ruin",
+            "body": ["Click *+ Site*, name the ruin and click *Create site*."],
+            "links": [{ "label": "+ Site", "newEntity": { "type": "example-pack.site" } }],
+            "cite": "LRD, Delving"
+          },
+          {
+            "id": "roll",
+            "title": "Or roll one",
+            "body": ["*Delve* on Generate rolls the site's kind and danger."],
+            "links": [{ "label": "Roll a delve", "procedure": "example-pack.proc.delve" }]
+          }
+        ]
+      },
+      {
+        "id": "delve",
+        "title": "Go in",
+        "steps": [{ "id": "session", "title": "Start the session", "body": ["Plan a session and start it; count the lantern oil as you go."], "links": [{ "label": "Sessions", "page": "sessions" }] }]
+      }
+    ]
+  },
   "campaignSettings": [
     {
       "key": "village",

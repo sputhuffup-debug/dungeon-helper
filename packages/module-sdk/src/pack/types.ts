@@ -36,6 +36,7 @@ import type {
   RollTable,
   RuleCard,
   SetupDef,
+  GuideDef,
   Template,
   TrackerDef,
 } from "../types";
@@ -182,6 +183,8 @@ export interface ModulePack extends PackCollections {
   gmScreen?: GmScreenDef;
   /** Steps of the "Set up your campaign" guide and its order (main file only). */
   setup?: SetupDef;
+  /** A step-by-step guide for the GM, shown on the app's Guide page (main file only). */
+  guide?: GuideDef;
   /** Campaign-level settings, some asked at creation; same-named procedure inputs default to them (main file only). */
   campaignSettings?: CampaignSettingDef[];
   /** Handout kinds that reach the player of the character they are for (player packets; main file only). */

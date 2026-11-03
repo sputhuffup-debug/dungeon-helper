@@ -3,6 +3,7 @@ export * from "./types";
 export * from "./arcs";
 export * from "./recap";
 export * from "./setup";
+export * from "./guide";
 export * from "./adventureSource";
 export * from "./rng";
 export * from "./dice";
