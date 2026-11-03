@@ -1,6 +1,8 @@
 /**
  * The README screenshots, regenerated from the four deterministic demo
- * campaigns (Skyfire Down, Cold Harbor Relay, Thornwick Crossing, Hollowmere): `pnpm screenshots` at the repo root builds the app and runs
+ * campaigns (Skyfire Down, Cold Harbor Relay, Thornwick Crossing, Hollowmere),
+ * and the guides' step shots, taken by doing the steps on a blank campaign
+ * (`guide-alien`; then `in-app-guide`, once the app is rebuilt with them): `pnpm screenshots` at the repo root builds the app and runs
  * every shot; `pnpm --filter @campaign-forge/web screenshots -g <name>`
  * re-runs one (the app must be built). Images go to docs/screenshots/, or to
  * `SCREENSHOTS_DIR`.
@@ -184,7 +186,8 @@ test("campaign-list", async ({ page }) => {
     await expect(page.getByTestId(DEMOS[which].button)).toBeEnabled();
   }
   await expect(page.getByTestId("module-group")).toHaveCount(3);
-  await expect(page.locator('[data-module="alien"]').getByRole("link")).toHaveCount(2);
+  // the two Alien demos' campaigns (the section's Guide button is a link too)
+  await expect(page.locator('[data-module="alien"]').getByRole("list").getByRole("link")).toHaveCount(2);
   await shot(page, "campaign-list");
 });
 
@@ -1534,4 +1537,348 @@ test("orc-builder", async ({ page }) => {
   await expect(page.getByTestId("preview-Attributes")).toContainText("Wis +4");
   await page.evaluate(() => window.scrollTo(0, 0));
   await shot(page, "orc-builder");
+});
+
+// ---------------------------------------------------------------------------
+// The Alien guide ("Your first Alien campaign", alienModule.guide): one shot
+// per step, guide-alien-<step id>.png, taken by doing the steps in the app on
+// a blank campaign with the guide's own example names. One test, because each
+// step builds on the last (`-g guide-alien` re-runs them all); in-app
+// navigation only (a reload restarts the seeded randomness and repeats ids),
+// and fixed seeds wherever the app rolls. Each image is cropped to the panel
+// the step is about.
+// ---------------------------------------------------------------------------
+
+/** A guide step's shot: the union of `parts` with a little padding, its top just under the sticky header, clipped to the viewport. */
+async function guideShot(page: Page, step: string, parts: Locator | Locator[], opts: { pad?: number; maxHeight?: number } = {}) {
+  await dismissToasts(page);
+  await calm(page);
+  const list = Array.isArray(parts) ? parts : [parts];
+  const pad = opts.pad ?? 12;
+  // the app header is sticky: scroll the frame's top to just below it
+  const tops = await Promise.all(list.map((l) => l.evaluate((e) => e.getBoundingClientRect().top + window.scrollY)));
+  await page.evaluate((y) => window.scrollTo(0, Math.max(0, y)), Math.min(...tops) - 64 - pad);
+  await settle(page);
+  const boxes = await Promise.all(list.map(async (l) => (await l.boundingBox())!));
+  const vp = page.viewportSize()!;
+  // outside a dialog, never take in the sticky header or the sidebar beside the page
+  const inDialog = await list[0]!.evaluate((e) => !!e.closest("dialog"));
+  const chrome = async (selector: string) => (!inDialog && (await page.locator(selector).count()) > 0 ? await page.locator(selector).first().boundingBox() : null);
+  const bar = await chrome(".app-header");
+  const side = await chrome(".app-nav");
+  const x0 = Math.max(side ? Math.ceil(side.x + side.width) : 0, Math.floor(Math.min(...boxes.map((b) => b.x)) - pad));
+  const y0 = Math.max(bar ? Math.ceil(bar.y + bar.height) : 0, Math.floor(Math.min(...boxes.map((b) => b.y)) - pad));
+  const x1 = Math.min(vp.width, Math.ceil(Math.max(...boxes.map((b) => b.x + b.width)) + pad));
+  let y1 = Math.min(vp.height, Math.ceil(Math.max(...boxes.map((b) => b.y + b.height)) + pad));
+  if (opts.maxHeight) y1 = Math.min(y1, y0 + opts.maxHeight);
+  await page.screenshot({ path: file(`guide-alien-${step}`), animations: "disabled", caret: "hide", clip: { x: x0, y: y0, width: x1 - x0, height: y1 - y0 } });
+}
+
+test("guide-alien", async ({ page }) => {
+  test.setTimeout(300_000);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  const main = page.locator("main");
+  const header = main.locator(".app-page__header").first();
+
+  // Create the campaign: the New campaign dialog
+  await page.goto("/");
+  await page.getByRole("button", { name: "New campaign" }).click();
+  const dialog = page.getByRole("dialog", { name: "New campaign" });
+  await dialog.getByLabel("Name", { exact: true }).fill("Breakwater Freight");
+  await expect(dialog.getByRole("combobox", { name: "Game module" })).toHaveValue("alien");
+  await dialog.getByRole("radio", { name: /^Campaign/ }).check();
+  await dialog.getByRole("group", { name: "Campaign frame" }).getByRole("radio", { name: /^Space Truckers/ }).check();
+  await guideShot(page, "new-campaign", dialog, { pad: 0 });
+  await dialog.getByRole("button", { name: "Create campaign" }).click();
+  await expect(page).toHaveURL(/\/c\/[0-9A-Z]{26}\/home$/);
+
+  // Home and its checklist
+  const guide = page.getByTestId("setup-guide");
+  await expect(guide).toBeVisible();
+  await guideShot(page, "home-checklist", [header, guide]);
+  const step = (id: string) => guide.locator(`[data-step="${id}"]`);
+
+  // The crew: a Life Path (a pilot, a fixed seed), named in the preview
+  await step("alien.setup.crew").getByRole("link", { name: "Roll a Life Path" }).click();
+  await expect(page).toHaveURL(/\/generate\/alien\.lifepath$/);
+  await page.getByRole("combobox", { name: "Career" }).selectOption({ label: "Pilot" });
+  await page.getByTestId("seed").fill("breakwater-crew-1");
+  await page.getByTestId("preview-name-pc").fill("Juno Okafor");
+  await expect(page.getByTestId("preview")).toContainText("Career Pilot");
+  await guideShot(page, "life-path", main.locator(".app-page").first(), { maxHeight: 720 });
+  await page.getByTestId("accept").click();
+  await expect(page).toHaveURL(/\/entities\/[0-9A-Z]{26}$/, { timeout: 15_000 });
+
+  // a PC by hand
+  await nav(page, "Home").click();
+  await step("alien.setup.crew").getByRole("link", { name: "+ Character" }).click();
+  await page.getByTestId("entity-name").fill("Tobias Reyne");
+  await guideShot(page, "pc-by-hand", [main.locator("label", { hasText: "Name" }).filter({ has: page.getByTestId("entity-name") }), page.getByTestId("create-fields"), page.getByTestId("create-entity")]);
+  await page.getByTestId("create-entity").click();
+  await expect(page).toHaveURL(/\/entities\/[0-9A-Z]{26}/);
+
+  // the players and who plays whom
+  await nav(page, "Home").click();
+  await step("setup.players").getByRole("link", { name: "Add players" }).click();
+  const players = page.getByTestId("players-card");
+  for (const name of ["Alex", "Sam"]) {
+    await players.getByTestId("player-new-name").fill(name);
+    await players.getByTestId("player-add").click();
+  }
+  await players.getByRole("checkbox", { name: "Alex plays Juno Okafor" }).check();
+  await players.getByRole("checkbox", { name: "Sam plays Tobias Reyne" }).check();
+  await guideShot(page, "players", players);
+
+  // buddy and rival
+  await nav(page, "Atlas").click();
+  await page.getByRole("tab", { name: /^PCs/ }).click();
+  await page.getByRole("tabpanel").getByRole("link", { name: "Tobias Reyne" }).click();
+  await page.getByRole("combobox", { name: "Buddy" }).selectOption({ label: "Juno Okafor" });
+  await guideShot(page, "buddy-rival", [page.locator(".app-entity__header"), page.locator('[data-section="identity"]')]);
+
+  // The crew's ship, from a preset
+  await nav(page, "Ship").click();
+  await page.getByTestId("ship-picker").selectOption({ label: "+ New spaceship…" });
+  const create = page.getByRole("dialog", { name: "New spaceship" });
+  await create.getByTestId("quick-create-preset").selectOption({ label: "Model CM-88G Bison" });
+  await create.getByTestId("quick-create-name").fill("Marigold Dawn");
+  await create.getByTestId("quick-create-submit").click();
+  await expect(page.getByTestId("ship-card").getByRole("link", { name: "Marigold Dawn" })).toBeVisible();
+  await guideShot(page, "ship", [header, page.getByTestId("ship-card")]);
+
+  // Places: a station
+  await nav(page, "Home").click();
+  await page.getByRole("link", { name: "+ Location" }).click();
+  await main.locator("label", { hasText: "Subtype" }).locator("select").selectOption({ label: "Colony" });
+  await page.getByTestId("entity-name").fill("Halvorsen Relay");
+  await guideShot(page, "location", [main.locator("h1"), main.locator("fieldset").first()], { maxHeight: 560 });
+  await page.getByTestId("create-entity").click();
+  await expect(page).toHaveURL(/\/entities\/[0-9A-Z]{26}/);
+  await page.getByRole("textbox", { name: "Summary" }).fill("A refuelling station on the Outer Rim, and the crew's home port.");
+  await page.getByRole("textbox", { name: "Summary" }).blur();
+
+  // a place inside it: within
+  await nav(page, "Home").click();
+  await page.getByRole("link", { name: "+ Location" }).click();
+  await main.locator("label", { hasText: "Subtype" }).locator("select").selectOption({ label: "Site" });
+  await page.getByTestId("entity-name").fill("The Lantern Bar");
+  await page.getByTestId("create-entity").click();
+  await expect(page).toHaveURL(/\/entities\/[0-9A-Z]{26}/);
+  await page.getByRole("tab", { name: "Relationships" }).click();
+  await page.getByTestId("add-relationship").click();
+  let link = page.getByRole("dialog", { name: "Link The Lantern Bar" });
+  await link.getByRole("combobox", { name: "Relationship type" }).selectOption({ label: "within" });
+  await link.getByRole("button", { name: "Choose…" }).click();
+  await page.getByRole("searchbox", { name: "Search entities" }).fill("Halvorsen");
+  await page.getByRole("dialog", { name: "Choose an entity" }).getByRole("option", { name: /Halvorsen Relay/ }).click();
+  await expect(link).toContainText("Halvorsen Relay");
+  await guideShot(page, "place-inside", link, { pad: 0 });
+  await link.getByRole("button", { name: "Add", exact: true }).click();
+  await expect(page.getByRole("list", { name: "Relationships" })).toContainText("Halvorsen Relay");
+
+  // the home base
+  await nav(page, "Settings").click();
+  await page.getByRole("combobox", { name: "Home base" }).selectOption({ label: "Halvorsen Relay (Location)" });
+  await guideShot(page, "home-base", main.locator(".cf-card").first());
+
+  // People: an NPC from a preset
+  await nav(page, "Home").click();
+  await page.getByTestId("quick-npc").click();
+  await page.getByRole("searchbox", { name: "Search presets" }).fill("engineer");
+  await page.getByRole("radio", { name: /^Ship’s engineer/ }).first().check();
+  await page.getByTestId("entity-name").fill("Oskar Brandt");
+  await guideShot(page, "npc-preset", [main.locator("fieldset").first(), page.getByTestId("entity-name")]);
+  await page.getByTestId("create-entity").click();
+  await expect(page).toHaveURL(/\/entities\/[0-9A-Z]{26}/);
+
+  // an NPC by hand, from the NPCs tab
+  await nav(page, "Atlas").click();
+  await page.getByRole("tab", { name: /^NPCs/ }).click();
+  await header.getByRole("link", { name: "+ New" }).click();
+  await page.getByTestId("entity-name").fill("Wen Halloran");
+  await page.getByTestId("create-entity").click();
+  await expect(page).toHaveURL(/\/entities\/[0-9A-Z]{26}/);
+  await page.getByRole("textbox", { name: "Summary" }).fill("Harbourmaster of Halvorsen Relay; knows every ship that docks.");
+  await page.getByRole("textbox", { name: "Summary" }).blur();
+  await nav(page, "Atlas").click();
+  await page.getByRole("tab", { name: /^NPCs/ }).click();
+  await expect(page.getByRole("tabpanel")).toContainText("Wen Halloran");
+  await guideShot(page, "npcs", [header, page.getByRole("tabpanel")]);
+
+  // Connect them: a relationship
+  await page.getByRole("tabpanel").getByRole("link", { name: "Oskar Brandt" }).click();
+  await page.getByRole("tab", { name: "Relationships" }).click();
+  await page.getByTestId("add-relationship").click();
+  link = page.getByRole("dialog", { name: "Link Oskar Brandt" });
+  await link.getByRole("combobox", { name: "Relationship type" }).selectOption({ label: "knows" });
+  await link.getByRole("button", { name: "Choose…" }).click();
+  await page.getByRole("searchbox", { name: "Search entities" }).fill("Tobias");
+  await page.getByRole("dialog", { name: "Choose an entity" }).getByRole("option", { name: /Tobias Reyne/ }).click();
+  await link.getByRole("textbox", { name: "Note" }).fill("Owes him a favour from the Pell run");
+  await guideShot(page, "relationship", link, { pad: 0 });
+  await link.getByRole("button", { name: "Add", exact: true }).click();
+  await expect(page.getByRole("list", { name: "Relationships" })).toContainText("Tobias Reyne");
+
+  // an @ link in a note (the popup stays open while the shot is taken; the pick is a click)
+  await page.getByRole("tab", { name: /^Notes/ }).click();
+  await page.getByTestId("add-entity-note").click();
+  const editor = page.locator(".cf-editor__content").first();
+  await editor.click();
+  await page.keyboard.type("Drinks at @Lantern");
+  const mention = page.getByTestId("mention-popup");
+  await expect(mention.getByRole("option", { name: /The Lantern Bar/ })).toBeVisible();
+  await guideShot(page, "mention", page.getByRole("tabpanel"), { maxHeight: 340 });
+  await mention.getByRole("option", { name: /The Lantern Bar/ }).click();
+  await expect(editor.locator(".cf-entity-ref")).toHaveText(/The Lantern Bar/);
+  await editor.press("End");
+  await page.keyboard.type(" every shift change, and hears everything.");
+  await page.waitForTimeout(500);
+
+  // backlinks on the bar
+  await nav(page, "Atlas").click();
+  await page.getByRole("tab", { name: "Locations" }).click();
+  await page.getByRole("tree", { name: "Locations" }).getByRole("link", { name: "The Lantern Bar" }).click();
+  await page.getByRole("tab", { name: "Backlinks" }).click();
+  await expect(page.getByTestId("backlinks")).toContainText("via mention");
+  await guideShot(page, "backlinks", [page.locator(".app-entity__header"), page.getByTestId("backlinks")]);
+
+  // the graph
+  await nav(page, "Atlas").click();
+  await page.getByRole("tab", { name: "Graph" }).click();
+  await guideShot(page, "graph", [header, page.getByRole("tabpanel")]);
+
+  // who sees what: the station for the players, the Atlas previewed as a player
+  await page.getByRole("tab", { name: "Locations" }).click();
+  await page.getByRole("tree", { name: "Locations" }).getByRole("link", { name: "Halvorsen Relay" }).click();
+  await page.locator(".app-entity__header select").filter({ hasText: "GM only" }).selectOption({ label: "Players" });
+  await nav(page, "Atlas").click();
+  await page.getByRole("tab", { name: "Locations" }).click();
+  await page.getByTestId("preview-as-player").check();
+  await expect(page.getByRole("tree", { name: "Locations" })).not.toContainText("The Lantern Bar");
+  await guideShot(page, "player-view", [header, page.getByRole("tabpanel")]);
+  await page.getByTestId("preview-as-player").uncheck();
+
+  // An adventure: a job board (fixed seed)
+  await nav(page, "Home").click();
+  await step("alien.setup.job").getByRole("link", { name: "Deal a job board" }).click();
+  await expect(page).toHaveURL(/\/generate\/alien\.job-board$/);
+  await page.getByTestId("seed").fill("breakwater-board");
+  const posting = page.getByTestId("offer-board").getByTestId("offer-card").first();
+  await expect(posting).toContainText("Players read");
+  await guideShot(page, "job-board", posting, { maxHeight: 800 });
+
+  // take the job: it lands on Home's job board
+  await posting.getByTestId("offer-accept").click();
+  await expect(posting).toHaveAttribute("data-state", "accept");
+  await nav(page, "Home").click();
+  const jobBoard = page.getByRole("region", { name: "Job board" });
+  await expect(jobBoard).toContainText("Accepted");
+  await guideShot(page, "take-job", jobBoard);
+
+  // the job's people (renamed with the guide's name)
+  await jobBoard.locator(".app-board__card").first().click();
+  await expect(page).toHaveURL(/\/entities\/[0-9A-Z]{26}$/);
+  await page.getByTestId("entity-title").fill("The Brannock Deep run");
+  await page.getByTestId("entity-title").press("Enter");
+  await guideShot(page, "job-people", page.getByTestId("job-npcs"), { maxHeight: 720 });
+
+  // its site map (fixed seed)
+  await page.getByTestId("job-panel").getByTestId("job-generate-map").click();
+  await expect(page).toHaveURL(/\/maps\/new\?generator=alien\.map\.site/);
+  await page.getByTestId("map-seed").fill("breakwater-site");
+  await page.getByTestId("map-generate").click();
+  await expect(page.getByTestId("map-preview")).toBeVisible({ timeout: 30_000 });
+  await guideShot(page, "site-map", page.getByTestId("map-preview"), { maxHeight: 540 });
+  await page.getByTestId("map-save").click();
+  await expect(page).toHaveURL(/\/maps\/[0-9A-Z]{26}$/);
+
+  // Run this job
+  await nav(page, "Home").click();
+  await page.getByRole("region", { name: "Job board" }).getByRole("link", { name: /The Brannock Deep run/ }).click();
+  await page.getByTestId("run-from-entity").click();
+  await expect(page).toHaveURL(/\/adventures\/[0-9A-Z]{26}/);
+  const outline = page.getByTestId("outline");
+  await expect(page.getByTestId("adventure-title")).toHaveValue("The Brannock Deep run");
+  await guideShot(page, "run-job", [main.locator("header").first(), outline], { maxHeight: 760 });
+
+  // a scene: its location and participants
+  await outline.getByTestId("outline-scene").first().click();
+  const scene = page.getByTestId("scene-editor");
+  await scene.getByRole("button", { name: "Pick location" }).click();
+  await page.getByRole("dialog", { name: "Choose location" }).getByRole("option", { name: /Halvorsen Relay/ }).click();
+  await scene.getByRole("button", { name: "Add participant" }).click();
+  await page.getByRole("searchbox", { name: "Search entities" }).fill("Oskar");
+  await page.getByRole("dialog", { name: "Add participant" }).getByRole("option", { name: /Oskar Brandt/ }).click();
+  await expect(scene).toContainText("Oskar Brandt");
+  await guideShot(page, "scene", scene.locator(".cf-card").first());
+
+  // a handout on Act 1
+  await outline.getByRole("button", { name: /^Act 1:/ }).click();
+  const act = page.getByTestId("act-editor");
+  await act.getByRole("button", { name: "+ Handout" }).click();
+  await act.getByRole("textbox", { name: "Handout title" }).last().fill("Berth pass, Halvorsen Relay");
+  await act.getByRole("textbox", { name: "Handout title" }).last().press("Enter");
+  await guideShot(page, "handout", act.locator(".cf-card").filter({ hasText: "Handouts" }));
+
+  // or a new adventure from a template
+  await nav(page, "Adventures").click();
+  await page.getByTestId("new-adventure").click();
+  const newAdventure = page.getByRole("dialog", { name: "New adventure" });
+  await guideShot(page, "new-adventure", newAdventure, { pad: 0 });
+  await newAdventure.getByRole("button", { name: "Cancel" }).click();
+
+  // A session: session 1's plan
+  await nav(page, "Sessions").click();
+  await page.locator('[data-session][data-status="planned"]').getByRole("link").first().click();
+  await page.getByRole("textbox", { name: "New plan item" }).fill("Oskar wants his favour back");
+  await page.getByRole("textbox", { name: "New plan item" }).press("Enter");
+  await guideShot(page, "session-plan", main.locator(".cf-card").filter({ hasText: "Scenes planned" }));
+
+  // start it: table mode
+  await nav(page, "Home").click();
+  await page.getByRole("button", { name: "Start this session" }).click();
+  await expect(page.getByTestId("table-mode")).toBeVisible();
+  await expect(page.getByTestId("timer")).toHaveText("00:00");
+  await guideShot(page, "table", page.getByTestId("table-mode"), { maxHeight: 720 });
+
+  // reveal the handout
+  const reveal = page.getByTestId("reveal-panel");
+  await reveal.getByRole("button", { name: "Reveal Berth pass, Halvorsen Relay" }).click();
+  await expect(reveal.getByTestId("on-screen")).toContainText("Berth pass");
+  await guideShot(page, "reveal", reveal);
+
+  // wrap up
+  await page.getByTestId("mark-run").click();
+  await page.getByTestId("end-session").click();
+  const wrap = page.getByTestId("wrapup");
+  await wrap.getByRole("textbox", { name: "Session summary" }).fill("The crew signed for the Brannock Deep run at the Lantern Bar; Oskar Brandt asked for his favour.");
+  await guideShot(page, "wrap-up", wrap, { maxHeight: 640 });
+  await wrap.getByRole("button", { name: /^Next: End-of-session questions/ }).click();
+  const remaining = wrap.getByRole("button", { name: "Remaining: No" });
+  while ((await remaining.count()) > 0) await remaining.first().click();
+  await wrap.getByRole("button", { name: /^Next: Rewards/ }).click();
+  await wrap.getByRole("button", { name: /^Next: Timeline/ }).click();
+  await wrap.getByRole("button", { name: /^Next: Loose ends/ }).click();
+  await wrap.getByRole("textbox", { name: "Loose ends" }).fill("Who insured the cargo, and for how much?");
+  await wrap.getByRole("button", { name: /^Next: Close the job/ }).click();
+  await wrap.getByTestId("finish-session").click();
+
+  // the next session, planned, with the loose end on its plan (its scenes still to add)
+  await expect(page).toHaveURL(/\/sessions\/[0-9A-Z]{26}$/);
+  await expect.poll(() => page.locator('[aria-label^="Plan item "]').evaluateAll((els) => els.map((e) => (e as HTMLTextAreaElement).value))).toContain("Who insured the cargo, and for how much?");
+  await guideShot(page, "next-session", [main.locator(".cf-card").filter({ hasText: "Scenes planned" }), main.locator(".cf-card").filter({ hasText: "Loose ends carried" })]);
+});
+
+test("in-app-guide", async ({ page }) => {
+  // the Guide page of a new Alien campaign, opened from Home (its images are the guide-alien shots built into the app)
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await newAlienCampaign(page, "Breakwater Freight");
+  await page.getByTestId("home-guide").click();
+  await expect(page).toHaveURL(/\/guide$/);
+  // the Make the crew chapter: a step's text, its Take me there buttons for this campaign and its screenshot
+  await page.getByRole("navigation", { name: "Chapters" }).getByRole("link", { name: "Make the crew" }).click();
+  const lifePath = page.getByRole("article", { name: /Roll a character with the Life Path/ });
+  await expect(lifePath.getByRole("link", { name: "Roll a Life Path" })).toBeVisible();
+  await lifePath.getByRole("img").evaluate((img: HTMLImageElement) => img.decode());
+  await shot(page, "in-app-guide");
 });
