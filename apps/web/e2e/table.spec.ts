@@ -37,7 +37,8 @@ test("run a session at the table: demo campaign, clock, panic roll, reveal, wrap
   // the panic result is in the stress tracker's log
   await expect(stress.getByRole("list", { name: "Tracker log" })).toBeVisible();
 
-  // a one-tap critical injury roll from a character card (androids use the system damage table, p. 78)
+  // a one-tap critical injury roll from a character row, under "More" (androids use the system damage table, p. 78)
+  await page.getByRole("list", { name: "Player characters" }).getByTestId("participant-more").first().click();
   await page.getByRole("button", { name: /^Critical injury for / }).first().click();
   await expect(page.getByTestId("roll-result")).toBeVisible();
   await expect(page.getByTestId("roll-result-label")).not.toBeEmpty();

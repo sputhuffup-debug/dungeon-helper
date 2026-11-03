@@ -3,7 +3,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { playerLayout, runMapGenerator } from "@campaign-forge/core";
 import type { SiteLayout } from "@campaign-forge/module-sdk";
 import { exampleModule, exampleSiteGenerator } from "@campaign-forge/module-example";
-import { MapLegend, SiteMapView, drawSiteMap, flagIcon, nodeToString, printTiles, printTilesHtml, renderRollPdf, renderSiteMapSvg, rollPrintPages, zoneKeyEntries } from "../src/index";
+import { MapLegend, SiteMapView, drawSiteMap, flagIcon, nodeToString, printTiles, printTilesHtml, renderRollPdf, renderSiteMapSvg, rollPrintPages, tokenInitials, tokenShortName, zoneKeyEntries } from "../src/index";
 
 function layout(): SiteLayout {
   return runMapGenerator(exampleModule, exampleSiteGenerator, { darkness: 50, lockedAct: 2 }, { seed: "ui-test" }).layout;
@@ -24,6 +24,15 @@ describe("drawSiteMap", () => {
     expect(a).toMatch(/data-border="B09"[^>]*data-locked="true"/);
     const act1 = nodeToString(drawSiteMap(layout(), { view: "gm", legend, act: 1 }).node);
     expect(act1).not.toMatch(/data-border="B09"[^>]*data-locked="true"/);
+  });
+
+  it("labels the players' tokens readably: two letters and the short name", () => {
+    expect(["Ripley-Vance", "Dana Okoye", "Dana", "X", "Lee-Ann Moss"].map(tokenInitials)).toEqual(["RV", "DO", "Da", "X", "LA"]);
+    expect(tokenShortName("Ripley-Vance")).toBe("Ripley-Vance");
+    expect(tokenShortName("Dana Okoye")).toBe("Dana");
+    expect(tokenShortName("Bartholomew-Smythe")).toBe("Bartholomew…");
+    const svg = nodeToString(drawSiteMap(layout(), { view: "player", legend, live: { tokens: [{ id: "pc", label: "Ripley-Vance", zone: "R4", gmOnly: false }] } }).node);
+    expect(svg).toMatch(/data-token="pc"[\s\S]*>RV<[\s\S]*data-token-name="pc"[^>]*>Ripley-Vance</);
   });
 });
 
@@ -95,6 +104,8 @@ describe("SiteMapView", () => {
     };
     render(<SiteMapView layout={layout()} view="gm" legend={legend} live={live} />);
     expect(q('[data-token="tk"]')[0]!.textContent).toContain("AL");
+    // the GM map draws no name under a token; the player map does
+    expect(q('[data-token-name="tk"]')).toHaveLength(0);
     expect(q('[data-ping="C2"]')).toHaveLength(1);
     expect(q('[data-zone-content="R2"] [data-flag-icon="burning"]')).toHaveLength(1);
     expect(q('[data-border="B01"][data-locked="true"] [data-lock]')).toHaveLength(1);

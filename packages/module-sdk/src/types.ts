@@ -892,7 +892,8 @@ export interface RecapHunt {
   map: string;
   mapName: string;
   step: number;
-  tokens: Array<{ id: string; label: string; state: "hidden" | "detected" | "seen" | "gone"; hurt?: boolean }>;
+  /** `mover`: the token's mover kind (`MapMoverDef.id`), GM snapshot only. */
+  tokens: Array<{ id: string; label: string; state: "hidden" | "detected" | "seen" | "gone"; hurt?: boolean; mover?: string }>;
 }
 
 /** Something revealed in a covered session. For players: only what their projection shows. */
@@ -1517,6 +1518,25 @@ export interface AdventureSourceDef {
    * the players; keep secrets in `gmSituation` and scene bodies.
    */
   prefill(input: AdventureSourceInput): AdventureSourceFill;
+  /**
+   * The GM's notes on the record's people, for the table ("This job") and the
+   * record's page: each person's agenda, secret and whether they turn on the
+   * crew, in the module's words. GM only: the app never puts them on a player
+   * surface. Pure and deterministic, like `prefill`.
+   */
+  people?(input: AdventureSourceInput): AdventureSourcePerson[];
+}
+
+/** One of the record's people, as `AdventureSourceDef.people` describes them for the GM. */
+export interface AdventureSourcePerson {
+  /** The person's record id (one of the input's links). */
+  entity: string;
+  /** Their part in it, e.g. "Contact" (the link's note). */
+  role?: string;
+  /** Labelled GM notes, e.g. { label: "Agenda", text: "..." }. */
+  notes: Array<{ label: string; text: string }>;
+  /** Where they stand, e.g. { label: "Turns on the crew", tone: "danger" }. */
+  stance?: { label: string; tone?: "success" | "danger" | "warning" | "muted" };
 }
 
 export interface AdventureSourceOutcome {

@@ -55,6 +55,32 @@ export function formatElapsed(minutes: number): string {
   return `${d} d ${h % 24} h`;
 }
 
+/**
+ * The clock's counters after advancing (or reverting) one unit: a bigger
+ * unit resets the smaller ones (a new shift starts at round 0), and a unit
+ * rolls over into the next when that one's `per` is reached. Undefined for
+ * an unknown unit.
+ */
+export function advanceClockCounters(units: ClockUnit[], counters: Record<string, number>, unitId: string, by: number): Record<string, number> | undefined {
+  const next = { ...counters };
+  const idx = units.findIndex((u) => u.id === unitId);
+  if (idx < 0) return undefined;
+  next[unitId] = Math.max(0, (next[unitId] ?? 0) + by);
+  if (by > 0) for (let i = 0; i < idx; i++) next[units[i]!.id] = 0;
+  const bigger = units[idx + 1];
+  if (bigger?.per && by > 0 && (next[unitId] ?? 0) >= bigger.per) {
+    next[unitId] = 0;
+    next[bigger.id] = (next[bigger.id] ?? 0) + 1;
+  }
+  return next;
+}
+
+/** "Round advanced: Round 2, Stretch 0, Shift 0". */
+export function clockLogText(units: ClockUnit[], counters: Record<string, number>, unitId: string, by: number): string {
+  const unit = units.find((u) => u.id === unitId);
+  return `${unit?.name ?? unitId} ${by > 0 ? "advanced" : "reverted"}: ${units.map((u) => `${u.name} ${counters[u.id] ?? 0}`).join(", ")}`;
+}
+
 /** Rounds / stretches / shifts counters with advance buttons and an elapsed display. */
 export function ClockTracker({ def, state, onChange, onLog, readonly, className }: TrackerProps) {
   const units = clockUnits(def.config);
@@ -62,21 +88,10 @@ export function ClockTracker({ def, state, onChange, onLog, readonly, className 
   const commit = (counters: Record<string, number>) => onChange({ ...stateRecord(state), counters });
 
   const advance = (unitId: string, by: number) => {
-    const counters = { ...clock.counters };
-    const idx = units.findIndex((u) => u.id === unitId);
-    const unit = units[idx];
-    if (!unit) return;
-    counters[unitId] = Math.max(0, (counters[unitId] ?? 0) + by);
-    // Advancing a bigger unit resets the smaller ones (a new shift starts at round 0).
-    if (by > 0) for (let i = 0; i < idx; i++) counters[units[i]!.id] = 0;
-    // Roll over when the unit's `per` is reached.
-    const next = units[idx + 1];
-    if (next?.per && by > 0 && (counters[unitId] ?? 0) >= next.per) {
-      counters[unitId] = 0;
-      counters[next.id] = (counters[next.id] ?? 0) + 1;
-    }
+    const counters = advanceClockCounters(units, clock.counters, unitId, by);
+    if (!counters) return;
     commit(counters);
-    onLog?.(`${unit.name} ${by > 0 ? "advanced" : "reverted"}: ${units.map((u) => `${u.name} ${counters[u.id] ?? 0}`).join(", ")}`);
+    onLog?.(clockLogText(units, counters, unitId, by));
   };
   const reset = () => {
     const counters: Record<string, number> = {};

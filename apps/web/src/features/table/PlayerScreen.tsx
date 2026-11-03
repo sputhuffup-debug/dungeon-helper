@@ -98,6 +98,31 @@ function PlayerCrewNotes() {
   );
 }
 
+/**
+ * A clue the GM revealed from the table ("This job"): only what the whole
+ * crew's notes say about it (the player projection), once it is found.
+ */
+function PlayerSpotlight({ spotlight }: { spotlight: { thread: string; clue: string } | undefined }) {
+  const ctx = useCampaign();
+  const meta = useMeta();
+  const version = useMapVersion("*");
+  const def = arcsDefOf(ctx.module, meta.mode);
+  const found = useMemo(() => {
+    if (!def || !spotlight) return undefined;
+    const thread = crewNotesFor(ctx).threads.find((t) => t.id === spotlight.thread);
+    const clue = thread?.clues.find((c) => c.id === spotlight.clue && !c.personal);
+    return thread && clue ? { thread: thread.title, text: clue.text } : undefined;
+  }, [ctx, def, spotlight, version]); // eslint-disable-line react-hooks/exhaustive-deps
+  if (!found) return null;
+  return (
+    <section className="app-player__spotlight" aria-label="Just found" data-testid="player-spotlight">
+      <h2 className="app-subtitle">Just found</h2>
+      <p className="app-player__spotlight-text">{found.text}</p>
+      <p className="cf-muted">{found.thread}</p>
+    </section>
+  );
+}
+
 /** The "Previously on…" read-aloud, while the GM shows it (the player projection's recap only). */
 function PlayerRecap({ sessionId }: { sessionId: Id }) {
   const ctx = useCampaign();
@@ -131,6 +156,7 @@ export function PlayerScreen({ sessionId }: { sessionId: Id }) {
       )}
       <div className="app-player__grid">
         <PlayerRecap sessionId={sessionId} />
+        <PlayerSpotlight spotlight={table.spotlight} />
         <section className="app-player__scene" aria-label="Scene">
           {scene ? (
             <>

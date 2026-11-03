@@ -42,6 +42,12 @@ export interface TrackerProps {
   /** For the stealth tracker: zones of the current scene map. */
   zones?: MapZone[];
   borders?: MapZoneBorder[];
+  /**
+   * The table's one round counter (the clock's smallest unit), when the app
+   * keeps one: the initiative tracker shows it, and its "Next round"
+   * advances it instead of a round of its own.
+   */
+  round?: { value: number; label?: string; advance: () => void };
   readonly?: boolean;
   className?: string;
 }

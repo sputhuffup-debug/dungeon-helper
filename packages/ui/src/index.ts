@@ -47,7 +47,7 @@ export { TrackerHost, registerDefaultTrackers } from "./trackers/TrackerHost";
 export { type TrackerProps, type TrackerComponent, type TrackerEntity, resolveBindPath } from "./trackers/types";
 export { TrackerFrame, TrackerLog } from "./trackers/TrackerFrame";
 export { GenericTracker } from "./trackers/GenericTracker";
-export { ClockTracker, clockUnits, clockState, formatElapsed, type ClockUnit, type ClockState } from "./trackers/ClockTracker";
+export { ClockTracker, advanceClockCounters, clockLogText, clockUnits, clockState, formatElapsed, type ClockUnit, type ClockState } from "./trackers/ClockTracker";
 export { CountdownTracker, countdowns, type Countdown } from "./trackers/CountdownTracker";
 export { InitiativeTracker, initiativeState, initiativeModifier, initiativeOrder, drawBest, type Participant, type InitiativeState } from "./trackers/InitiativeTracker";
 export { StressTracker, panicLog, appendPanic, type PanicLogEntry } from "./trackers/StressTracker";
@@ -74,6 +74,8 @@ export {
   areaColor,
   zoneLabel,
   nodeToString,
+  tokenInitials,
+  tokenShortName,
   resolvePalette,
   GRID_SQUARE_COLOR,
   el as svgNode,
@@ -133,7 +135,7 @@ export { Markdown, renderInline } from "./primitives/Markdown";
 export { RuleCardView, RuleCardList, filterRuleCards, rulePreview, type RuleCardViewProps, type RuleCardListProps } from "./primitives/RuleCard";
 export { PlayGuideView, PlayGuideEntryView, PlayGuideTips, playGuidesForMode, filterPlayGuideEntries, type PlayGuideViewProps, type PlayGuideEntryViewProps, type PlayGuideTipsProps } from "./primitives/PlayGuide";
 export { PromptDialog, type PromptDialogProps, type PromptAnswer } from "./primitives/PromptDialog";
-export { useToasts, pushToast, dismissToast, clearToasts, ToastViewport, type Toast, type ToastTone } from "./primitives/Toast";
+export { useToasts, pushToast, dismissToast, clearToasts, ToastViewport, MAX_TOASTS, type Toast, type ToastAction, type ToastOptions, type ToastTone } from "./primitives/Toast";
 
 // Hooks
 export { useTheme, type ThemePreference } from "./hooks/useTheme";

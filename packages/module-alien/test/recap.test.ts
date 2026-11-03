@@ -34,7 +34,7 @@ function gmSnapshot(): RecapSnapshot {
     ledger: [{ id: "l1", amount: 12000, category: "job-payment", note: "Pay for the last run", created: T1 }],
     balance: 18330,
     travel: [{ id: "tr", ship: "ship", fromName: "Y87-544", toName: "Anchorpoint Station", status: "arrived", created: T1 }],
-    hunts: [{ map: "m", mapName: "Spaceport", step: 2, tokens: [{ id: "a", label: "Stalker", state: "detected" }, { id: "b", label: "UPP team", state: "seen", hurt: true }] }],
+    hunts: [{ map: "m", mapName: "Spaceport", step: 2, tokens: [{ id: "a", label: "Stalker", state: "detected" }, { id: "b", label: "UPP team", state: "seen", hurt: true }, { id: "c", label: "Tara Zanelli", state: "hidden", mover: "npc" }] }],
   };
 }
 
@@ -62,6 +62,9 @@ describe("Alien recap lines", () => {
     expect(t).toContain("Crew funds now: $18,330.");
     expect(t).toContain("Spaceport, 2 moves in: Stalker is on the motion tracker.");
     expect(t).toContain("Spaceport, 2 moves in: UPP team has been seen by the crew, hurt.");
+    // a job's NPC tracked on the map is not a threat "still hidden"
+    expect(t).toContain("Spaceport, 2 moves in: Tara Zanelli has not met the crew on the map yet.");
+    expect(t.join("\n")).not.toContain("Tara Zanelli is still hidden");
     // the agenda's secret is not a recap line, even for the GM
     expect(t.join("\n")).not.toContain("SECRET-AGENDA");
   });

@@ -21,12 +21,14 @@ export function ImageField({ id, value, onChange, readonly, field }: WidgetProps
 
 /** A map reference with an "open map" button. */
 export function ZoneMapField({ value, field }: WidgetProps) {
-  const { onOpenMap } = useSheetContext();
-  const mapId = typeof value === "string" ? value : undefined;
+  const { onOpenMap, resolveMap } = useSheetContext();
+  const stored = typeof value === "string" && value ? value : undefined;
+  const found = resolveMap?.(stored, field);
+  const mapId = found?.id ?? stored;
   return (
-    <div className="cf-zonemap-field" style={{ display: "flex", gap: 8, alignItems: "center" }}>
-      <span className={mapId ? undefined : "cf-muted"}>{mapId ?? "No map"}</span>
-      <Button size="sm" onClick={() => onOpenMap?.(mapId, field)} disabled={!onOpenMap}>
+    <div className="cf-zonemap-field" style={{ display: "flex", gap: 8, alignItems: "center" }} data-testid="zone-map-field">
+      <span className={mapId ? undefined : "cf-muted"}>{found?.name ?? mapId ?? "No map"}</span>
+      <Button size="sm" onClick={() => onOpenMap?.(mapId, field)} disabled={!onOpenMap || !mapId}>
         Open map
       </Button>
     </div>

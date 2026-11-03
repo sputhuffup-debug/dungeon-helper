@@ -40,13 +40,17 @@ describe("the Alien live hunt", () => {
     expect(kind({ kind: "hostile", data: { kind: "human", posture: "patrol" } })).toBe("humans");
     expect(kind({ kind: "hostile", data: { kind: "android", posture: "patrol" } })).toBe("android");
     expect(kind({ kind: "npc", data: { role: "android", turns: true } })).toBe("android");
-    expect(kind({ kind: "npc", data: { role: "survivor" } })).toBe("humans");
+    // the job's people are NPCs, never hostile "rogue humans"
+    expect(kind({ kind: "npc", data: { role: "survivor" } })).toBe("npc");
+    expect(kind({ kind: "npc", data: { role: "contact" } })).toBe("npc");
+    expect(kind({ kind: "npc", data: { role: "android" } })).toBe("android-npc");
     expect(kind({ kind: "clue" })).toBeUndefined();
     const entityKind = (e: { type: string; fields: Record<string, unknown> }) =>
       ALIEN_HUNT.movers.find((mv) => (mv.from?.entities ?? []).some((f) => f.type === e.type && (f.when === undefined || evaluateLogic(f.when, { type: e.type, fields: e.fields }))))?.id;
     const covert = npcPresets.find((p) => p.id === "alien.npc.android-covert")!;
-    expect(entityKind({ type: "alien.character", fields: covert.fields })).toBe("android");
-    expect(entityKind({ type: "alien.character", fields: { android: false } })).toBe("humans");
+    expect(entityKind({ type: "alien.character", fields: covert.fields })).toBe("android-npc");
+    expect(entityKind({ type: "alien.character", fields: { android: false } })).toBe("npc");
+    for (const id of ["npc", "android-npc"]) expect(ALIEN_HUNT.movers.find((m) => m.id === id)!.label).not.toMatch(/rogue|hostile/i);
     expect(entityKind({ type: "alien.creature", fields: { speed: 2 } })).toBe("creature");
     expect(entityKind({ type: "alien.creature", fields: { loreOnly: true } })).toBeUndefined();
   });

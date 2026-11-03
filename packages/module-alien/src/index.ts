@@ -62,7 +62,7 @@ export * from "./progression";
 export { gmScreen } from "./gmScreen";
 export { arcs, HEAT_LABELS, ARC_SLOTS, type ArcSlotId } from "./arcs";
 export { alienRecap, alienRecapSections, favourText, ALIEN_RECAP_ID } from "./recap";
-export { runJob, runJobPrefill, RUN_JOB_ID } from "./runJob";
+export { runJob, runJobPeople, runJobPrefill, RUN_JOB_ID } from "./runJob";
 export { CAMPAIGN_THREAD_ID, campaignThread, dealThreads, threadOffer, threadDraft, threadCast, milestonePositions, SPONSOR_MODES, STAGE_COUNTS, type ThreadData, type ThreadSponsor } from "./procedures/campaign-thread";
 export { SCHEMES, METHODS, WEAKNESSES, COSTS, GM_TITLES, STAGE_TITLES, STAGE_SUMMARIES, SITES, CLUES, MILESTONES, PAYOFFS, PAYOFF_KINDS, THREAD_CLUE_KINDS } from "./procedures/campaign-thread-data";
 export { boardArcs, chooseClue, hostileGroupFor, type PostingArc, type BoardArcs } from "./procedures/job-board-arcs";
