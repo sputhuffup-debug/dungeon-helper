@@ -970,6 +970,8 @@ h3 {
     border-right: 0;
     border-top: 1px solid var(--cf-border);
     z-index: 20;
+    /* nine labels share a phone's width: wider fonts scroll the bar, never the page */
+    overflow-x: auto;
   }
   .app-nav__link {
     flex-direction: column;
