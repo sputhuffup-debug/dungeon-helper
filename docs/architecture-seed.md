@@ -379,6 +379,7 @@ A campaign is one CRDT document holding typed maps of records, plus one sub-docu
 | `handouts` | id, kind, bodyDoc or asset, visibility, revealedIn (session) |  |
 | `notes` | id, title, bodyDoc, attachedTo |  |
 | `generatorRuns` | id, procedure, moduleVersion, seed, rolls (step, table, dice, result), produced (entity ids), editedFields | the provenance record |
+| `generatorDrafts` | id, procedure, seed, inputs, re-rolls, pins, entered dice, the GM's edits, offers taken or kept, last accept | the workbench's current deal per procedure; GM-only, in bundles |
 | `trackerState` | per session: clock, initiative order, countdowns, panic log | cleared or archived at wrap-up |
 
 Ids are ULIDs so records sort by creation time and merge without coordination. A sub-document holds one ProseMirror-compatible rich-text body with inline entity references stored as `{type: "ref", id}` nodes, which is what backlinks are computed from.
