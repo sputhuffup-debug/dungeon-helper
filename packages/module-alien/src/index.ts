@@ -34,6 +34,7 @@ import { gmScreen } from "./gmScreen";
 import { arcs } from "./arcs";
 import { alienRecap } from "./recap";
 import { runJob } from "./runJob";
+import { setup, campaignSettings } from "./setup";
 
 export { manifest, ALIEN_MODULE_ID, ALIEN_MODULE_VERSION } from "./manifest";
 export { modes, CAMPAIGN, CINEMATIC } from "./modes";
@@ -63,6 +64,7 @@ export { gmScreen } from "./gmScreen";
 export { arcs, HEAT_LABELS, ARC_SLOTS, type ArcSlotId } from "./arcs";
 export { alienRecap, alienRecapSections, favourText, ALIEN_RECAP_ID } from "./recap";
 export { runJob, runJobPeople, runJobPrefill, RUN_JOB_ID } from "./runJob";
+export { setup, campaignSettings, FRAME_SETTING, HOME_BASE_SETTING } from "./setup";
 export { CAMPAIGN_THREAD_ID, campaignThread, dealThreads, threadOffer, threadDraft, threadCast, milestonePositions, SPONSOR_MODES, STAGE_COUNTS, type ThreadData, type ThreadSponsor } from "./procedures/campaign-thread";
 export { SCHEMES, METHODS, WEAKNESSES, COSTS, GM_TITLES, STAGE_TITLES, STAGE_SUMMARIES, SITES, CLUES, MILESTONES, PAYOFFS, PAYOFF_KINDS, THREAD_CLUE_KINDS } from "./procedures/campaign-thread-data";
 export { boardArcs, chooseClue, hostileGroupFor, type PostingArc, type BoardArcs } from "./procedures/job-board-arcs";
@@ -124,6 +126,8 @@ export const alienModule: GameModule = {
   arcs,
   recap: { contributors: [alienRecap] },
   adventureSources: [runJob],
+  setup,
+  campaignSettings,
   // a PC's agenda cards (one per act in cinematic play) reach that PC's player once the GM gives each one out;
   // the campaign agenda's GM card (with the embarrassing secret) never does: the player reads their agenda in their packet
   ownerHandouts: [{ kind: "agenda", when: "given", gmOnlyPurposes: [CAMPAIGN_AGENDA_CARD_PURPOSE], gmOnlyNote: "Players get their agenda in their packet; this card stays with you." }],
