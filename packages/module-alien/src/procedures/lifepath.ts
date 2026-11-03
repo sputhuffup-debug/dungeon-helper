@@ -634,13 +634,15 @@ export const lifepath: Procedure = {
   inputs: {
     type: "object",
     properties: {
-      name: { type: "string", description: "Character name; a placeholder is used when absent." },
+      name: { type: "string", title: "Name", description: "Character name; a placeholder is used when absent." },
       career: {
         type: "string",
+        title: "Career",
         enum: LIFEPATH_CAREERS.map((c) => c.id),
+        enumLabels: LIFEPATH_CAREERS.map((c) => c.name),
         description: "Career to apply for. When absent, one the PC can qualify for is picked at random.",
       },
-      terms: { type: "integer", minimum: 1, maximum: MAX_TERMS, default: 1, description: "Terms to serve (1-3; Kids serve one)." },
+      terms: { type: "integer", title: "Terms", minimum: 1, maximum: MAX_TERMS, default: 1, description: "Terms to serve (1-3; Kids serve one)." },
     },
   },
   steps: [

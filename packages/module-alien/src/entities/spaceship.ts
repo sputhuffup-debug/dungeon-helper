@@ -1,5 +1,5 @@
 import type { EntityTypeDef } from "@campaign-forge/module-sdk";
-import { SHIP_CLASS_IDS, enumField, intField, number, numberField, objectSchema, select, stringArray, stringField, text } from "./common";
+import { SHIP_CLASS_IDS, SHIP_CLASS_LABELS, enumField, labelledEnum, intField, number, numberField, objectSchema, select, stringArray, stringField, text } from "./common";
 
 /** Who the ship belongs to. Most are company or military ships run by employees; a proven crew may lease one (p. 121, 234). */
 export const SHIP_OWNERSHIP = ["company", "leased", "owned"] as const;
@@ -10,7 +10,7 @@ const componentDamageItem = {
   type: "object",
   properties: {
     name: { type: "string", title: "Damage", description: "Entry name from the minor (p. 145) or major (p. 146) component damage table." },
-    severity: { type: "string", enum: ["minor", "major"], default: "minor" },
+    severity: { type: "string", ...labelledEnum(["minor", "major"]), default: "minor" },
     effect: { type: "string" },
     heavyMachinery: { type: "integer", minimum: 0, default: 0, title: "Heavy Machinery rolls", description: "Repair rolls still needed, one per shift, each using a mechanical spare part (p. 147)." },
     comtech: { type: "integer", minimum: 0, default: 0, title: "Comtech rolls", description: "Repair rolls still needed, one per shift, each using an electronic spare part (p. 147)." },
@@ -21,7 +21,7 @@ const componentDamageItem = {
 
 /** Spaceship stat block as printed on p. 128-137 (attributes explained on p. 122). */
 export const spaceshipSchema = objectSchema({
-  shipClass: enumField(SHIP_CLASS_IDS, "M", "Ship class letter (p. 121)."),
+  shipClass: enumField(SHIP_CLASS_IDS, "M", "Ship class letter (p. 121).", SHIP_CLASS_LABELS),
   designation: stringField("Role line under the name, e.g. Commercial Starfreighter."),
   manufacturer: stringField(),
   cost: numberField({ minimum: 0, default: 0 }, "Price in W-Y dollars."),
@@ -60,7 +60,7 @@ export const spaceshipSchema = objectSchema({
     description: "What is in the holds. A cargo bay module's size sets how much fits (p. 123).",
     items: { type: "object", properties: { item: { type: "string" }, amount: { type: "string" }, note: { type: "string" } }, required: ["item"] },
   },
-  ownership: enumField(SHIP_OWNERSHIP, "company", "Company or military ship (the crew are employees), leased (2% of the price a year, p. 121), or owned outright."),
+  ownership: enumField(SHIP_OWNERSHIP, "company", "Company or military ship (the crew are employees), leased (2% of the price a year, p. 121), or owned outright.", { company: "Company or military", leased: "Leased", owned: "Owned outright" }),
 });
 
 export const spaceshipType: EntityTypeDef = {

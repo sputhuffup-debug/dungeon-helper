@@ -4,7 +4,7 @@ import { checkbox, enumField, objectSchema, select, stringField, text, textarea 
 export const CLUE_KINDS = ["physical", "document", "testimony", "sensor", "medical", "other"] as const;
 
 export const clueSchema = objectSchema({
-  clueKind: enumField(CLUE_KINDS, "other"),
+  clueKind: enumField(CLUE_KINDS, "other", undefined, { sensor: "Sensor reading" }),
   text: stringField("What the players learn when they find it."),
   truth: stringField("GM-only: what it really means."),
   foundBy: stringField("Skill or action that reveals it, e.g. Observation, Comtech."),

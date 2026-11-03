@@ -2,6 +2,7 @@ import { alienModule } from "@campaign-forge/module-alien";
 import { exampleModule, examplePackSource } from "@campaign-forge/module-example";
 import { dependentSteps, loadModule, loadPack, packFromSource, planEntry, type GeneratedGraph } from "@campaign-forge/module-sdk";
 import { describe, expect, it } from "vitest";
+import { describeEffect } from "./ResultsPanel";
 import { changedSteps, includedOptional, newSeed, runGenerator, stepRun, stepViews, summarizeValue, UnknownProcedureError, withoutDependentDice, type GeneratorRequest } from "./runner";
 
 const alien = loadModule(alienModule, { skipProcedureRuns: true });
@@ -123,9 +124,21 @@ describe("runGenerator", () => {
   });
 
   it("formats values compactly and makes fresh seeds", () => {
-    expect(summarizeValue({ label: "Weyland-Yutani", detail: { name: "W-Y", factionType: "corporation" } })).toBe("Weyland-Yutani (detail: W-Y (factionType: corporation))");
+    // an object reads as its label alone: the rest is under Raw result
+    expect(summarizeValue({ label: "Weyland-Yutani", detail: { name: "W-Y", factionType: "corporation" } })).toBe("Weyland-Yutani");
+    expect(summarizeValue({ job: "01M6FWNGKYSE36238Z2QRPKYBE", name: "Foodstuff", label: "Foodstuff to the outpost: $16,000", amount: 16000 })).toBe("Foodstuff to the outpost: $16,000");
+    // without a label: readable keys, no ids, nothing nested past one level
+    expect(summarizeValue({ amount: 1440, personDays: 120, ship: "01M6FWJMER5GZNKBBT15XJ63CX", links: { ship: "x" } })).toBe("Amount: 1440, Person days: 120");
+    expect(summarizeValue({ need: { mechanical: 0, electronic: 1 } })).toBe("Need: (Mechanical: 0, Electronic: 1)");
+    // a describer names objects it knows (effects)
+    expect(summarizeValue([{ kind: "ledger", amount: 5 }, { label: "B" }], 220, (o) => (o.kind === "ledger" ? `Ledger +${String(o.amount)}` : undefined))).toBe("Ledger +5; B");
     expect(summarizeValue([{ label: "A" }, { label: "B" }])).toBe("A; B");
     expect(summarizeValue(true)).toBe("yes");
+    // effects in words, never JSON
+    const name = () => "MV Skyfire";
+    expect(describeEffect({ kind: "setField", entity: "s", path: "componentDamage", value: [] }, name)).toBe("MV Skyfire: component damage set to none");
+    expect(describeEffect({ kind: "setField", entity: "s", path: "spareParts", value: { mechanical: 0, electronic: 2 } }, name)).toBe("MV Skyfire: spare parts set to mechanical 0, electronic 2");
+    expect(describeEffect({ kind: "incrementField", entity: "s", path: "hullDamage", by: -2 }, name)).toBe("MV Skyfire: hull damage −2");
     expect(summarizeValue("x".repeat(400)).length).toBe(220);
     const a = newSeed();
     expect(a).toMatch(/^[0-9a-z]{4,10}$/);

@@ -1,7 +1,7 @@
 /** Every procedure step in order: its rolls, result, skip reason, and per-step re-roll / pin / include / enter roll. */
 import type { DieSpec, RollRecord, Rng } from "@campaign-forge/module-sdk";
 import { Badge, Button, EnterDice, PageRef, ProvenanceBadge, RollRecordList } from "../../components/ui";
-import { summarizeValue, type StepView } from "./runner";
+import { summarizeValue, type DescribeValue, type StepView } from "./runner";
 
 export interface StepListProps {
   steps: StepView[];
@@ -28,9 +28,13 @@ export interface StepListProps {
   onClearEntered?: (stepId: string) => void;
   /** The module's dice, for the entry inputs' colours. */
   dice?: DieSpec[];
+  /** Readable lines for objects in results the page knows (effects), instead of their raw keys. */
+  describe?: DescribeValue;
+  /** A table's name by its id, shown instead of the id. */
+  tableName?: (id: string) => string | undefined;
 }
 
-export function StepList({ steps, changed, pinnedRolls, includeOptional, onReroll, onPin, onUnpin, onResetSeed, onToggleOptional, entering, canEnter, onEnter, onEntered, onSkipEnter, onCancelEnter, onClearEntered, dice }: StepListProps) {
+export function StepList({ steps, changed, pinnedRolls, includeOptional, onReroll, onPin, onUnpin, onResetSeed, onToggleOptional, entering, canEnter, onEnter, onEntered, onSkipEnter, onCancelEnter, onClearEntered, dice, describe, tableName }: StepListProps) {
   const titleOf = (id: string) => steps.find((s) => s.id === id)?.title ?? id;
   return (
     <ol className="prep-steps" aria-label="Procedure steps">
@@ -45,7 +49,7 @@ export function StepList({ steps, changed, pinnedRolls, includeOptional, onRerol
                 <strong>{s.title}</strong>
                 <span className="app-row prep-step__meta">
                   <PageRef page={s.page} />
-                  {s.table && <span className="cf-mono cf-muted">{s.table}</span>}
+                  {s.table && <span className="cf-muted">{tableName?.(s.table) ?? s.table}</span>}
                   {s.kind === "compute" && <span className="cf-muted">computed</span>}
                   {s.repeat && <span className="cf-muted">repeats</span>}
                   {s.optional && <Badge>optional</Badge>}
@@ -119,14 +123,14 @@ export function StepList({ steps, changed, pinnedRolls, includeOptional, onRerol
                 {rolls.length > 0 && (
                   <ul className="prep-rolls">
                     {rolls.map((r, j) => (
-                      <RollLine key={`${r.step}-${r.iteration ?? 0}-${j}`} roll={r} />
+                      <RollLine key={`${r.step}-${r.iteration ?? 0}-${j}`} roll={r} tableName={tableName} />
                     ))}
                   </ul>
                 )}
                 {s.hasResult && (
                   <div className="prep-step__result">
                     <span className="prep-step__value" data-testid={`step-result-${s.id}`}>
-                      {s.display ?? summarizeValue(s.result)}
+                      {s.display ?? summarizeValue(s.result, 220, describe)}
                     </span>
                     <ProvenanceBadge kind={s.state === "pinned" ? "edited" : s.kind === "compute" ? "computed" : "rolled"} label={s.state === "pinned" ? "pinned" : undefined} rolls={rolls} detail={`Step ${s.id}`} onReroll={s.state === "pinned" ? undefined : () => onReroll(s.id)} />
                   </div>
@@ -147,7 +151,7 @@ export function StepList({ steps, changed, pinnedRolls, includeOptional, onRerol
   );
 }
 
-function RollLine({ roll }: { roll: RollRecord }) {
+function RollLine({ roll, tableName }: { roll: RollRecord; tableName?: ((id: string) => string | undefined) | undefined }) {
   return (
     <li className="prep-roll">
       {roll.iteration !== undefined && <span className="prep-roll__iter">#{roll.iteration + 1}</span>}
@@ -159,7 +163,7 @@ function RollLine({ roll }: { roll: RollRecord }) {
       <PageRef page={roll.page} cite={roll.cite} />
       {roll.nested && roll.nested.length > 0 && (
         <div className="prep-roll__nested">
-          <RollRecordList rolls={roll.nested} />
+          <RollRecordList rolls={roll.nested} {...(tableName ? { tableName } : {})} />
         </div>
       )}
     </li>

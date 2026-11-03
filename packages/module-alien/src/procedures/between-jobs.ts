@@ -24,6 +24,7 @@
  * ledger postings and field changes land in `results.effects` for the GM to
  * apply.
  */
+import { FRAME_LABELS, LIVING_STANDARD_LABELS, labelledEnum } from "../entities/common";
 import type { Effect, EntitySnapshot, LedgerEffect, Procedure, ProcedureContext, Rng } from "@campaign-forge/module-sdk";
 import { ELECTRONIC_PART_COST, LEDGER, MECHANICAL_PART_COST, PROVISIONS_PER_DAY } from "../economy";
 import { LEASE_RATE_PER_YEAR } from "../entities/spaceship";
@@ -121,17 +122,17 @@ export const betweenJobs: Procedure = {
     properties: {
       job: { type: "object", title: "Finished job", "x-entity": { types: ["alien.job"] }, description: "Its payment goes into crew funds, once (p. 244)." },
       ship: { type: "object", title: "Crew's ship", "x-entity": { types: ["alien.spaceship"], setting: "ship" }, description: "Repairs, spare parts, provisions and lease come from its sheet." },
-      weeks: { type: "integer", minimum: 0, default: 1, description: "Weeks in port: lease pro rata and shore leave weeks." },
-      repairShifts: { type: "integer", minimum: 0, default: 10, description: "Shifts of repair work available per job (one roll per shift, p. 147)." },
-      heavyMachineryDice: { type: "integer", minimum: 1, default: 5, description: "Base dice for the best Heavy Machinery repair roll (Strength + skill + tools)." },
-      comtechDice: { type: "integer", minimum: 1, default: 5, description: "Base dice for the best Comtech repair roll (Wits + skill + tools)." },
-      buyParts: { type: "boolean", default: true, description: "Buy missing spare parts in port (p. 147)." },
-      provisionsTarget: { type: "integer", minimum: 0, default: 120, description: "Top food and water up to this many person-days ($12 each, p. 99)." },
-      dockingFees: { type: "number", minimum: 0, default: 0, description: "Your own figure: the book prices no docking fees." },
-      fuel: { type: "number", minimum: 0, default: 0, description: "Your own figure: the book prices no fuel." },
-      frame: { type: "string", enum: ["space-truckers", "colonial-marines", "frontier-colonists"], default: "space-truckers", description: "For the next job." },
-      pcCount: { type: "integer", minimum: 1, default: 4 },
-      livingStandard: { type: "string", enum: ["minimum", "basic", "normal", "luxurious"], default: "normal", description: "For shore leave (p. 116)." },
+      weeks: { type: "integer", title: "Weeks in port", minimum: 0, default: 1, description: "Weeks in port: lease pro rata and shore leave weeks." },
+      repairShifts: { type: "integer", title: "Repair shifts", minimum: 0, default: 10, description: "Shifts of repair work available per job (one roll per shift, p. 147)." },
+      heavyMachineryDice: { type: "integer", title: "Heavy Machinery dice", minimum: 1, default: 5, description: "Base dice for the best Heavy Machinery repair roll (Strength + skill + tools)." },
+      comtechDice: { type: "integer", title: "Comtech dice", minimum: 1, default: 5, description: "Base dice for the best Comtech repair roll (Wits + skill + tools)." },
+      buyParts: { type: "boolean", title: "Buy spare parts", default: true, description: "Buy missing spare parts in port (p. 147)." },
+      provisionsTarget: { type: "integer", title: "Provisions target", minimum: 0, default: 120, description: "Top food and water up to this many person-days ($12 each, p. 99)." },
+      dockingFees: { type: "number", title: "Docking fees ($)", minimum: 0, default: 0, description: "Your own figure: the book prices no docking fees." },
+      fuel: { type: "number", title: "Fuel ($)", minimum: 0, default: 0, description: "Your own figure: the book prices no fuel." },
+      frame: { type: "string", title: "Frame", ...labelledEnum(["space-truckers", "colonial-marines", "frontier-colonists"], FRAME_LABELS), default: "space-truckers", description: "For the next job." },
+      pcCount: { type: "integer", title: "PCs", minimum: 1, default: 4, description: "For the next job." },
+      livingStandard: { type: "string", title: "Living standard", ...labelledEnum(["minimum", "basic", "normal", "luxurious"], LIVING_STANDARD_LABELS), default: "normal", description: "For shore leave (p. 116)." },
     },
   },
   steps: [

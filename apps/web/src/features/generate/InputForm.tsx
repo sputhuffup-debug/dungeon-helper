@@ -1,6 +1,6 @@
 /** Procedure input form generated from the procedure's `inputs` JSON Schema. */
 import type { CampaignStore } from "@campaign-forge/core";
-import type { ArcSnapshot, LoadedModule } from "@campaign-forge/module-sdk";
+import { enumLabel, type ArcSnapshot, type LoadedModule } from "@campaign-forge/module-sdk";
 import { Button, IconButton } from "../../components/ui";
 import { humanize } from "../../lib/format";
 import { adventureInput, adventurePcs, campaignHint, characterArraysFor, characterItem, entityHint, entitySnapshot, isAdventureInput, isArcsInput, isCharacterArray, playerCharacters, schemaTypeOf, type DocText, type Schema } from "./prefill";
@@ -159,7 +159,7 @@ export function ScalarInput({ name, schema, value, onChange }: { name: string; s
         {(!hasDefault || value === undefined) && <option value="">Decide by rolling</option>}
         {schema.enum.map((opt) => (
           <option key={String(opt)} value={String(opt)}>
-            {humanize(String(opt))}
+            {enumLabel(schema, opt) ?? humanize(String(opt))}
           </option>
         ))}
       </select>

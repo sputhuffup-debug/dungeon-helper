@@ -16,6 +16,7 @@
  * players only ever see its player-facing title and the clues they find
  * (crew notes). All text is original.
  */
+import { labelledEnum } from "../entities/common";
 import { createRng, type ArcDraft, type ArcSnapshot, type Offer, type OfferSet, type OfferSlot, type PageRef, type Procedure, type ProcedureContext, type ProducedEntity, type Rng } from "@campaign-forge/module-sdk";
 import { factionPresets, minorFactionPresets } from "../data/factions";
 import { locationPresets } from "../data/charted-space";
@@ -246,7 +247,7 @@ function buildThread(ctx: ProcedureContext, index: number, cast: ThreadCast, use
   const titleTemplate = GM_TITLES[part("title", (r) => pickIndex(r, GM_TITLES.length)) % GM_TITLES.length]!;
   const playerTitle = scheme.playerTitles[part("player-title", (r) => pickIndex(r, scheme.playerTitles.length)) % scheme.playerTitles.length]!;
 
-  const vars: Record<string, string> = { sponsor: sponsor.name, subject: scheme.subject, item: scheme.item, front: method.front, agent: method.agent, home: cast.home, codename, goalLower: lowerFirst(scheme.goal) };
+  const vars: Record<string, string> = { sponsor: sponsor.name, subject: scheme.subject, item: scheme.item, front: method.front, agent: method.agent, theAgent: method.agent.replace(/^an? /, "the "), home: cast.home, codename, goalLower: lowerFirst(scheme.goal) };
   const site = fill(siteRaw, vars);
   vars.site = site;
   const title = fill(titleTemplate, vars);
@@ -393,8 +394,8 @@ export const campaignThread: Procedure = {
     type: "object",
     properties: {
       threads: { type: "integer", title: "Threads", minimum: 1, maximum: 3, default: 2 },
-      sponsors: { type: "string", title: "Sponsors", enum: [...SPONSOR_MODES], default: "mixed", description: "Factions already in the campaign, minor corporations from the book's list (p. 162) added GM-only, or a mix. Each thread gets its own sponsor." },
-      stages: { type: "string", title: "Stages", enum: [...STAGE_COUNTS], default: "random", description: "Stages per thread, from the first hints to the endgame." },
+      sponsors: { type: "string", title: "Sponsors", ...labelledEnum(SPONSOR_MODES, { mixed: "A mix", campaign: "The campaign's factions", new: "New corporations" }), default: "mixed", description: "Factions already in the campaign, minor corporations from the book's list (p. 162) added GM-only, or a mix. Each thread gets its own sponsor." },
+      stages: { type: "string", title: "Stages", ...labelledEnum(STAGE_COUNTS, { random: "3 to 5 (random)", "3": "3", "4": "4", "5": "5" }), default: "random", description: "Stages per thread, from the first hints to the endgame." },
       campaign: {
         type: "object",
         title: "Campaign",

@@ -392,7 +392,7 @@ const definitions: Record<string, JsonSchema> = {
     ["path"],
   ),
   sheetSection: object<SheetSection>()(
-    { id: ref("id"), title: text, mode: ref("modes"), columns: int({ minimum: 1, maximum: 12 }), fields: list(ref("sheetField")), collapsed: bool },
+    { id: ref("id"), title: text, mode: ref("modes"), columns: int({ minimum: 1, maximum: 12 }), fields: list(ref("sheetField")), collapsed: bool, when: logic },
     ["id", "title", "fields"],
   ),
   sheet: object<SheetLayout>()({ sections: list(ref("sheetSection")), summary: list(str()), create: list(str()) }, ["sections"]),

@@ -73,3 +73,36 @@
   background: #ffffff;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
 }
+/* on screen: the picked panels as cards */
+.app-screen {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  gap: var(--cf-space-4);
+  align-items: start;
+}
+.app-screen__block + .app-screen__block {
+  margin-top: var(--cf-space-3);
+}
+.app-screen__title {
+  margin: 0 0 var(--cf-space-1);
+  font-size: var(--cf-text-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.app-screen__cite {
+  font-weight: normal;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.app-screen__heading {
+  margin: var(--cf-space-2) 0 var(--cf-space-1);
+  font-size: var(--cf-text-sm);
+}
+.app-screen__para {
+  margin: 0 0 var(--cf-space-1);
+  font-size: var(--cf-text-sm);
+  overflow-wrap: anywhere;
+}
+.app-screen__table {
+  font-size: var(--cf-text-xs);
+}

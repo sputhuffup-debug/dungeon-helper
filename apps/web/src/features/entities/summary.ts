@@ -1,5 +1,5 @@
 import { getPath, sheetValueText, type Entity } from "@campaign-forge/core";
-import { computeFields, type EntityTypeDef, type SheetField } from "@campaign-forge/module-sdk";
+import { computeFields, enumLabel, fieldSchemaAt, type EntityTypeDef, type SheetField } from "@campaign-forge/module-sdk";
 import { labelFromPath } from "../../components/ui";
 
 /** A reference list item's name (a career, a talent), for readable summaries. */
@@ -21,7 +21,8 @@ export function summaryLine(def: EntityTypeDef | undefined, entity: Pick<Entity,
     if (v === undefined || v === null || v === "" || (Array.isArray(v) && v.length === 0)) continue;
     const label = labelOf(def, path);
     const field = sheetFieldOf(def, path);
-    const shown = typeof v === "string" && referenceName && field ? sheetValueText(field, v, { referenceName, entityName: () => undefined }) || v : v;
+    const schema = fieldSchemaAt(def, path);
+    const shown = typeof v === "string" ? (enumLabel(schema, v) ?? (referenceName && field ? sheetValueText(field, v, { referenceName, entityName: () => undefined }, schema) || v : v)) : v;
     const text = typeof shown === "boolean" ? (shown ? label : "") : typeof shown === "object" ? "" : `${label} ${String(shown)}`;
     if (text) parts.push(text);
   }

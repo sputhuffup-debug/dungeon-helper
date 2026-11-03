@@ -22,11 +22,11 @@ test("the campaign list groups starting, demos and campaigns by game module", as
   await expect(alien.getByText("No campaigns with this module yet.")).toBeVisible();
 
   // "Start a campaign" opens New campaign with that module already chosen
-  await orc.getByRole("button", { name: /^Start a .* campaign$/ }).click();
+  await orc.getByRole("button", { name: /^Start a campaign: / }).click();
   const dialog = page.getByRole("dialog", { name: "New campaign" });
   await expect(dialog.getByRole("combobox", { name: "Game module" })).toHaveValue("pf2e-orc");
   await dialog.getByRole("button", { name: "Cancel" }).click();
   // another section's button switches the choice
-  await dnd5e.getByRole("button", { name: /^Start a .* campaign$/ }).click();
+  await dnd5e.getByRole("button", { name: /^Start a campaign: / }).click();
   await expect(dialog.getByRole("combobox", { name: "Game module" })).toHaveValue("dnd5e-srd");
 });

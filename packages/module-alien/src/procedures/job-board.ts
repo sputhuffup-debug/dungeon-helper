@@ -23,6 +23,7 @@
  * links an existing one), the NPCs (the contact visible to the players, the
  * rest GM-only until met) and a player handout with the posting text only.
  */
+import { FRAME_LABELS, labelledEnum } from "../entities/common";
 import { createRng, runProcedure, type ModuleManifest, type Offer, type OfferSet, type OfferSlot, type Procedure, type ProcedureContext, type ProducedEntity, type ProducedRelationship, type Rng } from "@campaign-forge/module-sdk";
 import { npcPresets } from "../data/npc-presets";
 import { manifest } from "../manifest";
@@ -108,6 +109,13 @@ const fillWith = (vars: Record<string, string>) => (text: string): string =>
     return k.charAt(0) === k.charAt(0).toUpperCase() && k.charAt(0) !== lower.charAt(0) ? v.charAt(0).toUpperCase() + v.slice(1) : v;
   });
 const money = (n: number) => `$${n.toLocaleString("en-US")}`;
+/** True for cargo named in the plural ("metal ingots or pellets", "weapons & armor", "livestock/animals"): a word of it ends in a plural "s". */
+export function pluralCargo(what: string): boolean {
+  return what
+    .toLowerCase()
+    .split(/[\s/&]+/)
+    .some((w) => w.length > 3 && /[^s]s$/.test(w) && !/(us|is)$/.test(w));
+}
 /** How a destination row reads in a posting (module-original); others read "the <label>". */
 const DEST_TEXT: Record<string, string> = {
   "Only Coordinates": "a set of deep-space coordinates",
@@ -321,7 +329,7 @@ function buildPosting(ctx: ProcedureContext, index: number, cast: BoardCast, tak
   const publicEmployer = poster.clientShown ? employerName : "the client";
   const what = (labels.mission || "the job").toLowerCase();
   const destShort = labels.destination ? (DEST_TEXT[labels.destination] ?? `the ${labels.destination.toLowerCase()}`) : "the destination";
-  const vars = { employer: publicEmployer, home: cast.home, dest: destShort, what, postedBy: poster.postedBy, prize: fk === "truckers" ? `the ${what}` : "the objective", contact: "the contact" };
+  const vars = { employer: publicEmployer, home: cast.home, dest: destShort, what, goes: pluralCargo(what) ? "go" : "goes", postedBy: poster.postedBy, prize: fk === "truckers" ? `the ${what}` : "the objective", contact: "the contact" };
   const fill = fillWith(vars);
   const risk = part("risk", (r) => {
     const x = r.int(1, 6);
@@ -746,22 +754,22 @@ export const jobBoard: Procedure = {
     type: "object",
     properties: {
       postings: { type: "integer", title: "Postings", minimum: 1, maximum: 6, default: 3 },
-      frame: { type: "string", title: "Frame", enum: ["space-truckers", "colonial-marines", "frontier-colonists"], default: "space-truckers" },
+      frame: { type: "string", title: "Frame", ...labelledEnum(["space-truckers", "colonial-marines", "frontier-colonists"], FRAME_LABELS), default: "space-truckers" },
       employerBias: {
         type: "string",
         title: "Employer bias",
-        enum: [...EMPLOYER_BIASES],
+        ...labelledEnum(EMPLOYER_BIASES, { any: "Any employer" }),
         default: "any",
         description: "Prefer employers of this kind: the employer roll is repeated a few times until one fits (Colonial Marines take orders from the Corps).",
       },
       treachery: {
         type: "string",
         title: "NPC treachery",
-        enum: [...TREACHERY_DIAL],
+        ...labelledEnum(TREACHERY_DIAL),
         default: "rare",
         description: "How often the job's NPCs betray the crew: none (no betrayal, no hidden synthetics), rare or common. The contact betrays less often.",
       },
-      marineCorps: { type: "string", title: "Marine corps", enum: ["uscmc", "space-operating-forces", "royal-marines-commandos"], description: "Colonial Marines only (p. 235)." },
+      marineCorps: { type: "string", title: "Marine corps", ...labelledEnum(["uscmc", "space-operating-forces", "royal-marines-commandos"], { uscmc: "USCMC", "space-operating-forces": "Space Operating Forces", "royal-marines-commandos": "Royal Marines Commandos" }), description: "Colonial Marines only (p. 235)." },
       pcCount: { type: "integer", title: "PCs", minimum: 1, maximum: 8, default: 4, description: "Used only when the campaign has no PCs." },
       campaign: {
         type: "object",

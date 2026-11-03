@@ -13,6 +13,7 @@
  * and `results.effects` holds Effect-shaped suggestions for the GM to accept.
  * Rolls the procedure cannot make (Empathy, agenda success) become prompts.
  */
+import { LIVING_STANDARD_LABELS, labelledEnum } from "../entities/common";
 import type { Effect, Procedure, ProcedureContext } from "@campaign-forge/module-sdk";
 import { input, isObj, list, str } from "./helpers";
 import { SHORE_LEAVE_AGENDA_AWARD } from "../progression";
@@ -74,21 +75,23 @@ export const shoreLeave: Procedure = {
     properties: {
       characters: {
         type: "array",
+        title: "Characters",
         default: [],
         items: {
           type: "object",
           properties: {
             id: { type: "string" },
             name: { type: "string" },
-            choice: { type: "string", enum: [...SHORE_LEAVE_CHOICES] },
-            isMarine: { type: "boolean", default: false, description: "Colonial Marines roll on their own event table." },
+            choice: { type: "string", title: "Activity", ...labelledEnum(SHORE_LEAVE_CHOICES, { "pursue-agenda": "Pursue agenda" }) },
+            isMarine: { type: "boolean", title: "Marine", default: false, description: "Colonial Marines roll on their own event table." },
           },
           required: ["id", "name", "choice"],
         },
       },
       livingStandard: {
         type: "string",
-        enum: Object.keys(LIVING_EXPENSES),
+        title: "Living standard",
+        ...labelledEnum(Object.keys(LIVING_EXPENSES), LIVING_STANDARD_LABELS),
         default: "normal",
         description: "Weekly living expenses: minimum $25, basic $100, normal $300, luxurious $2,000 (p. 116).",
       },

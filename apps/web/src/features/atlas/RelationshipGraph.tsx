@@ -2,7 +2,7 @@
  * A force-less relationship graph: entities as nodes in one column per kind,
  * relationships as lines. Hovering a node highlights its neighbourhood.
  */
-import type { Entity, Id, Relationship } from "@campaign-forge/core";
+import { canSee, type Entity, type Id, type Relationship } from "@campaign-forge/core";
 import type { EntityTypeDef, GameModule } from "@campaign-forge/module-sdk";
 import { useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
@@ -21,9 +21,11 @@ export interface RelationshipGraphProps {
   typeById: Map<string, EntityTypeDef>;
   module: GameModule;
   label: (rel: Relationship, direction: "out" | "in", module?: GameModule) => string;
+  /** Preview as player: only relationships players may see, and entity pages open in the preview. */
+  asPlayer?: boolean;
 }
 
-export function RelationshipGraph({ entities, typeById, module, label }: RelationshipGraphProps) {
+export function RelationshipGraph({ entities, typeById, module, label, asPlayer = false }: RelationshipGraphProps) {
   const { campaignId } = useCampaign();
   const navigate = useNavigate();
   const rels = useList("relationships");
@@ -44,9 +46,9 @@ export function RelationshipGraph({ entities, typeById, module, label }: Relatio
       maxRows = Math.max(maxRows, col.length);
       col.forEach((e, ri) => pos.set(e.id, { x: PAD + ci * COL_W + 8, y: PAD + 28 + ri * ROW_H }));
     });
-    const edges = rels.filter((r) => pos.has(r.from) && pos.has(r.to));
+    const edges = rels.filter((r) => pos.has(r.from) && pos.has(r.to) && (!asPlayer || canSee(r.visibility, { role: "player" })));
     return { kinds, byKind, pos, edges, width: PAD * 2 + Math.max(1, kinds.length) * COL_W, height: PAD * 2 + 28 + maxRows * ROW_H };
-  }, [entities, typeById, rels]);
+  }, [entities, typeById, rels, asPlayer]);
 
   if (entities.length === 0) return <EmptyState title="Nothing to draw" text="Entities and their relationships appear here." />;
 
@@ -95,9 +97,9 @@ export function RelationshipGraph({ entities, typeById, module, label }: Relatio
               onMouseLeave={() => setHover(undefined)}
               onFocus={() => setHover(e.id)}
               onBlur={() => setHover(undefined)}
-              onClick={() => void navigate({ to: "/c/$campaignId/entities/$entityId", params: { campaignId, entityId: e.id } })}
+              onClick={() => void navigate({ to: "/c/$campaignId/entities/$entityId", params: { campaignId, entityId: e.id }, search: asPlayer ? { as: "player" } : {} })}
               onKeyDown={(ev) => {
-                if (ev.key === "Enter") void navigate({ to: "/c/$campaignId/entities/$entityId", params: { campaignId, entityId: e.id } });
+                if (ev.key === "Enter") void navigate({ to: "/c/$campaignId/entities/$entityId", params: { campaignId, entityId: e.id }, search: asPlayer ? { as: "player" } : {} });
               }}
               tabIndex={0}
               role="link"
