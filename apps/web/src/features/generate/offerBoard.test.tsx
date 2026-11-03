@@ -67,7 +67,8 @@ describe("the job board as a draft", () => {
     expect(cards()[1]!.getAttribute("data-state")).toBe("open");
     expect(screen.getByTestId("offers-acted").textContent).toContain("1 of 3");
 
-    // discard the third, then keep the other one as a lead
+    // discard the third, then keep the other one as a lead (the board's buttons wait until the take has finished)
+    await waitFor(() => expect(within(cards()[2]!).getByTestId("offer-discard").hasAttribute("disabled")).toBe(false), { timeout: 8000 });
     fireEvent.click(within(cards()[2]!).getByTestId("offer-discard"));
     await waitFor(() => expect(cards()).toHaveLength(2), { timeout: 8000 });
     fireEvent.click(screen.getByTestId("offers-keep-others"));
