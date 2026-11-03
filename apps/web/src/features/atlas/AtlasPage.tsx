@@ -11,7 +11,7 @@ import { visibilityLabel, visibilityTone } from "../../components/VisibilitySele
 import { Badge, EmptyState, Tabs } from "../../components/ui";
 import { useCampaign, useList, useMapVersion } from "../../state/hooks";
 import { summaryLine } from "../entities/summary";
-import { BuildCharacterButton, DraftList, useCharacterBuilder } from "../builder/entry";
+import { BuildCharacterButton, CharacterProcedureLinks, DraftList, useCharacterBuilder, useCharacterProcedures } from "../builder/entry";
 import { RelationshipGraph } from "./RelationshipGraph";
 
 const PLAYER: Viewer = { role: "player" };
@@ -112,6 +112,7 @@ export function AtlasPage() {
   ];
 
   const pcBuilder = useCharacterBuilder();
+  const pcProcedures = useCharacterProcedures({ pc: true });
   const typesForTab = (() => {
     const g = groups.find((x) => x.id === tab);
     if (g) return types.filter((t) => t.kind === g.kind);
@@ -129,7 +130,8 @@ export function AtlasPage() {
             Preview as player
           </label>
           {tab === "pcs" && pcBuilder && <BuildCharacterButton entityType={pcBuilder.entityType} />}
-          <Link to="/c/$campaignId/entities/new" params={{ campaignId: ctx.campaignId }} search={typesForTab.length === 1 && typesForTab[0] ? { type: typesForTab[0].id, ...(tab === "pcs" ? { pc: 1 as const } : {}) } : {}} className={`cf-btn${tab === "pcs" && pcBuilder ? "" : " cf-btn--primary"}`}>
+          {tab === "pcs" && <CharacterProcedureLinks pc primary={!pcBuilder} />}
+          <Link to="/c/$campaignId/entities/new" params={{ campaignId: ctx.campaignId }} search={typesForTab.length === 1 && typesForTab[0] ? { type: typesForTab[0].id, ...(tab === "pcs" ? { pc: 1 as const } : {}) } : {}} className={`cf-btn${tab === "pcs" && (pcBuilder || pcProcedures.length > 0) ? "" : " cf-btn--primary"}`}>
             + New
           </Link>
         </div>
@@ -217,18 +219,22 @@ function TreeItem({ node, keep, typeById }: { node: TreeNode; keep: (n: TreeNode
 
 function EntityTable({ entities, typeById, kind, pc }: { entities: Entity[]; typeById: Map<string, EntityTypeDef>; kind?: CoreEntityKind; pc?: boolean }) {
   const { campaignId, module } = useCampaign();
+  const refName = (list: string, id: string) => module.referenceItem(list, id)?.name;
   const sorted = [...entities].sort((a, b) => a.name.localeCompare(b.name));
   if (sorted.length === 0) {
     const def = module.module.entityTypes.find((t) => t.kind === kind);
     return (
       <EmptyState
         title="Nothing here yet"
-        text={pc ? "Player characters are characters marked as PCs." : "Create one from a preset or from scratch."}
+        text={pc ? "Player characters are characters marked as PCs: roll one, or make one by hand." : "Create one from a preset or from scratch."}
         action={
           def && (
-            <Link to="/c/$campaignId/entities/new" params={{ campaignId }} search={{ type: def.id, ...(pc ? { pc: 1 as const } : {}) }} className="cf-btn">
-              + {def.name}
-            </Link>
+            <span className="app-row">
+              {pc && <CharacterProcedureLinks entityType={def.id} pc primary />}
+              <Link to="/c/$campaignId/entities/new" params={{ campaignId }} search={{ type: def.id, ...(pc ? { pc: 1 as const } : {}) }} className="cf-btn">
+                + {def.name}
+              </Link>
+            </span>
           )
         }
       />
@@ -261,7 +267,7 @@ function EntityTable({ entities, typeById, kind, pc }: { entities: Entity[]; typ
                   {def?.name ?? e.type}
                   {subtype ? ` · ${subtype}` : ""}
                 </td>
-                <td className="cf-muted">{summaryLine(def, e)}</td>
+                <td className="cf-muted">{summaryLine(def, e, [], refName)}</td>
                 <td>
                   {e.tags.map((t) => (
                     <Badge key={t}>{t}</Badge>

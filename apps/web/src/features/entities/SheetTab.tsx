@@ -96,6 +96,7 @@ export function SheetTab({ entity, def }: { entity: Entity; def: EntityTypeDef |
               readonly
               referenceLists={referenceLists}
               resolveEntityName={resolveEntityName}
+              entityId={entity.id}
               onOpenRule={onOpenRule}
             />
           </>
@@ -119,6 +120,7 @@ export function SheetTab({ entity, def }: { entity: Entity; def: EntityTypeDef |
           dice={ctx.module.module.dice}
           presetsFor={sources.presetsFor}
           entitiesOf={sources.entitiesOf}
+          entityId={entity.id}
           {...mapField}
         />
       )}

@@ -222,7 +222,7 @@ function JobBoard({ def }: { def: EntityTypeDef }) {
               {col.jobs.map((j) => (
                 <Link key={j.id} to="/c/$campaignId/entities/$entityId" params={{ campaignId, entityId: j.id }} className="app-board__card">
                   <strong>{j.name}</strong>
-                  <span className="cf-muted">{summaryLine(def, j, ["status"])}</span>
+                  <span className="cf-muted">{summaryLine(def, j, ["status"], (list, id) => ctx.module.referenceItem(list, id)?.name)}</span>
                 </Link>
               ))}
             </div>

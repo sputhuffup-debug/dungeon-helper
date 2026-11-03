@@ -3874,3 +3874,12 @@ a.cf-btn {
 .cf-card[id^="settings-"] {
   scroll-margin-top: 7rem;
 }
+
+/* the generator workbench is one column below 1000px: the side preview sits under the inputs and steps
+   (the refinements above set two columns again for every width) */
+@media (max-width: 1000px) {
+  .prep-workbench__grid,
+  .prep-workbench__grid.has-agendas {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

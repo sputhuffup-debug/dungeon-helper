@@ -1,16 +1,29 @@
-/** What the run will create: entities (names editable before accept) and relationships. */
+/**
+ * What the run will create: entities (names editable before accept) and
+ * relationships. Field values read as the sheet shows them: reference ids
+ * by their item's name (a career, talents with their count), list rows by
+ * name and quantity (gear, weapons), entity references by name. The raw
+ * results stay behind each step's "Raw result" toggle.
+ */
+import { sheetValueText, type SheetValueContext } from "@campaign-forge/core";
 import type { GeneratedGraph } from "@campaign-forge/module-sdk";
 import { EntityIcon } from "../../components/EntityIcon";
 import { Badge, Card } from "../../components/ui";
 import { humanize } from "../../lib/format";
 import { useCampaign } from "../../state/hooks";
-import { summaryLine } from "../entities/summary";
+import { sheetFieldOf, summaryLine } from "../entities/summary";
 import { summarizeValue } from "./runner";
 
 export function PreviewPanel({ graph, names, onRename }: { graph: GeneratedGraph; names: Record<string, string>; onRename: (tempId: string, name: string) => void }) {
-  const { module } = useCampaign();
+  const { module, store } = useCampaign();
   const { entities, relationships } = graph.produced;
   const nameOf = (tempId: string) => names[tempId] ?? entities.find((e) => e.tempId === tempId)?.name ?? tempId;
+  const referenceName = (list: string, id: string) => module.referenceItem(list, id)?.name;
+  const cx: SheetValueContext = {
+    referenceName,
+    entityName: (id) => store.get("entities", id)?.name ?? (entities.some((e) => e.tempId === id) ? nameOf(id) : undefined),
+    isEntity: (id) => store.has("entities", id) || entities.some((e) => e.tempId === id),
+  };
   const relLabel = (type: string) => module.relationshipTypes.find((r) => r.id === type)?.forward ?? humanize(type);
   if (entities.length === 0) {
     return (
@@ -26,7 +39,7 @@ export function PreviewPanel({ graph, names, onRename }: { graph: GeneratedGraph
           const def = module.entityType(e.type);
           const subtype = e.subtype ?? (typeof e.fields.subtype === "string" ? e.fields.subtype : undefined);
           const subName = subtype ? (def?.subtypes?.find((s) => s.id === subtype)?.name ?? humanize(subtype)) : undefined;
-          const summary = summaryLine(def, e);
+          const summary = summaryLine(def, e, [], referenceName);
           const keyFields = Object.entries(e.fields)
             .filter(([k, v]) => k !== "subtype" && v !== undefined && v !== "" && !(Array.isArray(v) && v.length === 0) && (typeof v !== "object" || Array.isArray(v)))
             .slice(0, 8);
@@ -56,12 +69,16 @@ export function PreviewPanel({ graph, names, onRename }: { graph: GeneratedGraph
               {summary && <p className="cf-muted">{summary}</p>}
               {keyFields.length > 0 && (
                 <dl className="app-dl">
-                  {keyFields.map(([k, v]) => (
-                    <div key={k} className="app-dl__row">
-                      <dt>{humanize(k)}</dt>
-                      <dd>{summarizeValue(v, 140)}</dd>
-                    </div>
-                  ))}
+                  {keyFields.map(([k, v]) => {
+                    const field = sheetFieldOf(def, k);
+                    const text = typeof v === "boolean" ? (v ? "Yes" : "No") : field ? sheetValueText(field, v, cx) : "";
+                    return (
+                      <div key={k} className="app-dl__row" data-field={k}>
+                        <dt>{field?.label ?? humanize(k)}</dt>
+                        <dd>{text ? (text.length > 140 ? `${text.slice(0, 139)}…` : text) : summarizeValue(v, 140)}</dd>
+                      </div>
+                    );
+                  })}
                 </dl>
               )}
             </li>
