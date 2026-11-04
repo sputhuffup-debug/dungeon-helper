@@ -68,9 +68,9 @@ import {
   type RollResult,
   type TrackerDef,
 } from "@campaign-forge/module-sdk";
-import { initiativeModifier, initiativeOrder, initiativeState, newId, type Participant } from "@campaign-forge/ui";
+import { clockState, clockUnits, initiativeModifier, initiativeOrder, initiativeState, newId, type Participant } from "@campaign-forge/ui";
 import type { CampaignContextValue } from "./CampaignProvider";
-import { DICE_LOG, enteredField, logTable, nextRollSeed, withRollRng, type DiceLogData } from "./tableActions";
+import { DICE_LOG, advanceTableClock, enteredField, logTable, nextRollSeed, withRollRng, type DiceLogData } from "./tableActions";
 
 type Ctx = Pick<CampaignContextValue, "store" | "module">;
 type Mode = "normal" | "advantage" | "disadvantage";
@@ -117,6 +117,21 @@ export interface CombatOrder {
 function trackerStateOf(ctx: Ctx, sessionId: Id, trackerId: string): unknown {
   const ts = ctx.store.list("trackerState").find((t) => t.session === sessionId && !t.archived);
   return ts?.state[trackerId];
+}
+
+/**
+ * One round counter: the header clock's round (its smallest unit) follows the
+ * fight, so it reads 1 once initiative is rolled and moves with each new round.
+ * It only ever moves forward, and only up to the fight's round.
+ */
+function followRound(ctx: Ctx, sessionId: Id, round: number): void {
+  const clock = ctx.module.forMode(ctx.store.meta().mode).trackers.find((t) => t.kind === "clock");
+  if (!clock) return;
+  const units = clockUnits(clock.config);
+  const unit = units[0];
+  if (!unit) return;
+  const now = clockState(ctx.store.list("trackerState").find((t) => t.session === sessionId && !t.archived)?.state[clock.id], units).counters[unit.id] ?? 0;
+  if (round > now) advanceTableClock(ctx, sessionId, clock, unit.id, round - now);
 }
 
 /** The initiative order and the current turn, from the initiative tracker's state. */
@@ -193,8 +208,10 @@ export function startCombat(ctx: Ctx, sessionId: Id, entityIds: Id[], entered?: 
       const r = rolls.find((x) => x.entityId === p.entityId);
       return r ? { ...p, card: r.card, mod: r.mod, detail: entered ? `${r.detail} (entered)` : r.detail, acted: false } : p;
     });
-    // the fight starts in round 1
-    updateTrackerState(store, sessionId, tracker.id, { round: Math.max(1, init.round), participants: next });
+    // the fight starts in round 1, and so does the header clock
+    const round = Math.max(1, init.round);
+    updateTrackerState(store, sessionId, tracker.id, { round, participants: next });
+    followRound(ctx, sessionId, round);
     const order = combatOrder(ctx, sessionId);
     appendTrackerLog(store, sessionId, {
       tracker: DICE_LOG,
@@ -244,6 +261,7 @@ export function nextTurn(ctx: Ctx, sessionId: Id): TurnChange {
       participants = participants.map((p) => ({ ...p, acted: false }));
     }
     updateTrackerState(store, sessionId, tracker.id, { round, participants });
+    if (newRound) followRound(ctx, sessionId, round);
     const after = combatOrder(ctx, sessionId);
     const started = after.current;
     if (started?.entityId) tick = mergeTicks(tick, tickD20Turn(store, ctx.module, ids, { entity: started.entityId, at: "start" }));

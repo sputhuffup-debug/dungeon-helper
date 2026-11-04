@@ -5,7 +5,8 @@ import { createRng, validateEntityFields, type EntityTypeDef, type ReferenceList
 import { useCallback, useMemo, useState } from "react";
 import { EntityPicker } from "../../components/EntityPicker";
 import { RuleDrawer } from "../../components/RulePanel";
-import { Badge, DiceRollPanel, Drawer, EmptyState, SheetRenderer, pushToast, valuePathOf } from "../../components/ui";
+import { Badge, DiceRollPanel, Drawer, EmptyState, pushToast, valuePathOf } from "../../components/ui";
+import { SheetRenderer } from "../../components/SheetRenderer";
 import { saveSheet } from "./pairs";
 import { useCampaign, useComputed, useMeta, useSheetSources } from "../../state/hooks";
 import { isPlayerCharacter } from "../atlas/AtlasPage";

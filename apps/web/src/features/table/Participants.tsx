@@ -9,7 +9,8 @@ import { validateEntityFields, type EntityTypeDef, type LoadedModule, type Promp
 import { useMemo, useState } from "react";
 import { EntityIcon } from "../../components/EntityIcon";
 import { RuleDrawer } from "../../components/RulePanel";
-import { Badge, Button, Card, Drawer, SheetRenderer, humanize, labelFromPath, resolveBindPath } from "../../components/ui";
+import { Badge, Button, Card, Drawer, humanize, labelFromPath, resolveBindPath } from "../../components/ui";
+import { SheetRenderer } from "../../components/SheetRenderer";
 import { useModeTrackers } from "./TrackersPanel";
 import { useZoneMapField } from "../maps/LocationMaps";
 import { saveSheet } from "../entities/pairs";
