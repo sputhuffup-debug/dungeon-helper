@@ -11,7 +11,11 @@ test.beforeEach(async ({ page }) => {
 });
 
 async function searchFor(page: import("@playwright/test").Page, query: string) {
-  await page.getByRole("searchbox", { name: "Search campaign" }).fill(query);
+  // no dialog left open: closing one moves focus, which would close the results under the click
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  const box = page.getByRole("searchbox", { name: "Search campaign" });
+  await box.click();
+  await box.fill(query);
   const results = page.getByRole("listbox", { name: "Search results" });
   const group = results.getByRole("group", { name: "Reference" });
   await expect(group).toBeVisible();
@@ -39,6 +43,7 @@ test("search opens a reference list item, a roll table and a preset on the Refer
   await expect(page).toHaveURL(/\/reference\?.*table=/);
   await expect(page.getByRole("dialog", { name: /Critical injuries/ })).toBeVisible();
   await page.getByRole("dialog").getByRole("button", { name: "Close" }).click();
+  await expect(page).not.toHaveURL(/table=/);
 
   // a preset: the Presets tab, filtered to it, its row marked
   results = await searchFor(page, "engineer");
