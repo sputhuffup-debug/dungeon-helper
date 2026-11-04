@@ -10,6 +10,7 @@
 import type { EntityPreset, ReferenceList } from "@campaign-forge/module-sdk";
 import { CREATURE, PACK } from "../ids.ts";
 import { characterBuilder } from "./builder.ts";
+import { labelEnums } from "./labels.ts";
 import { d20Combat } from "./combat.ts";
 import { gmScreen } from "./gmScreen.ts";
 import { characterType, creatureType, type HpTable, encounterType, factionType, hazardType, itemType, locationType, npcType, questType } from "./entityTypes.ts";
@@ -77,5 +78,5 @@ export function buildAuthored(data: GeneratedData): Record<string, unknown> {
     name: "encounters.json",
     tables: shapeTables(),
   };
-  return { "pack.json": pack, "encounters.json": encountersPart, "tables.json": tablesPart };
+  return { "pack.json": labelEnums(pack), "encounters.json": labelEnums(encountersPart), "tables.json": labelEnums(tablesPart) };
 }

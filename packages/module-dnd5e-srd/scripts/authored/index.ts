@@ -11,6 +11,7 @@ import { LIST, PACK } from "../ids.ts";
 import { builderRules, characterBuilder } from "./builder.ts";
 import { d20Combat } from "./combat.ts";
 import { gmScreen } from "./gmScreen.ts";
+import { labelEnums } from "./labels.ts";
 import { characterType, encounterType, factionType, itemType, locationType, monsterType, npcType, questType } from "./entityTypes.ts";
 import { playGuide } from "./guides.ts";
 import { primer } from "./primer.ts";
@@ -69,5 +70,5 @@ export function buildAuthored(data: GeneratedData): Record<string, unknown> {
     tables: [...tables, ...dungeonTables()],
     procedures,
   };
-  return { "pack.json": pack, "tables.json": tablesPart };
+  return { "pack.json": labelEnums(pack), "tables.json": labelEnums(tablesPart) };
 }

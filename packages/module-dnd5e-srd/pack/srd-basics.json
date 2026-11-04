@@ -77,6 +77,14 @@
        "intelligence",
        "wisdom",
        "charisma"
+      ],
+      "enumLabels": [
+       "Strength",
+       "Dexterity",
+       "Constitution",
+       "Intelligence",
+       "Wisdom",
+       "Charisma"
       ]
      }
     },
@@ -234,6 +242,14 @@
        "intelligence",
        "wisdom",
        "charisma"
+      ],
+      "enumLabels": [
+       "Strength",
+       "Dexterity",
+       "Constitution",
+       "Intelligence",
+       "Wisdom",
+       "Charisma"
       ]
      }
     },

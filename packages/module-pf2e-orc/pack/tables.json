@@ -11589,7 +11589,14 @@
        "extreme"
       ],
       "default": "moderate",
-      "title": "Threat"
+      "title": "Threat",
+      "enumLabels": [
+       "Trivial",
+       "Low",
+       "Moderate",
+       "Severe",
+       "Extreme"
+      ]
      }
     }
    },
