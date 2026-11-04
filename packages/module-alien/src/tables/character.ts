@@ -3,12 +3,23 @@
  * critical injuries (p. 70) and campaign theme (p. 158). Checked against the
  * Evolved Edition: labels, ranges and dice are data; effects are short paraphrases.
  */
-import type { RollTable, TableModifier } from "@campaign-forge/module-sdk";
+import type { RollTable, TableModifier, TableResultField } from "@campaign-forge/module-sdk";
 import { criticalInjuryItems } from "../reference/criticalInjuries";
 import { mentalTraumaItems } from "../reference/mentalTraumas";
 import { d6, d66, defineTable, ranges } from "./_helpers";
 
 const FAMILY = "character";
+
+/** What a rolled row means, shown with the roll at the table (`resultFields`). */
+const EFFECT: TableResultField = { path: "effect", label: "Effect" };
+const CRITICAL_INJURY_FIELDS: TableResultField[] = [
+  { path: "instantDeath", label: "Killed outright", as: "flag", tone: "danger" },
+  { path: "fatal", label: "Lethal", as: "flag", tone: "danger" },
+  { path: "timeLimit", label: "Death roll (Stamina) every", valueLabels: { round: "round", stretch: "stretch", shift: "shift" }, tone: "danger" },
+  EFFECT,
+  { path: "healingTime", label: "Healing time", unit: "days", valueLabels: { shift: "one shift", varies: "varies" } },
+  { path: "surgery", label: "Needs surgery before it heals", as: "flag", tone: "warning" },
+];
 
 /** `defineTable` flags every table unverified; these were checked against the book. */
 function verified(table: RollTable): RollTable {
@@ -38,6 +49,7 @@ export const stressResponse: RollTable = verified(
     notes:
       "Roll when a stress die shows a facehugger. D6 + stress level − Resolve. Rolling a response you already have gives +1 stress instead; responses are removed by relieving stress (p. 73).",
     tags: ["stress"],
+    resultFields: [EFFECT],
     rows: ranges([
       [-99, 0, "Keeping Cool", { effect: "No effect." }],
       [1, 1, "Jumpy", { effect: "Pushing a roll costs +2 stress instead of +1." }],
@@ -62,6 +74,7 @@ export const panic: RollTable = verified(
     notes:
       "Roll on a panic trigger. D6 + stress level − Resolve. A second panic stacks both responses where possible; rolling one you already have moves one step up. A result of 9 or more calls for a trauma check after the session (p. 74).",
     tags: ["stress", "panic"],
+    resultFields: [EFFECT, { path: "traumaCheck", label: "Trauma check after the session (p. 74)", as: "flag", tone: "warning" }],
     rows: ranges([
       [-99, 0, "Keeping Cool", { effect: "No effect.", traumaCheck: false }],
       [1, 1, "Spooked", { effect: "Stress +1.", traumaCheck: false }],
@@ -90,6 +103,7 @@ export const mentalTrauma: RollTable = verified(
     notes:
       "After a session with a panic result of 9+, roll Empathy alone (no push); on a failure roll here. Healed only on shore leave in campaign play (p. 257).",
     tags: ["stress", "trauma"],
+    resultFields: [EFFECT],
     rows: ranges(mentalTraumaItems.map((m) => [m.range[0], m.range[1], m.name, { id: m.id, effect: m.effects }])),
   }),
 );
@@ -104,6 +118,7 @@ export const criticalInjury: RollTable = verified(
     notes:
       "Roll when broken (Health 0) or when hurt again while broken. Re-roll an injury you already have (14+). Lethal injuries call for a Stamina death roll (no push, no stress dice) each time limit; 64-66 kill outright. Healing times are in days.",
     tags: ["combat", "injury"],
+    resultFields: CRITICAL_INJURY_FIELDS,
     rows: d66(
       criticalInjuryItems.map((c) => ({
         label: c.name,
@@ -140,6 +155,7 @@ export const androidCriticalDamage: RollTable = verified(
     notes:
       "Androids at zero Health roll here, not on the critical injury table, and keep acting with the effect until result 6. A repeated result moves one step up the table. A shift of work and a COMTECH roll repairs all lost Health and every result short of a system shutdown.",
     tags: ["combat", "injury", "android"],
+    resultFields: [EFFECT, { path: "shutdown", label: "Shut down for good", as: "flag", tone: "danger" }],
     rows: d6([
       { label: "Ruptured Fluid Pump", result: { id: "ruptured-fluid-pump", step: 1, effect: "Out of action for its next turn, with no interrupt actions before then." } },
       { label: "Destroyed Leg Servos", result: { id: "destroyed-leg-servos", step: 2, effect: "Neither leg works; moving takes a full action." } },
