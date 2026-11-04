@@ -181,6 +181,18 @@ h3 {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* a long section citation ("SRD 5.1 — Spellcasting: …") gives way to the hit's name */
+.app-search__hit .cf-page--cite {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 40%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.app-search__hit .cf-muted {
+  flex-shrink: 0;
+}
 .app-search__empty {
   padding: var(--cf-space-3);
 }
@@ -442,6 +454,11 @@ h3 {
 .app-attribution summary {
   cursor: pointer;
 }
+/* a preset the header search opened on the Reference page */
+.cf-table tr.is-target > td {
+  background: var(--cf-accent-soft);
+}
+
 .app-refitem .cf-md {
   max-width: 70ch;
 }

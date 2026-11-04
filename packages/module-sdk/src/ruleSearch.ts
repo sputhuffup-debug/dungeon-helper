@@ -1,11 +1,12 @@
 /**
- * Search over a module's rule cards, for the app's global search: a card
+ * Search over a module's rule cards and its Reference page (reference list
+ * items, entity presets, roll tables), for the app's global search: an entry
  * whose title holds the query ranks first, then one whose tags do, then one
  * whose summary does. Each word of the query must match somewhere in the
- * card; a title that starts with the query ranks above one that only
+ * entry; a title that starts with the query ranks above one that only
  * holds it. Pure and game-agnostic.
  */
-import type { PlayModeId, RuleCard } from "./types";
+import type { EntityPreset, PlayModeId, ReferenceItem, ReferenceList, RollTable, RuleCard } from "./types";
 
 export interface RuleSearchHit {
   card: RuleCard;
@@ -39,5 +40,75 @@ export function searchRuleCards(rules: readonly RuleCard[], query: string, opts:
     if (all) hits.push({ card, score: score + (title.startsWith(words.join(" ")) ? 5 : 0) });
   }
   hits.sort((a, b) => b.score - a.score || a.card.title.localeCompare(b.card.title));
+  return opts.limit !== undefined ? hits.slice(0, opts.limit) : hits;
+}
+
+/** One entry of a module's Reference page: a reference list item, an entity preset or a roll table. */
+export type ReferenceEntry =
+  | { kind: "item"; id: string; name: string; list: ReferenceList; item: ReferenceItem }
+  | { kind: "preset"; id: string; name: string; preset: EntityPreset }
+  | { kind: "table"; id: string; name: string; table: RollTable };
+
+export interface ReferenceSearchHit {
+  entry: ReferenceEntry;
+  /** Higher is better. */
+  score: number;
+}
+
+interface IndexedEntry {
+  entry: ReferenceEntry;
+  name: string;
+  /** The name split into words, for prefix matches. */
+  words: string[];
+  /** Tags, the list's name, a table's family. */
+  tags: string;
+  summary: string;
+  mode?: readonly PlayModeId[];
+}
+
+/** A search index over a module's Reference page; build it once per module and pass it to `searchReference`. */
+export interface ReferenceIndex {
+  entries: IndexedEntry[];
+}
+
+/** Everything the Reference page lists: every reference list's items, the entity presets and the roll tables. */
+export function referenceIndex(mod: { referenceLists: readonly ReferenceList[]; presets: readonly EntityPreset[]; tables: readonly RollTable[] }): ReferenceIndex {
+  const entries: IndexedEntry[] = [];
+  const add = (entry: ReferenceEntry, tags: string, summary: string, mode?: readonly PlayModeId[]) => {
+    const name = norm(entry.name);
+    entries.push({ entry, name, words: name.split(/\W+/).filter(Boolean), tags: norm(tags), summary: norm(summary), mode });
+  };
+  for (const list of mod.referenceLists) for (const item of list.items) add({ kind: "item", id: item.id, name: item.name, list, item }, list.name, item.summary ?? "", item.mode);
+  for (const preset of mod.presets) add({ kind: "preset", id: preset.id, name: preset.name, preset }, (preset.tags ?? []).join(" "), preset.summary ?? "");
+  for (const table of mod.tables) add({ kind: "table", id: table.id, name: table.name, table }, table.family ?? "", "", table.mode);
+  return { entries };
+}
+
+/**
+ * Reference entries matching `query`, best first, ranked like `searchRuleCards`:
+ * every word must match the name (a word starting with it ranks highest), the
+ * tags (a preset's tags, the item's list, a table's family) or the summary.
+ * Entries of other play modes are left out when `mode` is given.
+ */
+export function searchReference(index: ReferenceIndex, query: string, opts: { mode?: PlayModeId; limit?: number } = {}): ReferenceSearchHit[] {
+  const words = norm(query).split(/\s+/).filter(Boolean);
+  if (words.length === 0) return [];
+  const phrase = words.join(" ");
+  const hits: ReferenceSearchHit[] = [];
+  for (const e of index.entries) {
+    if (opts.mode && e.mode && e.mode.length > 0 && !e.mode.includes(opts.mode)) continue;
+    let score = 0;
+    let all = true;
+    for (const w of words) {
+      const s = e.words.some((t) => t.startsWith(w)) ? 10 : e.name.includes(w) ? 6 : e.tags.includes(w) ? 4 : e.summary.includes(w) ? 1 : 0;
+      if (s === 0) {
+        all = false;
+        break;
+      }
+      score += s;
+    }
+    if (all) hits.push({ entry: e.entry, score: score + (e.name === phrase ? 8 : e.name.startsWith(phrase) ? 5 : 0) });
+  }
+  hits.sort((a, b) => b.score - a.score || a.entry.name.localeCompare(b.entry.name));
   return opts.limit !== undefined ? hits.slice(0, opts.limit) : hits;
 }

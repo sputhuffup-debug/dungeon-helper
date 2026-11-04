@@ -811,11 +811,25 @@ test("search-rules", async ({ page }) => {
   await page.getByRole("searchbox", { name: "Search campaign" }).fill("panic");
   const results = page.getByRole("listbox", { name: "Search results" });
   await expect(results.getByText("Rules", { exact: true })).toBeVisible();
-  await expect(results.getByRole("option", { name: /Panic roll/ })).toContainText("p. 72");
+  await expect(results.getByRole("group", { name: "Rules" }).getByRole("option", { name: /Panic roll/ })).toContainText("p. 72");
   // not shot(): it blurs the search box, which closes the results
   await page.waitForTimeout(400);
   await settle(page);
   await page.screenshot({ path: file("search-rules"), animations: "disabled", caret: "hide", clip: { x: 0, y: 0, width: 1040, height: 560 } });
+});
+
+test("search-reference", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await loadDemo(page, "dnd5e");
+  await page.mouse.move(0, 0);
+  await page.getByRole("searchbox", { name: "Search campaign" }).fill("fireball");
+  const results = page.getByRole("listbox", { name: "Search results" });
+  const reference = results.getByRole("group", { name: "Reference" });
+  await expect(reference.getByRole("option", { name: /Fireball/ }).first()).toContainText("Spells");
+  // not shot(): it blurs the search box, which closes the results
+  await page.waitForTimeout(400);
+  await settle(page);
+  await page.screenshot({ path: file("search-reference"), animations: "disabled", caret: "hide", clip: { x: 0, y: 0, width: 1040, height: 560 } });
 });
 
 test("preview-as-player", async ({ page }) => {
