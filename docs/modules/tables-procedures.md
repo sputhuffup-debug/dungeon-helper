@@ -67,6 +67,7 @@ A procedure is a list of steps rolled in order with a seed, then `produce` turns
 | `reads` | Step ids it depends on: the step graph, and re-rolling one of them invalidates this step. |
 | `skipIf` | JSONLogic; true skips the step. |
 | `repeat` | A number, a dice expression (`"1d3"`) or JSONLogic. The result becomes a list. |
+| `distinct` | With `repeat` on a table step: never the same result twice. A roll that repeats one takes the next row of the table it has not had (no extra die, so dice typed at the table still fit). |
 | `optional` | The GM ticks it to include it. |
 | `modifier` | JSONLogic number added to the table roll, on top of the table's own modifiers. |
 | `derive` | Keys added to the result: name → JSONLogic over the context plus `result`. A non-object result becomes `{ value, ...derived }`. |

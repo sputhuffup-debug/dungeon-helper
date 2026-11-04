@@ -443,6 +443,13 @@ export interface ProcedureStep {
   skipIf?: (ctx: ProcedureContext) => boolean;
   /** Number of times to roll; a dice expression; or a function. Default 1. */
   repeat?: number | string | ((ctx: ProcedureContext) => number);
+  /**
+   * A repeated table step never gives the same result twice: a roll that
+   * repeats one takes the next row of the table it has not had yet (no
+   * extra die, so dice typed at the table still fit), e.g. one complication
+   * per point of difficulty, each a different one.
+   */
+  distinct?: boolean;
   /** GM may choose not to roll it. */
   optional?: boolean;
   /**
@@ -1603,6 +1610,21 @@ export interface AdventureSourceDef {
    * surface. Pure and deterministic, like `prefill`.
    */
   people?(input: AdventureSourceInput): AdventureSourcePerson[];
+  /**
+   * In-world days the record's travel takes (e.g. a job's trip out and back),
+   * offered when the wrap-up closes it so the campaign date can move. `ship`
+   * is the group's vehicle, when one is chosen. Pure; undefined when it takes
+   * no time the module can say.
+   */
+  trip?(input: { entity: EntitySnapshot; ship?: EntitySnapshot }): AdventureSourceTrip | undefined;
+}
+
+/** What `AdventureSourceDef.trip` says the record's travel takes. */
+export interface AdventureSourceTrip {
+  days: number;
+  /** How the days were counted, e.g. "5 systems each way at FTL 2". */
+  text: string;
+  page?: PageRef;
 }
 
 /** One of the record's people, as `AdventureSourceDef.people` describes them for the GM. */
@@ -1645,7 +1667,7 @@ export interface AdventureSourceInput {
   /** Saved site maps whose location is one of the linked records. */
   maps: Array<{ id: string; name: string; location: string; generated?: boolean }>;
   /** Campaign arc clues seeded with the record. */
-  clues: Array<{ thread: string; threadTitle: string; clue: string; text: string; state: ArcClueState; slotLabel?: string; entity?: string }>;
+  clues: Array<{ thread: string; threadTitle: string; clue: string; text: string; playerText?: string; unlocks?: string; kind?: string; state: ArcClueState; slotLabel?: string; entity?: string }>;
 }
 
 /** One template scene, filled. Ids are campaign ids taken from the input. */
@@ -1660,6 +1682,22 @@ export interface AdventureSceneFill {
   participants?: string[];
   /** Extra events after the template's (the GM's checklist), e.g. a seeded clue to find. */
   events?: Array<{ text: string; mandatory?: boolean }>;
+  /**
+   * Clue records listed on the scene (its Clues). Each is made once, of the
+   * module's `type`, GM only; one that stands for an arc clue (`arcClue`) is
+   * linked to it, and an existing record linked to that clue is reused.
+   */
+  clues?: AdventureSceneClue[];
+}
+
+/** A clue record a filled scene lists (see `AdventureSceneFill.clues`). */
+export interface AdventureSceneClue {
+  /** The clue entity type (a type of kind "clue"). */
+  type: string;
+  name: string;
+  fields?: Record<string, unknown>;
+  /** The arc clue it stands for: thread and clue id from the input's `clues`. */
+  arcClue?: { thread: string; clue: string };
 }
 
 export interface AdventureSourceFill {
@@ -1877,10 +1915,23 @@ export type Effect =
   | { kind: "removeCondition"; entity: string; conditionId: string }
   | { kind: "log"; text: string }
   | { kind: "prompt"; prompt: Prompt }
+  | AdvanceDateEffect
   | CreateFromPresetEffect
   | ApplyPresetEffect
   | LedgerEffect
   | AwardEffect;
+
+/**
+ * Move the campaign's in-world date forward `days` days on the module
+ * calendar (e.g. weeks in port between jobs). Skipped when the campaign keeps
+ * no in-world date.
+ */
+export interface AdvanceDateEffect {
+  kind: "advanceDate";
+  days: number;
+  /** What the time was spent on, e.g. "1 week in port". */
+  reason?: string;
+}
 
 /**
  * Award progression points to a character and log it in the core's

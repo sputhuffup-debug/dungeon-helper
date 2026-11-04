@@ -45,13 +45,17 @@ The core hands `prefill` an `AdventureSourceInput` (pure: same campaign, same in
 - `maps`: saved site maps whose location is the record or a linked record (`generated` when it has a layout);
 - `clues`: campaign arc clues seeded with the record, with their thread, text, state and slot.
 
-It returns an `AdventureSourceFill`: `title`, `premise`, `playerIntro` (players may read it), `gmSituation`, `epilogue` (Markdown), `scenes` by template scene key, and `plan`, the scene keys to plan into the next session. A scene fill sets `title`, `body` (GM notes), `readAloud`, `location`, `map`, `participants` and extra `events` (a clue to find, say). Ids must come from the input; unknown ones are dropped. A scene's key is its `TemplateScene.id`, else `"<act number>.<scene number>"`; give the template's scenes ids.
+It returns an `AdventureSourceFill`: `title`, `premise`, `playerIntro` (players may read it), `gmSituation`, `epilogue` (Markdown), `scenes` by template scene key, and `plan`, the scene keys to plan into the next session. A scene fill sets `title`, `body` (GM notes), `readAloud`, `location`, `map`, `participants`, extra `events` (a clue to find, say) and `clues`: clue records to list on the scene (`type`, `name`, `fields`), made GM only; one with `arcClue` (a thread and clue id from the input's `clues`) is linked to that arc clue, and a record already linked to it is reused. The input's `clues` carry each arc clue's GM `text`, its `playerText` when it differs, its `kind` and what it `unlocks`. Ids must come from the input; unknown ones are dropped. A scene's key is its `TemplateScene.id`, else `"<act number>.<scene number>"`; give the template's scenes ids.
 
 Only `title`, `playerIntro` and a scene's `title` and `readAloud` can reach the players (the player screen, shares and packets). Keep complications, intents, betrayals and secrets in `gmSituation` and scene bodies, and keep `gmFields` out of the player text.
 
 ## The record's people (`people`)
 
 `people(input)` (optional, pure) returns one `AdventureSourcePerson` per person worth a note at the table: the record id (`entity`, one of the input's links), a `role` (the link's note, e.g. "Contact"), labelled `notes` (`{ label: "Agenda", text }`, `{ label: "Secret", text }`) and a `stance` (`{ label: "Turns on the crew", tone: "danger" }`). The app shows them only to the GM: under *This job* in table mode and under the record's people on its page; nothing here reaches the player screen, shares or packets.
+
+## The record's trip (`trip`)
+
+`trip({ entity, ship })` (optional, pure) says how many in-world days the record's travel takes, with how they were counted (`{ days, text, page }`), or `undefined` when the module cannot say. `ship` is the group's vehicle when one is chosen. When the wrap-up closes the record with an outcome that `closes`, it offers *Move the date N days* (with an undo, once per record per session); the travel planner's Depart already moves the date for trips planned there, and the wrap-up says so when the session logged one. The Alien module counts the job's distance at the ship's FTL rating, out and back.
 
 ## Template guidance is never content
 
@@ -63,4 +67,4 @@ In a template's text a paragraph wrapped in underscores, `_like this_`, is **gui
 
 ## Checks
 
-`checkModule` (and so `pnpm module-check`) runs `adventureSourceIssues`: unique ids, a declared entity type and mode, an adventure template of the module, valid `when` and `open`, unique outcome ids, and a dry run of `prefill` on an empty input that must not throw, must be deterministic and must name only scenes the template has, and of `people` (a list, deterministic). Test your prefill on real records too: the Alien module's `test/runJob.test.ts` deals job boards and checks that nothing GM-only reaches what the players read.
+`checkModule` (and so `pnpm module-check`) runs `adventureSourceIssues`: unique ids, a declared entity type and mode, an adventure template of the module, valid `when` and `open`, unique outcome ids, and a dry run of `prefill` on an empty input that must not throw, must be deterministic and must name only scenes the template has, and of `people` (a list, deterministic) and `trip` (`{ days, text }` or nothing, deterministic). Test your prefill on real records too: the Alien module's `test/runJob.test.ts` deals job boards and checks that nothing GM-only reaches what the players read.

@@ -1017,6 +1017,7 @@ const definitions: Record<string, JsonSchema> = {
       reads: list(ref("id")),
       skipIf: logic,
       repeat: logic,
+      distinct: bool,
       optional: bool,
       modifier: logic,
       derive: { type: "object", additionalProperties: logic },

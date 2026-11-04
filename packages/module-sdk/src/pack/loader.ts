@@ -76,6 +76,7 @@ function stepFromPack(step: PackProcedureStep): ProcedureStep {
     const r = step.repeat;
     out.repeat = typeof r === "number" || typeof r === "string" ? r : (ctx) => evaluateNumber(r, procedureData(ctx));
   }
+  if (step.distinct) out.distinct = true;
   if (step.modifier !== undefined) {
     const rule = step.modifier;
     out.modifier = (ctx) => evaluateNumber(rule, procedureData(ctx));

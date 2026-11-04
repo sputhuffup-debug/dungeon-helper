@@ -73,6 +73,8 @@ export interface PackProcedureStep {
   skipIf?: JsonLogicRule;
   /** Roll this many times: a number, a dice expression, or JSONLogic. The result is a list. */
   repeat?: number | string | JsonLogicRule;
+  /** A repeated table step never gives the same result twice: a repeat takes the next row it has not had. */
+  distinct?: boolean;
   /** The GM may choose not to roll it. */
   optional?: boolean;
   /** JSONLogic: a flat modifier added to the table roll. */
