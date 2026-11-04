@@ -217,10 +217,10 @@ export const careers: ReferenceList = {
     properties: {
       id: { type: "string" },
       name: { type: "string" },
-      keyAttribute: { type: "string", enum: ["strength", "agility", "wits", "empathy"] },
-      keySkills: { type: "array", items: { type: "string" }, minItems: 3, maxItems: 3 },
+      keyAttribute: { type: "string", enum: ["strength", "agility", "wits", "empathy"], enumLabels: ["Strength", "Agility", "Wits", "Empathy"] },
+      keySkills: { type: "array", items: { type: "string", "x-ref": "alien.skills" }, minItems: 3, maxItems: 3 },
       cash: { type: "string", description: "Starting cash formula in W-Y dollars, e.g. 'd6 x 100'." },
-      talents: { type: "array", items: { type: "string" }, minItems: 3, maxItems: 3 },
+      talents: { type: "array", items: { type: "string", "x-ref": "alien.talents" }, minItems: 3, maxItems: 3 },
       names: { type: "array", items: { type: "string" } },
       appearances: { type: "array", items: { type: "string" } },
       agendas: { type: "array", items: { type: "string" } },

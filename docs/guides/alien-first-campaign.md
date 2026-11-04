@@ -75,9 +75,9 @@ Players have no accounts in this version; knowing who plays whom lets you share 
 
 ### 2.4 Buddy and rival
 
-Open a PC from the Atlas's *PCs* tab. Its sheet shows who plays it (*Played by*), and the *Identity* section's *Buddy* and *Rival* pick from the other PCs: the first connections in the campaign.
+Open a PC from the Atlas's *PCs* tab. Its sheet shows who plays it (*Played by*), and the *Buddy and rival* section picks from the other PCs: the first connections in the campaign.
 
-The session wrap-up's XP questions and the campaign agendas read them, so pick them now if your players have.
+Each is a pair: making Juno Tobias's buddy makes Tobias Juno's buddy too (unless Juno already has one: then the app asks). The session wrap-up's XP questions and the campaign agendas read them, so pick them now if your players have.
 
 *Rulebook: p. 27.*
 
@@ -215,7 +215,7 @@ Open the job (rename it if you like: here The Brannock Deep run). *People in thi
 
 On the job page, click *Generate site map*. The generator reads the job's site brief (site type, size, decks, threats, key rooms, the job's NPCs); type a *Seed* or keep the one offered, click *Generate*, look the map over and click *Save to campaign*. It is saved with the job's site, and the arrival scene will use it.
 
-*Rulebook: p. 54-56.*
+*Rulebook: p. 54-58.*
 
 ![A generated GM deck plan for the job's site](../screenshots/guide-alien-site-map.png)
 

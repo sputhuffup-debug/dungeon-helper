@@ -10,6 +10,7 @@ import { manifest, ALIEN_MODULE_ID, ALIEN_MODULE_VERSION } from "./manifest";
 import { modes, CAMPAIGN, CINEMATIC } from "./modes";
 import { diceSystem } from "./dice";
 import { entityTypes } from "./entities";
+import { FRAME_IDS } from "./entities/common";
 import { relationshipTypes } from "./relationships";
 import { referenceLists as coreReferenceLists } from "./reference";
 import { rules } from "./rules";
@@ -99,6 +100,13 @@ export const referenceLists = [...coreReferenceLists, ...dataReferenceLists, cam
 /** The purpose the app keeps a PC's campaign agenda GM card under (core's LONG_AGENDA_PURPOSE; the module cannot import core). */
 export const CAMPAIGN_AGENDA_CARD_PURPOSE = "long-agenda";
 
+/**
+ * Tags the generators write for their own bookkeeping (a dealt job's
+ * "job-board", its NPCs' "job-npc", the frame and job type on a rolled job,
+ * "pc"/"npc", a stub planet): never offered as filters nor shown to players.
+ */
+export const MACHINE_TAGS: string[] = ["pc", "npc", "job", "mission", "expedition", "job-board", "job-npc", "stub", ...FRAME_IDS];
+
 export const alienModule: GameModule = {
   manifest,
   dice: diceSystem,
@@ -134,6 +142,7 @@ export const alienModule: GameModule = {
   // a PC's agenda cards (one per act in cinematic play) reach that PC's player once the GM gives each one out;
   // the campaign agenda's GM card (with the embarrassing secret) never does: the player reads their agenda in their packet
   ownerHandouts: [{ kind: "agenda", when: "given", gmOnlyPurposes: [CAMPAIGN_AGENDA_CARD_PURPOSE], gmOnlyNote: "Players get their agenda in their packet; this card stays with you." }],
+  machineTags: MACHINE_TAGS,
   migrations: [],
 };
 

@@ -11,7 +11,7 @@ export const skills: ReferenceList = {
     properties: {
       id: { type: "string" },
       name: { type: "string" },
-      attribute: { type: "string", enum: ["strength", "agility", "wits", "empathy"] },
+      attribute: { type: "string", enum: ["strength", "agility", "wits", "empathy"], enumLabels: ["Strength", "Agility", "Wits", "Empathy"] },
       summary: { type: "string" },
       page: { type: ["integer", "array"] },
     },

@@ -66,7 +66,8 @@ export const relationshipTypes: RelationshipTypeDef[] = [
   {
     id: "stationed_at",
     forward: "stationed at",
-    reverse: "hosts",
+    // "base of", not "hosts": a character who carried a xenomorph is its "host of" (emerged_from)
+    reverse: "base of",
     fromKinds: ["faction"],
     toKinds: ["location"],
   },

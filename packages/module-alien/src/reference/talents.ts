@@ -112,7 +112,7 @@ export const talents: ReferenceList = {
     properties: {
       id: { type: "string" },
       name: { type: "string" },
-      career: { type: "string" },
+      career: { type: "string", "x-ref": "alien.careers" },
       stackLimit: { type: "integer", minimum: 1 },
       maxStack: { type: "integer", minimum: 1 },
       mode: { type: "array", items: { type: "string" } },
