@@ -247,7 +247,8 @@ export function SiteMapView({
     <Button
       key={d.id}
       size="sm"
-      variant={d.id === deck ? "primary" : "ghost"}
+      // bordered either way, so a deck not shown still reads as a button
+      variant={d.id === deck ? "primary" : "default"}
       aria-pressed={d.id === deck}
       onClick={() => pickDeck(d.id)}
       className={duct ? "cf-sitemap__ductbtn" : undefined}

@@ -1,3 +1,4 @@
+import { Button } from "../primitives/Button";
 import { Stepper } from "../primitives/Stepper";
 import { asNumber, labelFromPath } from "../sheet/paths";
 import type { WidgetProps } from "./types";
@@ -23,12 +24,44 @@ function fallback(props: WidgetProps, min: number | undefined, max: number | und
   return max !== undefined ? Math.min(max, low) : low;
 }
 
+/**
+ * A number with steppers. `config.suggested` names a computed value offered
+ * beside it (e.g. a hit point maximum from the fixed values per level): shown
+ * after `config.suggestedLabel`, with a "Use" button while the value differs.
+ */
 export function NumberField(props: WidgetProps) {
-  const { id, value, onChange, readonly, field } = props;
+  const { id, value, onChange, readonly, field, computed } = props;
   const { min, max, step } = bounds(props);
   const n = asNumber(value, fallback(props, min, max));
-  if (readonly) return <div className="cf-field__readonly cf-mono">{n}</div>;
-  return <Stepper id={id} value={n} min={min} max={max} step={step} onChange={onChange} label={field.label ?? labelFromPath(field.path)} />;
+  const label = field.label ?? labelFromPath(field.path);
+  const key = typeof field.config?.suggested === "string" ? field.config.suggested : undefined;
+  const raw = key ? computed?.[key] : undefined;
+  const suggested = typeof raw === "number" && Number.isFinite(raw) ? raw : undefined;
+  const suggestion = suggested !== undefined && (
+    <span className="cf-field__suggest cf-muted" data-testid="number-suggested">
+      {typeof field.config?.suggestedLabel === "string" ? field.config.suggestedLabel : "Suggested"} {suggested}
+      {!readonly && suggested !== n && (
+        <Button size="sm" variant="ghost" onClick={() => onChange(suggested)} aria-label={`Use ${suggested} for ${label}`}>
+          Use
+        </Button>
+      )}
+    </span>
+  );
+  if (readonly)
+    return (
+      <div className="cf-field__readonly cf-mono">
+        {n} {suggestion}
+      </div>
+    );
+  const stepper = <Stepper id={id} value={n} min={min} max={max} step={step} onChange={onChange} label={label} />;
+  return suggestion ? (
+    <div className="cf-field__with-suggest">
+      {stepper}
+      {suggestion}
+    </div>
+  ) : (
+    stepper
+  );
 }
 
 /** A big number with its label underneath and steppers. */
@@ -51,10 +84,12 @@ export function AttributeField(props: WidgetProps) {
 
 export function CheckboxField({ id, value, onChange, readonly, field }: WidgetProps) {
   const checked = value === true;
+  const text = typeof field.config?.text === "string" ? field.config.text : undefined;
+  // named by its field ("Android"), never by its state: the Yes/No beside it is for the eye
   return (
     <label className="cf-check" htmlFor={id}>
-      <input id={id} className="cf-checkbox" type="checkbox" checked={checked} disabled={readonly} onChange={(e) => onChange(e.target.checked)} />
-      <span>{typeof field.config?.text === "string" ? field.config.text : checked ? "Yes" : "No"}</span>
+      <input id={id} className="cf-checkbox" type="checkbox" checked={checked} disabled={readonly} onChange={(e) => onChange(e.target.checked)} aria-label={field.label ?? labelFromPath(field.path)} />
+      <span aria-hidden={text ? undefined : true}>{text ?? (checked ? "Yes" : "No")}</span>
     </label>
   );
 }

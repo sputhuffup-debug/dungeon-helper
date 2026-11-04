@@ -77,6 +77,16 @@ describe("rolled initiative", () => {
     expect(shown).toEqual([...shown].sort((a, b) => b - a));
   });
 
+  it("starts the fight in round 1 and shows each roll with its total", () => {
+    const spy = vi.fn();
+    render(<Stateful def={def} spy={spy} entities={[pc]} rng={createRng("init")} initial={{ round: 0, participants: [{ id: "a", name: "Tamsin", entityId: "e1", card: null, extraDraws: 0, acted: false }] }} />);
+    fireEvent.click(screen.getByRole("button", { name: "Roll initiative" }));
+    const st = initiativeState(spy.mock.lastCall![0]);
+    expect(st.round).toBe(1);
+    const p = st.participants[0]!;
+    expect(document.querySelector("[data-participant=a]")).toHaveTextContent(`(${p.card! - 3} + 3 = ${p.card})`);
+  });
+
   it("lets the GM type a total a player rolled", () => {
     const spy = vi.fn();
     render(<Stateful def={def} spy={spy} initial={{ round: 1, participants: [{ id: "a", name: "Tamsin", card: null, extraDraws: 0, acted: false }] }} />);

@@ -1152,6 +1152,19 @@ td .cf-autogrow {
   align-items: center;
   color: var(--cf-text);
 }
+/* a number with a suggested value beside it (config.suggested) */
+.cf-field__with-suggest {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cf-space-2);
+}
+.cf-field__suggest {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--cf-space-1);
+  font-size: var(--cf-text-sm);
+}
 
 /* ------------------------------------------------------------------ */
 /* Widgets                                                             */
