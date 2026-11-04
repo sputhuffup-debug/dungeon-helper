@@ -123,8 +123,8 @@ const heroType: EntityTypeDef = {
         },
         additionalProperties: false,
       },
-      origin: { type: "string", enum: ["hill", "coast", "city"] },
-      favoredSkill: { type: "string", enum: ["fight", "lore", "sneak"] },
+      origin: { type: "string", enum: ["hill", "coast", "city"], enumLabels: ["Hill", "Coast", "City"] },
+      favoredSkill: { type: "string", enum: ["fight", "lore", "sneak"], enumLabels: ["Fight", "Lore", "Sneak"] },
       wounds: { type: "integer", minimum: 0, default: 0 },
       armor: { type: "integer", minimum: 0, maximum: 3 },
       construct: { type: "boolean" },
@@ -202,8 +202,8 @@ const placeType: EntityTypeDef = {
   schema: {
     type: "object",
     properties: {
-      terrain: { type: "string", enum: ["forest", "hills", "swamp", "mountain"] },
-      danger: { type: "string", enum: ["quiet", "uneasy", "dangerous", "deadly"], default: "quiet" },
+      terrain: { type: "string", enum: ["forest", "hills", "swamp", "mountain"], enumLabels: ["Forest", "Hills", "Swamp", "Mountain"] },
+      danger: { type: "string", enum: ["quiet", "uneasy", "dangerous", "deadly"], enumLabels: ["Quiet", "Uneasy", "Dangerous", "Deadly"], default: "quiet" },
       population: { type: "integer", minimum: 0, default: 0 },
       features: { type: "array", items: { type: "string" }, default: [] },
     },
@@ -600,7 +600,7 @@ const narrativeFields: NarrativeFieldsDef[] = [
       type: "object",
       properties: {
         hook: { type: "string" },
-        theme: { type: "string", enum: ["greed", "honor", "revenge"], default: "greed" },
+        theme: { type: "string", enum: ["greed", "honor", "revenge"], enumLabels: ["Greed", "Honor", "Revenge"], default: "greed" },
         hours: { type: "integer", minimum: 1, maximum: 8, default: 3 },
       },
       additionalProperties: false,
@@ -624,7 +624,7 @@ const narrativeFields: NarrativeFieldsDef[] = [
   },
   {
     kind: "act",
-    schema: { type: "object", properties: { twist: { type: "string" }, mood: { type: "string", enum: ["calm", "tense", "dire"], default: "calm" } }, additionalProperties: false },
+    schema: { type: "object", properties: { twist: { type: "string" }, mood: { type: "string", enum: ["calm", "tense", "dire"], enumLabels: ["Calm", "Tense", "Dire"], default: "calm" } }, additionalProperties: false },
     sheet: { sections: [{ id: "act", title: "Act", fields: [{ path: "twist", label: "Twist", widget: "textarea" }, { path: "mood", label: "Mood", widget: "select" }] }] },
   },
   {

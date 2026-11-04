@@ -66,7 +66,7 @@
             },
             "additionalProperties": false
           },
-          "background": { "type": "string", "enum": ["miner", "scribe", "wanderer"] },
+          "background": { "type": "string", "enum": ["miner", "scribe", "wanderer"], "enumLabels": ["Miner", "Scribe", "Wanderer"] },
           "damage": { "type": "integer", "minimum": 0, "default": 0 },
           "armor": { "type": "integer", "minimum": 0, "maximum": 30, "default": 12, "description": "Armor class." },
           "tempHp": { "type": "integer", "minimum": 0, "default": 0 },
@@ -143,8 +143,8 @@
       "schema": {
         "type": "object",
         "properties": {
-          "kind": { "type": "string", "enum": ["ruin", "mine", "shrine", "village"] },
-          "danger": { "type": "string", "enum": ["calm", "tense", "perilous", "deadly"], "default": "calm" },
+          "kind": { "type": "string", "enum": ["ruin", "mine", "shrine", "village"], "enumLabels": ["Ruin", "Mine", "Shrine", "Village"] },
+          "danger": { "type": "string", "enum": ["calm", "tense", "perilous", "deadly"], "enumLabels": ["Calm", "Tense", "Perilous", "Deadly"], "default": "calm" },
           "coins": { "type": "integer", "minimum": 0, "default": 0 },
           "loot": { "type": "array", "items": { "type": "string" }, "default": [] },
           "omens": { "type": "array", "items": { "type": "string" }, "default": [] }
@@ -221,7 +221,7 @@
       "id": "example-pack.skills",
       "name": "Skills",
       "cite": "LRD, Skills",
-      "itemSchema": { "type": "object", "properties": { "attribute": { "type": "string", "enum": ["might", "grace", "wits"] } }, "required": ["id", "name", "attribute"] },
+      "itemSchema": { "type": "object", "properties": { "attribute": { "type": "string", "enum": ["might", "grace", "wits"], "enumLabels": ["Might", "Grace", "Wits"] } }, "required": ["id", "name", "attribute"] },
       "items": [
         { "id": "climb", "name": "Climb", "attribute": "might", "summary": "Scale walls and ropes." },
         { "id": "sneak", "name": "Sneak", "attribute": "grace", "summary": "Move unseen." },
