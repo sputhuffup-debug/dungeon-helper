@@ -12375,7 +12375,18 @@
        "urban"
       ],
       "default": "forest",
-      "title": "Terrain"
+      "title": "Terrain",
+      "enumLabels": [
+       "Arctic",
+       "Coast",
+       "Desert",
+       "Forest",
+       "Grassland",
+       "Mountain",
+       "Swamp",
+       "Underground",
+       "Urban"
+      ]
      }
     }
    },

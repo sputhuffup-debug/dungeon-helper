@@ -259,7 +259,15 @@
        "wisdom",
        "charisma"
       ],
-      "default": "strength"
+      "default": "strength",
+      "enumLabels": [
+       "Strength",
+       "Dexterity",
+       "Constitution",
+       "Intelligence",
+       "Wisdom",
+       "Charisma"
+      ]
      },
      "attributes": {
       "type": "object",
@@ -328,6 +336,14 @@
         "intelligence",
         "wisdom",
         "charisma"
+       ],
+       "enumLabels": [
+        "Strength",
+        "Dexterity",
+        "Constitution",
+        "Intelligence",
+        "Wisdom",
+        "Charisma"
        ]
       },
       "default": [],
@@ -343,7 +359,15 @@
        "Huge",
        "Gargantuan"
       ],
-      "default": "Medium"
+      "default": "Medium",
+      "enumLabels": [
+       "Tiny",
+       "Small",
+       "Medium",
+       "Large",
+       "Huge",
+       "Gargantuan"
+      ]
      },
      "senses": {
       "type": "array",
@@ -775,7 +799,13 @@
          "medium",
          "heavy"
         ],
-        "default": "unarmored"
+        "default": "unarmored",
+        "enumLabels": [
+         "Unarmored",
+         "Light",
+         "Medium",
+         "Heavy"
+        ]
        },
        "acBonus": {
         "type": "integer",
@@ -1015,7 +1045,26 @@
        "survival",
        "thievery"
       ],
-      "default": "perception"
+      "default": "perception",
+      "enumLabels": [
+       "Perception",
+       "Acrobatics",
+       "Arcana",
+       "Athletics",
+       "Crafting",
+       "Deception",
+       "Diplomacy",
+       "Intimidation",
+       "Medicine",
+       "Nature",
+       "Occultism",
+       "Performance",
+       "Religion",
+       "Society",
+       "Stealth",
+       "Survival",
+       "Thievery"
+      ]
      },
      "focus": {
       "type": "object",
@@ -1049,6 +1098,12 @@
          "divine",
          "occult",
          "primal"
+        ],
+        "enumLabels": [
+         "Arcane",
+         "Divine",
+         "Occult",
+         "Primal"
         ]
        },
        "kind": {
@@ -1056,6 +1111,10 @@
         "enum": [
          "prepared",
          "spontaneous"
+        ],
+        "enumLabels": [
+         "Prepared",
+         "Spontaneous"
         ]
        },
        "attribute": {
@@ -1067,6 +1126,14 @@
          "intelligence",
          "wisdom",
          "charisma"
+        ],
+        "enumLabels": [
+         "Strength",
+         "Dexterity",
+         "Constitution",
+         "Intelligence",
+         "Wisdom",
+         "Charisma"
         ]
        },
        "rank": {
@@ -1314,7 +1381,11 @@
           "melee",
           "ranged"
          ],
-         "description": "Melee (the default) or ranged."
+         "description": "Melee (the default) or ranged.",
+         "enumLabels": [
+          "Melee",
+          "Ranged"
+         ]
         }
        },
        "required": [
@@ -1343,6 +1414,14 @@
           "skill",
           "archetype",
           "bonus"
+         ],
+         "enumLabels": [
+          "Ancestry",
+          "Class",
+          "General",
+          "Skill",
+          "Archetype",
+          "Bonus"
          ]
         },
         "name": {
@@ -4168,7 +4247,13 @@
        "rare",
        "unique"
       ],
-      "default": "common"
+      "default": "common",
+      "enumLabels": [
+       "Common",
+       "Uncommon",
+       "Rare",
+       "Unique"
+      ]
      },
      "size": {
       "type": "string",
@@ -4180,7 +4265,15 @@
        "Huge",
        "Gargantuan"
       ],
-      "default": "Medium"
+      "default": "Medium",
+      "enumLabels": [
+       "Tiny",
+       "Small",
+       "Medium",
+       "Large",
+       "Huge",
+       "Gargantuan"
+      ]
      },
      "traits": {
       "type": "array",
@@ -4484,6 +4577,11 @@
           "immunity",
           "weakness",
           "resistance"
+         ],
+         "enumLabels": [
+          "Immunity",
+          "Weakness",
+          "Resistance"
          ]
         },
         "type": {
@@ -4540,6 +4638,10 @@
          "enum": [
           "melee",
           "ranged"
+         ],
+         "enumLabels": [
+          "Melee",
+          "Ranged"
          ]
         },
         "bonus": {
@@ -5280,7 +5382,11 @@
        "simple",
        "complex"
       ],
-      "default": "simple"
+      "default": "simple",
+      "enumLabels": [
+       "Simple",
+       "Complex"
+      ]
      },
      "rarity": {
       "type": "string",
@@ -5290,7 +5396,13 @@
        "rare",
        "unique"
       ],
-      "default": "common"
+      "default": "common",
+      "enumLabels": [
+       "Common",
+       "Uncommon",
+       "Rare",
+       "Unique"
+      ]
      },
      "traits": {
       "type": "array",
@@ -5425,6 +5537,11 @@
           "immunity",
           "weakness",
           "resistance"
+         ],
+         "enumLabels": [
+          "Immunity",
+          "Weakness",
+          "Resistance"
          ]
         },
         "type": {
@@ -5775,7 +5892,14 @@
        "friendly",
        "helpful"
       ],
-      "default": "indifferent"
+      "default": "indifferent",
+      "enumLabels": [
+       "Hostile",
+       "Unfriendly",
+       "Indifferent",
+       "Friendly",
+       "Helpful"
+      ]
      },
      "appearance": {
       "type": "string",
@@ -5924,6 +6048,18 @@
        "underground",
        "urban",
        "planar"
+      ],
+      "enumLabels": [
+       "Aquatic",
+       "Arctic",
+       "Desert",
+       "Forest",
+       "Mountain",
+       "Plains",
+       "Swamp",
+       "Underground",
+       "Urban",
+       "Planar"
       ]
      },
      "level": {
@@ -5940,6 +6076,13 @@
        "town",
        "city",
        "metropolis"
+      ],
+      "enumLabels": [
+       "Hamlet",
+       "Village",
+       "Town",
+       "City",
+       "Metropolis"
       ]
      },
      "population": {
@@ -5959,7 +6102,14 @@
        "high",
        "deadly"
       ],
-      "default": "low"
+      "default": "low",
+      "enumLabels": [
+       "Safe",
+       "Low",
+       "Moderate",
+       "High",
+       "Deadly"
+      ]
      },
      "features": {
       "type": "array",
@@ -6232,7 +6382,13 @@
        "rare",
        "unique"
       ],
-      "default": "common"
+      "default": "common",
+      "enumLabels": [
+       "Common",
+       "Uncommon",
+       "Rare",
+       "Unique"
+      ]
      },
      "category": {
       "type": "string",
@@ -6389,6 +6545,18 @@
        "underground",
        "urban",
        "planar"
+      ],
+      "enumLabels": [
+       "Aquatic",
+       "Arctic",
+       "Desert",
+       "Forest",
+       "Mountain",
+       "Plains",
+       "Swamp",
+       "Underground",
+       "Urban",
+       "Planar"
       ]
      },
      "partyLevel": {
@@ -6412,7 +6580,14 @@
        "severe",
        "extreme"
       ],
-      "default": "moderate"
+      "default": "moderate",
+      "enumLabels": [
+       "Trivial",
+       "Low",
+       "Moderate",
+       "Severe",
+       "Extreme"
+      ]
      },
      "creatures": {
       "type": "string",
@@ -6448,7 +6623,13 @@
        "done",
        "skipped"
       ],
-      "default": "planned"
+      "default": "planned",
+      "enumLabels": [
+       "Planned",
+       "Running",
+       "Done",
+       "Skipped"
+      ]
      },
      "notes": {
       "type": "string",
@@ -6698,7 +6879,14 @@
        "completed",
        "failed"
       ],
-      "default": "rumour"
+      "default": "rumour",
+      "enumLabels": [
+       "Rumour",
+       "Offered",
+       "Active",
+       "Completed",
+       "Failed"
+      ]
      },
      "complications": {
       "type": "string",

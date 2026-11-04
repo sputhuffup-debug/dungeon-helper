@@ -51,7 +51,7 @@ export function convertBasics(src: BasicsSource): ReferenceList[] {
       name: "Skills",
       cite: cite("Using Ability Scores", "Skills"),
       columns: ["ability"],
-      itemSchema: { type: "object", properties: { attribute: { type: "string", enum: ABILITIES.map((a) => a.id) } }, required: ["id", "name", "attribute"] },
+      itemSchema: { type: "object", properties: { attribute: { type: "string", enum: ABILITIES.map((a) => a.id), enumLabels: ABILITIES.map((a) => a.name) } }, required: ["id", "name", "attribute"] },
       items: SKILLS.map((s) => ({
         id: s.id,
         name: s.name,
@@ -65,7 +65,7 @@ export function convertBasics(src: BasicsSource): ReferenceList[] {
       name: "Saving throws",
       cite: cite("Using Ability Scores", "Saving Throws"),
       columns: ["ability"],
-      itemSchema: { type: "object", properties: { attribute: { type: "string", enum: ABILITIES.map((a) => a.id) } }, required: ["id", "name", "attribute"] },
+      itemSchema: { type: "object", properties: { attribute: { type: "string", enum: ABILITIES.map((a) => a.id), enumLabels: ABILITIES.map((a) => a.name) } }, required: ["id", "name", "attribute"] },
       items: SAVES.map((s) => ({ id: s.id, name: s.name, attribute: s.ability, ability: capitalize(s.ability) })),
     },
     {

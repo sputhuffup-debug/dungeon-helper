@@ -180,6 +180,17 @@
        "lawful-evil",
        "neutral-evil",
        "chaotic-evil"
+      ],
+      "enumLabels": [
+       "Lawful good",
+       "Neutral good",
+       "Chaotic good",
+       "Lawful neutral",
+       "Neutral",
+       "Chaotic neutral",
+       "Lawful evil",
+       "Neutral evil",
+       "Chaotic evil"
       ]
      },
      "xp": {
@@ -574,7 +585,13 @@
        "Medium",
        "Large"
       ],
-      "default": "Medium"
+      "default": "Medium",
+      "enumLabels": [
+       "Tiny",
+       "Small",
+       "Medium",
+       "Large"
+      ]
      },
      "darkvision": {
       "type": "integer",
@@ -658,7 +675,15 @@
        "wisdom",
        "charisma"
       ],
-      "description": "Leave empty to use the class's spellcasting ability."
+      "description": "Leave empty to use the class's spellcasting ability.",
+      "enumLabels": [
+       "Strength",
+       "Dexterity",
+       "Constitution",
+       "Intelligence",
+       "Wisdom",
+       "Charisma"
+      ]
      },
      "spellSlotsUsed": {
       "type": "object",
@@ -772,7 +797,22 @@
           "slashing",
           "thunder"
          ],
-         "description": "Damage type, when the damage text does not say."
+         "description": "Damage type, when the damage text does not say.",
+         "enumLabels": [
+          "Acid",
+          "Bludgeoning",
+          "Cold",
+          "Fire",
+          "Force",
+          "Lightning",
+          "Necrotic",
+          "Piercing",
+          "Poison",
+          "Psychic",
+          "Radiant",
+          "Slashing",
+          "Thunder"
+         ]
         },
         "kind": {
          "type": "string",
@@ -781,7 +821,12 @@
           "ranged",
           "spell"
          ],
-         "description": "Melee (the default), ranged or spell attack."
+         "description": "Melee (the default), ranged or spell attack.",
+         "enumLabels": [
+          "Melee",
+          "Ranged",
+          "Spell"
+         ]
         },
         "notes": {
          "type": "string",
@@ -6127,7 +6172,15 @@
        "Huge",
        "Gargantuan"
       ],
-      "default": "Medium"
+      "default": "Medium",
+      "enumLabels": [
+       "Tiny",
+       "Small",
+       "Medium",
+       "Large",
+       "Huge",
+       "Gargantuan"
+      ]
      },
      "creatureType": {
       "type": "string",
@@ -6593,6 +6646,11 @@
           "immunity",
           "resistance",
           "vulnerability"
+         ],
+         "enumLabels": [
+          "Immunity",
+          "Resistance",
+          "Vulnerability"
          ]
         },
         "type": {
@@ -6611,6 +6669,21 @@
           "radiant",
           "slashing",
           "thunder"
+         ],
+         "enumLabels": [
+          "Acid",
+          "Bludgeoning",
+          "Cold",
+          "Fire",
+          "Force",
+          "Lightning",
+          "Necrotic",
+          "Piercing",
+          "Poison",
+          "Psychic",
+          "Radiant",
+          "Slashing",
+          "Thunder"
          ]
         },
         "except": {
@@ -6745,6 +6818,11 @@
           "melee",
           "ranged",
           "spell"
+         ],
+         "enumLabels": [
+          "Melee",
+          "Ranged",
+          "Spell"
          ]
         },
         "bonus": {
@@ -6777,6 +6855,21 @@
              "radiant",
              "slashing",
              "thunder"
+            ],
+            "enumLabels": [
+             "Acid",
+             "Bludgeoning",
+             "Cold",
+             "Fire",
+             "Force",
+             "Lightning",
+             "Necrotic",
+             "Piercing",
+             "Poison",
+             "Psychic",
+             "Radiant",
+             "Slashing",
+             "Thunder"
             ]
            },
            "persistent": {
@@ -6821,6 +6914,14 @@
             "intelligence-save",
             "wisdom-save",
             "charisma-save"
+           ],
+           "enumLabels": [
+            "Strength save",
+            "Dexterity save",
+            "Constitution save",
+            "Intelligence save",
+            "Wisdom save",
+            "Charisma save"
            ]
           },
           "half": {
@@ -6851,6 +6952,21 @@
                "radiant",
                "slashing",
                "thunder"
+              ],
+              "enumLabels": [
+               "Acid",
+               "Bludgeoning",
+               "Cold",
+               "Fire",
+               "Force",
+               "Lightning",
+               "Necrotic",
+               "Piercing",
+               "Poison",
+               "Psychic",
+               "Radiant",
+               "Slashing",
+               "Thunder"
               ]
              },
              "persistent": {
@@ -8433,6 +8549,17 @@
        "lawful-evil",
        "neutral-evil",
        "chaotic-evil"
+      ],
+      "enumLabels": [
+       "Lawful good",
+       "Neutral good",
+       "Chaotic good",
+       "Lawful neutral",
+       "Neutral",
+       "Chaotic neutral",
+       "Lawful evil",
+       "Neutral evil",
+       "Chaotic evil"
       ]
      },
      "attitude": {
@@ -8444,7 +8571,14 @@
        "friendly",
        "helpful"
       ],
-      "default": "indifferent"
+      "default": "indifferent",
+      "enumLabels": [
+       "Hostile",
+       "Unfriendly",
+       "Indifferent",
+       "Friendly",
+       "Helpful"
+      ]
      },
      "appearance": {
       "type": "string",
@@ -8604,6 +8738,19 @@
        "underground",
        "urban",
        "planar"
+      ],
+      "enumLabels": [
+       "Arctic",
+       "Coast",
+       "Desert",
+       "Forest",
+       "Grassland",
+       "Hills",
+       "Mountain",
+       "Swamp",
+       "Underground",
+       "Urban",
+       "Planar"
       ]
      },
      "size": {
@@ -8614,6 +8761,13 @@
        "town",
        "city",
        "metropolis"
+      ],
+      "enumLabels": [
+       "Hamlet",
+       "Village",
+       "Town",
+       "City",
+       "Metropolis"
       ]
      },
      "population": {
@@ -8633,7 +8787,14 @@
        "high",
        "deadly"
       ],
-      "default": "low"
+      "default": "low",
+      "enumLabels": [
+       "Safe",
+       "Low",
+       "Moderate",
+       "High",
+       "Deadly"
+      ]
      },
      "features": {
       "type": "array",
@@ -8813,6 +8974,17 @@
        "lawful-evil",
        "neutral-evil",
        "chaotic-evil"
+      ],
+      "enumLabels": [
+       "Lawful good",
+       "Neutral good",
+       "Chaotic good",
+       "Lawful neutral",
+       "Neutral",
+       "Chaotic neutral",
+       "Lawful evil",
+       "Neutral evil",
+       "Chaotic evil"
       ]
      },
      "resources": {
@@ -8925,7 +9097,16 @@
        "legendary",
        "artifact"
       ],
-      "default": "mundane"
+      "default": "mundane",
+      "enumLabels": [
+       "Mundane",
+       "Common",
+       "Uncommon",
+       "Rare",
+       "Very rare",
+       "Legendary",
+       "Artifact"
+      ]
      },
      "attunement": {
       "type": "boolean",
@@ -9081,6 +9262,19 @@
        "underground",
        "urban",
        "planar"
+      ],
+      "enumLabels": [
+       "Arctic",
+       "Coast",
+       "Desert",
+       "Forest",
+       "Grassland",
+       "Hills",
+       "Mountain",
+       "Swamp",
+       "Underground",
+       "Urban",
+       "Planar"
       ]
      },
      "partyLevel": {
@@ -9123,7 +9317,13 @@
        "done",
        "skipped"
       ],
-      "default": "planned"
+      "default": "planned",
+      "enumLabels": [
+       "Planned",
+       "Running",
+       "Done",
+       "Skipped"
+      ]
      },
      "notes": {
       "type": "string",
@@ -9272,7 +9472,14 @@
        "completed",
        "failed"
       ],
-      "default": "rumour"
+      "default": "rumour",
+      "enumLabels": [
+       "Rumour",
+       "Offered",
+       "Active",
+       "Completed",
+       "Failed"
+      ]
      },
      "complications": {
       "type": "string",
