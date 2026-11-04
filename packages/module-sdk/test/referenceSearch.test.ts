@@ -46,14 +46,16 @@ describe("searchReference", () => {
 
 describe("titleMatchQuality", () => {
   it("ranks the title asked for above a loose match, whatever the record kind", () => {
-    expect(titleMatchQuality("Panic", "panic")).toBe(5);
-    expect(titleMatchQuality("M41A Pulse Rifle", "pulse rifle")).toBe(3);
-    expect(titleMatchQuality("Pulse rifle drills", "pulse rifle")).toBe(4);
-    expect(titleMatchQuality("Panic roll", "PANIC")).toBe(4);
+    expect(titleMatchQuality("Panic", "panic")).toBe(6);
+    expect(titleMatchQuality("Pulse rifle drills", "pulse rifle")).toBe(5);
+    expect(titleMatchQuality("Panic roll", "PANIC")).toBe(5);
+    expect(titleMatchQuality("M41A Pulse Rifle", "pulse rifle")).toBe(4);
+    // the words, apart: below the phrase
+    expect(titleMatchQuality("AK-4047 Pulse Assault Rifle", "pulse rifle")).toBe(3);
     expect(titleMatchQuality("Impulse rifles", "pulse rifle")).toBe(2);
     // a record found by its description or tags
     expect(titleMatchQuality("Facehugger", "pulse rifle")).toBe(0);
-    expect(titleMatchQuality("Café", "cafe")).toBe(5);
+    expect(titleMatchQuality("Café", "cafe")).toBe(6);
     expect(titleMatchQuality("Anything", "  ")).toBe(0);
   });
 });

@@ -115,19 +115,21 @@ export function searchReference(index: ReferenceIndex, query: string, opts: { mo
 
 /**
  * How well a title matches a query, for ranking hits of different kinds
- * (records, rule cards, reference entries) against each other: 5 the title
- * is the query, 4 it starts with it, 3 every word of the query starts a word
- * of the title, 2 the title holds every word, 0 it matched elsewhere (a
- * description, a tag). Accents and case are ignored.
+ * (records, rule cards, reference entries) against each other: 6 the title
+ * is the query, 5 it starts with it, 4 it holds the query's words in order
+ * from a word's start ("M41A Pulse Rifle" for "pulse rifle"), 3 every word of
+ * the query starts a word of the title, 2 the title holds every word, 0 it
+ * matched elsewhere (a description, a tag). Accents and case are ignored.
  */
 export function titleMatchQuality(title: string, query: string): number {
   const t = norm(title).trim();
   const words = norm(query).split(/\s+/).filter(Boolean);
   if (words.length === 0 || !t) return 0;
   const phrase = words.join(" ");
-  if (t === phrase) return 5;
-  if (t.startsWith(phrase)) return 4;
+  if (t === phrase) return 6;
+  if (t.startsWith(phrase)) return 5;
   const titleWords = t.split(/\W+/).filter(Boolean);
+  if (titleWords.some((_, i) => titleWords.slice(i).join(" ").startsWith(phrase))) return 4;
   if (words.every((w) => titleWords.some((tw) => tw.startsWith(w)))) return 3;
   if (words.every((w) => t.includes(w))) return 2;
   return 0;
