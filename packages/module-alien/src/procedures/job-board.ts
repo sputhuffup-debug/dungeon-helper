@@ -159,9 +159,11 @@ export function boardCast(inputs: Obj): BoardCast {
   const tags = (e: Obj) => (Array.isArray(e.tags) ? e.tags.filter((t): t is string => typeof t === "string") : []);
   const locations = entities.filter((e) => e.kind === "location");
   const home = locations.find((e) => tags(e).includes("home-base") && e.subtype === "colony") ?? locations.find((e) => tags(e).includes("home-base"));
+  // the home base set for the campaign first, then a place tagged as one
+  const set = isObj(inputs.homeBase) ? str(inputs.homeBase.name) : "";
   return {
     pcCount: pcs.length > 0 ? pcs.length : Math.max(1, Math.floor(num(inputs.pcCount, 4))),
-    home: home ? str(home.name) : "the port",
+    home: set || (home ? str(home.name) : "the port"),
     factions: entities.filter((e) => e.kind === "faction").map((e) => ({ id: str(e.id), name: str(e.name), ...(typeof e.visibility === "string" ? { visibility: e.visibility } : {}) })),
     takenNames: entities.filter((e) => e.kind === "character").map((e) => str(e.name)),
   };
@@ -329,7 +331,7 @@ function buildPosting(ctx: ProcedureContext, index: number, cast: BoardCast, tak
   const publicEmployer = poster.clientShown ? employerName : "the client";
   const what = (labels.mission || "the job").toLowerCase();
   const destShort = labels.destination ? (DEST_TEXT[labels.destination] ?? `the ${labels.destination.toLowerCase()}`) : "the destination";
-  const vars = { employer: publicEmployer, home: cast.home, dest: destShort, what, goes: pluralCargo(what) ? "go" : "goes", postedBy: poster.postedBy, prize: fk === "truckers" ? `the ${what}` : "the objective", contact: "the contact" };
+  const vars = { employer: publicEmployer, home: cast.home, dest: destShort, what, goes: pluralCargo(what) ? "go" : "goes", it: pluralCargo(what) ? "them" : "it", postedBy: poster.postedBy, prize: fk === "truckers" ? `the ${what}` : "the objective", contact: "the contact" };
   const fill = fillWith(vars);
   const risk = part("risk", (r) => {
     const x = r.int(1, 6);
@@ -771,6 +773,7 @@ export const jobBoard: Procedure = {
       },
       marineCorps: { type: "string", title: "Marine corps", ...labelledEnum(["uscmc", "space-operating-forces", "royal-marines-commandos"], { uscmc: "USCMC", "space-operating-forces": "Space Operating Forces", "royal-marines-commandos": "Royal Marines Commandos" }), description: "Colonial Marines only (p. 235)." },
       pcCount: { type: "integer", title: "PCs", minimum: 1, maximum: 8, default: 4, description: "Used only when the campaign has no PCs." },
+      homeBase: { type: "object", title: "Home base", "x-entity": { types: ["alien.location"], setting: "homeBase" }, description: "Where the postings go up: the campaign's home base (Settings). Blank: a place tagged home-base, else the port." },
       campaign: {
         type: "object",
         title: "Campaign",

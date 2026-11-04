@@ -4,10 +4,13 @@
  * is the players' intro; the complications, the plot twist, the employer's
  * real intent and the NPCs' secrets are the GM's situation; the arrival
  * scene is set at the job's site, on its saved site map, with the job's
- * NPCs and the arc clue seeded with the job. The wrap-up closes the job as
- * done, failed or carried over. Module-original wiring; no book text.
+ * NPCs and the arc clue seeded with the job, listed as a Clue record (GM
+ * only) among the scene's clues. The wrap-up closes the job as done, failed
+ * or carried over, and offers to move the in-world date by the trip (`trip`).
+ * Module-original wiring; no book text.
  */
-import type { AdventureSceneFill, AdventureSourceDef, AdventureSourceFill, AdventureSourceInput, AdventureSourceLink, AdventureSourcePerson } from "@campaign-forge/module-sdk";
+import type { AdventureSceneClue, AdventureSceneFill, AdventureSourceDef, AdventureSourceFill, AdventureSourceInput, AdventureSourceLink, AdventureSourcePerson, AdventureSourceTrip, EntitySnapshot } from "@campaign-forge/module-sdk";
+import { clueType } from "./entities/clue";
 import { CAMPAIGN } from "./modes";
 import { jobCardTemplate } from "./templates/jobCard";
 
@@ -83,6 +86,39 @@ function gmSituation(input: AdventureSourceInput): string {
   return out.length > 2 ? out.join("\n") : "";
 }
 
+/** The arc's clue kinds as the Clue sheet's kinds (module decision). */
+const CLUE_KIND: Record<string, string> = { object: "physical", person: "testimony", place: "physical", fact: "document" };
+
+/** A seeded arc clue as a Clue record on the arrival scene: what the crew learns, and the thread it belongs to (GM). */
+function clueRecord(c: AdventureSourceInput["clues"][number]): AdventureSceneClue {
+  return {
+    type: clueType.id,
+    name: c.text.length > 60 ? `${c.text.slice(0, 57).trimEnd()}…` : c.text,
+    fields: {
+      clueKind: CLUE_KIND[c.kind ?? ""] ?? "other",
+      revealed: false,
+      text: c.playerText ?? c.text,
+      truth: [`Arc clue for “${c.threadTitle}”: ${c.text}`, c.unlocks ? `Leads to: ${c.unlocks}` : ""].filter(Boolean).join(". "),
+      ...(c.slotLabel ? { foundBy: c.slotLabel } : {}),
+      pointsTo: c.threadTitle,
+    },
+    arcClue: { thread: c.thread, clue: c.clue },
+  };
+}
+
+/**
+ * The job's trip: the ship's FTL rating (days per parsec, p. 108) times the
+ * job's distance, out and back. Module decision: one system away counts as
+ * one parsec; an in-system job (distance 0) has no time the book gives.
+ */
+export function runJobTrip({ entity, ship }: { entity: EntitySnapshot; ship?: EntitySnapshot }): AdventureSourceTrip | undefined {
+  const distance = typeof entity.fields.distance === "number" ? Math.max(0, Math.round(entity.fields.distance)) : 0;
+  const ftl = typeof ship?.fields.ftl === "number" ? ship.fields.ftl : 0;
+  if (distance === 0 || !ship || ftl <= 0) return undefined;
+  const each = distance * ftl;
+  return { days: each * 2, text: `${distance} system${distance === 1 ? "" : "s"} each way at ${ship.name}'s FTL rating ${ftl}: ${each} days out and ${each} back`, page: 108 };
+}
+
 function scenes(input: AdventureSourceInput): Record<string, AdventureSceneFill> {
   const f = input.entity.fields;
   const hidden = new Set(input.entity.gmFields ?? []);
@@ -117,7 +153,7 @@ function scenes(input: AdventureSourceInput): Record<string, AdventureSceneFill>
     ...(map ? { map: map.id } : {}),
     ...(npcs.length ? { participants: npcs.map((l) => l.entity.id) } : {}),
     body: arrivalBody.join("\n\n"),
-    ...(clues.length ? { events: clues.map((c) => ({ text: `Clue to find (${c.threadTitle}): ${c.text}`, mandatory: false })) } : {}),
+    ...(clues.length ? { events: clues.map((c) => ({ text: `Clue to find (${c.threadTitle}): ${c.text}`, mandatory: false })), clues: clues.map(clueRecord) } : {}),
   };
   if (complications[0]) out.complication = { body: complications[0], ...(site ? { location: site.entity.id } : {}), ...(map ? { map: map.id } : {}) };
   const twistText = [complications.slice(2).join(" "), twist && `Plot twist: ${twist}`].filter(Boolean).join("\n\n");
@@ -188,4 +224,5 @@ export const runJob: AdventureSourceDef = {
   ],
   prefill: runJobPrefill,
   people: runJobPeople,
+  trip: runJobTrip,
 };

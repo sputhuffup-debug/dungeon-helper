@@ -42,9 +42,9 @@ export const PITCH_OPENERS: Record<FrameKey, string[]> = {
   ],
 };
 
-/** The job in one sentence: {what} is the cargo or mission, lower case; {goes} agrees with it ("go" for plural cargo). */
+/** The job in one sentence: {what} is the cargo or mission, lower case; {goes} and {it} agree with it ("go", "them" for plural cargo). */
 export const PITCH_WORK: Record<FrameKey, string[]> = {
-  truckers: ["The cargo is {what}, bound for {dest}.", "Pick up {what} and deliver it to {dest}, sealed.", "{What} {goes} to {dest}; the manifest is ready to sign."],
+  truckers: ["The cargo is {what}, bound for {dest}.", "Pick up {what} and deliver {it} to {dest}, sealed.", "{What} {goes} to {dest}; the manifest is ready to sign."],
   marines: ["The job is {what} at {dest}.", "Objective: {what}, at {dest}.", "{What}, at {dest}; the briefing comes after signing."],
   colonists: ["The work is {what} at {dest}.", "{What} at {dest}, with a full report on return.", "Get to {dest}, see to the {what}, and bring back the data."],
 };
@@ -241,7 +241,7 @@ export const NPC_ROLES: NpcRoleRow[] = [
     mapRole: "survivor",
     weight: 2,
     when: ["Search And Rescue", "Rescue Expedition", "Investigation", "Civil Evacuation", "Mayday", "Presumed Missing", "Abandoned Colony", "Young Colony", "Scattered Homesteads"],
-    wants: ["To get out, now", "To find someone still missing at {dest}", "For someone to listen", "Never to go back"],
+    wants: ["To get out, now", "To find someone still missing at {dest}", "Someone who will listen", "Never to go back"],
     secrets: ["Left others behind to save themselves", "Saw what happened and is too afraid to say", "Is hurt worse than they let on", "Is not who they claim to be"],
     ties: ["The reason the job exists", "Knows where the danger is at {dest}", "Can identify who is responsible"],
   },

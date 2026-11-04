@@ -556,7 +556,7 @@ export const BEAT_COSTS: string[] = [
 /** What crewmates compete for. `{employer}` is the job's employer. */
 export const CONTESTED_THINGS: string[] = [
   "the next payout",
-  "where the ship goes next",
+  "the pick of the next port",
   "the last full medkit",
   "the next shore leave",
   "the good bunk",
@@ -565,7 +565,7 @@ export const CONTESTED_THINGS: string[] = [
   "the best gear in the locker",
   "comms time to call home",
   "the salvage from this job",
-  "who flies the next leg",
+  "the pilot's seat on the next leg",
   "the last real coffee in the galley",
 ];
 

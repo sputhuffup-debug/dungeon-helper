@@ -16,7 +16,9 @@
  *  7. Docking and fuel: the GM's own figures (the book prices neither).
  *  8. Shore leave and the next job: chained to the shore leave week
  *     (p. 257-258, living expenses come out of each PC's cash there) and the
- *     job generator (p. 244).
+ *     job generator (p. 244). The weeks in port move the in-world date on
+ *     (an `advanceDate` effect, 7 days a week; module decision), so the
+ *     chained shore leave weeks leave it be.
  *
  * Repair rolls use the dice the GM gives for the crew's best Heavy Machinery
  * and Comtech pools (attribute + skill + tools), as base dice only; pin a
@@ -322,6 +324,9 @@ export const betweenJobs: Procedure = {
           }
           if (supply && (supply.personDays ?? 0) > 0) effects.push({ kind: "incrementField", entity: ship.id, path: "provisions", by: supply.personDays ?? 0 });
         }
+        // the weeks in port pass (shore leave weeks chained from here leave the date be)
+        const weeks = weeksOf(ctx);
+        if (weeks > 0) effects.push({ kind: "advanceDate", days: weeks * 7, reason: `${weeks} week${weeks === 1 ? "" : "s"} in port` });
         return effects;
       },
     },
@@ -338,7 +343,7 @@ export const betweenJobs: Procedure = {
   ],
   produce: () => ({ entities: [], relationships: [] }),
   chains: [
-    { procedure: "alien.shore-leave", label: "Shore leave week", inputs: (ctx) => ({ livingStandard: str(input(ctx, "livingStandard"), "normal") }) },
+    { procedure: "alien.shore-leave", label: "Shore leave week", inputs: (ctx) => ({ livingStandard: str(input(ctx, "livingStandard"), "normal"), advanceDate: false }) },
     { procedure: "alien.job.create", label: "Roll the next job", inputs: (ctx) => ({ frame: str(input(ctx, "frame"), "space-truckers"), pcCount: Math.max(1, Math.floor(num(input(ctx, "pcCount"), 4))) }) },
     { procedure: "alien.job-board", label: "Deal a job board", inputs: (ctx) => ({ frame: str(input(ctx, "frame"), "space-truckers"), pcCount: Math.max(1, Math.floor(num(input(ctx, "pcCount"), 4))) }) },
   ],

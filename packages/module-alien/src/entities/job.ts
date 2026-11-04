@@ -65,7 +65,7 @@ export const jobType: EntityTypeDef = {
           select("status", "Status", [...JOB_STATUSES], { span: 4 }),
           number("distance", "Distance", { rule: "alien.rule.jobs" }),
           number("difficulty", "Difficulty", { rule: "alien.rule.jobs" }),
-          number("payment", "Payment ($)", { span: 6, rule: "alien.rule.job-payment" }),
+          number("payment", "Payment ($)", { span: 6, rule: "alien.rule.job-payment", config: { format: "money" } }),
           text("employer", "Employer / sponsor", { span: 6, rule: "alien.rule.jobs" }),
           text("destination", "Destination", { span: 6 }),
           textarea("mission", "Mission"),
