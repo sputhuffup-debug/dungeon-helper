@@ -3,7 +3,7 @@
  * modifiers from the roll context, resolves the row and fires nested rolls.
  */
 import { rollDice } from "./dice";
-import { evaluateLogic, evaluateNumber } from "./logic";
+import { evaluateLogic, evaluateNumber, getPath } from "./logic";
 import type { RollRecord, RollTable, TableRegistry, TableRollOptions, TableRow, Rng } from "./types";
 
 export function createTableRegistry(tables: RollTable[]): TableRegistry {
@@ -115,4 +115,37 @@ export function rollTable(table: RollTable, rng: Rng, registry: TableRegistry, o
     if (cite !== undefined) record.cite = cite;
   }
   return record;
+}
+
+/** One line of what a rolled row means, from the table's `resultFields`. */
+export interface TableResultLine {
+  label: string;
+  /** Absent for a flag ("Lethal"). */
+  value?: string;
+  tone?: "danger" | "warning";
+}
+
+/**
+ * What a rolled row's result means, as the module asks it to be shown
+ * (`RollTable.resultFields`): e.g. "Effect: −1 die to Observation",
+ * "Healing time: D6 days", "Lethal". Empty when the table declares no
+ * fields or the result is not an object.
+ */
+export function tableResultLines(table: Pick<RollTable, "resultFields"> | undefined, result: unknown): TableResultLine[] {
+  if (!table?.resultFields || !result || typeof result !== "object" || Array.isArray(result)) return [];
+  const out: TableResultLine[] = [];
+  for (const f of table.resultFields) {
+    const v = getPath(result, f.path);
+    if (v === undefined || v === null || v === "" || v === false) continue;
+    const tone = f.tone ? { tone: f.tone } : {};
+    if (f.as === "flag") {
+      if (v === true) out.push({ label: f.label, ...tone });
+      continue;
+    }
+    const raw = Array.isArray(v) ? v.join(", ") : typeof v === "object" ? undefined : String(v);
+    if (raw === undefined) continue;
+    const named = f.valueLabels?.[raw];
+    out.push({ label: f.label, value: named ?? (f.unit ? `${raw} ${f.unit}` : raw), ...tone });
+  }
+  return out;
 }

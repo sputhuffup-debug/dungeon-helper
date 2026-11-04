@@ -292,6 +292,7 @@ export function semanticChecks(doc: PackCollections & Record<string, unknown>, p
   asList(doc.entityTypes).forEach((t, i) => {
     checkSchemaAt(t.schema, ["entityTypes", i, "schema"], w);
     for (const [k, rule] of Object.entries((t.computed as Record<string, unknown> | undefined) ?? {})) checkLogicAt(rule, ["entityTypes", i, "computed", k], w);
+    asList(t.conditionalVisibility).forEach((r, j) => checkLogicAt(r.when, ["entityTypes", i, "conditionalVisibility", j, "when"], w));
     asList(t.subtypes).forEach((s, j) => checkSchemaAt(s.schema, ["entityTypes", i, "subtypes", j, "schema"], w));
     const sheet = t.sheet as { sections?: unknown } | undefined;
     asList(sheet?.sections).forEach((s, j) =>

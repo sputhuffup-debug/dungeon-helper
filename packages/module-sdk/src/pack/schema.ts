@@ -28,6 +28,7 @@ import type {
 } from "../engines/types";
 import type {
   CalendarDef,
+  ConditionalVisibilityDef,
   CoreEntityKind,
   D20AttackKind,
   D20AttackSource,
@@ -105,6 +106,7 @@ import type {
   SheetSection,
   SheetWidget,
   TableModifier,
+  TableResultField,
   TableRow,
   Template,
   TemplateKind,
@@ -376,8 +378,20 @@ const definitions: Record<string, JsonSchema> = {
       notes: str(),
       unverified: bool,
       family: str(),
+      resultFields: list(ref("tableResultField")),
     },
     ["id", "name", "dice", "rows"],
+  ),
+  tableResultField: object<TableResultField>()(
+    {
+      path: text,
+      label: text,
+      as: { enum: ["text", "flag"] },
+      valueLabels: { type: "object", additionalProperties: str() },
+      unit: str(),
+      tone: { enum: ["danger", "warning"] },
+    },
+    ["path", "label"],
   ),
 
   // Entity types and sheets
@@ -413,11 +427,21 @@ const definitions: Record<string, JsonSchema> = {
       sheet: ref("sheet"),
       computed: { type: "object", additionalProperties: logic },
       defaultVisibility: { type: "object", additionalProperties: oneOfValues<VisibilityLevel>()(VISIBILITY) },
+      conditionalVisibility: list(ref("conditionalVisibility")),
       mode: ref("modes"),
       playerEditable: list(str()),
       subtypes: list(ref("subtype")),
     },
     ["id", "kind", "name", "plural", "schema", "sheet"],
+  ),
+  conditionalVisibility: object<ConditionalVisibilityDef>()(
+    {
+      when: logic,
+      fields: { type: "object", additionalProperties: oneOfValues<VisibilityLevel>()(VISIBILITY), minProperties: 1 },
+      standIns: { type: "object", additionalProperties: str() },
+      reason: text,
+    },
+    ["when", "fields"],
   ),
   relationshipType: object<RelationshipTypeDef>()(
     { id: ref("id"), forward: text, reverse: text, fromKinds: list(oneOfValues<CoreEntityKind>()(CORE_KINDS)), toKinds: list(oneOfValues<CoreEntityKind>()(CORE_KINDS)), symmetric: bool },

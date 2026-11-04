@@ -333,6 +333,27 @@ export interface RollTable {
   unverified?: boolean;
   /** Which family this belongs to, for the reference browser. */
   family?: string;
+  /**
+   * What a rolled row means at the table: the fields of its `result` object
+   * the app shows with the roll (an effect, a healing time, a lethal flag),
+   * in this order. Rows without the field skip it.
+   */
+  resultFields?: TableResultField[];
+}
+
+/** One field of a rolled row's result, shown with the roll (`RollTable.resultFields`). */
+export interface TableResultField {
+  /** Path into the row's `result` object. */
+  path: string;
+  label: string;
+  /** "text" (default) shows `label: value`; "flag" shows `label` alone, when the value is true. */
+  as?: "text" | "flag";
+  /** Text shown for particular values (e.g. `{ "shift": "One shift" }`). */
+  valueLabels?: Record<string, string>;
+  /** Written after a value that has no `valueLabels` entry (e.g. "days"). */
+  unit?: string;
+  /** How loud it is: a lethal flag is "danger". */
+  tone?: "danger" | "warning";
 }
 
 export interface TableModifier {
@@ -1340,11 +1361,34 @@ export interface EntityTypeDef {
   computed?: Record<string, JsonLogicRule>;
   /** Field path -> default visibility. Unlisted fields inherit the entity's. */
   defaultVisibility?: Record<string, VisibilityLevel>;
+  /**
+   * Defaults that depend on the entity's own fields, e.g. a character whose
+   * true make is a secret while a box is ticked. Each rule whose `when` holds
+   * sets its fields' default visibility over `defaultVisibility`; the GM's
+   * per-entity settings still win. See `ConditionalVisibilityDef`.
+   */
+  conditionalVisibility?: ConditionalVisibilityDef[];
   mode?: PlayModeId[];
   /** Field path -> list of fields that are players-visible on a PC sheet when the player owns it. */
   playerEditable?: string[];
   /** Sub-kinds, e.g. location subtypes. */
   subtypes?: Array<{ id: string; name: string; sheet?: SheetLayout; schema?: JsonSchema }>;
+}
+
+/** One field-dependent visibility rule of an entity type (`EntityTypeDef.conditionalVisibility`). */
+export interface ConditionalVisibilityDef {
+  /** JSONLogic over `{ fields }` (the entity's stored fields); the rule applies while it is truthy. */
+  when: JsonLogicRule;
+  /** Field path -> its default visibility while `when` holds. */
+  fields: Record<string, VisibilityLevel>;
+  /**
+   * Field path -> another field whose value a viewer who may not see the
+   * first one is shown in its place, when it has a value (a cover story:
+   * the players read the cover scores as the character's attributes).
+   */
+  standIns?: Record<string, string>;
+  /** Why these fields are hidden, shown to the GM beside them (e.g. in Field visibility). */
+  reason?: string;
 }
 
 export interface RelationshipTypeDef {
