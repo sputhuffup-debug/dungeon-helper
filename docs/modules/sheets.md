@@ -45,21 +45,23 @@ Never store what can be derived. `computed` maps a name to JSONLogic over `{ fie
 
 `sheet.sections[]`: `{ id, title, columns?, collapsed?, mode?, when?, fields[] }`. `when` is JSONLogic over `{ fields }`: the section shows only for entities it is true for (the Alien NPC dossier has `{ "!": { "var": "fields.isPC" } }`, so a PC's sheet drops it). A section holding a filled-in value shows anyway, so `when` never hides data. `sheet.summary`: paths shown in list rows and quick-stat cards. `sheet.create`: paths the new-entity form asks for before the entity is saved, with the sheet's own widgets (the Alien character sheet asks for `isPC` and `weapons`, so a PC can get starting weapons as it is created).
 
-A field: `{ path, label?, widget?, rule?, mode?, readonly?, span?, options?, entityTypes?, config? }`.
+A field: `{ path, label?, widget?, rule?, mode?, readonly?, span?, options?, entityTypes?, config?, reciprocal? }`.
 
 - `path` is dotted (`abilities.might`); `skills.*` means the object at `skills`; `gear[].name` an item of a list.
 - `rule` links a rule card id (a "?" button opens it).
 - `options` for selects: a list (must match the schema `enum`) or `{ "ref": "<reference list id>" }`. On a `text` field, `options` turns it into free text with suggestions: as you type it offers the list's item names (items a supplement added included, labelled with their source and edition), and any other text is still accepted. `config.optionsFilter: { "field": "<sibling path>", "key": "<item key>" }` narrows the suggestions to items whose `key` matches the sibling field's value (case, punctuation and an id's `<namespace>.` prefix are ignored; with the sibling empty, or nothing matching, every item is offered). The fifth edition PC sheet uses it for subclasses (`{ "field": "class", "key": "class" }`) and subraces. When the field's value names a list item that has a `summary`, the summary shows under the field as a hint (the fifth edition sheet shows an SRD 5.2 background's ability scores, origin feat and skills this way); it is never applied to other fields.
 - `mode` limits the field (or section) to play modes.
+- `reciprocal: true` on a `ref` field naming entities of its own type makes it a pair (the Alien Buddy and Rival): setting A's field to B sets B's to A when B's is empty, typed by hand or already A, and clearing or changing A's clears B's when it named A. When B already names someone else it is left alone and the app says so, with a button to repoint it (B's old partner is then let go too). It never makes B name A in two paired fields (a buddy who is also a rival). Award questions see links set one way before the pair through `AwardContext.referencedBy` (`{ "var": ["referencedBy.buddy", 0] }`: how many others name this one). The checker wants the `ref` widget and the field's own type in `entityTypes`.
+- A subtype's sheet is shown after the type's own sheet, so it lists only that subtype's fields; never repeat the type's fields there (the Alien location's region, allegiance and description are on its own sheet, a colony's sheet adds size, population and the rest).
 
 ## Widgets
 
 | Widget | For | `config` |
 |---|---|---|
 | `text`, `textarea`, `richtext` | strings | `placeholder`, `rows`, `maxLength`; `text` with `options`: `optionsFilter` |
-| `number`, `skill` | numbers | `min`, `max`, `step` (else the schema's `minimum`/`maximum`) |
+| `number`, `skill` | numbers | `min`, `max`, `step` (else the schema's `minimum`/`maximum`); `number`: `suggested` (a computed key offered beside the value with a *Use* button, e.g. the fifth edition hit point maximum from the fixed values) and `suggestedLabel` |
 | `attribute` | a big number with steppers | as `number` |
-| `checkbox` | booleans | `text` |
+| `checkbox` | booleans | `text` (its accessible name is always the field's label, never Yes or No) |
 | `select`, `multiselect`, `tags` | enums, lists of strings | `ref` (reference list) |
 | `skills` | an object of skill ratings | `ref` (reference list whose items have `attribute`), `attributesPath` (default `attributes`), `min`, `max`, or an inline `skills` list; `levels` (named ratings shown as a select, e.g. `[{ "value": 0, "label": "—" }, { "value": 1, "label": "Proficient" }, { "value": 2, "label": "Expertise" }]`), `labels` (column headings: `skill`, `attribute`, `attributeValue`, `value`, `pool`), `hideZero` (list only rated skills, with a "Show all" toggle) |
 | `talents` | a list of `{ id, count }` picked from a reference list | `ref`, `maxStack` |

@@ -30,7 +30,7 @@ A PC is a character-kind entity flagged `isPC` or played by a player.
   "hint": "The ruin the first delve goes into.",
   "mode": ["delve"],
   "done": { "some": [{ "var": "entities" }, { "==": [{ "var": "type" }, "lantern.site"] }] },
-  "progress": { "count": { "var": "counts.pcs" }, "of": 4 },
+  "progress": { "count": { "var": "counts.pcs" }, "of": 4, "label": "PCs: a crew of four" },
   "links": [
     { "label": "+ Site", "newEntity": { "type": "lantern.site" }, "primary": true },
     { "label": "Roll a delve", "procedure": "lantern.proc.delve" }
@@ -41,7 +41,7 @@ A PC is a character-kind entity flagged `isPC` or played by a player.
 
 - `id` starts with the module id and a dot; `setup.` is the core's.
 - `done` is JSONLogic over the snapshot below; truthy means done. An empty campaign should not count as done (the checker warns).
-- `progress` (optional) shows "2 of 4" next to the label while the step is open.
+- `progress` (optional) shows "2 of 4" next to the label while the step is open; its `label` (JSONLogic, so a plain string will do) says what is counted and where the target comes from ("0 of 4 PCs: a crew of four until you add the players").
 - `links`: where the step is done. Each has exactly one target:
   - `page`: an app page, one of `home`, `atlas`, `settings`, `ship`, `arcs`, `sessions`, `adventures`, `generate`, `primer`, `rules`, with `params` as its search (`{ "tab": "pcs" }` for the Atlas; `{ "section": "campaign" | "players" | "setup" }` for Settings);
   - `procedure`: a procedure to open in Generate;

@@ -260,6 +260,72 @@ test("character-sheet", async ({ page }) => {
   await shot(page, "character-sheet");
 });
 
+/** Skyfire Down's crew as the demo builds it: two buddies, a PC with no buddy, and the PC Sam plays. */
+function skyfireCrew(): { buddy: string; buddysBuddy: string; loner: string; sams: string } {
+  const demo = buildDemoCampaign();
+  const pcs = Object.values(demo.maps.entities).filter((e) => e.type === "alien.character" && e.fields["isPC"] === true);
+  const byId = new Map(pcs.map((p) => [p.id, p]));
+  const buddy = pcs.find((p) => byId.has(String(p.fields["buddy"] ?? "")));
+  const loner = pcs.find((p) => !p.fields["buddy"]);
+  const sam = demo.store.meta().members.find((m) => m.name === "Sam");
+  const sams = pcs.find((p) => p.ownerMemberId === sam?.id || sam?.characterId === p.id);
+  const out = buddy && loner && sams ? { buddy: buddy.name, buddysBuddy: byId.get(String(buddy.fields["buddy"]))!.name, loner: loner.name, sams: sams.name } : undefined;
+  demo.registry.closeAll();
+  demo.store.destroy();
+  if (!out) throw new Error("the Skyfire Down demo has no buddies, no PC without a buddy, or no PC for Sam");
+  return out;
+}
+
+test("crew-pairs", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const { buddy: first, buddysBuddy: second, loner: third } = skyfireCrew();
+  const base = await loadDemo(page, "skyfire");
+  await page.goto(`${base}/atlas?tab=pcs`);
+  await page.getByRole("tabpanel").getByRole("link", { name: third, exact: true }).click();
+  const ties = page.locator('[data-section="crew-ties"]');
+  await expect(ties).toContainText("Buddy and rival");
+  // the third PC picks the first as buddy: the first already has a buddy, so the app asks before repointing
+  await ties.getByRole("combobox", { name: "Buddy" }).selectOption({ label: first });
+  const offer = page.locator(".cf-toast").filter({ hasText: `${first}'s buddy is still ${second}.` });
+  await expect(offer.getByRole("button", { name: `Make it ${third}` })).toBeVisible();
+  await ties.evaluate((e) => e.scrollIntoView({ block: "center" }));
+  await shot(page, "crew-pairs");
+});
+
+test("players-moved", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const { sams: first } = skyfireCrew();
+  const base = await loadDemo(page, "skyfire");
+  await page.goto(`${base}/settings?section=players`);
+  const players = page.getByTestId("players-card");
+  // the first PC is Sam's; ticking it for Priya moves it, and the toast says so with an Undo
+  await players.getByRole("checkbox", { name: `Priya plays ${first}` }).check();
+  await expect(page.locator(".cf-toast").filter({ hasText: `${first} moved from Sam to Priya.` }).getByRole("button", { name: "Undo" })).toBeVisible();
+  await players.evaluate((e) => e.scrollIntoView({ block: "start" }));
+  await shot(page, "players-moved");
+});
+
+test("atlas-summaries", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const base = await loadDemo(page, "skyfire");
+  await page.goto(`${base}/atlas?tab=npcs`);
+  // the GM's own summary first, then the stat line with Health left
+  await expect(page.locator(".app-entity-table__summary").first()).toBeVisible();
+  await expect(page.getByRole("tabpanel").locator(".app-entity-table__stats").first()).toContainText("Health left");
+  await shot(page, "atlas-summaries");
+});
+
+test("reference-careers", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const base = await loadDemo(page, "skyfire");
+  await page.goto(`${base}/reference?tab=lists&list=alien.careers`);
+  const items = page.getByTestId("reference-items");
+  // key skills and talents by name, the key attribute by its label: no ids
+  await expect(items.getByRole("row", { name: /Colonial Marine/ })).toContainText("Close Combat, Stamina, Ranged Combat");
+  await expect(items).not.toContainText("closeCombat");
+  await shot(page, "reference-careers");
+});
+
 test("alien-weapons", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1100 });
   const base = await loadDemo(page, "skyfire");
@@ -1211,22 +1277,21 @@ test("dnd5e-table", async ({ page }) => {
   await loadDemo(page, "dnd5e");
   await startPlannedSession(page);
   await expect(page.getByRole("heading", { name: "Ambush at the toll-house" })).toBeVisible();
-  // everyone in the opening fight on the initiative tracker, rolled d20 + initiative, highest first
-  const init = page.locator('[data-tracker="dnd5e-srd.tracker.initiative"]');
-  const pick = init.getByRole("combobox", { name: "Add from entities" });
-  for (const name of ["Brannoc Ashby", "Isolde Fairweather", "Tobin Greaves", "Wren Talliver", "Goblin 1", "Goblin 2", "Wolf 1"]) {
-    await pick.selectOption({ label: name });
-    await init.getByRole("button", { name: "Add", exact: true }).click();
-  }
-  await init.getByRole("button", { name: "Roll initiative" }).click();
-  const scores = await init.locator("[data-testid^=card-]").evaluateAll((els) => els.map((e) => Number((e as HTMLInputElement).value)));
-  expect(scores).toHaveLength(7);
-  expect(scores).toEqual([...scores].sort((a, b) => b - a));
+  // everyone in the opening fight in the Combat panel: initiative rolled d20 + initiative, highest first, round 1;
+  // the Trackers tab beside it keeps what the panel does not (no second initiative or hit point tracker)
+  const combat = page.getByTestId("d20-combat");
+  await combat.getByTestId("roll-initiative-all").click();
+  await expect(combat.getByTestId("combat-round")).toHaveText("Round 1");
+  await expect(combat.locator("[data-combatant]")).toHaveCount(7);
+  await expect(page.locator('[data-tracker="dnd5e-srd.tracker.initiative"]')).toHaveCount(0);
   // a round in: a goblin arrow found Brannoc, and Brannoc found a goblin
-  const hp = page.locator('[data-tracker="dnd5e-srd.tracker.hp"]');
-  for (let i = 0; i < 5; i++) await hp.getByRole("button", { name: "Decrease Brannoc Ashby HP" }).click();
-  for (let i = 0; i < 4; i++) await hp.getByRole("button", { name: "Decrease Goblin 1 HP" }).click();
-  await expect(hp.getByRole("spinbutton", { name: "Goblin 1 HP" })).toHaveValue("3");
+  const card = (name: string) => combat.locator("[data-combatant]").filter({ has: page.getByRole("button", { name: `Open ${name}`, exact: true }) });
+  for (const [name, amount] of [["Brannoc Ashby", "5"], ["Goblin 1", "4"]] as const) {
+    await card(name).getByRole("spinbutton", { name: `Amount for ${name}` }).fill(amount);
+    await card(name).getByRole("button", { name: `Damage ${name}` }).click();
+  }
+  await expect(card("Goblin 1").getByTestId("health-value")).toHaveText("3/7");
+  await dismissToasts(page);
   await shot(page, "dnd5e-table");
 });
 
@@ -1648,7 +1713,9 @@ test("guide-alien", async ({ page }) => {
   await page.getByRole("tab", { name: /^PCs/ }).click();
   await page.getByRole("tabpanel").getByRole("link", { name: "Tobias Reyne" }).click();
   await page.getByRole("combobox", { name: "Buddy" }).selectOption({ label: "Juno Okafor" });
-  await guideShot(page, "buddy-rival", [page.locator(".app-entity__header"), page.locator('[data-section="identity"]')]);
+  // a pair: Juno's sheet now names Tobias as her buddy too
+  await expect(page.locator(".cf-toast").filter({ hasText: "Juno Okafor's buddy is now Tobias Reyne too." })).toBeVisible();
+  await guideShot(page, "buddy-rival", [page.locator(".app-entity__header"), page.locator('[data-section="crew-ties"]')]);
 
   // The crew's ship, from a preset
   await nav(page, "Ship").click();
