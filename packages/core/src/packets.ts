@@ -199,7 +199,9 @@ function packetCharacter(raw: Entity, projected: Entity, module: PacketModule | 
     const fields = section.fields.filter((f) => inMode(f, mode));
     // a section that opens on a field the player may not see, and holds nothing shown to a character's own player, is a GM section: left out, title and all
     const lead = fields.find((f) => f.widget !== "computed" && getPath(raw.fields, f.path) !== undefined);
-    if (!lead || (def && !canSeeField(raw, def, lead.path, viewer) && !fields.some((f) => ownerField(f.path)))) continue;
+    // (a field the projection shows in place of a hidden one, a cover story's stand-in, counts as seen)
+    const leadSeen = !def || canSeeField(raw, def, lead?.path ?? "", viewer) || (!!lead && getPath(projected.fields, lead.path) !== undefined);
+    if (!lead || (!leadSeen && !fields.some((f) => ownerField(f.path)))) continue;
     const rows: PacketSheetRow[] = [];
     for (const f of fields) {
       if (skip.has(f.path)) continue;

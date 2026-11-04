@@ -9,9 +9,9 @@
  * the handouts given to the character's player (`Handout.toOwner`, or a
  * module `ownerHandouts` kind with `when: "always"`).
  */
-import { ownerVisiblePaths, type EntityTypeDef, type GameModule, type VisibilityLevel } from "@campaign-forge/module-sdk";
+import { evaluateLogic, ownerVisiblePaths, type ConditionalVisibilityDef, type EntityTypeDef, type GameModule, type VisibilityLevel } from "@campaign-forge/module-sdk";
 import { now } from "./ids";
-import { clone, deletePath, getPath } from "./paths";
+import { clone, deletePath, getPath, setPath } from "./paths";
 import type { CampaignStore } from "./store";
 import { playerLayout, playerLive } from "./sitemap";
 import type { CampaignMaps, Entity, Handout, Id, SiteMap, Visibility } from "./types";
@@ -58,6 +58,7 @@ export function canSeeField(entity: Entity, def: EntityTypeDef | undefined, path
 /** Field paths with a visibility of their own: the GM's overrides, the type's defaults and, for the owner, the owner-visible marks. */
 function explicitPaths(entity: Entity, def: EntityTypeDef | undefined, viewer: Viewer): string[] {
   const out = [...Object.keys(entity.fieldVisibility ?? {}), ...Object.keys(def?.defaultVisibility ?? {})];
+  for (const rule of activeVisibilityRules(entity, def)) out.push(...Object.keys(rule.fields));
   if (def && viewerOwns(viewer, entity)) out.push(...ownerVisiblePaths(def, entity.subtype));
   return out;
 }
@@ -110,7 +111,42 @@ export function findEntityType(module: ModuleTypes | undefined, typeId: string):
   return module?.entityTypes.find((t) => t.id === typeId);
 }
 
-/** Effective visibility of one field path on an entity. */
+/**
+ * The type's field-dependent visibility rules (`conditionalVisibility`) that
+ * hold for this entity now. A rule whose condition cannot be evaluated counts
+ * as holding: a rule only ever exists to keep something from a viewer.
+ */
+export function activeVisibilityRules(entity: Pick<Entity, "fields">, def: EntityTypeDef | undefined): ConditionalVisibilityDef[] {
+  return (def?.conditionalVisibility ?? []).filter((r) => {
+    try {
+      const v = evaluateLogic(r.when, { fields: entity.fields });
+      return Array.isArray(v) ? v.length > 0 : !!v;
+    } catch {
+      return true;
+    }
+  });
+}
+
+/** The rule (of the holding ones) that sets this field path's default, on the path itself or a parent. */
+export function visibilityRuleFor(entity: Pick<Entity, "fields">, def: EntityTypeDef | undefined, path: string): { rule: ConditionalVisibilityDef; level: VisibilityLevel } | undefined {
+  const rules = activeVisibilityRules(entity, def);
+  if (rules.length === 0) return undefined;
+  const segs = path.split(".");
+  for (let i = segs.length; i > 0; i--) {
+    const p = segs.slice(0, i).join(".");
+    for (const rule of rules) {
+      const level = rule.fields[p];
+      if (level) return { rule, level };
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Effective visibility of one field path on an entity: the GM's setting on
+ * the path or a parent, else a holding `conditionalVisibility` rule's, else
+ * the type's default, else the entity's own visibility.
+ */
 export function fieldVisibilityOf(entity: Entity, def: EntityTypeDef | undefined, path: string): Visibility {
   const override = entity.fieldVisibility?.[path];
   if (override) return override;
@@ -121,6 +157,8 @@ export function fieldVisibilityOf(entity: Entity, def: EntityTypeDef | undefined
     const o = entity.fieldVisibility?.[parent];
     if (o) return o;
   }
+  const ruled = visibilityRuleFor(entity, def, path);
+  if (ruled) return { level: ruled.level };
   const def_: VisibilityLevel | undefined = def?.defaultVisibility?.[path];
   if (def_) return { level: def_ };
   for (let i = segs.length - 1; i > 0; i--) {
@@ -169,6 +207,13 @@ export function projectEntityForViewer(entity: Entity, def: EntityTypeDef | unde
   // longest paths first so a hidden parent removes everything underneath
   const sorted = [...paths].sort((a, b) => b.length - a.length || a.localeCompare(b));
   for (const path of sorted) prune(path, 0);
+  // a hidden field with a stand-in shows the stand-in's value in its place (a cover story), never a gap that gives it away
+  for (const rule of activeVisibilityRules(entity, def)) {
+    for (const [target, from] of Object.entries(rule.standIns ?? {})) {
+      const value = getPath(entity.fields, from);
+      if (value !== undefined && !canSeeField(entity, def, target, viewer)) setPath(copy.fields, target, clone(value));
+    }
+  }
   delete copy.fieldVisibility;
   delete copy.provenance;
   delete copy.sheetState;
