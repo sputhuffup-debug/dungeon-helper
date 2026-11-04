@@ -48,6 +48,30 @@ describe("applyEffects", () => {
   });
 });
 
+describe("advanceDate", () => {
+  const calendar = { id: "c", name: "C", defaultYear: 2183, months: [{ name: "January", days: 31 }, { name: "February", days: 28 }], format: "{year}-{month:02}-{day:02}" };
+
+  it("moves the in-world date on the module calendar, logged on the session", () => {
+    const store = newStore();
+    store.updateMeta({ currentDate: "2183-01-28" });
+    const session = store.createSession();
+    const res = applyEffects(store, [{ kind: "advanceDate", days: 7, reason: "a week in port" }], { calendar, sessionId: session.id });
+    expect(store.meta().currentDate).toBe("2183-02-04");
+    expect(res.applied).toHaveLength(1);
+    expect(getTrackerState(store, session.id).log[0]?.text).toBe("In-world date +7 days (a week in port)");
+  });
+
+  it("is skipped without a date, a calendar or days to move", () => {
+    const store = newStore();
+    store.updateMeta({ currentDate: undefined });
+    expect(applyEffects(store, [{ kind: "advanceDate", days: 7 }], { calendar }).skipped[0]?.reason).toBe("the campaign keeps no in-world date");
+    store.updateMeta({ currentDate: "2183-01-01" });
+    expect(applyEffects(store, [{ kind: "advanceDate", days: 7 }]).skipped[0]?.reason).toBe("no calendar to move the date on");
+    expect(applyEffects(store, [{ kind: "advanceDate", days: 0 }], { calendar }).skipped[0]?.reason).toBe("no days to move");
+    expect(store.meta().currentDate).toBe("2183-01-01");
+  });
+});
+
 describe("trackers", () => {
   it("creates state on demand, merges patches, logs and archives", () => {
     const store = newStore();

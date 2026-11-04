@@ -625,6 +625,12 @@ export interface GeneratorDraft extends BaseRecord {
   offers?: Record<string, GeneratorDraftOffer>;
   /** Set once the whole run is accepted; cleared when the GM changes the run again. */
   accepted?: GeneratorDraftAccept;
+  /**
+   * What the campaign looked like to the procedure when dealt: a fingerprint
+   * per input the app filled from the campaign (PCs, campaign snapshot, arc
+   * board, home base...), so a reopened draft can say what changed since.
+   */
+  context?: Record<string, string>;
 }
 
 export interface TrackerState extends BaseRecord {
