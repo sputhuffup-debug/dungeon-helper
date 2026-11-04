@@ -2,6 +2,7 @@ export * from "./types";
 export * from "./ids";
 export * from "./paths";
 export * from "./tags";
+export * from "./reciprocal";
 export * from "./store";
 export * from "./richtext";
 export * from "./persistence";

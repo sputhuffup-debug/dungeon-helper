@@ -136,6 +136,8 @@ describe("sheetValueText", () => {
     expect(sheetValueText({ path: "talents", widget: "talents", options: { ref: "x.talents" } }, [{ id: "personal-safety", count: 1 }], cx)).toBe("Personal Safety");
     expect(sheetValueText({ path: "talents", widget: "talents", config: { ref: "x.talents" } }, [{ id: "personal-safety", count: 2 }], cx)).toBe("Personal Safety ×2");
     expect(sheetValueText({ path: "gear", widget: "gear" }, [{ name: "Comm unit", qty: 1 }, { name: "Naproleve", qty: 4 }], cx)).toBe("Comm unit, Naproleve ×4");
+    // a bare id of the list (a preset's talents), and a name the list does not know, kept as written
+    expect(sheetValueText({ path: "talents", widget: "talents", options: { ref: "x.talents" } }, ["personal-safety", "Knife work"], cx)).toBe("Personal Safety, Knife work");
     expect(sheetValueText({ path: "buddy", widget: "ref" }, "01JB0000000000000000000000", cx)).toBe("Bo Lantern");
   });
   it("shows an older typed name in a ref field as written, never a hidden or missing record's id", () => {
