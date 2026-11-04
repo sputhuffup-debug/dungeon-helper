@@ -419,3 +419,22 @@ describe("checkModule: weapons fields and create paths", () => {
     );
   });
 });
+
+describe("checkModule: reciprocal fields", () => {
+  const withPair = (field: Record<string, unknown>): GameModule => {
+    const m = minimalModule();
+    const thing = m.entityTypes[0]!;
+    thing.schema = { ...thing.schema, properties: { ...(thing.schema.properties as object), partner: { type: "string" } } };
+    thing.sheet.sections[0]!.fields.push({ path: "partner", ...field } as never);
+    return m;
+  };
+
+  it("accepts a ref to the entity's own type", () => {
+    expect(errorsOf(withPair({ widget: "ref", entityTypes: ["min.thing"], reciprocal: true }))).toEqual([]);
+  });
+
+  it("rejects a pair that is not a ref, or points at another type", () => {
+    expect(errorsOf(withPair({ widget: "text", entityTypes: ["min.thing"], reciprocal: true })).map((e) => e.message)).toEqual(['a reciprocal field must use the "ref" widget (got "text")']);
+    expect(errorsOf(withPair({ widget: "ref", entityTypes: [], reciprocal: true })).map((e) => e.message)).toEqual(['a reciprocal field must name its own entity type "min.thing" in entityTypes']);
+  });
+});

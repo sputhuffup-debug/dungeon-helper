@@ -112,3 +112,23 @@ export function searchReference(index: ReferenceIndex, query: string, opts: { mo
   hits.sort((a, b) => b.score - a.score || a.entry.name.localeCompare(b.entry.name));
   return opts.limit !== undefined ? hits.slice(0, opts.limit) : hits;
 }
+
+/**
+ * How well a title matches a query, for ranking hits of different kinds
+ * (records, rule cards, reference entries) against each other: 5 the title
+ * is the query, 4 it starts with it, 3 every word of the query starts a word
+ * of the title, 2 the title holds every word, 0 it matched elsewhere (a
+ * description, a tag). Accents and case are ignored.
+ */
+export function titleMatchQuality(title: string, query: string): number {
+  const t = norm(title).trim();
+  const words = norm(query).split(/\s+/).filter(Boolean);
+  if (words.length === 0 || !t) return 0;
+  const phrase = words.join(" ");
+  if (t === phrase) return 5;
+  if (t.startsWith(phrase)) return 4;
+  const titleWords = t.split(/\W+/).filter(Boolean);
+  if (words.every((w) => titleWords.some((tw) => tw.startsWith(w)))) return 3;
+  if (words.every((w) => t.includes(w))) return 2;
+  return 0;
+}

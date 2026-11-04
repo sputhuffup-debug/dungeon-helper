@@ -50,6 +50,14 @@
         "$ref": "#/definitions/campaignSetting"
       }
     },
+    "machineTags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
     "ownerHandouts": {
       "type": "array",
       "items": {
@@ -1146,6 +1154,9 @@
         },
         "config": {
           "type": "object"
+        },
+        "reciprocal": {
+          "type": "boolean"
         }
       },
       "required": [
@@ -2069,6 +2080,9 @@
               "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
             },
             "of": {
+              "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+            },
+            "label": {
               "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
             }
           },

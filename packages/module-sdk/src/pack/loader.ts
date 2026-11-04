@@ -248,6 +248,7 @@ export function packToModule(input: ModulePack): GameModule {
   if (pack.setup) module.setup = pack.setup;
   if (pack.guide) module.guide = pack.guide;
   if (pack.campaignSettings?.length) module.campaignSettings = pack.campaignSettings;
+  if (pack.machineTags?.length) module.machineTags = pack.machineTags;
   if (pack.ownerHandouts?.length) module.ownerHandouts = pack.ownerHandouts;
   if (pack.characterBuilders) module.characterBuilders = pack.characterBuilders;
   if (pack.mapGenerators?.length) module.mapGenerators = pack.mapGenerators.map((g) => createPackMapGenerator(g, module));
