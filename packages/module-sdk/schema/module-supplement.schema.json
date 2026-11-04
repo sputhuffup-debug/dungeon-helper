@@ -1954,6 +1954,25 @@
         "entity": {
           "description": "JSONLogic over one snapshot entity: the first match (by name) opens; the link hides while none matches."
         },
+        "reference": {
+          "type": "object",
+          "properties": {
+            "list": {
+              "$ref": "#/definitions/id"
+            },
+            "item": {
+              "$ref": "#/definitions/id"
+            },
+            "table": {
+              "$ref": "#/definitions/id"
+            },
+            "preset": {
+              "$ref": "#/definitions/id"
+            }
+          },
+          "additionalProperties": false,
+          "description": "A Reference page entry: exactly one of list (with an optional item of it), table or preset."
+        },
         "primary": {
           "type": "boolean"
         }
@@ -1962,7 +1981,7 @@
         "label"
       ],
       "additionalProperties": false,
-      "description": "Where a setup step is done: exactly one of page, procedure, newEntity or entity."
+      "description": "Where a setup step is done: exactly one of page, procedure, newEntity, entity or reference."
     },
     "setupStep": {
       "type": "object",

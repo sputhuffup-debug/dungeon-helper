@@ -5,6 +5,7 @@ import { guideSteps } from "@campaign-forge/module-sdk";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createCampaign, createEntity } from "../../state/actions";
+import { setupLinkTarget } from "../../state/setupActions";
 import { CampaignContext, openCampaign, type CampaignContextValue } from "../../state/CampaignProvider";
 import { guideImageUrl } from "./guideImages";
 import { GuidePage } from "./GuidePage";
@@ -74,6 +75,31 @@ describe("GuideView", () => {
     const links = within(screen.getByRole("group", { name: "Take me there: Step A" })).getAllByRole("link");
     expect(links.map((l) => [l.textContent, l.getAttribute("data-to")])).toEqual([["Home", "/c/$campaignId/home"]]);
     expect(links[0]!.className).toContain("cf-btn--primary");
+  });
+
+  it("puts Reference page links in their own Look it up row, never as the main button", () => {
+    const guide: GuideDef = {
+      ...FIXTURE,
+      chapters: [{ id: "one", title: "First", steps: [{ id: "a", title: "Step A", body: ["x"], links: [{ label: "Talents", reference: { list: "fx.talents" } }, { label: "Home", page: "home" }, { label: "Mishap", reference: { table: "fx.mishap" } }] }] }],
+    };
+    render(<GuideView guide={guide} moduleId="fx" imageUrl={() => undefined} linkTarget={(l) => setupLinkTarget(l, "c1")} />);
+    const go = within(screen.getByRole("group", { name: "Take me there: Step A" })).getAllByRole("link");
+    expect(go.map((l) => l.textContent)).toEqual(["Home"]);
+    expect(go[0]!.className).toContain("cf-btn--primary");
+    const look = within(screen.getByRole("group", { name: "Look it up: Step A" })).getAllByRole("link");
+    expect(look.map((l) => [l.textContent, l.getAttribute("data-to"), l.getAttribute("data-search")])).toEqual([
+      ["Talents", "/c/$campaignId/reference", JSON.stringify({ tab: "lists", list: "fx.talents" })],
+      ["Mishap", "/c/$campaignId/reference", JSON.stringify({ tab: "tables", table: "fx.mishap" })],
+    ]);
+    expect(look.every((l) => !l.className.includes("cf-btn--primary"))).toBe(true);
+  });
+});
+
+describe("setupLinkTarget for the Reference page", () => {
+  it("opens an item in its list, a table, or a preset", () => {
+    expect(setupLinkTarget({ label: "x", reference: { list: "l", item: "i" } }, "c1")).toEqual({ to: "/c/$campaignId/reference", params: { campaignId: "c1" }, search: { tab: "lists", list: "l", item: "i" } });
+    expect(setupLinkTarget({ label: "x", reference: { table: "t" } }, "c1")?.search).toEqual({ tab: "tables", table: "t" });
+    expect(setupLinkTarget({ label: "x", reference: { preset: "p" } }, "c1")?.search).toEqual({ tab: "presets", preset: "p" });
   });
 });
 

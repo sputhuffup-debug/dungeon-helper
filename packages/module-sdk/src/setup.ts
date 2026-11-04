@@ -23,6 +23,7 @@ import {
   type PlayModeId,
   type SetupLayout,
   type SetupLink,
+  type SetupReferenceTarget,
   type SetupSnapshot,
   type SetupSnapshotEntity,
   type SetupStepDef,
@@ -177,13 +178,14 @@ export function initialCampaignSettings(module: Pick<GameModule, "campaignSettin
 // conformance
 // ---------------------------------------------------------------------------
 
-type CheckedModule = Pick<GameModule, "manifest" | "setup" | "campaignSettings" | "entityTypes" | "procedures" | "referenceLists" | "presets">;
+type CheckedModule = Pick<GameModule, "manifest" | "setup" | "campaignSettings" | "entityTypes" | "procedures" | "referenceLists" | "presets"> & Partial<Pick<GameModule, "tables">>;
 
 /** A setup (or guide) link: a label, exactly one target, and targets the module knows. */
-export function checkSetupLink(l: SetupLink, where: string, module: Pick<GameModule, "entityTypes" | "procedures" | "presets">, err: (where: string, message: string) => void): void {
-  const targets = [l.page !== undefined, l.procedure !== undefined, l.newEntity !== undefined, l.entity !== undefined].filter(Boolean).length;
+export function checkSetupLink(l: SetupLink, where: string, module: Pick<GameModule, "entityTypes" | "procedures" | "presets"> & Partial<Pick<GameModule, "referenceLists" | "tables">>, err: (where: string, message: string) => void): void {
+  const targets = [l.page !== undefined, l.procedure !== undefined, l.newEntity !== undefined, l.entity !== undefined, l.reference !== undefined].filter(Boolean).length;
   if (!l || typeof l.label !== "string" || !l.label.trim()) err(where, "a link needs a label");
-  if (targets !== 1) err(where, `link "${l?.label}" needs exactly one of page, procedure, newEntity or entity`);
+  if (targets !== 1) err(where, `link "${l?.label}" needs exactly one of page, procedure, newEntity, entity or reference`);
+  if (l.reference !== undefined) checkReferenceTarget(l.reference, `link "${l.label}"`, where, module, err);
   if (l.page !== undefined && !SETUP_PAGES.includes(l.page)) err(where, `link "${l.label}": unknown page "${l.page}" (one of ${SETUP_PAGES.join(", ")})`);
   if (l.params !== undefined && l.page === undefined) err(where, `link "${l.label}": params only go with a page`);
   if (l.procedure !== undefined && !module.procedures.some((p) => p.id === l.procedure)) err(where, `link "${l.label}": unknown procedure "${l.procedure}"`);
@@ -192,6 +194,23 @@ export function checkSetupLink(l: SetupLink, where: string, module: Pick<GameMod
     if (l.newEntity.preset !== undefined && !module.presets.some((p) => p.id === l.newEntity!.preset)) err(where, `link "${l.label}": unknown preset "${l.newEntity.preset}"`);
   }
   if (l.entity !== undefined) for (const m of logicIssues(l.entity)) err(where, `link "${l.label}": ${m}`);
+}
+
+/** A Reference page target names exactly one list (with an item of it, if any), table or preset the module has. */
+function checkReferenceTarget(r: SetupReferenceTarget, what: string, where: string, module: Partial<Pick<GameModule, "referenceLists" | "tables" | "presets">>, err: (where: string, message: string) => void): void {
+  const kinds = [r?.list !== undefined, r?.table !== undefined, r?.preset !== undefined].filter(Boolean).length;
+  if (!r || typeof r !== "object" || kinds !== 1) {
+    err(where, `${what}: reference needs exactly one of list, table or preset`);
+    return;
+  }
+  if (r.item !== undefined && r.list === undefined) err(where, `${what}: reference item "${r.item}" needs its list`);
+  if (r.list !== undefined) {
+    const list = (module.referenceLists ?? []).find((x) => x.id === r.list);
+    if (!list) err(where, `${what}: unknown reference list "${r.list}"`);
+    else if (r.item !== undefined && !list.items.some((i) => i.id === r.item)) err(where, `${what}: list "${r.list}" has no item "${r.item}"`);
+  }
+  if (r.table !== undefined && !(module.tables ?? []).some((t) => t.id === r.table)) err(where, `${what}: unknown table "${r.table}"`);
+  if (r.preset !== undefined && !(module.presets ?? []).some((p) => p.id === r.preset)) err(where, `${what}: unknown preset "${r.preset}"`);
 }
 
 /**

@@ -47,6 +47,18 @@ test("guide: from a new campaign's checklist and Home, its links lead into the c
   await expect(page).toHaveURL(/\/guide#session$/);
   await expect(page.locator("#session")).toBeInViewport();
 
+  // Look it up: the talents list, then the panic roll table, on the Reference page
+  const lookUp = (title: string) => page.getByRole("group", { name: `Look it up: ${title}` });
+  await lookUp("Roll a character with the Life Path").getByRole("link", { name: "Talents" }).click();
+  await expect(page).toHaveURL(/\/reference\?.*list=alien\.talents/);
+  await expect(page.getByRole("combobox", { name: "Reference list" })).toHaveValue("alien.talents");
+  await page.goBack();
+  await lookUp("Start it: table mode").getByRole("link", { name: "Panic roll" }).click();
+  await expect(page).toHaveURL(/\/reference\?.*table=alien\.character\.panic/);
+  await expect(page.getByRole("dialog", { name: /Panic roll/ })).toBeVisible();
+  await page.goBack();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+
   // Take me there: the Life Path
   await takeMeThere(page, "Roll a character with the Life Path").getByRole("link", { name: "Roll a Life Path" }).click();
   await expect(page).toHaveURL(/\/generate\/alien\.lifepath$/);

@@ -46,7 +46,8 @@ A PC is a character-kind entity flagged `isPC` or played by a player.
   - `page`: an app page, one of `home`, `atlas`, `settings`, `ship`, `arcs`, `sessions`, `adventures`, `generate`, `primer`, `rules`, with `params` as its search (`{ "tab": "pcs" }` for the Atlas; `{ "section": "campaign" | "players" | "setup" }` for Settings);
   - `procedure`: a procedure to open in Generate;
   - `newEntity`: the New entity page for a type (`pc: true` starts a player character, `preset` picks one);
-  - `entity`: JSONLogic over one snapshot entity at a time; the first match by name opens, and the link hides while nothing matches (e.g. "Open the job" before a job is taken).
+  - `entity`: JSONLogic over one snapshot entity at a time; the first match by name opens, and the link hides while nothing matches (e.g. "Open the job" before a job is taken);
+  - `reference`: an entry of the Reference page, exactly one of `{ "list": "<list id>" }` (add `"item": "<item id>"` to open one of its items), `{ "table": "<table id>" }` or `{ "preset": "<preset id>" }`. The guide shows these apart, as *Look it up* links.
   The `primary` link of the next open step is the card's main button.
 - Steps' wording is the module's own: a short paraphrase, never book prose.
 
@@ -100,7 +101,7 @@ Inside `some`, `all` and `filter` a rule sees one element, so "every PC has an a
 
 ## Checks
 
-`checkModule` (and so `pnpm module-check`) reports: step ids not namespaced or duplicated, missing labels or `done` rules, unknown JSONLogic operators, undeclared modes, links without exactly one target or to unknown pages, procedures, entity types or presets, layouts that hide non-core steps or order unknown ones, rules that throw on an empty campaign or already pass on one (a warning); and for settings, duplicate or core keys, choices without options, defaults outside the options, unknown lists and entity types. A data pack's step ids must start with the pack id, and its rules are checked as JSONLogic when it is validated.
+`checkModule` (and so `pnpm module-check`) reports: step ids not namespaced or duplicated, missing labels or `done` rules, unknown JSONLogic operators, undeclared modes, links without exactly one target or to unknown pages, procedures, entity types, presets, reference lists, list items or tables, layouts that hide non-core steps or order unknown ones, rules that throw on an empty campaign or already pass on one (a warning); and for settings, duplicate or core keys, choices without options, defaults outside the options, unknown lists and entity types. A data pack's step ids must start with the pack id, and its rules are checked as JSONLogic when it is validated.
 
 ## Showing the card
 

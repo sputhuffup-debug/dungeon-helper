@@ -39,7 +39,7 @@ The Alien module's guide is the example: [Your first Alien campaign](../guides/a
 - `id` starts with the module id. Chapter, step and image ids are lowercase slugs, unique in the guide.
 - `body` is a few short paragraphs of plain text. `*Label*` marks a button or label exactly as the app shows it; the Guide page shows it in bold and the docs page keeps it as Markdown emphasis.
 - `mode` lists the play modes the guide is written for; in a campaign of another mode the page says so.
-- `links` are the step's "Take me there" buttons, the same shape as a setup step's links: exactly one of `page` (with `params`), `procedure`, `newEntity` or `entity` (a JSONLogic rule over one entity of the setup snapshot; the link stays hidden until something matches, e.g. "Open the job" before a job is taken). See [Setting up a campaign](setup.md).
+- `links` are the step's "Take me there" buttons, the same shape as a setup step's links: exactly one of `page` (with `params`), `procedure`, `newEntity`, `entity` (a JSONLogic rule over one entity of the setup snapshot; the link stays hidden until something matches, e.g. "Open the job" before a job is taken) or `reference` (a Reference page entry: `{ "list": … }` with an optional `"item"`, `{ "table": … }` or `{ "preset": … }`). Reference links are shown apart, under *Look it up*, and are never the step's main button: they are where a step's options and rules are read, not where it is done. See [Setting up a campaign](setup.md).
 - `image.key` names the step's screenshot: `docs/screenshots/guide-<module id>-<key>.png`. Images are optional; a missing file is left out of the page.
 - `page` and `cite` cite the source as everywhere else.
 

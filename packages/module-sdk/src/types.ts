@@ -3934,8 +3934,22 @@ export interface SetupLink {
    * matches, e.g. "Open the job" before a job is taken.
    */
   entity?: JsonLogicRule;
+  /** An entry of the Reference page: a reference list (or one of its items), a roll table, or a preset. */
+  reference?: SetupReferenceTarget;
   /** The step's main action: shown as the primary button. */
   primary?: boolean;
+}
+
+/**
+ * Where on the Reference page a link goes: exactly one of `list` (with an
+ * optional `item` of that list, opened in its dialog), `table` (opened in the
+ * table dialog) or `preset` (the Presets tab, filtered to it).
+ */
+export interface SetupReferenceTarget {
+  list?: string;
+  item?: string;
+  table?: string;
+  preset?: string;
 }
 
 /**

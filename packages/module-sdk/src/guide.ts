@@ -73,13 +73,14 @@ export function guideText(paragraph: string): GuideTextRun[] {
   return out;
 }
 
-type CheckedModule = Pick<GameModule, "manifest" | "guide" | "entityTypes" | "procedures" | "presets">;
+type CheckedModule = Pick<GameModule, "manifest" | "guide" | "entityTypes" | "procedures" | "presets"> & Partial<Pick<GameModule, "referenceLists" | "tables">>;
 
 /**
  * Conformance of `GameModule.guide`: an id namespaced with the module id, a
  * title and summary, declared modes, at least one chapter with steps;
  * chapter, step and image ids that are unique slugs; a body on every step;
- * image alt text; links with exactly one target the module knows; `*`
+ * image alt text; links with exactly one target the module knows (a page,
+ * procedure, new entity, entity rule, or Reference page entry); `*`
  * marks in pairs.
  */
 export function guideIssues(module: CheckedModule): GuideIssue[] {

@@ -56,6 +56,7 @@ export const firstCampaignGuide: GuideDef = {
           ],
           image: { key: "new-campaign", alt: "The New campaign dialog with the Alien module, campaign play and the Space Truckers frame chosen" },
           page: [234, 235],
+          links: [{ label: "Campaign frames", reference: { list: "alien.frames" } }],
         }),
         step({
           id: "home-checklist",
@@ -82,7 +83,11 @@ export const firstCampaignGuide: GuideDef = {
             "The preview reads like the finished sheet: career, talents, gear and the summary line. Type the character's name in it (here Juno Okafor, a pilot) and click *Accept into campaign*: the new PC opens, with every roll kept as provenance.",
           ],
           image: { key: "life-path", alt: "The Life Path generator with a pilot rolled and named Juno Okafor in the preview" },
-          links: [{ label: "Roll a Life Path", procedure: LIFEPATH }],
+          links: [
+            { label: "Roll a Life Path", procedure: LIFEPATH },
+            { label: "Careers", reference: { list: "alien.careers" } },
+            { label: "Talents", reference: { list: "alien.talents" } },
+          ],
           page: [282, 289],
         }),
         step({
@@ -93,7 +98,10 @@ export const firstCampaignGuide: GuideDef = {
             "Fill in the rest on the sheet: attributes, skills, talents, gear. Health and Resolve work themselves out from the attributes.",
           ],
           image: { key: "pc-by-hand", alt: "The New character page with a blank player character named Tobias Reyne" },
-          links: [{ label: "New player character", newEntity: { type: CHARACTER, pc: true } }],
+          links: [
+            { label: "New player character", newEntity: { type: CHARACTER, pc: true } },
+            { label: "Skills", reference: { list: "alien.skills" } },
+          ],
         }),
         step({
           id: "players",
@@ -130,7 +138,11 @@ export const firstCampaignGuide: GuideDef = {
             "The page then shows the ship's hull, parts and provisions, the ledger of crew funds and each PC's cash, the travel planner and *Run between jobs*. Table mode shows the ship too.",
           ],
           image: { key: "ship", alt: "The Ship page with the Marigold Dawn chosen as the crew's ship" },
-          links: [{ label: "Open the Ship page", page: "ship" }],
+          links: [
+            { label: "Open the Ship page", page: "ship" },
+            { label: "Model CM-88G Bison", reference: { preset: "alien.spaceship.bison-m-class-hauler" } },
+            { label: "Ship classes", reference: { list: "alien.ship-classes" } },
+          ],
           page: 158,
         }),
       ],
@@ -185,7 +197,10 @@ export const firstCampaignGuide: GuideDef = {
             "On Home, click *+ NPC from preset*. *Search presets* for the kind of person you need, pick one of the book's 25 typical NPCs (here *Ship’s engineer*), give them a name (Oskar Brandt) and click *Create character*. The stat line, skills and weapons come with the preset.",
           ],
           image: { key: "npc-preset", alt: "The New character page with the Ship's engineer preset chosen and named Oskar Brandt" },
-          links: [{ label: "New NPC", newEntity: { type: CHARACTER } }],
+          links: [
+            { label: "New NPC", newEntity: { type: CHARACTER } },
+            { label: "Ship’s engineer preset", reference: { preset: "alien.npc.ships-engineer" } },
+          ],
           page: [258, 259],
         }),
         step({
@@ -361,7 +376,11 @@ export const firstCampaignGuide: GuideDef = {
             "*Player screen* opens a second window for the players to look at.",
           ],
           image: { key: "table", alt: "Table mode on the briefing scene, with the clock and the crew's stress trackers" },
-          links: [{ label: "Open Sessions", page: "sessions" }],
+          links: [
+            { label: "Open Sessions", page: "sessions" },
+            { label: "Stress response", reference: { table: "alien.character.stress-response" } },
+            { label: "Panic roll", reference: { table: "alien.character.panic" } },
+          ],
         }),
         step({
           id: "reveal",
