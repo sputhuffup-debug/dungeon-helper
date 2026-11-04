@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { useState } from "react";
 import { createRng, type TrackerDef } from "@campaign-forge/module-sdk";
-import { TrackerHost, getTracker, initiativeState, registerTracker, type TrackerProps } from "../src/index";
+import { ToastViewport, TrackerHost, clearToasts, getTracker, initiativeState, registerTracker, type TrackerProps } from "../src/index";
 
 function Stateful(props: Omit<TrackerProps, "state" | "onChange"> & { initial?: unknown; spy?: (s: unknown) => void }) {
   const { initial, spy, ...rest } = props;
@@ -40,7 +40,12 @@ describe("clock tracker", () => {
   it("advances units, resets smaller units when a bigger one advances, and resets", () => {
     const spy = vi.fn();
     const onLog = vi.fn();
-    render(<Stateful def={clockDef} spy={spy} onLog={onLog} />);
+    render(
+      <>
+        <Stateful def={clockDef} spy={spy} onLog={onLog} />
+        <ToastViewport />
+      </>,
+    );
     fireEvent.click(screen.getByRole("button", { name: "Advance one Round" }));
     fireEvent.click(screen.getByRole("button", { name: "Advance one Round" }));
     expect(screen.getByTestId("clock-round")).toHaveTextContent("2");
@@ -51,8 +56,14 @@ describe("clock tracker", () => {
     expect(screen.getByText(/about 10 min elapsed/)).toBeInTheDocument();
     expect(onLog).toHaveBeenCalled();
 
-    fireEvent.click(screen.getByRole("button", { name: "Reset" }));
+    // reset wipes every counter, and its toast takes it back
+    fireEvent.click(screen.getByRole("button", { name: "Reset the clock" }));
     expect(spy).toHaveBeenLastCalledWith({ counters: { round: 0, stretch: 0, shift: 0 } });
+    expect(screen.getByRole("button", { name: "Reset the clock" })).toBeDisabled();
+    fireEvent.click(within(screen.getByRole("status")).getByRole("button", { name: "Undo" }));
+    expect(spy).toHaveBeenLastCalledWith({ counters: { round: 0, stretch: 1, shift: 0 } });
+    expect(onLog).toHaveBeenLastCalledWith("Clock reset undone");
+    clearToasts();
   });
 });
 

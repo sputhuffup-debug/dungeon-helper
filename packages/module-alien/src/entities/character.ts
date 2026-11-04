@@ -745,5 +745,14 @@ export const characterType: EntityTypeDef = {
     secretOrders: "gm",
     coverAttributes: "players",
   },
+  conditionalVisibility: [
+    {
+      // a secret synthetic (p. 25, 77): the players see the cover scores as its attributes, nothing of its true make
+      when: { "==": [{ var: "fields.secretAndroid" }, true] },
+      fields: { android: "gm", attributes: "gm", skills: "gm", talents: "gm", coverAttributes: "gm" },
+      standIns: { attributes: "coverAttributes" },
+      reason: "Poses as human: players see the cover scores as its attributes, and none of its true make.",
+    },
+  ],
   playerEditable: ["stress", "damage", "gear", "weapons", "cash", "talents", "skills", "personalAgenda", "agendas", "storyPoints", "xp", "signatureItem", "buddy", "rival", "background"],
 };

@@ -312,6 +312,7 @@ export const criticalInjury: DiceOperation = {
       entity: { type: "string" },
       android: { type: "boolean", default: false, description: "Androids roll on the critical system damage table instead (p. 78)." },
       conditions: { type: "array", items: { type: "string" } },
+      criticalInjuries: { type: "array", description: "The sheet's Critical injuries (p. 70), filled from the character: the rolled injury is added to it." },
     },
   },
   run(input, rng, tables): DiceOperationResult {
@@ -333,6 +334,10 @@ export const criticalInjury: DiceOperation = {
         entity,
         condition: { id: `${CRITICAL_INJURY_CONDITION}${record.total}`, label, source: CRITICAL_INJURY_TABLE, page: 70 },
       });
+      // and on the sheet's Critical injuries, where it stays until it heals (the GM removes it there)
+      const id = `${CRITICAL_INJURY_CONDITION}${record.total}`;
+      const sheet = Array.isArray(input.criticalInjuries) ? (input.criticalInjuries as unknown[]).filter((x): x is { id: string } => !!x && typeof x === "object" && typeof (x as { id?: unknown }).id === "string") : [];
+      if (!sheet.some((x) => x.id === id)) effects.push({ kind: "setField", entity, path: "criticalInjuries", value: [...sheet, { id, label, page: 70 }] });
     }
     return { total: record.total, rolls: [record], result: { row: row?.result ?? null, total: record.total }, label, effects };
   },

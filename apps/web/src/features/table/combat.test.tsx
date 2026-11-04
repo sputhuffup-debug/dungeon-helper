@@ -128,8 +128,14 @@ describe("participant health and take a hit", () => {
     const hits = rolled.filter((l) => (l.data as DiceLogData).kind === "damage");
     expect(hits.map((h) => h.text)).toEqual([expect.stringMatching(/^Aria takes a hit: 3 damage\. .*Health 3\/6$/), expect.stringMatching(/^Aria takes a hit: 3 damage\. .*Health 0\/6, broken$/)]);
     expect(hits.every((h) => (h.data as DiceLogData).gmOnly === true && /:\d+$/.test((h.data as DiceLogData).seed))).toBe(true);
-    // the card offers the broken roll while she is at zero
-    expect(within(screen.getByRole("list", { name: "Player characters" })).getByRole("button", { name: "Roll Grave wound for Aria" })).toBeTruthy();
+    // rolled for this hit: neither the dialog nor her card offers it again...
+    const card = within(screen.getByRole("list", { name: "Player characters" }));
+    expect(within(dialog).queryByRole("button", { name: "Roll Grave wound for Aria" })).toBeNull();
+    expect(card.queryByRole("button", { name: "Roll Grave wound for Aria" })).toBeNull();
+    // ...until she is hit again while at zero
+    fireEvent.click(within(dialog).getByRole("button", { name: "Apply another hit" }));
+    expect(within(dialog).getByRole("button", { name: "Roll Grave wound for Aria" })).toBeTruthy();
+    expect(card.getByRole("button", { name: "Roll Grave wound for Aria" })).toBeTruthy();
   });
 
   it("damaging a creature uses its armor (fire armor for fire) and prompts its reaction with who is in its zone", async () => {

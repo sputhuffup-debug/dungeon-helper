@@ -362,7 +362,8 @@ export function buildDemoCampaign(opts: BuildDemoOptions = {}): DemoCampaign {
   const npcs: Entity[] = npcPresets.map((preset, i) => {
     const personal = npcNames[i] ?? `NPC ${i + 1}`;
     usedNames.add(personal);
-    return presetToEntity(store, preset, { name: `${personal}, ${preset.name}`, visibility: GM });
+    // a covert synthetic passes as human: its name never says what it is
+    return presetToEntity(store, preset, { name: preset.fields["secretAndroid"] === true ? personal : `${personal}, ${preset.name}`, visibility: GM });
   });
   const [contact, ally, , , , wildcard] = npcs as [Entity, Entity, Entity, Entity, Entity, Entity];
   for (const npc of npcs) store.createRelationship("found_at", npc.id, homeSite.id, undefined, GM);

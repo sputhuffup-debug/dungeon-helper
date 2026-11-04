@@ -37,6 +37,8 @@ interface NpcSpec {
   name: string;
   summary: string;
   android?: boolean;
+  /** An android that passes as human: made a secret synthetic (`secretAndroid`, cover scores). */
+  covert?: boolean;
   attributes: { strength: number; agility: number; wits: number; empathy: number };
   skills: Skills;
   talent?: string;
@@ -47,17 +49,20 @@ interface NpcSpec {
 const PAGE: [number, number] = [258, 259];
 
 function npc(spec: NpcSpec): AlienPreset {
-  const { id, name, summary, android = false, attributes, skills, talent, gear = [], cash = 0 } = spec;
+  const { id, name, summary, android = false, covert = false, attributes, skills, talent, gear = [], cash = 0 } = spec;
   return {
     id: `alien.npc.${id}`,
     entityType: "alien.character",
     name,
     summary,
     page: PAGE,
-    tags: ["npc", ...(android ? ["android"] : [])],
+    // a covert synthetic carries no "android" tag: tags show wherever the players see the character
+    tags: ["npc", ...(android && !covert ? ["android"] : [])],
     fields: {
       isPC: false,
       android,
+      // posing as human: the players see cover scores capped at the human 5 (module decision, as on the job board), never the true make
+      ...(covert ? { secretAndroid: true, coverAttributes: Object.fromEntries(Object.entries(attributes).map(([k, v]) => [k, Math.min(5, v)])) } : {}),
       attributes,
       skills,
       talents: talent ? [{ id: talent, count: 1 }] : [],
@@ -72,8 +77,10 @@ export const npcPresets: AlienPreset[] = [
   npc({
     id: "android-covert",
     name: "Android, covert",
-    summary: "A synthetic passing as human, built for physical work and violence.",
+    // the summary goes onto the character, where the players may read it: it says nothing a cover would not
+    summary: "A quiet, tireless hand for heavy work, and for violence when told.",
     android: true,
+    covert: true,
     attributes: { strength: 7, agility: 6, wits: 3, empathy: 1 },
     skills: { closeCombat: 3, heavyMachinery: 2, rangedCombat: 2, comtech: 2, survival: 1 },
     talent: "cunning",

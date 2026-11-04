@@ -1649,6 +1649,9 @@ a.cf-btn {
   min-width: 6ch;
   text-align: right;
 }
+.app-table__timer-reset {
+  margin-left: var(--cf-space-2);
+}
 .app-table__clock {
   padding: var(--cf-space-1) var(--cf-space-4);
   background: var(--cf-surface);
@@ -1680,6 +1683,13 @@ a.cf-btn {
 .app-table__clock .cf-clock__unit-duration,
 .app-table__clock .cf-clock__elapsed {
   display: none;
+}
+/* the clock's title first, then the counters, and Reset last: well away from the Round − button */
+.app-table__clock .cf-tracker__header {
+  display: contents;
+}
+.app-table__clock .cf-tracker__header > .cf-toolbar__group {
+  order: 2;
 }
 .app-table__grid {
   display: grid;
@@ -1979,6 +1989,45 @@ a.cf-btn {
 .app-roll-result__seed {
   margin: 0;
   font-size: var(--cf-text-xs);
+}
+/* what the rolled row means: label and value in two columns, flags as badges */
+.app-roll-result__meaning {
+  display: grid;
+  gap: var(--cf-space-1);
+  margin: 0;
+}
+.app-roll-result__line {
+  display: grid;
+  grid-template-columns: minmax(7rem, max-content) 1fr;
+  gap: var(--cf-space-3);
+}
+.app-roll-result__line dt {
+  color: var(--cf-muted);
+  font-size: var(--cf-text-sm);
+}
+.app-roll-result__line dd {
+  margin: 0;
+}
+.app-roll-result__line--danger dd {
+  color: var(--cf-danger);
+  font-weight: 700;
+}
+.app-roll-result__flag dt {
+  display: inline;
+}
+.app-roll-result__sub {
+  margin: 0 0 var(--cf-space-1);
+}
+.app-roll-result__raw summary {
+  cursor: pointer;
+  color: var(--cf-muted);
+  font-size: var(--cf-text-sm);
+}
+@media (max-width: 480px) {
+  .app-roll-result__line {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
 }
 
 /* player screen */
@@ -3482,6 +3531,10 @@ a.cf-btn {
 .app-fieldvis .app-list__row {
   flex-wrap: wrap;
 }
+.app-fieldvis__reason {
+  display: block;
+  font-size: var(--cf-text-sm);
+}
 /* boards of offers (job board) */
 .offer-card {
   display: flex;
@@ -3770,23 +3823,59 @@ a.cf-btn {
   box-shadow: var(--cf-shadow);
   white-space: nowrap;
 }
+/* phones: every counter and its buttons on screen at once, no sideways scrolling: one column per unit (name and count over − and +), Reset as an icon at the end */
 .app-table--narrow .app-table__clock {
-  overflow-x: auto;
-  padding: 0 var(--cf-space-4);
-  scrollbar-width: none;
+  padding: var(--cf-space-1) var(--cf-space-2);
 }
-.app-table--narrow .app-table__clock .cf-tracker,
-.app-table--narrow .app-table__clock .cf-tracker__body,
-.app-table--narrow .app-table__clock .cf-clock__units {
+.app-table--narrow .app-table__clock .cf-tracker {
   flex-wrap: nowrap;
+  gap: var(--cf-space-1);
+}
+.app-table--narrow .app-table__clock .cf-tracker__body {
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+.app-table--narrow .app-table__clock .cf-clock__units {
+  display: grid;
+  grid-template-columns: none;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: var(--cf-space-1);
+  flex: 1;
+  min-width: 0;
 }
 .app-table--narrow .app-table__clock .cf-clock__unit {
-  flex-shrink: 0;
-  gap: var(--cf-space-1);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 2px var(--cf-space-1);
+  min-width: 0;
   padding: 2px var(--cf-space-1);
+}
+.app-table--narrow .app-table__clock .cf-clock__unit-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.app-table--narrow .app-table__clock .cf-clock__steps {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 2px;
+}
+.app-table--narrow .app-table__clock .cf-clock__steps .cf-btn {
+  flex: 1;
+  min-width: 0;
+  padding-inline: 0;
 }
 .app-table--narrow .app-table__clock .cf-btn {
   min-height: 40px;
+}
+.app-table--narrow .app-table__clock .cf-clock__step-unit,
+.app-table--narrow .app-table__clock .cf-clock__reset-label {
+  display: none;
+}
+.app-table--narrow .app-table__clock .cf-clock__reset {
+  min-width: 40px;
+  padding-inline: 0;
 }
 .app-table__panels {
   min-height: 0;
@@ -3894,17 +3983,8 @@ a.cf-btn {
   font-size: var(--cf-text-md);
   min-width: 5ch;
 }
-.app-table--narrow .app-table__clock .cf-tracker__header {
-  flex-direction: row;
-  align-items: center;
-  flex-shrink: 0;
-  gap: var(--cf-space-1);
-}
+/* the counters name themselves; the section keeps the clock's name for screen readers */
 .app-table--narrow .app-table__clock .cf-tracker__title {
-  white-space: nowrap;
-  font-size: var(--cf-text-sm);
-}
-.app-table--narrow .app-table__clock .cf-tracker__title .cf-page {
   display: none;
 }
 /* the map panel: deck buttons in one scrolling row, the map as tall as the screen allows */

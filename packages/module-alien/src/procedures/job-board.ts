@@ -536,8 +536,10 @@ function npcEntity(p: PostingData, n: PostingData["npcs"][number], k: number): P
   const synthetic = n.agenda.synthetic;
   const preset = synthetic ? (npcPresets.find((x) => x.id === (synthetic.turns ? "alien.npc.android-covert" : "alien.npc.android-curious")) ?? human) : human;
   const publicRole = fillWith({ employer: p.poster.clientShown ? p.employerName : "the client", dest: p.destText })(row.publicRole);
+  // the covert preset's own cover is replaced below by the human preset's (the synthetic passes as that person)
+  const { secretAndroid: _secret, coverAttributes: _cover, ...presetFields } = JSON.parse(JSON.stringify(preset.fields)) as Obj;
   const fields: Obj = {
-    ...JSON.parse(JSON.stringify(preset.fields)),
+    ...presetFields,
     isPC: false,
     role: publicRole,
     goal: n.want,

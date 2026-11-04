@@ -930,6 +930,41 @@ test("preview-as-player", async ({ page }) => {
   await shot(page, "preview-as-player");
 });
 
+test("secret-synthetic", async ({ page }) => {
+  // the demo's covert android shown to the players: Field visibility keeps its true make GM-only and says why
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await loadDemo(page, "skyfire");
+  await nav(page, "Atlas").click();
+  await page.getByRole("tab", { name: /^NPCs/ }).click();
+  await page.getByRole("table").getByRole("link", { name: "Constance Navona", exact: true }).click();
+  await page.getByRole("combobox", { name: "Visibility", exact: true }).selectOption("players");
+  await page.getByTestId("field-visibility-open").click();
+  const fv = page.getByTestId("field-visibility");
+  await expect(fv.locator('[data-field="attributes"]').getByTestId("field-visibility-reason")).toContainText("Poses as human");
+  await fv.locator('[data-field="android"]').evaluate((e) => e.scrollIntoView({ block: "center" }));
+  await shot(page, "secret-synthetic");
+});
+
+test("critical-injury-result", async ({ page }) => {
+  // a PC broken by a hit rolls a critical injury: what it does, how long it takes to heal, and the ids kept under Raw result
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await loadDemo(page, "skyfire");
+  await startPlannedSession(page);
+  const pcs = page.getByRole("list", { name: "Player characters" });
+  await pcs.getByRole("button", { name: "Take a hit: Elena Sanchez" }).click();
+  const hit = page.getByTestId("take-hit");
+  await hit.getByRole("spinbutton", { name: "Damage" }).fill("12");
+  await hit.getByRole("button", { name: "Apply to Elena Sanchez" }).click();
+  await hit.getByRole("button", { name: "Roll Critical injury for Elena Sanchez" }).click();
+  const result = page.getByTestId("roll-result");
+  await expect(result.getByTestId("roll-result-meaning")).toBeVisible();
+  const dialog = page.getByRole("dialog").filter({ has: result });
+  await settle(page);
+  const b = (await dialog.boundingBox())!;
+  const pad = 12;
+  await shot(page, "critical-injury-result", { clip: { x: Math.floor(b.x - pad), y: Math.floor(b.y - pad), width: Math.ceil(b.width + 2 * pad), height: Math.ceil(b.height + 2 * pad) } });
+});
+
 test("gm-screen-onscreen", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1100 });
   const base = await loadDemo(page, "skyfire");
