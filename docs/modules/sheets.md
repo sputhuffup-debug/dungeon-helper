@@ -21,6 +21,7 @@ An entity type says what a kind of thing *is* (its `schema`), how its sheet *loo
 - `icon`: one of `user`, `users`, `map`, `pin`, `shield`, `flag`, `box`, `truck`, `rocket`, `search`, `briefcase`, `bug`, `swords`, `note`; without one (or with an unknown name) the kind's own icon is used.
 - `subtypes`: `{ id, name, sheet?, schema? }` for kinds of a kind (a location that is a ruin or a village); a subtype's sheet sections and schema add to the type's.
 - `defaultVisibility`: field path → `gm`, `players`, `some_players` or `revealed`. `playerEditable`: paths a player may edit once sync arrives.
+- `conditionalVisibility`: defaults that depend on the entity's own fields, for a secret kept while a box is ticked. Each rule is `{ when, fields, standIns?, reason? }`: while the JSONLogic `when` (over `{ fields }`) holds, `fields` (path → level) override `defaultVisibility`; `standIns` (path → another path) show players the other field's value in place of a hidden one, so a cover story reads as the real thing; `reason` is shown to the GM in Field visibility. The GM's per-entity settings still win. Example: `{ "when": { "==": [{ "var": "fields.disguised" }, true] }, "fields": { "construct": "gm", "attributes": "gm", "guise": "gm" }, "standIns": { "attributes": "guise" }, "reason": "Disguised: players see the guise as its attributes." }`.
 
 ## Owner-visible fields
 
