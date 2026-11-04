@@ -6,7 +6,7 @@
 import { castMembers as membersOf, narrativeComputed, setNarrativeFields, type Id } from "@campaign-forge/core";
 import { narrativeEntityType, validateEntityFields, type NarrativeKind, type ReferenceList } from "@campaign-forge/module-sdk";
 import { useCallback, useMemo, type ReactNode } from "react";
-import { SheetRenderer } from "../../../components/ui";
+import { SheetRenderer } from "../../../components/SheetRenderer";
 import { useCampaign, useMapVersion, useMeta } from "../../../state/hooks";
 
 /** Split a field list into runs: each core field alone, consecutive module fields together. */

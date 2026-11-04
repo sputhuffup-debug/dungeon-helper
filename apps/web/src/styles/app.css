@@ -776,6 +776,15 @@ h3 {
 .app-entity-table td {
   vertical-align: middle;
 }
+/* the GM's summary, then the stat line under it */
+.app-entity-table__summary {
+  display: block;
+  color: var(--cf-text);
+}
+.app-entity-table__stats {
+  display: block;
+  font-size: var(--cf-text-sm);
+}
 .app-graph__svg {
   display: block;
 }

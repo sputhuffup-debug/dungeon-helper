@@ -75,7 +75,8 @@ export function PlayerPreview({ entity }: { entity: Entity }) {
     );
   }
 
-  const tags = readableTags(projected.tags);
+  // the GM's own tags only: players never see a generator's bookkeeping ("job-board")
+  const tags = readableTags(projected.tags, ctx.module.module.machineTags);
   return (
     <div className="app-page app-entity" data-testid="entity-page" data-preview="player">
       {banner}

@@ -143,7 +143,7 @@ export const creatureType: EntityTypeDef = {
         ],
       },
     ],
-    summary: ["species", "stage", "speed", "health", "armor"],
+    summary: ["species", "stage", "speed", "healthRemaining", "armor"],
   },
   computed: {
     /** Health left after the damage taken (p. 209). */

@@ -135,7 +135,8 @@ export function InitiativeTracker({ def, state, onChange, entities = [], rng, on
     });
   const rollAll = (onlyMissing: boolean) => {
     const finish = (participants: Participant[], entered?: number[]) => {
-      commit({ participants });
+      // the fight starts in round 1
+      commit({ participants, round: Math.max(1, init.round) });
       onLog?.(`Initiative ${entered ? "rolled at the table" : "rolled"}: ${initiativeOrder(participants, true).map((p) => `${p.name} ${p.card ?? "–"}`).join(", ")}${entered ? ` (entered: ${entered.join(" ")})` : ""}`);
     };
     roller.roll({
@@ -155,7 +156,7 @@ export function InitiativeTracker({ def, state, onChange, entities = [], rng, on
       deck = r.deck;
       return { ...p, card: r.card };
     });
-    commit({ participants });
+    commit({ participants, round: Math.max(1, init.round) });
     onLog?.(`Initiative drawn: ${[...participants].sort((a, b) => (a.card ?? 99) - (b.card ?? 99)).map((p) => `${p.name} ${p.card ?? "–"}`).join(", ")}`);
   };
 
@@ -245,7 +246,7 @@ export function InitiativeTracker({ def, state, onChange, entities = [], rng, on
           )}
           <span className="cf-tracker__name">
             {p.name}
-            {rolled && p.detail && p.detail !== "entered" && <span className="cf-muted"> ({p.detail.replace(/ \(entered\)$/, "")})</span>}
+            {rolled && p.detail && p.detail !== "entered" && <span className="cf-muted"> ({p.detail.replace(/ \(entered\)$/, "")}{p.card !== null ? ` = ${p.card}` : ""})</span>}
             {p.detail === "entered" || p.detail?.endsWith("(entered)") ? (
               <>
                 {" "}

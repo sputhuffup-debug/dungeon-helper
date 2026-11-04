@@ -114,6 +114,16 @@ describe("evaluateSetupSteps", () => {
     expect(setupProgress(states)).toEqual({ done: 1, total: 4 });
   });
 
+  it("says what a count counts: its label, a string or a rule over the snapshot", () => {
+    const step = (label: unknown): SetupStepDef => ({ id: "st.setup.n", label: "N", done: false, progress: { count: 0, of: { var: "counts.players" }, label: label as SetupStepDef["label"] } });
+    const snap = snapshotWith({ counts: { ...emptySetupSnapshot("a").counts, players: 3 } });
+    expect(evaluateSetupSteps([step("carts")], snap)[0]!.count).toEqual({ value: 0, of: 3, label: "carts" });
+    expect(evaluateSetupSteps([step({ if: [{ ">": [{ var: "counts.players" }, 0] }, "carts, one per player", "carts"] })], snap)[0]!.count?.label).toBe("carts, one per player");
+    // a rule that is not text, or throws, shows no label
+    expect(evaluateSetupSteps([step({ var: "counts.players" })], snap)[0]!.count).toEqual({ value: 0, of: 3 });
+    expect(issues(moduleWith({ setup: { steps: [{ ...step({ nope: [1] }), mode: ["a"] }] } })).some((i) => i.includes("progress"))).toBe(true);
+  });
+
   it("treats a rule that throws as not done", () => {
     const [state] = evaluateSetupSteps([{ id: "st.setup.x", label: "X", done: { nope: [1] } }], emptySetupSnapshot("a"));
     expect(state!.done).toBe(false);

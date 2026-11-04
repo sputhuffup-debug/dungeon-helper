@@ -41,7 +41,10 @@ export const ACT_AGENDA_AWARD = "alien.award.act-agenda";
 export const SHORE_LEAVE_AGENDA_AWARD = "alien.award.shore-leave-agenda";
 
 const hasText = (path: string) => ({ "!!": [{ var: path }] });
-const hasRelation = (rel: string, field: string) => ({ or: [{ ">": [{ var: [`relationships.${rel}`, 0] }, 0] }, hasText(`fields.${field}`)] });
+/** A buddy_of (rival_of) link, the sheet's Buddy (Rival), or another PC whose Buddy (Rival) is this one (a link set before the pair). */
+const hasRelation = (rel: string, field: string) => ({
+  or: [{ ">": [{ var: [`relationships.${rel}`, 0] }, 0] }, hasText(`fields.${field}`), { ">": [{ var: [`referencedBy.${field}`, 0] }, 0] }],
+});
 
 /** Did the session's stress tracker log a panic roll for this character? */
 function panicked(ctx: AwardContext): boolean {

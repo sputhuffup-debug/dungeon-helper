@@ -1190,6 +1190,16 @@ export interface SheetField {
   entityTypes?: string[];
   /** Widget-specific settings. */
   config?: Record<string, unknown>;
+  /**
+   * A `ref` field that pairs two entities (e.g. buddies): setting A's field to
+   * B also sets B's same field to A when B's is empty, typed by hand or
+   * already A; clearing or changing A's clears B's when it named A. When B's
+   * names someone else it is left alone, and the app says so and offers to
+   * repoint it. Never makes B name A in two paired fields at once. Wherever a
+   * module reads the link (e.g. an award question), an entity whose field is
+   * still empty counts the others that name it (`AwardContext.referencedBy`).
+   */
+  reciprocal?: boolean;
 }
 
 export interface SheetSection {
@@ -1416,7 +1426,12 @@ export interface ReferenceList {
   page?: PageRef;
   cite?: CiteRef;
   original?: boolean;
-  /** JSON Schema of one item. */
+  /**
+   * JSON Schema of one item. The Reference page reads two annotations from
+   * its `properties`: `enumLabels` (shown for enum values) and `"x-ref"`, the
+   * id of another reference list whose items a value names (on the property,
+   * or on its `items` for a list of ids), shown by those items' names.
+   */
   itemSchema?: JsonSchema;
   items: ReferenceItem[];
   unverified?: boolean;
@@ -3602,6 +3617,12 @@ export interface AwardContext {
   computed: Record<string, unknown>;
   /** Relationship type id -> how many relationships of that type the character has (either direction). */
   relationships: Record<string, number>;
+  /**
+   * Paired (`reciprocal`) sheet field path -> how many other entities name
+   * this character in that field (e.g. two PCs whose Buddy is this one), so a
+   * link set one way before pairing still counts. Absent: none.
+   */
+  referencedBy?: Record<string, number>;
   /** The session's tracker state (e.g. a panic log), empty outside a session. */
   trackerState: Record<string, unknown>;
 }
@@ -4063,8 +4084,13 @@ export interface SetupStepDef {
   mode?: PlayModeId[];
   /** Truthy when the step is done (JSONLogic over the `SetupSnapshot`). */
   done: JsonLogicRule;
-  /** Optional count shown with the step, e.g. "2 of 4" PCs: `count` and `of` are JSONLogic over the snapshot. */
-  progress?: { count: JsonLogicRule; of: JsonLogicRule };
+  /**
+   * Optional count shown with the step, e.g. "2 of 4" PCs: `count` and `of`
+   * are JSONLogic over the snapshot. `label` (JSONLogic too, so a plain
+   * string will do) says what is counted and where the target comes from,
+   * e.g. "PCs, one per player"; it follows the numbers.
+   */
+  progress?: { count: JsonLogicRule; of: JsonLogicRule; label?: JsonLogicRule };
   /** Where it is done; the first `primary` link (else the first) is the main button. */
   links?: SetupLink[];
   page?: PageRef;
@@ -4317,13 +4343,21 @@ export interface GameModule {
   guide?: GuideDef;
   /** Campaign-level settings (e.g. the campaign frame), asked at creation when marked; same-named procedure inputs default to them. Packs can declare them. */
   campaignSettings?: CampaignSettingDef[];
+  /**
+   * Plain tags the module's generators write for their own bookkeeping (e.g.
+   * "job-board" on a dealt job). The app treats them like `key:value` machine
+   * tags: never offered as tag filters, never listed for people to read, and
+   * never shown to players. Code may still match on them.
+   */
+  machineTags?: string[];
   /** Upgrade stored entity fields from an older module version. */
   migrations?: Array<{ from: string; to: string; migrate: (entity: { type: string; fields: Record<string, unknown> }) => Record<string, unknown> }>;
 }
 
 /** Core relationship types every module gets for free. */
 export const CORE_RELATIONSHIP_TYPES: RelationshipTypeDef[] = [
-  { id: "within", forward: "within", reverse: "contains" },
+  // the location tree: anything can be within a place, only places contain things
+  { id: "within", forward: "within", reverse: "contains", toKinds: ["location"] },
   { id: "member_of", forward: "member of", reverse: "has member" },
   { id: "knows", forward: "knows", reverse: "known by", symmetric: true },
   { id: "owns", forward: "owns", reverse: "owned by" },

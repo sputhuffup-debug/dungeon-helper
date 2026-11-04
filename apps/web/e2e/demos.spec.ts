@@ -151,15 +151,17 @@ test("Thornwick Crossing: the fifth edition demo loads with derived sheets, SRD 
   await expect(page.getByTestId("computed-crLabel")).toHaveText("1");
   await expect(page.locator('[data-entry="Surprise Attack"]')).toBeVisible();
 
-  // session 1 opens on the ambush, with the party and the scene's monsters on the hit point tracker
+  // session 1 opens on the ambush, with the party and the scene's monsters in the Combat panel, each with its hit points
   await nav(page, "Sessions").click();
   await page.getByRole("button", { name: "Start session 1" }).click();
   await expect(page.getByTestId("table-mode")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Ambush at the toll-house" })).toBeVisible();
-  const hp = page.locator('[data-tracker="dnd5e-srd.tracker.hp"]');
+  const combat = page.getByTestId("d20-combat");
   for (const [name, max] of [["Brannoc Ashby", "28"], ["Wren Talliver", "21"], ["Goblin 1", "7"], ["Wolf 1", "11"]] as const) {
-    await expect(hp.getByRole("spinbutton", { name: `${name} HP` })).toHaveValue(max);
+    const card = combat.locator("[data-combatant]").filter({ has: page.getByRole("button", { name: `Open ${name}`, exact: true }) });
+    await expect(card.getByTestId("health-value")).toHaveText(`${max}/${max}`);
   }
+  await expect(page.locator('[data-tracker="dnd5e-srd.tracker.hp"]')).toHaveCount(0);
   await shot(page, "dnd5e-table", { tall: 2000 });
 
   expect(errors).toEqual([]);

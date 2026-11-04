@@ -35,10 +35,10 @@ test("create an Alien campaign, add an NPC from a preset, mention it in a note, 
   await expect(health).toHaveText(/^\d+$/);
   const entityUrl = page.url();
 
-  // player-sheet preview works for characters
-  await page.getByTestId("player-sheet-toggle").check();
-  await expect(page.getByText(/Hidden from players|What a player would see/)).toBeVisible();
-  await page.getByTestId("player-sheet-toggle").uncheck();
+  // an NPC's sheet has no player sheet, player or buddy (those are a PC's); its player view is Preview as player
+  await expect(page.getByTestId("player-sheet-toggle")).toHaveCount(0);
+  await expect(page.getByTestId("sheet-player")).toHaveCount(0);
+  await expect(page.locator('[data-section="crew-ties"]')).toHaveCount(0);
 
   // 4. a note with an @ mention
   await page.getByRole("link", { name: "Home" }).click();

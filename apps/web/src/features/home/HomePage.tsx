@@ -231,9 +231,10 @@ function JobBoard({ def }: { def: EntityTypeDef }) {
       .filter(Boolean)
       .join(" · ");
   return (
-    <section className="app-section" aria-label="Job board">
+    <section className="app-section" aria-label={`${def.name} board`}>
       <header className="app-section__header">
-        <h2 className="app-subtitle">Job board</h2>
+        {/* the module's own word: a job board, a quest board */}
+        <h2 className="app-subtitle">{def.name} board</h2>
         <div className="app-row">
           <Link to="/c/$campaignId/generate" params={{ campaignId }} className="cf-btn cf-btn--sm">
             Generate a {def.name.toLowerCase()}

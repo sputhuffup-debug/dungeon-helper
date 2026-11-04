@@ -40,6 +40,8 @@ const settingIsEntity = (key: string): JsonLogicRule => ({ in: [v(`settings.${ke
 const everyPc = (rule: JsonLogicRule): JsonLogicRule => ({ and: [{ ">": [v("counts.pcs"), 0] }, { all: [v("pcs"), rule] }] });
 /** The crew size the step asks for: one PC per player, four before any player is added. */
 const crewTarget: JsonLogicRule = { if: [{ ">": [v("counts.players"), 0] }, v("counts.players"), 4] };
+/** What the crew count counts, and where its target comes from. */
+const crewLabel: JsonLogicRule = { if: [{ ">": [v("counts.players"), 0] }, "PCs, one per player", "PCs: a crew of four until you add the players"] };
 const takenJob: JsonLogicRule = { and: [{ "==": [v("type"), JOB] }, { in: [v("fields.status"), ["accepted", "done", "failed"]] }] };
 
 export const setup: SetupDef = {
@@ -49,9 +51,10 @@ export const setup: SetupDef = {
       label: "Make the crew",
       hint: "A player character for everyone at the table: roll a Life Path, or build one by hand.",
       mode: [CAMPAIGN],
-      page: 158,
+      // creating a character (the rule card's page)
+      page: 24,
       done: { and: [{ ">": [v("counts.pcs"), 0] }, { ">=": [v("counts.pcs"), crewTarget] }] },
-      progress: { count: v("counts.pcs"), of: crewTarget },
+      progress: { count: v("counts.pcs"), of: crewTarget, label: crewLabel },
       links: [
         { label: "Roll a Life Path", procedure: LIFEPATH, primary: true },
         { label: "+ Character", newEntity: { type: CHARACTER, pc: true } },

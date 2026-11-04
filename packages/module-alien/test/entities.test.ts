@@ -152,3 +152,39 @@ describe("entity types", () => {
     expect(item.subtypes?.map((s) => s.id)).toEqual(["weapon", "armor", "tool", "medical", "pharmaceutical", "food", "other"]);
   });
 });
+
+describe("sheets that combine", () => {
+  it("a subtype's sheet never repeats a field of its type's own sheet (the app shows both)", () => {
+    for (const def of entityTypes) {
+      const base = new Set(def.sheet.sections.flatMap((sec) => sec.fields.map((f) => f.path)));
+      for (const sub of def.subtypes ?? []) {
+        const repeated = (sub.sheet?.sections ?? []).flatMap((sec) => sec.fields.map((f) => f.path)).filter((p) => base.has(p));
+        expect(repeated, `${def.id}:${sub.id}`).toEqual([]);
+      }
+    }
+  });
+});
+
+describe("reference lists", () => {
+  it("every x-ref names a list, and every value it marks is an item of it", () => {
+    const byId = new Map(referenceLists.map((l) => [l.id, l]));
+    let checked = 0;
+    for (const list of referenceLists) {
+      const props = (list.itemSchema?.properties ?? {}) as Record<string, { "x-ref"?: string; items?: { "x-ref"?: string } }>;
+      for (const [key, prop] of Object.entries(props)) {
+        const target = prop["x-ref"] ?? prop.items?.["x-ref"];
+        if (!target) continue;
+        const ids = new Set(byId.get(target)?.items.map((i) => i.id));
+        expect(ids.size, `${list.id}.${key} -> ${target}`).toBeGreaterThan(0);
+        for (const item of list.items) {
+          const v = item[key];
+          for (const id of Array.isArray(v) ? v : v === undefined ? [] : [v]) {
+            expect(ids.has(String(id)), `${list.id}/${item.id}.${key}: ${String(id)}`).toBe(true);
+            checked++;
+          }
+        }
+      }
+    }
+    expect(checked).toBeGreaterThan(40);
+  });
+});

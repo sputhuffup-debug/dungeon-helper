@@ -15,7 +15,7 @@ import {
   type SheetField,
   type SheetSection,
 } from "@campaign-forge/module-sdk";
-import { SheetContextProvider, type SheetContextValue } from "../context";
+import { SheetContextProvider, useSheetContext, type SheetContextValue } from "../context";
 import { getWidget } from "../widgets/registry";
 import { schemaType } from "../widgets/SchemaValueEditor";
 import type { WidgetProps } from "../widgets/types";
@@ -23,6 +23,9 @@ import "../widgets/defaults";
 import { cx, isRecord, labelFromPath, valuePathOf } from "./paths";
 
 export type SheetErrors = Record<string, string> | FieldValidationError[];
+
+/** A rule card id ("alien.rule.careers"), not help text. */
+const isRuleId = (rule: string) => /^[\w.-]+$/.test(rule) && rule.includes(".");
 
 export interface SheetRendererProps extends Omit<SheetContextValue, "tableMode" | "mode"> {
   def: EntityTypeDef;
@@ -106,6 +109,7 @@ export function SheetRenderer(props: SheetRendererProps) {
     paths: onlyPaths,
     onRoll,
     onOpenRule,
+    ruleTitle,
     onPickEntity,
     resolveEntityName,
     resolveAssetUrl,
@@ -136,8 +140,8 @@ export function SheetRenderer(props: SheetRendererProps) {
   }, [def, mode, sub, onlySections, onlyPaths]);
 
   const ctx = useMemo<SheetContextValue>(
-    () => ({ mode, tableMode, onRoll, onOpenRule, onPickEntity, resolveEntityName, resolveAssetUrl, onOpenMap, resolveMap, castMembers, dice, presetsFor, entitiesOf, entityId }),
-    [mode, tableMode, onRoll, onOpenRule, onPickEntity, resolveEntityName, resolveAssetUrl, onOpenMap, resolveMap, castMembers, dice, presetsFor, entitiesOf, entityId],
+    () => ({ mode, tableMode, onRoll, onOpenRule, ruleTitle, onPickEntity, resolveEntityName, resolveAssetUrl, onOpenMap, resolveMap, castMembers, dice, presetsFor, entitiesOf, entityId }),
+    [mode, tableMode, onRoll, onOpenRule, ruleTitle, onPickEntity, resolveEntityName, resolveAssetUrl, onOpenMap, resolveMap, castMembers, dice, presetsFor, entitiesOf, entityId],
   );
 
   const schemaFor = (path: string): JsonSchema | undefined => {
@@ -235,6 +239,9 @@ function SheetFieldView({ field, span, def, fields, computed, readonly, referenc
   const Widget = getWidget(kind) ?? getWidget(defaultWidgetFor({ ...field, widget: undefined }, schema, value, computed, path)) ?? getWidget("text");
   const isReadonly = readonly || field.readonly === true || kind === "computed";
   const label = field.label ?? labelFromPath(field.path);
+  const { ruleTitle } = useSheetContext();
+  // a rule card id shows the card's title; help text (no card) shows as written
+  const ruleTip = field.rule ? (ruleTitle?.(field.rule) ?? (isRuleId(field.rule) ? undefined : field.rule)) : undefined;
 
   const ownError = errorMap[path];
   const nested: Record<string, string> = {};
@@ -279,7 +286,7 @@ function SheetFieldView({ field, span, def, fields, computed, readonly, referenc
           {label}
         </label>
         {field.rule && (
-          <button type="button" className="cf-field__rule" aria-label={`Rule for ${label}`} title={field.rule} onClick={() => onOpenRule?.(field.rule as string)} disabled={!onOpenRule}>
+          <button type="button" className="cf-field__rule" aria-label={`Rule for ${label}`} title={ruleTip ? `Rule: ${ruleTip}` : `Rule for ${label}`} onClick={() => onOpenRule?.(field.rule as string)} disabled={!onOpenRule}>
             ?
           </button>
         )}

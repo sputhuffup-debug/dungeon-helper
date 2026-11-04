@@ -3,7 +3,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { useState } from "react";
 import { computeFields, type EntityTypeDef, type ReferenceList, type SheetField } from "@campaign-forge/module-sdk";
 import { SheetRenderer, TalentsField, getWidget, registerWidget, type WidgetProps } from "../src/index";
-import { hero, heroFields, referenceLists } from "./fixtures";
+import { exampleModule, hero, heroFields, referenceLists } from "./fixtures";
 
 function sectionIds(container: HTMLElement): string[] {
   return [...container.querySelectorAll<HTMLElement>("[data-section]")].map((el) => el.dataset.section ?? "");
@@ -105,6 +105,36 @@ describe("SheetRenderer", () => {
     fireEvent.click(screen.getByRole("button", { name: "Rule for Might" }));
     expect(onOpenRule).toHaveBeenCalledWith("example.rule.push");
     expect(screen.getByRole("alert")).toHaveTextContent("must be >= 0");
+  });
+
+  it("a rule button's tooltip is the rule's title, never its id", () => {
+    const { rerender } = render(<SheetRenderer def={hero} mode="standard" fields={heroFields()} onChange={() => {}} referenceLists={referenceLists} onOpenRule={() => {}} ruleTitle={(id) => exampleModule.rules.find((r) => r.id === id)?.title} />);
+    const title = exampleModule.rules.find((r) => r.id === "example.rule.push")!.title;
+    expect(screen.getByRole("button", { name: "Rule for Might" })).toHaveAttribute("title", `Rule: ${title}`);
+    // no titles to hand: the field's name, not the id
+    rerender(<SheetRenderer def={hero} mode="standard" fields={heroFields()} onChange={() => {}} referenceLists={referenceLists} onOpenRule={() => {}} />);
+    expect(screen.getByRole("button", { name: "Rule for Might" })).toHaveAttribute("title", "Rule for Might");
+  });
+
+  it("a checkbox is named by its field, not by Yes or No", () => {
+    const onChange = vi.fn();
+    render(<SheetRenderer def={hero} mode="standard" fields={heroFields()} onChange={onChange} referenceLists={referenceLists} />);
+    const box = screen.getByRole("checkbox", { name: "Construct" });
+    expect(screen.queryByRole("checkbox", { name: "No" })).toBeNull();
+    fireEvent.click(box);
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ construct: true }));
+  });
+
+  it("a number field offers its suggested computed value", () => {
+    const onChange = vi.fn();
+    const def: EntityTypeDef = {
+      ...hero,
+      sheet: { sections: [{ id: "s", title: "S", fields: [{ path: "wounds", label: "Wounds", widget: "number", config: { suggested: "health", suggestedLabel: "Health" } }] }] },
+    };
+    render(<SheetRenderer def={def} mode="standard" fields={heroFields()} onChange={onChange} referenceLists={referenceLists} />);
+    expect(screen.getByTestId("number-suggested")).toHaveTextContent("Health 6");
+    fireEvent.click(screen.getByRole("button", { name: "Use 6 for Wounds" }));
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ wounds: 6 }));
   });
 
   it("readonly sheets do not emit changes", () => {

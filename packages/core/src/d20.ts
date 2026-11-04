@@ -36,6 +36,7 @@ import {
   type D20ZeroHpRule,
   type EntityTypeDef,
   type GameModule,
+  type TrackerDef,
 } from "@campaign-forge/module-sdk";
 import { now } from "./ids";
 import { clone, getPath, setPath } from "./paths";
@@ -53,6 +54,28 @@ function gameModule(m: D20Module): GameModule {
 /** The module's declarative d20 combat, if it has one. */
 export function d20CombatOf(module: D20Module): D20CombatDef | undefined {
   return gameModule(module).d20Combat;
+}
+
+/**
+ * The module's table trackers that its d20 combat panel already covers, so
+ * table mode shows each thing once: the initiative tracker (the panel runs
+ * the initiative order and the rounds from its state) and counters that only
+ * edit a combatant's current or temporary hit points (each combatant card
+ * shows and edits those). Empty without `d20Combat`.
+ */
+export function d20CoveredTrackers(module: D20Module, trackers: readonly Pick<TrackerDef, "id" | "kind" | "binds">[]): Set<string> {
+  const m = gameModule(module);
+  const def = m.d20Combat;
+  const out = new Set<string>();
+  if (!def) return out;
+  const hpPaths = (c: D20CombatantDef) => [c.hp.current, c.hp.temp].filter((p): p is string => typeof p === "string");
+  const covered = (bind: string): boolean =>
+    def.combatants.some((c) => hpPaths(c).some((p) => bind === p || c.entityTypes.some((t) => bind === `${t}.${p}`)));
+  for (const t of trackers) {
+    if (t.kind === "initiative") out.add(t.id);
+    else if (t.kind === "counter" && (t.binds?.length ?? 0) > 0 && t.binds!.every(covered)) out.add(t.id);
+  }
+  return out;
 }
 
 function typeOf(m: GameModule, type: string): EntityTypeDef | undefined {

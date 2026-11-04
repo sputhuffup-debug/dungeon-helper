@@ -1,6 +1,6 @@
 /** Header search over the campaign, its module's rule cards and its Reference page (list items, presets, roll tables): grouped by kind, keyboard navigable, Enter opens. */
 import type { Id, SearchHit, SearchKind } from "@campaign-forge/core";
-import { referenceIndex, searchReference, searchRuleCards, type ReferenceEntry, type RuleCard } from "@campaign-forge/module-sdk";
+import { referenceIndex, searchReference, searchRuleCards, titleMatchQuality, type ReferenceEntry, type RuleCard } from "@campaign-forge/module-sdk";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { PageRef } from "../../components/ui";
@@ -22,6 +22,23 @@ const REFERENCE_LIMIT = 8;
 
 /** A campaign record, one of the module's rule cards (opened on the Rules page), or a Reference page entry (opened there). */
 type Hit = SearchHit | { kind: "rule"; id: string; name: string; card: RuleCard } | { kind: "reference"; id: string; name: string; entry: ReferenceEntry };
+
+type Group = { kind: SearchKind | "rule" | "reference"; label: string; hits: Hit[] };
+
+/**
+ * Rank the groups against each other by how well their names match: within
+ * a group the best titles first (each kind's own order breaks ties), and the
+ * group holding the best title first, so "panic" puts the Panic rule card,
+ * not a creature whose notes mention panic, at the top, and Enter opens it.
+ */
+export function rankGroups(groups: Group[], query: string): Group[] {
+  const quality = (h: Hit) => titleMatchQuality(h.name, query);
+  const ranked = groups.map((g, order) => {
+    const hits = g.hits.map((h, i) => ({ h, i, q: quality(h) })).sort((a, b) => b.q - a.q || a.i - b.i);
+    return { group: { ...g, hits: hits.map((x) => x.h) }, best: hits[0]?.q ?? 0, order };
+  });
+  return ranked.sort((a, b) => b.best - a.best || a.order - b.order).map((r) => r.group);
+}
 
 /** What a Reference hit is, beside its name: its list, "Preset" with its type, or "Table". */
 function referenceDetail(entry: ReferenceEntry, typeName: (id: string) => string | undefined): string {
@@ -46,14 +63,14 @@ export function GlobalSearch() {
     const hits = ctx.search.search(query, { limit: 30 });
     const by = new Map<SearchKind, SearchHit[]>();
     for (const h of hits) by.set(h.kind, [...(by.get(h.kind) ?? []), h]);
-    const out: Array<{ kind: SearchKind | "rule" | "reference"; label: string; hits: Hit[] }> = ORDER.filter((k) => by.has(k)).map((k) => ({ kind: k, label: KIND_LABEL[k], hits: by.get(k) ?? [] }));
+    const out: Group[] = ORDER.filter((k) => by.has(k)).map((k) => ({ kind: k, label: KIND_LABEL[k], hits: by.get(k) ?? [] }));
     // the module's rule cards for this play mode, with their page references
     const rules = searchRuleCards(ctx.module.module.rules, query, { mode: meta.mode, limit: RULE_LIMIT });
     if (rules.length) out.push({ kind: "rule", label: "Rules", hits: rules.map((r) => ({ kind: "rule" as const, id: r.card.id, name: r.card.title, card: r.card })) });
     // what the Reference page lists: list items, presets and roll tables
     const refs = searchReference(refIndex, query, { mode: meta.mode, limit: REFERENCE_LIMIT });
     if (refs.length) out.push({ kind: "reference", label: "Reference", hits: refs.map((r) => ({ kind: "reference" as const, id: `${r.entry.kind}:${r.entry.kind === "item" ? `${r.entry.list.id}:` : ""}${r.entry.id}`, name: r.entry.name, entry: r.entry })) });
-    return out;
+    return rankGroups(out, query);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ctx.search, ctx.module, refIndex, meta.mode, query, version]);
   const flat = useMemo(() => groups.flatMap((g) => g.hits), [groups]);
@@ -99,8 +116,13 @@ export function GlobalSearch() {
         openHit(hit);
       }
     } else if (e.key === "Escape") {
-      setOpen(false);
-      inputRef.current?.blur();
+      // first Escape closes the results, the next clears the box; focus stays here either way
+      e.preventDefault();
+      if (open && query.trim() !== "") setOpen(false);
+      else {
+        setQuery("");
+        setIndex(0);
+      }
     }
   };
 

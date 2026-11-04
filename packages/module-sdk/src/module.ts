@@ -270,6 +270,11 @@ function checkEntityType(def: EntityTypeDef, module: GameModule, declaredModes: 
         }
         if (field.widget === "weapons") checkWeaponsField(field, schemaOwner, module, fw, c);
         if (field.widget === "gear" && field.config?.catalog !== undefined) checkGearCatalog(field, schemaOwner, module, fw, c);
+        if (field.reciprocal) {
+          // a pair is the same field on both ends: a ref to entities of this very type
+          if (field.widget !== "ref") c.error(fw, `a reciprocal field must use the "ref" widget (got "${field.widget ?? "none"}")`);
+          if (!(field.entityTypes ?? []).includes(def.id)) c.error(fw, `a reciprocal field must name its own entity type "${def.id}" in entityTypes`);
+        }
       }
     }
   };

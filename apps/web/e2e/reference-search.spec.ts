@@ -53,3 +53,25 @@ test("search opens a reference list item, a roll table and a preset on the Refer
   await expect(page.locator("tr.is-target")).toContainText("engineer");
   await expect(page.getByRole("searchbox", { name: "Filter presets" })).toHaveValue(/engineer/);
 });
+
+test("the best title wins: Enter opens the Pulse Rifle, not a record that only mentions it; Escape keeps the box focused", async ({ page }) => {
+  const box = page.getByRole("searchbox", { name: "Search campaign" });
+  await box.click();
+  await box.fill("pulse rifle");
+  const results = page.getByRole("listbox", { name: "Search results" });
+  // the first group holds the best match, and the first option is the one Enter opens
+  const first = results.getByRole("option").first();
+  await expect(first).toContainText(/Pulse Rifle/i);
+  await expect(first).toHaveAttribute("aria-selected", "true");
+  // Escape closes the results and keeps the focus in the box; a second one clears it
+  await box.press("Escape");
+  await expect(results).toHaveCount(0);
+  await expect(box).toBeFocused();
+  await expect(box).toHaveValue("pulse rifle");
+  await box.press("Escape");
+  await expect(box).toHaveValue("");
+  await expect(box).toBeFocused();
+  await box.fill("pulse rifle");
+  await box.press("Enter");
+  await expect(page).toHaveURL(/\/reference\?.*preset=/);
+});

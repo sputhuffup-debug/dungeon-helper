@@ -102,7 +102,11 @@ function legacyRefText(v: string, cx: ValueContext): string {
 
 /** One value of a row object (a gear line, a talent, a condition): its name and count. */
 function rowName(v: unknown, f: SheetField | undefined, cx: ValueContext): string {
-  if (typeof v === "string") return v;
+  // a bare id of the field's reference list (a talent written as "stealthy") reads as its item's name
+  if (typeof v === "string") {
+    const ref = refListOf(f);
+    return (ref ? cx.referenceName?.(ref, v) : undefined) ?? v;
+  }
   if (typeof v === "number") return String(v);
   if (!isRec(v)) return "";
   const ref = refListOf(f);

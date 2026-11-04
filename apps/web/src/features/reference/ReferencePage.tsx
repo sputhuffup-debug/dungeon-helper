@@ -1,5 +1,5 @@
 /** Reference browser: reference lists, presets (add to campaign) and roll tables. The URL names the tab and the entry open (`?list=&item=`, `?table=`, `?preset=`), so the header search can link to one. */
-import { supplementOf, type EntityPreset, type ReferenceItem, type ReferenceList } from "@campaign-forge/module-sdk";
+import { enumLabel, supplementOf, type EntityPreset, type JsonSchema, type ReferenceItem, type ReferenceList } from "@campaign-forge/module-sdk";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReferenceSearch } from "../../router";
@@ -56,9 +56,22 @@ export function listColumns(list: ReferenceList | undefined): string[] {
   return [...keys].slice(0, 5);
 }
 
+/** An item's value as the list's schema reads it: ids of another list (`x-ref`) by those items' names, enum values by their labels. */
+export function itemValueText(list: ReferenceList, key: string, value: unknown, itemName: (listId: string, id: string) => string | undefined): string {
+  const prop = (list.itemSchema?.properties as Record<string, JsonSchema> | undefined)?.[key];
+  const items = prop?.items && typeof prop.items === "object" && !Array.isArray(prop.items) ? (prop.items as JsonSchema) : undefined;
+  const ref = typeof prop?.["x-ref"] === "string" ? prop["x-ref"] : typeof items?.["x-ref"] === "string" ? items["x-ref"] : undefined;
+  const one = (v: unknown): string => {
+    if (typeof v !== "string") return formatValue(v);
+    return (ref ? itemName(ref, v) : undefined) ?? enumLabel(prop, v) ?? (ref ? humanize(v) : v);
+  };
+  if (Array.isArray(value) && value.every((v) => typeof v === "string")) return value.map(one).join(", ");
+  return typeof value === "string" ? one(value) : formatValue(value);
+}
+
 /** Text an item matches a filter on: its name, summary, edition and source badges, and the shown columns. */
-function itemText(item: ReferenceItem, columns: string[]): string {
-  return [item.name, item.summary ?? "", item.edition ?? "", item.source ?? "", ...columns.map((c) => formatValue(item[c]))].join(" ").toLowerCase();
+function itemText(item: ReferenceItem, columns: string[], text: (key: string, v: unknown) => string): string {
+  return [item.name, item.summary ?? "", item.edition ?? "", item.source ?? "", ...columns.map((c) => text(c, item[c]))].join(" ").toLowerCase();
 }
 
 function ListsTab() {
@@ -71,8 +84,9 @@ function ListsTab() {
   const open = search.item ? list?.items.find((i) => i.id === search.item) : undefined;
   const setOpen = (item: ReferenceItem | undefined) => setSearch({ tab: "lists", list: listId, ...(item ? { item: item.id } : {}) });
   const columns = useMemo(() => listColumns(list), [list]);
+  const valueText = (key: string, v: unknown) => (list ? itemValueText(list, key, v, (l, id) => ctx.module.referenceItem(l, id)?.name) : formatValue(v));
   const needle = q.trim().toLowerCase();
-  const items = (list?.items ?? []).filter((i) => !needle || itemText(i, columns).includes(needle));
+  const items = (list?.items ?? []).filter((i) => !needle || itemText(i, columns, valueText).includes(needle));
   return (
     <div className="app-stack">
       <div className="app-filters">
@@ -115,7 +129,7 @@ function ListsTab() {
                 </td>
                 <td className="cf-muted">{i.summary ?? ""}</td>
                 {columns.map((c) => (
-                  <td key={c}>{formatValue(i[c])}</td>
+                  <td key={c}>{valueText(c, i[c])}</td>
                 ))}
                 <td>
                   <PageRef page={i.page} cite={i.cite} />
@@ -134,6 +148,7 @@ function ListsTab() {
 
 /** Every field of a reference item; long text renders as Markdown (spell and item descriptions, class tables). */
 export function ReferenceItemView({ item, list }: { item: ReferenceItem; list: ReferenceList }) {
+  const ctx = useCampaign();
   const rows = Object.entries(item).filter(([k, v]) => !ITEM_META.has(k) && v !== undefined && v !== null && v !== "");
   const isLong = (v: unknown) => typeof v === "string" && (v.length > 90 || v.includes("\n") || v.trim().startsWith("|"));
   return (
@@ -150,7 +165,7 @@ export function ReferenceItemView({ item, list }: { item: ReferenceItem; list: R
           .map(([k, v]) => (
             <div key={k} className="app-dl__row">
               <dt>{humanize(k)}</dt>
-              <dd>{typeof v === "boolean" ? (v ? "Yes" : "No") : formatValue(v)}</dd>
+              <dd>{typeof v === "boolean" ? (v ? "Yes" : "No") : itemValueText(list, k, v, (l, id) => ctx.module.referenceItem(l, id)?.name)}</dd>
             </div>
           ))}
       </dl>

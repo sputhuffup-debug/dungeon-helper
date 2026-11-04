@@ -4,6 +4,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { Badge, Button, Card, IconButton } from "../../components/ui";
 import { RichTextEditor } from "../../editor";
 import { createMapForScene, ensureDoc, updateScene } from "../../state/prepActions";
+import { SCENE_STATUS_LABELS } from "../../lib/format";
 import { useCampaign, useList } from "../../state/hooks";
 import { CommitInput, EntityListInput, EntityRefInput, useTypesOfKind } from "./fields";
 
@@ -41,7 +42,7 @@ export function SceneEditor({ scene }: { scene: Scene }) {
             <select className="cf-select" aria-label="Scene status" value={scene.status} onChange={(e) => set({ status: e.target.value as SceneStatus })}>
               {STATUSES.map((s) => (
                 <option key={s} value={s}>
-                  {s}
+                  {SCENE_STATUS_LABELS[s]}
                 </option>
               ))}
             </select>

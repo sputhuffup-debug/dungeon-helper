@@ -5,7 +5,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { loadPack, type GameModule } from "@campaign-forge/module-sdk";
-import { addD20Condition, applyD20Damage, d20Combatant, d20ConditionsOf, d20Records, healD20, presetToEntity, removeD20Condition, setD20ConditionValue, setD20TempHp, tickD20Turn } from "../src";
+import { addD20Condition, applyD20Damage, d20Combatant, d20CoveredTrackers, d20ConditionsOf, d20Records, healD20, presetToEntity, removeD20Condition, setD20ConditionValue, setD20TempHp, tickD20Turn } from "../src";
 import { newStore } from "./fixtures";
 
 const dir = new URL("../../module-example/packs/example-pack/", import.meta.url);
@@ -118,5 +118,19 @@ describe("turns", () => {
     tickD20Turn(store, module, ids, { entity: keeper.id, at: "end" });
     expect(store.get("entities", keeper.id)!.fields.dazed).toBe(0);
     expect(d20Records(module, store.get("entities", keeper.id)!).map((r) => r.id)).toEqual(["shaken"]);
+  });
+});
+
+describe("d20CoveredTrackers", () => {
+  it("leaves out the trackers the combat panel already shows: initiative and hit point counters", () => {
+    const trackers = [
+      ...module.trackers,
+      { id: "t.hp", kind: "counter" as const, binds: ["example-pack.monster.hpNow"] },
+      { id: "t.temp", kind: "counter" as const, binds: ["tempHp"] },
+      { id: "t.mixed", kind: "counter" as const, binds: ["tempHp", "example-pack.adventurer.oil"] },
+    ];
+    expect([...d20CoveredTrackers(module, trackers)].sort()).toEqual(["example-pack.tracker.initiative", "t.hp", "t.temp"]);
+    // without d20 combat nothing is covered
+    expect(d20CoveredTrackers({ ...module, d20Combat: undefined }, trackers).size).toBe(0);
   });
 });

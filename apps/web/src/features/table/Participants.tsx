@@ -9,10 +9,11 @@ import { validateEntityFields, type EntityTypeDef, type LoadedModule, type Promp
 import { useMemo, useState } from "react";
 import { EntityIcon } from "../../components/EntityIcon";
 import { RuleDrawer } from "../../components/RulePanel";
-import { Badge, Button, Card, Drawer, SheetRenderer, humanize, labelFromPath, resolveBindPath } from "../../components/ui";
+import { Badge, Button, Card, Drawer, humanize, labelFromPath, resolveBindPath } from "../../components/ui";
+import { SheetRenderer } from "../../components/SheetRenderer";
 import { useModeTrackers } from "./TrackersPanel";
 import { useZoneMapField } from "../maps/LocationMaps";
-import { updateEntityFields } from "../../state/actions";
+import { saveSheet } from "../entities/pairs";
 import { useCampaign, useMeta, useRecord, useSheetSources } from "../../state/hooks";
 import { computedOf, conditionTitle } from "../../state/tableActions";
 import { changedPaths } from "../entities/SheetTab";
@@ -284,7 +285,7 @@ export function EntityDrawer({ entityId, sessionId, onClose }: { entityId: Id | 
             errors={errors}
             tableMode
             referenceLists={referenceLists}
-            onChange={(next) => updateEntityFields(ctx, entity.id, next, changedPaths(entity.fields, next))}
+            onChange={(next) => saveSheet(ctx, entity.id, next, changedPaths(entity.fields, next))}
             onOpenRule={setRule}
             resolveEntityName={(id) => ctx.store.get("entities", id)?.name}
             onRoll={(skillId) => setRoll({ key: Date.now(), label: skillId, input: skillInput(ctx.module, entity, skillId).input })}

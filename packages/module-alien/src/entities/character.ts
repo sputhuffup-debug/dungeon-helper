@@ -471,7 +471,11 @@ export function weaponRowFromPreset(preset: EntityPreset): Record<string, unknow
   return weaponRowFrom(WEAPONS_CONFIG, preset, { presetId: preset.id });
 }
 
-/** Buddy and rival: a pick of the campaign's other PCs (p. 27); a name typed in an older campaign shows until the GM links it. */
+/**
+ * Buddy and rival: a pick of the campaign's other PCs (p. 27); a name typed
+ * in an older campaign shows until the GM links it. Each is a pair: picking
+ * Dov as Rhea's buddy makes Rhea Dov's buddy too, while Dov has none.
+ */
 const crewmate = (path: "buddy" | "rival", label: string): SheetField => ({
   path,
   label,
@@ -481,6 +485,7 @@ const crewmate = (path: "buddy" | "rival", label: string): SheetField => ({
   rule: "alien.rule.buddies-rivals",
   entityTypes: ["alien.character"],
   config: { pick: "select", pc: true },
+  reciprocal: true,
 });
 
 /**
@@ -530,11 +535,18 @@ const sections: SheetSection[] = [
       checkbox("isPC", "Player character"),
       checkbox("android", "Android", { rule: "alien.rule.androids" }),
       select("career", "Career", { ref: "alien.careers" }, { span: 6, rule: "alien.rule.careers" }),
-      crewmate("buddy", "Buddy"),
-      crewmate("rival", "Rival"),
       text("signatureItem", "Signature item", { span: 6, rule: "alien.rule.signature-item" }),
       number("cash", "Cash ($)", { rule: "alien.rule.cash" }),
     ],
+  },
+  {
+    id: "crew-ties",
+    title: "Buddy and rival",
+    columns: 2,
+    mode: [CAMPAIGN],
+    // among the PCs (p. 27): an NPC's sheet drops it unless one is filled in
+    when: { "!!": { var: "fields.isPC" } },
+    fields: [crewmate("buddy", "Buddy"), crewmate("rival", "Rival")],
   },
   {
     id: "attributes",
@@ -721,7 +733,8 @@ export const characterType: EntityTypeDef = {
   schema: characterSchema,
   sheet: {
     sections,
-    summary: ["career", "stress", "health", "resolve", "android"],
+    // Health left, not the maximum: the line is read at a glance
+    summary: ["career", "stress", "healthRemaining", "resolve", "android"],
     create: ["isPC", "weapons"],
   },
   computed: characterComputed,

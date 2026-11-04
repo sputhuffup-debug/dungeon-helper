@@ -4,7 +4,7 @@ import { sourceRunnable, type Template } from "@campaign-forge/module-sdk";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Badge, Button, Dialog, EmptyState, PageRef, pushToast } from "../../components/ui";
-import { adventureTitle, errorMessage, relativeTime } from "../../lib/format";
+import { ADVENTURE_STATUS_LABELS, adventureTitle, errorMessage, relativeTime } from "../../lib/format";
 import { instantiateBuilder } from "../../state/builderActions";
 import { instantiateAdventureTemplate, isTemplateAdventure } from "../../state/prepActions";
 import { adventureForEntity, runFromEntity, sourceNoun } from "../../state/sourceActions";
@@ -59,8 +59,7 @@ export function AdventuresPage() {
         </Button>
         {ADVENTURE_STATUSES.map((s) => (
           <Button key={s} size="sm" active={status === s} onClick={() => void navigate({ search: { status: s }, replace: true })}>
-            {s[0]?.toUpperCase()}
-            {s.slice(1)} <span className="cf-muted">{adventures.filter((a) => a.status === s).length}</span>
+            {ADVENTURE_STATUS_LABELS[s]} <span className="cf-muted">{adventures.filter((a) => a.status === s).length}</span>
           </Button>
         ))}
       </div>

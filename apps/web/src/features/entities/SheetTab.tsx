@@ -5,8 +5,9 @@ import { createRng, validateEntityFields, type EntityTypeDef, type ReferenceList
 import { useCallback, useMemo, useState } from "react";
 import { EntityPicker } from "../../components/EntityPicker";
 import { RuleDrawer } from "../../components/RulePanel";
-import { Badge, DiceRollPanel, Drawer, EmptyState, SheetRenderer, pushToast, valuePathOf } from "../../components/ui";
-import { updateEntityFields } from "../../state/actions";
+import { Badge, DiceRollPanel, Drawer, EmptyState, pushToast, valuePathOf } from "../../components/ui";
+import { SheetRenderer } from "../../components/SheetRenderer";
+import { saveSheet } from "./pairs";
 import { useCampaign, useComputed, useMeta, useSheetSources } from "../../state/hooks";
 import { isPlayerCharacter } from "../atlas/AtlasPage";
 import { useZoneMapField } from "../maps/LocationMaps";
@@ -31,14 +32,15 @@ export function SheetTab({ entity, def }: { entity: Entity; def: EntityTypeDef |
 
   const onChange = useCallback(
     (next: Record<string, unknown>) => {
-      updateEntityFields(ctx, entity.id, next, changedPaths(entity.fields, next));
+      saveSheet(ctx, entity.id, next, changedPaths(entity.fields, next));
     },
     [ctx, entity.id, entity.fields],
   );
 
   if (!def) return <EmptyState title="Unknown entity type" text={`The module does not define “${entity.type}”. The data is kept as is.`} />;
 
-  const canPreview = def.kind === "character";
+  // the player sheet and who plays it are for player characters; an NPC's player view is the Atlas's preview
+  const canPreview = def.kind === "character" && isPlayerCharacter(entity);
   const players = playerMembers(meta);
   const owner = canPreview ? ownerMemberOf(meta, entity) : undefined;
   // the player sheet is what its own player sees (owner-visible fields included), else what any player sees
@@ -53,7 +55,7 @@ export function SheetTab({ entity, def }: { entity: Entity; def: EntityTypeDef |
             Player sheet
           </label>
         )}
-        {canPreview && isPlayerCharacter(entity) && <Badge tone="accent">PC</Badge>}
+        {canPreview && <Badge tone="accent">PC</Badge>}
         {canPreview && (players.length > 0 || owner) && (
           <label className="app-toggle" data-testid="sheet-player">
             Played by
@@ -137,7 +139,7 @@ export function SheetTab({ entity, def }: { entity: Entity; def: EntityTypeDef |
           const current = path.split(".").reduce<unknown>((o, k) => (o && typeof o === "object" ? (o as Record<string, unknown>)[k] : undefined), entity.fields);
           const value = picking.widget === "reflist" ? [...new Set([...(Array.isArray(current) ? current.map(String) : []), target.id])] : target.id;
           const next = setIn(entity.fields, path, value);
-          updateEntityFields(ctx, entity.id, next, [path]);
+          saveSheet(ctx, entity.id, next, [path]);
           setPicking(undefined);
         }}
       />

@@ -516,7 +516,8 @@ export function rollLogEntries(ts: TrackerState | undefined): RollLogEntry[] {
       const data = (l.data ?? {}) as Partial<DiceLogData>;
       const entry: RollLogEntry = { id: `${i}`, at: l.at, label: l.text };
       if (data.entered) entry.entered = data.entered;
-      else if (data.seed) entry.summary = `seed ${data.seed}`;
+      // the seed reproduces the roll: kept, but as the line's tooltip, not its text
+      else if (data.seed) entry.detail = `Seed ${data.seed}`;
       if (data.result) entry.result = data.result;
       if (data.rolls?.length) entry.records = data.rolls;
       return entry;

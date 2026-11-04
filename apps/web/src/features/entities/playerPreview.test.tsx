@@ -50,7 +50,7 @@ describe("preview as player on an entity page", () => {
       type: "alien.job",
       name: "Ore run to Hadley",
       visibility: { level: "players" },
-      tags: ["job-board", "within:alien.location.x"],
+      tags: ["job-board", "smuggling", "within:alien.location.x"],
       fields: { frame: "space-truckers", status: "accepted", cargo: "Ore", complications: ["SECRET-COMPLICATION"], plotTwist: "SECRET-TWIST", employerIntent: "SECRET-INTENT", posting: { title: "Ore run", pitch: "Haul ore to Hadley." } },
     });
     const contact = ctx.store.createEntity({ type: "alien.character", name: "Ken Ibana", visibility: { level: "players" }, fields: {} });
@@ -71,9 +71,10 @@ describe("preview as player on an entity page", () => {
     const page = screen.getByTestId("entity-page");
     expect(page.textContent).toContain("Ore run to Hadley");
     expect(page.textContent).toContain("Haul ore to Hadley.");
-    // enum values by their labels, machine tags left out
+    // enum values by their labels; the GM's own tags, never machine tags nor the generator's bookkeeping ones
     expect(page.textContent).toContain("Space Truckers");
-    expect(page.textContent).toContain("job-board");
+    expect(page.textContent).toContain("smuggling");
+    expect(page.textContent).not.toContain("job-board");
     expect(page.textContent).not.toContain("within:");
     for (const secret of ["SECRET-COMPLICATION", "SECRET-TWIST", "SECRET-INTENT", "SECRET-INSIDER", "Complications (GM)", "Behind the posting"]) expect(page.textContent).not.toContain(secret);
     // a link to another entity keeps the preview
