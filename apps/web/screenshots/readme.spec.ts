@@ -762,6 +762,90 @@ test("job-board-taken", async ({ page }) => {
   await shot(page, "job-board-taken");
 });
 
+test("draft-stale", async ({ page }) => {
+  // a job board kept as dealt, reopened after an NPC was added: the page says the campaign changed since the deal
+  // and offers to read it again (same seed, re-rolls and pins) beside a new deal
+  await page.setViewportSize({ width: 1440, height: 760 });
+  const base = await loadDemo(page, "skyfire");
+  await page.goto(`${base}/generate/alien.job-board`);
+  await page.getByTestId("seed").fill("readme-stale");
+  await expect(page.getByTestId("draft-status")).toHaveAttribute("data-state", "saved");
+  await page.goto(`${base}/entities/new?type=alien.character`);
+  await page.getByTestId("entity-name").fill("Vera Kole");
+  await page.getByTestId("create-entity").click();
+  await expect(page.getByTestId("entity-page")).toBeVisible();
+  await nav(page, "Generate").click();
+  await page.getByTestId("procedure-alien.job-board").click();
+  await expect(page.getByTestId("draft-stale")).toContainText("The campaign changed since this was dealt (Campaign)");
+  await dismissToasts(page);
+  await shot(page, "draft-stale");
+});
+
+test("scene-new-clue", async ({ page }) => {
+  // a scene's Clues picker with nothing to pick: "+ New clue" makes one named by the search and lists it on the scene
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const base = await loadDemo(page, "skyfire");
+  await runBoardJob(page, base);
+  await page.getByTestId("outline-scene").filter({ hasText: "Arrival" }).getByRole("button").first().click();
+  await expect(page.getByTestId("scene-title")).toHaveValue(/^Arrival/);
+  await page.getByTestId("scene-editor").getByRole("button", { name: "Add clue" }).click();
+  const dialog = page.getByRole("dialog");
+  await dialog.getByRole("searchbox", { name: "Search entities" }).fill("Scorched hatch seal");
+  await expect(dialog.getByTestId("picker-create")).toHaveText("+ New clue “Scorched hatch seal”");
+  await dismissToasts(page);
+  await shot(page, "scene-new-clue");
+});
+
+test("wrap-up-trip", async ({ page }) => {
+  // closing the job in the wrap-up: the module counts the trip (the job's distance at the ship's FTL rating, out and
+  // back) and the GM moves the in-world date by it, with an undo; the Back/Next bar no longer covers the checklist
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const base = await loadDemo(page, "skyfire");
+  await runBoardJob(page, base);
+  await startPlannedSession(page);
+  await page.getByTestId("end-session").click();
+  const wrap = page.getByTestId("wrapup");
+  await wrap.getByRole("textbox", { name: "Session summary" }).fill("The crew landed at the site and got the ore out, short one crate.");
+  await wrap.getByRole("list", { name: "Wrap-up steps" }).getByRole("button", { name: /Close the jobs?$/ }).click();
+  const close = wrap.getByTestId("close-source").first();
+  await close.getByTestId("close-outcome-done").click();
+  await close.getByTestId("close-trip-move").click();
+  await expect(close.getByTestId("close-trip")).toContainText("In-world date moved");
+  await dismissToasts(page);
+  await shot(page, "wrap-up-trip");
+});
+
+test("between-jobs-date", async ({ page }) => {
+  // between jobs accepted: the effects applied (the week in port moves the in-world date) and the thread clocks as the
+  // run moved them, not a preview of the next roll
+  await page.setViewportSize({ width: 1440, height: 1560 });
+  const base = await loadDemo(page, "skyfire");
+  await page.goto(`${base}/generate/alien.between-jobs`);
+  await expect(page.getByTestId("effects-picker")).toContainText("The in-world date moves forward 7 days (1 week in port)");
+  await page.getByTestId("accept").click();
+  await expect(page.getByTestId("arc-tick-done")).toBeVisible();
+  await dismissToasts(page);
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await shot(page, "between-jobs-date");
+});
+
+test("lifepath-background", async ({ page }) => {
+  // a Life Path accepted: the origin, early life, company, experience, life event, career and psych evaluation written
+  // into the PC's Background, beside the full provenance
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const base = await loadDemo(page, "skyfire");
+  await page.goto(`${base}/generate/alien.lifepath`);
+  await page.getByTestId("seed").fill("crew-2");
+  await page.getByTestId("preview-name-pc").fill("Rook Calder");
+  await page.getByTestId("accept").click();
+  await expect(page.getByTestId("entity-page")).toBeVisible();
+  const background = page.locator('[data-section="background"]');
+  await expect(background.getByRole("textbox").first()).toHaveValue(/^Origin: /);
+  await background.evaluate((e) => window.scrollTo(0, e.getBoundingClientRect().top + window.scrollY - 24));
+  await dismissToasts(page);
+  await shot(page, "lifepath-background");
+});
+
 test("wrap-up-draft", async ({ page }) => {
   // the wrap-up's summary drafted from what session 2 logged (the scene run, a panic roll, a critical injury), marked as a draft
   await page.setViewportSize({ width: 1440, height: 900 });
