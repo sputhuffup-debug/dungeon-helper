@@ -5804,7 +5804,11 @@
         "path": "hp.max",
         "label": "Hit point maximum",
         "widget": "number",
-        "rule": "dnd5e-srd.rule.damage-and-healing.hit-points"
+        "rule": "dnd5e-srd.rule.damage-and-healing.hit-points",
+        "config": {
+         "suggested": "suggestedHpMax",
+         "suggestedLabel": "Fixed values"
+        }
        },
        {
         "path": "hp.current",
@@ -5816,11 +5820,6 @@
         "label": "Temporary hit points",
         "widget": "number",
         "rule": "dnd5e-srd.rule.damage-and-healing.temporary-hit-points"
-       },
-       {
-        "path": "suggestedHpMax",
-        "label": "HP max (fixed values)",
-        "widget": "computed"
        },
        {
         "path": "hitDie",
