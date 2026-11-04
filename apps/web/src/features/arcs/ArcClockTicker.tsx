@@ -14,6 +14,7 @@ import { currentSession } from "../../state/arcActions";
 import { useCampaign, useList } from "../../state/hooks";
 import { newSeed } from "../generate/runner";
 import { ClockBar } from "./ClockBar";
+import "./arcs.css";
 
 /** The ticker inside a procedure whose accept moves the clocks: the seed and the choice live with the procedure. */
 export interface LinkedTicker {
@@ -50,7 +51,22 @@ export function ArcClockTicker({ def, seed: fixedSeed, linked }: { def: ArcsDef;
       subtitle={`Each active thread rolls ${tick.dice}: ${steps.map((s) => `${s.min}+ ${s.ticks === 0 ? "nothing" : `+${s.ticks}`}`).join(", ")}; a thread the crew ignored moves ${tick.ignored} more.`}
       data-testid="arc-ticker"
     >
-      {plan.length === 0 ? (
+      {linked?.moved ? (
+        // accepted: what the run moved, not the next roll's preview
+        linked.moved.length > 0 && (
+          <ul className="arc-ticker" aria-label="Clocks moved" data-testid="arc-moved">
+            {linked.moved.map((m) => (
+              <li key={m.thread.id} className="arc-ticker__row" data-testid="arc-moved-row">
+                <span className="arc-ticker__title">{m.thread.title}</span>
+                <span className="app-small">
+                  {m.from}/{m.thread.clock.segments} → <strong>{m.to}</strong> · moved
+                </span>
+                <ClockBar segments={m.thread.clock.segments} filled={m.to} milestones={m.thread.clock.milestones.map((x) => x.at)} />
+              </li>
+            ))}
+          </ul>
+        )
+      ) : plan.length === 0 ? (
         <p className="cf-muted">No active thread on the arc board.</p>
       ) : (
         <ul className="arc-ticker" aria-label="Planned ticks">

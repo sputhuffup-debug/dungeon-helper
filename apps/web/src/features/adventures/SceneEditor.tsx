@@ -67,7 +67,7 @@ export function SceneEditor({ scene }: { scene: Scene }) {
           <div>
             <dt>Clues</dt>
             <dd>
-              <EntityListInput value={scene.clues} types={clueTypes} label="Clue" onChange={(ids) => set({ clues: ids })} />
+              <EntityListInput value={scene.clues} types={clueTypes} label="Clue" onChange={(ids) => set({ clues: ids })} {...(clueTypes[0] ? { create: clueTypes[0] } : {})} />
             </dd>
           </div>
           <div>

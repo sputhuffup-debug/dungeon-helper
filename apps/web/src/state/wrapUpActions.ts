@@ -58,7 +58,10 @@ export function wrapUpDraftOf(session: Session | undefined): WrapUpDraft {
   if (d.summaryDrafted === true) out.summaryDrafted = true;
   if (typeof d.looseEnds === "string") out.looseEnds = d.looseEnds;
   if (Array.isArray(d.rewards)) out.rewards = d.rewards.filter((r): r is RewardDraft => isRecord(r) && typeof r.characterId === "string").map((r) => ({ key: Number(r.key) || 0, characterId: r.characterId, kind: String(r.kind ?? ""), value: String(r.value ?? ""), note: String(r.note ?? "") }));
-  if (Array.isArray(d.timeline)) out.timeline = d.timeline.filter((t): t is TimelineDraft => isRecord(t) && typeof t.key === "string").map((t) => ({ key: t.key, text: String(t.text ?? ""), entities: Array.isArray(t.entities) ? t.entities.filter((x): x is Id => typeof x === "string") : [], include: t.include !== false }));
+  if (Array.isArray(d.timeline))
+    out.timeline = d.timeline
+      .filter((t): t is TimelineDraft => isRecord(t) && typeof t.key === "string")
+      .map((t) => ({ key: t.key, text: String(t.text ?? ""), entities: Array.isArray(t.entities) ? t.entities.filter((x): x is Id => typeof x === "string") : [], include: t.include !== false, ...(typeof t.inWorldDate === "string" ? { inWorldDate: t.inWorldDate } : {}) }));
   if (typeof d.step === "string") out.step = d.step;
   if (isRecord(d.awardTicks)) out.awardTicks = Object.fromEntries(Object.entries(d.awardTicks).filter((x): x is [string, string[]] => Array.isArray(x[1])).map(([k, v]) => [k, v.filter((q): q is string => typeof q === "string")]));
   if (typeof d.at === "string") out.at = d.at;
@@ -113,6 +116,8 @@ const uniq = <T>(xs: T[]): T[] => [...new Set(xs)];
 const list = (parts: string[]): string => (parts.length <= 1 ? (parts[0] ?? "") : `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`);
 const stop = (s: string) => s.trim().replace(/[.!?…]+$/, "");
 const times = (n: number) => (n === 1 ? "once" : n === 2 ? "twice" : `${n} times`);
+/** A place's name without a trailing note in brackets ("Gateway Station (job site)" -> "Gateway Station"). */
+const placeName = (s: string) => s.replace(/\s*\([^)]*\)\s*$/, "").trim();
 
 /** The module's panic operations (a stress tracker's `panicOperation`). */
 function panicOperations(module: Pick<LoadedModule, "module">): Set<string> {
@@ -147,7 +152,8 @@ export function sessionFacts(ctx: Ctx, sessionId: Id, logText = ""): SessionFact
   for (const id of session.scenesRun) {
     const scene = store.get("scenes", id);
     if (!scene) continue;
-    const at = name(scene.location);
+    // "Arrival at Gateway Station", not "Arrival at Gateway Station at Gateway Station (job site)"
+    const at = placeName(name(scene.location) ?? "");
     facts.scenes.push(at && !scene.title.includes(at) ? `${stop(scene.title)} at ${at}` : stop(scene.title));
   }
   if (facts.scenes.length === 0) {
@@ -195,7 +201,9 @@ export function sessionFacts(ctx: Ctx, sessionId: Id, logText = ""): SessionFact
       const result = d.result as RollResult | undefined;
       if ((d.kind === "pool" || d.kind === "free") && result && (result.pushes > 0 || result.critical || result.fumble)) {
         const how = [result.pushes > 0 ? "pushed" : "", result.critical ? "a critical" : "", result.fumble ? "a fumble" : ""].filter(Boolean).join(", ");
-        facts.rolls.push(`${stop(d.label ?? l.text)} (${how}): ${result.successes > 0 ? "made it" : "failed"}`);
+        // the roll's own label may already say "(pushed)": said once
+        const label = stop(d.label ?? l.text).replace(/\s*\(pushed\)/g, "");
+        facts.rolls.push(`${label} (${how}): ${result.successes > 0 ? "made it" : "failed"}`);
       }
       continue;
     }

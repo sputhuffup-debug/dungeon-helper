@@ -2069,9 +2069,36 @@ a.cf-btn {
 .app-wrapup__nav {
   position: sticky;
   bottom: 0;
+  z-index: 2;
   padding: var(--cf-space-3) 0;
   background: var(--cf-bg);
   border-top: 1px solid var(--cf-border);
+}
+/* in table mode the wrap-up scrolls in a padded pane: the bar covers that padding too, so nothing shows under it */
+.app-table__wrapup .app-wrapup__nav {
+  bottom: calc(-1 * var(--cf-space-4));
+  padding-bottom: calc(var(--cf-space-3) + var(--cf-space-4));
+}
+/* the checklist beside the steps scrolls on its own and ends above the Back/Next bar (it stays in view as the steps scroll) */
+.app-wrapup__aside {
+  position: sticky;
+  top: 0;
+  max-height: max(240px, calc(100vh - 400px));
+  overflow-y: auto;
+  border-radius: var(--cf-radius);
+}
+@media (max-width: 900px) {
+  .app-wrapup__aside {
+    position: static;
+    max-height: none;
+  }
+}
+.app-wrapup__date {
+  width: 11ch;
+  flex: none;
+}
+.app-wrapup__trip {
+  align-items: center;
 }
 .app-prompts {
   list-style: none;
@@ -3501,6 +3528,15 @@ a.cf-btn {
 .offer-card__badges {
   flex-wrap: wrap;
   gap: var(--cf-space-1);
+  min-width: 0;
+}
+/* a badge from data (a thread's title) can be long: it wraps on a phone instead of widening the page */
+.offer-card__badges .cf-badge {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.offer-card__head {
+  min-width: 0;
 }
 .offer-card__body {
   display: grid;

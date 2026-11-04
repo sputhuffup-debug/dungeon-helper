@@ -398,7 +398,9 @@ export function markScene(ctx: Ctx, sessionId: Id, sceneId: Id, status: Scene["s
     const scenesRun = session.scenesRun.filter((id) => id !== sceneId);
     if (status === "run") scenesRun.push(sceneId);
     store.update("sessions", sessionId, { scenesRun });
-    appendTrackerLog(store, sessionId, { tracker: TABLE_LOG, text: `Scene ${status === "planned" ? "reopened" : status}: ${scene.title}`, data: { scene: sceneId, status } });
+    // the in-world date it happened on dates its timeline entry at the wrap-up
+    const inWorldDate = store.meta().currentDate;
+    appendTrackerLog(store, sessionId, { tracker: TABLE_LOG, text: `Scene ${status === "planned" ? "reopened" : status}: ${scene.title}`, data: { scene: sceneId, status, ...(inWorldDate ? { inWorldDate } : {}) } });
   });
 }
 
@@ -697,7 +699,7 @@ export function effectContext(ctx: Ctx, sessionId?: Id): EffectContext {
   const currency = ctx.module.module.ledger?.currency;
   const mod = ctx.module.module;
   const accountField = ctx.module.module.ledger?.accountField;
-  return { ...(sessionId ? { sessionId } : {}), preset: (id) => ctx.module.preset(id), ...(currency ? { currency } : {}), ...(accountField ? { ledgerAccountField: accountField } : {}), ...(mod.progression ? { advancement: mod } : {}) };
+  return { ...(sessionId ? { sessionId } : {}), preset: (id) => ctx.module.preset(id), ...(currency ? { currency } : {}), ...(accountField ? { ledgerAccountField: accountField } : {}), ...(mod.progression ? { advancement: mod } : {}), ...(mod.calendar ? { calendar: mod.calendar } : {}) };
 }
 
 /** Apply effects for the session (tracker onEffects, prompt answers). */
@@ -1150,31 +1152,54 @@ export interface TimelineDraft {
   text: string;
   entities: Id[];
   include: boolean;
+  /** The in-world date it happened on (the campaign's date when the scene was run); the current date when absent. */
+  inWorldDate?: string;
 }
 
-/** One timeline entry per scene run and per handout revealed in the session. */
+/** A place's name without a trailing note in brackets ("Gateway Station (job site)" -> "Gateway Station"). */
+const placeName = (s: string) => s.replace(/\s*\([^)]*\)\s*$/, "").trim();
+
+/**
+ * One timeline entry per scene run and per handout revealed in the session,
+ * each dated by the in-world date when it happened: a scene by the date the
+ * table marked it run (travel and time passing move the date during play), a
+ * handout by the last scene run before it was shown.
+ */
 export function suggestTimeline(store: CampaignStore, sessionId: Id): TimelineDraft[] {
   const session = store.get("sessions", sessionId);
   if (!session) return [];
+  const states = store.list("trackerState").filter((t) => t.session === sessionId);
+  const log = [...((states.find((t) => !t.archived) ?? states[0])?.log ?? [])].sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : 0));
+  /** Scene id -> the in-world date it was last marked run, with when. */
+  const ranOn = new Map<Id, { date: string; at: string }>();
+  for (const l of log) {
+    const d = l.tracker === TABLE_LOG && isRecord(l.data) ? l.data : undefined;
+    if (d && typeof d.scene === "string" && d.status === "run" && typeof d.inWorldDate === "string") ranOn.set(d.scene, { date: d.inWorldDate, at: l.at });
+  }
   const out: TimelineDraft[] = [];
   for (const sceneId of session.scenesRun) {
     const scene = store.get("scenes", sceneId);
     if (!scene) continue;
     const location = scene.location ? store.get("entities", scene.location) : undefined;
+    const at = location ? placeName(location.name) : "";
+    const date = ranOn.get(scene.id)?.date;
     out.push({
       key: `scene:${scene.id}`,
-      text: `${scene.title}${location ? ` at ${location.name}` : ""}.`,
+      text: `${scene.title}${at && !scene.title.includes(at) ? ` at ${at}` : ""}.`,
       entities: [...(location ? [location.id] : []), ...scene.participants.filter((id) => store.has("entities", id))],
       include: true,
+      ...(date ? { inWorldDate: date } : {}),
     });
   }
+  const runs = [...ranOn.values()].sort((a, b) => (a.at < b.at ? -1 : 1));
   const seen = new Set<Id>();
   for (const r of session.reveals) {
     if (!r.handout || seen.has(r.handout)) continue;
     seen.add(r.handout);
     const h = store.get("handouts", r.handout);
     if (!h) continue;
-    out.push({ key: `handout:${h.id}`, text: `The crew learns: ${h.title}.`, entities: h.character && store.has("entities", h.character) ? [h.character] : [], include: true });
+    const before = runs.filter((x) => x.at <= r.at).pop()?.date;
+    out.push({ key: `handout:${h.id}`, text: `The crew learns: ${h.title}.`, entities: h.character && store.has("entities", h.character) ? [h.character] : [], include: true, ...(before ? { inWorldDate: before } : {}) });
   }
   return out;
 }
@@ -1182,7 +1207,7 @@ export function suggestTimeline(store: CampaignStore, sessionId: Id): TimelineDr
 export interface FinishSessionInput {
   summary: string;
   rewards?: Session["rewards"];
-  timeline?: Array<Pick<TimelineDraft, "text" | "entities" | "include">>;
+  timeline?: Array<Pick<TimelineDraft, "text" | "entities" | "include" | "inWorldDate">>;
   looseEnds?: string[];
 }
 
@@ -1193,8 +1218,8 @@ export interface FinishSessionResult {
 }
 
 /**
- * Close a session: create the confirmed timeline entries on the campaign's
- * current in-world date, store summary, rewards and wrap-up, archive the
+ * Close a session: create the confirmed timeline entries (each on the
+ * in-world date it happened, else the campaign's current one), store summary, rewards and wrap-up, archive the
  * tracker state and carry loose ends into the next planned session.
  */
 export function finishSession(ctx: Ctx, sessionId: Id, input: FinishSessionInput): FinishSessionResult {
@@ -1207,7 +1232,7 @@ export function finishSession(ctx: Ctx, sessionId: Id, input: FinishSessionInput
     const date = store.meta().currentDate ?? "";
     const timeline = (input.timeline ?? [])
       .filter((t) => t.include && t.text.trim())
-      .map((t) => store.createTimelineEvent({ inWorldDate: date, text: t.text.trim(), entities: t.entities, session: sessionId }));
+      .map((t) => store.createTimelineEvent({ inWorldDate: t.inWorldDate?.trim() || date, text: t.text.trim(), entities: t.entities, session: sessionId }));
     const looseEnds = (input.looseEnds ?? []).map((l) => l.trim()).filter(Boolean);
     const rewards = (input.rewards ?? []).filter((r) => r.characterId && (String(r.value ?? "").trim() || r.kind.trim()));
 

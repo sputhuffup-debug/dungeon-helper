@@ -12,7 +12,7 @@ import { effectContext } from "./tableActions";
 
 type Ctx = Pick<CampaignContextValue, "store" | "module">;
 
-const EFFECT_KINDS = ["setField", "incrementField", "addCondition", "removeCondition", "log", "prompt", "ledger"];
+const EFFECT_KINDS = ["setField", "incrementField", "addCondition", "removeCondition", "log", "prompt", "ledger", "advanceDate"];
 
 export function isEffect(v: unknown): v is Effect {
   return typeof v === "object" && v !== null && typeof (v as { kind?: unknown }).kind === "string" && EFFECT_KINDS.includes((v as { kind: string }).kind);

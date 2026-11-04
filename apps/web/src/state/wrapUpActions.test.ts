@@ -3,7 +3,9 @@ import { cluesOf, markClueFound, type Id } from "@campaign-forge/core";
 import type { RollResult } from "@campaign-forge/module-sdk";
 import { afterEach, describe, expect, it } from "vitest";
 import { openCampaign, type CampaignContextValue } from "./CampaignProvider";
-import { finishSession, loadDemoCampaign, logTable, markScene, playerCharacters, recordPoolRoll, revealHandout, rollOperation, startPlannedSession, wrapUpOf } from "./tableActions";
+import { finishSession, loadDemoCampaign, logTable, markScene, playerCharacters, recordPoolRoll, revealHandout, rollOperation, startPlannedSession, suggestTimeline, wrapUpOf } from "./tableActions";
+import { moveDateForTrip, sourceTrip, undoTripMove } from "./sourceActions";
+import { theCrewShip } from "./shipActions";
 import { draftSessionSummary, mergeTimeline, saveWrapUpDraft, sessionFacts, summaryFromFacts, wrapUpDraftOf } from "./wrapUpActions";
 
 const opened: Array<() => void> = [];
@@ -111,3 +113,60 @@ describe("the summary drafted from the log", () => {
     expect(draftSessionSummary(ctx, sessionId, "[20:10] The crew takes the job.")).toBe(text);
   });
 });
+
+describe("the drafted summary reads cleanly", () => {
+  it("names a scene's place once, even when the place carries a note in brackets, and says pushed once", async () => {
+    const { ctx, sessionId } = await session2();
+    const ana = playerCharacters(ctx)[0]!;
+    const site = ctx.store.createEntity({ type: "alien.location", name: "Earth, Gateway Station (job site)" });
+    const scene = ctx.store.list("scenes").find((s) => s.title)!;
+    ctx.store.update("scenes", scene.id, { title: "Arrival at Earth, Gateway Station", location: site.id });
+    markScene(ctx, sessionId, scene.id, "run");
+    recordPoolRoll(ctx, sessionId, { label: `${ana.name}: Piloting (Modifier +1) (pushed)`, seed: "s1", result: pushedRoll(1), entityId: ana.id });
+    const facts = sessionFacts(ctx, sessionId);
+    expect(facts.scenes).toEqual(["Arrival at Earth, Gateway Station"]);
+    expect(facts.rolls).toEqual([`${ana.name}: Piloting (Modifier +1) (pushed): made it`]);
+    // the timeline entry too
+    expect(suggestTimeline(ctx.store, sessionId).find((t) => t.key === `scene:${scene.id}`)?.text).toBe("Arrival at Earth, Gateway Station.");
+  });
+});
+
+describe("in-world time at the wrap-up", () => {
+  it("dates each scene's timeline entry by the in-world date it was run on, and finishing keeps those dates", async () => {
+    const { ctx, sessionId } = await session2();
+    const [a, b] = ctx.store.list("scenes").filter((s) => s.title);
+    ctx.store.updateMeta({ currentDate: "2183-01-01" });
+    markScene(ctx, sessionId, a!.id, "run");
+    const handout = ctx.store.createHandout({ title: "A chit", kind: "text", visibility: { level: "gm" } });
+    revealHandout(ctx, sessionId, handout.id);
+    // the trip: the date moves during play
+    ctx.store.updateMeta({ currentDate: "2183-01-11" });
+    markScene(ctx, sessionId, b!.id, "run");
+    const tl = suggestTimeline(ctx.store, sessionId);
+    expect(tl.find((t) => t.key === `scene:${a!.id}`)?.inWorldDate).toBe("2183-01-01");
+    expect(tl.find((t) => t.key === `scene:${b!.id}`)?.inWorldDate).toBe("2183-01-11");
+    expect(tl.find((t) => t.key === `handout:${handout.id}`)?.inWorldDate).toBe("2183-01-01");
+    const res = finishSession(ctx, sessionId, { summary: "", timeline: [...tl, { key: "manual:1", text: "Later.", entities: [], include: true }] });
+    expect(res.timeline.map((t) => t.inWorldDate)).toEqual(["2183-01-01", "2183-01-11", "2183-01-01", "2183-01-11"]);
+  });
+
+  it("moves the date by the module's trip once per job, with undo", async () => {
+    const { ctx, sessionId } = await session2();
+    const def = ctx.module.module.adventureSources!.find((d) => d.id === "alien.run-job")!;
+    const ship = theCrewShip(ctx)!;
+    ctx.store.update("entities", ship.id, { fields: { ...ship.fields, ftl: 2 } });
+    const job = ctx.store.createEntity({ type: "alien.job", name: "A haul", fields: { distance: 3, status: "done" } });
+    const trip = sourceTrip(ctx, def, job)!;
+    expect(trip.days).toBe(12);
+    ctx.store.updateMeta({ currentDate: "2183-01-01" });
+    expect(moveDateForTrip(ctx, sessionId, job.id, trip.days)).toEqual({ days: 12, from: "2183-01-01", to: "2183-01-13" });
+    expect(ctx.store.meta().currentDate).toBe("2183-01-13");
+    // once: a second move is the same move
+    moveDateForTrip(ctx, sessionId, job.id, trip.days);
+    expect(ctx.store.meta().currentDate).toBe("2183-01-13");
+    undoTripMove(ctx, sessionId, job.id);
+    expect(ctx.store.meta().currentDate).toBe("2183-01-01");
+    expect((wrapUpOf(ctx.store.get("sessions", sessionId)) as { trips?: object }).trips).toEqual({});
+  });
+});
+

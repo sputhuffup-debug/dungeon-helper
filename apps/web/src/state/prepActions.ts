@@ -7,10 +7,12 @@ import {
   acceptGeneratedGraph,
   applyEffects,
   clone,
+  findClue,
   fromMarkdown,
   handoutsOfAct,
   newId,
   recordEdit,
+  updateClue,
   type AcceptResult,
   type Act,
   type Adventure,
@@ -192,6 +194,29 @@ export async function instantiateWithKeys(ctx: DocCtx, template: Template | unde
   return { adventure, scenes: sceneKeys };
 }
 
+/**
+ * The clue records a filled scene lists: made GM only (a record already
+ * linked to the arc clue it stands for is reused), and the arc clue linked
+ * to the record and the scene, so either leads to the other.
+ */
+function sceneClues(store: CampaignStore, sceneId: Id, clues: NonNullable<AdventureSceneFill["clues"]>): Id[] {
+  const out: Id[] = [];
+  for (const c of clues) {
+    const arc = c.arcClue ? store.get("arcs", c.arcClue.thread) : undefined;
+    const found = arc && c.arcClue ? findClue(arc, c.arcClue.clue)?.clue : undefined;
+    const existing = (found?.links?.entities ?? []).find((id) => store.get("entities", id)?.type === c.type);
+    const id = existing ?? store.createEntity({ type: c.type, name: c.name, fields: clone(c.fields ?? {}) }).id;
+    if (!out.includes(id)) out.push(id);
+    if (arc && found) {
+      const links = found.links ?? {};
+      const entities = [...new Set([...(links.entities ?? []), id])];
+      const scenes = [...new Set([...(links.scenes ?? []), sceneId])];
+      updateClue(store, arc.id, found.id, { links: { ...links, entities, scenes } });
+    }
+  }
+  return out;
+}
+
 function createSceneFromTemplate(store: CampaignStore, actId: Id, ts: TemplateScene, fill?: AdventureSceneFill): Scene {
   const mandatory = ts.mandatory === true;
   const has = (id: string | undefined) => !!id && store.has("entities", id);
@@ -207,6 +232,8 @@ function createSceneFromTemplate(store: CampaignStore, actId: Id, ts: TemplateSc
     ...(participants.length ? { participants } : {}),
   });
   const patch: Partial<Scene> = {};
+  const clues = sceneClues(store, scene.id, fill?.clues ?? []);
+  if (clues.length) patch.clues = clues;
   if (ts.fields) patch.fields = clone(ts.fields);
   const guide = templateText(ts.body).guide;
   if (guide) patch.guide = { body: guide };

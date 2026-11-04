@@ -231,3 +231,73 @@ export function initialInputs(procedure: Procedure | undefined, store: CampaignS
   }
   return { ...inputs, ...picked };
 }
+
+// ---------------------------------------------------------------------------
+// the campaign as a draft read it
+// ---------------------------------------------------------------------------
+
+/** The inputs `initialInputs` fills from the campaign (not schema defaults): what a draft goes stale on. */
+export function campaignInputKeys(procedure: Procedure | undefined, settings: Record<string, unknown> = {}): string[] {
+  const out: string[] = [];
+  for (const [key, s] of Object.entries(inputProperties(procedure))) {
+    if (isAdventureInput(s) || campaignHint(s) || isArcsInput(s) || entityHint(s)?.setting || isCharacterArray(s) || key === "pcCount" || settings[key] !== undefined) out.push(key);
+  }
+  return out;
+}
+
+/** FNV-1a, as 8 hex digits: a short fingerprint of a JSON value. */
+function fingerprint(v: unknown): string {
+  const text = JSON.stringify(v ?? null);
+  let h = 0x811c9dc5;
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return (h >>> 0).toString(16).padStart(8, "0");
+}
+
+/**
+ * A fingerprint per campaign-filled input of `inputs` (as `initialInputs`
+ * gives them): kept on a draft when it is dealt, compared when it reopens.
+ * An adventure's rich text loads later, so it is left out.
+ */
+export function campaignContext(procedure: Procedure | undefined, inputs: Record<string, unknown>, settings: Record<string, unknown> = {}): Record<string, string> {
+  const props = inputProperties(procedure);
+  const out: Record<string, string> = {};
+  for (const key of campaignInputKeys(procedure, settings)) {
+    let v = inputs[key];
+    if (isAdventureInput(props[key]) && v && typeof v === "object") {
+      const { situation: _s, ...rest } = v as Record<string, unknown>;
+      v = rest;
+    }
+    out[key] = fingerprint(v);
+  }
+  return out;
+}
+
+/** The inputs whose campaign context changed since `before` (titles from the schema, in schema order). */
+export function changedContext(procedure: Procedure | undefined, before: Record<string, string> | undefined, now: Record<string, string>): Array<{ key: string; title: string }> {
+  if (!before) return [];
+  const props = inputProperties(procedure);
+  return Object.keys(now)
+    .filter((k) => before[k] !== now[k])
+    .map((k) => ({ key: k, title: props[k]?.title ?? k }));
+}
+
+/**
+ * The draft's inputs with the campaign-filled ones read again from `fresh`
+ * (`initialInputs` now): per-character lists keep what was set for the PCs
+ * still listed; every other input stays as the GM left it.
+ */
+export function rereadInputs(procedure: Procedure | undefined, inputs: Record<string, unknown>, fresh: Record<string, unknown>, settings: Record<string, unknown> = {}): Record<string, unknown> {
+  const props = inputProperties(procedure);
+  const out: Record<string, unknown> = { ...inputs };
+  for (const key of campaignInputKeys(procedure, settings)) {
+    if (isCharacterArray(props[key]) && Array.isArray(fresh[key])) {
+      const before = Array.isArray(inputs[key]) ? (inputs[key] as Array<Record<string, unknown>>) : [];
+      out[key] = (fresh[key] as Array<Record<string, unknown>>).map((it) => before.find((b) => b.id === it.id) ?? it);
+    } else if (fresh[key] === undefined) delete out[key];
+    else out[key] = fresh[key];
+  }
+  return out;
+}

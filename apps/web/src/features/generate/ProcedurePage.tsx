@@ -5,15 +5,20 @@
  * whole run step by step), a preview of what will be created, accept into
  * the campaign, chained procedures and recent runs.
  *
- * The page is the procedure's draft (core `GeneratorDraft`): seed, inputs,
+ * The page is the procedure's draft (core `GeneratorDraft`): once the GM
+ * changes something (a re-roll, a pin, an edit, an accept), the seed, inputs,
  * re-rolls, pins, entered dice and the GM's edits are saved to the campaign
  * as they change, so leaving and coming back (or reloading) shows the same
- * deal; "New deal" deals a fresh one. A search that asks for a run
+ * deal; a deal nobody touched is not kept, so the next visit reads the
+ * campaign afresh. "New deal" deals a fresh one. A search that asks for a run
  * (`?run=`, `?chainFrom=`, `?pick=`) starts a new draft unless the draft
- * already came from it; `?deal=` deals afresh and is dropped from the address.
+ * already came from it; `?deal=` deals afresh and is dropped from the
+ * address at once (the page stays as dealt). A kept draft remembers what the campaign
+ * looked like when dealt (`GeneratorDraft.context`): reopened after the
+ * campaign changed, the page says what changed and offers to read it again.
  * Once accepted, the main button is the next step and "Accept again" asks first.
  */
-import { draftIsOpen, generatorDraftOf, loadAdventureSnapshot, markDraftAccepted, plainText, type ClockMove, type GeneratorDraft, type GeneratorDraftAccept, type GeneratorDraftInput, type GeneratorRun, type Id } from "@campaign-forge/core";
+import { clearGeneratorDraft, draftIsOpen, generatorDraftOf, loadAdventureSnapshot, plainText, type ClockMove, type GeneratorDraft, type GeneratorDraftAccept, type GeneratorDraftInput, type GeneratorRun, type Id } from "@campaign-forge/core";
 import { clueKindLabel, isDieRequest, probeDice, type AgendaDraftCharacter, type GeneratedGraph, type Procedure, type RollRecord } from "@campaign-forge/module-sdk";
 import { Link, useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -26,7 +31,7 @@ import { InputForm } from "./InputForm";
 import { AgendaAccept, AgendaDraftCards, agendaDraftsOf, AgendaReportCard, type AgendaEdits } from "./AgendaDrafts";
 import { LongAgendaAccept, LongAgendaDraftCards, type LongAgendaEdits } from "../agendas/LongAgendas";
 import { longAgendaDraftsOf } from "../../state/longAgendaActions";
-import { initialInputs, inputProperties, isAdventureInput, pickedInputs } from "./prefill";
+import { campaignContext, changedContext, initialInputs, inputProperties, isAdventureInput, pickedInputs, rereadInputs } from "./prefill";
 import { PreviewPanel } from "./PreviewPanel";
 import { describeEffect, EffectsPicker, isEffect, plainEffectsOf, ResultsPanel } from "./ResultsPanel";
 import { crewShipDefOf, money } from "../../state/shipActions";
@@ -71,7 +76,15 @@ export function ProcedurePage() {
       </div>
     );
   }
-  const key = `${procedureId}|${search.run ?? ""}|${search.chainFrom ?? ""}|${search.chain ?? ""}|${search.within ?? ""}|${search.pick ?? ""}|${search.deal ?? ""}`;
+  return <KeyedWorkbench procedure={procedure} search={search} />;
+}
+
+/** The workbench, remounted for each new request; dropping a consumed `?deal=` from the address keeps the page as it is. */
+function KeyedWorkbench({ procedure, search }: { procedure: Procedure; search: ProcedureSearch }) {
+  const lastDeal = useRef<{ procedure: string; deal?: string }>({ procedure: procedure.id });
+  if (lastDeal.current.procedure !== procedure.id) lastDeal.current = { procedure: procedure.id };
+  if (search.deal) lastDeal.current.deal = search.deal;
+  const key = `${procedure.id}|${search.run ?? ""}|${search.chainFrom ?? ""}|${search.chain ?? ""}|${search.within ?? ""}|${search.pick ?? ""}|${lastDeal.current.deal ?? ""}`;
   return <Workbench key={key} procedure={procedure} search={search} />;
 }
 
@@ -87,6 +100,12 @@ interface Initial {
   pinnedRolls?: Record<string, RollRecord[]>;
   edits?: DraftEdits;
   accepted?: GeneratorDraftAccept;
+  /** The campaign as the deal read it (`GeneratorDraft.context`). */
+  context?: Record<string, string>;
+  /** The campaign-filled inputs as the campaign stands now, and their fingerprints. */
+  now: { inputs: Record<string, unknown>; context: Record<string, string> };
+  /** An old draft nobody touched, read again from the campaign: dropped from the campaign on opening. */
+  dropDraft?: boolean;
 }
 
 /** The chained procedure's label, when the search chains from a run. */
@@ -98,7 +117,7 @@ function chainOrigin(ctx: ReturnType<typeof useCampaign>, procedure: Procedure, 
 }
 
 /** The page as the saved draft left it. */
-function fromDraft(ctx: ReturnType<typeof useCampaign>, procedure: Procedure, draft: GeneratorDraft, search: ProcedureSearch): Initial {
+function fromDraft(ctx: ReturnType<typeof useCampaign>, procedure: Procedure, draft: GeneratorDraft, search: ProcedureSearch, now: Initial["now"]): Initial {
   const request: GeneratorRequest = {
     procedureId: procedure.id,
     seed: draft.seed,
@@ -110,7 +129,10 @@ function fromDraft(ctx: ReturnType<typeof useCampaign>, procedure: Procedure, dr
     ...(draft.partSeeds ? { partSeeds: { ...draft.partSeeds } } : {}),
     ...(draft.pinnedParts ? { pinnedParts: structuredClone(draft.pinnedParts) } : {}),
   };
-  const init: Initial = { request, draft, edits: draftEditsOf(draft) };
+  const settings = ctx.store.meta().settings ?? {};
+  // a draft from before drafts kept their campaign: what its own inputs read
+  const context = draft.context ?? campaignContext(procedure, draft.inputs ?? {}, settings);
+  const init: Initial = { request, draft, edits: draftEditsOf(draft), context, now };
   if (draft.within) init.within = draft.within;
   if (draft.source) init.source = draft.source;
   if (draft.pinnedRolls) init.pinnedRolls = structuredClone(draft.pinnedRolls);
@@ -130,19 +152,23 @@ function useInitial(procedure: Procedure, search: ProcedureSearch): Initial {
   return useMemo(() => {
     const source = draftSourceKey(search);
     const existing = generatorDraftOf(ctx.store, procedure.id);
-    // reopen the draft unless a fresh deal was asked for, or the search asks for something the draft did not come from
-    if (!search.deal && existing && (source === undefined || existing.source === source)) return fromDraft(ctx, procedure, existing, search);
-    const withSource = (init: Initial): Initial => (source ? { ...init, source } : init);
     const docText = (id: Id) => (ctx.registry.has(id) ? plainText(ctx.registry.open(id)) : "");
     const picked = pickedInputs(procedure, ctx.store, search.pick, docText);
     const inputs0 = initialInputs(procedure, ctx.store, ctx.module, { docText, picked });
-    const base: GeneratorRequest = { procedureId: procedure.id, seed: newSeed(), inputs: inputs0, stepSeeds: {}, pinned: {}, includeOptional: [] };
+    const now = { inputs: inputs0, context: campaignContext(procedure, inputs0, ctx.store.meta().settings ?? {}) };
+    const mine = !search.deal && existing && (source === undefined || existing.source === source) ? existing : undefined;
+    // an old draft nobody touched (kept before untouched deals were left unsaved): read the campaign again, same seed
+    const untouched = mine && !mine.context && !draftHasWork(mine) && !mine.accepted;
+    // reopen the draft unless a fresh deal was asked for, or the search asks for something the draft did not come from
+    if (mine && !untouched) return fromDraft(ctx, procedure, mine, search, now);
+    const withSource = (init: Initial): Initial => ({ ...init, ...(source ? { source } : {}), ...(untouched ? { dropDraft: true } : {}) });
+    const base: GeneratorRequest = { procedureId: procedure.id, seed: untouched ? mine.seed : newSeed(), inputs: inputs0, stepSeeds: {}, pinned: {}, includeOptional: [] };
     if (search.run) {
       const run = ctx.store.get("generatorRuns", search.run);
       if (run && run.procedure === procedure.id) {
         const pinnedRolls: Record<string, RollRecord[]> = {};
         for (const id of Object.keys(run.pinned ?? {})) pinnedRolls[id] = run.rolls.filter((r) => r.step === id);
-        return withSource({ request: requestFromRun(procedure, run), restoredFrom: run, pinnedRolls });
+        return withSource({ request: requestFromRun(procedure, run), restoredFrom: run, pinnedRolls, context: now.context, now });
       }
     }
     if (search.chainFrom !== undefined && search.chain !== undefined) {
@@ -159,12 +185,12 @@ function useInitial(procedure: Procedure, search: ProcedureSearch): Initial {
         const inputs = { ...base.inputs };
         for (const [k, v] of Object.entries(chained)) if (v !== undefined) inputs[k] = v;
         const within = search.within ?? origin.produced[0];
-        const init: Initial = { request: { ...base, inputs }, origin: { run: origin, label: chain.label } };
+        const init: Initial = { request: { ...base, inputs }, origin: { run: origin, label: chain.label }, context: now.context, now };
         if (within) init.within = within;
         return withSource(init);
       }
     }
-    const init: Initial = { request: base };
+    const init: Initial = { request: base, context: now.context, now };
     if (search.within) init.within = search.within;
     return withSource(init);
     // computed once per mount (the page is keyed by its search)
@@ -210,6 +236,8 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
   const [moveClocks, setMoveClocks] = useState(initial.edits?.moveClocks ?? true);
   const clocksMoved = Array.isArray(acceptMark?.detail?.clocks) ? (acceptMark.detail.clocks as ClockMove[]) : undefined;
   const [askNewDeal, setAskNewDeal] = useState(false);
+  /** What the campaign looked like to this deal (kept on the draft). */
+  const [context, setContext] = useState<Record<string, string> | undefined>(initial.context);
 
   const outcome = useMemo((): { graph?: GeneratedGraph; error?: string } => {
     try {
@@ -224,45 +252,71 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
   const offers = useMemo(() => (procedure.offers ? offersOf(graph) : undefined), [graph, procedure.offers]);
   const offerKeys = useMemo(() => offers?.offers.map((o) => o.key), [offers]);
 
-  // The draft: saved to the campaign as the page changes (a fresh deal at once, edits a moment later), and on leaving.
+  // The draft: saved to the campaign once the GM changes the deal (at once), then as the page changes (a moment later) and on leaving.
   const draftInput = useMemo((): GeneratorDraftInput => {
     const nonEmpty = <T extends object>(v: T | undefined): T | undefined => (v && Object.keys(v).length > 0 ? v : undefined);
     const draftEdits = compactEdits({ agenda: edits, longAgenda: longEdits, names, unticked: [...unticked].sort((a, b) => a - b), moveClocks, ...(clockSeed ? { clockSeed } : {}) });
     const out: GeneratorDraftInput = { procedure: procedure.id, moduleId: ctx.module.manifest.id, moduleVersion: ctx.module.manifest.version, seed, inputs };
-    const opt = { stepSeeds: nonEmpty(stepSeeds), stepDice: nonEmpty(stepDice), pinned: nonEmpty(pinned), pinnedRolls: nonEmpty(pinnedRolls), partSeeds: nonEmpty(partSeeds), pinnedParts: nonEmpty(pinnedParts), includeOptional: includeOptional.length ? includeOptional : undefined, within, edits: draftEdits, source: initial.source, offerKeys: offerKeys?.length ? offerKeys : undefined, accepted: acceptMark };
+    const opt = { stepSeeds: nonEmpty(stepSeeds), stepDice: nonEmpty(stepDice), pinned: nonEmpty(pinned), pinnedRolls: nonEmpty(pinnedRolls), partSeeds: nonEmpty(partSeeds), pinnedParts: nonEmpty(pinnedParts), includeOptional: includeOptional.length ? includeOptional : undefined, within, edits: draftEdits, source: initial.source, offerKeys: offerKeys?.length ? offerKeys : undefined, accepted: acceptMark, context };
     for (const [k, v] of Object.entries(opt)) if (v !== undefined) (out as unknown as Record<string, unknown>)[k] = v;
     return out;
-  }, [procedure.id, ctx.module, seed, inputs, stepSeeds, stepDice, pinned, pinnedRolls, partSeeds, pinnedParts, includeOptional, within, edits, longEdits, names, unticked, moveClocks, clockSeed, initial.source, offerKeys, acceptMark]);
+  }, [procedure.id, ctx.module, seed, inputs, stepSeeds, stepDice, pinned, pinnedRolls, partSeeds, pinnedParts, includeOptional, within, edits, longEdits, names, unticked, moveClocks, clockSeed, initial.source, offerKeys, acceptMark, context]);
   const pendingSave = useRef<(() => void) | undefined>(undefined);
-  const fresh = useRef(!initial.draft);
+  /** The deal is in the campaign (a reopened draft, or one the GM changed since). */
+  const kept = useRef(!!initial.draft);
+  /** The deal as it opened (and as the page itself changed it, e.g. an adventure's text loading): changing it keeps the draft. */
+  const baseline = useRef<string | undefined>(undefined);
+  /** The page changed the inputs itself (not the GM): the baseline follows. */
+  const pageChange = useRef(false);
   const lastAccept = useRef(acceptMark);
   const [saved, setSaved] = useState(!!initial.draft);
+  const [isKept, setIsKept] = useState(!!initial.draft);
+  /** Write the draft now (the first write replaces any older draft of the procedure); `extra` lands with it. */
+  const keepNow = (extra: Partial<GeneratorDraftInput> = {}) => {
+    pendingSave.current = undefined;
+    try {
+      writeDraft(ctx, { ...draftInput, ...extra }, { fresh: !kept.current });
+      setSaved(true);
+    } catch {
+      // a campaign closed under the page: nothing to keep
+      return;
+    }
+    if (!kept.current) {
+      kept.current = true;
+      setIsKept(true);
+    }
+  };
   useEffect(() => {
-    const write = () => {
-      pendingSave.current = undefined;
-      try {
-        writeDraft(ctx, draftInput, { fresh: fresh.current });
-        setSaved(true);
-      } catch {
-        // a campaign closed under the page: nothing to keep
-      }
-      fresh.current = false;
-    };
-    if (fresh.current) {
-      write();
-      // a fresh deal asked for by the address: drop the request, so a reload reopens this draft
-      if (search.deal) {
-        const { deal: _deal, ...rest } = search;
-        void navigate({ to: "/c/$campaignId/generate/$procedureId", params: { campaignId, procedureId: procedure.id }, search: rest, replace: true });
-      }
+    // a fresh deal asked for: the draft it replaces goes; an old untouched one read afresh goes too
+    if ((search.deal || initial.dropDraft) && !initial.draft) clearGeneratorDraft(ctx.store, procedure.id);
+    // the request is dropped from the address (the page stays as it is), so a reload reopens what this deal becomes
+    if (search.deal) {
+      const { deal: _deal, ...rest } = search;
+      void navigate({ to: "/c/$campaignId/generate/$procedureId", params: { campaignId, procedureId: procedure.id }, search: rest, replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    const json = JSON.stringify(draftInput);
+    if (baseline.current === undefined || pageChange.current) {
+      baseline.current = json;
+      pageChange.current = false;
+      return;
+    }
+    // nothing kept until the GM changes the deal: an untouched deal reads the campaign afresh next time
+    if (!kept.current) {
+      if (json === baseline.current) return;
+      lastAccept.current = acceptMark;
+      keepNow();
       return;
     }
     // an accept (or its mark cleared) is written at once: it is what the page says on coming back
     if (acceptMark !== lastAccept.current) {
       lastAccept.current = acceptMark;
-      write();
+      keepNow();
       return;
     }
+    const write = () => keepNow();
     setSaved(false);
     pendingSave.current = write;
     const t = window.setTimeout(write, 300);
@@ -292,7 +346,12 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
         if (typeof id !== "string") continue;
         const snap = await loadAdventureSnapshot(ctx.store, ctx.registry, id, ctx.whenDocSynced).catch(() => undefined);
         if (!alive || !snap) continue;
-        setInputs((cur) => ((cur[key] as { id?: unknown } | undefined)?.id === id && JSON.stringify(cur[key]) !== JSON.stringify(snap) ? { ...cur, [key]: snap } : cur));
+        setInputs((cur) => {
+          if ((cur[key] as { id?: unknown } | undefined)?.id !== id || JSON.stringify(cur[key]) === JSON.stringify(snap)) return cur;
+          // the page filled this in, not the GM: an untouched deal stays untouched
+          if (!kept.current) pageChange.current = true;
+          return { ...cur, [key]: snap };
+        });
       }
     })();
     return () => {
@@ -455,7 +514,7 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
       if (root) {
         // the draft remembers the accept (written now, before the page leaves), so coming back says so
         const mark = { run: res.run.id, at: new Date().toISOString() };
-        markDraftAccepted(ctx.store, procedure.id, mark);
+        keepNow({ accepted: mark });
         lastAccept.current = mark;
         setAcceptMark(mark);
         pushToast(`Accepted ${res.entities.length} entit${res.entities.length === 1 ? "y" : "ies"} into the campaign.`, { tone: "success" });
@@ -484,12 +543,25 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
   const newDeal = () => {
     setAskNewDeal(false);
     pendingSave.current = undefined;
+    // the deal on the page goes now, so leaving before changing the new one never brings it back
+    clearGeneratorDraft(ctx.store, procedure.id);
     const { run: _run, deal: _deal, ...rest } = search;
     void navigate({ to: "/c/$campaignId/generate/$procedureId", params: { campaignId, procedureId: procedure.id }, search: { ...rest, deal: newSeed() }, replace: true });
   };
   const markAccepted = (runId: Id | undefined, detail: Record<string, unknown>) => {
     if (runId) setAcceptMark({ run: runId, at: new Date().toISOString(), detail });
   };
+  /** What changed in the campaign since a reopened draft was dealt (nothing once accepted: that deal is done). */
+  const staleInputs = useMemo(() => (initial.draft && !acceptMark ? changedContext(procedure, context, initial.now.context) : []), [initial.draft, initial.now.context, acceptMark, procedure, context]);
+  /** Read the campaign again into the reopened draft: same seed, re-rolls, pins and edits; the campaign's inputs as they are now. */
+  const reread = () => {
+    setCompareTo(graph);
+    setAccepted(undefined);
+    setInputs((cur) => rereadInputs(procedure, cur, initial.now.inputs, ctx.store.meta().settings ?? {}));
+    setContext(initial.now.context);
+  };
+  /** Slots the GM pinned (an offer taken or kept stays pinned on its own: not counted). */
+  const gmPinnedParts = Object.keys(pinnedParts).filter((k) => !liveDraft?.offers?.[k]).length;
   const offersActed = offers ? offers.offers.filter((o) => liveDraft?.offers?.[o.key] && liveDraft.offers[o.key]!.as !== "discard").length : 0;
   const root = accepted?.produced[0] ? ctx.store.get("entities", accepted.produced[0]) : undefined;
   // effects in a step's result read as the Effects list does: names, money, no ids
@@ -522,8 +594,8 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
           <Button onClick={() => (draftHasWork(liveDraft) && !accepted ? setAskNewDeal(true) : newDeal())} data-testid="new-deal" title="Deal this procedure afresh: a new seed, inputs read from the campaign again. What you accepted stays.">
             New deal
           </Button>
-          <span className="cf-muted app-small" data-testid="draft-status" data-state={saved ? "saved" : "saving"}>
-            {saved ? "Draft kept in the campaign" : "Saving the draft…"}
+          <span className="cf-muted app-small" data-testid="draft-status" data-state={!isKept ? "unkept" : saved ? "saved" : "saving"} title={isKept ? undefined : "A deal you have not changed is not kept: coming back reads the campaign afresh."}>
+            {!isKept ? "Kept once you change it" : saved ? "Draft kept in the campaign" : "Saving the draft…"}
           </span>
         </div>
       </header>
@@ -542,6 +614,19 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
               ? `The board you dealt ${relativeTime(initial.draft.created)}, as you left it: ${offersActed} of ${offers.offers.length} ${procedure.offers?.noun ?? "offer"}s taken or kept. “New deal” deals a fresh one.`
               : `Your draft from ${relativeTime(initial.draft.created)}, as you left it (seed ${initial.draft.seed}). “New deal” deals a fresh one.`}
         </p>
+      )}
+      {staleInputs.length > 0 && (
+        <div className="app-note app-note--warning app-row" role="status" data-testid="draft-stale">
+          <span className="app-grow">
+            The campaign changed since this was dealt ({staleInputs.map((x) => x.title).join(", ")}); the deal still reads it as it was then.
+          </span>
+          <Button size="sm" variant="primary" onClick={reread} data-testid="draft-reread" title="Keep the seed, re-rolls, pins and your edits; read the campaign as it is now">
+            Use the campaign as it is now
+          </Button>
+          <Button size="sm" onClick={() => (draftHasWork(liveDraft) ? setAskNewDeal(true) : newDeal())}>
+            New deal
+          </Button>
+        </div>
       )}
       {initial.restoredFrom && (
         <p className="app-note">
@@ -583,7 +668,11 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
                 )}
                 {Object.keys(pinned).length > 0 && <Badge tone="warning">{Object.keys(pinned).length} pinned</Badge>}
                 {Object.keys(partSeeds).length > 0 && <Badge tone="accent">{Object.keys(partSeeds).length} slot{Object.keys(partSeeds).length === 1 ? "" : "s"} re-rolled</Badge>}
-                {Object.keys(pinnedParts).length > 0 && <Badge tone="warning">{Object.keys(pinnedParts).length} slot{Object.keys(pinnedParts).length === 1 ? "" : "s"} pinned</Badge>}
+                {gmPinnedParts > 0 && (
+                  <Badge tone="warning" data-testid="pinned-slots">
+                    {gmPinnedParts} slot{gmPinnedParts === 1 ? "" : "s"} pinned
+                  </Badge>
+                )}
                 {Object.keys(stepDice).length > 0 && (
                   <Badge tone="accent" data-testid="entered-steps">
                     {Object.keys(stepDice).length} entered
@@ -631,13 +720,18 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
                   graph={graph}
                   controls={offerControls}
                   run={{ stepSeeds, pinned, partSeeds, pinnedParts }}
-                  onMarked={(keys) =>
+                  onBeforeAct={() => {
+                    if (!kept.current) keepNow();
+                  }}
+                  onMarked={(keys) => {
                     setPinnedParts((p) => {
                       const n = { ...p };
                       for (const k of keys) if (graph.parts && Object.prototype.hasOwnProperty.call(graph.parts, k)) n[k] = graph.parts[k];
                       return n;
-                    })
-                  }
+                    });
+                    // what taking it changed in the campaign is the GM's own doing: not news when the board reopens
+                    setContext(campaignContext(procedure, initialInputs(procedure, ctx.store, ctx.module, { docText: (id) => (ctx.registry.has(id) ? plainText(ctx.registry.open(id)) : ""), picked: pickedInputs(procedure, ctx.store, search.pick) }), ctx.store.meta().settings ?? {}));
+                  }}
                 />
               )}
               {longDrafts && procedure.longAgendas && (

@@ -2,17 +2,19 @@
  * Wrap-up step "Close the job" (a module's adventure sources, e.g. jobs):
  * for each record the session ran, or one still open, its outcome (done,
  * failed, carried over), its payout (with undo), its adventure marked done,
- * and the way into the module's between-jobs procedure with the record
- * picked. Nothing here knows what a job is: labels come from the module.
+ * the in-world days its trip took (the module's `trip`), and the way into
+ * the module's between-jobs procedure with the record picked. Nothing here
+ * knows what a job is: labels come from the module.
  */
 import type { Entity, Id } from "@campaign-forge/core";
-import type { PlayModeId } from "@campaign-forge/module-sdk";
+import { addDaysToDate, type PlayModeId } from "@campaign-forge/module-sdk";
 import { Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { Badge, Button, Card, PageRef } from "../../components/ui";
 import { useCampaign, useList, useMeta, useRecord } from "../../state/hooks";
 import { crewShipDefOf } from "../../state/shipActions";
-import { closeSource, sessionSources, setAdventureDone, sourceNoun, type SessionSource } from "../../state/sourceActions";
+import { closeSource, moveDateForTrip, sessionSources, sessionTravelDays, setAdventureDone, sourceNoun, sourceTrip, undoTripMove, type ClosedRecord, type SessionSource } from "../../state/sourceActions";
+import { wrapUpOf } from "../../state/tableActions";
 import { PayoutButton } from "../ship/PayoutButton";
 import type { CampaignContextValue } from "../../state/CampaignProvider";
 
@@ -61,6 +63,46 @@ export function CloseSourcesStep({ sessionId, sources }: { sessionId: Id; source
   );
 }
 
+/** The trip the record took, as days for the in-world date: move it on (with undo), unless travel this session already did. */
+function TripRow({ sessionId, source }: { sessionId: Id; source: SessionSource }) {
+  const ctx = useCampaign();
+  const meta = useMeta();
+  useList("travel");
+  const session = useRecord("sessions", sessionId);
+  const trip = sourceTrip(ctx, source.def, source.entity);
+  if (!trip || !meta.currentDate) return null;
+  const moved = (wrapUpOf(session) as ClosedRecord).trips?.[source.entity.id];
+  const travelled = sessionTravelDays(ctx, sessionId);
+  return (
+    <div className="app-row app-wrapup__trip" data-testid="close-trip">
+      {moved ? (
+        <>
+          <span>
+            In-world date moved {moved.days} day{moved.days === 1 ? "" : "s"}: {moved.from} → <strong>{moved.to}</strong>.
+          </span>
+          <Button size="sm" variant="ghost" onClick={() => undoTripMove(ctx, sessionId, source.entity.id)} data-testid="close-trip-undo">
+            Undo
+          </Button>
+        </>
+      ) : (
+        <>
+          <span className="app-grow">
+            The trip: {trip.text} <PageRef page={trip.page} />
+            {travelled > 0 ? ` The travel planner already moved the date ${travelled} day${travelled === 1 ? "" : "s"} this session.` : ""}
+          </span>
+          <Button size="sm" variant={travelled > 0 ? "ghost" : "default"} onClick={() => moveDateForTrip(ctx, sessionId, source.entity.id, trip.days)} data-testid="close-trip-move">
+            Move the date {trip.days} days ({meta.currentDate} → {addDays(ctx, meta.currentDate, trip.days)})
+          </Button>
+        </>
+      )}
+    </div>
+  );
+}
+
+function addDays(ctx: Ctx, date: string, days: number): string {
+  return addDaysToDate(ctx.module.module.calendar, date, days);
+}
+
 function CloseSourceCard({ sessionId, source }: { sessionId: Id; source: SessionSource }) {
   const ctx = useCampaign();
   const meta = useMeta();
@@ -100,6 +142,7 @@ function CloseSourceCard({ sessionId, source }: { sessionId: Id; source: Session
           ))}
         </div>
         <PayoutButton entity={entity} />
+        {status?.closes && <TripRow sessionId={sessionId} source={source} />}
         {adventure && (
           <label className="app-toggle" data-testid="close-adventure">
             <input type="checkbox" className="cf-checkbox" checked={adventure.status === "done"} onChange={(e) => setAdventureDone(ctx, adventure.id, e.target.checked)} />

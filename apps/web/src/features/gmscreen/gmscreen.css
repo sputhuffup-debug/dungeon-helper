@@ -5,9 +5,21 @@
   align-items: start;
   gap: var(--cf-space-4);
 }
+.app-gmscreen > * {
+  min-width: 0;
+}
 @media (max-width: 960px) {
   .app-gmscreen {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+/* a phone: a panel's row wraps (its fold size and order buttons under its name) instead of pushing the page wider */
+@media (max-width: 480px) {
+  .app-gmscreen__panel {
+    flex-wrap: wrap;
+  }
+  .app-gmscreen__panel .app-toggle {
+    flex-basis: 100%;
   }
 }
 .app-gmscreen__options {

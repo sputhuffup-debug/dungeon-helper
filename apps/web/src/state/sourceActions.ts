@@ -7,9 +7,10 @@
  * job is.
  */
 import { adventureClosed, adventureOfSource, adventureSourceFor, adventureSourceInput, type Adventure, type Entity, type Id, type Session } from "@campaign-forge/core";
-import { setPath, sourceOpen, sourceRunnable, type AdventureSourceDef, type AdventureSourceOutcome, type PlayModeId } from "@campaign-forge/module-sdk";
+import { addDaysToDate, setPath, sourceOpen, sourceRunnable, type AdventureSourceDef, type AdventureSourceOutcome, type AdventureSourceTrip, type PlayModeId } from "@campaign-forge/module-sdk";
 import type { CampaignContextValue } from "./CampaignProvider";
 import { ensureEntitySite, mapGeneratorsFor } from "./mapgenActions";
+import { theCrewShip } from "./shipActions";
 import { instantiateWithKeys } from "./prepActions";
 import { planNextSession, plannedScenesOf, setPlannedScenes, sortSessions, updateSession, wrapUpOf, type WrapUpRecord } from "./tableActions";
 
@@ -96,8 +97,66 @@ export async function runFromEntity(ctx: DocCtx, entityId: Id, mode: PlayModeId,
 // the wrap-up: close what the session ran
 // ---------------------------------------------------------------------------
 
-/** What the wrap-up keeps per record it closed: the outcome id. */
-export type ClosedRecord = WrapUpRecord & { closed?: Record<Id, string> };
+/** What the wrap-up keeps per record it closed: the outcome id, and the trip's days when the date moved for it. */
+export type ClosedRecord = WrapUpRecord & { closed?: Record<Id, string>; trips?: Record<Id, SourceTripMove> };
+
+/** The in-world date moved for a record's trip at the wrap-up. */
+export interface SourceTripMove {
+  days: number;
+  from: string;
+  to: string;
+}
+
+/** What the module says the record's travel takes (with the crew's vehicle), if it can say. */
+export function sourceTrip(ctx: Ctx, def: AdventureSourceDef, entity: Entity): AdventureSourceTrip | undefined {
+  if (!def.trip) return undefined;
+  const ship = theCrewShip(ctx);
+  try {
+    return def.trip({ entity: { id: entity.id, name: entity.name, type: entity.type, fields: entity.fields }, ...(ship ? { ship: { id: ship.id, name: ship.name, type: ship.type, fields: ship.fields } } : {}) });
+  } catch {
+    return undefined;
+  }
+}
+
+/** Travel legs the session recorded (the travel planner's Depart moves the date itself). */
+export function sessionTravelDays(ctx: Ctx, sessionId: Id): number {
+  return ctx.store
+    .list("travel")
+    .filter((l) => l.session === sessionId && l.status === "arrived")
+    .reduce((n, l) => n + (l.days ?? 0), 0);
+}
+
+/** Move the in-world date on by a record's trip (once per record per session); undefined when the campaign keeps no date. */
+export function moveDateForTrip(ctx: Ctx, sessionId: Id, entityId: Id, days: number): SourceTripMove | undefined {
+  return ctx.store.transact(() => {
+    const from = ctx.store.meta().currentDate;
+    const session = ctx.store.get("sessions", sessionId);
+    if (!from || !session || !(days > 0)) return undefined;
+    const wrap = wrapUpOf(session) as ClosedRecord;
+    if (wrap.trips?.[entityId]) return wrap.trips[entityId];
+    const to = addDaysToDate(ctx.module.module.calendar, from, Math.round(days));
+    ctx.store.updateMeta({ currentDate: to });
+    const move: SourceTripMove = { days: Math.round(days), from, to };
+    updateSession(ctx, sessionId, { wrapUp: { ...wrap, trips: { ...(wrap.trips ?? {}), [entityId]: move } } as Session["wrapUp"] });
+    return move;
+  });
+}
+
+/** Undo `moveDateForTrip`: the date goes back by the trip's days (when nothing moved it since, it is the date it was). */
+export function undoTripMove(ctx: Ctx, sessionId: Id, entityId: Id): void {
+  ctx.store.transact(() => {
+    const session = ctx.store.get("sessions", sessionId);
+    if (!session) return;
+    const wrap = wrapUpOf(session) as ClosedRecord;
+    const move = wrap.trips?.[entityId];
+    if (!move) return;
+    const now = ctx.store.meta().currentDate;
+    ctx.store.updateMeta({ currentDate: now === move.to ? move.from : addDaysToDate(ctx.module.module.calendar, now ?? move.to, -move.days) });
+    const trips = { ...(wrap.trips ?? {}) };
+    delete trips[entityId];
+    updateSession(ctx, sessionId, { wrapUp: { ...wrap, trips } as Session["wrapUp"] });
+  });
+}
 
 export interface SessionSource {
   entity: Entity;

@@ -1,9 +1,14 @@
-/** Dialog for choosing an entity: search, optional type filter, keyboard navigation. */
+/**
+ * Dialog for choosing an entity: search, optional type filter, keyboard
+ * navigation. With `create`, "+ New …" makes one of that type (named by the
+ * search, GM only) and picks it, so an empty list is never a dead end.
+ */
 import type { Entity, Id } from "@campaign-forge/core";
 import { useMemo, useState, type KeyboardEvent } from "react";
+import { createEntity } from "../state/actions";
 import { useCampaign, useMapVersion } from "../state/hooks";
 import { EntityIcon } from "./EntityIcon";
-import { Dialog, EmptyState } from "./ui";
+import { Button, Dialog, EmptyState } from "./ui";
 
 export interface EntityPickerProps {
   open: boolean;
@@ -11,20 +16,28 @@ export interface EntityPickerProps {
   /** Allowed entity type ids (all when omitted). */
   types?: string[];
   exclude?: Id[];
+  /** Offer "+ New …" of this entity type: created with the search as its name, then picked. */
+  create?: string;
   onPick: (entity: Entity) => void;
   onClose: () => void;
 }
 
-export function EntityPicker({ open, title = "Choose an entity", types, exclude, onPick, onClose }: EntityPickerProps) {
+export function EntityPicker({ open, title = "Choose an entity", types, exclude, create, onPick, onClose }: EntityPickerProps) {
   return (
     <Dialog open={open} onClose={onClose} title={title}>
-      {open && <PickerBody types={types} exclude={exclude} onPick={onPick} />}
+      {open && <PickerBody types={types} exclude={exclude} create={create} onPick={onPick} />}
     </Dialog>
   );
 }
 
-function PickerBody({ types, exclude, onPick }: Pick<EntityPickerProps, "types" | "exclude" | "onPick">) {
-  const { store, search, module } = useCampaign();
+function PickerBody({ types, exclude, create, onPick }: Pick<EntityPickerProps, "types" | "exclude" | "create" | "onPick">) {
+  const ctx = useCampaign();
+  const { store, search, module } = ctx;
+  const createDef = create ? module.entityType(create) : undefined;
+  const createNew = () => {
+    if (!createDef) return;
+    onPick(createEntity(ctx, { type: createDef.id, name: query.trim() || `New ${createDef.name.toLowerCase()}` }));
+  };
   const version = useMapVersion("entities");
   const [query, setQuery] = useState("");
   const [index, setIndex] = useState(0);
@@ -78,7 +91,11 @@ function PickerBody({ types, exclude, onPick }: Pick<EntityPickerProps, "types" 
         onKeyDown={onKey}
       />
       {results.length === 0 ? (
-        <EmptyState title="Nothing found" text="Create the entity first, then link it." />
+        createDef ? (
+          <EmptyState title="Nothing found" text={`Make a new ${createDef.name.toLowerCase()} here: it is added to the campaign (GM only) and linked.`} />
+        ) : (
+          <EmptyState title="Nothing found" text="Create the entity first, then link it." />
+        )
       ) : (
         <ul className="app-picker__list" role="listbox" aria-label="Entities">
           {results.map((e, i) => {
@@ -94,6 +111,14 @@ function PickerBody({ types, exclude, onPick }: Pick<EntityPickerProps, "types" 
             );
           })}
         </ul>
+      )}
+      {createDef && (
+        <div className="app-row">
+          <Button variant={results.length === 0 ? "primary" : "default"} onClick={createNew} data-testid="picker-create">
+            + New {createDef.name.toLowerCase()}
+            {query.trim() ? ` “${query.trim()}”` : ""}
+          </Button>
+        </div>
       )}
     </div>
   );

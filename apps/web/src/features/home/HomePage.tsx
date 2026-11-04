@@ -13,9 +13,10 @@ import { useRecordLinks } from "../../components/EntityLinkContext";
 import { Badge, Button, Card, EmptyState } from "../../components/ui";
 import { adventureTitle, formatDate, humanize, relativeTime } from "../../lib/format";
 import { createNote, startSession } from "../../state/actions";
+import { money } from "../../state/shipActions";
 import { useCampaign, useList, useMapVersion, useMeta } from "../../state/hooks";
 import { useCampaignSetup } from "../../state/setupActions";
-import { summaryLine } from "../entities/summary";
+import { sheetFieldOf, summaryLine } from "../entities/summary";
 import { SetupGuide } from "./SetupGuide";
 
 export function HomePage() {
@@ -35,6 +36,7 @@ export function HomePage() {
   );
   const activeAdventures = adventures.filter((a) => a.status === "active");
   const shownAdventures = activeAdventures.length ? activeAdventures : adventures.filter((a) => a.status === "planned").slice(0, 3);
+  const doneAdventures = adventures.filter((a) => a.status === "done").length;
   const hooks = adventures.flatMap((a) => a.hooksOut.map((h, i) => ({ key: `${a.id}:${i}`, text: h, adventure: a })));
 
   // "NPC from preset" opens the first character (else creature) type that has presets: some modules keep NPC stat blocks on a creature type.
@@ -141,7 +143,17 @@ export function HomePage() {
 
         <Card title={activeAdventures.length ? "Active adventures" : "Adventures"} actions={<Link to="/c/$campaignId/adventures" params={{ campaignId }} className="cf-btn cf-btn--sm cf-btn--ghost">All</Link>}>
           {shownAdventures.length === 0 ? (
-            <p className="cf-muted">No adventures yet.</p>
+            adventures.length > 0 ? (
+              <p className="cf-muted" data-testid="home-adventures-none-active">
+                No active adventures.{" "}
+                <Link to="/c/$campaignId/adventures" params={{ campaignId }} className="app-link-strong">
+                  {doneAdventures ? `${doneAdventures} done` : `${adventures.length} in the campaign`}
+                </Link>
+                .
+              </p>
+            ) : (
+              <p className="cf-muted">No adventures yet.</p>
+            )
           ) : (
             <ul className="app-list">
               {shownAdventures.map((a) => {
@@ -206,6 +218,18 @@ function JobBoard({ def }: { def: EntityTypeDef }) {
     if (jobs.some((j) => typeof j.fields.status !== "string")) statuses.push("");
     return statuses.map((st) => ({ status: st, jobs: jobs.filter((j) => (typeof j.fields.status === "string" ? j.fields.status : "") === st) }));
   }, [def, jobs]);
+  // the card's line as the sheet's summary reads, money fields (`config.format: "money"`) in the module's currency
+  const jobLine = (j: Entity): string =>
+    (def.sheet.summary ?? [])
+      .filter((path) => path !== "status")
+      .map((path) => {
+        const field = sheetFieldOf(def, path);
+        const v = j.fields[path];
+        if (field?.config?.format === "money" && typeof v === "number") return `${(field.label ?? path).replace(/\s*\([^\w\s]+\)$/, "")} ${money(ctx, v)}`;
+        return summaryLine({ ...def, sheet: { ...def.sheet, summary: [path] } }, j, [], (list, id) => ctx.module.referenceItem(list, id)?.name);
+      })
+      .filter(Boolean)
+      .join(" · ");
   return (
     <section className="app-section" aria-label="Job board">
       <header className="app-section__header">
@@ -231,7 +255,7 @@ function JobBoard({ def }: { def: EntityTypeDef }) {
               {col.jobs.map((j) => (
                 <Link key={j.id} to="/c/$campaignId/entities/$entityId" params={{ campaignId, entityId: j.id }} className="app-board__card">
                   <strong>{j.name}</strong>
-                  <span className="cf-muted">{summaryLine(def, j, ["status"], (list, id) => ctx.module.referenceItem(list, id)?.name)}</span>
+                  <span className="cf-muted">{jobLine(j)}</span>
                 </Link>
               ))}
             </div>
