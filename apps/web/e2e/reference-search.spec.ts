@@ -14,11 +14,15 @@ async function searchFor(page: import("@playwright/test").Page, query: string) {
   // no dialog left open: closing one moves focus, which would close the results under the click
   await expect(page.getByRole("dialog")).toHaveCount(0);
   const box = page.getByRole("searchbox", { name: "Search campaign" });
-  await box.click();
-  await box.fill(query);
   const results = page.getByRole("listbox", { name: "Search results" });
   const group = results.getByRole("group", { name: "Reference" });
-  await expect(group).toBeVisible();
+  // on a slow runner the page can still hand focus back from the closed dialog just after the box
+  // is focused, closing the results; focus it again, as a GM would, until the results stay open
+  await expect(async () => {
+    await box.click();
+    await box.fill(query);
+    await expect(group).toBeVisible({ timeout: 2_000 });
+  }).toPass({ timeout: 15_000 });
   return group;
 }
 
