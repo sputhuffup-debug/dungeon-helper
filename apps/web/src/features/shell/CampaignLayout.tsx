@@ -1,4 +1,4 @@
-import { Link, Outlet, useNavigate, useParams } from "@tanstack/react-router";
+import { Link, Outlet, useNavigate, useParams, useRouterState } from "@tanstack/react-router";
 import { useMemo, type ReactNode } from "react";
 import { RecordLinksContext, type RecordLinks } from "../../components/EntityLinkContext";
 import { ErrorPage } from "../../components/ErrorPage";
@@ -9,16 +9,23 @@ import { useCampaign, useMeta, useOfflineStatus } from "../../state/hooks";
 import { crewShipDefOf, hasShipPage } from "../../state/shipActions";
 import { arcsDefOf } from "../../state/arcActions";
 import { GlobalSearch } from "./GlobalSearch";
+import { playerWindowSession } from "../table/playerWindowName";
+import { lazyView } from "../../components/lazyView";
+
+// the player screen's window loads its own code: nothing of the GM's shell is mounted in it
+const PlayerWindow = lazyView(() => import("../table/PlayerWindow").then((m) => m.PlayerWindow), { what: "the player screen" });
 
 export function CampaignLayout() {
   const { campaignId } = useParams({ from: "/c/$campaignId" });
+  // the player screen is a window of its own with nothing of the GM's around it: no sidebar, header, search or hotkeys
+  const playerSession = useRouterState({ select: (s) => playerWindowSession(s.location.pathname, s.location.search as Record<string, unknown>) });
   return (
     <CampaignProvider
       campaignId={campaignId}
       loading={({ moduleName }) => <Loading label={moduleName ? `Loading ${moduleName}…` : "Opening campaign…"} />}
       renderError={(error, retry) => <ErrorPage error={error} retry={retry} />}
     >
-      <Shell />
+      {playerSession ? <PlayerWindow sessionId={playerSession} /> : <Shell />}
     </CampaignProvider>
   );
 }

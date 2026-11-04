@@ -87,7 +87,7 @@ export function LiveSiteMap({
   participants: Entity[];
   /** Prompts in-world time raised when the hunt moved the clock. */
   onPrompts?: (prompts: Prompt[]) => void;
-  /** Open framed on the revealed and occupied zones (a phone), not the whole deck. */
+  /** Open framed on the revealed and occupied zones, not the whole deck (the table does, on every screen: labels stay readable). */
   focus?: boolean;
 }) {
   const ctx = useCampaign();
@@ -281,6 +281,20 @@ export function LiveSiteMap({
         focus={focusZones}
       />
 
+      {/* the clicked zone's panel right under the map (and scrolled to), above the range and hunt panels */}
+      {zone && (
+        <ZonePanel
+          key={zone.id}
+          map={map}
+          zone={zone}
+          def={def}
+          label={label}
+          flagEntries={flagEntries}
+          participants={participants}
+          onClose={() => setSelected(undefined)}
+        />
+      )}
+      {!zone && <p className="app-note">Select a zone to change its doors, flags and tokens.</p>}
       <RangePanel layout={layout} label={label} range={range} setRange={setRange} reading={reading} />
       {hunt && (
         <HuntPanel
@@ -304,20 +318,6 @@ export function LiveSiteMap({
         />
       )}
       <DuctEvents sessionId={sessionId} map={map} zones={[...(selected ? [selected] : []), ...live.tokens.map((t) => t.zone)]} label={label} />
-
-      {zone && (
-        <ZonePanel
-          key={zone.id}
-          map={map}
-          zone={zone}
-          def={def}
-          label={label}
-          flagEntries={flagEntries}
-          participants={participants}
-          onClose={() => setSelected(undefined)}
-        />
-      )}
-      {!zone && <p className="app-note">Select a zone to change its doors, flags and tokens.</p>}
       <TokenList map={map} label={label} />
       <details className="app-livemap__legend">
         <summary>Legend</summary>
@@ -455,8 +455,13 @@ function ZonePanel({ map, zone, def, label, flagEntries, participants, onClose }
   const here = live.tokens.filter((t) => t.zone === zone.id);
   const elsewhere = live.tokens.filter((t) => t.zone !== zone.id);
   const unplaced = participants.filter((p) => !live.tokens.some((t) => t.entity === p.id));
+  // a zone picked on the map brings its panel into view (the panel remounts for each zone)
+  const ref = useRef<HTMLElement>(null);
+  useEffect(() => {
+    ref.current?.scrollIntoView?.({ block: "nearest", behavior: "smooth" });
+  }, []);
   return (
-    <section className="app-livemap__zone" aria-label={`Zone ${label(zone.id)}`} data-testid="live-zone">
+    <section ref={ref} className="app-livemap__zone" aria-label={`Zone ${label(zone.id)}`} data-testid="live-zone">
       <header className="app-row">
         <strong className="app-grow">{label(zone.id)}</strong>
         <Badge tone={revealed ? "success" : undefined}>{revealed ? "players see it" : "fogged"}</Badge>
@@ -582,7 +587,7 @@ function ZonePanel({ map, zone, def, label, flagEntries, participants, onClose }
                 if (p) placeToken(store, map.id, { label: p.name, zone: zone.id, gmOnly: false, entity: p.id });
               }}
             >
-              <option value="">Place a participant…</option>
+              <option value="">Place a participant (players see it)…</option>
               {unplaced.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}
@@ -590,22 +595,29 @@ function ZonePanel({ map, zone, def, label, flagEntries, participants, onClose }
               ))}
             </select>
           )}
-          <input className="cf-input" aria-label="New token name" placeholder="New token" value={tokenLabel} onChange={(e) => setTokenLabel(e.target.value)} />
-          <label className="app-row">
-            <input type="checkbox" className="cf-checkbox" checked={gmOnly} onChange={(e) => setGmOnly(e.target.checked)} />
-            hidden
-          </label>
-          <Button
-            size="sm"
-            disabled={!tokenLabel.trim()}
-            onClick={() => {
-              placeToken(store, map.id, { label: tokenLabel.trim(), zone: zone.id, gmOnly });
-              setTokenLabel("");
-            }}
-          >
-            Place
-          </Button>
         </div>
+        {/* a token of the GM's own (a body, a crate, a hidden watcher): named, then added; hidden from the players unless unticked */}
+        <form
+          className="app-row app-livemap__newtoken"
+          aria-label="New token"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!tokenLabel.trim()) return;
+            placeToken(store, map.id, { label: tokenLabel.trim(), zone: zone.id, gmOnly });
+            setTokenLabel("");
+          }}
+        >
+          <input className="cf-input" aria-label="New token name" placeholder="New token, e.g. a crate" value={tokenLabel} onChange={(e) => setTokenLabel(e.target.value)} />
+          <label className="app-row" title="A hidden token stays off the player screen.">
+            <input type="checkbox" className="cf-checkbox" checked={gmOnly} onChange={(e) => setGmOnly(e.target.checked)} />
+            hidden from players
+          </label>
+          {tokenLabel.trim() && (
+            <Button size="sm" type="submit">
+              Add token
+            </Button>
+          )}
+        </form>
       </div>
     </section>
   );

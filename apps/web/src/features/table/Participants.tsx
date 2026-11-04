@@ -14,7 +14,7 @@ import { useModeTrackers } from "./TrackersPanel";
 import { useZoneMapField } from "../maps/LocationMaps";
 import { updateEntityFields } from "../../state/actions";
 import { useCampaign, useMeta, useRecord, useSheetSources } from "../../state/hooks";
-import { computedOf } from "../../state/tableActions";
+import { computedOf, conditionTitle } from "../../state/tableActions";
 import { changedPaths } from "../entities/SheetTab";
 import { ParticipantHealth, type CombatHandlers } from "./Combat";
 import { SessionRollPanel, skillInput } from "./DicePanel";
@@ -128,7 +128,7 @@ export function ParticipantCard({
         {entity.conditions && entity.conditions.length > 0 && (
           <span className="app-participant__conditions">
             {entity.conditions.map((c) => (
-              <Badge key={c.id} tone="warning" title={c.source}>
+              <Badge key={c.id} tone="warning" title={conditionTitle({ module }, c)} data-testid="participant-condition">
                 {c.label}
                 {c.value !== undefined ? ` ${c.value}` : ""}
               </Badge>
@@ -269,7 +269,7 @@ export function EntityDrawer({ entityId, sessionId, onClose }: { entityId: Id | 
           {entity.conditions && entity.conditions.length > 0 && (
             <div className="app-row">
               {entity.conditions.map((c) => (
-                <Badge key={c.id} tone="warning">
+                <Badge key={c.id} tone="warning" title={conditionTitle(ctx, c)}>
                   {c.label}
                 </Badge>
               ))}

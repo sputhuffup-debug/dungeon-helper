@@ -3,7 +3,7 @@
  * record objects, so `useSyncExternalStore` sees a stable reference until
  * the record changes and never tears.
  */
-import type { CampaignMeta, Entity, Id, MapName, RecordOf } from "@campaign-forge/core";
+import { plainText, type CampaignMeta, type Entity, type Id, type MapName, type RecordOf } from "@campaign-forge/core";
 import { computeFields, type EntityPreset, type EntityTypeDef } from "@campaign-forge/module-sdk";
 import type { SheetEntityRef } from "@campaign-forge/ui";
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
@@ -117,6 +117,24 @@ export function useAssetUrl(assetId: Id | undefined): string | undefined {
     };
   }, [assets, assetId]);
   return url;
+}
+
+/** Does this rich-text doc hold any text (live, as it loads and as it is edited)? False with no doc. */
+export function useDocHasText(docId: Id | undefined): boolean {
+  const { registry } = useCampaign();
+  const [has, setHas] = useState(false);
+  useEffect(() => {
+    if (!docId) {
+      setHas(false);
+      return;
+    }
+    const doc = registry.open(docId);
+    const check = () => setHas(plainText(doc).trim() !== "");
+    check();
+    doc.on("update", check);
+    return () => doc.off("update", check);
+  }, [registry, docId]);
+  return has;
 }
 
 /** Entity name by id, live. */

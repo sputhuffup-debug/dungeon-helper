@@ -144,6 +144,60 @@ test("table mode keeps working offline and the player screen shows what the GM r
   await context.setOffline(false);
 });
 
+test("the player screen window holds the player view alone: no GM shell, its hotkeys and links go nowhere", async ({ page, context }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.goto("/");
+  await page.getByTestId("load-demo").click();
+  await expect(page).toHaveURL(/\/home$/, { timeout: 30_000 });
+  await page.getByRole("button", { name: "Start this session" }).click();
+  await expect(page.getByTestId("table-mode")).toBeVisible();
+
+  const popupPromise = context.waitForEvent("page");
+  await page.getByRole("button", { name: "Player screen" }).click();
+  const players = await popupPromise;
+  players.on("pageerror", (e) => errors.push(e.message));
+  await expect(players.getByTestId("player-screen")).toBeVisible();
+  const url = players.url();
+  expect(url).toMatch(/\/table\/[0-9A-Z]{26}\?view=players$/);
+  // nothing of the GM's shell is in the window: no campaign header, search or sidebar links
+  await expect(players.getByTestId("player-window")).toBeAttached();
+  await expect(players.getByTestId("campaign-name")).toHaveCount(0);
+  await expect(players.getByRole("navigation", { name: "Campaign" })).toHaveCount(0);
+  await expect(players.getByRole("combobox")).toHaveCount(0);
+  await expect(players.locator("a[href]")).toHaveCount(0);
+
+  // the GM's search hotkey does nothing: "/", a GM-only NPC's name, Enter
+  const gmOnly = "Karima Yusef";
+  await players.locator("body").click();
+  await players.keyboard.press("/");
+  await players.keyboard.type(gmOnly);
+  await players.keyboard.press("Enter");
+  await players.keyboard.press("Control+k");
+  await players.keyboard.type(gmOnly);
+  await players.keyboard.press("Enter");
+  // tabbing round and pressing Enter on whatever has focus opens nothing either
+  for (let i = 0; i < 8; i++) {
+    await players.keyboard.press("Tab");
+    await players.keyboard.press("Enter");
+  }
+  expect(players.url()).toBe(url);
+  await expect(players.getByTestId("player-screen")).toBeVisible();
+  await expect(players.getByText(gmOnly)).toHaveCount(0);
+  await expect(players.locator("body")).not.toContainText("Karima");
+
+  // the window stays the player screen even if it is sent to a GM page
+  await players.goto(url.replace(/\/table\/.*$/, "/atlas"));
+  await expect(players.getByTestId("player-screen")).toBeVisible();
+  await expect(players.getByTestId("campaign-name")).toHaveCount(0);
+  await expect(players.locator("body")).not.toContainText("Karima");
+  // nor the campaign list
+  await players.goto(new URL(url).origin + "/");
+  await expect(players.getByText("This window is the player screen.")).toBeVisible();
+  await expect(players.getByTestId("load-demo")).toHaveCount(0);
+  expect(errors).toEqual([]);
+});
+
 test("after the first visit, a campaign and table mode open offline from the precache", async ({ page, context }) => {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));

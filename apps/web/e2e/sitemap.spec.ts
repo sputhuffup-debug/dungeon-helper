@@ -166,12 +166,14 @@ test("a generated site map: views, zone key download, live reveal in table mode,
   await live.locator('[data-hit="zone"][data-zone="R4"]').click();
   const zone = live.getByTestId("live-zone");
   await expect(zone).toHaveAttribute("aria-label", /Zone 4 /);
+  // the zone panel opens right under the map, scrolled into view
+  await expect(zone).toBeInViewport();
   await zone.getByRole("textbox", { name: "New token name" }).fill("Ghoul");
-  await zone.getByRole("button", { name: "Place" }).click();
+  await zone.getByRole("button", { name: "Add token" }).click();
   await expect(live.locator("[data-token]")).toHaveCount(1);
   await zone.getByRole("textbox", { name: "New token name" }).fill("Ada");
-  await zone.getByRole("checkbox", { name: "hidden" }).uncheck();
-  await zone.getByRole("button", { name: "Place" }).click();
+  await zone.getByRole("checkbox", { name: "hidden from players" }).uncheck();
+  await zone.getByRole("button", { name: "Add token" }).click();
   await expect(live.locator("[data-token]")).toHaveCount(2);
   await expect(playerMap.locator("[data-token]")).toHaveCount(1);
   await expect(playerMap).not.toContainText("Ghoul");

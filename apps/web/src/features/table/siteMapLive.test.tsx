@@ -125,7 +125,7 @@ describe("LiveSiteMap and PlayerSiteMap", () => {
     fireEvent.click(within(panel).getByRole("checkbox", { name: /Burning/ }));
     expect(get(ctx, map.id).live!.zoneFlags.R6).toEqual({ burning: true });
     fireEvent.change(within(panel).getByRole("textbox", { name: "New token name" }), { target: { value: "Ghoul" } });
-    fireEvent.click(within(panel).getByRole("button", { name: "Place" }));
+    fireEvent.click(within(panel).getByRole("button", { name: "Add token" }));
     expect(get(ctx, map.id).live!.tokens).toMatchObject([{ label: "Ghoul", zone: "R6", gmOnly: true }]);
 
     // range: from R4 to R6 now goes round through the hall

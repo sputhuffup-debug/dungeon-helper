@@ -13,6 +13,7 @@ import { AutoGrowText, Badge, Button, Card, IconButton, Tabs, pushToast } from "
 import { useCampaign, useList } from "../../state/hooks";
 import { RECAP_SPANS, addOwnRecapLine, buildRecap, removeOwnRecapLine, rewriteRecapLine, setRecapLineOn, showRecapOnPlayerScreen, spanId } from "../../state/recapActions";
 import { useCrossTabSync } from "../table/hooks";
+import { playerWindowName } from "../table/playerWindowName";
 import { RecapText } from "./RecapText";
 import "./recap.css";
 
@@ -107,7 +108,7 @@ export function RecapCard({ session }: { session: Session }) {
             <Button variant={shown ? "default" : "primary"} size="sm" onClick={() => showRecapOnPlayerScreen(ctx, session.id, !shown)} data-testid="recap-show">
               {shown ? "Hide from player screen" : "Show on player screen"}
             </Button>
-            <a className="cf-btn cf-btn--ghost cf-btn--sm" href={playerUrl} target="_blank" rel="noreferrer" data-testid="recap-player-screen">
+            <a className="cf-btn cf-btn--ghost cf-btn--sm" href={playerUrl} target={playerWindowName(session.id)} rel="noreferrer" data-testid="recap-player-screen">
               Open player screen
             </a>
             <Button

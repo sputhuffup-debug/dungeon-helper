@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Badge, Button, Card, EmptyState } from "../../components/ui";
 import { RichTextEditor, RichTextView } from "../../editor";
 import { markScene, setCurrentScene, toggleSceneEvent } from "../../state/tableActions";
-import { useCampaign, useRecord } from "../../state/hooks";
+import { useCampaign, useDocHasText, useRecord } from "../../state/hooks";
 
 export interface SceneCardProps {
   sessionId: Id;
@@ -23,6 +23,7 @@ export function SceneCard({ sessionId, scenes, scene, onOpenEntity }: SceneCardP
   const adventure = useRecord("adventures", act?.adventure);
   const location = useRecord("entities", scene?.location);
   const [editing, setEditing] = useState(false);
+  const hasReadAloud = useDocHasText(scene?.readAloudDoc);
   const go = (id: Id | undefined) => {
     setEditing(false);
     setCurrentScene(ctx, sessionId, id);
@@ -83,26 +84,27 @@ export function SceneCard({ sessionId, scenes, scene, onOpenEntity }: SceneCardP
           </button>
         </p>
       )}
+      {/* one wording for a scene with no read-aloud, whether it never had a doc or its doc is empty */}
       <section aria-label="Read-aloud" className="app-table__readaloud">
-        {scene.readAloudDoc ? (
+        {scene.readAloudDoc && (editing || hasReadAloud) ? (
           <>
             {editing ? (
               <RichTextEditor docId={scene.readAloudDoc} className="app-table__readaloud-text" label="Read-aloud text" placeholder="Read-aloud text for the players…" />
             ) : (
-              <RichTextView docId={scene.readAloudDoc} className="app-table__readaloud-text" placeholder="No read-aloud text yet." />
+              <RichTextView docId={scene.readAloudDoc} className="app-table__readaloud-text" />
             )}
             <Button size="sm" variant="ghost" onClick={() => setEditing(!editing)} active={editing}>
               {editing ? "Done editing" : "Edit read-aloud"}
             </Button>
           </>
         ) : (
-          <div className="app-row">
-            <span className="cf-muted">No read-aloud text.</span>
+          <div className="app-row" data-testid="readaloud-empty">
+            <span className="cf-muted">No read-aloud text yet.</span>
             <Button
               size="sm"
               variant="ghost"
               onClick={() => {
-                ctx.store.update("scenes", scene.id, { readAloudDoc: newId() });
+                if (!scene.readAloudDoc) ctx.store.update("scenes", scene.id, { readAloudDoc: newId() });
                 setEditing(true);
               }}
             >

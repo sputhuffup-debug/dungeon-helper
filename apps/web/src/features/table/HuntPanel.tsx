@@ -78,25 +78,36 @@ function Note({ note }: { note: MapHuntNote }) {
   );
 }
 
-/** Entities a hidden token can be made from: the scene's cast (not the PCs) and the cast of what the map's site belongs to (a job's NPCs). */
+/**
+ * Entities a hidden token can be made from: the scene's cast (not the PCs),
+ * the characters and creatures tied to the map's site, and the cast of what
+ * the site belongs to (a job's or an encounter's NPCs). Never someone met
+ * only through another place (an NPC in a bar of the home port).
+ */
 function useCandidateEntities(map: SiteMap, participants: Entity[], pcs: Entity[]): Entity[] {
+  const ctx = useCampaign();
   const relationships = useList("relationships");
   const entities = useList("entities");
   return useMemo(() => {
     const pcIds = new Set(pcs.map((p) => p.id));
+    const byId = new Map(entities.map((e) => [e.id, e]));
+    const kindOf = (id: string) => {
+      const e = byId.get(id);
+      return e ? ctx.module.entityType(e.type)?.kind : undefined;
+    };
     const ids = new Set(participants.map((p) => p.id));
     if (map.location) {
-      const near = new Set<string>([map.location]);
-      for (let hop = 0; hop < 2; hop++) {
-        for (const r of relationships) {
-          if (near.has(r.from)) ids.add(r.to);
-          if (near.has(r.to)) ids.add(r.from);
-        }
-        for (const id of ids) near.add(id);
+      const site = map.location;
+      const linked = (id: string) => relationships.flatMap((r) => (r.from === id ? [r.to] : r.to === id ? [r.from] : []));
+      for (const near of linked(site)) {
+        const kind = kindOf(near);
+        if (kind === "character" || kind === "creature") ids.add(near);
+        // what the site belongs to: its cast too
+        else if (kind === "job" || kind === "encounter") for (const id of linked(near)) if (id !== site && (kindOf(id) === "character" || kindOf(id) === "creature")) ids.add(id);
       }
     }
     return entities.filter((e) => ids.has(e.id) && !pcIds.has(e.id));
-  }, [map.location, participants, pcs, relationships, entities]);
+  }, [ctx.module, map.location, participants, pcs, relationships, entities]);
 }
 
 export function HuntPanel({ sessionId, map, def, pcs, participants, label, suggestions, prompt, onDismissPrompt, onAdvance, stepNumber, moving, onMove, selectedZone }: HuntPanelProps) {

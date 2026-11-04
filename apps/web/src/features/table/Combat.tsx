@@ -29,6 +29,7 @@ import { Badge, Button, Card, Dialog, DieFace, HealthBar, PageRef, Stepper, init
 import { errorMessage } from "../../lib/format";
 import {
   adjustDamage,
+  brokenRollDue,
   brokenRun,
   brokenTableFor,
   chooseCreatureAttack,
@@ -124,6 +125,8 @@ export function BrokenRollButton({ sessionId, entity, entry, onOperationRoll }: 
   const page = ctx.module.table(entry.table)?.page;
   return (
     <span className="app-combat__broken" data-testid="broken-roll">
+      {/* rolled once for this hit: the result stays, the button goes */}
+      {!roll && (
       <Button
         size="sm"
         variant="danger"
@@ -144,8 +147,9 @@ export function BrokenRollButton({ sessionId, entity, entry, onOperationRoll }: 
           }
         }}
       >
-        {roll ? `Roll ${label} again` : `Roll ${label}`}
+        {`Roll ${label}`}
       </Button>
+      )}
       {page !== undefined && <PageRef page={page} />}
       {roll && (
         <output className="app-combat__broken-result" data-testid="broken-result">
@@ -159,10 +163,13 @@ export function BrokenRollButton({ sessionId, entity, entry, onOperationRoll }: 
 /** Health bar, -/+ damage and "Take a hit" for a participant whose type tracks damage; the broken roll at zero. */
 export function ParticipantHealth({ entity, combat }: { entity: Entity; combat: CombatHandlers }) {
   const ctx = useCampaign();
+  const ts = useSessionTrackerState(combat.sessionId);
   const health = healthState(ctx.module, entity);
   const def = combatHealthFor(ctx.module, entity);
   if (!health || !def) return null;
-  const broken = health.broken ? brokenTableFor(ctx, entity) : undefined;
+  // offered while it is due: once on reaching zero, again after each hit taken there
+  const entry = health.broken ? brokenTableFor(ctx, entity) : undefined;
+  const broken = entry && brokenRollDue(ts?.log ?? [], entity.id, entry) ? entry : undefined;
   const adjust = (delta: number) => {
     try {
       adjustDamage(ctx, combat.sessionId, entity.id, delta);
@@ -215,7 +222,7 @@ export function HitOutcomeView({
       <div className="app-row">
         <HealthBar max={outcome.after.max} damage={outcome.after.damage} broken={outcome.after.broken} brokenLabel={outcome.newlyBroken ? "Broken by this hit" : "Broken"} label={`${entity.name} health after the hit`} />
       </div>
-      {outcome.brokenTable && <BrokenRollButton sessionId={sessionId} entity={entity} entry={outcome.brokenTable} onOperationRoll={onOperationRoll} />}
+      {outcome.brokenTable && <BrokenRollButton key={outcome.seed} sessionId={sessionId} entity={entity} entry={outcome.brokenTable} onOperationRoll={onOperationRoll} />}
       {react && outcome.reaction && <ReactionPanel sessionId={sessionId} creature={entity} reaction={outcome.reaction} damageTaken={outcome.result.damage} participants={participants} map={map} onOperationRoll={onOperationRoll} />}
     </div>
   );

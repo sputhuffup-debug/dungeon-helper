@@ -53,6 +53,7 @@ import {
   lifecycleConfig,
   lifecycleState,
   rollTable,
+  tableResultLines,
   startLifecycle,
   type DiceOperation,
   type DiceOperationResult,
@@ -66,6 +67,7 @@ import {
   type RollRecord,
   type RollResult,
   type SessionChecklistEvent,
+  type TableResultLine,
   type TrackerDef,
 } from "@campaign-forge/module-sdk";
 import { advanceClockCounters, appendPanic, clockLogText, clockState, clockUnits, type ClockUnit, type PromptAnswer } from "@campaign-forge/ui";
@@ -408,10 +410,13 @@ export function toggleSceneEvent(ctx: Ctx, sceneId: Id, eventId: Id, done: boole
   ctx.store.update("scenes", sceneId, { events: scene.events.map((e) => (e.id === eventId ? { ...e, done } : e)) });
 }
 
-export function setTimer(ctx: Ctx, sessionId: Id, action: "start" | "pause" | "reset"): void {
+/** Start, pause or reset the real-time timer; returns the timer as it was (for an Undo). */
+export function setTimer(ctx: Ctx, sessionId: Id, action: "start" | "pause" | "reset"): TableState["timer"] {
   const store = ctx.store;
+  let before: TableState["timer"];
   store.transact(() => {
     const current = tableStateOf(getTrackerState(store, sessionId).state);
+    before = current.timer;
     const t = current.timer ?? { running: false, accumulatedMs: 0 };
     const elapsed = t.running && t.since ? Date.now() - Date.parse(t.since) : 0;
     let timer: NonNullable<TableState["timer"]>;
@@ -419,6 +424,19 @@ export function setTimer(ctx: Ctx, sessionId: Id, action: "start" | "pause" | "r
     else if (action === "pause") timer = { running: false, accumulatedMs: t.accumulatedMs + Math.max(0, elapsed) };
     else timer = { running: t.running, ...(t.running ? { since: nowIso() } : {}), accumulatedMs: 0 };
     updateTrackerState(store, sessionId, TABLE_STATE, { ...current, timer });
+  });
+  return before;
+}
+
+/** Put the timer back as `setTimer` returned it (a reset's Undo): a running timer counts on as if never reset. */
+export function restoreTimer(ctx: Ctx, sessionId: Id, timer: TableState["timer"]): void {
+  const store = ctx.store;
+  store.transact(() => {
+    const current = tableStateOf(getTrackerState(store, sessionId).state);
+    const next: TableState = { ...current };
+    if (timer) next.timer = timer;
+    else delete next.timer;
+    updateTrackerState(store, sessionId, TABLE_STATE, next);
   });
 }
 
@@ -661,6 +679,26 @@ export function tableResultText(record: RollRecord): string {
   const label = record.rowLabel;
   if (label && body && body !== label) return `${label}: ${body}`;
   return label ?? body ?? String(record.total);
+}
+
+/**
+ * What a condition a table roll gave means (a critical injury, a panic): the
+ * row of its source table with its label, read through the table's
+ * `resultFields`. Empty lines when the source is not a table or says nothing.
+ */
+export function conditionMeaning(ctx: Pick<Ctx, "module">, condition: { label: string; source?: string }): { table?: string; lines: TableResultLine[] } {
+  const table = condition.source ? ctx.module.tables.get(condition.source) : undefined;
+  if (!table) return { lines: [] };
+  const row = table.rows.find((r) => r.label === condition.label);
+  return { table: table.name, lines: row ? tableResultLines(table, row.result) : [] };
+}
+
+/** The same in one line, for a tooltip: "Critical injuries · Effect: … · Healing time: one shift". */
+export function conditionTitle(ctx: Pick<Ctx, "module">, condition: { label: string; source?: string }): string | undefined {
+  const m = conditionMeaning(ctx, condition);
+  const parts = m.lines.map((l) => (l.value === undefined ? l.label : `${l.label}: ${l.value}`));
+  if (!m.table) return undefined;
+  return [m.table, ...parts].join(" · ");
 }
 
 export interface ZoneTableRoll {
