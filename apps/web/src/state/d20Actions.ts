@@ -193,7 +193,8 @@ export function startCombat(ctx: Ctx, sessionId: Id, entityIds: Id[], entered?: 
       const r = rolls.find((x) => x.entityId === p.entityId);
       return r ? { ...p, card: r.card, mod: r.mod, detail: entered ? `${r.detail} (entered)` : r.detail, acted: false } : p;
     });
-    updateTrackerState(store, sessionId, tracker.id, { round: init.round, participants: next });
+    // the fight starts in round 1
+    updateTrackerState(store, sessionId, tracker.id, { round: Math.max(1, init.round), participants: next });
     const order = combatOrder(ctx, sessionId);
     appendTrackerLog(store, sessionId, {
       tracker: DICE_LOG,

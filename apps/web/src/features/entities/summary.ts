@@ -5,8 +5,12 @@ import { labelFromPath } from "../../components/ui";
 /** A reference list item's name (a career, a talent), for readable summaries. */
 export type ReferenceName = (listId: string, itemId: string) => string | undefined;
 
-/** "Career Company Agent · Stress 2" from the type's sheet summary paths; reference ids by their item's name. */
-export function summaryLine(def: EntityTypeDef | undefined, entity: Pick<Entity, "fields">, skip: string[] = [], referenceName?: ReferenceName): string {
+/**
+ * "Career Company Agent · Stress 2" from the type's sheet summary paths;
+ * reference ids by their item's name. `computed: false` leaves computed
+ * values out (a player's view, whose fields lack what they are worked out from).
+ */
+export function summaryLine(def: EntityTypeDef | undefined, entity: Pick<Entity, "fields">, skip: string[] = [], referenceName?: ReferenceName, opts: { computed?: boolean } = {}): string {
   if (!def?.sheet.summary?.length) return "";
   let computed: Record<string, unknown> = {};
   try {
@@ -17,6 +21,7 @@ export function summaryLine(def: EntityTypeDef | undefined, entity: Pick<Entity,
   const parts: string[] = [];
   for (const path of def.sheet.summary) {
     if (skip.includes(path)) continue;
+    if (opts.computed === false && path in computed && fieldSchemaAt(def, path) === undefined) continue;
     const v = path in computed ? computed[path] : getPath(entity.fields, path);
     if (v === undefined || v === null || v === "" || (Array.isArray(v) && v.length === 0)) continue;
     const label = labelOf(def, path);

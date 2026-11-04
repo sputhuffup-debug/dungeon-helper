@@ -1,5 +1,5 @@
 /** One-click payout on an entity page (e.g. a job's payment into crew funds), posted once per entity, with an undo. */
-import type { Entity } from "@campaign-forge/core";
+import { getPath, type Entity } from "@campaign-forge/core";
 import { Badge, Button, PageRef, pushToast } from "../../components/ui";
 import { useCampaign, useList, useMeta } from "../../state/hooks";
 import { ledgerDefOf, money, payoutAmount, payoutFor, postPayout, postedPayout, undoPayout } from "../../state/shipActions";
@@ -33,11 +33,14 @@ export function PayoutButton({ entity }: { entity: Entity }) {
       </span>
     );
   }
+  // the payout is the next step only once the job is done (its setOnPost value): before that it is a quiet button
+  const due = !payout.setOnPost || getPath(entity.fields, payout.setOnPost.path) === payout.setOnPost.value;
   return (
     <span className="app-row">
       <Button
-        variant="primary"
+        variant={due ? "primary" : "default"}
         disabled={!(amount > 0)}
+        title={due ? undefined : "Collect it once the job is done; this also marks it done."}
         onClick={() => {
           const res = postPayout(ctx, entity, payout);
           pushToast(res.duplicate ? "Already posted." : `${money(ctx, res.entry.amount, { sign: true })} posted to ${def.defaultAccount}. Undo is next to the payment.`, { tone: res.duplicate ? "warning" : "success" });

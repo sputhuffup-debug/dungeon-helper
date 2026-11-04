@@ -223,10 +223,12 @@ export function SettingsPage() {
             <p className="app-licence">{manifest.licenseNotice}</p>
           </details>
           {warnings.length > 0 && (
-            <details>
-              <summary>
-                {warnings.length} conformance warning{warnings.length === 1 ? "" : "s"}
-              </summary>
+            // for the module's author: nothing here changes how the game plays
+            <details data-testid="module-developer-details">
+              <summary>For module authors</summary>
+              <p className="cf-muted">
+                The module's self-check left {warnings.length} note{warnings.length === 1 ? "" : "s"} for whoever maintains it. They do not affect your campaign.
+              </p>
               <ul className="app-issues">
                 {warnings.map((w, i) => (
                   <li key={i}>

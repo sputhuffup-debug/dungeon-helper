@@ -8,7 +8,7 @@
  * Crew, Dice, Log). The header clock is the table's one round counter. `?view=players` renders
  * the read-only player screen instead. Everything is local.
  */
-import { appendTrackerLog, creatureTurnFor, type Id } from "@campaign-forge/core";
+import { appendTrackerLog, creatureTurnFor, d20CoveredTrackers, type Id } from "@campaign-forge/core";
 import type { Effect, Prompt } from "@campaign-forge/module-sdk";
 import { Link, useParams, useSearch } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -95,7 +95,9 @@ function GmTable({ sessionId }: { sessionId: Id }) {
   const currentAct = useMemo<SessionAct | undefined>(() => (sceneAct ? { adventure: sceneAct.adventure, number: sceneAct.number, ...(sceneAct.title ? { title: sceneAct.title } : {}) } : undefined), [sceneAct]);
   const trackers = useModeTrackers();
   const clock = trackers.find((t) => t.kind === "clock");
-  const panelTrackers = trackers.filter((t) => t !== clock);
+  // a d20 module's Combat panel already runs initiative and each combatant's hit points: show those once
+  const covered = useMemo(() => d20CoveredTrackers(ctx.module, trackers), [ctx.module, trackers]);
+  const panelTrackers = trackers.filter((t) => t !== clock && !covered.has(t.id));
 
   const ts = useSessionTrackerState(sessionId);
   useLogNotesAutoTick(sessionId, session?.logDoc, session?.status === "running");

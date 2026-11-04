@@ -18,6 +18,7 @@ import { addBuilderScene, dropCastMember, ensureCastAgendas, isMandatory, newCas
 import { deleteScene, ensureAdventureDocs, ensureDoc, moveScene, updateAdventure, updateScene } from "../../../state/prepActions";
 import { useCampaign, useList, useMapVersion, useMeta } from "../../../state/hooks";
 import { changedPaths } from "../../entities/SheetTab";
+import { ADVENTURE_STATUS_LABELS, SCENE_STATUS_LABELS } from "../../../lib/format";
 import { ADVENTURE_STATUSES } from "../AdventuresPage";
 import { CommitInput, CommitTextarea } from "../fields";
 import { FieldList, useReferenceLists } from "./NarrativeFields";
@@ -84,7 +85,7 @@ export function AdventurePanel({ adventure, fields }: { adventure: Adventure; fi
             <select className="cf-select" aria-label="Adventure status" value={adventure.status} onChange={(e) => set({ status: e.target.value as AdventureStatus })}>
               {ADVENTURE_STATUSES.map((s) => (
                 <option key={s} value={s}>
-                  {s}
+                  {ADVENTURE_STATUS_LABELS[s]}
                 </option>
               ))}
             </select>
@@ -374,7 +375,7 @@ function SceneCard({ scene, act, index, count, sceneFields }: { scene: Scene; ac
             <select className="cf-select" aria-label={`${scene.title} status`} value={scene.status} onChange={(e) => set({ status: e.target.value as SceneStatus })}>
               {SCENE_STATUSES.map((s) => (
                 <option key={s} value={s}>
-                  {s}
+                  {SCENE_STATUS_LABELS[s]}
                 </option>
               ))}
             </select>

@@ -95,8 +95,11 @@ test("life path from the PCs tab, readable preview, weapons under Weapons, the g
   await rival.selectOption({ label: "Mo Reyes" });
   await expect(buddy).toHaveValue(/^[0-9A-Z]{26}$/);
   await expect(rival.locator("option:checked")).toHaveText("Mo Reyes");
+  // pairs: picking Dana as Rook's buddy makes Rook hers, and Mo's rival is Rook
+  await expect(page.locator(".cf-toast").filter({ hasText: "Dana Okoye's buddy is now Rook Calder too." })).toBeVisible();
+  await expect(page.locator(".cf-toast").filter({ hasText: "Mo Reyes's rival is now Rook Calder too." })).toBeVisible();
 
-  // 6. the wrap-up's XP questions see the buddy and the rival on Rook's sheet, and not on the others'
+  // 6. the wrap-up's XP questions see each pair from both ends: Rook and Dana are buddies, Rook and Mo rivals
   await nav(page, "Home").click();
   await page.getByTestId("start-session").click();
   await expect(page.getByTestId("table-mode")).toBeVisible();
@@ -109,7 +112,10 @@ test("life path from the PCs tab, readable preview, weapons under Weapons, the g
   const RIVAL = "Did you confront or stand up to your rival?";
   await expect(q("Rook Calder", BUDDY)).toBeEnabled();
   await expect(q("Rook Calder", RIVAL)).toBeEnabled();
-  await expect(q("Dana Okoye", BUDDY)).toBeDisabled();
+  await expect(q("Dana Okoye", BUDDY)).toBeEnabled();
+  await expect(q("Mo Reyes", RIVAL)).toBeEnabled();
+  await expect(q("Mo Reyes", BUDDY)).toBeDisabled();
+  await expect(q("Dana Okoye", RIVAL)).toBeDisabled();
   await expect(grid.locator('[data-question="alien.award.buddy"]')).toContainText("No buddy set");
   await q("Rook Calder", BUDDY).check();
   await expect(q("Rook Calder", BUDDY)).toBeChecked();

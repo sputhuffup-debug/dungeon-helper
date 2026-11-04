@@ -14,7 +14,7 @@ import { lazyView } from "../../components/lazyView";
 import { TagInput } from "../../components/TagInput";
 import { Badge, Button, EmptyState, IconButton, PageRef, pushToast } from "../../components/ui";
 import { downloadFile, slug } from "../../lib/download";
-import { adventureTitle, errorMessage } from "../../lib/format";
+import { ADVENTURE_STATUS_LABELS, adventureTitle, errorMessage } from "../../lib/format";
 import { addAct, addScene, deleteAct, deleteAdventure, deleteScene, moveAct, moveScene, updateAdventure } from "../../state/prepActions";
 import { useCampaign, useList, useRecord } from "../../state/hooks";
 import { ActEditor } from "./ActEditor";
@@ -157,7 +157,7 @@ function Builder({ adventure, node }: { adventure: Adventure; node: string | und
             <select className="cf-select" aria-label="Adventure status" value={adventure.status} onChange={(e) => updateAdventure(ctx, adventure.id, { status: e.target.value as AdventureStatus })}>
               {ADVENTURE_STATUSES.map((s) => (
                 <option key={s} value={s}>
-                  {s}
+                  {ADVENTURE_STATUS_LABELS[s]}
                 </option>
               ))}
             </select>

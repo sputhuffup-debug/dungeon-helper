@@ -61,6 +61,19 @@ test("global search finds a rule card and opens it", async ({ page }) => {
   await expect(page.getByRole("dialog", { name: "Panic roll" })).toBeVisible();
 });
 
+test("the Atlas keeps its filters when Back returns from an entity", async ({ page }) => {
+  await nav(page, "Atlas").click();
+  await page.getByRole("tab", { name: /^NPCs/ }).click();
+  await page.getByRole("searchbox", { name: "Filter by name" }).fill("Mara");
+  await expect(page).toHaveURL(/[?&]q=Mara/);
+  await page.getByRole("tabpanel").getByRole("link", { name: "Mara Quill" }).click();
+  await expect(page.getByTestId("entity-page")).toBeVisible();
+  await page.goBack();
+  await expect(page.getByRole("searchbox", { name: "Filter by name" })).toHaveValue("Mara");
+  await expect(page.getByRole("tab", { name: /^NPCs/ })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("tabpanel").getByRole("link")).toHaveText(["Mara Quill"]);
+});
+
 test("the GM screen opens from Home and reads on screen", async ({ page }) => {
   await page.getByTestId("home-gm-screen").click();
   await expect(page).toHaveURL(/\/gm-screen\?view=screen$/);

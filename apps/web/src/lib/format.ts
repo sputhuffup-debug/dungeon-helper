@@ -27,6 +27,11 @@ export function relativeTime(iso: string | undefined): string {
   return formatDate(iso);
 }
 
+/** What the status and kind menus say (the stored values stay as they are). */
+export const ADVENTURE_STATUS_LABELS: Record<"planned" | "active" | "done", string> = { planned: "Planned", active: "Active", done: "Done" };
+export const SCENE_STATUS_LABELS: Record<"planned" | "run" | "skipped", string> = { planned: "Planned", run: "Run", skipped: "Skipped" };
+export const HANDOUT_KIND_LABELS: Record<"text" | "image" | "card" | "agenda", string> = { agenda: "Agenda card", text: "Text", card: "Card", image: "Image" };
+
 export function humanize(key: string): string {
   const spaced = key
     .replace(/[_-]+/g, " ")

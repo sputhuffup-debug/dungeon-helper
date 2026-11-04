@@ -28,6 +28,16 @@ async function keepBundle(): Promise<Buffer> {
   return Buffer.from(await exportBundle(store, new RichTextRegistry(), undefined, { id: exampleModule.manifest.id, version: exampleModule.manifest.version }));
 }
 
+test("a bundle imported twice: the second campaign gets a name of its own", async ({ page }) => {
+  const bundle = await keepBundle();
+  await page.goto("/?dev");
+  await page.getByLabel("Import bundle file").setInputFiles({ name: "keep.zip", mimeType: "application/zip", buffer: bundle });
+  await expect(page.getByTestId("campaign-name")).toHaveText("Keep Watch", { timeout: 30_000 });
+  await page.goto("/?dev");
+  await page.getByLabel("Import bundle file").setInputFiles({ name: "keep.zip", mimeType: "application/zip", buffer: bundle });
+  await expect(page.getByTestId("campaign-name")).toHaveText(/^Keep Watch \(imported \d{1,2} [A-Z][a-z]{2,3} \d{4}\)$/, { timeout: 30_000 });
+});
+
 test("a generated site map: views, zone key download, live reveal in table mode, fog on the player screen", async ({ page, context }) => {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));

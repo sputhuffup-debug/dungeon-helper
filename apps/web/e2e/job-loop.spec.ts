@@ -47,6 +47,8 @@ test("job loop: take a job, run it, play it with its site map and NPCs, close it
   await page.goto(jobUrl);
   const run = page.getByTestId("run-from-entity");
   await expect(run).toHaveText("Run this job");
+  // a job just taken: running it is the next step, collecting its pay is not (yet)
+  await expect(page.getByTestId("payout")).not.toHaveClass(/cf-btn--primary/);
   await run.click();
   await expect(page).toHaveURL(/\/adventures\/[0-9A-Z]{26}/);
   const adventureUrl = page.url().split("?")[0]!;

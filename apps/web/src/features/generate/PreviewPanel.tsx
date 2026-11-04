@@ -5,7 +5,7 @@
  * name and quantity (gear, weapons), entity references by name. The raw
  * results stay behind each step's "Raw result" toggle.
  */
-import { sheetValueText, type SheetValueContext } from "@campaign-forge/core";
+import { readableTags, sheetValueText, type SheetValueContext } from "@campaign-forge/core";
 import { fieldSchemaAt, type GeneratedGraph } from "@campaign-forge/module-sdk";
 import { EntityIcon } from "../../components/EntityIcon";
 import { Badge, Card } from "../../components/ui";
@@ -59,7 +59,7 @@ export function PreviewPanel({ graph, names, onRename }: { graph: GeneratedGraph
                 <Badge tone="accent">{def?.name ?? e.type}</Badge>
                 {subName && <Badge>{subName}</Badge>}
                 {e.within && <span className="cf-muted">within {nameOf(e.within)}</span>}
-                {(e.tags ?? []).map((t) => (
+                {readableTags(e.tags ?? [], module.module.machineTags).map((t) => (
                   <span key={t} className="cf-chip">
                     {t}
                   </span>

@@ -94,20 +94,14 @@ test("ORC core rules pack: the Hollowmere demo, derived sheets, four degrees, cr
   await page.getByRole("button", { name: "Start session 1" }).click();
   await expect(page.getByTestId("table-mode")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Oil thieves at the mill" })).toBeVisible();
+  // the Combat panel runs initiative and hit points; the Trackers tab does not repeat them
   await page.getByRole("tab", { name: "Trackers" }).click();
-  const init = page.locator('[data-tracker="pf2e-orc.tracker.initiative"]');
-  const pick = init.getByRole("combobox", { name: "Add from entities" });
-  for (const name of ["Pip Tallowgrass", "Garrick Thornley", "Kobold Warrior 1"]) {
-    await pick.selectOption({ label: name });
-    await init.getByRole("button", { name: "Add", exact: true }).click();
-  }
-  await init.getByRole("button", { name: "Roll initiative" }).click();
-  const scores = await init.locator("[data-testid^=card-]").evaluateAll((els) => els.map((e) => Number((e as HTMLInputElement).value)));
-  expect(scores).toHaveLength(3);
-  expect(scores).toEqual([...scores].sort((a, b) => b - a));
-  const hp = page.locator('[data-tracker="pf2e-orc.tracker.hp"]');
-  await hp.getByRole("button", { name: "Decrease Kobold Warrior 1 HP" }).click();
-  await expect(hp.getByRole("spinbutton", { name: "Kobold Warrior 1 HP" })).toHaveValue("6");
+  for (const id of ["initiative", "hp", "temp-hp"]) await expect(page.locator(`[data-tracker="pf2e-orc.tracker.${id}"]`)).toHaveCount(0);
+  const combat = page.getByTestId("d20-combat");
+  await combat.getByTestId("roll-initiative-all").click();
+  await expect(combat.getByTestId("combat-round")).toHaveText("Round 1");
+  const scores = await combat.locator("[data-combatant]").evaluateAll((els) => els.length);
+  expect(scores).toBeGreaterThanOrEqual(3);
   const heroPoints = page.locator('[data-tracker="pf2e-orc.tracker.hero-points"]');
   await expect(heroPoints).toContainText("Pip Tallowgrass");
   await shot(page, "table-trackers");

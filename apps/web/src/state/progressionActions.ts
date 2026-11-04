@@ -9,6 +9,7 @@ import {
   applySpend,
   lastSpendUndo,
   postAward,
+  reciprocalReferences,
   spendContext,
   spendPoints,
   undoLastSpend,
@@ -78,6 +79,8 @@ export function awardContextFor(ctx: Ctx, entity: Entity, sessionId?: Id): Award
     character: { id: entity.id, name: entity.name, type: entity.type, fields: entity.fields },
     computed: computedOf(ctx.module, entity),
     relationships: relationshipCounts(ctx, entity.id),
+    // a buddy picked one way before the pairs: the other PC still counts as this one's
+    referencedBy: reciprocalReferences(ctx.module.entityType(entity.type), entity.id, ctx.store.list("entities")),
     trackerState: sessionId ? (sessionTrackerState(ctx.store, sessionId)?.state ?? {}) : {},
   };
 }
