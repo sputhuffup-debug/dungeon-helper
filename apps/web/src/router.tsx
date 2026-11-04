@@ -135,9 +135,23 @@ const rulesRoute = createRoute({
   component: lazyRouteComponent(() => import("./features/rules/RulesPage"), "RulesPage"),
 });
 
+/** The Reference page's tab, and the entry it opens: a list's item, a roll table, or a preset to find. */
+export interface ReferenceSearch {
+  tab?: string;
+  list?: string;
+  item?: string;
+  table?: string;
+  preset?: string;
+}
+
 const referenceRoute = createRoute({
   getParentRoute: () => campaignRoute,
   path: "reference",
+  validateSearch: (s: Record<string, unknown>): ReferenceSearch => {
+    const out: ReferenceSearch = {};
+    for (const k of ["tab", "list", "item", "table", "preset"] as const) if (typeof s[k] === "string" && s[k] !== "") out[k] = s[k] as string;
+    return out;
+  },
   component: lazyRouteComponent(() => import("./features/reference/ReferencePage"), "ReferencePage"),
 });
 

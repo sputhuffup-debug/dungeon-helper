@@ -105,11 +105,29 @@ describe("global search", () => {
     );
     fireEvent.change(screen.getByRole("searchbox", { name: "Search campaign" }), { target: { value: "panic" } });
     const results = screen.getByRole("listbox", { name: "Search results" });
-    expect(within(results).getByText("Rules")).toBeTruthy();
-    const hit = within(results).getByRole("option", { name: /Panic roll/ });
+    const rules = within(results).getByRole("group", { name: "Rules" });
+    const hit = within(rules).getByRole("option", { name: /Panic roll/ });
     expect(hit.textContent).toContain("p. 72");
+    // the Panic roll table is a Reference entry, in its own group
+    const table = within(within(results).getByRole("group", { name: "Reference" })).getByRole("option", { name: /Panic roll/ });
+    expect(table.textContent).toContain("Table");
     fireEvent.click(hit);
     expect(nav.navigate).toHaveBeenCalledWith({ to: "/c/$campaignId/rules", params: { campaignId }, search: { rule: "alien.rule.panic-roll" } });
+  });
+
+  it("opens a reference entry on the Reference page: a list item with its list", async () => {
+    const ctx = await open();
+    render(
+      <CampaignContext.Provider value={ctx}>
+        <GlobalSearch />
+      </CampaignContext.Provider>,
+    );
+    fireEvent.change(screen.getByRole("searchbox", { name: "Search campaign" }), { target: { value: "full throttle" } });
+    const reference = within(screen.getByRole("listbox", { name: "Search results" })).getByRole("group", { name: "Reference" });
+    const hit = within(reference).getByRole("option", { name: /Full Throttle/ });
+    expect(hit.textContent).toContain("Talents");
+    fireEvent.click(hit);
+    expect(nav.navigate).toHaveBeenCalledWith({ to: "/c/$campaignId/reference", params: { campaignId }, search: { tab: "lists", list: "alien.talents", item: "full-throttle" } });
   });
 });
 

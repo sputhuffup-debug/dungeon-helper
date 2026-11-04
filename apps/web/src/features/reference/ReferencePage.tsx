@@ -1,7 +1,8 @@
-/** Reference browser: reference lists, presets (add to campaign) and roll tables. */
+/** Reference browser: reference lists, presets (add to campaign) and roll tables. The URL names the tab and the entry open (`?list=&item=`, `?table=`, `?preset=`), so the header search can link to one. */
 import { supplementOf, type EntityPreset, type ReferenceItem, type ReferenceList } from "@campaign-forge/module-sdk";
-import { useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useNavigate, useSearch } from "@tanstack/react-router";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { ReferenceSearch } from "../../router";
 import { TableDialog } from "../../components/RulePanel";
 import { Badge, Button, Dialog, Markdown, PageRef, SourceBadge, Tabs, pushToast } from "../../components/ui";
 import { humanize } from "../../lib/format";
@@ -10,8 +11,17 @@ import { useCampaign } from "../../state/hooks";
 import { formatValue } from "../entities/NewEntityPage";
 import { ModuleAttribution } from "../modules/ModuleLicense";
 
+/** The Reference page's URL state, and a way to change it (replacing the history entry). */
+function useReferenceSearch(): [ReferenceSearch, (next: ReferenceSearch) => void] {
+  const search = useSearch({ from: "/c/$campaignId/reference" });
+  const navigate = useNavigate({ from: "/c/$campaignId/reference" });
+  return [search, (next) => void navigate({ search: next, replace: true })];
+}
+
 export function ReferencePage() {
   const ctx = useCampaign();
+  const [search, setSearch] = useReferenceSearch();
+  const tab = search.tab ?? (search.table ? "tables" : search.preset ? "presets" : "lists");
   return (
     <div className="app-page">
       <h1 className="app-title">Reference</h1>
@@ -21,9 +31,11 @@ export function ReferencePage() {
         </p>
       )}
       <Tabs
+        value={tab}
+        onChange={(id) => setSearch({ tab: id })}
         tabs={[
           { id: "lists", label: "Lists", content: <ListsTab /> },
-          { id: "presets", label: `Presets (${ctx.module.module.presets.length})`, content: <PresetsTab /> },
+          { id: "presets", label: `Presets (${ctx.module.module.presets.length})`, content: <PresetsTab key={search.preset ?? ""} target={search.preset} /> },
           { id: "tables", label: `Tables (${ctx.module.module.tables.length})`, content: <TablesTab /> },
         ]}
       />
@@ -51,18 +63,20 @@ function itemText(item: ReferenceItem, columns: string[]): string {
 
 function ListsTab() {
   const ctx = useCampaign();
+  const [search, setSearch] = useReferenceSearch();
   const lists = ctx.module.module.referenceLists;
-  const [listId, setListId] = useState(lists[0]?.id ?? "");
+  const list = lists.find((l) => l.id === search.list) ?? lists[0];
+  const listId = list?.id ?? "";
   const [q, setQ] = useState("");
-  const [open, setOpen] = useState<ReferenceItem | undefined>();
-  const list = lists.find((l) => l.id === listId);
+  const open = search.item ? list?.items.find((i) => i.id === search.item) : undefined;
+  const setOpen = (item: ReferenceItem | undefined) => setSearch({ tab: "lists", list: listId, ...(item ? { item: item.id } : {}) });
   const columns = useMemo(() => listColumns(list), [list]);
   const needle = q.trim().toLowerCase();
   const items = (list?.items ?? []).filter((i) => !needle || itemText(i, columns).includes(needle));
   return (
     <div className="app-stack">
       <div className="app-filters">
-        <select className="cf-select" aria-label="Reference list" value={listId} onChange={(e) => setListId(e.target.value)}>
+        <select className="cf-select" aria-label="Reference list" value={listId} onChange={(e) => setSearch({ tab: "lists", list: e.target.value })}>
           {lists.map((l) => (
             <option key={l.id} value={l.id}>
               {l.name} ({l.items.length})
@@ -155,10 +169,14 @@ export function ReferenceItemView({ item, list }: { item: ReferenceItem; list: R
   );
 }
 
-function PresetsTab() {
+/** `target` (a preset id from the URL) is found for the GM: the filter starts at its name and its row is marked and scrolled to. */
+function PresetsTab({ target }: { target?: string }) {
   const ctx = useCampaign();
   const navigate = useNavigate();
-  const [q, setQ] = useState("");
+  const targetPreset = target ? ctx.module.module.presets.find((p) => p.id === target) : undefined;
+  const [q, setQ] = useState(targetPreset?.name ?? "");
+  const targetRow = useRef<HTMLTableRowElement>(null);
+  useEffect(() => targetRow.current?.scrollIntoView?.({ block: "center" }), []);
   const [type, setType] = useState("");
   const types = ctx.module.module.entityTypes.filter((t) => ctx.module.presetsFor(t.id).length > 0);
   const presets = ctx.module.module.presets.filter(
@@ -197,7 +215,7 @@ function PresetsTab() {
           </thead>
           <tbody>
             {presets.map((p) => (
-              <tr key={p.id}>
+              <tr key={p.id} ref={p.id === targetPreset?.id ? targetRow : undefined} className={p.id === targetPreset?.id ? "is-target" : undefined} data-preset={p.id}>
                 <td>
                   <strong>{p.name}</strong> <SourceBadge source={supplementOf(ctx.module.manifest, p.id)?.name} /> {p.unverified && <Badge tone="warning">unverified</Badge>}
                 </td>
@@ -222,8 +240,10 @@ function PresetsTab() {
 
 function TablesTab() {
   const ctx = useCampaign();
+  const [search, setSearch] = useReferenceSearch();
   const [q, setQ] = useState("");
-  const [open, setOpen] = useState<string | undefined>();
+  const open = search.table;
+  const setOpen = (id: string | undefined) => setSearch({ tab: "tables", ...(id ? { table: id } : {}) });
   const groups = useMemo(() => {
     const by = new Map<string, typeof ctx.module.module.tables>();
     for (const t of ctx.module.module.tables) {

@@ -1,6 +1,6 @@
-/** Header search over the campaign and its module's rule cards: grouped by kind, keyboard navigable, Enter opens. */
+/** Header search over the campaign, its module's rule cards and its Reference page (list items, presets, roll tables): grouped by kind, keyboard navigable, Enter opens. */
 import type { Id, SearchHit, SearchKind } from "@campaign-forge/core";
-import { searchRuleCards, type RuleCard } from "@campaign-forge/module-sdk";
+import { referenceIndex, searchReference, searchRuleCards, type ReferenceEntry, type RuleCard } from "@campaign-forge/module-sdk";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { PageRef } from "../../components/ui";
@@ -18,9 +18,17 @@ const KIND_LABEL: Record<SearchKind, string> = {
 };
 const ORDER: SearchKind[] = ["entity", "note", "adventure", "scene", "handout", "session"];
 const RULE_LIMIT = 6;
+const REFERENCE_LIMIT = 8;
 
-/** A campaign record, or one of the module's rule cards (opened on the Rules page). */
-type Hit = SearchHit | { kind: "rule"; id: string; name: string; card: RuleCard };
+/** A campaign record, one of the module's rule cards (opened on the Rules page), or a Reference page entry (opened there). */
+type Hit = SearchHit | { kind: "rule"; id: string; name: string; card: RuleCard } | { kind: "reference"; id: string; name: string; entry: ReferenceEntry };
+
+/** What a Reference hit is, beside its name: its list, "Preset" with its type, or "Table". */
+function referenceDetail(entry: ReferenceEntry, typeName: (id: string) => string | undefined): string {
+  if (entry.kind === "item") return entry.list.name;
+  if (entry.kind === "preset") return `Preset · ${typeName(entry.preset.entityType) ?? entry.preset.entityType}`;
+  return "Table";
+}
 
 export function GlobalSearch() {
   const ctx = useCampaign();
@@ -33,17 +41,21 @@ export function GlobalSearch() {
   const [index, setIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const refIndex = useMemo(() => referenceIndex(ctx.module.module), [ctx.module]);
   const groups = useMemo(() => {
     const hits = ctx.search.search(query, { limit: 30 });
     const by = new Map<SearchKind, SearchHit[]>();
     for (const h of hits) by.set(h.kind, [...(by.get(h.kind) ?? []), h]);
-    const out: Array<{ kind: SearchKind | "rule"; label: string; hits: Hit[] }> = ORDER.filter((k) => by.has(k)).map((k) => ({ kind: k, label: KIND_LABEL[k], hits: by.get(k) ?? [] }));
+    const out: Array<{ kind: SearchKind | "rule" | "reference"; label: string; hits: Hit[] }> = ORDER.filter((k) => by.has(k)).map((k) => ({ kind: k, label: KIND_LABEL[k], hits: by.get(k) ?? [] }));
     // the module's rule cards for this play mode, with their page references
     const rules = searchRuleCards(ctx.module.module.rules, query, { mode: meta.mode, limit: RULE_LIMIT });
     if (rules.length) out.push({ kind: "rule", label: "Rules", hits: rules.map((r) => ({ kind: "rule" as const, id: r.card.id, name: r.card.title, card: r.card })) });
+    // what the Reference page lists: list items, presets and roll tables
+    const refs = searchReference(refIndex, query, { mode: meta.mode, limit: REFERENCE_LIMIT });
+    if (refs.length) out.push({ kind: "reference", label: "Reference", hits: refs.map((r) => ({ kind: "reference" as const, id: `${r.entry.kind}:${r.entry.kind === "item" ? `${r.entry.list.id}:` : ""}${r.entry.id}`, name: r.entry.name, entry: r.entry })) });
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ctx.search, ctx.module, meta.mode, query, version]);
+  }, [ctx.search, ctx.module, refIndex, meta.mode, query, version]);
   const flat = useMemo(() => groups.flatMap((g) => g.hits), [groups]);
 
   useEffect(() => {
@@ -65,7 +77,11 @@ export function GlobalSearch() {
     setQuery("");
     inputRef.current?.blur();
     if (hit.kind === "rule") void navigate({ to: "/c/$campaignId/rules", params: { campaignId: ctx.campaignId }, search: { rule: hit.id } });
-    else openRecord(ctx, links, hit.kind, hit.id);
+    else if (hit.kind === "reference") {
+      const e = hit.entry;
+      const search = e.kind === "item" ? { tab: "lists", list: e.list.id, item: e.id } : e.kind === "table" ? { tab: "tables", table: e.id } : { tab: "presets", preset: e.id };
+      void navigate({ to: "/c/$campaignId/reference", params: { campaignId: ctx.campaignId }, search });
+    } else openRecord(ctx, links, hit.kind, hit.id);
   };
 
   const onKey = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -113,13 +129,17 @@ export function GlobalSearch() {
         <div className="app-search__results" id="app-search-results" role="listbox" aria-label="Search results">
           {flat.length === 0 && <div className="app-search__empty cf-muted">No matches</div>}
           {groups.map((g) => (
-            <div key={g.kind} className="app-search__group">
-              <div className="app-search__group-title">{g.label}</div>
+            <div key={g.kind} className="app-search__group" role="group" aria-labelledby={`app-search-group-${g.kind}`}>
+              <div className="app-search__group-title" id={`app-search-group-${g.kind}`}>
+                {g.label}
+              </div>
               {g.hits.map((h) => {
                 n += 1;
                 const i = n;
                 const def = h.kind === "entity" && h.type ? ctx.module.entityType(h.type) : undefined;
                 const rule = h.kind === "rule" ? h.card : undefined;
+                const ref = h.kind === "reference" ? h.entry : undefined;
+                const refPage = ref ? (ref.kind === "item" ? { page: ref.item.page ?? ref.list.page, cite: ref.item.cite ?? ref.list.cite, original: ref.list.original } : ref.kind === "preset" ? { page: ref.preset.page, cite: ref.preset.cite, original: ref.preset.original } : { page: ref.table.page, cite: ref.table.cite, original: ref.table.original }) : undefined;
                 return (
                   <button
                     key={`${h.kind}:${h.id}`}
@@ -131,10 +151,12 @@ export function GlobalSearch() {
                     onMouseEnter={() => setIndex(i)}
                     onClick={() => openHit(h)}
                   >
-                    {h.kind === "entity" ? <EntityIcon icon={def?.icon} kind={def?.kind} size={14} /> : <EntityIcon icon={rule ? "book" : "note"} size={14} />}
+                    {h.kind === "entity" ? <EntityIcon icon={def?.icon} kind={def?.kind} size={14} /> : <EntityIcon icon={rule || ref ? "book" : "note"} size={14} />}
                     <span className="app-search__name">{h.name}</span>
                     {def && <span className="cf-muted">{def.name}</span>}
+                    {ref && <span className="cf-muted">{referenceDetail(ref, (id) => ctx.module.entityType(id)?.name)}</span>}
                     {rule && <PageRef page={rule.page} cite={rule.cite} original={rule.original} />}
+                    {refPage && <PageRef page={refPage.page} cite={refPage.cite} original={refPage.original} />}
                   </button>
                 );
               })}

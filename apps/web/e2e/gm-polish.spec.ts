@@ -54,7 +54,7 @@ test("global search finds a rule card and opens it", async ({ page }) => {
   await search.fill("panic");
   const results = page.getByRole("listbox", { name: "Search results" });
   await expect(results.getByText("Rules", { exact: true })).toBeVisible();
-  const hit = results.getByRole("option", { name: /Panic roll/ });
+  const hit = results.getByRole("group", { name: "Rules" }).getByRole("option", { name: /Panic roll/ });
   await expect(hit).toContainText("p. 72");
   await hit.click();
   await expect(page).toHaveURL(/\/rules\?rule=alien\.rule\.panic-roll/);
