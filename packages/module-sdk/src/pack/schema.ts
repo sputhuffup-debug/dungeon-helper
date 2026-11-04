@@ -95,6 +95,7 @@ import type {
   GuideStepDef,
   SetupLayout,
   SetupLink,
+  SetupReferenceTarget,
   SetupPage,
   SetupStepDef,
   SessionChecklistEvent,
@@ -570,10 +571,11 @@ const definitions: Record<string, JsonSchema> = {
       procedure: ref("id"),
       newEntity: object<NonNullable<SetupLink["newEntity"]>>()({ type: ref("id"), pc: bool, preset: ref("id") }, ["type"]),
       entity: { ...logic, description: "JSONLogic over one snapshot entity: the first match (by name) opens; the link hides while none matches." },
+      reference: object<SetupReferenceTarget>()({ list: ref("id"), item: ref("id"), table: ref("id"), preset: ref("id") }, [], { description: "A Reference page entry: exactly one of list (with an optional item of it), table or preset." }),
       primary: bool,
     },
     ["label"],
-    { description: "Where a setup step is done: exactly one of page, procedure, newEntity or entity." },
+    { description: "Where a setup step is done: exactly one of page, procedure, newEntity, entity or reference." },
   ),
   setupStep: object<SetupStepDef>()(
     {

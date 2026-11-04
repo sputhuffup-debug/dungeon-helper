@@ -69,6 +69,10 @@
   gap: var(--cf-space-2);
   margin-block: var(--cf-space-2) var(--cf-space-3);
 }
+/* Look it up sits right under Take me there */
+.guide-step__links + .guide-step__links--lookup {
+  margin-top: calc(-1 * var(--cf-space-2));
+}
 .guide-step__figure {
   margin: 0;
 }

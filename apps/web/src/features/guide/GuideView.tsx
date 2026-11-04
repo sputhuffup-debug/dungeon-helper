@@ -68,7 +68,10 @@ export function GuideView({ guide, moduleId, linkTarget, notice, imageUrl = guid
             .filter((n) => n.chapter === ch)
             .map(({ step, number, anchor }) => {
               const src = step.image ? imageUrl(moduleId, step.image.key) : undefined;
-              const links = linkTarget ? (step.links ?? []).map((l) => ({ link: l, target: linkTarget(l) })).filter((x): x is { link: GuideLink; target: SetupLinkTarget } => !!x.target) : [];
+              const resolved = linkTarget ? (step.links ?? []).map((l) => ({ link: l, target: linkTarget(l) })).filter((x): x is { link: GuideLink; target: SetupLinkTarget } => !!x.target) : [];
+              // where the step is done, and (apart) where its rules and options are looked up on the Reference page
+              const links = resolved.filter((x) => !x.link.reference);
+              const lookups = resolved.filter((x) => !!x.link.reference);
               return (
                 <article key={step.id} id={anchor} className="guide-step" data-step={step.id} aria-labelledby={`guide-step-${anchor}`}>
                   <h3 id={`guide-step-${anchor}`} className="guide-step__title">
@@ -83,6 +86,16 @@ export function GuideView({ guide, moduleId, linkTarget, notice, imageUrl = guid
                         <span className="cf-muted">Take me there:</span>
                         {links.map(({ link, target }, i) => (
                           <Link key={link.label} to={target.to} params={target.params as never} search={target.search as never} className={`cf-btn cf-btn--sm${i === 0 ? " cf-btn--primary" : ""}`} data-testid="guide-link">
+                            {link.label}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                    {lookups.length > 0 && (
+                      <div className="guide-step__links guide-step__links--lookup" role="group" aria-label={`Look it up: ${step.title}`}>
+                        <span className="cf-muted">Look it up:</span>
+                        {lookups.map(({ link, target }) => (
+                          <Link key={link.label} to={target.to} params={target.params as never} search={target.search as never} className="cf-btn cf-btn--sm cf-btn--ghost" data-testid="guide-lookup">
                             {link.label}
                           </Link>
                         ))}

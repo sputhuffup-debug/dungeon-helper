@@ -91,5 +91,11 @@ export function setupLinkTarget(link: SetupLinkState, campaignId: Id): SetupLink
     return { to: "/c/$campaignId/entities/new", params: { campaignId }, search };
   }
   if (link.entityId) return { to: "/c/$campaignId/entities/$entityId", params: { campaignId, entityId: link.entityId }, search: {} };
+  if (link.reference) {
+    // the Reference page's own address for the entry (see ReferenceSearch in the router)
+    const r = link.reference;
+    const search: Record<string, string> = r.table ? { tab: "tables", table: r.table } : r.preset ? { tab: "presets", preset: r.preset } : { tab: "lists", ...(r.list ? { list: r.list } : {}), ...(r.item ? { item: r.item } : {}) };
+    return { to: "/c/$campaignId/reference", params: { campaignId }, search };
+  }
   return undefined;
 }

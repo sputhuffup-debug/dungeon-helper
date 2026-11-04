@@ -159,7 +159,7 @@ describe("checkModule: setup", () => {
         'error setup:other.step: done: unknown operator "bogus"',
         'error setup:st.dupe: mode "z" is not declared by the module',
         'error setup:st.dupe: duplicate setup step "st.dupe"',
-        'error setup:st.links: link "Two targets" needs exactly one of page, procedure, newEntity or entity',
+        'error setup:st.links: link "Two targets" needs exactly one of page, procedure, newEntity, entity or reference',
         'error setup:st.links: link "Two targets": unknown procedure "st.proc"',
         'error setup:st.links: link "Nowhere": unknown page "attic" (one of home, atlas, settings, ship, arcs, sessions, adventures, generate, primer, rules)',
         'error setup:st.links: link "No such type": unknown entity type "st.boat"',

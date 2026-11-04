@@ -134,12 +134,44 @@ describe("guide conformance", () => {
       'warning guide:c/s: an unpaired "*" in "One *mark.…" (mark labels as *Label*)',
       'error guide:c/t: image "img" is used by another step',
       'error guide:c/t: link "Go": unknown procedure "gd.nope"',
-      'error guide:c/t: link "Both" needs exactly one of page, procedure, newEntity or entity',
+      'error guide:c/t: link "Both" needs exactly one of page, procedure, newEntity, entity or reference',
       'error guide:c/t: link "Both": unknown procedure "gd.nope"',
       'error guide:c/t: link "Cart": unknown entity type "gd.boat"',
     ];
     for (const e of expected) expect(found, e).toContain(e);
     expect(found).toHaveLength(expected.length);
+  });
+
+  it("checks Reference page links: one list (with an item of it), table or preset the module has", () => {
+    const mod = (links: NonNullable<GuideDef["chapters"][number]["steps"][number]["links"]>) =>
+      moduleWith({
+        referenceLists: [{ id: "gd.talents", name: "Talents", items: [{ id: "quick", name: "Quick" }] }],
+        tables: [{ id: "gd.mishap", name: "Mishap", dice: "d6", rows: [] }],
+        presets: [{ id: "gd.mule", entityType: "gd.cart", name: "Mule", fields: {} }],
+        guide: { ...GUIDE, chapters: [{ id: "c", title: "C", steps: [{ id: "s", title: "S", body: ["x"], links }] }] },
+      } as Partial<GameModule>);
+    expect(issues(mod([{ label: "Talents", reference: { list: "gd.talents" } }, { label: "Quick", reference: { list: "gd.talents", item: "quick" } }, { label: "Mishap", reference: { table: "gd.mishap" } }, { label: "Mule", reference: { preset: "gd.mule" } }]))).toEqual([]);
+    expect(
+      issues(
+        mod([
+          { label: "No list", reference: { list: "gd.nope" } },
+          { label: "No item", reference: { list: "gd.talents", item: "slow" } },
+          { label: "Lone item", reference: { item: "quick" } },
+          { label: "Two", reference: { table: "gd.mishap", preset: "gd.mule" } },
+          { label: "No table", reference: { table: "gd.nope" } },
+          { label: "No preset", reference: { preset: "gd.nope" } },
+          { label: "And a page", page: "home", reference: { table: "gd.mishap" } },
+        ]),
+      ),
+    ).toEqual([
+      'error guide:c/s: link "No list": unknown reference list "gd.nope"',
+      'error guide:c/s: link "No item": list "gd.talents" has no item "slow"',
+      'error guide:c/s: link "Lone item": reference needs exactly one of list, table or preset',
+      'error guide:c/s: link "Two": reference needs exactly one of list, table or preset',
+      'error guide:c/s: link "No table": unknown table "gd.nope"',
+      'error guide:c/s: link "No preset": unknown preset "gd.nope"',
+      'error guide:c/s: link "And a page" needs exactly one of page, procedure, newEntity, entity or reference',
+    ]);
   });
 
   it("rejects a guide with no chapters", () => {
