@@ -2,7 +2,7 @@
  * The README screenshots, regenerated from the four deterministic demo
  * campaigns (Skyfire Down, Cold Harbor Relay, Thornwick Crossing, Hollowmere),
  * and the guides' step shots, taken by doing the steps on a blank campaign
- * (`guide-alien`; then `in-app-guide`, once the app is rebuilt with them): `pnpm screenshots` at the repo root builds the app and runs
+ * (`guide-alien` and `guide-dnd5e-srd`; then `in-app-guide`, once the app is rebuilt with them): `pnpm screenshots` at the repo root builds the app and runs
  * every shot; `pnpm --filter @campaign-forge/web screenshots -g <name>`
  * re-runs one (the app must be built). Images go to docs/screenshots/, or to
  * `SCREENSHOTS_DIR`.
@@ -1747,29 +1747,41 @@ test("orc-builder", async ({ page }) => {
 // the step is about.
 // ---------------------------------------------------------------------------
 
-/** A guide step's shot: the union of `parts` with a little padding, its top just under the sticky header, clipped to the viewport. */
-async function guideShot(page: Page, step: string, parts: Locator | Locator[], opts: { pad?: number; maxHeight?: number } = {}) {
+/** A guide step's shot, guide-<module>-<step>.png (the Alien module's unless `module` says): the union of `parts` with a little padding, its top just under the sticky header, clipped to the viewport. */
+async function guideShot(page: Page, step: string, parts: Locator | Locator[], opts: { pad?: number; maxHeight?: number; module?: string } = {}) {
   await dismissToasts(page);
   await calm(page);
   const list = Array.isArray(parts) ? parts : [parts];
   const pad = opts.pad ?? 12;
-  // the app header is sticky: scroll the frame's top to just below it
+  // where the parts are: in a dialog, inside table mode (a fixed layer over the app with its own bars and scrolling columns), table mode itself, or on a page
+  const where = await list[0]!.evaluate((e) => (e.closest("dialog") ? "dialog" : e.matches(".app-table") ? "table" : e.closest(".app-table") ? "in-table" : "page"));
   const tops = await Promise.all(list.map((l) => l.evaluate((e) => e.getBoundingClientRect().top + window.scrollY)));
-  await page.evaluate((y) => window.scrollTo(0, Math.max(0, y)), Math.min(...tops) - 64 - pad);
+  if (where === "in-table") {
+    // scroll the topmost part to the top of its column, the padding above it
+    const first = list[tops.indexOf(Math.min(...tops))]!;
+    await first.evaluate((e, gap) => {
+      e.scrollIntoView({ block: "start" });
+      let p = e.parentElement;
+      while (p && p.scrollHeight <= p.clientHeight) p = p.parentElement;
+      p?.scrollBy(0, -gap);
+    }, pad);
+  } else {
+    // the app header is sticky: scroll the frame's top to just below it
+    await page.evaluate((y) => window.scrollTo(0, Math.max(0, y)), Math.min(...tops) - 64 - pad);
+  }
   await settle(page);
   const boxes = await Promise.all(list.map(async (l) => (await l.boundingBox())!));
   const vp = page.viewportSize()!;
-  // outside a dialog, never take in the sticky header or the sidebar beside the page
-  const inDialog = await list[0]!.evaluate((e) => !!e.closest("dialog"));
-  const chrome = async (selector: string) => (!inDialog && (await page.locator(selector).count()) > 0 ? await page.locator(selector).first().boundingBox() : null);
-  const bar = await chrome(".app-header");
-  const side = await chrome(".app-nav");
+  // never take in the sticky header or the sidebar beside a page, or table mode's own bars above its columns
+  const chrome = async (selector: string) => ((await page.locator(selector).count()) > 0 ? await page.locator(selector).first().boundingBox() : null);
+  const bar = where === "page" ? await chrome(".app-header") : where === "in-table" ? ((await chrome(".app-table__clock")) ?? (await chrome(".app-table__header"))) : null;
+  const side = where === "page" ? await chrome(".app-nav") : null;
   const x0 = Math.max(side ? Math.ceil(side.x + side.width) : 0, Math.floor(Math.min(...boxes.map((b) => b.x)) - pad));
   const y0 = Math.max(bar ? Math.ceil(bar.y + bar.height) : 0, Math.floor(Math.min(...boxes.map((b) => b.y)) - pad));
   const x1 = Math.min(vp.width, Math.ceil(Math.max(...boxes.map((b) => b.x + b.width)) + pad));
   let y1 = Math.min(vp.height, Math.ceil(Math.max(...boxes.map((b) => b.y + b.height)) + pad));
   if (opts.maxHeight) y1 = Math.min(y1, y0 + opts.maxHeight);
-  await page.screenshot({ path: file(`guide-alien-${step}`), animations: "disabled", caret: "hide", clip: { x: x0, y: y0, width: x1 - x0, height: y1 - y0 } });
+  await page.screenshot({ path: file(`guide-${opts.module ?? "alien"}-${step}`), animations: "disabled", caret: "hide", clip: { x: x0, y: y0, width: x1 - x0, height: y1 - y0 } });
 }
 
 test("guide-alien", async ({ page }) => {
@@ -2067,6 +2079,386 @@ test("guide-alien", async ({ page }) => {
   await expect(page).toHaveURL(/\/sessions\/[0-9A-Z]{26}$/);
   await expect.poll(() => page.locator('[aria-label^="Plan item "]').evaluateAll((els) => els.map((e) => (e as HTMLTextAreaElement).value))).toContain("Who insured the cargo, and for how much?");
   await guideShot(page, "next-session", [main.locator(".cf-card").filter({ hasText: "Scenes planned" }), main.locator(".cf-card").filter({ hasText: "Loose ends carried" })]);
+});
+
+// ---------------------------------------------------------------------------
+// The fifth edition guide ("Your first 5e campaign", the dnd5e-srd pack's
+// guide): one shot per step, guide-dnd5e-srd-<step id>.png, taken the same
+// way as the Alien guide's: one test, the steps done in order on a blank
+// campaign with the guide's own example names, in-app navigation only and
+// fixed seeds wherever the app rolls.
+// ---------------------------------------------------------------------------
+
+/** Pick an option of a character builder choice (its card's or row's radio or checkbox). */
+async function builderPick(page: Page, path: string, id: string) {
+  const option = page.getByTestId(`opt:${path}:${id}`);
+  const input = option.locator("input");
+  if ((await input.count()) > 0) await input.check();
+  else await option.click();
+  await expect(option).toHaveClass(/is-on/);
+}
+
+async function builderNext(page: Page, stepId: string) {
+  await page.getByTestId("builder-next").click();
+  await expect(page.locator(".cb__main")).toHaveAttribute("data-step", stepId);
+}
+
+test("guide-dnd5e-srd", async ({ page }) => {
+  test.setTimeout(400_000);
+  await page.setViewportSize({ width: 1280, height: 1000 });
+  const main = page.locator("main");
+  const header = main.locator(".app-page__header").first();
+  const g = (step: string, parts: Locator | Locator[], opts: { pad?: number; maxHeight?: number } = {}) => guideShot(page, step, parts, { ...opts, module: "dnd5e-srd" });
+
+  // Create the campaign: the New campaign dialog
+  await page.goto("/");
+  await page.getByRole("button", { name: "New campaign" }).click();
+  const dialog = page.getByRole("dialog", { name: "New campaign" });
+  await dialog.getByLabel("Name", { exact: true }).fill("The Wilby Watch");
+  await dialog.getByRole("combobox", { name: "Game module" }).selectOption("dnd5e-srd");
+  await dialog.getByRole("radio", { name: /^Campaign/ }).check();
+  await g("new-campaign", dialog, { pad: 0 });
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await dialog.getByRole("button", { name: "Create campaign" }).click();
+  await expect(page).toHaveURL(/\/c\/[0-9A-Z]{26}\/home$/);
+
+  // Home and its checklist
+  const checklist = page.getByTestId("setup-guide");
+  await expect(checklist).toBeVisible();
+  await g("home-checklist", [header, checklist]);
+
+  // The party: a hill dwarf fighter from the character builder
+  await checklist.locator('[data-step="setup.pcs"]').getByRole("link", { name: "Open the PCs" }).click();
+  await page.getByTestId("build-character").click();
+  await expect(page.getByTestId("character-builder")).toBeVisible();
+  await builderPick(page, "edition", "2014");
+  await builderNext(page, "species");
+  await builderPick(page, "species", "dwarf");
+  await builderPick(page, "species/lineage", "hill-dwarf");
+  await builderPick(page, "species/tool", "smiths-tools");
+  await builderNext(page, "class");
+  await builderPick(page, "class", "fighter");
+  await builderPick(page, "class/skills", "athletics");
+  await builderPick(page, "class/skills", "perception");
+  await g("build-character", main.locator(".app-page").first(), { maxHeight: 760 });
+  await builderNext(page, "background");
+  await builderPick(page, "background", "acolyte");
+  await builderPick(page, "background/languages", "elvish");
+  await builderPick(page, "background/languages", "giant");
+  await builderNext(page, "abilities");
+  await page.getByTestId("method:point-buy").locator("input").check();
+  const raise = async (ability: string, times: number) => {
+    for (let i = 0; i < times; i++) await page.getByRole("button", { name: `Increase ${ability}` }).click();
+  };
+  await raise("Strength", 7);
+  await raise("Dexterity", 6);
+  await raise("Constitution", 6);
+  await raise("Wisdom", 2);
+  await raise("Charisma", 2);
+  await expect(page.getByTestId("points")).toContainText("0 of 27 points left");
+  await builderNext(page, "level");
+  await builderPick(page, "level", "1");
+  await builderPick(page, "level/options.0", "fighter-fighting-style-defense");
+  await builderNext(page, "equipment");
+  await builderPick(page, "equipment/class.0", "fighter-0-a");
+  await builderPick(page, "equipment/class.1", "fighter-1-a");
+  await builderPick(page, "equipment/class.1/pick-weapons.0", "longsword");
+  await builderPick(page, "equipment/class.2", "fighter-2-b");
+  await builderPick(page, "equipment/class.3", "fighter-3-b");
+  await builderNext(page, "details");
+  await page.getByTestId("field:core.name").fill("Doran Kettleby");
+  await page.getByTestId("field:alignment").selectOption("lawful-good");
+  await builderNext(page, "review");
+  await expect(page.getByTestId("review-ready")).toBeVisible();
+  await page.getByTestId("builder-finish").click();
+
+  // the finished sheet: its numbers computed
+  await expect(page.getByTestId("entity-page")).toBeVisible();
+  await expect(page.getByTestId("entity-title")).toHaveValue("Doran Kettleby");
+  await expect(page.getByTestId("computed-proficiencyBonus")).toHaveText("2");
+  await g("pc-sheet", [page.locator('[data-section="abilities"]'), page.locator('[data-section="combat"]')], { maxHeight: 760 });
+
+  // a PC by hand
+  await nav(page, "Atlas").click();
+  await page.getByRole("tab", { name: /^PCs/ }).click();
+  await header.getByRole("link", { name: "+ New" }).click();
+  await page.getByTestId("entity-name").fill("Mira Fenwick");
+  await g("pc-by-hand", [main.locator("h1"), page.getByTestId("create-entity")]);
+  await page.getByTestId("create-entity").click();
+  await expect(page).toHaveURL(/\/entities\/[0-9A-Z]{26}/);
+
+  // the players and who plays whom
+  await nav(page, "Home").click();
+  await checklist.locator('[data-step="setup.players"]').getByRole("link", { name: "Add players" }).click();
+  const players = page.getByTestId("players-card");
+  for (const name of ["Alex", "Sam"]) {
+    await players.getByTestId("player-new-name").fill(name);
+    await players.getByTestId("player-add").click();
+  }
+  await players.getByRole("checkbox", { name: "Alex plays Doran Kettleby" }).check();
+  await players.getByRole("checkbox", { name: "Sam plays Mira Fenwick" }).check();
+  await g("players", players);
+
+  // Places: a settlement and its tavern from the generator (a fixed seed)
+  await nav(page, "Generate").click();
+  await main.getByText("Settlement and tavern", { exact: true }).click();
+  await page.getByTestId("seed").fill("barrow-14");
+  await expect(page.getByTestId("preview-name-settlement")).toHaveValue("Wilby");
+  await expect(page.getByTestId("step-result-trouble")).toContainText("Graves are found opened");
+  await page.setViewportSize({ width: 1280, height: 1500 });
+  await g("settlement", page.getByTestId("preview"));
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.getByTestId("accept").click();
+  await expect(page.getByTestId("entity-title")).toHaveValue("Wilby");
+  // a place inside it: the chapel, within Wilby
+  await nav(page, "Home").click();
+  await page.getByRole("link", { name: "+ Location" }).click();
+  await main.locator("label", { hasText: "Subtype" }).locator("select").selectOption({ label: "Building" });
+  await page.getByTestId("entity-name").fill("Barrowfield Chapel");
+  await page.getByTestId("create-entity").click();
+  await expect(page).toHaveURL(/\/entities\/[0-9A-Z]{26}/);
+  await page.getByRole("textbox", { name: "Summary" }).fill("The old chapel above Wilby's burial ground, kept by a sexton.");
+  await page.getByRole("textbox", { name: "Summary" }).blur();
+  await page.getByRole("tab", { name: "Relationships" }).click();
+  await page.getByTestId("add-relationship").click();
+  let link = page.getByRole("dialog", { name: "Link Barrowfield Chapel" });
+  await link.getByRole("combobox", { name: "Relationship type" }).selectOption({ label: "within" });
+  await link.getByRole("button", { name: "Choose…" }).click();
+  await page.getByRole("searchbox", { name: "Search entities" }).fill("Wilby");
+  await page.getByRole("dialog", { name: "Choose an entity" }).getByRole("option", { name: /Wilby/ }).click();
+  await expect(link).toContainText("Wilby");
+  await link.getByRole("button", { name: "Add", exact: true }).click();
+  await expect(page.getByRole("list", { name: "Relationships" })).toContainText("Wilby");
+  await nav(page, "Atlas").click();
+  await page.getByRole("tab", { name: "Locations" }).click();
+  await expect(page.getByRole("tree", { name: "Locations" })).toContainText("Barrowfield Chapel");
+  await g("place-inside", [header, page.getByRole("tabpanel")]);
+
+  // People: an NPC from an SRD stat block
+  await nav(page, "Home").click();
+  await page.getByTestId("quick-npc").click();
+  await page.getByRole("searchbox", { name: "Search presets" }).fill("veteran");
+  await page.getByRole("radio", { name: /^Veteran/ }).first().check();
+  await page.getByTestId("entity-name").fill("Captain Hollis Varrow");
+  await g("npc-preset", [main.locator("h1"), main.locator("fieldset").first(), page.getByTestId("entity-name")]);
+  await page.getByTestId("create-entity").click();
+  await expect(page).toHaveURL(/\/entities\/[0-9A-Z]{26}/);
+  await page.getByRole("textbox", { name: "Summary" }).fill("Captain of the Wilby watch; an old soldier who hates a mystery.");
+  await page.getByRole("textbox", { name: "Summary" }).blur();
+
+  // an NPC by hand, from the NPCs tab
+  await nav(page, "Atlas").click();
+  await page.getByRole("tab", { name: /^NPCs/ }).click();
+  await header.getByRole("link", { name: "+ New" }).click();
+  await main.getByRole("combobox", { name: "Type" }).selectOption({ label: "NPC" });
+  await page.getByTestId("entity-name").fill("Brother Tobin Marsh");
+  await expect(page.getByTestId("create-entity")).toHaveText("Create NPC");
+  await page.getByTestId("create-entity").click();
+  await expect(page).toHaveURL(/\/entities\/[0-9A-Z]{26}/);
+  await page.getByRole("textbox", { name: "Summary" }).fill("Sexton of Barrowfield Chapel; nervous, and keeping something back.");
+  await page.getByRole("textbox", { name: "Summary" }).blur();
+  await page.getByRole("textbox", { name: "Occupation", exact: true }).fill("Sexton");
+  await page.getByRole("combobox", { name: "Attitude toward the party", exact: true }).selectOption({ label: "Unfriendly" });
+  await page.getByRole("textbox", { name: "Stat block", exact: true }).fill("Acolyte");
+  await page.getByRole("textbox", { name: "What they want", exact: true }).fill("To be left alone with his graves");
+  await page.getByRole("textbox", { name: "Secret", exact: true }).fill("He sold the key to the crypt for drinking money");
+  await page.getByRole("textbox", { name: "Secret", exact: true }).blur();
+  await g("npc-by-hand", [page.locator(".app-entity__header"), page.locator('[data-section="who"]')]);
+
+  // Connect them: a relationship
+  await page.getByRole("tab", { name: "Relationships" }).click();
+  await page.getByTestId("add-relationship").click();
+  link = page.getByRole("dialog", { name: "Link Brother Tobin Marsh" });
+  await link.getByRole("combobox", { name: "Relationship type" }).selectOption({ label: "knows" });
+  await link.getByRole("button", { name: "Choose…" }).click();
+  await page.getByRole("searchbox", { name: "Search entities" }).fill("Varrow");
+  await page.getByRole("dialog", { name: "Choose an entity" }).getByRole("option", { name: /Captain Hollis Varrow/ }).click();
+  await link.getByRole("textbox", { name: "Note" }).fill("Asked him to keep the watch away from the graveyard");
+  await g("relationship", link, { pad: 0 });
+  await link.getByRole("button", { name: "Add", exact: true }).click();
+  await expect(page.getByRole("list", { name: "Relationships" })).toContainText("Captain Hollis Varrow");
+
+  // an @ link in a note
+  await page.getByRole("tab", { name: /^Notes/ }).click();
+  await page.getByTestId("add-entity-note").click();
+  const editor = page.locator(".cf-editor__content").first();
+  await editor.click();
+  await page.keyboard.type("Sleeps in the vestry at @Barrowfield");
+  const mention = page.getByTestId("mention-popup");
+  await expect(mention.getByRole("option", { name: /Barrowfield Chapel/ })).toBeVisible();
+  await g("mention", [page.getByRole("tabpanel"), mention]);
+  await mention.getByRole("option", { name: /Barrowfield Chapel/ }).click();
+  await expect(editor.locator(".cf-entity-ref")).toHaveText(/Barrowfield Chapel/);
+  await editor.press("End");
+  await page.keyboard.type(" and has a new spade nobody paid for.");
+  await page.waitForTimeout(500);
+
+  // backlinks on the chapel
+  await nav(page, "Atlas").click();
+  await page.getByRole("tab", { name: "Locations" }).click();
+  await page.getByRole("tree", { name: "Locations" }).getByRole("link", { name: "Barrowfield Chapel" }).click();
+  await page.getByRole("tab", { name: "Backlinks" }).click();
+  await expect(page.getByTestId("backlinks")).toContainText("via mention");
+  await g("backlinks", [page.locator(".app-entity__header"), page.getByTestId("backlinks")]);
+
+  // the graph
+  await nav(page, "Atlas").click();
+  await page.getByRole("tab", { name: "Graph" }).click();
+  await g("graph", [header, page.getByRole("tabpanel")]);
+
+  // who sees what: the town for the players, the Atlas previewed as a player
+  await page.getByRole("tab", { name: "Locations" }).click();
+  await page.getByRole("tree", { name: "Locations" }).getByRole("link", { name: "Wilby" }).click();
+  await page.locator(".app-entity__header select").filter({ hasText: "GM only" }).selectOption({ label: "Players" });
+  await nav(page, "Atlas").click();
+  await page.getByRole("tab", { name: "Locations" }).click();
+  await page.getByTestId("preview-as-player").check();
+  await expect(page.getByRole("tree", { name: "Locations" })).not.toContainText("Barrowfield Chapel");
+  await g("player-view", [header, page.getByRole("tabpanel")]);
+  await page.getByTestId("preview-as-player").uncheck();
+
+  // An adventure: the rumour on the quest board, made a quest the party takes
+  await nav(page, "Home").click();
+  const board = page.getByRole("region", { name: "Quest board" });
+  await board.getByRole("link", { name: /Graves are found opened/ }).click();
+  await expect(page).toHaveURL(/\/entities\/[0-9A-Z]{26}$/);
+  await page.getByRole("textbox", { name: "Patron", exact: true }).fill("Captain Hollis Varrow");
+  await page.getByRole("textbox", { name: "Objective", exact: true }).fill("Find out who is opening the graves of Barrowfield, and stop it.");
+  await page.getByRole("textbox", { name: "Reward", exact: true }).fill("50 gp from the town purse");
+  await page.getByRole("combobox", { name: "Status", exact: true }).selectOption({ label: "Active" });
+  await page.getByRole("textbox", { name: "Reward", exact: true }).blur();
+  await nav(page, "Home").click();
+  await expect(board).toContainText("Active");
+  await g("quest-board", board);
+
+  // a random encounter on the road (a fixed seed): three bandits
+  await nav(page, "Generate").click();
+  await main.getByText("Random encounter", { exact: true }).click();
+  await page.getByRole("spinbutton", { name: "Party level" }).fill("1");
+  await page.getByRole("combobox", { name: "Terrain" }).selectOption({ label: "Grassland" });
+  await page.getByTestId("seed").fill("wilby-road-6");
+  await expect(page.getByTestId("preview")).toContainText("3 × Bandit");
+  await g("encounter", [main.locator(".app-page__header").first(), page.getByTestId("preview")], { maxHeight: 760 });
+  await page.getByTestId("accept").click();
+  await expect(page.getByTestId("entity-title")).toHaveValue("3 × Bandit");
+
+  // an adventure from a template
+  await nav(page, "Adventures").click();
+  await page.getByTestId("new-adventure").click();
+  const newAdventure = page.getByRole("dialog", { name: "New adventure" });
+  await newAdventure.getByRole("textbox", { name: "Title" }).fill("The Opened Graves");
+  await newAdventure.getByRole("radio", { name: /^Into the lair/ }).check();
+  await g("new-adventure", newAdventure, { pad: 0 });
+  await newAdventure.getByRole("button", { name: "Create adventure" }).click();
+  await expect(page).toHaveURL(/\/adventures\/[0-9A-Z]{26}/);
+  const outline = page.getByTestId("outline");
+  await g("adventure", [main.locator("header").first(), outline], { maxHeight: 760 });
+
+  // a dungeon for the lair (a fixed seed)
+  await nav(page, "Generate").click();
+  await page.getByTestId("map-generator-dnd5e-srd.map.dungeon").click();
+  await expect(page).toHaveURL(/\/maps\/new\?generator=dnd5e-srd\.map\.dungeon$/);
+  await page.getByRole("combobox", { name: "Size" }).selectOption("small");
+  await page.getByRole("spinbutton", { name: "Party level" }).fill("1");
+  await page.getByRole("spinbutton", { name: "Party size" }).fill("2");
+  await page.getByRole("combobox", { name: "Theme" }).selectOption("undead");
+  await page.getByTestId("map-seed").fill("barrowfield-crypt");
+  await page.getByTestId("map-generate").click();
+  await expect(page.getByTestId("map-preview")).toBeVisible({ timeout: 30_000 });
+  await page.getByTestId("map-name").fill("The Barrowfield Crypt");
+  await g("dungeon", page.getByTestId("map-preview"), { maxHeight: 440 });
+  await page.getByTestId("map-save").click();
+  await expect(page).toHaveURL(/\/maps\/[0-9A-Z]{26}$/);
+
+  // the scenes: where they happen and who is in them
+  await nav(page, "Adventures").click();
+  await page.getByTestId("adventure-card").filter({ hasText: "The Opened Graves" }).click();
+  await outline.getByTestId("outline-scene").first().click();
+  const scene = page.getByTestId("scene-editor");
+  await scene.getByRole("button", { name: "Pick location" }).click();
+  await page.getByRole("dialog", { name: "Choose location" }).getByRole("option", { name: /The Lucky Lantern/ }).click();
+  for (const who of ["Quilla Greyhame", "Brother Tobin Marsh"]) {
+    await scene.getByRole("button", { name: "Add participant" }).click();
+    await page.getByRole("searchbox", { name: "Search entities" }).fill(who.split(" ")[0]!);
+    await page.getByRole("dialog", { name: "Add participant" }).getByRole("option", { name: new RegExp(who) }).click();
+  }
+  await expect(scene).toContainText("Brother Tobin Marsh");
+  await g("scene", scene.locator(".cf-card").first());
+  // the road: the bandits' encounter and the bandits themselves
+  await outline.getByTestId("outline-scene").nth(1).click();
+  await scene.getByRole("button", { name: "Pick encounter" }).click();
+  await page.getByRole("dialog", { name: "Choose encounter" }).getByRole("option", { name: /Bandit/ }).click();
+  for (const n of [1, 2, 3]) {
+    await scene.getByRole("button", { name: "Add participant" }).click();
+    await page.getByRole("searchbox", { name: "Search entities" }).fill(`Bandit ${n}`);
+    await page.getByRole("dialog", { name: "Add participant" }).getByRole("option", { name: new RegExp(`^.*Bandit ${n}`) }).first().click();
+  }
+  await expect(scene).toContainText("Bandit 3");
+  // the lair's entrance: the crypt and its map
+  await outline.getByTestId("outline-scene").nth(2).click();
+  await scene.getByRole("button", { name: "Pick location" }).click();
+  await page.getByRole("dialog", { name: "Choose location" }).getByRole("option", { name: /The Barrowfield Crypt/ }).first().click();
+  await scene.getByRole("combobox", { name: "Scene map" }).selectOption({ label: "The Barrowfield Crypt" });
+
+  // a handout on Act 1
+  await outline.getByRole("button", { name: /^Act 1:/ }).click();
+  const act = page.getByTestId("act-editor");
+  await act.getByRole("button", { name: "+ Handout" }).click();
+  await act.getByRole("textbox", { name: "Handout title" }).last().fill("A page torn from the burial register");
+  await act.getByRole("textbox", { name: "Handout title" }).last().press("Enter");
+  await g("handout", act.locator(".cf-card").filter({ hasText: "Handouts" }));
+
+  // A session: plan session 1 with the adventure's first scenes
+  await nav(page, "Home").click();
+  await checklist.locator('[data-step="setup.session"]').getByRole("link", { name: "Plan a session" }).click();
+  await main.getByRole("button", { name: "Plan a session" }).click();
+  await expect(page).toHaveURL(/\/sessions\/[0-9A-Z]{26}$/);
+  const planned = main.locator(".cf-card").filter({ hasText: "Scenes planned" });
+  await planned.getByText("Add scenes", { exact: true }).click();
+  for (const title of ["Witnesses disagree about what they saw", "The road there", "Entrance"]) await planned.getByRole("button", { name: `Plan ${title}` }).click();
+  await planned.getByText("Add scenes", { exact: true }).click();
+  await page.getByRole("textbox", { name: "New plan item" }).fill("Tobin lies about the crypt key");
+  await page.getByRole("textbox", { name: "New plan item" }).press("Enter");
+  await g("session-plan", planned);
+
+  // start it: table mode
+  await nav(page, "Home").click();
+  await page.getByRole("button", { name: "Start this session" }).click();
+  await expect(page.getByTestId("table-mode")).toBeVisible();
+  await expect(page.getByTestId("timer")).toHaveText("00:00");
+  await g("table", page.getByTestId("table-mode"), { maxHeight: 720 });
+
+  // the road: initiative for everyone in the scene
+  await page.getByTestId("mark-run").click();
+  await page.getByRole("button", { name: "Next scene" }).click();
+  await expect(page.getByRole("heading", { name: /^The road there/ })).toBeVisible();
+  const combat = page.getByTestId("d20-combat");
+  await combat.getByTestId("roll-initiative-all").click();
+  await expect(combat.getByTestId("combat-round")).toHaveText("Round 1");
+  await g("combat", combat, { maxHeight: 760 });
+
+  // reveal the handout
+  const reveal = page.getByTestId("reveal-panel");
+  await reveal.getByRole("button", { name: "Reveal A page torn from the burial register" }).click();
+  await expect(reveal.getByTestId("on-screen")).toContainText("burial register");
+  await g("reveal", reveal);
+
+  // wrap up
+  await page.getByTestId("mark-run").click();
+  await page.getByTestId("end-session").click();
+  const wrap = page.getByTestId("wrapup");
+  await wrap.getByRole("textbox", { name: "Session summary" }).fill("Quilla and Brother Tobin told two different stories at the Lucky Lantern; the party beat off three bandits on the Barrowfield road.");
+  await g("wrap-up", wrap, { maxHeight: 640 });
+  await wrap.getByRole("button", { name: /^Next: Rewards/ }).click();
+  await wrap.getByRole("button", { name: /^Next: Timeline/ }).click();
+  await wrap.getByRole("button", { name: /^Next: Loose ends/ }).click();
+  await wrap.getByRole("textbox", { name: "Loose ends" }).fill("Who bought the crypt key from Tobin?");
+  await wrap.getByTestId("finish-session").click();
+
+  // the next session, planned, with the loose end on its plan
+  await expect(page).toHaveURL(/\/sessions\/[0-9A-Z]{26}$/);
+  await expect.poll(() => page.locator('[aria-label^="Plan item "]').evaluateAll((els) => els.map((e) => (e as HTMLTextAreaElement).value))).toContain("Who bought the crypt key from Tobin?");
+  await g("next-session", [main.locator(".cf-card").filter({ hasText: "Scenes planned" }), main.locator(".cf-card").filter({ hasText: "Loose ends carried" })]);
 });
 
 test("in-app-guide", async ({ page }) => {
