@@ -22,6 +22,7 @@ export * from "./module";
 export * from "./lifecycle";
 export * from "./review";
 export * from "./calendar";
+export * from "./terms";
 export * from "./progression";
 export * from "./determinism";
 export * from "./engines";

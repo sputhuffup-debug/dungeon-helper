@@ -28,7 +28,7 @@ export const VERSION = "0.1.0";
 
 export const MODES = [
   { id: "campaign", name: "Campaign", description: "Long-running play: characters gain levels, feats and gear over many sessions, with factions, quests and a living world between adventures." },
-  { id: "one-shot", name: "One-shot", description: "A single session: ready-made characters, one adventure in three acts, and a clear ending tonight." },
+  { id: "one-shot", name: "One-shot", description: "A single session: quick characters from the step-by-step builder, one adventure in three acts, and a clear ending tonight." },
 ];
 
 export const NAME = "Fantasy d20 Remaster (ORC)";

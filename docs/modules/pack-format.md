@@ -22,6 +22,7 @@ A data pack is a JSON object. The SDK validates it (`validatePack`), joins its p
   "trackers": [],           // clocks, countdowns, initiative, counters
   "playGuides": [],         // GM hints per rollable stat or skill
   "calendar": {},           // optional; default twelve 30-day months
+  "terms": {},              // optional; the words generic screens use for the game: "the party", a map "level" (see Terms)
   "styleNotes": [],         // optional
   "primer": { "sections": [] }, // optional; campaign primer prompts and starter text (see Campaign primer)
   "d20Combat": {},          // optional; attacks, AC, saves, damage modifiers and conditions (see d20 combat)
@@ -110,7 +111,31 @@ Each collection uses the contract's own shape from `packages/module-sdk/src/type
 | `rules` | `RuleCard` | Markdown summary; must cite a `page`, a `cite`, or be `original`. |
 | `trackers` | `TrackerDef` | Kinds the app draws: `clock`, `countdown`, `initiative`, `counter`, `stress`, `story-points`, `supply`, `stealth`; anything else gets a generic editor. See [Trackers](#trackers). |
 | `playGuides` | `PlayGuideDef` | Roll ids are a skill id or `attr:<attribute id>`. |
-| `calendar` | `CalendarDef` | Its id is prefixed too. |
+| `calendar` | `CalendarDef` | Its id is prefixed too. `format` is how dates are written and stored ("{year}-{month:02}-{day:02}"); `displayFormat` is how the app shows them to people (default "{day} {monthName} {year}", e.g. "3 Frostwane 812"; tokens `{year}`, `{month}`, `{day}` with `:02` padding, `{monthName}`, `{weekday}`). Set `displayFormat` to the `format` to show dates as stored. |
+
+## Terms
+
+Screens that every game shares (the session wrap-up, the table's tab bar, a site map's badges, an act's handouts) speak of the players' group, a map's levels and so on. `terms` gives them the game's own words; every key is optional, and a screen falls back to a neutral word for any the pack leaves out. Write each in lower case, as it reads mid-sentence; the app capitalises it at the start of a sentence or a label.
+
+```json
+"terms": {
+  "party": "party",
+  "mapLevel": "floor",
+  "agenda": "secret goal",
+  "rewardExamples": "coin, gear, a favour owed, a new ally",
+  "epiloguePrompt": "What becomes of the heroes…"
+}
+```
+
+| Key | Default | Where it shows |
+|---|---|---|
+| `party` | `group` | The drafted session summary ("The party played 2 scenes…"), timeline lines for handouts ("The party learns: …"), the table's phone tab bar ("Party"), "Pick the scene the party is in.", the player map's note. |
+| `mapLevel`, `mapLevels` | `level`, `levels` | A site map's badge ("1 level") and the tracking map's "One page per level." `mapLevels` defaults to `mapLevel` + "s". |
+| `agenda`, `agendas` | `personal handout`, `personal handouts` | Handouts of kind `agenda` (one character's player only): an act's "+ Personal handout" button and list, the adventure's "Personal handout cards", the reveal panel. |
+| `rewardExamples` | `money, gear, a favour owed, a new contact` | The wrap-up's Rewards step: "Free entries per character: …". |
+| `epiloguePrompt` | `What happens afterwards…` | The placeholder of an adventure's epilogue (a template's own `guide.epilogue` wins). |
+
+Record kinds take their names from their entity types, not from `terms`: a `job` type named "Quest" (plural "Quests") makes the Atlas tab "Quests" and the job page "People in this quest"; a kind with a single type uses its plural as the Atlas tab ("Monsters"). Roll modes come from the dice: the d20 engine's `advantageNames` (e.g. fortune / misfortune) name them on the sheet's roll panel and in table combat alike. A supplement cannot change `terms`. In TypeScript the same object is `GameModule.terms` (`ModuleTerms`); `resolveTerms(module)` fills in the defaults.
 
 ## Campaign primer
 

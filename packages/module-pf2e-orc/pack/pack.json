@@ -23,7 +23,7 @@
    {
     "id": "one-shot",
     "name": "One-shot",
-    "description": "A single session: ready-made characters, one adventure in three acts, and a clear ending tonight."
+    "description": "A single session: quick characters from the step-by-step builder, one adventure in three acts, and a clear ending tonight."
    }
   ],
   "defaultMode": "campaign",
@@ -4229,7 +4229,7 @@
    "kind": "creature",
    "name": "Creature",
    "plural": "Creatures",
-   "icon": "bug",
+   "icon": "claw",
    "schema": {
     "type": "object",
     "properties": {
@@ -7957,7 +7957,7 @@
       "title": "Start a campaign",
       "body": [
        "On the campaign list, click *New campaign*. Give it a name (the example is The Wardens of Mossford) and choose *Fantasy d20 Remaster (ORC)* as the *Game module*. The dialog shows the module's licence and notices.",
-       "Under *Play mode*, *Campaign* is long-running play: characters gain levels over many sessions, with factions, quests and a world that moves between adventures; this guide follows it. *One-shot* is a single evening with ready-made characters. Click *Create campaign*."
+       "Under *Play mode*, *Campaign* is long-running play: characters gain levels over many sessions, with factions, quests and a world that moves between adventures; this guide follows it. *One-shot* is a single evening: quick characters from the builder, one adventure and a clear ending. Click *Create campaign*."
       ],
       "image": {
        "key": "new-campaign",
@@ -8481,7 +8481,7 @@
       "id": "handout",
       "title": "Add a handout",
       "body": [
-       "Click an act in the outline (Act 1) and, under *Handouts*, *+ Handout*. Title it (here “A letter from the reeve”), open it to write the text or add an image, and leave it *GM only*: you reveal it at the table. *+ Agenda* adds a character's agenda card, which goes to that player alone."
+       "Click an act in the outline (Act 1) and, under *Handouts*, *+ Handout*. Title it (here “A letter from the reeve”), open it to write the text or add an image, and leave it *GM only*: you reveal it at the table. *+ Personal handout* adds a handout for one character, which goes to that player alone."
       ],
       "image": {
        "key": "handout",
@@ -36572,6 +36572,10 @@
    "Restday"
   ],
   "format": "{year}-{month:02}-{day:02}"
+ },
+ "terms": {
+  "party": "party",
+  "rewardExamples": "coin, gear, a favour owed, a new ally"
  },
  "styleNotes": [
   "Heroic fantasy with teeth: describe the world vividly, set DCs before the dice land, and give all four degrees of success a meaning.",

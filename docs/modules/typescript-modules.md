@@ -22,6 +22,8 @@ Rules every module follows (from `CLAUDE.md`):
 5. No `eval`; expressions are JSONLogic.
 6. The package exports from `src/index.ts`; consumers import TypeScript directly.
 
+Give the module its own words for what every game has (`terms`: the players' group, a site map's levels, a one-player handout; see [Terms](pack-format.md#terms)), so the app's shared screens say "the crew" or "the party" rather than a neutral "the group". Alien sets `{ party: "crew", mapLevel: "deck", agenda: "agenda", ... }`.
+
 You can mix: keep the data in JSON (a pack) and add code around it, by building the module with `packToModule(pack)` and then adding `combat`, `hooks` and so on to the object it returns.
 
 ## Registering a built-in module

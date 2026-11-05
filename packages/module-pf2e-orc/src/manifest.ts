@@ -17,7 +17,7 @@ export const pf2eOrcManifest: Pick<ModuleManifest, "id" | "name" | "version" | "
     {
       "id": "one-shot",
       "name": "One-shot",
-      "description": "A single session: ready-made characters, one adventure in three acts, and a clear ending tonight."
+      "description": "A single session: quick characters from the step-by-step builder, one adventure in three acts, and a clear ending tonight."
     }
   ],
   "defaultMode": "campaign",

@@ -26,7 +26,7 @@ One campaign holds everything: the party, the places, the quests and every sessi
 
 On the campaign list, click *New campaign*. Give it a name (the example is The Wardens of Mossford) and choose *Fantasy d20 Remaster (ORC)* as the *Game module*. The dialog shows the module's licence and notices.
 
-Under *Play mode*, *Campaign* is long-running play: characters gain levels over many sessions, with factions, quests and a world that moves between adventures; this guide follows it. *One-shot* is a single evening with ready-made characters. Click *Create campaign*.
+Under *Play mode*, *Campaign* is long-running play: characters gain levels over many sessions, with factions, quests and a world that moves between adventures; this guide follows it. *One-shot* is a single evening: quick characters from the builder, one adventure and a clear ending. Click *Create campaign*.
 
 ![The New campaign dialog with the Fantasy d20 Remaster (ORC) module chosen and its ORC License line](../screenshots/guide-pf2e-orc-new-campaign.png)
 
@@ -220,7 +220,7 @@ Name it (the Crowfoot Warren) and click *Save to campaign*: its rooms, encounter
 
 ### 6.6 Add a handout
 
-Click an act in the outline (Act 1) and, under *Handouts*, *+ Handout*. Title it (here “A letter from the reeve”), open it to write the text or add an image, and leave it *GM only*: you reveal it at the table. *+ Agenda* adds a character's agenda card, which goes to that player alone.
+Click an act in the outline (Act 1) and, under *Handouts*, *+ Handout*. Title it (here “A letter from the reeve”), open it to write the text or add an image, and leave it *GM only*: you reveal it at the table. *+ Personal handout* adds a handout for one character, which goes to that player alone.
 
 ![Act 1's Handouts card with A letter from the reeve](../screenshots/guide-pf2e-orc-handout.png)
 

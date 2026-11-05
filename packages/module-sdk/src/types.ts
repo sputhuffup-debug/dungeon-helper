@@ -1958,8 +1958,16 @@ export interface CalendarDef {
   defaultYear: number;
   months: Array<{ name: string; days: number }>;
   weekdays?: string[];
-  /** Template, e.g. "{year}-{month:02}-{day:02}" */
+  /** Template, e.g. "{year}-{month:02}-{day:02}": how dates are written and stored. */
   format?: string;
+  /**
+   * How the app shows a stored date to people, e.g. "{day} {monthName} {year}"
+   * ("3 Frostwane 812"). Tokens: `{year}`, `{month}`, `{day}` (with `:02`
+   * padding, as in `format`), `{monthName}`, `{weekday}` (when `weekdays` is
+   * set). Default "{day} {monthName} {year}"; set it to `format` to show dates
+   * as they are stored.
+   */
+  displayFormat?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -4279,6 +4287,37 @@ export interface CampaignSettingDef {
 export const RESERVED_SETTING_KEYS: readonly string[] = ["sessionChecklist", "setupGuide", "worldMinutes", "gmScreen", "characterDrafts"];
 
 // ---------------------------------------------------------------------------
+// Terms: the words the app uses for the module's game
+// ---------------------------------------------------------------------------
+
+/**
+ * The words generic screens use for things every game has but names its own
+ * way: the players' group ("the crew"), one level of a site map ("deck"), a
+ * handout for one character's player ("agenda"). All optional; the app falls
+ * back to neutral words (see `resolveTerms`). Write them in lower case as they
+ * read mid-sentence; the app capitalises them where a sentence or label starts.
+ *
+ * Record kinds are named by their entity type: a module's `job` type called
+ * "Quest" makes the Atlas tab "Quests" and the job page "People in this quest".
+ */
+export interface ModuleTerms {
+  /** The player characters together, singular: "crew", "party", "company". Default "group". */
+  party?: string;
+  /** One level of a site map: "deck", "floor". Default "level". */
+  mapLevel?: string;
+  /** Its plural. Default `mapLevel` + "s". */
+  mapLevels?: string;
+  /** A handout for one character's player only (handout kind "agenda"): "agenda". Default "personal handout". */
+  agenda?: string;
+  /** Its plural. Default `agenda` + "s". */
+  agendas?: string;
+  /** Examples of the free rewards the session wrap-up records, e.g. "cash, gear, favours, a new contact". Default "money, gear, a favour owed, a new contact". */
+  rewardExamples?: string;
+  /** The placeholder of an adventure's epilogue, e.g. "What happens to the survivors…". Default "What happens afterwards…". */
+  epiloguePrompt?: string;
+}
+
+// ---------------------------------------------------------------------------
 // The module
 // ---------------------------------------------------------------------------
 
@@ -4295,6 +4334,8 @@ export interface GameModule {
   rules: RuleCard[];
   trackers: TrackerDef[];
   calendar: CalendarDef;
+  /** The words generic screens use for the module's game: "the crew", a map "deck". Packs can declare them. See `ModuleTerms`. */
+  terms?: ModuleTerms;
   /** Style notes for future AI prompts; unused in v1. */
   styleNotes?: string[];
   hooks?: ModuleHooks;

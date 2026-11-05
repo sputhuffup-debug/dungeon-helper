@@ -37,7 +37,7 @@ d20 + ability modifier + proficiency × skill + bonus + modifier, against an opt
 | `critSucceeds` / `fumbleFails` | `false` | Let the natural result decide against a DC (otherwise it is only flagged). |
 | `critMargin` | none | Four degrees of success: a total at or above DC + margin is a **critical success**, at or below DC − margin a **critical failure**, success and failure in between. |
 | `naturalShift` | `false` | A natural `critOn`+ improves the degree one step, a natural `fumbleOn`- worsens it one step (with two degrees: a natural crit passes, a natural fumble fails). |
-| `advantageNames` | `normal` / `advantage` / `disadvantage` | What the roll panel calls the roll modes, e.g. `{ "advantage": "fortune", "disadvantage": "misfortune" }`. The mechanics are unchanged. |
+| `advantageNames` | `normal` / `advantage` / `disadvantage` | What the roll panel and table combat call the roll modes, e.g. `{ "advantage": "fortune", "disadvantage": "misfortune" }` (the attack panel then reads "From conditions: misfortune"). The mechanics are unchanged. |
 | `modifierChoices` | none | Up to four selects of situational modifiers (`{ id, title, choices: [{ label, value }] }`, first choice the default), e.g. a multiple attack penalty. The chosen value is added to the roll and shown in the breakdown. |
 | `freeDice` | none | Other dice the table's free roll offers, by faces (e.g. `[4, 6, 8, 10, 12]` for damage); summed. |
 | `labels` | `Success` / `Failure` / `Critical success` / `Critical failure` | Outcome labels. |
