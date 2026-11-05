@@ -31,7 +31,11 @@ export function DieFace({ spec, value, kept, dropped, special, className }: DieF
       aria-label={`${spec?.name ?? "die"} ${value}${symbol ? ` (${symbol})` : ""}${kept ? ", kept" : ""}${dropped ? ", dropped" : ""}`}
     >
       <span className="cf-die__value">{value}</span>
-      {symbol && <span className={cx("cf-die__symbol", `cf-die__symbol--${symbol}`)}>{symbol}</span>}
+      {symbol && (
+        <span className={cx("cf-die__symbol", `cf-die__symbol--${symbol}`)} title={symbol}>
+          {symbol}
+        </span>
+      )}
     </span>
   );
 }

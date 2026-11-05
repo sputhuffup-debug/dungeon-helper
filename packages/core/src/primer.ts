@@ -11,7 +11,7 @@
  * the player projection only, so GM-only entities, fields and text never
  * reach it. Nothing here names a game.
  */
-import { PRIMER_SECTION_IDS, type GameModule, type PrimerSectionDef } from "@campaign-forge/module-sdk";
+import { PRIMER_SECTION_IDS, displayCalendarDate, type GameModule, type PrimerSectionDef } from "@campaign-forge/module-sdk";
 import type * as Y from "yjs";
 import { newId } from "./ids";
 import { fromMarkdown, toMarkdown, type RichTextRegistry } from "./richtext";
@@ -83,7 +83,7 @@ export type PrimerDraft = Record<string, string>;
 
 export interface PrimerDraftInput {
   maps: CampaignMaps;
-  module: (ModuleTypes & Pick<GameModule, "primer" | "manifest">) | undefined;
+  module: (ModuleTypes & Pick<GameModule, "primer" | "manifest"> & Partial<Pick<GameModule, "calendar">>) | undefined;
   /** A loaded rich-text body by doc id (adventure player intros). */
   doc: (id: Id) => Y.Doc | undefined;
   /** Active supplements, by name. */
@@ -140,7 +140,7 @@ export function draftPrimer(input: PrimerDraftInput): PrimerDraft {
 
   // common knowledge: the timeline the players can see, oldest first
   const events = Object.values(projected.timeline).sort((a, b) => a.inWorldDate.localeCompare(b.inWorldDate) || a.id.localeCompare(b.id));
-  put("lore", [events.map((e) => `- **${e.inWorldDate}**: ${oneLine(e.text)}`).join("\n")]);
+  put("lore", [events.map((e) => `- **${displayCalendarDate(module?.calendar, e.inWorldDate)}**: ${oneLine(e.text)}`).join("\n")]);
 
   // places, then factions, by name
   const known = (kind: string) =>
