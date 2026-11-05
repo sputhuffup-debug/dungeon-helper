@@ -62,7 +62,7 @@ test("5e: a player's own GM-only PC, a monster's stat block, the Atlas preview a
   // read-only: the values as text (a stripped field used to read as its default, Level 1 and AC 10)
   await expect(page.locator('[data-path="level"]')).toContainText("5");
   await expect(page.locator('[data-path="ac"]')).toContainText("17");
-  await expect(page.getByTestId("computed-dexterityMod")).toHaveText("2");
+  await expect(page.getByTestId("computed-dexterityMod")).toHaveText("+2");
   await expect(page.locator('[data-section="notes"]')).toHaveCount(0);
   await page.getByTestId("player-sheet-toggle").uncheck();
 

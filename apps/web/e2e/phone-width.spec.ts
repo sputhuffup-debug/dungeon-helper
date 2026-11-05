@@ -19,9 +19,8 @@ test("390 px: the job board (with a long badge) and the GM screen fit the phone"
 
   await page.goto(`${base}/generate/alien.job-board`);
   await expect(page.getByTestId("offer-board")).toBeVisible();
-  // the job board reads no links, so its campaign input does not claim "0 links"
-  await expect(page.getByTestId("input-campaign")).toContainText(/\d+ entit(y|ies), read when the page opened/);
-  await expect(page.getByTestId("input-campaign")).not.toContainText(/\d+ links?\b/);
+  // the job board reads the campaign's "within" links (a bar inside the home base), so it counts them
+  await expect(page.getByTestId("input-campaign")).toContainText(/\d+ entit(y|ies) and \d+ links?, read when the page opened/);
   // a thread's long title on a badge, as the arcs put one there
   await page.evaluate(() => {
     const badge = document.querySelector(".offer-card__badges .cf-badge");
