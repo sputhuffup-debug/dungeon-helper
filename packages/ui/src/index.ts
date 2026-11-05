@@ -61,7 +61,7 @@ export { CounterTracker, countersFor, counterPath, type CounterSpec } from "./tr
 export { ZoneMapEditor, cycleBorder, nextBorderKind, type ZoneMapEditorProps, type MapTool } from "./map/ZoneMapEditor";
 export { ZoneMapView, type ZoneMapViewProps, type MapToken } from "./map/ZoneMapView";
 export { MapStage, BorderLines, ZoneShape, useMapView, mapSize, zoneCenter, borderBetween, type MapView } from "./map/shared";
-export { SiteMapView, MapLegend, nodeToReact, screenScale, type SiteMapViewProps, type MapLegendProps } from "./map/SiteMapView";
+export { SiteMapView, MapLegend, focusBox, nodeToReact, screenScale, type SiteMapViewProps, type MapLegendProps } from "./map/SiteMapView";
 export {
   drawSiteMap,
   drawBorder,
@@ -114,6 +114,7 @@ export { planRollPrint, rollPrintPages, zoneKeyEntries, sheetTitle, formatInches
 export { renderRollPdf } from "./map/rollPdf";
 export { svgPagesToPdf, parsePathData, parseTransform, parseColor, jpegInfo, jpegFromDataUrl, PDF_MAX_UNITS, type PdfPage, type PdfInfo, type JpegInfo } from "./map/sitePdf";
 export { rotateLayout, type QuarterTurn } from "./map/rotateLayout";
+export { noticeBlock, noticeLines, noticePage } from "./map/notice";
 export { titleBlock, scaleBar, scaleText, scaleTextFor, scaleUnitFor, squareName, printScalesFor, defaultMmPerMetre, isMiniatureScale, defaultGridSquares, PRINT_SCALES, DEFAULT_MM_PER_METRE, VIEW_NAMES, type PrintScale, type ScaleUnit, type TitleBlockInput, type TitleBlockFrame, type TitleBlock } from "./map/titleBlock";
 export { LabelPlacer, boxesOverlap, boxInside, boxInPolygon, insetBox, boxAround, scanPositions, overlappingPairs, placementProblems, type LabelBox, type PlacedLabel, type PlaceRequest, type ScanFrom } from "./map/labelPlacement";
 export { textWidth, ellipsize, wrapText, winAnsiBytes, MAP_FONT } from "./map/textMetrics";

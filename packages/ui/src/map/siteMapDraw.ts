@@ -645,6 +645,8 @@ export interface SiteMapDrawing {
   /** Total size in grid units, margins included. */
   width: number;
   height: number;
+  /** The deck point drawn at the margin's inner corner: (0, 0), or the corner of a cropped player map ("hide" fog). */
+  origin: { x: number; y: number };
   deck: string | undefined;
   /** Marker texts moved off the map, in drawing order. */
   callouts: SiteMapCallout[];
@@ -1437,7 +1439,7 @@ export function drawSiteMap(layout: SiteLayout, opts: SiteMapDrawOptions): SiteM
   }
 
   const node = el("g", { transform: `translate(${margin - ox} ${margin - oy})`, "data-deck": deck?.id, "data-view": view }, [defs, ...layers]);
-  return { node, width, height, deck: deck?.id, callouts, labels: placer.boxes };
+  return { node, width, height, origin: { x: ox, y: oy }, deck: deck?.id, callouts, labels: placer.boxes };
 }
 
 export type BadgeGlyph = "exit" | "up" | "down" | "both" | "drop";

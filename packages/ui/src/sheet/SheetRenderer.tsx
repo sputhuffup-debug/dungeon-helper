@@ -1,12 +1,11 @@
 import { useId, useMemo, type CSSProperties } from "react";
 import {
   computeFields,
-  fieldSchemaAt,
+  entityFieldSchemaAt,
+  entitySheet,
   getPath,
-  schemaAt,
   sectionApplies,
   setPath,
-  sheetFieldsForMode,
   type EntityTypeDef,
   type FieldValidationError,
   type JsonSchema,
@@ -49,6 +48,14 @@ export interface SheetRendererProps extends Omit<SheetContextValue, "tableMode" 
    * rendered with the widget its schema (or computed value) suggests.
    */
   paths?: string[];
+  /**
+   * For a view of what someone else may see (a player sheet): may this value
+   * path be shown? A field it says no to is left out, never drawn empty or
+   * with its schema default in place of the hidden value (a wrong number),
+   * and a section left with no field goes too. Computed values are asked by
+   * their name, so the caller can hide one read from a hidden field.
+   */
+  visible?: (path: string) => boolean;
 }
 
 export function normalizeErrors(errors: SheetErrors | undefined): Record<string, string> {
@@ -107,6 +114,7 @@ export function SheetRenderer(props: SheetRendererProps) {
     className,
     sections: onlySections,
     paths: onlyPaths,
+    visible,
     onRoll,
     onOpenRule,
     ruleTitle,
@@ -124,31 +132,27 @@ export function SheetRenderer(props: SheetRendererProps) {
 
   const computed = useMemo(() => computedProp ?? computeFields(def, fields), [computedProp, def, fields]);
   const errorMap = useMemo(() => normalizeErrors(errors), [errors]);
-  const sub = subtype ? def.subtypes?.find((s) => s.id === subtype) : undefined;
 
   const sections = useMemo(() => {
-    const base = sheetFieldsForMode(def, mode);
-    const extra = sub?.sheet ? sheetFieldsForMode({ ...def, sheet: sub.sheet }, mode) : [];
-    const all = [...base, ...extra];
+    // the type's sections and the subtype's, as every view of the entity reads them
+    const all = entitySheet(def, subtype, mode).sections;
+    const shown = (f: SheetField) => !visible || visible(valuePathOf(f.path) || f.path);
+    const keep = (list: SheetSection[]): SheetSection[] => (visible ? list.map((s) => ({ ...s, fields: s.fields.filter(shown) })).filter((s) => s.fields.length > 0) : list);
     if (onlyPaths) {
       const byPath = new Map<string, SheetField>();
       for (const section of all) for (const f of section.fields) if (!byPath.has(f.path)) byPath.set(f.path, f);
       const fields = onlyPaths.map((p) => byPath.get(p) ?? { path: p });
-      return [{ id: "_paths", title: "", fields } satisfies SheetSection];
+      return keep([{ id: "_paths", title: "", fields } satisfies SheetSection]);
     }
-    return onlySections ? all.filter((s) => onlySections.includes(s.id)) : all;
-  }, [def, mode, sub, onlySections, onlyPaths]);
+    return keep(onlySections ? all.filter((s) => onlySections.includes(s.id)) : all);
+  }, [def, mode, subtype, onlySections, onlyPaths, visible]);
 
   const ctx = useMemo<SheetContextValue>(
     () => ({ mode, tableMode, onRoll, onOpenRule, ruleTitle, onPickEntity, resolveEntityName, resolveAssetUrl, onOpenMap, resolveMap, castMembers, dice, presetsFor, entitiesOf, entityId }),
     [mode, tableMode, onRoll, onOpenRule, ruleTitle, onPickEntity, resolveEntityName, resolveAssetUrl, onOpenMap, resolveMap, castMembers, dice, presetsFor, entitiesOf, entityId],
   );
 
-  const schemaFor = (path: string): JsonSchema | undefined => {
-    const own = fieldSchemaAt(def, path);
-    if (own) return own;
-    return sub?.schema ? schemaAt(sub.schema, path) : undefined;
-  };
+  const schemaFor = (path: string): JsonSchema | undefined => entityFieldSchemaAt(def, subtype, path);
 
   return (
     <SheetContextProvider value={ctx}>

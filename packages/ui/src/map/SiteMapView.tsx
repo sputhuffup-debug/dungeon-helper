@@ -113,8 +113,13 @@ export interface SiteMapViewProps {
 const FOCUS_PAD = 2;
 const FOCUS_MIN = 14;
 
-/** The box (grid units, drawing coordinates: deck origin plus the 1-unit margin) around the focus zones on a deck. */
-export function focusBox(layout: SiteLayout, deck: string | undefined, zones: string[] | undefined): { x: number; y: number; w: number; h: number } | undefined {
+/**
+ * The box (grid units, drawing coordinates: deck origin plus the 1-unit
+ * margin) around the focus zones on a deck. `origin` is the drawing's deck
+ * origin (`SiteMapDrawing.origin`): a cropped player map starts there, not
+ * at the deck's corner.
+ */
+export function focusBox(layout: SiteLayout, deck: string | undefined, zones: string[] | undefined, origin: { x: number; y: number } = { x: 0, y: 0 }): { x: number; y: number; w: number; h: number } | undefined {
   if (!zones?.length) return undefined;
   const ids = new Set(zones);
   const polys = layout.zones.filter((z) => ids.has(z.id) && z.deck === deck).map((z) => z.poly);
@@ -133,8 +138,8 @@ export function focusBox(layout: SiteLayout, deck: string | undefined, zones: st
   const margin = 1;
   const w = Math.max(FOCUS_MIN, x1 - x0 + FOCUS_PAD * 2);
   const h = Math.max(FOCUS_MIN * 0.75, y1 - y0 + FOCUS_PAD * 2);
-  const cx = (x0 + x1) / 2 + margin;
-  const cy = (y0 + y1) / 2 + margin;
+  const cx = (x0 + x1) / 2 + margin - origin.x;
+  const cy = (y0 + y1) / 2 + margin - origin.y;
   return { x: cx - w / 2, y: cy - h / 2, w, h };
 }
 
@@ -193,7 +198,7 @@ export function SiteMapView({
   const viewportRef = useViewportRef();
   const { view: stage, setView, zoomAt, fit: fitAll, fitBox, onWheel } = useMapView(viewportRef, width, height);
   const focusKey = (focus ?? []).join("|");
-  const box = useMemo(() => focusBox(layout, deck, focusKey ? focusKey.split("|") : undefined), [layout, deck, focusKey]);
+  const box = useMemo(() => focusBox(layout, deck, focusKey ? focusKey.split("|") : undefined, drawing.origin), [layout, deck, focusKey, drawing.origin]);
   const focusOn = () => {
     if (box) fitBox({ x: box.x * scale, y: box.y * scale, w: box.w * scale, h: box.h * scale });
     else fitAll();

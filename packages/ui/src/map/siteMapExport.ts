@@ -9,6 +9,7 @@ import type { SiteLayout } from "@campaign-forge/module-sdk";
 import { drawSiteMap, el, nodeToString, resolvePalette, type SiteMapDrawOptions, type SvgNode } from "./siteMapDraw";
 import { MAP_FONT } from "./textMetrics";
 import { scaleTextFor, scaleUnitFor, titleBlock } from "./titleBlock";
+import { noticeBlock } from "./notice";
 import { sheetTitle, zoneKeyEntries } from "./rollPrint";
 
 export interface ExportTitleBlock {
@@ -26,6 +27,8 @@ export interface RenderSvgOptions extends Omit<SiteMapDrawOptions, "interactive"
   title?: string;
   /** Add a title block with a 5 m scale bar below the map (never over it). */
   titleBlock?: boolean | ExportTitleBlock | undefined;
+  /** A licence notice printed in small type at the foot (the attribution a module's licence requires in every copy). */
+  notice?: string | undefined;
 }
 
 const XMLNS = "http://www.w3.org/2000/svg";
@@ -39,6 +42,16 @@ const EXPORT_PT = 1 / 18;
 
 /** The drawing plus, optionally, a title block band below it, in grid units. */
 export function composeSiteMap(layout: SiteLayout, options: Omit<RenderSvgOptions, "scale" | "physical">, scaleLine?: string): { node: SvgNode; width: number; height: number } {
+  const composed = composeMapAndTitle(layout, options, scaleLine);
+  if (!options.notice?.trim()) return composed;
+  // the licence notice: a band of small type under everything else
+  const margin = options.margin ?? 1;
+  const block = noticeBlock(options.notice, margin, composed.height, Math.max(1, composed.width - 2 * margin), EXPORT_PT);
+  const bg = el("rect", { x: 0, y: composed.height, width: composed.width, height: block.height + margin, fill: options.view === "tracking" ? "#ffffff" : resolvePalette(options.palette).background });
+  return { node: el("g", {}, [composed.node, bg, block.node]), width: composed.width, height: composed.height + block.height + margin };
+}
+
+function composeMapAndTitle(layout: SiteLayout, options: Omit<RenderSvgOptions, "scale" | "physical">, scaleLine?: string): { node: SvgNode; width: number; height: number } {
   const d = drawSiteMap(layout, { ...options, interactive: false });
   if (!options.titleBlock) return { node: d.node, width: d.width, height: d.height };
   const tb = typeof options.titleBlock === "object" ? options.titleBlock : {};
@@ -128,6 +141,8 @@ export interface PrintTileOptions extends Omit<SiteMapDrawOptions, "interactive"
   /** Overlap between neighbouring tiles in cm (default 1). */
   overlapCm?: number;
   title?: string;
+  /** A licence notice, printed on a last page of its own. */
+  notice?: string | undefined;
 }
 
 export interface PrintTile {
@@ -145,6 +160,8 @@ export interface PrintTiles {
   pageWidth: number;
   pageHeight: number;
   tiles: PrintTile[];
+  /** A licence notice for a last page of its own. */
+  notice?: string;
 }
 
 function tileCount(total: number, printable: number, overlap: number): number {
@@ -214,7 +231,7 @@ export function printTiles(layout: SiteLayout, options: PrintTileOptions): Print
       tiles.push({ row, col, svg: `${head}${body}</svg>` });
     }
   }
-  return { paper: options.paper ?? "a4", orientation, rows: best.rows, cols: best.cols, pageWidth: best.pw, pageHeight: best.ph, tiles };
+  return { paper: options.paper ?? "a4", orientation, rows: best.rows, cols: best.cols, pageWidth: best.pw, pageHeight: best.ph, tiles, ...(options.notice?.trim() ? { notice: options.notice.trim() } : {}) };
 }
 
 /** A printable HTML document with one tile per page. */
@@ -228,9 +245,19 @@ html, body { margin: 0; padding: 0; background: #fff; }
 .page { width: ${t.pageWidth}cm; height: ${t.pageHeight}cm; page-break-after: always; break-after: page; overflow: hidden; }
 .page:last-child { page-break-after: auto; break-after: auto; }
 .page svg { display: block; }
+.notice { box-sizing: border-box; padding: 1.5cm; font: 9pt/1.4 system-ui, sans-serif; color: #333; }
+.notice h1 { font-size: 12pt; margin: 0 0 8pt; }
 </style></head>
 <body>
 ${t.tiles.map((x) => `<div class="page">${x.svg}</div>`).join("\n")}
+${
+  t.notice
+    ? `<div class="page notice"><h1>Licence</h1>${t.notice
+        .split(/\n\s*\n/)
+        .map((p) => `<p>${esc(p.trim())}</p>`)
+        .join("")}</div>`
+    : ""
+}
 </body></html>
 `;
 }

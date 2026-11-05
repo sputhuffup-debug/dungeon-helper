@@ -34,6 +34,17 @@ describe("SheetRenderer", () => {
     expect(onChange).toHaveBeenCalledWith({ ...fields, attributes: { might: 4, wits: 2 } });
   });
 
+  it("leaves out what a viewer may not see, and a section left with nothing, instead of drawing defaults", () => {
+    const fields = heroFields();
+    delete (fields as Record<string, unknown>).notes;
+    const hidden = new Set(["attributes.might", "health", "notes"]);
+    const { container } = render(<SheetRenderer def={hero} mode="standard" fields={fields} onChange={() => {}} readonly referenceLists={referenceLists} visible={(p) => !hidden.has(p)} />);
+    expect(container.querySelector('[data-path="attributes.might"]')).toBeNull();
+    expect(container.querySelector('[data-path="health"]')).toBeNull();
+    expect(container.querySelector('[data-path="attributes.wits"]')).not.toBeNull();
+    expect(sectionIds(container)).not.toContain("notes");
+  });
+
   it("shows the hardcore section in hardcore mode", () => {
     const { container } = render(<SheetRenderer def={hero} mode="hardcore" fields={heroFields()} onChange={() => {}} referenceLists={referenceLists} />);
     expect(sectionIds(container)).toEqual(["core", "gear", "hardcore", "advancement", "notes"]);
