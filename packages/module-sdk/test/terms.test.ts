@@ -29,6 +29,7 @@ describe("module terms", () => {
   it("write names as running text", () => {
     expect(nounOf("Player character")).toBe("player character");
     expect(nounOf("NPC")).toBe("NPC");
+    expect(nounOf("Crew NPCs")).toBe("crew NPCs");
     expect(upperFirst("party")).toBe("Party");
   });
 });

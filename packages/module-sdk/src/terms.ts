@@ -31,11 +31,11 @@ export const DEFAULT_TERMS: Readonly<Required<ModuleTerms>> = {
   epiloguePrompt: "What happens afterwards…",
 };
 
-/** A name in running text: "Player character" -> "player character"; an acronym such as "NPC" stays as written. */
+/** A name in running text: "Player character" -> "player character"; an acronym such as "NPC" or "NPCs" (two capitals or more) stays as written. */
 export function nounOf(name: string): string {
   return name
     .split(" ")
-    .map((w) => (w.length > 1 && /[A-Z]/.test(w) && w === w.toUpperCase() ? w : w.toLowerCase()))
+    .map((w) => (/[A-Z].*[A-Z]/.test(w) ? w : w.toLowerCase()))
     .join(" ");
 }
 
