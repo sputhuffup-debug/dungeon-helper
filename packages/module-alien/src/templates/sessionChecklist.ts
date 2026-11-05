@@ -13,7 +13,7 @@ export const sessionChecklistScaffold: TemplateChecklist = {
       id: "alien.prep.agendas",
       phase: "prep",
       mode: [CINEMATIC],
-      page: [27, 158],
+      page: { pages: [27, 158] },
       text: "Prepare this act's personal agendas",
       guidance: "Each PC gets a new, hidden agenda as a handout at the start of every act. Keep them secret from the other players.",
     },

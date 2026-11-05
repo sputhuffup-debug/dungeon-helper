@@ -32,6 +32,26 @@ function levelChoice(): { choice: ChoiceState; draft: StoredDraft } {
   return { choice, draft };
 }
 
+describe("a pick that is no longer available", () => {
+  it("can be unticked, and a new tick replaces it rather than a valid pick", () => {
+    const builder = module.characterBuilders![0]!;
+    // Insight picked for the class, then the Acolyte background (which gives Insight) chosen
+    const draft: StoredDraft = { ...emptyDraft(builder), picks: { edition: ["2014"], class: ["paladin"], "class/skills": ["athletics", "insight"], background: ["acolyte"] }, id: "d", created: "2026-10-29T00:00:00Z", updated: "2026-10-29T00:00:00Z", seed: "s" };
+    const result = resolveCharacterBuilder(module, builder, draft);
+    const skills = builderChoices(result).find((c) => c.path === "class/skills")!;
+    expect(skills.options.find((o) => o.id === "insight")!.available).toBe(false);
+    expect(skills.issues.some((i) => i.level === "error" && /Insight cannot be picked/.test(i.message))).toBe(true);
+    let next: StoredDraft | undefined;
+    render(<ChoiceView choice={skills} draft={draft} onDraft={(d) => (next = d)} depth={1} />);
+    const section = screen.getByTestId("choice:class/skills");
+    fireEvent.click(within(section).getByRole("checkbox", { name: "Insight" }));
+    expect(next?.picks["class/skills"]).toEqual(["athletics"]);
+    // ticking another skill while full drops the unavailable pick, not Athletics
+    fireEvent.click(within(section).getByRole("checkbox", { name: "Medicine" }));
+    expect(next?.picks["class/skills"]).toEqual(["athletics", "medicine"]);
+  });
+});
+
 describe("builder option details", () => {
   it("opens and closes a subclass's details from its Details button (a sub-choice)", () => {
     const { choice, draft } = levelChoice();

@@ -9,6 +9,7 @@
  */
 import type { D20CombatDef, D20ConditionDef, ReferenceList } from "@campaign-forge/module-sdk";
 import { ABILITIES, CHARACTER, cite, LIST, MONSTER, rule, saveBonusName, SAVES, SKILLS } from "../ids.ts";
+import { ATTACK_BONUS, ATTACK_DAMAGE_BONUS } from "./entityTypes.ts";
 
 const STR_DEX = ["strength-save", "dexterity-save"];
 const condition = (c: Omit<D20ConditionDef, "cite" | "rule">): D20ConditionDef => ({ ...c, cite: cite("Conditions", c.name), rule: rule(`conditions.${c.id}`) });
@@ -182,7 +183,8 @@ export function d20Combat(lists: ReferenceList[]): D20CombatDef {
     attackAbilities: { melee: "strength", ranged: "dexterity" },
     skillAbilities: Object.fromEntries(SKILLS.map((s) => [s.id, s.ability])),
     combatants: [
-      { entityTypes: [CHARACTER], ac: { var: ["fields.ac", 10] }, hp, saves, attacks: [{ path: "attacks", keys: { damageType: "type" } }], speed: { var: ["fields.speed", 30] } },
+      // a weapon row that names its ability gets its to-hit and damage modifier from the sheet (rule 4)
+      { entityTypes: [CHARACTER], ac: { var: ["fields.ac", 10] }, hp, saves, attacks: [{ path: "attacks", keys: { damageType: "type" }, bonus: ATTACK_BONUS, damageBonus: ATTACK_DAMAGE_BONUS }], speed: { var: ["fields.speed", 30] } },
       { entityTypes: [MONSTER], ac: { var: ["fields.ac", 10] }, hp, saves, damageModifiers: "damageModifiers", conditionImmunities: "conditionImmunities", attacks: [{ path: "attacks" }], speed: { var: ["fields.speed", ""] } },
     ],
     rules: { crit: "natural20Doubles", critDamage: "dice", save: "total", halfSave: { success: 0.5, failure: 1 }, stacking: "typed", damageOrder: ["immunity", "resistance", "vulnerability"] },

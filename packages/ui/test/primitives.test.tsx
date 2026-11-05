@@ -8,6 +8,8 @@ describe("PageRef", () => {
   it("formats single pages and ranges", () => {
     expect(formatPageRef(43)).toBe("p. 43");
     expect(formatPageRef([42, 43])).toBe("p. 42–43");
+    // pages cited together are a list, not one range
+    expect(formatPageRef({ pages: [27, 158] })).toBe("p. 27, 158");
     render(<PageRef page={[40, 41]} />);
     expect(screen.getByText("p. 40–41")).toBeInTheDocument();
   });

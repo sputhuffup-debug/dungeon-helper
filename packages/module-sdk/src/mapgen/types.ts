@@ -174,6 +174,14 @@ export interface DungeonEncounters {
   creatureType: string;
   /** XP (or any cost) of one creature: the context plus `group` and `preset`. Summed into `encounter.xp`. */
   xp?: JsonLogicRule;
+  /**
+   * The most `encounter.xp` one encounter should cost for this party: JSONLogic
+   * over the room's context (`inputs.partyLevel`, `inputs.partySize`, `threat`,
+   * `room`). A roll over it is re-rolled (up to eleven more times), a group
+   * that comes in numbers is thinned to fit, and the Checks name every
+   * encounter still above it.
+   */
+  budget?: JsonLogicRule;
   /** "What they are doing": a table rolled per encounter (row label). */
   activity?: string;
   /** The key text (DCs, XP, tactics): the context plus `encounter`. */

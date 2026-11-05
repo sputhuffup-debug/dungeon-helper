@@ -1,4 +1,4 @@
-import type { PageRef as PageRefValue } from "@campaign-forge/module-sdk";
+import { pageRefText, type PageRef as PageRefValue } from "@campaign-forge/module-sdk";
 import { createContext, useContext, type ReactNode } from "react";
 import { cx } from "../sheet/paths";
 
@@ -14,11 +14,9 @@ export function usePageRefsHidden(): boolean {
   return useContext(PageRefsHidden);
 }
 
+/** "p. 43", "p. 42–43", or for pages cited together "p. 27, 158". */
 export function formatPageRef(page: PageRefValue | undefined, prefix = "p."): string {
-  if (page === undefined || page === null) return "";
-  if (typeof page === "number") return `${prefix} ${page}`;
-  const [a, b] = page;
-  return a === b ? `${prefix} ${a}` : `${prefix} ${a}–${b}`;
+  return pageRefText(page, prefix);
 }
 
 /** "p. 43", or the section citation, or "Original" for module-authored content; "" when there is nothing to show. */

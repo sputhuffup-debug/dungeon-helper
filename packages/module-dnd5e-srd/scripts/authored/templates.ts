@@ -187,7 +187,7 @@ export const adviceRules: RuleCard[] = [
   {
     id: id("rule.advice.encounters"),
     title: "Building encounters (GM advice)",
-    summary: "The encounter generator is a starting point, not a balance formula: it picks SRD monsters whose challenge rating suits the party's level band and the terrain. Adjust numbers to the party's size and resources, and give every fight a reason, a place that matters and a way out.",
+    summary: "The encounter generator is a starting point, not a balance formula: it picks SRD monsters whose challenge rating suits the party's level band and the terrain. The dungeon generator also keeps each encounter within a rough XP budget for the party (level × (50 + 15 × level) XP per character, a rule of thumb of its own) and its Checks name any that is still above it. Adjust numbers to the party's size and resources, and give every fight a reason, a place that matters and a way out.",
     original: true,
     tags: ["gm advice"],
     links: { tables: [id("encounter.activity")] },

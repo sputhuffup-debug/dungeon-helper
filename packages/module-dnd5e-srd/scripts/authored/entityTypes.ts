@@ -129,6 +129,53 @@ function statsGmOnly(schema: JsonSchema, shown: string[]): Record<string, "gm"> 
   return Object.fromEntries(Object.keys(schema.properties as Record<string, unknown>).filter((k) => !shown.includes(k)).map((k) => [k, "gm" as const]));
 }
 
+/** The abilities an attack row can use: one of the six, the better of Strength and Dexterity (finesse), or the spellcasting ability. */
+export const ATTACK_ABILITIES: Array<{ id: string; name: string }> = [
+  ...ABILITIES.map((a) => ({ id: a.id, name: a.name })),
+  { id: "finesse", name: "Strength or Dexterity (finesse)" },
+  { id: "spellcasting", name: "Spellcasting ability" },
+];
+
+/** An attack row's ability modifier: JSONLogic over `{ fields, computed, item }`. */
+export const ATTACK_MOD: Rule = ifs(
+  eq(v("item.ability", ""), "finesse"),
+  max(v("computed.strengthMod", 0), v("computed.dexterityMod", 0)),
+  eq(v("item.ability", ""), "spellcasting"),
+  v("computed.spellcastingMod", 0),
+  v({ cat: ["computed.", v("item.ability", ""), "Mod"] } as unknown as string, 0),
+);
+/** An attack row's to-hit when it names its ability (else none): the modifier plus proficiency when proficient. */
+export const ATTACK_BONUS: Rule = ifs(v("item.ability", ""), add(ATTACK_MOD, ifs(v("item.proficient", false), v("computed.proficiencyBonus", 2), 0)), null);
+/** The flat number added to a row's damage dice: the ability modifier, except for a spell attack's. */
+export const ATTACK_DAMAGE_BONUS: Rule = ifs({ and: [v("item.ability", ""), { "!=": [v("item.ability", ""), "spellcasting"] }] }, ATTACK_MOD, 0);
+const signedOf = (x: Rule): Rule => ifs(gt(x, 0), cat("+", x), { "<": [x, 0] }, cat(x), "");
+/** The sheet's "To hit" column: the bonus typed by hand, else the worked-out one. */
+const ATTACK_TO_HIT_TEXT: Rule = ifs(v("item.bonus", ""), v("item.bonus"), v("item.ability", ""), signedText(ATTACK_BONUS), "");
+/** The sheet's "Damage" column: the dice with the modifier ("1d8+3"). */
+const ATTACK_DAMAGE_TEXT: Rule = ifs(
+  v("item.damage", ""),
+  cat(v("item.damage"), ifs({ matches: [v("item.damage"), "^\\s*\\d*d?\\d+\\s*$"] }, "", ifs({ "!=": [ATTACK_DAMAGE_BONUS, 0] }, " ", "")), signedOf(ATTACK_DAMAGE_BONUS), ifs(v("item.type", ""), cat(" ", v("item.type")), "")),
+  "",
+);
+/** Whether the character's proficiencies (the sheet's text) cover a weapon of the list (its category, or its name). */
+export const WEAPON_PROFICIENT = (item: string): Rule => ({
+  or: [
+    { and: [{ startsWith: [v(`${item}.category`, ""), "Simple"] }, { matches: [v("fields.proficiencies", ""), "simple (and martial )?weapons|simple weapons"] }] },
+    { and: [{ startsWith: [v(`${item}.category`, ""), "Martial"] }, { matches: [v("fields.proficiencies", ""), "martial weapons"] }] },
+    { matches: [v("fields.proficiencies", ""), { cat: ["\\b", v(`${item}.name`, "-"), "s?\\b"] }] },
+  ],
+});
+/** A weapon of the list as an attack row: its dice and type, Dexterity for a ranged weapon, the better of the two with finesse. */
+export const WEAPON_ROW: Record<string, Rule> = {
+  name: v("item.name"),
+  damage: v("item.builder.attack.dice", v("item.damage")),
+  type: v("item.builder.attack.type", ""),
+  ability: ifs({ matches: [v("item.properties", ""), "finesse"] }, "finesse", { matches: [v("item.category", ""), "Ranged"] }, "dexterity", "strength"),
+  kind: ifs({ matches: [v("item.category", ""), "Ranged"] }, "ranged", "melee"),
+  proficient: WEAPON_PROFICIENT("item"),
+  notes: ifs({ "!=": [v("item.properties", "—"), "—"] }, v("item.properties"), ""),
+};
+
 /** Computed bonuses: ability modifiers, then every skill and save as modifier + proficiency × multiplier + flat bonus. */
 function rollBonuses(): Record<string, Rule> {
   const out: Record<string, Rule> = {};
@@ -153,7 +200,7 @@ const XP_FOR_LEVEL = [0, 300, 900, 2700, 6500, 14000, 23000, 34000, 48000, 64000
 
 const abilityFields = (): SheetField[] => [
   ...ABILITIES.map((a): SheetField => ({ path: `abilities.${a.id}`, label: a.name, widget: "attribute", rule: rule("ability-scores-and-modifiers") })),
-  ...ABILITIES.map((a): SheetField => ({ path: modName(a.id), label: `${a.abbr} modifier`, widget: "computed" })),
+  ...ABILITIES.map((a): SheetField => ({ path: modName(a.id), label: `${a.abbr} modifier`, widget: "computed", config: { signed: true } })),
 ];
 
 const skillsWidget = (hideZero: boolean): SheetField => ({
@@ -213,7 +260,8 @@ export function characterType(classes: ReferenceList, spellSlots: Record<string,
     const a = String(classItems.get(c)!.spellcasting ?? "—").toLowerCase();
     if (ABILITIES.some((x) => x.id === a)) byAbility.set(a, [...(byAbility.get(a) ?? []), c]);
   }
-  const classAbility: Rule = ifs(...[...byAbility.entries()].flatMap(([a, list]) => [inList(cls, list), a]), "");
+  const abilityOf = (c: Rule): Rule => ifs(...[...byAbility.entries()].flatMap(([a, list]) => [inList(c, list), a]), "");
+  const classAbility: Rule = abilityOf(cls);
 
   // Multiclassing (SRD 5.1, Multiclassing): a character with more than one class lists them in `classLevels`.
   const classLevels = v("fields.classLevels", []);
@@ -268,6 +316,7 @@ export function characterType(classes: ReferenceList, spellSlots: Record<string,
     ),
   };
   const avgOf = (faces: Rule): Rule => ifs(gt(faces, 0), add(floor({ "/": [faces, 2] }), 1), 0);
+  const toughness: Rule = ifs({ find: [v("fields.features", []), "name", "Dwarven Toughness"] }, level, 0);
 
   const computed: Record<string, Rule> = {
     ...abilityMods(),
@@ -278,18 +327,20 @@ export function characterType(classes: ReferenceList, spellSlots: Record<string,
     hitDieFaces,
     hitDie: ifs(multi, reduce(cat(v("accumulator"), ifs(v("accumulator"), " + ", ""), cur("level"), "d", facesOf(cur("class"))), ""), gt(v("computed.hitDieFaces"), 0), cat("d", v("computed.hitDieFaces")), "—"),
     hitDiceLeft: max(0, sub(level, v("fields.hitDiceSpent", 0))),
-    // First level: the hit die's maximum; later levels: its average rounded up (half + 1); Constitution each level.
+    // First level: the hit die's maximum; later levels: its average rounded up (half + 1); Constitution each level;
+    // Dwarven Toughness (a feature of that name) adds 1 per level.
     // Multiclass: the first class's die at 1st level, every other level its own class's average.
     suggestedHpMax: ifs(
       multi,
-      max(1, add(reduce(add(v("accumulator"), mul(cur("level"), avgOf(facesOf(cur("class"))))), 0), sub(v("computed.hitDieFaces", 0), avgOf(v("computed.hitDieFaces", 0))), mul(level, v("computed.constitutionMod")))),
+      max(1, add(reduce(add(v("accumulator"), mul(cur("level"), avgOf(facesOf(cur("class"))))), 0), sub(v("computed.hitDieFaces", 0), avgOf(v("computed.hitDieFaces", 0))), mul(level, v("computed.constitutionMod")), toughness)),
       gt(v("computed.hitDieFaces"), 0),
-      max(1, add(v("computed.hitDieFaces"), v("computed.constitutionMod"), mul(sub(level, 1), add(floor({ "/": [v("computed.hitDieFaces"), 2] }), 1, v("computed.constitutionMod"))))),
+      max(1, add(v("computed.hitDieFaces"), v("computed.constitutionMod"), mul(sub(level, 1), add(floor({ "/": [v("computed.hitDieFaces"), 2] }), 1, v("computed.constitutionMod"))), toughness)),
       null,
     ),
     nextLevelXp: ifs({ "<": [level, 20] }, lookup(XP_FOR_LEVEL, max(1, min(19, level)), null), null),
     carryingCapacity: mul(v("fields.abilities.strength", 10), 15),
-    spellAbility: ifs(v("fields.spellcastingAbility", ""), v("fields.spellcastingAbility"), classAbility),
+    // a multiclass character casts with its first spellcasting class's ability (a Fighter 1 / Cleric 1 with Wisdom)
+    spellAbility: ifs(v("fields.spellcastingAbility", ""), v("fields.spellcastingAbility"), multi, reduce(ifs(v("accumulator"), v("accumulator"), abilityOf(cur("class"))), ""), classAbility),
     spellcastingMod: ifs(v("computed.spellAbility"), v({ cat: ["computed.", v("computed.spellAbility"), "Mod"] } as unknown as string, 0), null),
     spellSaveDc: ifs(v("computed.spellAbility"), add(8, v("computed.proficiencyBonus"), v("computed.spellcastingMod", 0)), null),
     spellAttack: ifs(v("computed.spellAbility"), signedText(add(v("computed.proficiencyBonus"), v("computed.spellcastingMod", 0))), null),
@@ -317,6 +368,7 @@ export function characterType(classes: ReferenceList, spellSlots: Record<string,
       race: text(120),
       subrace: text(120),
       background: text(120),
+      edition: { type: "string", enum: ["2014", "2024", "mixed"], enumLabels: ["SRD 5.1 (2014 rules)", "SRD 5.2 (2024 rules)", "Mixed"], description: "The rules the character was built with: a level-up follows them (empty reads as SRD 5.1)." },
       alignment: { type: "string", enum: ["lawful-good", "neutral-good", "chaotic-good", "lawful-neutral", "neutral", "chaotic-neutral", "lawful-evil", "neutral-evil", "chaotic-evil"] },
       xp: int(0, 10000000, 0),
       abilities: abilitiesSchema,
@@ -342,8 +394,10 @@ export function characterType(classes: ReferenceList, spellSlots: Record<string,
           type: "object",
           properties: {
             name: text(80),
-            bonus: text(20),
-            damage: text(80),
+            ability: { type: "string", enum: ATTACK_ABILITIES.map((a) => a.id), enumLabels: ATTACK_ABILITIES.map((a) => a.name), description: "The ability the attack uses: its modifier goes on the attack roll and (except a spell's) the damage." },
+            proficient: { type: "boolean", description: "Proficient with the weapon: the proficiency bonus goes on the attack roll." },
+            bonus: { ...text(20), description: "An attack bonus typed by hand (\"+5\"); leave empty to work it out from the ability and proficiency." },
+            damage: { ...text(80), description: "The damage dice (\"1d8\"); the ability modifier is added when an ability is set." },
             type: { type: "string", enum: DAMAGE_TYPES, description: "Damage type, when the damage text does not say." },
             kind: { type: "string", enum: ["melee", "ranged", "spell"], description: "Melee (the default), ranged or spell attack." },
             notes: text(200),
@@ -394,10 +448,11 @@ export function characterType(classes: ReferenceList, spellSlots: Record<string,
             { path: "race", label: "Race", widget: "text", options: { ref: LIST.races } },
             { path: "subrace", label: "Subrace", widget: "text", options: { ref: LIST.subraces }, config: { optionsFilter: { field: "race", key: "race" } } },
             { path: "background", label: "Background", widget: "text", options: { ref: LIST.backgrounds } },
+            { path: "edition", label: "Rules", widget: "select" },
             { path: "alignment", label: "Alignment", widget: "select", options: { ref: LIST.alignments } },
             { path: "xp", label: "Experience points", widget: "number" },
             { path: "nextLevelXp", label: "XP for next level", widget: "computed" },
-            { path: "proficiencyBonus", label: "Proficiency bonus", widget: "computed", rule: rule("proficiency-bonus") },
+            { path: "proficiencyBonus", label: "Proficiency bonus", widget: "computed", rule: rule("proficiency-bonus"), config: { signed: true } },
             { path: "player", label: "Player", widget: "text" },
             { path: "isPC", label: "Player character", widget: "checkbox" },
           ],
@@ -419,7 +474,7 @@ export function characterType(classes: ReferenceList, spellSlots: Record<string,
           columns: 4,
           fields: [
             { path: "ac", label: "Armor Class", widget: "number" },
-            { path: "initiative", label: "Initiative", widget: "computed", rule: rule("the-order-of-combat.initiative") },
+            { path: "initiative", label: "Initiative", widget: "computed", rule: rule("the-order-of-combat.initiative"), config: { signed: true } },
             { path: "speed", label: "Speed (ft.)", widget: "number" },
             { path: "size", label: "Size", widget: "select" },
             { path: "darkvision", label: "Darkvision (ft.)", widget: "number" },
@@ -457,7 +512,29 @@ export function characterType(classes: ReferenceList, spellSlots: Record<string,
         {
           id: "attacks",
           title: "Attacks",
-          fields: [{ path: "attacks", label: "Attacks", widget: "table", config: { columns: ["name", { key: "bonus", label: "Attack bonus" }, "damage", { key: "type", label: "Damage type" }, { key: "kind", label: "Attack" }, "notes"] } }],
+          fields: [
+            {
+              path: "attacks",
+              label: "Attacks",
+              widget: "table",
+              rule: rule("making-an-attack.attack-rolls"),
+              config: {
+                columns: [
+                  "name",
+                  { key: "ability", label: "Ability" },
+                  { key: "proficient", label: "Proficient" },
+                  { key: "toHit", label: "To hit", computed: ATTACK_TO_HIT_TEXT },
+                  { key: "bonus", label: "Bonus (by hand)" },
+                  { key: "damage", label: "Damage dice" },
+                  { key: "damageTotal", label: "Damage", computed: ATTACK_DAMAGE_TEXT },
+                  { key: "type", label: "Damage type" },
+                  { key: "kind", label: "Attack" },
+                  "notes",
+                ],
+                addFrom: { ref: LIST.weapons, label: "Add a weapon", where: { "!=": [v("item.damage", "—"), "—"] }, row: WEAPON_ROW },
+              },
+            },
+          ],
         },
         {
           id: "spellcasting",
@@ -470,7 +547,8 @@ export function characterType(classes: ReferenceList, spellSlots: Record<string,
             { path: "spellAttack", label: "Spell attack bonus", widget: "computed", rule: rule("casting-a-spell.spell-attack-rolls") },
             { path: "spellSlots", label: "Spell slots", widget: "computed", span: 12, rule: rule("what-is-a-spell.spell-slots") },
             { path: "spellSlotsUsed", label: "Slots used", widget: "object", span: 12 },
-            { path: "spells", label: "Spells known / prepared", widget: "tags", span: 12 },
+            // suggestions from the spell list, the character's class first (a chip's tooltip is the spell's summary)
+            { path: "spells", label: "Spells known / prepared", widget: "tags", span: 12, options: { ref: LIST.spells }, config: { optionsFilter: { field: "class", key: "classes" }, placeholder: "Add a spell…" } },
           ],
         },
         {
@@ -586,11 +664,11 @@ export function monsterType(): EntityTypeDef {
             { path: "hp.current", label: "Current hit points", widget: "number" },
             { path: "hp.temp", label: "Temporary hit points", widget: "number" },
             { path: "speed", label: "Speed", widget: "text", span: 6 },
-            { path: "cr", label: "Challenge rating", widget: "number" },
-            { path: "crLabel", label: "Challenge", widget: "computed" },
+            { path: "crLabel", label: "Challenge rating", widget: "computed" },
+            { path: "cr", label: "CR as a number (1/4 is 0.25)", widget: "number" },
             { path: "xp", label: "XP", widget: "number" },
-            { path: "proficiencyBonus", label: "Proficiency bonus", widget: "computed", rule: rule("proficiency-bonus") },
-            { path: "initiative", label: "Initiative", widget: "computed" },
+            { path: "proficiencyBonus", label: "Proficiency bonus", widget: "computed", rule: rule("proficiency-bonus"), config: { signed: true } },
+            { path: "initiative", label: "Initiative", widget: "computed", config: { signed: true } },
             { path: "passivePerception", label: "Passive Perception", widget: "computed", rule: rule("ability-checks.passive-checks") },
           ],
         },

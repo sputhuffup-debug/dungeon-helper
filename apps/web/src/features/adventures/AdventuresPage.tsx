@@ -120,11 +120,13 @@ function NewAdventureDialog({ open, onClose }: { open: boolean; onClose: () => v
   const [busy, setBusy] = useState(false);
   const [sourceId, setSourceId] = useState("");
   const entities = useList("entities");
+  const builders = useMemo(() => ctx.module.buildersFor(allModes ? undefined : meta.mode), [ctx.module, meta.mode, allModes]);
   const templates = useMemo(() => {
     const list = allModes ? ctx.module.templatesFor("adventure") : ctx.module.templatesFor("adventure", meta.mode);
-    return list.filter((t) => isTemplateAdventure(t.scaffold));
-  }, [ctx.module, meta.mode, allModes]);
-  const builders = useMemo(() => ctx.module.buildersFor(allModes ? undefined : meta.mode), [ctx.module, meta.mode, allModes]);
+    // a template a guided builder starts from is offered as that builder, not a second time on its own
+    const builderTemplates = new Set(builders.map((b) => b.templateId).filter(Boolean));
+    return list.filter((t) => isTemplateAdventure(t.scaffold) && !builderTemplates.has(t.id));
+  }, [ctx.module, meta.mode, allModes, builders]);
   const chosen: string = templateId === undefined ? (templates[0]?.id ?? "blank") : templateId;
   const modeName = (id: string) => ctx.module.manifest.modes.find((m) => m.id === id)?.name ?? id;
   // a template an adventure source fills (the Job card): pick the record to fill it from

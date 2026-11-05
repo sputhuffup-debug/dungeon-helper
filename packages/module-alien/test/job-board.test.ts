@@ -2,9 +2,9 @@ import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { runProcedure, type ModuleManifest, type Offer, type OfferSet, type ProcedureRunOptions } from "@campaign-forge/module-sdk";
 import { jobCreate } from "../src/procedures/job";
-import { jobBoard, type PostingData } from "../src/procedures/job-board";
+import { boardCast, jobBoard, titleWords, type PostingData } from "../src/procedures/job-board";
 import { NPC_ARCS, TREACHERY_DIAL } from "../src/procedures/job-board-data";
-import { RESOLVED_NPC_ARCS, effectiveDifficulty, isBetrayer } from "../src/procedures/npc-agendas";
+import { RESOLVED_NPC_ARCS, agendaContradicts, effectiveDifficulty, isBetrayer } from "../src/procedures/npc-agendas";
 import { tables } from "../src/tables/index";
 import * as jobTables from "../src/tables/jobs";
 import { JOB_BRIEF_ROWS, SIZE_BY_DIFFICULTY, briefFromJob, jobSiteBrief, type JobSiteBrief } from "../src/maps/jobBrief";
@@ -24,14 +24,16 @@ const briefOf = (o: Offer) => jobOf(o).fields.siteBrief as JobSiteBrief;
 describe("alien.job.create is unchanged", () => {
   it("produces the recorded output for 120 seeds across the three frames", () => {
     // Recorded before the job board was added (same seeds, inputs and optional twist); re-recorded once when a
-    // job stopped giving the same complication twice (the complications step became `distinct`: a repeat takes the next row), nothing else changed
+    // job stopped giving the same complication twice (the complications step became `distinct`: a repeat takes the next row), nothing else changed;
+    // and once when an employer the table gives only as a kind ("Colony representative", "Wealthy Individual") got a generated name
+    // (the new `employerName` step; every other step rolls as before)
     const out: string[] = [];
     for (const frame of FRAMES)
       for (let i = 0; i < 40; i++) {
         const g = runProcedure(jobCreate, mod, { seed: `job-fixture-${i}`, inputs: { frame, pcCount: 4 }, includeOptional: ["plotTwist"] });
         out.push(JSON.stringify({ r: g.results, p: g.produced, rolls: g.rolls }));
       }
-    expect(createHash("sha256").update(out.join("\n")).digest("hex")).toBe("167e1cc73c22aa04ab08eb48a70662b86a4c3510e6dd361184ef60ae4ecaa136");
+    expect(createHash("sha256").update(out.join("\n")).digest("hex")).toBe("cb8109c783840fb375b6766020df7d0a6575c9c03a09bf76e16cc5d32b2dea6e");
   });
 });
 
@@ -356,3 +358,42 @@ describe("the job board reads well", () => {
   });
 });
 
+
+describe("walkthrough fixes: what the board writes", () => {
+  it("an honest agenda never sits on a secret that works against the crew, and one posting rarely deals the same agenda twice", () => {
+    expect(agendaContradicts("honest-broker", "Was told to drop the crew if anything goes wrong")).toBe(true);
+    expect(agendaContradicts("honest-broker", "Has never set foot at the outpost and is guessing")).toBe(false);
+    let postings = 0;
+    let repeats = 0;
+    for (let i = 0; i < 40; i++) {
+      for (const o of board(`fit-${i}`, { treachery: "common" }).offers) {
+        postings++;
+        // the agenda's name opens its text ("The Honest Broker: ...")
+        const npcs = npcsOf(o).map((n) => ({ name: n.name, secret: String(n.fields.secret), agenda: String(n.fields.personalAgenda).split(":")[0]! }));
+        for (const n of npcs) expect(n.agenda === "The Honest Broker" && agendaContradicts("honest-broker", n.secret), `${n.name}: ${n.secret} / ${n.agenda}`).toBe(false);
+        const names = npcs.map((n) => n.agenda);
+        if (new Set(names).size < names.length) repeats++;
+      }
+    }
+    expect(repeats / postings).toBeLessThan(0.05);
+  });
+
+  it("titles read table labels as titles, and a bar inside the home base is where the booth is", () => {
+    expect(titleWords("Metal Ingots Or Pellets")).toBe("Metal Ingots or Pellets");
+    expect(titleWords("Or Else")).toBe("Or Else");
+    const cast = boardCast({
+      homeBase: { id: "h", name: "Ostrava Waystation" },
+      campaign: {
+        entities: [
+          { id: "h", kind: "location", name: "Ostrava Waystation", tags: ["home-base"] },
+          { id: "b", kind: "location", name: "The Rusted Anchor", tags: [] },
+          { id: "x", kind: "location", name: "The Old Bar", tags: [] },
+        ],
+        relationships: [{ type: "within", from: "b", to: "h" }],
+      },
+    });
+    // only a place inside the home base counts
+    expect(cast.bar).toBe("The Rusted Anchor");
+    expect(boardCast({ campaign: { entities: [], relationships: [] } }).bar).toBeUndefined();
+  });
+});

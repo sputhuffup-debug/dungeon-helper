@@ -2649,3 +2649,15 @@ span.cf-weapons__name {
     width: 3.5rem;
   }
 }
+
+/* under an editable table: Add row, and a list to add a row from */
+.cf-table__add {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cf-space-2, 0.5rem);
+  align-items: center;
+}
+.cf-table__add-from {
+  width: auto;
+  max-width: 100%;
+}

@@ -31,12 +31,12 @@ export const cinematicPlayRules: RuleCard[] = [
     tags: ["cinematic", "structure"],
     links: { rules: ["alien.rule.three-acts", "alien.rule.calling-pvp"], trackers: [TR.countdown] },
   }),
-  card("pregenerated-characters", "Pregenerated characters", "Cinematic adventures include ready-made PCs, written like roles in a script so that their backgrounds and agendas fit the plot. Players decide who plays whom, rolling dice if they cannot agree.", [24, 157], {
+  card("pregenerated-characters", "Pregenerated characters", "Cinematic adventures include ready-made PCs, written like roles in a script so that their backgrounds and agendas fit the plot. Players decide who plays whom, rolling dice if they cannot agree.", { pages: [24, 157] }, {
     ...M,
     tags: ["cinematic", "character"],
     links: { rules: ["alien.rule.play-modes", "alien.rule.adventure-structure"] },
   }),
-  card("cinematic-agendas", "Agendas, secrets and handouts", "At the start of each act the GM hands each PC a hidden agenda; players keep it secret and off the character sheet. Avoid private messages with players, as they slow play and draw suspicion; some groups prefer open agendas, keeping player and PC knowledge apart.", [27, 158], {
+  card("cinematic-agendas", "Agendas, secrets and handouts", "At the start of each act the GM hands each PC a hidden agenda; players keep it secret and off the character sheet. Avoid private messages with players, as they slow play and draw suspicion; some groups prefer open agendas, keeping player and PC knowledge apart.", { pages: [27, 158] }, {
     ...M,
     tags: ["cinematic", "character"],
     links: { fields: [F.agendas, F.storyPoints], rules: ["alien.rule.story-point-award", "alien.rule.agendas"] },
@@ -46,12 +46,12 @@ export const cinematicPlayRules: RuleCard[] = [
     tags: ["cinematic", "dice"],
     links: { fields: [F.storyPoints], rules: ["alien.rule.story-points"], trackers: [TR.storyPoints] },
   }),
-  card("calling-pvp", "Calling PvP", "When a PC's conflict with the group passes the point of no return, the GM calls PvP and the scene is played to its end. A surviving traitor becomes an NPC under the GM's control, and the player takes a new PC if one is available. Players are urged to wait for the third act.", [27, 158], {
+  card("calling-pvp", "Calling PvP", "When a PC's conflict with the group passes the point of no return, the GM calls PvP and the scene is played to its end. A surviving traitor becomes an NPC under the GM's control, and the player takes a new PC if one is available. Players are urged to wait for the third act.", { pages: [27, 158] }, {
     ...M,
     tags: ["cinematic", "gm"],
     links: { rules: ["alien.rule.three-acts", "alien.rule.act-showdown"] },
   }),
-  card("cinematic-lethality", "Death in cinematic play", "Cinematic adventures are brutal: most PCs will probably not live to the end, and memorable deaths are part of the story. Treat a death as a dramatic peak, make the most of it, and get the player back into the action quickly.", [18, 69], {
+  card("cinematic-lethality", "Death in cinematic play", "Cinematic adventures are brutal: most PCs will probably not live to the end, and memorable deaths are part of the story. Treat a death as a dramatic peak, make the most of it, and get the player back into the action quickly.", { pages: [18, 69] }, {
     ...M,
     tags: ["cinematic", "gm"],
     links: { rules: ["alien.rule.critical-injuries", "alien.rule.death", "alien.rule.gm-principles"] },

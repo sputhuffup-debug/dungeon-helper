@@ -45,7 +45,7 @@ export const campaignPlayRules: RuleCard[] = [
     "friction-not-betrayal",
     "Friction, not betrayal",
     "In a long campaign, agendas should rub, not cut: crewmates compete for pay, berths and gear, argue over who the crew answers to, keep embarrassing secrets that endanger no one, and needle a rival or cover for a buddy at a cost. A goal that keeps stalling heats up from quiet disagreement to an open argument to hard words, and stops there. Nobody sabotages, robs, harms or sells out a crewmate; this module leaves calling PvP to cinematic play.",
-    [27, 158],
+    { pages: [27, 158] },
     {
       ...C,
       tags: ["campaign", "gm"],

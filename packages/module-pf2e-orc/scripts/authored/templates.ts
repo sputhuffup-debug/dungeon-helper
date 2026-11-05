@@ -208,6 +208,8 @@ export const basicLists: ReferenceList[] = [
     name: "Skills",
     cite: cite("Player Core", "Skills"),
     columns: ["attribute"],
+    // the attribute is an id of the attributes list: the Reference shows its name
+    itemSchema: { type: "object", properties: { attribute: { type: "string", "x-ref": LIST.attributes } } },
     items: SKILLS.map((s) => ({ id: s.id, name: s.name, attribute: s.attribute })),
   },
   {
@@ -215,6 +217,7 @@ export const basicLists: ReferenceList[] = [
     name: "Perception and saving throws",
     cite: cite("Player Core", "Perception and Saving Throws"),
     columns: ["attribute"],
+    itemSchema: { type: "object", properties: { attribute: { type: "string", "x-ref": LIST.attributes } } },
     items: SAVES.map((s) => ({ id: s.id, name: s.name, attribute: s.attribute })),
   },
   {

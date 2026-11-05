@@ -164,6 +164,21 @@ export function convertCharacterOptions(src: {
         .filter((f) => refIndex(f.subclass) === sid)
         .sort((a, b) => num(a.level) - num(b.level))
         .map((f) => `${num(f.level)}: ${str(f.name)}`);
+      // a cleric's domain spells and a paladin's oath spells, always prepared ("1: Bless, Cure Wounds; 3: ...")
+      const byLevel = new Map<number, string[]>();
+      if (["Cleric", "Paladin"].includes(refName(s.class)))
+        for (const sp of objs(s.spells)) {
+          const pre = objs(sp.prerequisites);
+          if (!pre.length || pre.some((p) => str(p.type) !== "level")) continue;
+          const lvl = Math.max(...pre.map((p) => Number(/(\d+)$/.exec(refIndex(p) || str(p.name))?.[1] ?? NaN)));
+          if (Number.isFinite(lvl)) byLevel.set(lvl, [...(byLevel.get(lvl) ?? []), refName(sp.spell)]);
+        }
+      // the source leaves Guardian of Faith out of the Life Domain's 7th-level spells (SRD 5.1, Cleric: Life Domain)
+      if (sid === "life" && byLevel.get(7) && !byLevel.get(7)!.includes("Guardian of Faith")) {
+        byLevel.set(7, [...byLevel.get(7)!, "Guardian of Faith"]);
+        notes.push("SRD 5.1 subclass Life: Guardian of Faith added to its 7th-level domain spells, missing in the source");
+      }
+      const spells = [...byLevel.entries()].sort((a, b) => a[0] - b[0]).map(([l, names]) => `${l}: ${names.join(", ")}`).join("; ");
       return {
         id: sid,
         name: str(s.name),
@@ -171,6 +186,7 @@ export function convertCharacterOptions(src: {
         flavor: str(s.subclass_flavor),
         description: text(s.desc),
         features: features.join("; "),
+        ...(spells ? { spells } : {}),
       };
     }),
   };
@@ -231,6 +247,10 @@ export function convertCharacterOptions(src: {
     })),
   };
 
+  // The source data lists only the Acolyte's clothes, pouch and holy symbol; the SRD 5.1 (Backgrounds: Acolyte) gives the whole kit.
+  const EQUIPMENT_TEXT: Record<string, string> = {
+    acolyte: "A holy symbol, a prayer book or prayer wheel, 5 sticks of incense, vestments, a set of common clothes, and a pouch containing 15 gp",
+  };
   const backgrounds: ReferenceList = {
     id: LIST.backgrounds,
     name: "Backgrounds",
@@ -247,7 +267,7 @@ export function convertCharacterOptions(src: {
           .map((p) => refName(p).replace(/^Skill: /, ""))
           .join(", "),
         languages: Object.keys(obj(b.language_options)).length ? `${num(obj(b.language_options).choose)} of your choice` : "—",
-        equipment: [...objs(b.starting_equipment).map((e) => `${num(e.quantity, 1) > 1 ? `${num(e.quantity)} × ` : ""}${refName(e.equipment)}`), ...objs(b.starting_equipment_options).map((o) => `one ${refName(obj(obj(o.from).equipment_category)).toLowerCase().replace(/s$/, "")}`)].join(", ") + (Object.keys(obj(b.starting_gold)).length ? `, ${num(obj(b.starting_gold).quantity)} ${str(obj(b.starting_gold).unit)}` : ""),
+        equipment: EQUIPMENT_TEXT[index(b.index)] ?? [...objs(b.starting_equipment).map((e) => `${num(e.quantity, 1) > 1 ? `${num(e.quantity)} × ` : ""}${refName(e.equipment)}`), ...objs(b.starting_equipment_options).map((o) => `one ${refName(obj(obj(o.from).equipment_category)).toLowerCase().replace(/s$/, "")}`)].join(", ") + (Object.keys(obj(b.starting_gold)).length ? `, ${num(obj(b.starting_gold).quantity)} ${str(obj(b.starting_gold).unit)}` : ""),
         feature: str(feature.name),
         description: text(feature.desc),
         personalityTraits: lines("personality_traits").map((l, i) => `${i + 1}. ${l}`).join("\n"),

@@ -171,7 +171,7 @@ export const motionTrackers: MapSensorDef[] = MOTION_TRACKER_IDS.map((id) => {
     range: RANGE_TO_BAND[range] ?? "long",
     detects: "moved",
     through: "any",
-    page: [58, 96],
+    page: { pages: [58, 96] },
     notes: TRACKER_NOTES,
   };
 });

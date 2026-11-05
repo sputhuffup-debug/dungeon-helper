@@ -63,6 +63,14 @@ export interface AgendaContext {
   fill: (text: string) => string;
 }
 
+/** Module decision: secrets that work against the crew, which an honest agenda would contradict. */
+const AGAINST_THE_CREW = /drop the crew|sound safer|took a cut/i;
+
+/** An agenda that reads wrong beside the NPC's secret (an honest broker told to drop the crew). */
+export function agendaContradicts(arc: string, secret: string): boolean {
+  return arc === "honest-broker" && AGAINST_THE_CREW.test(secret);
+}
+
 const pick = <T>(rng: Rng, list: readonly T[]): T => list[rng.int(0, list.length - 1)]!;
 
 function weighted<T>(rng: Rng, items: Array<{ item: T; w: number }>): T | undefined {

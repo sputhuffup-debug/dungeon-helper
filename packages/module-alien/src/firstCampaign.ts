@@ -53,7 +53,7 @@ export const firstCampaignGuide: GuideDef = {
           body: [
             "On the campaign list, click *New campaign*. Give it a name (the example is Breakwater Freight), keep *Alien RPG (Evolved Edition)* as the *Game module* and choose the *Play mode*.",
             "*Campaign* is long-running play with player-made characters, jobs and a home base; this guide follows it. *Cinematic* is a one-shot in three acts with pregenerated characters, built with the guided adventure builder instead.",
-            "Campaign play asks the *Campaign frame* once: *Space Truckers*, *Colonial Marines* or *Frontier Colonists*. Job boards and between jobs start from it, and Settings can change it later. Click *Create campaign*.",
+            "Campaign play asks the *Campaign frame* once: *Space Truckers*, *Colonial Marines* or *Frontier Colonists*. Job boards and between jobs start from it, and a job board can still use another frame for one run. Click *Create campaign*.",
           ],
           image: { key: "new-campaign", alt: "The New campaign dialog with the Alien module, campaign play and the Space Truckers frame chosen" },
           page: [234, 235],
@@ -177,7 +177,7 @@ export const firstCampaignGuide: GuideDef = {
           id: "home-base",
           title: "Make it the crew's home base",
           body: [
-            "Click *Choose it* on the checklist's *Pick a home base* step: it opens *Settings* at *Campaign*. Pick *Halvorsen Relay* as the *Home base* (or *+ New location…* to make one there).",
+            "Click *Choose it* on the checklist's *Pick a home base* step: it opens *Settings* at *Campaign*. The *Home base* list offers every place and ship in the campaign, each with its type (*Halvorsen Relay (Location)*); pick the station itself, not the bar inside it (or *+ New location…* to make one there).",
             "Job boards post their jobs at the home base, and between jobs the crew comes back to it.",
           ],
           image: { key: "home-base", alt: "The Campaign card in Settings with Halvorsen Relay as the home base" },
@@ -280,7 +280,7 @@ export const firstCampaignGuide: GuideDef = {
           title: "Deal a job board",
           body: [
             "Click *Deal a job board* in the checklist, or *Job board* on *Generate*. It deals postings for the campaign frame, each as the players read it (pay, who posted it, requirements, a risk rating that may mislead) beside what only the GM knows (complications, the twist, the employer's real intent, and up to three NPCs with their agendas).",
-            "Change *Postings*, *Employer bias* or *NPC treachery* and the board deals again; a *Seed* gives the same board every time. *Parts to re-roll or pin* re-rolls one part of a posting.",
+            "Change *Postings*, *Employer bias* or *NPC treachery* and the board deals again; a *Seed* gives the same board every time. *Parts to re-roll or pin* re-rolls one part of a posting. The board you dealt stays as dealt: leave the page and come back (the checklist's step, or *Job board* on *Generate*) and the same postings are there until you deal again.",
           ],
           image: { key: "job-board", alt: "A job board posting: the players' side and the GM's side with the NPCs and the site brief" },
           links: [{ label: "Deal a job board", procedure: JOB_BOARD_ID }],
@@ -291,7 +291,7 @@ export const firstCampaignGuide: GuideDef = {
           title: "Take the job",
           body: [
             "Click *Take the job* on the posting the crew goes for. The job, its employer, its NPCs (the contact visible to the players, the others GM-only until met) and a players' posting handout join the campaign, and Home's *Job board* lists the job under *Accepted*.",
-            "The other postings stay on the board as dealt: *Keep as lead* keeps one for later, *Discard* drops it.",
+            "The other postings stay on the board as dealt, also when you come back to it later: *Keep as lead* keeps one for later, *Discard* drops it. A posting that sits in the home base's bar (The Lantern Bar) names it.",
           ],
           image: { key: "take-job", alt: "Home's Job board with the taken job under Accepted" },
           links: [{ label: "Open the job board", procedure: JOB_BOARD_ID }],
@@ -309,7 +309,7 @@ export const firstCampaignGuide: GuideDef = {
           id: "site-map",
           title: "Generate the site map",
           body: [
-            "On the job page, click *Generate site map*. The generator reads the job's site brief (site type, size, decks, threats, key rooms, the job's NPCs); type a *Seed* or keep the one offered, click *Generate*, look the map over and click *Save to campaign*. It is saved with the job's site, and the arrival scene will use it.",
+            "On the job page, click *Generate site map*. The generator reads the job's site brief (site type, size, decks, threats, key rooms, the job's NPCs); a map is generated at once from the seed offered (type another *Seed* and click *Generate again* for a different one); look it over and click *Save to campaign*. It is saved with the job's site, and the arrival scene will use it.",
           ],
           image: { key: "site-map", alt: "A generated GM deck plan for the job's site" },
           links: [{ label: "Open the job", entity: takenJob }],
@@ -396,7 +396,8 @@ export const firstCampaignGuide: GuideDef = {
           id: "wrap-up",
           title: "Wrap up",
           body: [
-            "Click *End session*. The wrap-up walks *Summary*, *End-of-session questions* (the XP questions and the award checklist), *Rewards*, *Timeline*, *Loose ends* and *Close the job* (done, failed or carried over, with *Collect payment*); everything you type is kept as you go. Click *Finish session*.",
+            "Click *End session*. The wrap-up walks *Summary*, *End-of-session questions* (the XP questions and the award checklist), *Rewards*, *Timeline*, *Loose ends* and *Close the job* (done, failed or carried over, with *Collect payment*); everything you type is kept as you go.",
+            "Click *Finish session*: the XP the questions award each character is posted to their sheets then (no separate step), and the next session is planned.",
           ],
           image: { key: "wrap-up", alt: "The session wrap-up on its Summary step" },
           links: [{ label: "Open Sessions", page: "sessions" }],

@@ -424,25 +424,81 @@
         "type": "integer",
         "minimum": 0,
         "maximum": 4,
-        "default": 0
+        "default": 0,
+        "enum": [
+         0,
+         1,
+         2,
+         3,
+         4
+        ],
+        "enumLabels": [
+         "Untrained",
+         "Trained",
+         "Expert",
+         "Master",
+         "Legendary"
+        ]
        },
        "fortitude": {
         "type": "integer",
         "minimum": 0,
         "maximum": 4,
-        "default": 0
+        "default": 0,
+        "enum": [
+         0,
+         1,
+         2,
+         3,
+         4
+        ],
+        "enumLabels": [
+         "Untrained",
+         "Trained",
+         "Expert",
+         "Master",
+         "Legendary"
+        ]
        },
        "reflex": {
         "type": "integer",
         "minimum": 0,
         "maximum": 4,
-        "default": 0
+        "default": 0,
+        "enum": [
+         0,
+         1,
+         2,
+         3,
+         4
+        ],
+        "enumLabels": [
+         "Untrained",
+         "Trained",
+         "Expert",
+         "Master",
+         "Legendary"
+        ]
        },
        "will": {
         "type": "integer",
         "minimum": 0,
         "maximum": 4,
-        "default": 0
+        "default": 0,
+        "enum": [
+         0,
+         1,
+         2,
+         3,
+         4
+        ],
+        "enumLabels": [
+         "Untrained",
+         "Trained",
+         "Expert",
+         "Master",
+         "Legendary"
+        ]
        }
       },
       "additionalProperties": false,
@@ -456,109 +512,361 @@
         "type": "integer",
         "minimum": 0,
         "maximum": 4,
-        "default": 0
+        "default": 0,
+        "enum": [
+         0,
+         1,
+         2,
+         3,
+         4
+        ],
+        "enumLabels": [
+         "Untrained",
+         "Trained",
+         "Expert",
+         "Master",
+         "Legendary"
+        ]
        },
        "arcana": {
         "type": "integer",
         "minimum": 0,
         "maximum": 4,
-        "default": 0
+        "default": 0,
+        "enum": [
+         0,
+         1,
+         2,
+         3,
+         4
+        ],
+        "enumLabels": [
+         "Untrained",
+         "Trained",
+         "Expert",
+         "Master",
+         "Legendary"
+        ]
        },
        "athletics": {
         "type": "integer",
         "minimum": 0,
         "maximum": 4,
-        "default": 0
+        "default": 0,
+        "enum": [
+         0,
+         1,
+         2,
+         3,
+         4
+        ],
+        "enumLabels": [
+         "Untrained",
+         "Trained",
+         "Expert",
+         "Master",
+         "Legendary"
+        ]
        },
        "crafting": {
         "type": "integer",
         "minimum": 0,
         "maximum": 4,
-        "default": 0
+        "default": 0,
+        "enum": [
+         0,
+         1,
+         2,
+         3,
+         4
+        ],
+        "enumLabels": [
+         "Untrained",
+         "Trained",
+         "Expert",
+         "Master",
+         "Legendary"
+        ]
        },
        "deception": {
         "type": "integer",
         "minimum": 0,
         "maximum": 4,
-        "default": 0
+        "default": 0,
+        "enum": [
+         0,
+         1,
+         2,
+         3,
+         4
+        ],
+        "enumLabels": [
+         "Untrained",
+         "Trained",
+         "Expert",
+         "Master",
+         "Legendary"
+        ]
        },
        "diplomacy": {
         "type": "integer",
         "minimum": 0,
         "maximum": 4,
-        "default": 0
+        "default": 0,
+        "enum": [
+         0,
+         1,
+         2,
+         3,
+         4
+        ],
+        "enumLabels": [
+         "Untrained",
+         "Trained",
+         "Expert",
+         "Master",
+         "Legendary"
+        ]
        },
        "intimidation": {
         "type": "integer",
         "minimum": 0,
         "maximum": 4,
-        "default": 0
+        "default": 0,
+        "enum": [
+         0,
+         1,
+         2,
+         3,
+         4
+        ],
+        "enumLabels": [
+         "Untrained",
+         "Trained",
+         "Expert",
+         "Master",
+         "Legendary"
+        ]
        },
        "medicine": {
         "type": "integer",
         "minimum": 0,
         "maximum": 4,
-        "default": 0
+        "default": 0,
+        "enum": [
+         0,
+         1,
+         2,
+         3,
+         4
+        ],
+        "enumLabels": [
+         "Untrained",
+         "Trained",
+         "Expert",
+         "Master",
+         "Legendary"
+        ]
        },
        "nature": {
         "type": "integer",
         "minimum": 0,
         "maximum": 4,
-        "default": 0
+        "default": 0,
+        "enum": [
+         0,
+         1,
+         2,
+         3,
+         4
+        ],
+        "enumLabels": [
+         "Untrained",
+         "Trained",
+         "Expert",
+         "Master",
+         "Legendary"
+        ]
        },
        "occultism": {
         "type": "integer",
         "minimum": 0,
         "maximum": 4,
-        "default": 0
+        "default": 0,
+        "enum": [
+         0,
+         1,
+         2,
+         3,
+         4
+        ],
+        "enumLabels": [
+         "Untrained",
+         "Trained",
+         "Expert",
+         "Master",
+         "Legendary"
+        ]
        },
        "performance": {
         "type": "integer",
         "minimum": 0,
         "maximum": 4,
-        "default": 0
+        "default": 0,
+        "enum": [
+         0,
+         1,
+         2,
+         3,
+         4
+        ],
+        "enumLabels": [
+         "Untrained",
+         "Trained",
+         "Expert",
+         "Master",
+         "Legendary"
+        ]
        },
        "religion": {
         "type": "integer",
         "minimum": 0,
         "maximum": 4,
-        "default": 0
+        "default": 0,
+        "enum": [
+         0,
+         1,
+         2,
+         3,
+         4
+        ],
+        "enumLabels": [
+         "Untrained",
+         "Trained",
+         "Expert",
+         "Master",
+         "Legendary"
+        ]
        },
        "society": {
         "type": "integer",
         "minimum": 0,
         "maximum": 4,
-        "default": 0
+        "default": 0,
+        "enum": [
+         0,
+         1,
+         2,
+         3,
+         4
+        ],
+        "enumLabels": [
+         "Untrained",
+         "Trained",
+         "Expert",
+         "Master",
+         "Legendary"
+        ]
        },
        "stealth": {
         "type": "integer",
         "minimum": 0,
         "maximum": 4,
-        "default": 0
+        "default": 0,
+        "enum": [
+         0,
+         1,
+         2,
+         3,
+         4
+        ],
+        "enumLabels": [
+         "Untrained",
+         "Trained",
+         "Expert",
+         "Master",
+         "Legendary"
+        ]
        },
        "survival": {
         "type": "integer",
         "minimum": 0,
         "maximum": 4,
-        "default": 0
+        "default": 0,
+        "enum": [
+         0,
+         1,
+         2,
+         3,
+         4
+        ],
+        "enumLabels": [
+         "Untrained",
+         "Trained",
+         "Expert",
+         "Master",
+         "Legendary"
+        ]
        },
        "thievery": {
         "type": "integer",
         "minimum": 0,
         "maximum": 4,
-        "default": 0
+        "default": 0,
+        "enum": [
+         0,
+         1,
+         2,
+         3,
+         4
+        ],
+        "enumLabels": [
+         "Untrained",
+         "Trained",
+         "Expert",
+         "Master",
+         "Legendary"
+        ]
        },
        "lore-a": {
         "type": "integer",
         "minimum": 0,
         "maximum": 4,
-        "default": 0
+        "default": 0,
+        "enum": [
+         0,
+         1,
+         2,
+         3,
+         4
+        ],
+        "enumLabels": [
+         "Untrained",
+         "Trained",
+         "Expert",
+         "Master",
+         "Legendary"
+        ]
        },
        "lore-b": {
         "type": "integer",
         "minimum": 0,
         "maximum": 4,
-        "default": 0
+        "default": 0,
+        "enum": [
+         0,
+         1,
+         2,
+         3,
+         4
+        ],
+        "enumLabels": [
+         "Untrained",
+         "Trained",
+         "Expert",
+         "Master",
+         "Legendary"
+        ]
        }
       },
       "additionalProperties": false,
@@ -732,7 +1040,21 @@
       "type": "integer",
       "minimum": 0,
       "maximum": 4,
-      "default": 1,
+      "default": 0,
+      "enum": [
+       0,
+       1,
+       2,
+       3,
+       4
+      ],
+      "enumLabels": [
+       "Untrained",
+       "Trained",
+       "Expert",
+       "Master",
+       "Legendary"
+      ],
       "title": "Class DC proficiency",
       "x-visibility": "owner"
      },
@@ -743,30 +1065,90 @@
         "type": "integer",
         "minimum": 0,
         "maximum": 4,
-        "default": 0
+        "default": 0,
+        "enum": [
+         0,
+         1,
+         2,
+         3,
+         4
+        ],
+        "enumLabels": [
+         "Untrained",
+         "Trained",
+         "Expert",
+         "Master",
+         "Legendary"
+        ],
+        "title": "Unarmored"
        },
        "light": {
         "type": "integer",
         "minimum": 0,
         "maximum": 4,
-        "default": 0
+        "default": 0,
+        "enum": [
+         0,
+         1,
+         2,
+         3,
+         4
+        ],
+        "enumLabels": [
+         "Untrained",
+         "Trained",
+         "Expert",
+         "Master",
+         "Legendary"
+        ],
+        "title": "Light armor"
        },
        "medium": {
         "type": "integer",
         "minimum": 0,
         "maximum": 4,
-        "default": 0
+        "default": 0,
+        "enum": [
+         0,
+         1,
+         2,
+         3,
+         4
+        ],
+        "enumLabels": [
+         "Untrained",
+         "Trained",
+         "Expert",
+         "Master",
+         "Legendary"
+        ],
+        "title": "Medium armor"
        },
        "heavy": {
         "type": "integer",
         "minimum": 0,
         "maximum": 4,
-        "default": 0
+        "default": 0,
+        "enum": [
+         0,
+         1,
+         2,
+         3,
+         4
+        ],
+        "enumLabels": [
+         "Untrained",
+         "Trained",
+         "Expert",
+         "Master",
+         "Legendary"
+        ],
+        "title": "Heavy armor"
        }
       },
       "additionalProperties": false,
       "default": {
-       "unarmored": 1,
+       "unarmored": 0,
        "light": 0,
        "medium": 0,
        "heavy": 0
@@ -780,33 +1162,93 @@
         "type": "integer",
         "minimum": 0,
         "maximum": 4,
-        "default": 0
+        "default": 0,
+        "enum": [
+         0,
+         1,
+         2,
+         3,
+         4
+        ],
+        "enumLabels": [
+         "Untrained",
+         "Trained",
+         "Expert",
+         "Master",
+         "Legendary"
+        ],
+        "title": "Simple weapons"
        },
        "martial": {
         "type": "integer",
         "minimum": 0,
         "maximum": 4,
-        "default": 0
+        "default": 0,
+        "enum": [
+         0,
+         1,
+         2,
+         3,
+         4
+        ],
+        "enumLabels": [
+         "Untrained",
+         "Trained",
+         "Expert",
+         "Master",
+         "Legendary"
+        ],
+        "title": "Martial weapons"
        },
        "advanced": {
         "type": "integer",
         "minimum": 0,
         "maximum": 4,
-        "default": 0
+        "default": 0,
+        "enum": [
+         0,
+         1,
+         2,
+         3,
+         4
+        ],
+        "enumLabels": [
+         "Untrained",
+         "Trained",
+         "Expert",
+         "Master",
+         "Legendary"
+        ],
+        "title": "Advanced weapons"
        },
        "unarmed": {
         "type": "integer",
         "minimum": 0,
         "maximum": 4,
-        "default": 0
+        "default": 0,
+        "enum": [
+         0,
+         1,
+         2,
+         3,
+         4
+        ],
+        "enumLabels": [
+         "Untrained",
+         "Trained",
+         "Expert",
+         "Master",
+         "Legendary"
+        ],
+        "title": "Unarmed attacks"
        }
       },
       "additionalProperties": false,
       "default": {
-       "simple": 1,
+       "simple": 0,
        "martial": 0,
        "advanced": 0,
-       "unarmed": 1
+       "unarmed": 0
       },
       "x-visibility": "owner"
      },
@@ -918,7 +1360,7 @@
         "type": "integer",
         "minimum": 0,
         "maximum": 1000,
-        "default": 10
+        "description": "Empty while at the maximum."
        },
        "temp": {
         "type": "integer",
@@ -927,12 +1369,8 @@
         "default": 0
        }
       },
-      "required": [
-       "current"
-      ],
       "additionalProperties": false,
       "default": {
-       "current": 10,
        "temp": 0
       },
       "x-visibility": "owner"
@@ -1181,6 +1619,20 @@
         "minimum": 0,
         "maximum": 4,
         "default": 0,
+        "enum": [
+         0,
+         1,
+         2,
+         3,
+         4
+        ],
+        "enumLabels": [
+         "Untrained",
+         "Trained",
+         "Expert",
+         "Master",
+         "Legendary"
+        ],
         "title": "Spell proficiency"
        }
       },
@@ -1406,13 +1858,51 @@
          "type": "string",
          "maxLength": 80
         },
+        "category": {
+         "type": "string",
+         "enum": [
+          "simple",
+          "martial",
+          "advanced",
+          "unarmed"
+         ],
+         "enumLabels": [
+          "Simple",
+          "Martial",
+          "Advanced",
+          "Unarmed"
+         ],
+         "description": "The weapon's category: its proficiency rank goes on the attack."
+        },
+        "attribute": {
+         "type": "string",
+         "enum": [
+          "strength",
+          "dexterity",
+          "finesse"
+         ],
+         "enumLabels": [
+          "Strength",
+          "Dexterity",
+          "Strength or Dexterity (finesse)"
+         ],
+         "description": "The attribute of the attack roll (a ranged weapon uses Dexterity)."
+        },
+        "potency": {
+         "type": "integer",
+         "minimum": 0,
+         "maximum": 3,
+         "description": "Weapon potency rune: its item bonus to attack rolls."
+        },
         "bonus": {
          "type": "string",
-         "maxLength": 30
+         "maxLength": 30,
+         "description": "An attack bonus typed by hand; leave empty to work it out from the category and attribute."
         },
         "damage": {
          "type": "string",
-         "maxLength": 80
+         "maxLength": 80,
+         "description": "The damage dice and type (\"1d8 bludgeoning\"); Strength is added for melee and thrown weapons, half for propulsive."
         },
         "traits": {
          "type": "string",
@@ -3672,7 +4162,10 @@
        {
         "path": "hp.current",
         "label": "Hit Points",
-        "widget": "number"
+        "widget": "number",
+        "config": {
+         "unsetComputed": "hpMax"
+        }
        },
        {
         "path": "hp.temp",
@@ -3707,8 +4200,8 @@
        },
        {
         "path": "classDcRank",
-        "label": "Class DC proficiency (0–4)",
-        "widget": "number"
+        "label": "Class DC proficiency",
+        "widget": "select"
        },
        {
         "path": "initiative",
@@ -3945,12 +4438,12 @@
        },
        {
         "path": "defenses",
-        "label": "Armor proficiency (0 untrained ... 4 legendary)",
+        "label": "Armor proficiency",
         "widget": "object"
        },
        {
         "path": "attacks",
-        "label": "Weapon proficiency (0 untrained ... 4 legendary)",
+        "label": "Weapon proficiency",
         "widget": "object"
        }
       ]
@@ -3963,20 +4456,2205 @@
         "path": "strikes",
         "label": "Strikes",
         "widget": "table",
+        "rule": "pf2e-orc.rule.action.strike",
         "config": {
          "columns": [
           "name",
           {
-           "key": "bonus",
-           "label": "Attack"
-          },
-          "damage",
-          "traits",
-          {
            "key": "type",
            "label": "Melee or ranged"
+          },
+          "category",
+          "attribute",
+          {
+           "key": "attack",
+           "label": "Attack [MAP]",
+           "computed": {
+            "if": [
+             {
+              "var": [
+               "item.bonus",
+               ""
+              ]
+             },
+             {
+              "var": "item.bonus"
+             },
+             {
+              "var": [
+               "item.category",
+               ""
+              ]
+             },
+             {
+              "cat": [
+               {
+                "if": [
+                 {
+                  ">=": [
+                   {
+                    "if": [
+                     {
+                      "var": [
+                       "item.category",
+                       ""
+                      ]
+                     },
+                     {
+                      "+": [
+                       {
+                        "if": [
+                         {
+                          "==": [
+                           {
+                            "var": [
+                             "item.attribute",
+                             ""
+                            ]
+                           },
+                           "finesse"
+                          ]
+                         },
+                         {
+                          "max": [
+                           {
+                            "var": [
+                             "fields.attributes.strength",
+                             0
+                            ]
+                           },
+                           {
+                            "var": [
+                             "fields.attributes.dexterity",
+                             0
+                            ]
+                           }
+                          ]
+                         },
+                         {
+                          "==": [
+                           {
+                            "var": [
+                             "item.attribute",
+                             ""
+                            ]
+                           },
+                           "dexterity"
+                          ]
+                         },
+                         {
+                          "var": [
+                           "fields.attributes.dexterity",
+                           0
+                          ]
+                         },
+                         {
+                          "==": [
+                           {
+                            "var": [
+                             "item.attribute",
+                             ""
+                            ]
+                           },
+                           "strength"
+                          ]
+                         },
+                         {
+                          "var": [
+                           "fields.attributes.strength",
+                           0
+                          ]
+                         },
+                         {
+                          "==": [
+                           {
+                            "var": [
+                             "item.type",
+                             "melee"
+                            ]
+                           },
+                           "ranged"
+                          ]
+                         },
+                         {
+                          "var": [
+                           "fields.attributes.dexterity",
+                           0
+                          ]
+                         },
+                         {
+                          "var": [
+                           "fields.attributes.strength",
+                           0
+                          ]
+                         }
+                        ]
+                       },
+                       {
+                        "if": [
+                         {
+                          ">": [
+                           {
+                            "var": [
+                             {
+                              "cat": [
+                               "fields.attacks.",
+                               {
+                                "var": [
+                                 "item.category",
+                                 ""
+                                ]
+                               }
+                              ]
+                             },
+                             0
+                            ]
+                           },
+                           0
+                          ]
+                         },
+                         {
+                          "+": [
+                           {
+                            "var": [
+                             "fields.level",
+                             1
+                            ]
+                           },
+                           {
+                            "*": [
+                             2,
+                             {
+                              "var": [
+                               {
+                                "cat": [
+                                 "fields.attacks.",
+                                 {
+                                  "var": [
+                                   "item.category",
+                                   ""
+                                  ]
+                                 }
+                                ]
+                               },
+                               0
+                              ]
+                             }
+                            ]
+                           }
+                          ]
+                         },
+                         0
+                        ]
+                       },
+                       {
+                        "var": [
+                         "item.potency",
+                         0
+                        ]
+                       }
+                      ]
+                     },
+                     null
+                    ]
+                   },
+                   0
+                  ]
+                 },
+                 {
+                  "cat": [
+                   "+",
+                   {
+                    "if": [
+                     {
+                      "var": [
+                       "item.category",
+                       ""
+                      ]
+                     },
+                     {
+                      "+": [
+                       {
+                        "if": [
+                         {
+                          "==": [
+                           {
+                            "var": [
+                             "item.attribute",
+                             ""
+                            ]
+                           },
+                           "finesse"
+                          ]
+                         },
+                         {
+                          "max": [
+                           {
+                            "var": [
+                             "fields.attributes.strength",
+                             0
+                            ]
+                           },
+                           {
+                            "var": [
+                             "fields.attributes.dexterity",
+                             0
+                            ]
+                           }
+                          ]
+                         },
+                         {
+                          "==": [
+                           {
+                            "var": [
+                             "item.attribute",
+                             ""
+                            ]
+                           },
+                           "dexterity"
+                          ]
+                         },
+                         {
+                          "var": [
+                           "fields.attributes.dexterity",
+                           0
+                          ]
+                         },
+                         {
+                          "==": [
+                           {
+                            "var": [
+                             "item.attribute",
+                             ""
+                            ]
+                           },
+                           "strength"
+                          ]
+                         },
+                         {
+                          "var": [
+                           "fields.attributes.strength",
+                           0
+                          ]
+                         },
+                         {
+                          "==": [
+                           {
+                            "var": [
+                             "item.type",
+                             "melee"
+                            ]
+                           },
+                           "ranged"
+                          ]
+                         },
+                         {
+                          "var": [
+                           "fields.attributes.dexterity",
+                           0
+                          ]
+                         },
+                         {
+                          "var": [
+                           "fields.attributes.strength",
+                           0
+                          ]
+                         }
+                        ]
+                       },
+                       {
+                        "if": [
+                         {
+                          ">": [
+                           {
+                            "var": [
+                             {
+                              "cat": [
+                               "fields.attacks.",
+                               {
+                                "var": [
+                                 "item.category",
+                                 ""
+                                ]
+                               }
+                              ]
+                             },
+                             0
+                            ]
+                           },
+                           0
+                          ]
+                         },
+                         {
+                          "+": [
+                           {
+                            "var": [
+                             "fields.level",
+                             1
+                            ]
+                           },
+                           {
+                            "*": [
+                             2,
+                             {
+                              "var": [
+                               {
+                                "cat": [
+                                 "fields.attacks.",
+                                 {
+                                  "var": [
+                                   "item.category",
+                                   ""
+                                  ]
+                                 }
+                                ]
+                               },
+                               0
+                              ]
+                             }
+                            ]
+                           }
+                          ]
+                         },
+                         0
+                        ]
+                       },
+                       {
+                        "var": [
+                         "item.potency",
+                         0
+                        ]
+                       }
+                      ]
+                     },
+                     null
+                    ]
+                   }
+                  ]
+                 },
+                 {
+                  "cat": [
+                   {
+                    "if": [
+                     {
+                      "var": [
+                       "item.category",
+                       ""
+                      ]
+                     },
+                     {
+                      "+": [
+                       {
+                        "if": [
+                         {
+                          "==": [
+                           {
+                            "var": [
+                             "item.attribute",
+                             ""
+                            ]
+                           },
+                           "finesse"
+                          ]
+                         },
+                         {
+                          "max": [
+                           {
+                            "var": [
+                             "fields.attributes.strength",
+                             0
+                            ]
+                           },
+                           {
+                            "var": [
+                             "fields.attributes.dexterity",
+                             0
+                            ]
+                           }
+                          ]
+                         },
+                         {
+                          "==": [
+                           {
+                            "var": [
+                             "item.attribute",
+                             ""
+                            ]
+                           },
+                           "dexterity"
+                          ]
+                         },
+                         {
+                          "var": [
+                           "fields.attributes.dexterity",
+                           0
+                          ]
+                         },
+                         {
+                          "==": [
+                           {
+                            "var": [
+                             "item.attribute",
+                             ""
+                            ]
+                           },
+                           "strength"
+                          ]
+                         },
+                         {
+                          "var": [
+                           "fields.attributes.strength",
+                           0
+                          ]
+                         },
+                         {
+                          "==": [
+                           {
+                            "var": [
+                             "item.type",
+                             "melee"
+                            ]
+                           },
+                           "ranged"
+                          ]
+                         },
+                         {
+                          "var": [
+                           "fields.attributes.dexterity",
+                           0
+                          ]
+                         },
+                         {
+                          "var": [
+                           "fields.attributes.strength",
+                           0
+                          ]
+                         }
+                        ]
+                       },
+                       {
+                        "if": [
+                         {
+                          ">": [
+                           {
+                            "var": [
+                             {
+                              "cat": [
+                               "fields.attacks.",
+                               {
+                                "var": [
+                                 "item.category",
+                                 ""
+                                ]
+                               }
+                              ]
+                             },
+                             0
+                            ]
+                           },
+                           0
+                          ]
+                         },
+                         {
+                          "+": [
+                           {
+                            "var": [
+                             "fields.level",
+                             1
+                            ]
+                           },
+                           {
+                            "*": [
+                             2,
+                             {
+                              "var": [
+                               {
+                                "cat": [
+                                 "fields.attacks.",
+                                 {
+                                  "var": [
+                                   "item.category",
+                                   ""
+                                  ]
+                                 }
+                                ]
+                               },
+                               0
+                              ]
+                             }
+                            ]
+                           }
+                          ]
+                         },
+                         0
+                        ]
+                       },
+                       {
+                        "var": [
+                         "item.potency",
+                         0
+                        ]
+                       }
+                      ]
+                     },
+                     null
+                    ]
+                   }
+                  ]
+                 }
+                ]
+               },
+               " [",
+               {
+                "if": [
+                 {
+                  ">=": [
+                   {
+                    "-": [
+                     {
+                      "if": [
+                       {
+                        "var": [
+                         "item.category",
+                         ""
+                        ]
+                       },
+                       {
+                        "+": [
+                         {
+                          "if": [
+                           {
+                            "==": [
+                             {
+                              "var": [
+                               "item.attribute",
+                               ""
+                              ]
+                             },
+                             "finesse"
+                            ]
+                           },
+                           {
+                            "max": [
+                             {
+                              "var": [
+                               "fields.attributes.strength",
+                               0
+                              ]
+                             },
+                             {
+                              "var": [
+                               "fields.attributes.dexterity",
+                               0
+                              ]
+                             }
+                            ]
+                           },
+                           {
+                            "==": [
+                             {
+                              "var": [
+                               "item.attribute",
+                               ""
+                              ]
+                             },
+                             "dexterity"
+                            ]
+                           },
+                           {
+                            "var": [
+                             "fields.attributes.dexterity",
+                             0
+                            ]
+                           },
+                           {
+                            "==": [
+                             {
+                              "var": [
+                               "item.attribute",
+                               ""
+                              ]
+                             },
+                             "strength"
+                            ]
+                           },
+                           {
+                            "var": [
+                             "fields.attributes.strength",
+                             0
+                            ]
+                           },
+                           {
+                            "==": [
+                             {
+                              "var": [
+                               "item.type",
+                               "melee"
+                              ]
+                             },
+                             "ranged"
+                            ]
+                           },
+                           {
+                            "var": [
+                             "fields.attributes.dexterity",
+                             0
+                            ]
+                           },
+                           {
+                            "var": [
+                             "fields.attributes.strength",
+                             0
+                            ]
+                           }
+                          ]
+                         },
+                         {
+                          "if": [
+                           {
+                            ">": [
+                             {
+                              "var": [
+                               {
+                                "cat": [
+                                 "fields.attacks.",
+                                 {
+                                  "var": [
+                                   "item.category",
+                                   ""
+                                  ]
+                                 }
+                                ]
+                               },
+                               0
+                              ]
+                             },
+                             0
+                            ]
+                           },
+                           {
+                            "+": [
+                             {
+                              "var": [
+                               "fields.level",
+                               1
+                              ]
+                             },
+                             {
+                              "*": [
+                               2,
+                               {
+                                "var": [
+                                 {
+                                  "cat": [
+                                   "fields.attacks.",
+                                   {
+                                    "var": [
+                                     "item.category",
+                                     ""
+                                    ]
+                                   }
+                                  ]
+                                 },
+                                 0
+                                ]
+                               }
+                              ]
+                             }
+                            ]
+                           },
+                           0
+                          ]
+                         },
+                         {
+                          "var": [
+                           "item.potency",
+                           0
+                          ]
+                         }
+                        ]
+                       },
+                       null
+                      ]
+                     },
+                     {
+                      "if": [
+                       {
+                        "matches": [
+                         {
+                          "var": [
+                           "item.traits",
+                           ""
+                          ]
+                         },
+                         "\\bagile\\b"
+                        ]
+                       },
+                       4,
+                       5
+                      ]
+                     }
+                    ]
+                   },
+                   0
+                  ]
+                 },
+                 {
+                  "cat": [
+                   "+",
+                   {
+                    "-": [
+                     {
+                      "if": [
+                       {
+                        "var": [
+                         "item.category",
+                         ""
+                        ]
+                       },
+                       {
+                        "+": [
+                         {
+                          "if": [
+                           {
+                            "==": [
+                             {
+                              "var": [
+                               "item.attribute",
+                               ""
+                              ]
+                             },
+                             "finesse"
+                            ]
+                           },
+                           {
+                            "max": [
+                             {
+                              "var": [
+                               "fields.attributes.strength",
+                               0
+                              ]
+                             },
+                             {
+                              "var": [
+                               "fields.attributes.dexterity",
+                               0
+                              ]
+                             }
+                            ]
+                           },
+                           {
+                            "==": [
+                             {
+                              "var": [
+                               "item.attribute",
+                               ""
+                              ]
+                             },
+                             "dexterity"
+                            ]
+                           },
+                           {
+                            "var": [
+                             "fields.attributes.dexterity",
+                             0
+                            ]
+                           },
+                           {
+                            "==": [
+                             {
+                              "var": [
+                               "item.attribute",
+                               ""
+                              ]
+                             },
+                             "strength"
+                            ]
+                           },
+                           {
+                            "var": [
+                             "fields.attributes.strength",
+                             0
+                            ]
+                           },
+                           {
+                            "==": [
+                             {
+                              "var": [
+                               "item.type",
+                               "melee"
+                              ]
+                             },
+                             "ranged"
+                            ]
+                           },
+                           {
+                            "var": [
+                             "fields.attributes.dexterity",
+                             0
+                            ]
+                           },
+                           {
+                            "var": [
+                             "fields.attributes.strength",
+                             0
+                            ]
+                           }
+                          ]
+                         },
+                         {
+                          "if": [
+                           {
+                            ">": [
+                             {
+                              "var": [
+                               {
+                                "cat": [
+                                 "fields.attacks.",
+                                 {
+                                  "var": [
+                                   "item.category",
+                                   ""
+                                  ]
+                                 }
+                                ]
+                               },
+                               0
+                              ]
+                             },
+                             0
+                            ]
+                           },
+                           {
+                            "+": [
+                             {
+                              "var": [
+                               "fields.level",
+                               1
+                              ]
+                             },
+                             {
+                              "*": [
+                               2,
+                               {
+                                "var": [
+                                 {
+                                  "cat": [
+                                   "fields.attacks.",
+                                   {
+                                    "var": [
+                                     "item.category",
+                                     ""
+                                    ]
+                                   }
+                                  ]
+                                 },
+                                 0
+                                ]
+                               }
+                              ]
+                             }
+                            ]
+                           },
+                           0
+                          ]
+                         },
+                         {
+                          "var": [
+                           "item.potency",
+                           0
+                          ]
+                         }
+                        ]
+                       },
+                       null
+                      ]
+                     },
+                     {
+                      "if": [
+                       {
+                        "matches": [
+                         {
+                          "var": [
+                           "item.traits",
+                           ""
+                          ]
+                         },
+                         "\\bagile\\b"
+                        ]
+                       },
+                       4,
+                       5
+                      ]
+                     }
+                    ]
+                   }
+                  ]
+                 },
+                 {
+                  "cat": [
+                   {
+                    "-": [
+                     {
+                      "if": [
+                       {
+                        "var": [
+                         "item.category",
+                         ""
+                        ]
+                       },
+                       {
+                        "+": [
+                         {
+                          "if": [
+                           {
+                            "==": [
+                             {
+                              "var": [
+                               "item.attribute",
+                               ""
+                              ]
+                             },
+                             "finesse"
+                            ]
+                           },
+                           {
+                            "max": [
+                             {
+                              "var": [
+                               "fields.attributes.strength",
+                               0
+                              ]
+                             },
+                             {
+                              "var": [
+                               "fields.attributes.dexterity",
+                               0
+                              ]
+                             }
+                            ]
+                           },
+                           {
+                            "==": [
+                             {
+                              "var": [
+                               "item.attribute",
+                               ""
+                              ]
+                             },
+                             "dexterity"
+                            ]
+                           },
+                           {
+                            "var": [
+                             "fields.attributes.dexterity",
+                             0
+                            ]
+                           },
+                           {
+                            "==": [
+                             {
+                              "var": [
+                               "item.attribute",
+                               ""
+                              ]
+                             },
+                             "strength"
+                            ]
+                           },
+                           {
+                            "var": [
+                             "fields.attributes.strength",
+                             0
+                            ]
+                           },
+                           {
+                            "==": [
+                             {
+                              "var": [
+                               "item.type",
+                               "melee"
+                              ]
+                             },
+                             "ranged"
+                            ]
+                           },
+                           {
+                            "var": [
+                             "fields.attributes.dexterity",
+                             0
+                            ]
+                           },
+                           {
+                            "var": [
+                             "fields.attributes.strength",
+                             0
+                            ]
+                           }
+                          ]
+                         },
+                         {
+                          "if": [
+                           {
+                            ">": [
+                             {
+                              "var": [
+                               {
+                                "cat": [
+                                 "fields.attacks.",
+                                 {
+                                  "var": [
+                                   "item.category",
+                                   ""
+                                  ]
+                                 }
+                                ]
+                               },
+                               0
+                              ]
+                             },
+                             0
+                            ]
+                           },
+                           {
+                            "+": [
+                             {
+                              "var": [
+                               "fields.level",
+                               1
+                              ]
+                             },
+                             {
+                              "*": [
+                               2,
+                               {
+                                "var": [
+                                 {
+                                  "cat": [
+                                   "fields.attacks.",
+                                   {
+                                    "var": [
+                                     "item.category",
+                                     ""
+                                    ]
+                                   }
+                                  ]
+                                 },
+                                 0
+                                ]
+                               }
+                              ]
+                             }
+                            ]
+                           },
+                           0
+                          ]
+                         },
+                         {
+                          "var": [
+                           "item.potency",
+                           0
+                          ]
+                         }
+                        ]
+                       },
+                       null
+                      ]
+                     },
+                     {
+                      "if": [
+                       {
+                        "matches": [
+                         {
+                          "var": [
+                           "item.traits",
+                           ""
+                          ]
+                         },
+                         "\\bagile\\b"
+                        ]
+                       },
+                       4,
+                       5
+                      ]
+                     }
+                    ]
+                   }
+                  ]
+                 }
+                ]
+               },
+               "/",
+               {
+                "if": [
+                 {
+                  ">=": [
+                   {
+                    "-": [
+                     {
+                      "if": [
+                       {
+                        "var": [
+                         "item.category",
+                         ""
+                        ]
+                       },
+                       {
+                        "+": [
+                         {
+                          "if": [
+                           {
+                            "==": [
+                             {
+                              "var": [
+                               "item.attribute",
+                               ""
+                              ]
+                             },
+                             "finesse"
+                            ]
+                           },
+                           {
+                            "max": [
+                             {
+                              "var": [
+                               "fields.attributes.strength",
+                               0
+                              ]
+                             },
+                             {
+                              "var": [
+                               "fields.attributes.dexterity",
+                               0
+                              ]
+                             }
+                            ]
+                           },
+                           {
+                            "==": [
+                             {
+                              "var": [
+                               "item.attribute",
+                               ""
+                              ]
+                             },
+                             "dexterity"
+                            ]
+                           },
+                           {
+                            "var": [
+                             "fields.attributes.dexterity",
+                             0
+                            ]
+                           },
+                           {
+                            "==": [
+                             {
+                              "var": [
+                               "item.attribute",
+                               ""
+                              ]
+                             },
+                             "strength"
+                            ]
+                           },
+                           {
+                            "var": [
+                             "fields.attributes.strength",
+                             0
+                            ]
+                           },
+                           {
+                            "==": [
+                             {
+                              "var": [
+                               "item.type",
+                               "melee"
+                              ]
+                             },
+                             "ranged"
+                            ]
+                           },
+                           {
+                            "var": [
+                             "fields.attributes.dexterity",
+                             0
+                            ]
+                           },
+                           {
+                            "var": [
+                             "fields.attributes.strength",
+                             0
+                            ]
+                           }
+                          ]
+                         },
+                         {
+                          "if": [
+                           {
+                            ">": [
+                             {
+                              "var": [
+                               {
+                                "cat": [
+                                 "fields.attacks.",
+                                 {
+                                  "var": [
+                                   "item.category",
+                                   ""
+                                  ]
+                                 }
+                                ]
+                               },
+                               0
+                              ]
+                             },
+                             0
+                            ]
+                           },
+                           {
+                            "+": [
+                             {
+                              "var": [
+                               "fields.level",
+                               1
+                              ]
+                             },
+                             {
+                              "*": [
+                               2,
+                               {
+                                "var": [
+                                 {
+                                  "cat": [
+                                   "fields.attacks.",
+                                   {
+                                    "var": [
+                                     "item.category",
+                                     ""
+                                    ]
+                                   }
+                                  ]
+                                 },
+                                 0
+                                ]
+                               }
+                              ]
+                             }
+                            ]
+                           },
+                           0
+                          ]
+                         },
+                         {
+                          "var": [
+                           "item.potency",
+                           0
+                          ]
+                         }
+                        ]
+                       },
+                       null
+                      ]
+                     },
+                     {
+                      "if": [
+                       {
+                        "matches": [
+                         {
+                          "var": [
+                           "item.traits",
+                           ""
+                          ]
+                         },
+                         "\\bagile\\b"
+                        ]
+                       },
+                       8,
+                       10
+                      ]
+                     }
+                    ]
+                   },
+                   0
+                  ]
+                 },
+                 {
+                  "cat": [
+                   "+",
+                   {
+                    "-": [
+                     {
+                      "if": [
+                       {
+                        "var": [
+                         "item.category",
+                         ""
+                        ]
+                       },
+                       {
+                        "+": [
+                         {
+                          "if": [
+                           {
+                            "==": [
+                             {
+                              "var": [
+                               "item.attribute",
+                               ""
+                              ]
+                             },
+                             "finesse"
+                            ]
+                           },
+                           {
+                            "max": [
+                             {
+                              "var": [
+                               "fields.attributes.strength",
+                               0
+                              ]
+                             },
+                             {
+                              "var": [
+                               "fields.attributes.dexterity",
+                               0
+                              ]
+                             }
+                            ]
+                           },
+                           {
+                            "==": [
+                             {
+                              "var": [
+                               "item.attribute",
+                               ""
+                              ]
+                             },
+                             "dexterity"
+                            ]
+                           },
+                           {
+                            "var": [
+                             "fields.attributes.dexterity",
+                             0
+                            ]
+                           },
+                           {
+                            "==": [
+                             {
+                              "var": [
+                               "item.attribute",
+                               ""
+                              ]
+                             },
+                             "strength"
+                            ]
+                           },
+                           {
+                            "var": [
+                             "fields.attributes.strength",
+                             0
+                            ]
+                           },
+                           {
+                            "==": [
+                             {
+                              "var": [
+                               "item.type",
+                               "melee"
+                              ]
+                             },
+                             "ranged"
+                            ]
+                           },
+                           {
+                            "var": [
+                             "fields.attributes.dexterity",
+                             0
+                            ]
+                           },
+                           {
+                            "var": [
+                             "fields.attributes.strength",
+                             0
+                            ]
+                           }
+                          ]
+                         },
+                         {
+                          "if": [
+                           {
+                            ">": [
+                             {
+                              "var": [
+                               {
+                                "cat": [
+                                 "fields.attacks.",
+                                 {
+                                  "var": [
+                                   "item.category",
+                                   ""
+                                  ]
+                                 }
+                                ]
+                               },
+                               0
+                              ]
+                             },
+                             0
+                            ]
+                           },
+                           {
+                            "+": [
+                             {
+                              "var": [
+                               "fields.level",
+                               1
+                              ]
+                             },
+                             {
+                              "*": [
+                               2,
+                               {
+                                "var": [
+                                 {
+                                  "cat": [
+                                   "fields.attacks.",
+                                   {
+                                    "var": [
+                                     "item.category",
+                                     ""
+                                    ]
+                                   }
+                                  ]
+                                 },
+                                 0
+                                ]
+                               }
+                              ]
+                             }
+                            ]
+                           },
+                           0
+                          ]
+                         },
+                         {
+                          "var": [
+                           "item.potency",
+                           0
+                          ]
+                         }
+                        ]
+                       },
+                       null
+                      ]
+                     },
+                     {
+                      "if": [
+                       {
+                        "matches": [
+                         {
+                          "var": [
+                           "item.traits",
+                           ""
+                          ]
+                         },
+                         "\\bagile\\b"
+                        ]
+                       },
+                       8,
+                       10
+                      ]
+                     }
+                    ]
+                   }
+                  ]
+                 },
+                 {
+                  "cat": [
+                   {
+                    "-": [
+                     {
+                      "if": [
+                       {
+                        "var": [
+                         "item.category",
+                         ""
+                        ]
+                       },
+                       {
+                        "+": [
+                         {
+                          "if": [
+                           {
+                            "==": [
+                             {
+                              "var": [
+                               "item.attribute",
+                               ""
+                              ]
+                             },
+                             "finesse"
+                            ]
+                           },
+                           {
+                            "max": [
+                             {
+                              "var": [
+                               "fields.attributes.strength",
+                               0
+                              ]
+                             },
+                             {
+                              "var": [
+                               "fields.attributes.dexterity",
+                               0
+                              ]
+                             }
+                            ]
+                           },
+                           {
+                            "==": [
+                             {
+                              "var": [
+                               "item.attribute",
+                               ""
+                              ]
+                             },
+                             "dexterity"
+                            ]
+                           },
+                           {
+                            "var": [
+                             "fields.attributes.dexterity",
+                             0
+                            ]
+                           },
+                           {
+                            "==": [
+                             {
+                              "var": [
+                               "item.attribute",
+                               ""
+                              ]
+                             },
+                             "strength"
+                            ]
+                           },
+                           {
+                            "var": [
+                             "fields.attributes.strength",
+                             0
+                            ]
+                           },
+                           {
+                            "==": [
+                             {
+                              "var": [
+                               "item.type",
+                               "melee"
+                              ]
+                             },
+                             "ranged"
+                            ]
+                           },
+                           {
+                            "var": [
+                             "fields.attributes.dexterity",
+                             0
+                            ]
+                           },
+                           {
+                            "var": [
+                             "fields.attributes.strength",
+                             0
+                            ]
+                           }
+                          ]
+                         },
+                         {
+                          "if": [
+                           {
+                            ">": [
+                             {
+                              "var": [
+                               {
+                                "cat": [
+                                 "fields.attacks.",
+                                 {
+                                  "var": [
+                                   "item.category",
+                                   ""
+                                  ]
+                                 }
+                                ]
+                               },
+                               0
+                              ]
+                             },
+                             0
+                            ]
+                           },
+                           {
+                            "+": [
+                             {
+                              "var": [
+                               "fields.level",
+                               1
+                              ]
+                             },
+                             {
+                              "*": [
+                               2,
+                               {
+                                "var": [
+                                 {
+                                  "cat": [
+                                   "fields.attacks.",
+                                   {
+                                    "var": [
+                                     "item.category",
+                                     ""
+                                    ]
+                                   }
+                                  ]
+                                 },
+                                 0
+                                ]
+                               }
+                              ]
+                             }
+                            ]
+                           },
+                           0
+                          ]
+                         },
+                         {
+                          "var": [
+                           "item.potency",
+                           0
+                          ]
+                         }
+                        ]
+                       },
+                       null
+                      ]
+                     },
+                     {
+                      "if": [
+                       {
+                        "matches": [
+                         {
+                          "var": [
+                           "item.traits",
+                           ""
+                          ]
+                         },
+                         "\\bagile\\b"
+                        ]
+                       },
+                       8,
+                       10
+                      ]
+                     }
+                    ]
+                   }
+                  ]
+                 }
+                ]
+               },
+               "]"
+              ]
+             },
+             ""
+            ]
+           }
+          },
+          {
+           "key": "bonus",
+           "label": "Attack (by hand)"
+          },
+          {
+           "key": "damage",
+           "label": "Damage dice"
+          },
+          {
+           "key": "damageTotal",
+           "label": "Damage",
+           "computed": {
+            "if": [
+             {
+              "var": [
+               "item.damage",
+               ""
+              ]
+             },
+             {
+              "if": [
+               {
+                "==": [
+                 {
+                  "if": [
+                   {
+                    "var": [
+                     "item.category",
+                     ""
+                    ]
+                   },
+                   {
+                    "if": [
+                     {
+                      "or": [
+                       {
+                        "!=": [
+                         {
+                          "var": [
+                           "item.type",
+                           "melee"
+                          ]
+                         },
+                         "ranged"
+                        ]
+                       },
+                       {
+                        "matches": [
+                         {
+                          "var": [
+                           "item.traits",
+                           ""
+                          ]
+                         },
+                         "\\bthrown\\b"
+                        ]
+                       }
+                      ]
+                     },
+                     {
+                      "var": [
+                       "fields.attributes.strength",
+                       0
+                      ]
+                     },
+                     {
+                      "matches": [
+                       {
+                        "var": [
+                         "item.traits",
+                         ""
+                        ]
+                       },
+                       "\\bpropulsive\\b"
+                      ]
+                     },
+                     {
+                      "floor": {
+                       "/": [
+                        {
+                         "max": [
+                          0,
+                          {
+                           "var": [
+                            "fields.attributes.strength",
+                            0
+                           ]
+                          }
+                         ]
+                        },
+                        2
+                       ]
+                      }
+                     },
+                     0
+                    ]
+                   },
+                   0
+                  ]
+                 },
+                 0
+                ]
+               },
+               {
+                "var": "item.damage"
+               },
+               {
+                "cat": [
+                 {
+                  "var": "item.damage"
+                 },
+                 " ",
+                 {
+                  "if": [
+                   {
+                    ">=": [
+                     {
+                      "if": [
+                       {
+                        "var": [
+                         "item.category",
+                         ""
+                        ]
+                       },
+                       {
+                        "if": [
+                         {
+                          "or": [
+                           {
+                            "!=": [
+                             {
+                              "var": [
+                               "item.type",
+                               "melee"
+                              ]
+                             },
+                             "ranged"
+                            ]
+                           },
+                           {
+                            "matches": [
+                             {
+                              "var": [
+                               "item.traits",
+                               ""
+                              ]
+                             },
+                             "\\bthrown\\b"
+                            ]
+                           }
+                          ]
+                         },
+                         {
+                          "var": [
+                           "fields.attributes.strength",
+                           0
+                          ]
+                         },
+                         {
+                          "matches": [
+                           {
+                            "var": [
+                             "item.traits",
+                             ""
+                            ]
+                           },
+                           "\\bpropulsive\\b"
+                          ]
+                         },
+                         {
+                          "floor": {
+                           "/": [
+                            {
+                             "max": [
+                              0,
+                              {
+                               "var": [
+                                "fields.attributes.strength",
+                                0
+                               ]
+                              }
+                             ]
+                            },
+                            2
+                           ]
+                          }
+                         },
+                         0
+                        ]
+                       },
+                       0
+                      ]
+                     },
+                     0
+                    ]
+                   },
+                   {
+                    "cat": [
+                     "+",
+                     {
+                      "if": [
+                       {
+                        "var": [
+                         "item.category",
+                         ""
+                        ]
+                       },
+                       {
+                        "if": [
+                         {
+                          "or": [
+                           {
+                            "!=": [
+                             {
+                              "var": [
+                               "item.type",
+                               "melee"
+                              ]
+                             },
+                             "ranged"
+                            ]
+                           },
+                           {
+                            "matches": [
+                             {
+                              "var": [
+                               "item.traits",
+                               ""
+                              ]
+                             },
+                             "\\bthrown\\b"
+                            ]
+                           }
+                          ]
+                         },
+                         {
+                          "var": [
+                           "fields.attributes.strength",
+                           0
+                          ]
+                         },
+                         {
+                          "matches": [
+                           {
+                            "var": [
+                             "item.traits",
+                             ""
+                            ]
+                           },
+                           "\\bpropulsive\\b"
+                          ]
+                         },
+                         {
+                          "floor": {
+                           "/": [
+                            {
+                             "max": [
+                              0,
+                              {
+                               "var": [
+                                "fields.attributes.strength",
+                                0
+                               ]
+                              }
+                             ]
+                            },
+                            2
+                           ]
+                          }
+                         },
+                         0
+                        ]
+                       },
+                       0
+                      ]
+                     }
+                    ]
+                   },
+                   {
+                    "cat": [
+                     {
+                      "if": [
+                       {
+                        "var": [
+                         "item.category",
+                         ""
+                        ]
+                       },
+                       {
+                        "if": [
+                         {
+                          "or": [
+                           {
+                            "!=": [
+                             {
+                              "var": [
+                               "item.type",
+                               "melee"
+                              ]
+                             },
+                             "ranged"
+                            ]
+                           },
+                           {
+                            "matches": [
+                             {
+                              "var": [
+                               "item.traits",
+                               ""
+                              ]
+                             },
+                             "\\bthrown\\b"
+                            ]
+                           }
+                          ]
+                         },
+                         {
+                          "var": [
+                           "fields.attributes.strength",
+                           0
+                          ]
+                         },
+                         {
+                          "matches": [
+                           {
+                            "var": [
+                             "item.traits",
+                             ""
+                            ]
+                           },
+                           "\\bpropulsive\\b"
+                          ]
+                         },
+                         {
+                          "floor": {
+                           "/": [
+                            {
+                             "max": [
+                              0,
+                              {
+                               "var": [
+                                "fields.attributes.strength",
+                                0
+                               ]
+                              }
+                             ]
+                            },
+                            2
+                           ]
+                          }
+                         },
+                         0
+                        ]
+                       },
+                       0
+                      ]
+                     }
+                    ]
+                   }
+                  ]
+                 }
+                ]
+               }
+              ]
+             },
+             ""
+            ]
+           }
+          },
+          "traits",
+          {
+           "key": "potency",
+           "label": "Potency"
           }
-         ]
+         ],
+         "addFrom": {
+          "ref": "pf2e-orc.equipment.weapons",
+          "label": "Add a weapon",
+          "where": {
+           "var": "item.builder.strike"
+          },
+          "row": {
+           "name": {
+            "var": "item.name"
+           },
+           "type": {
+            "var": [
+             "item.builder.strike",
+             "melee"
+            ]
+           },
+           "category": {
+            "var": "item.category"
+           },
+           "attribute": {
+            "if": [
+             {
+              "matches": [
+               {
+                "var": [
+                 "item.traits",
+                 ""
+                ]
+               },
+               "\\bfinesse\\b"
+              ]
+             },
+             "finesse",
+             {
+              "==": [
+               {
+                "var": [
+                 "item.builder.strike",
+                 ""
+                ]
+               },
+               "ranged"
+              ]
+             },
+             "dexterity",
+             "strength"
+            ]
+           },
+           "damage": {
+            "if": [
+             {
+              "matches": [
+               {
+                "var": [
+                 "item.damage",
+                 ""
+                ]
+               },
+               " [BPS]$"
+              ]
+             },
+             {
+              "cat": [
+               {
+                "substr": [
+                 {
+                  "var": "item.damage"
+                 },
+                 0,
+                 -2
+                ]
+               },
+               " ",
+               {
+                "lookup": [
+                 {
+                  "B": "bludgeoning",
+                  "P": "piercing",
+                  "S": "slashing"
+                 },
+                 {
+                  "substr": [
+                   {
+                    "var": "item.damage"
+                   },
+                   -1
+                  ]
+                 },
+                 ""
+                ]
+               }
+              ]
+             },
+             {
+              "var": [
+               "item.damage",
+               ""
+              ]
+             }
+            ]
+           },
+           "traits": {
+            "var": [
+             "item.traits",
+             ""
+            ]
+           }
+          }
+         }
         }
        }
       ]
@@ -6100,6 +8778,7 @@
     ]
    },
    "defaultVisibility": {
+    "motivation": "gm",
     "secret": "gm",
     "notes": "gm",
     "statBlock": "gm"
@@ -7148,6 +9827,15 @@
    "columns": [
     "attribute"
    ],
+   "itemSchema": {
+    "type": "object",
+    "properties": {
+     "attribute": {
+      "type": "string",
+      "x-ref": "pf2e-orc.attributes"
+     }
+    }
+   },
    "items": [
     {
      "id": "acrobatics",
@@ -7238,6 +9926,15 @@
    "columns": [
     "attribute"
    ],
+   "itemSchema": {
+    "type": "object",
+    "properties": {
+     "attribute": {
+      "type": "string",
+      "x-ref": "pf2e-orc.attributes"
+     }
+    }
+   },
    "items": [
     {
      "id": "perception",
@@ -8230,7 +10927,7 @@
       "title": "Or roll a settlement and its tavern",
       "body": [
        "On *Generate*, open *Settlement and tavern*. Each step shows its roll: a name, a size and level, a notable feature, a local trouble, the tavern and its innkeeper. *Re-roll* or *Pin* any step; a *Seed* gives the same result every time.",
-       "The *Preview* lists what will join the campaign; rename anything there (here the village of Ivyford, the Merry Crow and its keeper Bram Oakhollow) and click *Accept into campaign*. The tavern sits within the village, and the local trouble lands on Home's *Quest board* as a rumour."
+       "The *Preview* lists what will join the campaign; rename anything there (here the village of Ivyford, the Merry Crow and its keeper Bram Oakhollow; the rumour and the tavern's text follow the new names) and click *Accept into campaign*. The tavern sits within the village, and the local trouble lands on Home's *Quest board* as a rumour."
       ],
       "image": {
        "key": "settlement-generator",
@@ -8338,7 +11035,7 @@
       "id": "relationship",
       "title": "Add a relationship",
       "body": [
-       "Open an NPC (Odalys Brand), go to *Relationships* and click *+ Add relationship*. Choose how they relate (*knows*, *member of*, *owns*, *wants*, *within* and more, and this module's own: *rival of*, *serves*, *lairs in*, *guards*), *Choose…* who, add a *Note* if it helps (“Pays her to watch the ferry road”) and click *Add*.",
+       "Open an NPC (Odalys Brand), go to *Relationships* and click *+ Add relationship*. Choose how they relate (*knows*, *member of*, *owns*, *wants*, *within* and more, and this module's own *rival of* and *serves*; a creature's page also offers *lairs in* and *guards*), *Choose…* who, add a *Note* if it helps (“Pays her to watch the ferry road”) and click *Add*.",
        "A relationship shows on both pages: Ilsa Varrow's *Relationships* tab lists Odalys Brand too."
       ],
       "image": {
@@ -8494,7 +11191,7 @@
       "id": "scene",
       "title": "Put places and people in a scene",
       "body": [
-       "Click a scene in the outline (Act 1's first). *Location* *Pick* sets where it happens (here the Merry Crow); *Participants* *+ Add* puts NPCs, PCs and creatures in it (Bram Oakhollow and Hesper Quill). *Clues*, *Encounter* and *Map* work the same way.",
+       "Click a scene in the outline (Act 1's first). *Location* *Pick* sets where it happens (here the Merry Crow); *Participants* *+ Add* puts NPCs, PCs and creatures in it (Bram Oakhollow and Hesper Quill). *Clues* and *Encounter* are picked the same way; *Map* is a select of the campaign's maps, with *Create map* beside it.",
        "Below, *Events* lists what must or may happen, *Read-aloud text* is the boxed text for the players, and *Scene notes* take *@* links. Table mode shows all of it for the scene you are in."
       ],
       "image": {
@@ -8512,12 +11209,12 @@
       "id": "encounter",
       "title": "Build an encounter",
       "body": [
-       "On *Generate*, open *Encounter builder*. Set the *Party level*, *Party size* and *Threat*: it spends the XP budget for them on Monster Core creatures, then rolls what they are doing and a twist. Here two kobold warriors lie in ambush on the road. Click *Accept into campaign*: the encounter and each creature, with its stat block, join the campaign.",
-       "Back in the adventure, open the scene for it (*The road there*), *Pick* it as the *Encounter* and *+ Add* its creatures as *Participants*: at the table, the combat panel fights whoever is in the scene."
+       "On *Generate*, open *Encounter builder*. Set the *Party level*, *Party size* and *Threat*: it spends the XP budget for them on Monster Core creatures, then rolls what they are doing and a twist. Here two kobold warriors rest by the road, one lookout half awake. Click *Accept into campaign*: the encounter and each creature, with its stat block, join the campaign.",
+       "Back in the adventure, open the scene for it (*The road there*) and *Pick* it as the *Encounter*. Picking it does not bring its creatures along: *+ Add* them as *Participants* too, since at the table the combat panel fights whoever is in the scene."
       ],
       "image": {
        "key": "encounter",
-       "alt": "The encounter builder for a party of two at level 1, moderate threat: its XP budget and rolls beside the preview of two kobold warriors laying an ambush"
+       "alt": "The encounter builder for a party of two at level 1, moderate threat: its XP budget and rolls beside the preview of two kobold warriors resting with a lookout"
       },
       "links": [
        {
@@ -8603,7 +11300,7 @@
       "title": "Start it: table mode and combat",
       "body": [
        "Click *Start this session* on Home. Table mode shows the scene you are in with its read-aloud text, events and participants; *Mark run* or *Skip* it and *Next →* moves on. The clock's *+ Round*, *+ Minute* and *+ Hour* keep time, and the tabs hold the trackers (dying, wounded, doomed, Hero Points, conditions), dice, hints, the checklist and the log.",
-       "In a scene with creatures, the *Combat* panel's *Roll initiative for everyone* sorts the order; each card takes *Damage*, *Heal* and *+ Condition*, *Attack* rolls a Strike against AC with all four degrees, and *Next turn* moves on."
+       "In a scene with creatures, the *Combat* panel's *Roll initiative for everyone* sorts the order; each card takes *Damage*, *Heal* and *+ Condition*, *Attack* rolls a Strike against AC with all four degrees (a PC's Strikes work out their attack and damage from the sheet), and *Next turn* moves on."
       ],
       "image": {
        "key": "table",
@@ -8725,7 +11422,7 @@
     "id": "characters",
     "title": "Making your character",
     "prompt": "Starting level, which ancestries, heritages, backgrounds, classes and rarities are allowed, and how the party knows each other.",
-    "starter": "- **Options**: common ancestries, heritages, backgrounds and classes; ask before anything uncommon or rare\n- **Ability boosts**: as the core rules give them\n- **Bring**: a reason to adventure and a tie to one other character",
+    "starter": "- **Options**: common ancestries, heritages, backgrounds and classes; ask before anything uncommon or rare\n- **Attribute boosts**: as the core rules give them\n- **Bring**: a reason to adventure and a tie to one other character",
     "original": true
    },
    {
@@ -8910,6 +11607,249 @@
       "path": "strikes",
       "keys": {
        "kind": "type"
+      },
+      "bonus": {
+       "if": [
+        {
+         "var": [
+          "item.category",
+          ""
+         ]
+        },
+        {
+         "+": [
+          {
+           "if": [
+            {
+             "==": [
+              {
+               "var": [
+                "item.attribute",
+                ""
+               ]
+              },
+              "finesse"
+             ]
+            },
+            {
+             "max": [
+              {
+               "var": [
+                "fields.attributes.strength",
+                0
+               ]
+              },
+              {
+               "var": [
+                "fields.attributes.dexterity",
+                0
+               ]
+              }
+             ]
+            },
+            {
+             "==": [
+              {
+               "var": [
+                "item.attribute",
+                ""
+               ]
+              },
+              "dexterity"
+             ]
+            },
+            {
+             "var": [
+              "fields.attributes.dexterity",
+              0
+             ]
+            },
+            {
+             "==": [
+              {
+               "var": [
+                "item.attribute",
+                ""
+               ]
+              },
+              "strength"
+             ]
+            },
+            {
+             "var": [
+              "fields.attributes.strength",
+              0
+             ]
+            },
+            {
+             "==": [
+              {
+               "var": [
+                "item.type",
+                "melee"
+               ]
+              },
+              "ranged"
+             ]
+            },
+            {
+             "var": [
+              "fields.attributes.dexterity",
+              0
+             ]
+            },
+            {
+             "var": [
+              "fields.attributes.strength",
+              0
+             ]
+            }
+           ]
+          },
+          {
+           "if": [
+            {
+             ">": [
+              {
+               "var": [
+                {
+                 "cat": [
+                  "fields.attacks.",
+                  {
+                   "var": [
+                    "item.category",
+                    ""
+                   ]
+                  }
+                 ]
+                },
+                0
+               ]
+              },
+              0
+             ]
+            },
+            {
+             "+": [
+              {
+               "var": [
+                "fields.level",
+                1
+               ]
+              },
+              {
+               "*": [
+                2,
+                {
+                 "var": [
+                  {
+                   "cat": [
+                    "fields.attacks.",
+                    {
+                     "var": [
+                      "item.category",
+                      ""
+                     ]
+                    }
+                   ]
+                  },
+                  0
+                 ]
+                }
+               ]
+              }
+             ]
+            },
+            0
+           ]
+          },
+          {
+           "var": [
+            "item.potency",
+            0
+           ]
+          }
+         ]
+        },
+        null
+       ]
+      },
+      "damageBonus": {
+       "if": [
+        {
+         "var": [
+          "item.category",
+          ""
+         ]
+        },
+        {
+         "if": [
+          {
+           "or": [
+            {
+             "!=": [
+              {
+               "var": [
+                "item.type",
+                "melee"
+               ]
+              },
+              "ranged"
+             ]
+            },
+            {
+             "matches": [
+              {
+               "var": [
+                "item.traits",
+                ""
+               ]
+              },
+              "\\bthrown\\b"
+             ]
+            }
+           ]
+          },
+          {
+           "var": [
+            "fields.attributes.strength",
+            0
+           ]
+          },
+          {
+           "matches": [
+            {
+             "var": [
+              "item.traits",
+              ""
+             ]
+            },
+            "\\bpropulsive\\b"
+           ]
+          },
+          {
+           "floor": {
+            "/": [
+             {
+              "max": [
+               0,
+               {
+                "var": [
+                 "fields.attributes.strength",
+                 0
+                ]
+               }
+              ]
+             },
+             2
+            ]
+           }
+          },
+          0
+         ]
+        },
+        0
+       ]
       }
      }
     ],
@@ -24351,7 +27291,7 @@
      "cite": "GM Core — Treasure: Character Wealth",
      "guide": [
       "At 1st level you have 15 gp. Above it, GM Core gives currency plus permanent items of set levels, or one lump sum.",
-      "Picked armor and shields go on the sheet (AC follows); weapons become Strikes rows whose attack bonus you write in."
+      "Picked armor and shields go on the sheet (AC follows); weapons become Strikes rows whose attack and damage follow your attributes and proficiency."
      ],
      "summary": {
       "cat": [
@@ -24733,10 +27673,95 @@
           "name": {
            "var": "item.name"
           },
-          "damage": {
+          "type": {
            "var": [
-            "item.damage",
-            ""
+            "item.builder.strike",
+            "melee"
+           ]
+          },
+          "category": {
+           "var": "item.category"
+          },
+          "attribute": {
+           "if": [
+            {
+             "matches": [
+              {
+               "var": [
+                "item.traits",
+                ""
+               ]
+              },
+              "\\bfinesse\\b"
+             ]
+            },
+            "finesse",
+            {
+             "==": [
+              {
+               "var": [
+                "item.builder.strike",
+                ""
+               ]
+              },
+              "ranged"
+             ]
+            },
+            "dexterity",
+            "strength"
+           ]
+          },
+          "damage": {
+           "if": [
+            {
+             "matches": [
+              {
+               "var": [
+                "item.damage",
+                ""
+               ]
+              },
+              " [BPS]$"
+             ]
+            },
+            {
+             "cat": [
+              {
+               "substr": [
+                {
+                 "var": "item.damage"
+                },
+                0,
+                -2
+               ]
+              },
+              " ",
+              {
+               "lookup": [
+                {
+                 "B": "bludgeoning",
+                 "P": "piercing",
+                 "S": "slashing"
+                },
+                {
+                 "substr": [
+                  {
+                   "var": "item.damage"
+                  },
+                  -1
+                 ]
+                },
+                ""
+               ]
+              }
+             ]
+            },
+            {
+             "var": [
+              "item.damage",
+              ""
+             ]
+            }
            ]
           },
           "traits": {
@@ -24744,9 +27769,6 @@
             "item.traits",
             ""
            ]
-          },
-          "type": {
-           "var": "item.builder.strike"
           }
          },
          "when": {
@@ -25421,7 +28443,7 @@
           ]
          },
          [
-          "Strikes: write in each weapon's attack bonus and any damage bonus."
+          "Strikes: the attack and damage are worked out from your attributes and proficiency; add runes (potency) and class bonuses such as weapon specialization on the sheet."
          ],
          []
         ]
@@ -34144,7 +37166,7 @@
            ]
           },
           [
-           "Strikes: write in each weapon's attack bonus and any damage bonus."
+           "Strikes: the attack and damage are worked out from your attributes and proficiency; add runes (potency) and class bonuses such as weapon specialization on the sheet."
           ],
           []
          ]

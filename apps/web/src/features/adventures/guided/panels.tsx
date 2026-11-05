@@ -124,7 +124,7 @@ export function AdventurePanel({ adventure, fields }: { adventure: Adventure; fi
 
 function roleHint(role: CastRoleDef, count: number): string | undefined {
   if (role.min !== undefined && role.max !== undefined) return `${count} of ${role.min === role.max ? role.min : `${role.min}–${role.max}`}`;
-  if (role.min !== undefined) return `${count} (at least ${role.min})`;
+  if (role.min !== undefined) return count === 0 ? `none yet (at least ${role.min})` : `${count} (at least ${role.min})`;
   if (role.max !== undefined) return `${count} (at most ${role.max})`;
   return undefined;
 }

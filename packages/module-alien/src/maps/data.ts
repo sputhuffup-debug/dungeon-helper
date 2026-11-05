@@ -572,7 +572,7 @@ export const MAP_LEGEND: MapLegendEntry[] = [
   L({ kind: "shaft" }, "Shaft", "A vertical zone; falling rules apply.", 75),
   // GM-only markers
   L({ marker: "start" }, "Start", "Where the crew begins."),
-  L({ marker: "spawn" }, "Spawn point", "Creature, act and Speed (zones per stretch in stealth mode).", [55, 208], { gmOnly: true }),
+  L({ marker: "spawn" }, "Spawn point", "Creature, act and Speed (zones per stretch in stealth mode).", { pages: [55, 208] }, { gmOnly: true }),
   L({ marker: "waypoint" }, "Patrol waypoint", "Where an active threat moves between stretches.", 55, { gmOnly: true }),
   L(
     { marker: "hostile" },

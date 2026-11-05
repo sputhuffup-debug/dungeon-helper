@@ -79,7 +79,7 @@ export function NewEntityPage() {
     const shown = presets.filter((p) => (!subtype || !p.subtype || p.subtype === subtype) && (!q || p.name.toLowerCase().includes(q) || (p.summary ?? "").toLowerCase().includes(q) || (p.tags ?? []).some((t) => t.toLowerCase().includes(q))));
     const groups = new Map<string, EntityPreset[]>();
     for (const p of shown) {
-      const key = p.subtype ? def?.subtypes?.find((s) => s.id === p.subtype)?.name ?? humanize(p.subtype) : groupTag(p) ?? "Presets";
+      const key = p.group ?? (p.subtype ? def?.subtypes?.find((s) => s.id === p.subtype)?.name ?? humanize(p.subtype) : groupTag(p) ?? "Presets");
       groups.set(key, [...(groups.get(key) ?? []), p]);
     }
     return [...groups.entries()].sort(([a], [b]) => a.localeCompare(b));

@@ -78,9 +78,10 @@ describe("buildDnd5eDemo", async () => {
       for (const key of ["class", "subclass", "race", "background", "alignment"]) expect(pc.fields[key], `${pc.name} ${key}`).toBeTruthy();
       const c = computeFields(def, pc.fields);
       expect(c["proficiencyBonus"]).toBe(2);
-      // fixed-value hit points (a hill dwarf adds 1 per level)
+      // fixed-value hit points; the sheet's fixed-value maximum counts a hill dwarf's Dwarven Toughness (1 per level) when the feature is on the sheet
       const hp = (pc.fields["hp"] as { max: number }).max;
-      expect(hp, pc.name).toBe(Number(c["suggestedHpMax"]) + (pc.fields["subrace"] === "Hill dwarf" ? 3 : 0));
+      const toughness = (pc.fields["features"] as Array<{ name: string }> | undefined)?.some((f) => f.name === "Dwarven Toughness");
+      expect(hp, pc.name).toBe(Number(c["suggestedHpMax"]) + (pc.fields["subrace"] === "Hill dwarf" && !toughness ? 3 : 0));
     }
     const brannoc = computeFields(def, pcs.find((p) => p.name === "Brannoc Ashby")!.fields);
     expect([brannoc["strengthMod"], brannoc["athleticsBonus"], brannoc["strengthSave"], brannoc["passivePerception"]]).toEqual([3, 5, 5, 13]);

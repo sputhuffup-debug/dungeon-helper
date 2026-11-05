@@ -34,13 +34,20 @@ const item = (listId: string, id: string): ReferenceItem => {
 const LISTS = ["races", "subraces", "racial-traits", "backgrounds", "feats", "subclasses", "class-features"];
 
 describe("SRD 5.2 character options", () => {
-  it("adds every SRD 5.2 background, species, lineage, trait, subclass, subclass feature and feat, keeping the SRD 5.1 ones", () => {
+  it("adds every SRD 5.2 background, species, lineage, trait, subclass, class and subclass feature and feat, keeping the SRD 5.1 ones", () => {
     expect(of2024("backgrounds")).toHaveLength(4);
     expect(of2024("races")).toHaveLength(9);
     expect(of2024("subraces")).toHaveLength(24);
     expect(of2024("racial-traits")).toHaveLength(67);
     expect(of2024("subclasses")).toHaveLength(12);
-    expect(of2024("class-features")).toHaveLength(58);
+    // 58 subclass features and the classes' own 174 (an SRD 5.2 build gets these instead of the SRD 5.1 ones)
+    expect(of2024("class-features").filter((f) => f.subclass)).toHaveLength(58);
+    expect(of2024("class-features").filter((f) => !f.subclass)).toHaveLength(174);
+    expect(of2024("class-features").filter((f) => f.class === "Wizard" && !f.subclass && Number(f.level) <= 5).map((f) => f.name)).toEqual(["Spellcasting", "Ritual Adept", "Arcane Recovery", "Scholar", "Wizard Subclass", "Ability Score Improvement", "Memorize Spell"]);
+    // a cleric domain's and a paladin oath's always-prepared spells, by class level
+    expect(item("subclasses", "life").spells).toBe("1: Bless, Cure Wounds; 3: Lesser Restoration, Spiritual Weapon; 5: Beacon of Hope, Revivify; 7: Death Ward, Guardian of Faith; 9: Mass Cure Wounds, Raise Dead");
+    expect(item("subclasses", "life-domain-2024").spells).toBe("3: Aid, Bless, Cure Wounds, Lesser Restoration; 5: Mass Healing Word, Revivify; 7: Aura of Life, Death Ward; 9: Greater Restoration, Mass Cure Wounds");
+    expect(item("subclasses", "oath-of-devotion-2024").spells).toContain("3: Protection from Evil and Good, Shield of Faith");
     expect(of2024("feats")).toHaveLength(17);
     // the SRD 5.1 items are all still there
     expect([of51("backgrounds"), of51("races"), of51("subraces"), of51("racial-traits"), of51("subclasses"), of51("class-features"), of51("feats")].map((l) => l.length)).toEqual([1, 9, 4, 38, 12, 407, 1]);
@@ -89,13 +96,19 @@ describe("SRD 5.2 character options", () => {
     for (const s of of2024("subclasses")) expect(CLASSES).toContain(classNames.get(String(s.class)));
     expect(new Set(of2024("subclasses").map((s) => s.class)).size).toBe(12);
     const subclasses = new Map(of2024("subclasses").map((s) => [s.name, s]));
-    for (const f of of2024("class-features")) {
+    for (const f of of2024("class-features").filter((x) => x.subclass)) {
       const s = subclasses.get(String(f.subclass));
       expect(s, f.id).toBeDefined();
       expect(f.class).toBe(s!.class);
       expect(String(s!.features)).toContain(`${f.level}: ${f.name}`);
     }
     for (const t of of2024("racial-traits")) expect(String(t.races).split(", ").some((r) => species.has(r)), t.id).toBe(true);
+    // the classes' own features name one of the sheet's classes and a level
+    for (const f of of2024("class-features").filter((x) => !x.subclass)) {
+      expect(classNames.has(String(f.class)), f.id).toBe(true);
+      expect(Number(f.level), f.id).toBeGreaterThanOrEqual(1);
+      expect(f.cite, f.id).toBe(`SRD 5.2 — Classes: ${String(f.class)}`);
+    }
   });
 
   it("spot-checks species and lineages against the source", () => {

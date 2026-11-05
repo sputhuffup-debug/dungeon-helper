@@ -8,7 +8,7 @@ export const creatureRules: RuleCard[] = [
     tags: ["creatures", "combat"],
     links: { tables: ["alien.creatures.attack.drone", "alien.creatures.broken-xenomorph"], fields: [F.creatureAttacks, F.creatureSpeed, F.creatureDamage], rules: ["alien.rule.creature-speed", "alien.rule.creature-armor", "alien.rule.acid-splash", "alien.rule.broken-xenomorph", "alien.rule.grappling"], trackers: [TR.initiative] },
   }),
-  card("creature-speed", "Speed", "A Xenomorph gets one full turn and one initiative card per point of Speed. Moving instead of attacking covers two zones, or a zone then Short to Adjacent range, and in stealth mode it moves one zone per point of Speed each stretch. An ambushing Xenomorph takes card #1 only for its first turn.", [55, 208], {
+  card("creature-speed", "Speed", "A Xenomorph gets one full turn and one initiative card per point of Speed. Moving instead of attacking covers two zones, or a zone then Short to Adjacent range, and in stealth mode it moves one zone per point of Speed each stretch. An ambushing Xenomorph takes card #1 only for its first turn.", { pages: [55, 208] }, {
     tags: ["creatures", "combat", "initiative"],
     links: { rules: ["alien.rule.initiative", "alien.rule.stealth-mode", "alien.rule.ambush"], trackers: [TR.initiative, TR.stealth] },
   }),

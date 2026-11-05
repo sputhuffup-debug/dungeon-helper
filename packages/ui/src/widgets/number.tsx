@@ -32,7 +32,10 @@ function fallback(props: WidgetProps, min: number | undefined, max: number | und
 export function NumberField(props: WidgetProps) {
   const { id, value, onChange, readonly, field, computed } = props;
   const { min, max, step } = bounds(props);
-  const n = asNumber(value, fallback(props, min, max));
+  // `config.unsetComputed`: a value not stored yet reads as that computed value (current Hit Points at the maximum)
+  const unsetKey = typeof field.config?.unsetComputed === "string" ? field.config.unsetComputed : undefined;
+  const unset = unsetKey && (value === undefined || value === null) ? computed?.[unsetKey] : undefined;
+  const n = asNumber(value, typeof unset === "number" && Number.isFinite(unset) ? unset : fallback(props, min, max));
   const label = field.label ?? labelFromPath(field.path);
   const key = typeof field.config?.suggested === "string" ? field.config.suggested : undefined;
   const raw = key ? computed?.[key] : undefined;

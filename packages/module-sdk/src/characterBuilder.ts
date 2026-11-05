@@ -13,7 +13,7 @@
  * Computed values are never written: grants write stored fields only, and
  * rules read computed values through `computed` (rule 4).
  */
-import { computeFields, defaultFieldsFor, fieldSchemaAt, validateEntityFields } from "./entities";
+import { computeFields, defaultFieldsFor, enumLabel, fieldSchemaAt, validateEntityFields } from "./entities";
 import { parseDiceExpression, rollDice } from "./dice";
 import { evaluateLogic, getPath, logicIssues, setPath } from "./logic";
 import type {
@@ -256,9 +256,9 @@ function asInt(v: unknown, fallback: number): number {
   return Number.isFinite(n) ? Math.trunc(n) : fallback;
 }
 
-/** "+2", "−1", "0". */
+/** "+2", "−1", "+0". */
 export function signed(n: number): string {
-  return n > 0 ? `+${n}` : n < 0 ? `−${Math.abs(n)}` : "0";
+  return n > 0 ? `+${n}` : n < 0 ? `−${Math.abs(n)}` : "+0";
 }
 
 function humanize(key: string): string {
@@ -418,17 +418,44 @@ function valueText(v: unknown): string {
   return asText(v);
 }
 
-/** How the review page reads a grant: "+2 Dexterity", "Speed 30", "Languages: Elvish". */
+/**
+ * A value of a field path as the sheet shows it: a skills widget's level
+ * label (skills.athletics 1 -> "Proficient"), a reference item's name (class
+ * "fighter" -> "Fighter"), an enum's label; otherwise the value as text.
+ */
+export function builderValueText(module: GameModule, def: EntityTypeDef | undefined, path: string, value: unknown): string {
+  if (Array.isArray(value)) return value.map((x) => builderValueText(module, def, path, x)).filter(Boolean).join(", ");
+  if (typeof value !== "string" && typeof value !== "number") return valueText(value);
+  const fields = def?.sheet.sections.flatMap((s) => s.fields) ?? [];
+  const segs = path.split(".");
+  const parent = segs.slice(0, -1).join(".");
+  const field = fields.find((f) => f.path === path) ?? (parent ? fields.find((f) => f.path === `${parent}.*`) : undefined);
+  const levels = field?.config && Array.isArray(field.config.levels) ? (field.config.levels as Array<{ value?: unknown; label?: unknown }>) : undefined;
+  const level = levels?.find((l) => l.value === value);
+  if (level && typeof level.label === "string" && level.label.trim() && level.label !== "—") return level.label;
+  const opts = field?.options;
+  const ref = opts && !Array.isArray(opts) && typeof opts === "object" && typeof (opts as { ref?: unknown }).ref === "string" ? (opts as { ref: string }).ref : undefined;
+  if (ref && typeof value === "string") {
+    const item = module.referenceLists.find((l) => l.id === ref)?.items.find((i) => i.id === value);
+    if (item) return item.name;
+  }
+  const schema = def ? fieldSchemaAt(def, path) : undefined;
+  const label = enumLabel(schema, value);
+  return label ?? valueText(value);
+}
+
+/** How the review page reads a grant: "+2 Dexterity", "Speed 30", "Languages: Elvish", "Class Fighter", "Athletics Proficient". */
 export function describeGrant(module: GameModule, def: EntityTypeDef | undefined, g: AppliedGrant): string {
   if (g.label) return g.label;
   const label = builderFieldLabel(module, def, g.field);
+  const text = (v: unknown) => builderValueText(module, def, g.field, v);
   switch (g.op) {
     case "add":
       return typeof g.value === "number" ? `${signed(g.value)} ${label}` : `${label} + ${valueText(g.value)}`;
     case "append":
-      return `${label}: ${valueText(g.value)}`;
+      return `${label}: ${text(g.value)}`;
     case "remove":
-      return `${label}: no ${valueText(g.value)}`;
+      return `${label}: no ${text(g.value)}`;
     case "max":
       return `${label} at least ${valueText(g.value)}`;
     case "min":
@@ -436,7 +463,7 @@ export function describeGrant(module: GameModule, def: EntityTypeDef | undefined
     case "upsert":
       return `${label}: ${valueText(g.value)}`;
     default:
-      return g.value === true ? label : `${label} ${valueText(g.value)}`;
+      return g.value === true ? label : `${label} ${text(g.value)}`;
   }
 }
 
@@ -1103,14 +1130,21 @@ function stepSummary(res: Resolver, step: CharacterBuilderStep, state: StepState
 // Draft edits (pure; the app stores the result)
 // ---------------------------------------------------------------------------
 
-/** Toggle an option of a choice: single-pick choices replace the pick, multi-pick ones add or remove it (up to `max`). */
-export function togglePick<D extends CharacterBuilderDraft>(draft: D, choice: Pick<ChoiceState, "path" | "max">, optionId: string): D {
+/**
+ * Toggle an option of a choice: single-pick choices replace the pick,
+ * multi-pick ones add or remove it (up to `max`). A full multi-pick choice
+ * makes room by dropping a pick that is no longer available (when the
+ * choice's `options` say which), else the oldest pick.
+ */
+export function togglePick<D extends CharacterBuilderDraft>(draft: D, choice: Pick<ChoiceState, "path" | "max"> & { options?: Array<Pick<OptionState, "id" | "available">> }, optionId: string): D {
   const cur = draft.picks[choice.path] ?? [];
   let next: string[];
   if (choice.max <= 1) next = cur.includes(optionId) && cur.length === 1 ? [] : [optionId];
   else if (cur.includes(optionId)) next = cur.filter((x) => x !== optionId);
-  else if (cur.length >= choice.max) next = [...cur.slice(1), optionId];
-  else next = [...cur, optionId];
+  else if (cur.length >= choice.max) {
+    const blocked = cur.find((x) => choice.options?.find((o) => o.id === x)?.available === false);
+    next = [...(blocked !== undefined ? cur.filter((x) => x !== blocked) : cur.slice(1)), optionId];
+  } else next = [...cur, optionId];
   const picks = { ...draft.picks, [choice.path]: next };
   if (next.length === 0) delete picks[choice.path];
   return { ...draft, picks };

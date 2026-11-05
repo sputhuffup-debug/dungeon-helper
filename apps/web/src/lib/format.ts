@@ -37,11 +37,17 @@ export function dataStatusLabel(status: string): string {
   return status === "partially-verified" ? "Partially verified" : status === "unverified" ? "Unverified" : status === "verified" ? "Verified" : humanize(status);
 }
 
+/** Abbreviations a key spells in lower case that read in capitals ("hp" → "HP", "classDc" → "Class DC"). */
+const ABBREVIATIONS = new Set(["hp", "ac", "dc", "xp", "gp", "cr", "npc", "npcs", "pc", "pcs", "gm"]);
+
 export function humanize(key: string): string {
   const spaced = key
     .replace(/[_-]+/g, " ")
     .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
-    .trim();
+    .trim()
+    .split(" ")
+    .map((w) => (ABBREVIATIONS.has(w.toLowerCase()) ? (w.toLowerCase().endsWith("s") && w.length > 2 ? `${w.slice(0, -1).toUpperCase()}s` : w.toUpperCase()) : w))
+    .join(" ");
   return spaced.charAt(0).toUpperCase() + spaced.slice(1);
 }
 

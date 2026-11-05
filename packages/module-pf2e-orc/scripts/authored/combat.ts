@@ -12,6 +12,7 @@
  */
 import type { D20CombatDef, D20ConditionDef, D20ConditionEffect, ReferenceList } from "@campaign-forge/module-sdk";
 import { CHARACTER, cite, CREATURE, HAZARD, LIST, rule, SAVES, SKILLS, totalName } from "../ids.ts";
+import { STRIKE_BONUS, STRIKE_DAMAGE_BONUS } from "./entityTypes.ts";
 
 const minus = { "*": [-1, { var: "value" }] };
 /** A status penalty equal to the condition's value. */
@@ -234,7 +235,8 @@ export function d20Combat(lists: ReferenceList[]): D20CombatDef {
         ac: { var: ["computed.ac", 10] },
         hp: { current: "hp.current", max: { var: ["computed.hpMax", 1] }, temp: "hp.temp" },
         saves: Object.fromEntries(saves.map((s) => [s.id, { var: [`computed.${totalName(s.id)}`, 0] }])),
-        attacks: [{ path: "strikes", keys: { kind: "type" } }],
+        // a weapon row that names its category gets its attack and damage bonus from the sheet (rule 4)
+        attacks: [{ path: "strikes", keys: { kind: "type" }, bonus: STRIKE_BONUS, damageBonus: STRIKE_DAMAGE_BONUS }],
         speed: { var: ["fields.speed", 25] },
       },
       {

@@ -1,5 +1,6 @@
 import type { ReferenceItem, ReferenceList } from "@campaign-forge/module-sdk";
 import { CAMPAIGN } from "../modes";
+import { jobTables as JOB_TABLES } from "../tables/jobs";
 
 export interface FrameInput {
   id: string;
@@ -95,13 +96,28 @@ export const frameItems: FrameItem[] = [
   }),
 ];
 
+/** A table's name for the Reference (its id is for module authors). */
+const tableName = (tid: string): string => JOB_TABLES.find((t) => t.id === tid)?.name ?? tid;
+
+/**
+ * A frame as the Reference shows it: the job tables by name, the careers by
+ * name (`x-ref`), without the ids only the module's code uses (`short`, the
+ * ship preset ids). `frameItems` keeps the full records.
+ */
+const shownFrame = (f: FrameItem): ReferenceItem => {
+  const { jobTables: tables, shipPresets: _ships, short: _short, ...rest } = f;
+  return { ...rest, jobTables: Object.values(tables).filter((x): x is string => !!x).map(tableName).join("; ") };
+};
+
+let shown: ReferenceItem[] | undefined;
+
 export const frames: ReferenceList = {
   id: "alien.frames",
   name: "Campaign frames",
   page: [234, 235],
   itemSchema: {
     type: "object",
-    required: ["id", "name", "short", "jobType", "jobTables", "defaultCareers", "salaryBand"],
+    required: ["id", "name", "jobType", "jobTables", "defaultCareers", "salaryBand"],
     properties: {
       id: { type: "string" },
       name: { type: "string" },
@@ -109,14 +125,17 @@ export const frames: ReferenceList = {
       jobType: { type: "string", enum: ["job", "mission", "expedition"] },
       typicalJobs: { type: "string" },
       jobsPage: { type: "integer" },
-      jobTables: { type: "object" },
+      jobTables: { type: "string", title: "Job tables" },
       suggestedEmployers: { type: "array", items: { type: "string" } },
-      defaultCareers: { type: "array", items: { type: "string" } },
+      defaultCareers: { type: "array", items: { type: "string", "x-ref": "alien.careers" } },
       ships: { type: "array", items: { type: "string" } },
-      shipPresets: { type: "array", items: { type: "string" } },
       salaryBand: { type: "string" },
       page: { type: ["integer", "array"] },
     },
   },
-  items: frameItems,
+  // worked out on first read: the job tables module imports this one (a cycle at load time)
+  get items(): ReferenceItem[] {
+    shown ??= frameItems.map(shownFrame);
+    return shown;
+  },
 };

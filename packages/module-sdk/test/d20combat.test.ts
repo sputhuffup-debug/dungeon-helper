@@ -89,6 +89,27 @@ describe("reading combatants", () => {
     expect(d20HitPoints(adv, { fields: { damage: 4, tempHp: 2 }, computed: { maxHp: 19 } })).toEqual({ current: 15, max: 19, temp: 2 });
   });
 
+  it("works out a row's attack bonus and damage modifier from the source's rules when the row states none", () => {
+    const adv = d20CombatantFor(def, "example-pack.adventurer")!;
+    const source = {
+      path: "weapons",
+      bonus: { if: [{ var: "item.ability" }, { "+": [{ var: [{ cat: ["computed.", { var: "item.ability" }, "Mod"] }, 0] }, { if: [{ var: "item.proficient" }, 2, 0] }] }, null] },
+      damageBonus: { if: [{ var: "item.ability" }, { var: [{ cat: ["computed.", { var: "item.ability" }, "Mod"] }, 0] }, 0] },
+    };
+    const cb = { ...adv, attacks: [source] };
+    const fields = { weapons: [{ name: "Axe", ability: "might", proficient: true, damage: "1d8 cut" }, { name: "Club", damage: "1d4" }, { name: "Typed", bonus: "+9", ability: "might", damage: "1d6+2 cut" }] };
+    const attacks = d20Attacks(def, cb, { fields, computed: { mightMod: 3 } });
+    expect(attacks.map((a) => [a.name, a.bonus, a.damage.map((d) => d.dice)])).toEqual([
+      ["Axe", 5, ["1d8+3"]],
+      // no ability: no bonus known, damage as written
+      ["Club", undefined, ["1d4"]],
+      // a bonus typed on the row wins; the damage rule still adds the modifier (the module's rule decides when)
+      ["Typed", 9, ["1d6+2+3"]],
+    ]);
+    // a negative modifier subtracts
+    expect(d20Attacks(def, cb, { fields: { weapons: [fields.weapons[0]] }, computed: { mightMod: -1 } })[0]!.damage[0]!.dice).toBe("1d8-1");
+  });
+
   it("parses damage text with types, persistent parts and notes", () => {
     const types: D20CombatDef = { ...def, damageTypes: ["slashing", "piercing", "fire", "bleed", "cold"].map((id) => ({ id, name: id[0]!.toUpperCase() + id.slice(1) })) };
     expect(parseD20Damage(types, "1d8 + 3 slashing")).toEqual({ parts: [{ dice: "1d8+3", type: "slashing" }] });
