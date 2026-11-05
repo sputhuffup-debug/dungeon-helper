@@ -5,7 +5,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { loadPack, type GameModule } from "@campaign-forge/module-sdk";
-import { addD20Condition, applyD20Damage, d20Combatant, d20CoveredTrackers, d20ConditionsOf, d20Records, healD20, presetToEntity, removeD20Condition, setD20ConditionValue, setD20TempHp, tickD20Turn } from "../src";
+import { addD20Condition, applyD20Damage, applyD20DeathSave, d20Combatant, d20DeathSaveState, d20CoveredTrackers, d20ConditionsOf, d20Records, healD20, presetToEntity, removeD20Condition, setD20ConditionValue, setD20TempHp, tickD20Turn } from "../src";
 import { newStore } from "./fixtures";
 
 const dir = new URL("../../module-example/packs/example-pack/", import.meta.url);
@@ -88,6 +88,31 @@ describe("damage and healing", () => {
     const heal = healD20(store, module, keeper.id, 5);
     expect(heal).toMatchObject({ recovered: true, removed: ["Knocked out"], after: { current: 5 } });
     expect(d20ConditionsOf(module, store.get("entities", keeper.id)!)).toEqual([]);
+  });
+
+  // Walkthrough 3 (D11): death saves were kept fully by hand
+  it("with death saves: damage while down is a failed save (two on a critical), the save is offered and kept, a natural 20 heals, massive damage kills", () => {
+    const zeroHp = module.d20Combat!.zeroHp!;
+    const ds = { successes: "deathSaves.ok", failures: "deathSaves.bad", natural1Failures: 2, natural20Heals: 1, massiveDamage: true };
+    const withSaves: GameModule = { ...module, d20Combat: { ...module.d20Combat!, zeroHp: [{ ...zeroHp[0]!, deathSaves: ds, recover: { remove: ["knocked-out"], setFields: { "deathSaves.ok": 0, "deathSaves.bad": 0 } } }, ...zeroHp.slice(1)] } };
+    const { store, keeper } = setup();
+    const fields = () => store.get("entities", keeper.id)!.fields as { deathSaves?: { ok: number; bad: number } };
+    // dropping to 0 is no failure
+    expect(applyD20Damage(store, withSaves, keeper.id, 19).deathSaves).toBeUndefined();
+    expect(d20DeathSaveState(withSaves, store.get("entities", keeper.id)!)).toMatchObject({ successes: 0, failures: 0, max: 3 });
+    expect(applyD20Damage(store, withSaves, keeper.id, 3).deathSaves).toMatchObject({ failures: 1, added: 1, dead: false });
+    expect(applyD20Damage(store, withSaves, keeper.id, 2, { critical: true }).deathSaves).toMatchObject({ failures: 3, added: 2, dead: true });
+    expect(fields().deathSaves).toEqual({ ok: 0, bad: 3 });
+    // the save: 10 or more succeeds; a natural 1 counts twice; a natural 20 heals 1 and resets the counters
+    store.update("entities", keeper.id, { fields: { ...fields(), deathSaves: { ok: 0, bad: 0 } } });
+    expect(applyD20DeathSave(store, withSaves, keeper.id, 12)).toMatchObject({ success: true, successes: 1, failures: 0 });
+    expect(applyD20DeathSave(store, withSaves, keeper.id, 1)).toMatchObject({ success: false, successes: 1, failures: 2 });
+    expect(applyD20DeathSave(store, withSaves, keeper.id, 20)).toMatchObject({ heals: 1 });
+    expect(d20Combatant(withSaves, store.get("entities", keeper.id)!)!.hp.current).toBe(1);
+    expect(fields().deathSaves).toEqual({ ok: 0, bad: 0 });
+    expect(d20DeathSaveState(withSaves, store.get("entities", keeper.id)!)).toBeUndefined();
+    // massive damage: the rest of the hit at least the maximum
+    expect(applyD20Damage(store, withSaves, keeper.id, 1 + 19).deathSaves).toMatchObject({ massive: true, dead: true, failures: 3 });
   });
 
   it("a monster at 0 hit points is defeated", () => {

@@ -16,6 +16,7 @@ import { isDiceExpression, parseDiceExpression, rollDice } from "./dice";
 import { evaluateLogic, getPath, logicIssues } from "./logic";
 import type {
   D20Attack,
+  D20DeathSaves,
   D20AttackKind,
   D20AttackSource,
   D20CombatantDef,
@@ -940,6 +941,47 @@ export function d20ZeroHpRule(def: D20CombatDef, data: D20ZeroHpData): D20ZeroHp
   });
 }
 
+/** Death save counters (see `D20DeathSaves`). */
+export interface D20DeathSaveCount {
+  successes: number;
+  failures: number;
+}
+
+export interface D20DeathSaveResult extends D20DeathSaveCount {
+  natural: number;
+  success: boolean;
+  /** Enough successes: stable. */
+  stable: boolean;
+  /** Enough failures: dead. */
+  dead: boolean;
+  /** A natural 20 under `natural20Heals`: the hit points it brings back. */
+  heals?: number;
+}
+
+const dsMax = (ds: D20DeathSaves) => Math.max(1, ds.max ?? 3);
+
+/** One death save from its natural d20 (no modifier applies). */
+export function d20DeathSave(ds: D20DeathSaves, before: D20DeathSaveCount, natural: number): D20DeathSaveResult {
+  const max = dsMax(ds);
+  if (natural === 20 && ds.natural20Heals) return { natural, success: true, successes: 0, failures: 0, stable: false, dead: false, heals: ds.natural20Heals };
+  const success = natural >= (ds.dc ?? 10);
+  const successes = Math.min(max, before.successes + (success ? 1 : 0));
+  const failures = Math.min(max, before.failures + (success ? 0 : natural === 1 ? (ds.natural1Failures ?? 1) : 1));
+  return { natural, success, successes, failures, stable: successes >= max, dead: failures >= max };
+}
+
+/**
+ * Damage taken while at 0 hit points: failed death saves (more on a critical
+ * hit); with `massiveDamage`, damage of at least the hit point maximum kills.
+ */
+export function d20DeathSaveDamage(ds: D20DeathSaves, before: D20DeathSaveCount, hit: { amount: number; max: number; critical?: boolean }): D20DeathSaveCount & { added: number; dead: boolean; massive: boolean } {
+  const max = dsMax(ds);
+  const massive = !!ds.massiveDamage && hit.max > 0 && hit.amount >= hit.max;
+  const added = hit.amount > 0 ? (hit.critical ? (ds.criticalFailures ?? 2) : (ds.damageFailures ?? 1)) : 0;
+  const failures = massive ? max : Math.min(max, before.failures + added);
+  return { successes: before.successes, failures, added: failures - before.failures, dead: failures >= max, massive };
+}
+
 /** A rule's condition value (a number, or JSONLogic over `{ critical, conditions, fields, computed }`). */
 export function d20RuleValue(v: number | JsonLogicRule | undefined, data: { critical: boolean; conditions: Record<string, number>; fields: Record<string, unknown>; computed?: Record<string, unknown> }): number | undefined {
   if (v === undefined) return undefined;
@@ -1050,6 +1092,11 @@ export function d20CombatIssues(def: D20CombatDef, ctx: D20CombatCheckContext): 
       if (c.value !== undefined) logic(c.value, zw, `value of ${c.id}`);
     }
     for (const id of z.recover?.remove ?? []) if (!condIds.has(id)) err(zw, `unknown condition "${id}"`);
+    if (z.deathSaves) {
+      const ds = z.deathSaves;
+      const types = def.combatants.flatMap((c) => c.entityTypes);
+      for (const path of [ds.successes, ds.failures]) if (!types.some((t) => ctx.hasPath(t, path))) err(zw, `death save field "${path}" is on no combatant type`);
+    }
     if (z.page !== undefined && !ctx.validPage(z.page)) err(zw, "invalid page reference");
   });
   return issues;
