@@ -238,7 +238,7 @@ const definitions: Record<string, JsonSchema> = {
   tone: oneOfValues<RollTone>()(ROLL_TONES),
 
   playMode: object<PlayMode>()({ id: ref("id"), name: text, description: str(), page: ref("page"), cite: ref("cite") }, ["id", "name"]),
-  license: object<ModuleLicense>()({ spdx: str({ maxLength: 100 }), name: text, url: httpUrl, attribution: text }, ["name", "attribution"]),
+  license: object<ModuleLicense>()({ spdx: str({ maxLength: 100 }), name: text, url: httpUrl, attribution: text, inExports: bool }, ["name", "attribution"]),
   sourceBook: object<NonNullable<ModuleManifest["sourceBook"]>>()({ title: text, year: int(), pageNote: str(), url: httpUrl }, ["title"]),
   manifest: object<PackManifest>()(
     {

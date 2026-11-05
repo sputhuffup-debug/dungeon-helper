@@ -12,12 +12,14 @@ Two rules from the project's `CLAUDE.md` apply to every module:
   "spdx": "CC-BY-4.0",
   "name": "Creative Commons Attribution 4.0 International",
   "url": "https://creativecommons.org/licenses/by/4.0/",
-  "attribution": "This work includes material taken from the System Reference Document 5.1 (\"SRD 5.1\") by Wizards of the Coast LLC and available at https://dnd.wizards.com/resources/systems-reference-document. The SRD 5.1 is licensed under the Creative Commons Attribution 4.0 International License available at https://creativecommons.org/licenses/by/4.0/legalcode."
+  "attribution": "This work includes material taken from the System Reference Document 5.1 (\"SRD 5.1\") by Wizards of the Coast LLC and available at https://dnd.wizards.com/resources/systems-reference-document. The SRD 5.1 is licensed under the Creative Commons Attribution 4.0 International License available at https://creativecommons.org/licenses/by/4.0/legalcode.",
+  "inExports": true
 }
 ```
 
 - `license` is required in a data pack and recommended in every TypeScript module.
 - `attribution` is shown as written, as plain text, in the module list (*Game modules…*), in the New campaign dialog, in the campaign's Settings → Game module, and folded away at the foot of the Rules and Reference pages. Put everything the licence asks you to credit there; content from more than one source gets each source's attribution, separated by a blank line (`\n\n`), which the app keeps. `packages/module-dnd5e-srd` is a worked example (the SRD 5.1 and SRD 5.2 attributions, with a NOTICE file for the data it was converted from).
+- `inExports: true` when the licence wants its attribution in every copy of the content (CC BY, the ORC License): every player-facing export of a campaign on the module then ends with `attribution`, as written: the share's web page, PDF and phone images (a last "Licence" card or page), player packets, the adventure booklet (print and Markdown) and map exports (a band of small type under an SVG or PNG, a last page of print tiles and of a roll PDF). A supplement's licence with `inExports` is added after the module's (each text once). Leave it out for content without that requirement; both shipped open modules set it.
 - `url` and `sourceBook.url` must be `http(s)`; the app links nothing else.
 - `licenseNotice` stays a short notice for exports and the settings page; it is not a substitute for the attribution.
 - When you write your own game, say so (`"name": "All rights reserved"` and your own credit line) or pick an open licence.

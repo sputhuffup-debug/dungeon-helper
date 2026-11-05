@@ -105,6 +105,14 @@ export interface ModuleLicense {
   url?: string;
   /** The attribution text the licence requires, shown as written (plain text). */
   attribution: string;
+  /**
+   * The licence requires the attribution in every copy of the content (CC BY,
+   * ORC): every player-facing export of a campaign on this module (share web
+   * page, PDF and phone images, player packets, adventure booklets, map
+   * exports and prints) then ends with `attribution`, as written. Leave it
+   * out for content without such a requirement.
+   */
+  inExports?: boolean;
 }
 
 export interface ModuleManifest {

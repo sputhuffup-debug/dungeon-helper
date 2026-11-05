@@ -175,6 +175,9 @@
         "attribution": {
           "type": "string",
           "minLength": 1
+        },
+        "inExports": {
+          "type": "boolean"
         }
       },
       "required": [
