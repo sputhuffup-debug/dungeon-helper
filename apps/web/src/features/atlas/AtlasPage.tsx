@@ -146,11 +146,17 @@ export function AtlasPage() {
 
   const pcBuilder = useCharacterBuilder();
   const pcProcedures = useCharacterProcedures({ pc: true });
+  // the type filter offers every type of the tab's kind (a PC type's character marked an NPC is on the NPCs tab)
   const typesForTab = (() => {
     const g = groups.find((x) => x.id === tab);
-    if (g) return typesForGroup(types, g.kind, g.pc);
+    if (g) return types.filter((t) => t.kind === g.kind);
     if (tab === "locations") return types.filter((t) => t.kind === "location");
     return types;
+  })();
+  // "+ New" makes the tab's own: an NPC on the NPCs tab, a player character on the PCs tab
+  const newTypes = (() => {
+    const g = groups.find((x) => x.id === tab);
+    return g ? typesForGroup(types, g.kind, g.pc) : typesForTab;
   })();
 
   return (
@@ -166,7 +172,7 @@ export function AtlasPage() {
           {!asPlayer && tab === "pcs" && pcBuilder && <BuildCharacterButton entityType={pcBuilder.entityType} />}
           {!asPlayer && tab === "pcs" && <CharacterProcedureLinks pc primary={!pcBuilder} />}
           {!asPlayer && (
-            <Link to="/c/$campaignId/entities/new" params={{ campaignId: ctx.campaignId }} search={typesForTab.length === 1 && typesForTab[0] ? { type: typesForTab[0].id, ...(tab === "pcs" ? { pc: 1 as const } : {}) } : {}} className={`cf-btn${tab === "pcs" && (pcBuilder || pcProcedures.length > 0) ? "" : " cf-btn--primary"}`}>
+            <Link to="/c/$campaignId/entities/new" params={{ campaignId: ctx.campaignId }} search={newTypes.length === 1 && newTypes[0] ? { type: newTypes[0].id, ...(tab === "pcs" ? { pc: 1 as const } : {}) } : {}} className={`cf-btn${tab === "pcs" && (pcBuilder || pcProcedures.length > 0) ? "" : " cf-btn--primary"}`}>
               + New
             </Link>
           )}
