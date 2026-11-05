@@ -164,6 +164,44 @@ describe("runProcedure", () => {
   });
 });
 
+describe("a distinct step", () => {
+  const four: RollTable = {
+    id: "p.four",
+    name: "Four",
+    dice: "d4",
+    rows: [1, 2, 3, 4].map((n) => ({ range: [n, n] as [number, number], label: `Row ${n}`, result: { n } })),
+  };
+  const mod = { ...module, tables: [...module.tables, four] };
+  const pick = (distinct: boolean): Procedure => ({ id: "p.pick", name: "Pick", steps: [{ id: "picks", table: "p.four", repeat: 3, ...(distinct ? { distinct: true } : {}) }], produce: () => ({ entities: [], relationships: [] }) });
+  const ns = (g: ReturnType<typeof runProcedure>) => (g.results.picks as Array<{ n: number }>).map((x) => x.n);
+
+  it("never repeats a result: a repeat takes the next row it has not had, without another die", () => {
+    let repeats = 0;
+    for (let i = 0; i < 60; i++) {
+      const plain = runProcedure(pick(false), mod, { seed: `d${i}` });
+      const g = runProcedure(pick(true), mod, { seed: `d${i}` });
+      expect(new Set(ns(g)).size).toBe(3);
+      // the same dice as the plain step: only repeated results move
+      expect(g.rolls.map((r) => r.raw)).toEqual(plain.rolls.map((r) => r.raw));
+      const p = ns(plain);
+      if (new Set(p).size < 3) {
+        repeats++;
+        const firstRepeat = p.findIndex((n, k) => p.indexOf(n) !== k);
+        const expected = (p[firstRepeat]! % 4) + 1;
+        expect(ns(g)[firstRepeat] === expected || ns(g).slice(0, firstRepeat).includes(expected)).toBe(true);
+        expect(g.rolls[firstRepeat]!.rowLabel).toMatch(/next row: a repeat of Row \d/);
+      } else expect(ns(g)).toEqual(p);
+    }
+    expect(repeats).toBeGreaterThan(0);
+  });
+
+  it("asks the same dice when they are typed in, and gives the same run", () => {
+    const g = runProcedure(pick(true), mod, { seed: "typed", stepDice: { picks: [2, 2, 2] } });
+    expect(ns(g)).toEqual([2, 3, 4]);
+    expect(g.entered).toEqual({ picks: [2, 2, 2] });
+  });
+});
+
 describe("step graph helpers", () => {
   it("summarises steps", () => {
     const graph = procedureStepGraph(proc);

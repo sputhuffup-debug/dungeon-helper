@@ -142,12 +142,16 @@ describe("buddy and rival", () => {
     const ctx = (fields: Record<string, unknown>) => ({ mode: "campaign" as const, character: { id: "a", name: "Ada", type: "alien.character", fields }, computed: {}, relationships: {}, trackerState: {} });
     expect(evaluateAwards(qs, ctx({ buddy: "01JAXXXXXXXXXXXXXXXXXXXXXX" })).map((r) => r.applies)).toEqual([true, false]);
     expect(evaluateAwards(qs, ctx({ rival: "Parker" })).map((r) => [r.applies, r.reason])).toEqual([[false, "No buddy set"], [true, undefined]]);
+    // a PC another PC named as buddy before the pairs (the link went one way)
+    expect(evaluateAwards(qs, { ...ctx({}), referencedBy: { buddy: 1 } }).map((r) => r.applies)).toEqual([true, false]);
   });
 
-  it("the sheet's Buddy and Rival pick another PC", () => {
-    const identity = characterType.sheet.sections.find((s) => s.id === "identity")!;
+  it("the sheet's Buddy and Rival pick another PC, as pairs, on PC sheets only", () => {
+    const ties = characterType.sheet.sections.find((s) => s.id === "crew-ties")!;
+    expect(ties.when).toEqual({ "!!": { var: "fields.isPC" } });
     for (const path of ["buddy", "rival"]) {
-      expect(identity.fields.find((f) => f.path === path)).toMatchObject({ widget: "ref", entityTypes: ["alien.character"], config: { pick: "select", pc: true } });
+      expect(ties.fields.find((f) => f.path === path)).toMatchObject({ widget: "ref", entityTypes: ["alien.character"], config: { pick: "select", pc: true }, reciprocal: true });
     }
+    expect(characterType.sheet.sections.find((s) => s.id === "identity")!.fields.some((f) => f.path === "buddy" || f.path === "rival")).toBe(false);
   });
 });

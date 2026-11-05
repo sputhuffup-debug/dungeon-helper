@@ -489,6 +489,63 @@ describe("alien.lifepath", () => {
   });
 });
 
+describe("alien.lifepath: what the GM reads", () => {
+  it("numbers no step (the workbench numbers its list), and says which general skills the rolls picked", () => {
+    const titles = byId("alien.lifepath").steps.map((s) => s.title ?? "");
+    for (const t of titles) expect(t, t).not.toMatch(/^\d/);
+    expect(new Set(titles).size).toBe(titles.length);
+    for (const seed of SEEDS.slice(0, 10)) {
+      const g = run("alien.lifepath", { seed, inputs: {} });
+      for (const id of ["originSkills", "lifeEventSkills"]) {
+        const r = g.results[id] as { label: string; skills: Record<string, number> };
+        expect(r.label).toMatch(/^\d random general skills?: /);
+        for (const [, v] of Object.entries(r.skills)) expect(r.label).toContain(`+${v}`);
+      }
+      expect((g.results.originSkills as { label: string }).label.split(":")[1]!.split(",").length).toBe(Object.keys((g.results.originSkills as { skills: object }).skills).length);
+    }
+  });
+
+  it("writes the early life, company, experience and life event into the Background, and ends the summary with one mark", () => {
+    for (const seed of SEEDS) {
+      const g = run("alien.lifepath", { seed, inputs: {} });
+      const pc = g.produced.entities[0]!;
+      const label = (id: string) => (g.results[id] as { label: string }).label.replace(/[.!?…]+$/, "");
+      const bg = pc.fields.background as string;
+      expect(bg).toContain(`Early life: ${label("earlyLife")}.`);
+      expect(bg).toContain(`In the company of: ${label("earlyLifeCompany")}.`);
+      expect(bg).toContain(`Experienced: ${label("earlyLifeExperience")}.`);
+      expect(bg).toContain(`Life event: ${label("lifeEvent")}.`);
+      expect(bg).toMatch(/^Origin: /);
+      expect(pc.summary).not.toMatch(/[?!.]\.$/);
+      expect(bg).not.toMatch(/[?!]\./);
+    }
+    // a psych evaluation that ends with a question keeps it as its one mark
+    const hiding = "Overconfident and eager to please; what are they hiding?";
+    const g = run("alien.lifepath", { seed: "q", inputs: {}, pinned: { psych: { label: hiding, rating: "overeager" } } });
+    const pc = g.produced.entities[0]!;
+    expect(pc.summary!.endsWith(`Psych evaluation: ${hiding}`)).toBe(true);
+    expect(pc.fields.background as string).toContain(`Psych evaluation: ${hiding}`);
+  });
+});
+
+describe("in-world time between jobs", () => {
+  it("a shore leave week moves the date 7 days, unless chained from between jobs", () => {
+    const own = (run("alien.shore-leave", { seed: "t", inputs: {} }).results.effects as Effect[]).filter((e) => e.kind === "advanceDate");
+    expect(own).toEqual([{ kind: "advanceDate", days: 7, reason: "a week of shore leave" }]);
+    const chained = run("alien.shore-leave", { seed: "t", inputs: { advanceDate: false } }).results.effects as Effect[];
+    expect(chained.some((e) => e.kind === "advanceDate")).toBe(false);
+    const chain = byId("alien.between-jobs").chains!.find((c) => c.procedure === "alien.shore-leave")!;
+    expect(chain.inputs!(fakeCtx({ livingStandard: "basic" }))).toEqual({ livingStandard: "basic", advanceDate: false });
+  });
+
+  it("between jobs moves the date by the weeks in port", () => {
+    const days = (weeks: number) => (run("alien.between-jobs", { seed: "w", inputs: { weeks } }).results.effects as Effect[]).filter((e) => e.kind === "advanceDate");
+    expect(days(2)).toEqual([{ kind: "advanceDate", days: 14, reason: "2 weeks in port" }]);
+    expect(days(1)).toEqual([{ kind: "advanceDate", days: 7, reason: "1 week in port" }]);
+    expect(days(0)).toEqual([]);
+  });
+});
+
 describe("alien.encounter.check", () => {
   it("produces an encounter entity (or none) for every location and applies the book's tens-digit modifiers", () => {
     const wheres = (byId("alien.encounter.check").inputs as { properties: { where: { enum: string[] } } }).properties.where.enum;
@@ -531,7 +588,7 @@ describe("alien.encounter.check", () => {
 
 describe("alien.shore-leave", () => {
   const characters = INPUT_VARIANTS["alien.shore-leave"]![1]!.characters as Array<{ id: string; choice: string; isMarine: boolean }>;
-  const EFFECT_KINDS = ["setField", "incrementField", "addCondition", "removeCondition", "log", "prompt"];
+  const EFFECT_KINDS = ["setField", "incrementField", "addCondition", "removeCondition", "log", "prompt", "advanceDate"];
 
   it("rolls one event per socialising character and returns outcomes and Effect-shaped suggestions", () => {
     const g = run("alien.shore-leave", { seed: "sl", inputs: { characters } });

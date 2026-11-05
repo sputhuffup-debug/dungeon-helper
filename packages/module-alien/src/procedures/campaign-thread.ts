@@ -80,6 +80,7 @@ export function threadCast(inputs: Obj): ThreadCast {
   const tags = (e: Obj) => (Array.isArray(e.tags) ? e.tags.filter((t): t is string => typeof t === "string") : []);
   const locations = entities.filter((e) => e.kind === "location");
   const home = locations.find((e) => tags(e).includes("home-base") && e.subtype === "colony") ?? locations.find((e) => tags(e).includes("home-base"));
+  const set = isObj(inputs.homeBase) ? str(inputs.homeBase.name) : "";
   const arcs = isObj(inputs.arcs) ? (inputs.arcs as unknown as ArcSnapshot) : undefined;
   const factions = entities
     .filter((e) => e.kind === "faction")
@@ -88,7 +89,7 @@ export function threadCast(inputs: Obj): ThreadCast {
       const type = str(f.factionType, "other") as FactionType;
       return { id: str(e.id), name: str(e.name), factionType: type, ...(typeof e.visibility === "string" ? { visibility: e.visibility } : {}) };
     });
-  return { factions, home: home ? str(home.name) : "the port", usedSponsors: (arcs?.threads ?? []).filter((t) => t.status !== "resolved").map((t) => t.sponsor).filter((x): x is string => !!x) };
+  return { factions, home: set || (home ? str(home.name) : "the port"), usedSponsors: (arcs?.threads ?? []).filter((t) => t.status !== "resolved").map((t) => t.sponsor).filter((x): x is string => !!x) };
 }
 
 /** The book page of a setting faction or place by name, when it is one of the book's. */
@@ -396,6 +397,7 @@ export const campaignThread: Procedure = {
       threads: { type: "integer", title: "Threads", minimum: 1, maximum: 3, default: 2 },
       sponsors: { type: "string", title: "Sponsors", ...labelledEnum(SPONSOR_MODES, { mixed: "A mix", campaign: "The campaign's factions", new: "New corporations" }), default: "mixed", description: "Factions already in the campaign, minor corporations from the book's list (p. 162) added GM-only, or a mix. Each thread gets its own sponsor." },
       stages: { type: "string", title: "Stages", ...labelledEnum(STAGE_COUNTS, { random: "3 to 5 (random)", "3": "3", "4": "4", "5": "5" }), default: "random", description: "Stages per thread, from the first hints to the endgame." },
+      homeBase: { type: "object", title: "Home base", "x-entity": { types: ["alien.location"], setting: "homeBase" }, description: "The crew's home base (Settings), which the clues mention. Blank: a place tagged home-base, else the port." },
       campaign: {
         type: "object",
         title: "Campaign",

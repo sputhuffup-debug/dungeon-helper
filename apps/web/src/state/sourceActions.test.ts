@@ -1,5 +1,5 @@
 import "fake-indexeddb/auto";
-import { playerShareSnapshot, plainText, playerSceneTitle, type Entity, type Id } from "@campaign-forge/core";
+import { cluesFor, cluesOf, playerShareSnapshot, plainText, playerSceneTitle, seedClue, type Entity, type Id } from "@campaign-forge/core";
 import { runProcedure, templateGuidance, type TemplateAdventure } from "@campaign-forge/module-sdk";
 import { afterEach, describe, expect, it } from "vitest";
 import { createCampaign, createEntity } from "./actions";
@@ -67,6 +67,24 @@ describe("Run this job (an adventure source)", () => {
     expect(again.adventure.id).toBe(adv.id);
     expect(ctx.store.list("adventures").filter((a) => a.source?.entity === job.id)).toHaveLength(1);
     expect(plannedScenesOf(ctx.store.get("sessions", session2))).toEqual(planned);
+  });
+
+  it("lists the arc clue seeded with the job on the arrival scene: a GM-only Clue record linked to the arc clue, made once", async () => {
+    const { ctx, job } = await skyfire();
+    const thread = ctx.store.list("arcs").find((t) => cluesOf(t).some((c) => c.clue.state === "unseen"))!;
+    const clue = cluesOf(thread).find((c) => c.clue.state === "unseen")!.clue;
+    seedClue(ctx.store, thread.id, clue.id, { job: job.id, slotLabel: "A key room of the site brief" });
+    const res = await runFromEntity(ctx, job.id, "campaign");
+    const arrival = scenesOf(ctx, res.adventure.id).find((s) => s.title.startsWith("Arrival"))!;
+    const records = arrival.clues.map((id) => ctx.store.get("entities", id)!);
+    const record = records.find((e) => e.fields.pointsTo === thread.title)!;
+    expect(record).toMatchObject({ type: "alien.clue", visibility: { level: "gm" } });
+    expect(record.fields).toMatchObject({ text: clue.playerText, foundBy: "A key room of the site brief", revealed: false });
+    // the arc clue now leads to the record and the scene, and the record back to the clue
+    const linked = cluesOf(ctx.store.get("arcs", thread.id)!).find((c) => c.clue.id === clue.id)!.clue;
+    expect(linked.links?.entities).toContain(record.id);
+    expect(linked.links?.scenes).toContain(arrival.id);
+    expect(cluesFor(ctx.store.toJSON(), record.id).map((c) => c.clue.id)).toContain(clue.id);
   });
 
   it("never lets template guidance or the GM's side reach the players: scene titles, the player intro, every scene's share", async () => {

@@ -4,7 +4,7 @@
  * a drafted board taken, kept or discarded one by one (each marked on the
  * draft, so the board stays as it was).
  */
-import { generatorDraftOf, markDraftOffer, saveGeneratorDraft, type GeneratorDraft, type GeneratorDraftInput, type Id } from "@campaign-forge/core";
+import { clearGeneratorDraft, generatorDraftOf, markDraftOffer, saveGeneratorDraft, type GeneratorDraft, type GeneratorDraftInput, type Id } from "@campaign-forge/core";
 import type { GeneratedGraph, Offer, OfferDef } from "@campaign-forge/module-sdk";
 import type { CampaignContextValue } from "./CampaignProvider";
 import { acceptOffer, type AcceptOfferResult } from "./offerActions";
@@ -75,19 +75,24 @@ export function compactEdits(e: DraftEdits): Record<string, unknown> | undefined
 
 /**
  * Save the page's draft whole. The board's offer marks are written apart
- * (`takeDraftOffer`), so they are kept unless `fresh` (a new deal starts
- * with none).
+ * (`takeDraftOffer`), so they are kept unless `fresh`: a new deal replaces
+ * the procedure's older draft (its marks and its age go with it).
  */
 export function writeDraft(ctx: Pick<CampaignContextValue, "store">, input: GeneratorDraftInput, opts: { fresh?: boolean } = {}): GeneratorDraft {
-  const offers = opts.fresh ? undefined : generatorDraftOf(ctx.store, input.procedure)?.offers;
-  return saveGeneratorDraft(ctx.store, { ...input, ...(offers ? { offers } : {}) });
+  return ctx.store.transact(() => {
+    if (opts.fresh) clearGeneratorDraft(ctx.store, input.procedure);
+    const offers = opts.fresh ? undefined : generatorDraftOf(ctx.store, input.procedure)?.offers;
+    return saveGeneratorDraft(ctx.store, { ...input, ...(offers ? { offers } : {}) });
+  });
 }
 
 /** Whether the GM has done work on a draft that a new deal would throw away (re-rolls, pins, entered dice, edits, offers marked). */
 export function draftHasWork(draft: GeneratorDraft | undefined): boolean {
   if (!draft) return false;
   const n = (v: Record<string, unknown> | undefined) => Object.keys(v ?? {}).length;
-  return n(draft.stepSeeds) + n(draft.stepDice) + n(draft.pinned) + n(draft.partSeeds) + n(draft.pinnedParts) + n(draft.edits) + n(draft.offers) > 0;
+  // the thread clocks' seed is dealt with the page, not chosen: it is no work to lose
+  const { clockSeed: _clockSeed, ...edits } = draft.edits ?? {};
+  return n(draft.stepSeeds) + n(draft.stepDice) + n(draft.pinned) + n(draft.partSeeds) + n(draft.pinnedParts) + n(edits) + n(draft.offers) > 0;
 }
 
 export interface TakeDraftOfferInput {

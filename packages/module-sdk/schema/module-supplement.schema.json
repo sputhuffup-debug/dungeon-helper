@@ -989,6 +989,12 @@
         },
         "family": {
           "type": "string"
+        },
+        "resultFields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/tableResultField"
+          }
         }
       },
       "required": [
@@ -996,6 +1002,45 @@
         "name",
         "dice",
         "rows"
+      ],
+      "additionalProperties": false
+    },
+    "tableResultField": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "as": {
+          "enum": [
+            "text",
+            "flag"
+          ]
+        },
+        "valueLabels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "unit": {
+          "type": "string"
+        },
+        "tone": {
+          "enum": [
+            "danger",
+            "warning"
+          ]
+        }
+      },
+      "required": [
+        "path",
+        "label"
       ],
       "additionalProperties": false
     },
@@ -1086,6 +1131,9 @@
         },
         "config": {
           "type": "object"
+        },
+        "reciprocal": {
+          "type": "boolean"
         }
       },
       "required": [
@@ -1239,6 +1287,12 @@
             ]
           }
         },
+        "conditionalVisibility": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/conditionalVisibility"
+          }
+        },
         "mode": {
           "$ref": "#/definitions/modes"
         },
@@ -1262,6 +1316,42 @@
         "plural",
         "schema",
         "sheet"
+      ],
+      "additionalProperties": false
+    },
+    "conditionalVisibility": {
+      "type": "object",
+      "properties": {
+        "when": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "fields": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "enum": [
+              "gm",
+              "players",
+              "some_players",
+              "revealed"
+            ]
+          },
+          "minProperties": 1
+        },
+        "standIns": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "when",
+        "fields"
       ],
       "additionalProperties": false
     },
@@ -2009,6 +2099,9 @@
               "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
             },
             "of": {
+              "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+            },
+            "label": {
               "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
             }
           },
@@ -4305,6 +4398,9 @@
         },
         "repeat": {
           "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
+        "distinct": {
+          "type": "boolean"
         },
         "optional": {
           "type": "boolean"

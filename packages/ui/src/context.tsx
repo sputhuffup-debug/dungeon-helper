@@ -20,6 +20,8 @@ export interface SheetContextValue {
   /** A skill row's roll button. `input` is what the module's `buildPool` expects; `label` is the row's name. */
   onRoll?: (skillId: string, input: Record<string, unknown>, label?: string) => void;
   onOpenRule?: (ruleId: string) => void;
+  /** A rule card's title, for the "?" buttons' tooltips (default: no tooltip beyond "Rule for <field>"). */
+  ruleTitle?: (ruleId: string) => string | undefined;
   /** A ref widget's "pick" button. The app opens its entity picker and writes the id back. */
   onPickEntity?: (field: SheetField, current: unknown) => void;
   resolveEntityName?: (id: string) => string | undefined;

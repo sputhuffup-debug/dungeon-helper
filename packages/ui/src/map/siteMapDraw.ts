@@ -1350,7 +1350,10 @@ export function drawSiteMap(layout: SiteLayout, opts: SiteMapDrawOptions): SiteM
     const bx = bbox(z.poly);
     const w = bx.x1 - bx.x0;
     const h = bx.y1 - bx.y0;
-    const step = 1.2;
+    // the player screen is read across the table: bigger tokens and letters there
+    const big = view === "player";
+    const r = big ? 0.75 : 0.55;
+    const step = big ? 1.6 : 1.2;
     // tall, narrow zones (ducts, shafts) stack tokens along their length, clear of the number
     const tall = h > w * 1.5;
     const anchor = tracking ? 1.9 : h >= 4 ? -1.35 : 0;
@@ -1362,10 +1365,10 @@ export function drawSiteMap(layout: SiteLayout, opts: SiteMapDrawOptions): SiteM
       const name = view === "player" && !t.badge && ts.length === 1 ? tokenShortName(t.label) : "";
       liveNodes.push(
         el("g", { "data-token": t.id }, [
-          el("circle", { cx: x, cy: y, r: 0.55, fill: t.gmOnly ? p.gmToken : p.token, stroke: p.halo, "stroke-width": 0.08, "stroke-dasharray": t.gmOnly ? "0.2 0.1" : undefined }),
-          el("text", { x, y: y + 0.2, "text-anchor": "middle", "font-size": 0.52, "font-family": MAP_FONT, "font-weight": 700, fill: "#ffffff" }, [t.badge || initials || "?"]),
+          el("circle", { cx: x, cy: y, r, fill: t.gmOnly ? p.gmToken : p.token, stroke: p.halo, "stroke-width": 0.08, "stroke-dasharray": t.gmOnly ? "0.2 0.1" : undefined }),
+          el("text", { x, y: y + (big ? 0.26 : 0.2), "text-anchor": "middle", "font-size": big ? 0.7 : 0.52, "font-family": MAP_FONT, "font-weight": 700, fill: "#ffffff" }, [t.badge || initials || "?"]),
           ...(name
-            ? [el("text", { x, y: y + 1.05, "text-anchor": "middle", "font-size": 0.42, "font-family": MAP_FONT, "font-weight": 700, fill: p.token, stroke: p.halo, "stroke-width": 0.12, "paint-order": "stroke", "data-token-name": t.id }, [name])]
+            ? [el("text", { x, y: y + (big ? 1.35 : 1.05), "text-anchor": "middle", "font-size": big ? 0.5 : 0.42, "font-family": MAP_FONT, "font-weight": 700, fill: p.token, stroke: p.halo, "stroke-width": 0.12, "paint-order": "stroke", "data-token-name": t.id }, [name])]
             : []),
           el("title", {}, [t.label]),
         ]),

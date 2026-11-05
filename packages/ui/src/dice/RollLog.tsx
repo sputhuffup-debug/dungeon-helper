@@ -14,6 +14,8 @@ export interface RollLogEntry {
   /** Who rolled / what for. */
   label: string;
   summary?: string;
+  /** Bookkeeping kept out of the line itself (e.g. the roll's seed), shown as its tooltip. */
+  detail?: string;
   /** Faces typed by the GM: the dice were rolled at the table, not in the app. */
   entered?: number[];
   result?: RollResult;
@@ -44,7 +46,7 @@ export function RollLog({ entries, dice, newestFirst = true, max, className }: R
   return (
     <ol className={cx("cf-rolllog", className)} aria-label="Roll log">
       {list.map((e) => (
-        <li key={e.id} className="cf-rolllog__entry">
+        <li key={e.id} className="cf-rolllog__entry" title={e.detail}>
           <div className="cf-rolllog__head">
             <strong>{e.label}</strong>
             <span className="cf-rolllog__time">{shortTime(e.at)}</span>

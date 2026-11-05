@@ -16,6 +16,7 @@ import type {
   ProcedureRunOptions,
   ProcedureStep,
   RollRecord,
+  RollTable,
   Rng,
   TableRegistry,
 } from "./types";
@@ -75,6 +76,30 @@ export function procedureContext(inputs: Record<string, unknown>, results: Recor
   };
 }
 
+/**
+ * A `distinct` step's roll that repeats a result the step already has: the
+ * next row of the table (in order, wrapping) that it has not, read as the
+ * roll would have read it. No die is rolled for it, so a run with dice typed
+ * at the table asks for the same dice. A row that rolls on other tables is
+ * never taken this way; with no row left the repeat stands.
+ */
+function nextUnusedRow(table: RollTable, record: RollRecord, seen: ReadonlySet<string>): RollRecord {
+  if (!seen.has(JSON.stringify(record.result))) return record;
+  const rows = table.rows;
+  const at = Math.max(0, rows.findIndex((r) => record.total >= r.range[0] && record.total <= r.range[1]));
+  for (let k = 1; k < rows.length; k++) {
+    const row = rows[(at + k) % rows.length]!;
+    if (row.roll && row.roll.length > 0) continue;
+    const result = row.result !== null && typeof row.result === "object" ? { ...row.result } : row.result;
+    if (seen.has(JSON.stringify(result))) continue;
+    const out: RollRecord = { ...record, result, rowLabel: `${row.label ?? "next row"} (next row: a repeat of ${record.rowLabel ?? "an earlier result"})` };
+    const page = row.page ?? table.page;
+    if (page !== undefined) out.page = page;
+    return out;
+  }
+  return record;
+}
+
 function repeatCount(step: ProcedureStep, ctx: ProcedureContext, stepRng: Rng): number | undefined {
   const r = step.repeat;
   if (r === undefined) return undefined;
@@ -129,6 +154,8 @@ export function runProcedure(
     }
 
     const values: unknown[] = [];
+    /** Table results this step rolled so far (a `distinct` step moves off these). */
+    const rolledHere = new Set<string>();
     let repeat: number | undefined;
     try {
       repeat = repeatCount(step, ctx, stepRng);
@@ -143,12 +170,15 @@ export function runProcedure(
           const table = tables.get(tableId);
           if (!table) throw new Error(`Procedure "${procedure.id}" step "${step.id}": unknown table "${tableId}"`);
           const extraModifier = step.modifier ? step.modifier(ctx) : 0;
-          const record = rollTable(table, iterRng, tables, {
+          let record = rollTable(table, iterRng, tables, {
             context: ctx.data(),
             extraModifier,
             step: step.id,
             iteration: repeat === undefined ? undefined : i,
           });
+          // a distinct step never repeats a result: a repeat takes the next row it has not had
+          if (step.distinct && repeat !== undefined) record = nextUnusedRow(table, record, rolledHere);
+          rolledHere.add(JSON.stringify(record.result));
           rolls.push(record);
           value = record.result;
         } else {

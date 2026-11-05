@@ -63,7 +63,7 @@ export function ShipPage() {
         </div>
         <aside className="app-stack ship-layout__side">
           {ledgerDef && (
-            <Card title="Funds" subtitle="Summed from the ledger, never stored.">
+            <Card title="Funds" subtitle={ledgerDef.accountField ? `${ledgerDef.defaultAccount}: summed from the ledger. Each character's money: what their sheet holds, moved by the entries posted to them.` : "Summed from the ledger, never stored."}>
               <FundsSummary def={ledgerDef} />
             </Card>
           )}

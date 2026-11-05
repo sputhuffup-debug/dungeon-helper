@@ -24,10 +24,11 @@ import {
   type HealthState,
   type Id,
   type ResolvedHit,
+  type TrackerState,
 } from "@campaign-forge/core";
 import { createRng, rollTable, type PlayModeId, type RollRecord, type RollResult, type Rng, type SpecialAttackDef } from "@campaign-forge/module-sdk";
 import type { CampaignContextValue } from "./CampaignProvider";
-import { DICE_LOG, enteredField, logTable, nextRollSeed, operationRun, recordPoolRoll, rollOperation, tableResultText, withRollRng, type DiceLogData, type OperationRoll } from "./tableActions";
+import { DICE_LOG, TABLE_LOG, enteredField, logTable, nextRollSeed, operationRun, recordPoolRoll, rollOperation, tableResultText, withRollRng, type DiceLogData, type OperationRoll } from "./tableActions";
 
 type Ctx = Pick<CampaignContextValue, "store" | "module">;
 
@@ -153,6 +154,26 @@ export function rollBroken(ctx: Ctx, sessionId: Id, entityId: Id, entry: BrokenE
     appendTrackerLog(store, sessionId, { tracker: DICE_LOG, text: `${entity.name}: ${label}: ${text}`, entity: entity.id, data });
     return { label, seed, ...enteredField(entered), text, record };
   });
+}
+
+/**
+ * Is the broken roll still to be made for this entity? A broken character
+ * rolls once on reaching zero and again for each hit taken while there, so
+ * the roll is due unless the session log already has one for the entity
+ * after its latest hit or damage (a roll made in an earlier session, with no
+ * hit since, counts as done only when it is in this session's log).
+ */
+export function brokenRollDue(log: TrackerState["log"], entityId: Id, entry: BrokenEntry): boolean {
+  let lastHit = -1;
+  let lastRoll = -1;
+  log.forEach((l, i) => {
+    const data = (l.data ?? {}) as Partial<DiceLogData> & { entity?: Id; damage?: number };
+    if (l.tracker === DICE_LOG && l.entity === entityId) {
+      if (data.kind === "damage" && (data.total ?? 0) > 0) lastHit = i;
+      else if ((entry.operation && data.kind === "operation" && data.operation === entry.operation) || (data.kind === "table" && data.table === entry.table)) lastRoll = i;
+    } else if (l.tracker === TABLE_LOG && data.entity === entityId && (data.damage ?? 0) > 0) lastHit = i;
+  });
+  return lastRoll < lastHit || lastRoll === -1;
 }
 
 /** The broken-table roll as a pure function of its Rng (to ask for its dice). */

@@ -15,6 +15,11 @@
  * 8. Psych evaluation: 2D6 plus all psych modifiers.
  * 9. Final touches (name from the inputs; the rest is left to the player).
  *
+ * Step titles carry no numbers (the workbench numbers its own list); the
+ * book's step is in each title's words. On accept, the origin, early life,
+ * life event, career and psych evaluation are written into the PC's
+ * Background as short lines (the row labels), besides the full provenance.
+ *
  * Module decisions where the book leaves a choice to the player: points of choice go to
  * the career's requirements first, then to the attribute behind most of its skills; a
  * reduction takes the highest attribute the career uses least; skill tests use the best
@@ -30,6 +35,7 @@ import { careerItems } from "../reference/careers";
 import { careerTalents } from "../reference/talents";
 import {
   LIFEPATH_CAREERS,
+  SKILL_LABELS,
   careerSkillTableId,
   postingTableId,
   type Attr,
@@ -462,6 +468,11 @@ function bestSkill(state: LifePathState, c: LifepathCareer): Skill {
   return [...c.skills].sort((x, y) => state.attributes[SKILL_ATTRIBUTE[y]] + state.skills[y] - (state.attributes[SKILL_ATTRIBUTE[x]] + state.skills[x]))[0]!;
 }
 
+/** A row label without its closing punctuation ("what are they hiding?" stays a question in `withStop`). */
+const stop = (s: string) => s.trim().replace(/[.!?…]+$/, "");
+/** A label as the end of a sentence: its own ? or ! kept, else a full stop. */
+const withStop = (s: string) => (/[.!?…]$/.test(s.trim()) ? s.trim() : `${s.trim()}.`);
+
 // ---------------------------------------------------------------------------
 // Step bodies
 // ---------------------------------------------------------------------------
@@ -609,7 +620,9 @@ function generalSkillsStep(stepId: string, count: (ctx: ProcedureContext) => num
     const step = new Step(ctx, stepId, rng, stateBefore(ctx, stepId));
     const n = count(ctx);
     for (let i = 0; i < n; i++) step.generalSkill(`general-skill-${i + 1}`);
-    return step.result({ label: `${n} random general skill${n === 1 ? "" : "s"}` });
+    // which skills the rolls picked, e.g. "3 random general skills: Observation +1, Comtech +2"
+    const picked = Object.entries(step.delta.skills).map(([s, v]) => `${SKILL_LABELS[s as Skill] ?? s} +${v}`);
+    return step.result({ label: `${n} random general skill${n === 1 ? "" : "s"}${picked.length ? `: ${picked.join(", ")}` : ""}` });
   };
 }
 
@@ -648,7 +661,7 @@ export const lifepath: Procedure = {
   steps: [
     {
       id: "humanOrAndroid",
-      title: "1. Human or android",
+      title: "Human or android",
       page: 282,
       table: "alien.lifepath.human-or-android",
       after: (ctx, result, rng) => {
@@ -661,14 +674,14 @@ export const lifepath: Procedure = {
         return withCumulative("humanOrAndroid")(ctx, base);
       },
     },
-    { id: "origin", title: "2. Origin", page: 283, table: "alien.lifepath.origin", after: withCumulative("origin") },
-    { id: "originSkills", title: "2. Origin: 3 random general skills", page: 286, reads: priorSteps("originSkills"), compute: generalSkillsStep("originSkills", () => 3) },
-    { id: "earlyLife", title: "3. Early life: you were", page: 284, table: "alien.lifepath.early-life", after: withCumulative("earlyLife") },
-    { id: "earlyLifeCompany", title: "3. Early life: in the company of", page: 284, table: "alien.lifepath.early-life.company", after: withCumulative("earlyLifeCompany") },
-    { id: "earlyLifeExperience", title: "3. Early life: and experienced", page: 284, table: "alien.lifepath.early-life.experience", after: withCumulative("earlyLifeExperience") },
+    { id: "origin", title: "Origin", page: 283, table: "alien.lifepath.origin", after: withCumulative("origin") },
+    { id: "originSkills", title: "Origin: 3 random general skills", page: 286, reads: priorSteps("originSkills"), compute: generalSkillsStep("originSkills", () => 3) },
+    { id: "earlyLife", title: "Early life: you were", page: 284, table: "alien.lifepath.early-life", after: withCumulative("earlyLife") },
+    { id: "earlyLifeCompany", title: "Early life: in the company of", page: 284, table: "alien.lifepath.early-life.company", after: withCumulative("earlyLifeCompany") },
+    { id: "earlyLifeExperience", title: "Early life: and experienced", page: 284, table: "alien.lifepath.early-life.experience", after: withCumulative("earlyLifeExperience") },
     {
       id: "lifeEvent",
-      title: "4. Life event",
+      title: "Life event",
       page: 285,
       table: "alien.lifepath.life-event",
       after: (ctx, result, rng) => {
@@ -686,18 +699,18 @@ export const lifepath: Procedure = {
     },
     {
       id: "lifeEventSkills",
-      title: "4. Life event: 2 random general skills",
+      title: "Life event: 2 random general skills",
       page: 286,
       reads: priorSteps("lifeEventSkills"),
       compute: generalSkillsStep("lifeEventSkills", (ctx) => 2 + num(obj(ctx, "lifeEvent").generalSkills)),
     },
-    { id: "career", title: "5. Attribute points and career", page: 286, reads: priorSteps("career"), compute: careerStep },
-    { id: "term1", title: "6. First term", page: 287, reads: priorSteps("term1"), compute: termStep(1) },
-    { id: "term2", title: "7. Second term", page: 287, reads: priorSteps("term2"), skipIf: skipTerm(2), compute: termStep(2) },
-    { id: "term3", title: "7. Third term", page: 287, reads: priorSteps("term3"), skipIf: skipTerm(3), compute: termStep(3) },
+    { id: "career", title: "Attribute points and career", page: 286, reads: priorSteps("career"), compute: careerStep },
+    { id: "term1", title: "First term", page: 287, reads: priorSteps("term1"), compute: termStep(1) },
+    { id: "term2", title: "Second term", page: 287, reads: priorSteps("term2"), skipIf: skipTerm(2), compute: termStep(2) },
+    { id: "term3", title: "Third term", page: 287, reads: priorSteps("term3"), skipIf: skipTerm(3), compute: termStep(3) },
     {
       id: "psych",
-      title: "8. Psych evaluation",
+      title: "Psych evaluation",
       page: [288, 289],
       table: "alien.lifepath.psych-evaluation",
       reads: priorSteps("psych"),
@@ -734,13 +747,27 @@ export const lifepath: Procedure = {
     // the career gear, matched to the gear tables: weapons to the Weapons list, the rest as gear
     const kit = placeKit(total.gear.map((g) => ({ name: g, weight: 1 })));
     const from = [str(originRes.supernation), affiliation, home].filter(Boolean).join(", ");
+    const label = (id: string) => str(obj(ctx, id).label);
+    const terms = STEP_ORDER.filter((id) => id.startsWith("term")).map((id) => str(obj(ctx, id).posting)).filter(Boolean);
+    // the life path as the PC's background: one short sentence per step that tells their story, as one paragraph
+    const background = [
+      from && `Origin: ${from}.`,
+      label("earlyLife") && `Early life: ${stop(label("earlyLife"))}.`,
+      label("earlyLifeCompany") && `In the company of: ${stop(label("earlyLifeCompany"))}.`,
+      label("earlyLifeExperience") && `Experienced: ${stop(label("earlyLifeExperience"))}.`,
+      label("lifeEvent") && `Life event: ${stop(label("lifeEvent"))}.`,
+      `Career: ${careerName}${terms.length ? `, ${terms.length} term${terms.length === 1 ? "" : "s"} (${terms.join("; ")})` : ""}.`,
+      psych && `Psych evaluation: ${withStop(psych)}`,
+    ]
+      .filter(Boolean)
+      .join(" ");
     return {
       entities: [
         {
           tempId: "pc",
           type: "alien.character",
           name,
-          summary: `${total.android ? "Android" : "Human"} ${careerName.toLowerCase()} (${from || "unknown origin"}). Psych evaluation: ${psych || "none"}.`,
+          summary: `${total.android ? "Android" : "Human"} ${careerName.toLowerCase()} (${from || "unknown origin"}). Psych evaluation: ${psych ? withStop(psych) : "none."}`,
           tags: ["pc", career],
           fields: {
             isPC: true,
@@ -761,6 +788,7 @@ export const lifepath: Procedure = {
             trait: "",
             goal: "",
             appearance: "",
+            background,
             buddy: "",
             rival: "",
             criticalInjuries: [],

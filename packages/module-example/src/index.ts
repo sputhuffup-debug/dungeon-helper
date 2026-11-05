@@ -128,6 +128,13 @@ const heroType: EntityTypeDef = {
       wounds: { type: "integer", minimum: 0, default: 0 },
       armor: { type: "integer", minimum: 0, maximum: 3 },
       construct: { type: "boolean" },
+      disguised: { type: "boolean", description: "A construct passing as an ordinary hero." },
+      guise: {
+        type: "object",
+        description: "The scores a disguised hero shows.",
+        properties: { might: { type: "integer", minimum: 1, maximum: 5 }, wits: { type: "integer", minimum: 1, maximum: 5 } },
+        additionalProperties: false,
+      },
       doom: { type: "integer", minimum: 0, default: 0 },
       xp: { type: "integer", minimum: 0, description: "Experience points (a running pool, p. 30)." },
       luck: { type: "integer", minimum: 0, maximum: 2, description: "Luck tokens, at most two (p. 31)." },
@@ -145,6 +152,7 @@ const heroType: EntityTypeDef = {
         },
       },
       notes: { type: "string" },
+      companion: { type: "string", description: "Another hero, by entity id: a pair (the field is reciprocal)." },
     },
     required: ["attributes"],
     additionalProperties: false,
@@ -171,6 +179,7 @@ const heroType: EntityTypeDef = {
           { path: "wounds", label: "Wounds", widget: "number", rule: "example.rule.wounds" },
           { path: "armor", label: "Armor", widget: "number" },
           { path: "construct", label: "Construct", widget: "checkbox" },
+          { path: "companion", label: "Companion", widget: "ref", entityTypes: ["example.hero"], config: { pick: "select" }, reciprocal: true },
         ],
       },
       { id: "gear", title: "Gear", fields: [{ path: "gear[].name", label: "Gear", widget: "gear" }, { path: "carry", label: "Carry", widget: "computed" }] },
@@ -189,7 +198,16 @@ const heroType: EntityTypeDef = {
     ],
     summary: ["attributes.might", "wounds"],
   },
-  defaultVisibility: { notes: "gm", wounds: "players" },
+  defaultVisibility: { notes: "gm", wounds: "players", disguised: "gm" },
+  // a disguised construct: players read the guise as its attributes and never learn it is a construct
+  conditionalVisibility: [
+    {
+      when: { "==": [{ var: "fields.disguised" }, true] },
+      fields: { construct: "gm", attributes: "gm", guise: "gm" },
+      standIns: { attributes: "guise" },
+      reason: "Disguised: players see the guise as its attributes.",
+    },
+  ],
   playerEditable: ["notes", "gear"],
 };
 

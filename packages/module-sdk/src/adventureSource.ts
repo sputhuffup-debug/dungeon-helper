@@ -170,6 +170,19 @@ export function adventureSourceIssues(module: Pick<GameModule, "adventureSources
     } catch (e) {
       err(where, `prefill threw on an empty input: ${e instanceof Error ? e.message : String(e)}`);
     }
+    if (d.trip !== undefined) {
+      if (typeof d.trip !== "function") err(where, "trip must be a function");
+      else {
+        try {
+          const entity = { id: "", name: "", type: d.entityType, fields: {} };
+          const a = d.trip({ entity });
+          if (a !== undefined && (typeof a.days !== "number" || !Number.isFinite(a.days) || a.days < 0 || typeof a.text !== "string")) err(where, "trip must return { days, text } with days a number of 0 or more");
+          if (JSON.stringify(a) !== JSON.stringify(d.trip({ entity }))) err(where, "trip is not deterministic on an empty input");
+        } catch (e) {
+          err(where, `trip threw on an empty input: ${e instanceof Error ? e.message : String(e)}`);
+        }
+      }
+    }
     if (d.people !== undefined) {
       if (typeof d.people !== "function") err(where, "people must be a function");
       else {

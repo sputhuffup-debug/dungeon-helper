@@ -501,6 +501,8 @@ function slots(ctx: ProcedureContext, rng: Rng): SlottedMember[] {
   const cast = castOf(ctx);
   const dealt = ctx.get<CampaignDeal>("deal");
   const others = (id: string) => (dealt?.members ?? []).filter((d) => d.id !== id);
+  /** NPCs a beat dealt so far already names: the next PC's beat looks to someone else first. */
+  const usedNpcs: string[] = [];
   return (dealt?.members ?? []).map((d, index) => {
     const kr = (s: string) => `pc${index + 1}/${s}`;
     const m = cast.party.find((p) => p.id === d.id)!;
@@ -544,8 +546,12 @@ function slots(ctx: ProcedureContext, rng: Rng): SlottedMember[] {
     if (!Number.isInteger(beat) || !g.beats[beat]) beat = beat0;
     const text = g.beats[beat]!.text;
     const crewKind = crewKindOf(text) ?? "crewmate";
+    // spread the beats across the NPCs: one already named is swapped for another when there is one
+    let npc0 = pickOne(rng.fork(kr("npc")), cast.npcs);
+    const unnamed = cast.npcs.filter((n) => !usedNpcs.includes(n));
+    if (usedNpcs.includes(npc0) && unnamed.length > 0) npc0 = pickOne(rng.fork(kr("npc-spread")), unnamed);
     const fill0: BeatFill = {
-      npc: pickOne(rng.fork(kr("npc")), cast.npcs),
+      npc: npc0,
       place: pickOne(rng.fork(kr("place")), cast.places),
       crew: drawCrew(rng.fork(kr("crew")), m, cast, crewKind),
     };
@@ -554,6 +560,7 @@ function slots(ctx: ProcedureContext, rng: Rng): SlottedMember[] {
       (r) => ({ npc: pickOther(r.fork("npc"), cast.npcs, fill0.npc), place: pickOther(r.fork("place"), cast.places, fill0.place), crew: drawCrew(r.fork("crew"), m, cast, crewKind, fill0.crew) }),
       { initial: fill0 },
     );
+    if (fill.npc) usedNpcs.push(fill.npc);
     const cost0 = rng.fork(kr("cost")).int(0, BEAT_COSTS.length - 1);
     let cost = ctx.part<number>(
       k("cost"),

@@ -42,6 +42,7 @@ const DRAFT_KEYS: Array<keyof GeneratorDraftInput> = [
   "offerKeys",
   "offers",
   "accepted",
+  "context",
 ];
 
 /** The procedure's draft in this campaign (the latest, should there ever be two). */

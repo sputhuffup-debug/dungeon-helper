@@ -28,6 +28,16 @@ async function keepBundle(): Promise<Buffer> {
   return Buffer.from(await exportBundle(store, new RichTextRegistry(), undefined, { id: exampleModule.manifest.id, version: exampleModule.manifest.version }));
 }
 
+test("a bundle imported twice: the second campaign gets a name of its own", async ({ page }) => {
+  const bundle = await keepBundle();
+  await page.goto("/?dev");
+  await page.getByLabel("Import bundle file").setInputFiles({ name: "keep.zip", mimeType: "application/zip", buffer: bundle });
+  await expect(page.getByTestId("campaign-name")).toHaveText("Keep Watch", { timeout: 30_000 });
+  await page.goto("/?dev");
+  await page.getByLabel("Import bundle file").setInputFiles({ name: "keep.zip", mimeType: "application/zip", buffer: bundle });
+  await expect(page.getByTestId("campaign-name")).toHaveText(/^Keep Watch \(imported \d{1,2} [A-Z][a-z]{2,3} \d{4}\)$/, { timeout: 30_000 });
+});
+
 test("a generated site map: views, zone key download, live reveal in table mode, fog on the player screen", async ({ page, context }) => {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
@@ -166,12 +176,14 @@ test("a generated site map: views, zone key download, live reveal in table mode,
   await live.locator('[data-hit="zone"][data-zone="R4"]').click();
   const zone = live.getByTestId("live-zone");
   await expect(zone).toHaveAttribute("aria-label", /Zone 4 /);
+  // the zone panel opens right under the map, scrolled into view
+  await expect(zone).toBeInViewport();
   await zone.getByRole("textbox", { name: "New token name" }).fill("Ghoul");
-  await zone.getByRole("button", { name: "Place" }).click();
+  await zone.getByRole("button", { name: "Add token" }).click();
   await expect(live.locator("[data-token]")).toHaveCount(1);
   await zone.getByRole("textbox", { name: "New token name" }).fill("Ada");
-  await zone.getByRole("checkbox", { name: "hidden" }).uncheck();
-  await zone.getByRole("button", { name: "Place" }).click();
+  await zone.getByRole("checkbox", { name: "hidden from players" }).uncheck();
+  await zone.getByRole("button", { name: "Add token" }).click();
   await expect(live.locator("[data-token]")).toHaveCount(2);
   await expect(playerMap.locator("[data-token]")).toHaveCount(1);
   await expect(playerMap).not.toContainText("Ghoul");

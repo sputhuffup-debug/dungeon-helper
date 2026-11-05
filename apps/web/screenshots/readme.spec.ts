@@ -260,6 +260,72 @@ test("character-sheet", async ({ page }) => {
   await shot(page, "character-sheet");
 });
 
+/** Skyfire Down's crew as the demo builds it: two buddies, a PC with no buddy, and the PC Sam plays. */
+function skyfireCrew(): { buddy: string; buddysBuddy: string; loner: string; sams: string } {
+  const demo = buildDemoCampaign();
+  const pcs = Object.values(demo.maps.entities).filter((e) => e.type === "alien.character" && e.fields["isPC"] === true);
+  const byId = new Map(pcs.map((p) => [p.id, p]));
+  const buddy = pcs.find((p) => byId.has(String(p.fields["buddy"] ?? "")));
+  const loner = pcs.find((p) => !p.fields["buddy"]);
+  const sam = demo.store.meta().members.find((m) => m.name === "Sam");
+  const sams = pcs.find((p) => p.ownerMemberId === sam?.id || sam?.characterId === p.id);
+  const out = buddy && loner && sams ? { buddy: buddy.name, buddysBuddy: byId.get(String(buddy.fields["buddy"]))!.name, loner: loner.name, sams: sams.name } : undefined;
+  demo.registry.closeAll();
+  demo.store.destroy();
+  if (!out) throw new Error("the Skyfire Down demo has no buddies, no PC without a buddy, or no PC for Sam");
+  return out;
+}
+
+test("crew-pairs", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const { buddy: first, buddysBuddy: second, loner: third } = skyfireCrew();
+  const base = await loadDemo(page, "skyfire");
+  await page.goto(`${base}/atlas?tab=pcs`);
+  await page.getByRole("tabpanel").getByRole("link", { name: third, exact: true }).click();
+  const ties = page.locator('[data-section="crew-ties"]');
+  await expect(ties).toContainText("Buddy and rival");
+  // the third PC picks the first as buddy: the first already has a buddy, so the app asks before repointing
+  await ties.getByRole("combobox", { name: "Buddy" }).selectOption({ label: first });
+  const offer = page.locator(".cf-toast").filter({ hasText: `${first}'s buddy is still ${second}.` });
+  await expect(offer.getByRole("button", { name: `Make it ${third}` })).toBeVisible();
+  await ties.evaluate((e) => e.scrollIntoView({ block: "center" }));
+  await shot(page, "crew-pairs");
+});
+
+test("players-moved", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const { sams: first } = skyfireCrew();
+  const base = await loadDemo(page, "skyfire");
+  await page.goto(`${base}/settings?section=players`);
+  const players = page.getByTestId("players-card");
+  // the first PC is Sam's; ticking it for Priya moves it, and the toast says so with an Undo
+  await players.getByRole("checkbox", { name: `Priya plays ${first}` }).check();
+  await expect(page.locator(".cf-toast").filter({ hasText: `${first} moved from Sam to Priya.` }).getByRole("button", { name: "Undo" })).toBeVisible();
+  await players.evaluate((e) => e.scrollIntoView({ block: "start" }));
+  await shot(page, "players-moved");
+});
+
+test("atlas-summaries", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const base = await loadDemo(page, "skyfire");
+  await page.goto(`${base}/atlas?tab=npcs`);
+  // the GM's own summary first, then the stat line with Health left
+  await expect(page.locator(".app-entity-table__summary").first()).toBeVisible();
+  await expect(page.getByRole("tabpanel").locator(".app-entity-table__stats").first()).toContainText("Health left");
+  await shot(page, "atlas-summaries");
+});
+
+test("reference-careers", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const base = await loadDemo(page, "skyfire");
+  await page.goto(`${base}/reference?tab=lists&list=alien.careers`);
+  const items = page.getByTestId("reference-items");
+  // key skills and talents by name, the key attribute by its label: no ids
+  await expect(items.getByRole("row", { name: /Colonial Marine/ })).toContainText("Close Combat, Stamina, Ranged Combat");
+  await expect(items).not.toContainText("closeCombat");
+  await shot(page, "reference-careers");
+});
+
 test("alien-weapons", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1100 });
   const base = await loadDemo(page, "skyfire");
@@ -762,6 +828,90 @@ test("job-board-taken", async ({ page }) => {
   await shot(page, "job-board-taken");
 });
 
+test("draft-stale", async ({ page }) => {
+  // a job board kept as dealt, reopened after an NPC was added: the page says the campaign changed since the deal
+  // and offers to read it again (same seed, re-rolls and pins) beside a new deal
+  await page.setViewportSize({ width: 1440, height: 760 });
+  const base = await loadDemo(page, "skyfire");
+  await page.goto(`${base}/generate/alien.job-board`);
+  await page.getByTestId("seed").fill("readme-stale");
+  await expect(page.getByTestId("draft-status")).toHaveAttribute("data-state", "saved");
+  await page.goto(`${base}/entities/new?type=alien.character`);
+  await page.getByTestId("entity-name").fill("Vera Kole");
+  await page.getByTestId("create-entity").click();
+  await expect(page.getByTestId("entity-page")).toBeVisible();
+  await nav(page, "Generate").click();
+  await page.getByTestId("procedure-alien.job-board").click();
+  await expect(page.getByTestId("draft-stale")).toContainText("The campaign changed since this was dealt (Campaign)");
+  await dismissToasts(page);
+  await shot(page, "draft-stale");
+});
+
+test("scene-new-clue", async ({ page }) => {
+  // a scene's Clues picker with nothing to pick: "+ New clue" makes one named by the search and lists it on the scene
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const base = await loadDemo(page, "skyfire");
+  await runBoardJob(page, base);
+  await page.getByTestId("outline-scene").filter({ hasText: "Arrival" }).getByRole("button").first().click();
+  await expect(page.getByTestId("scene-title")).toHaveValue(/^Arrival/);
+  await page.getByTestId("scene-editor").getByRole("button", { name: "Add clue" }).click();
+  const dialog = page.getByRole("dialog");
+  await dialog.getByRole("searchbox", { name: "Search entities" }).fill("Scorched hatch seal");
+  await expect(dialog.getByTestId("picker-create")).toHaveText("+ New clue “Scorched hatch seal”");
+  await dismissToasts(page);
+  await shot(page, "scene-new-clue");
+});
+
+test("wrap-up-trip", async ({ page }) => {
+  // closing the job in the wrap-up: the module counts the trip (the job's distance at the ship's FTL rating, out and
+  // back) and the GM moves the in-world date by it, with an undo; the Back/Next bar no longer covers the checklist
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const base = await loadDemo(page, "skyfire");
+  await runBoardJob(page, base);
+  await startPlannedSession(page);
+  await page.getByTestId("end-session").click();
+  const wrap = page.getByTestId("wrapup");
+  await wrap.getByRole("textbox", { name: "Session summary" }).fill("The crew landed at the site and got the ore out, short one crate.");
+  await wrap.getByRole("list", { name: "Wrap-up steps" }).getByRole("button", { name: /Close the jobs?$/ }).click();
+  const close = wrap.getByTestId("close-source").first();
+  await close.getByTestId("close-outcome-done").click();
+  await close.getByTestId("close-trip-move").click();
+  await expect(close.getByTestId("close-trip")).toContainText("In-world date moved");
+  await dismissToasts(page);
+  await shot(page, "wrap-up-trip");
+});
+
+test("between-jobs-date", async ({ page }) => {
+  // between jobs accepted: the effects applied (the week in port moves the in-world date) and the thread clocks as the
+  // run moved them, not a preview of the next roll
+  await page.setViewportSize({ width: 1440, height: 1560 });
+  const base = await loadDemo(page, "skyfire");
+  await page.goto(`${base}/generate/alien.between-jobs`);
+  await expect(page.getByTestId("effects-picker")).toContainText("The in-world date moves forward 7 days (1 week in port)");
+  await page.getByTestId("accept").click();
+  await expect(page.getByTestId("arc-tick-done")).toBeVisible();
+  await dismissToasts(page);
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await shot(page, "between-jobs-date");
+});
+
+test("lifepath-background", async ({ page }) => {
+  // a Life Path accepted: the origin, early life, company, experience, life event, career and psych evaluation written
+  // into the PC's Background, beside the full provenance
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const base = await loadDemo(page, "skyfire");
+  await page.goto(`${base}/generate/alien.lifepath`);
+  await page.getByTestId("seed").fill("crew-2");
+  await page.getByTestId("preview-name-pc").fill("Rook Calder");
+  await page.getByTestId("accept").click();
+  await expect(page.getByTestId("entity-page")).toBeVisible();
+  const background = page.locator('[data-section="background"]');
+  await expect(background.getByRole("textbox").first()).toHaveValue(/^Origin: /);
+  await background.evaluate((e) => window.scrollTo(0, e.getBoundingClientRect().top + window.scrollY - 24));
+  await dismissToasts(page);
+  await shot(page, "lifepath-background");
+});
+
 test("wrap-up-draft", async ({ page }) => {
   // the wrap-up's summary drafted from what session 2 logged (the scene run, a panic roll, a critical injury), marked as a draft
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -844,6 +994,41 @@ test("preview-as-player", async ({ page }) => {
   await expect(page.getByTestId("player-preview-sheet")).toContainText("Posting");
   await expect(page.getByTestId("player-preview-sheet")).not.toContainText("Employer's real intent");
   await shot(page, "preview-as-player");
+});
+
+test("secret-synthetic", async ({ page }) => {
+  // the demo's covert android shown to the players: Field visibility keeps its true make GM-only and says why
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await loadDemo(page, "skyfire");
+  await nav(page, "Atlas").click();
+  await page.getByRole("tab", { name: /^NPCs/ }).click();
+  await page.getByRole("table").getByRole("link", { name: "Constance Navona", exact: true }).click();
+  await page.getByRole("combobox", { name: "Visibility", exact: true }).selectOption("players");
+  await page.getByTestId("field-visibility-open").click();
+  const fv = page.getByTestId("field-visibility");
+  await expect(fv.locator('[data-field="attributes"]').getByTestId("field-visibility-reason")).toContainText("Poses as human");
+  await fv.locator('[data-field="android"]').evaluate((e) => e.scrollIntoView({ block: "center" }));
+  await shot(page, "secret-synthetic");
+});
+
+test("critical-injury-result", async ({ page }) => {
+  // a PC broken by a hit rolls a critical injury: what it does, how long it takes to heal, and the ids kept under Raw result
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await loadDemo(page, "skyfire");
+  await startPlannedSession(page);
+  const pcs = page.getByRole("list", { name: "Player characters" });
+  await pcs.getByRole("button", { name: "Take a hit: Elena Sanchez" }).click();
+  const hit = page.getByTestId("take-hit");
+  await hit.getByRole("spinbutton", { name: "Damage" }).fill("12");
+  await hit.getByRole("button", { name: "Apply to Elena Sanchez" }).click();
+  await hit.getByRole("button", { name: "Roll Critical injury for Elena Sanchez" }).click();
+  const result = page.getByTestId("roll-result");
+  await expect(result.getByTestId("roll-result-meaning")).toBeVisible();
+  const dialog = page.getByRole("dialog").filter({ has: result });
+  await settle(page);
+  const b = (await dialog.boundingBox())!;
+  const pad = 12;
+  await shot(page, "critical-injury-result", { clip: { x: Math.floor(b.x - pad), y: Math.floor(b.y - pad), width: Math.ceil(b.width + 2 * pad), height: Math.ceil(b.height + 2 * pad) } });
 });
 
 test("gm-screen-onscreen", async ({ page }) => {
@@ -1211,22 +1396,21 @@ test("dnd5e-table", async ({ page }) => {
   await loadDemo(page, "dnd5e");
   await startPlannedSession(page);
   await expect(page.getByRole("heading", { name: "Ambush at the toll-house" })).toBeVisible();
-  // everyone in the opening fight on the initiative tracker, rolled d20 + initiative, highest first
-  const init = page.locator('[data-tracker="dnd5e-srd.tracker.initiative"]');
-  const pick = init.getByRole("combobox", { name: "Add from entities" });
-  for (const name of ["Brannoc Ashby", "Isolde Fairweather", "Tobin Greaves", "Wren Talliver", "Goblin 1", "Goblin 2", "Wolf 1"]) {
-    await pick.selectOption({ label: name });
-    await init.getByRole("button", { name: "Add", exact: true }).click();
-  }
-  await init.getByRole("button", { name: "Roll initiative" }).click();
-  const scores = await init.locator("[data-testid^=card-]").evaluateAll((els) => els.map((e) => Number((e as HTMLInputElement).value)));
-  expect(scores).toHaveLength(7);
-  expect(scores).toEqual([...scores].sort((a, b) => b - a));
+  // everyone in the opening fight in the Combat panel: initiative rolled d20 + initiative, highest first, round 1;
+  // the Trackers tab beside it keeps what the panel does not (no second initiative or hit point tracker)
+  const combat = page.getByTestId("d20-combat");
+  await combat.getByTestId("roll-initiative-all").click();
+  await expect(combat.getByTestId("combat-round")).toHaveText("Round 1");
+  await expect(combat.locator("[data-combatant]")).toHaveCount(7);
+  await expect(page.locator('[data-tracker="dnd5e-srd.tracker.initiative"]')).toHaveCount(0);
   // a round in: a goblin arrow found Brannoc, and Brannoc found a goblin
-  const hp = page.locator('[data-tracker="dnd5e-srd.tracker.hp"]');
-  for (let i = 0; i < 5; i++) await hp.getByRole("button", { name: "Decrease Brannoc Ashby HP" }).click();
-  for (let i = 0; i < 4; i++) await hp.getByRole("button", { name: "Decrease Goblin 1 HP" }).click();
-  await expect(hp.getByRole("spinbutton", { name: "Goblin 1 HP" })).toHaveValue("3");
+  const card = (name: string) => combat.locator("[data-combatant]").filter({ has: page.getByRole("button", { name: `Open ${name}`, exact: true }) });
+  for (const [name, amount] of [["Brannoc Ashby", "5"], ["Goblin 1", "4"]] as const) {
+    await card(name).getByRole("spinbutton", { name: `Amount for ${name}` }).fill(amount);
+    await card(name).getByRole("button", { name: `Damage ${name}` }).click();
+  }
+  await expect(card("Goblin 1").getByTestId("health-value")).toHaveText("3/7");
+  await dismissToasts(page);
   await shot(page, "dnd5e-table");
 });
 
@@ -1648,7 +1832,9 @@ test("guide-alien", async ({ page }) => {
   await page.getByRole("tab", { name: /^PCs/ }).click();
   await page.getByRole("tabpanel").getByRole("link", { name: "Tobias Reyne" }).click();
   await page.getByRole("combobox", { name: "Buddy" }).selectOption({ label: "Juno Okafor" });
-  await guideShot(page, "buddy-rival", [page.locator(".app-entity__header"), page.locator('[data-section="identity"]')]);
+  // a pair: Juno's sheet now names Tobias as her buddy too
+  await expect(page.locator(".cf-toast").filter({ hasText: "Juno Okafor's buddy is now Tobias Reyne too." })).toBeVisible();
+  await guideShot(page, "buddy-rival", [page.locator(".app-entity__header"), page.locator('[data-section="crew-ties"]')]);
 
   // The crew's ship, from a preset
   await nav(page, "Ship").click();

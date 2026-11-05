@@ -5,12 +5,14 @@
  * rows, "This job" and reveals on the left, trackers, dice, the module's
  * play-guide hints and the running log on the right. Below desktop width the
  * same parts are full-height panels behind a bottom tab bar (Scene, Map,
- * Crew, Dice, Log). The header clock is the table's one round counter. `?view=players` renders
- * the read-only player screen instead. Everything is local.
+ * Crew, Dice, Log). The header clock is the table's one round counter.
+ * `?view=players` is the read-only player screen, which the campaign layout
+ * renders on its own (`PlayerWindow`), outside the GM's shell. Everything is
+ * local.
  */
-import { appendTrackerLog, creatureTurnFor, type Id } from "@campaign-forge/core";
+import { appendTrackerLog, creatureTurnFor, d20CoveredTrackers, type Id } from "@campaign-forge/core";
 import type { Effect, Prompt } from "@campaign-forge/module-sdk";
-import { Link, useParams, useSearch } from "@tanstack/react-router";
+import { Link, useParams } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { lazyView } from "../../components/lazyView";
 import { Badge, Button, DiceModeSwitch, EmptyState, PromptDialog, Tabs, pushToast, useDiceRoller, type PromptAnswer } from "../../components/ui";
@@ -25,6 +27,7 @@ import {
   operationTitle,
   rollOperation,
   sessionLabel,
+  restoreTimer,
   setTimer,
   startPlannedSession,
   TABLE_STATE,
@@ -41,7 +44,7 @@ import { DicePanel } from "./DicePanel";
 import { PlayGuidePanel, usePlayGuides } from "./PlayGuidePanel";
 import { formatDuration, useCrossTabSync, useEntities, usePlayerCharacters, useSessionScenes, useSessionTrackerState, useTableState, useTick } from "./hooks";
 import { EntityDrawer, Participants } from "./Participants";
-import { PlayerScreen } from "./PlayerScreen";
+import { playerWindowName } from "./playerWindowName";
 import { RevealPanel, useClearPlayerScreen } from "./RevealPanel";
 import { RollResultDialog } from "./RollResultDialog";
 import { SceneCard } from "./SceneCard";
@@ -71,9 +74,7 @@ const TABLE_PANELS: Array<{ id: TablePanelId; label: string; icon: string }> = [
 
 export function TableModePage() {
   const { sessionId } = useParams({ from: "/c/$campaignId/table/$sessionId" });
-  const search = useSearch({ from: "/c/$campaignId/table/$sessionId" });
   useCrossTabSync();
-  if (search.view === "players") return <PlayerScreen sessionId={sessionId} />;
   return <GmTable sessionId={sessionId} />;
 }
 
@@ -95,7 +96,9 @@ function GmTable({ sessionId }: { sessionId: Id }) {
   const currentAct = useMemo<SessionAct | undefined>(() => (sceneAct ? { adventure: sceneAct.adventure, number: sceneAct.number, ...(sceneAct.title ? { title: sceneAct.title } : {}) } : undefined), [sceneAct]);
   const trackers = useModeTrackers();
   const clock = trackers.find((t) => t.kind === "clock");
-  const panelTrackers = trackers.filter((t) => t !== clock);
+  // a d20 module's Combat panel already runs initiative and each combatant's hit points: show those once
+  const covered = useMemo(() => d20CoveredTrackers(ctx.module, trackers), [ctx.module, trackers]);
+  const panelTrackers = trackers.filter((t) => t !== clock && !covered.has(t.id));
 
   const ts = useSessionTrackerState(sessionId);
   useLogNotesAutoTick(sessionId, session?.logDoc, session?.status === "running");
@@ -205,7 +208,7 @@ function GmTable({ sessionId }: { sessionId: Id }) {
   const clearScreen = useClearPlayerScreen(sessionId);
   const openPlayerScreen = () => {
     const url = `${window.location.origin}/c/${campaignId}/table/${sessionId}?view=players`;
-    const w = window.open(url, `cf-players-${sessionId}`, "popup,width=1100,height=800");
+    const w = window.open(url, playerWindowName(sessionId), "popup,width=1100,height=800");
     if (!w) pushToast("The browser blocked the player screen window. Allow pop-ups for this site.", { tone: "warning" });
     else logTable(ctx, sessionId, "Player screen opened");
   };
@@ -254,7 +257,7 @@ function GmTable({ sessionId }: { sessionId: Id }) {
   const participantsCard = <Participants pcs={pcs} others={others} onOpen={setDrawer} onRoll={(op, id) => handlers.onRollOperation(op, id)} lifecycle={{ sessionId, onPrompts: handlers.onPrompts }} combat={combat} act={currentAct} onWeaponAttack={setAttackPc} />;
   const thisJob = <ThisJob sessionId={sessionId} scene={scene} map={map} onOpen={setDrawer} />;
   const revealPanel = <RevealPanel sessionId={sessionId} scene={scene} />;
-  const mapView = map && <SceneMap sessionId={sessionId} map={map} scene={scene} participants={everyone} onPrompts={handlers.onPrompts} focus={narrow} />;
+  const mapView = map && <SceneMap sessionId={sessionId} map={map} scene={scene} participants={everyone} onPrompts={handlers.onPrompts} focus />;
   const trackersPanel = <TrackersPanel sessionId={sessionId} trackers={panelTrackers} pcs={pcs} participants={others} map={map} handlers={handlers} />;
   const dicePanel = <DicePanel sessionId={sessionId} pcs={pcs} others={others} />;
   const hintsPanel = hasGuide ? <PlayGuidePanel sessionId={sessionId} pcs={pcs} others={others} /> : null;
@@ -498,7 +501,18 @@ function Timer({ sessionId, running, timer }: { sessionId: Id; running: boolean;
           {ms > 0 ? "Resume" : "Start timer"}
         </Button>
       )}
-      <Button size="sm" variant="ghost" onClick={() => setTimer(ctx, sessionId, "reset")} aria-label="Reset timer">
+      <Button
+        size="sm"
+        variant="ghost"
+        className="app-table__timer-reset"
+        disabled={ms === 0}
+        title="Set the timer back to 00:00 (you can undo it)"
+        onClick={() => {
+          const before = setTimer(ctx, sessionId, "reset");
+          pushToast(`Timer reset (it was ${formatDuration(ms)}).`, { action: { label: "Undo", onClick: () => restoreTimer(ctx, sessionId, before) } });
+        }}
+        aria-label="Reset timer"
+      >
         ↺
       </Button>
     </span>

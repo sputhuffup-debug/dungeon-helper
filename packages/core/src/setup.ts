@@ -26,7 +26,7 @@ export const DEFAULT_SETUP_STEPS: readonly SetupStepDef[] = [
     label: "Add the player characters",
     hint: "One for each player at the table.",
     done: { ">": [{ var: "counts.pcs" }, 0] },
-    progress: { count: { var: "counts.pcs" }, of: { max: [{ var: "counts.players" }, { var: "counts.pcs" }, 1] } },
+    progress: { count: { var: "counts.pcs" }, of: { max: [{ var: "counts.players" }, { var: "counts.pcs" }, 1] }, label: { if: [{ ">": [{ var: "counts.players" }, 0] }, "PCs, one per player", "PCs"] } },
     links: [{ label: "Open the PCs", page: "atlas", params: { tab: "pcs" }, primary: true }],
   },
   {

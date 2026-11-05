@@ -33,6 +33,23 @@ test("a session at 390×844: tab bar to the map, the crew and the dice; one roun
   }
   // no sideways scrolling
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+  // every clock control on screen, none in a sideways-scrolling row, none too small to tap
+  const headerClock = page.getByTestId("table-clock");
+  for (const name of ["Back one Round", "Advance one Round", "Back one Stretch", "Advance one Stretch", "Back one Shift", "Advance one Shift", "Reset the clock"]) {
+    const box = (await headerClock.getByRole("button", { name }).boundingBox())!;
+    expect(box.x, name).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width, name).toBeLessThanOrEqual(390);
+    expect(box.height, name).toBeGreaterThanOrEqual(40);
+  }
+  expect(await headerClock.evaluate((e) => e.scrollWidth <= e.clientWidth + 1)).toBe(true);
+  // a reset is one tap, and its toast takes it back
+  await headerClock.getByRole("button", { name: "Advance one Stretch" }).click();
+  await headerClock.getByRole("button", { name: "Reset the clock" }).click();
+  await expect(headerClock.getByTestId("clock-stretch")).toHaveText("0");
+  await page.getByTestId("toast").filter({ hasText: "Clock reset" }).getByRole("button", { name: "Undo" }).click();
+  await expect(headerClock.getByTestId("clock-stretch")).toHaveText("1");
+  await headerClock.getByRole("button", { name: "Back one Stretch" }).click();
+  await expect(headerClock.getByTestId("clock-stretch")).toHaveText("0");
 
   // Scene: pick the job's site, "The ore run"
   await expect(panel(page, "scene")).toBeVisible();

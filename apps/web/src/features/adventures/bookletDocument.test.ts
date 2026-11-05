@@ -50,7 +50,8 @@ describe("bookletDocument", () => {
     expect(rosa.name).toBe("Rosa Ilunga");
     expect(rosa.role).toBe("Player character");
     expect(rosa.stats).toEqual(expect.arrayContaining([{ label: "Career", value: "Officer" }]));
-    expect(rosa.stats.map((s) => s.label)).toEqual(expect.arrayContaining(["Health", "Resolve"]));
+    // the stat line shows Health left (the module's summary), not the maximum
+    expect(rosa.stats.map((s) => s.label)).toEqual(expect.arrayContaining(["Health left", "Resolve"]));
     expect(rosa.agendas.map((a) => a.act)).toEqual([1, 2, 3]);
     const ana = cast[0]!.cards.find((c) => c.name === "Ana Kovac")!;
     expect(ana.agendas[0]!.text).toBe("Keep Dr. Lindqvist alive and stop anyone from pulling the thing off her face.");

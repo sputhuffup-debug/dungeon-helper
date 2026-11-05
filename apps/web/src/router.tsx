@@ -47,6 +47,10 @@ export interface AtlasSearch {
   tab?: string;
   /** "player": preview as player (carried into entity pages). */
   as?: "player";
+  /** The filters: name text, a tag and an entity type (kept so Back finds them). */
+  q?: string;
+  tag?: string;
+  type?: string;
 }
 
 /** The preview-as-player flag in a page's search. */
@@ -64,7 +68,11 @@ const guideRoute = createRoute({
 const atlasRoute = createRoute({
   getParentRoute: () => campaignRoute,
   path: "atlas",
-  validateSearch: (search: Record<string, unknown>): AtlasSearch => ({ ...(typeof search.tab === "string" ? { tab: search.tab } : {}), ...previewSearch(search) }),
+  validateSearch: (search: Record<string, unknown>): AtlasSearch => ({
+    ...(typeof search.tab === "string" ? { tab: search.tab } : {}),
+    ...previewSearch(search),
+    ...Object.fromEntries((["q", "tag", "type"] as const).filter((k) => typeof search[k] === "string" && search[k] !== "").map((k) => [k, search[k] as string])),
+  }),
   component: lazyRouteComponent(() => import("./features/atlas/AtlasPage"), "AtlasPage"),
 });
 

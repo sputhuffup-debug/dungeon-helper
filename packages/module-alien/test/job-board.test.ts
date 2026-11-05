@@ -23,14 +23,15 @@ const briefOf = (o: Offer) => jobOf(o).fields.siteBrief as JobSiteBrief;
 
 describe("alien.job.create is unchanged", () => {
   it("produces the recorded output for 120 seeds across the three frames", () => {
-    // Recorded before the job board was added (same seeds, inputs and optional twist).
+    // Recorded before the job board was added (same seeds, inputs and optional twist); re-recorded once when a
+    // job stopped giving the same complication twice (the complications step became `distinct`: a repeat takes the next row), nothing else changed
     const out: string[] = [];
     for (const frame of FRAMES)
       for (let i = 0; i < 40; i++) {
         const g = runProcedure(jobCreate, mod, { seed: `job-fixture-${i}`, inputs: { frame, pcCount: 4 }, includeOptional: ["plotTwist"] });
         out.push(JSON.stringify({ r: g.results, p: g.produced, rolls: g.rolls }));
       }
-    expect(createHash("sha256").update(out.join("\n")).digest("hex")).toBe("d4e971c47f80ba7561c28d42428f67145803ce6cc84febc3bdb93d72a0e68a09");
+    expect(createHash("sha256").update(out.join("\n")).digest("hex")).toBe("167e1cc73c22aa04ab08eb48a70662b86a4c3510e6dd361184ef60ae4ecaa136");
   });
 });
 
@@ -301,3 +302,39 @@ describe("the job site brief", () => {
 });
 
 export type { PostingData };
+
+describe("the job board reads well", () => {
+  it("postings go up at the campaign's home base when there is one", () => {
+    const home = { id: "hb", name: "Corrigan Spindle", type: "alien.location", fields: {} };
+    const { graph, offers } = board("home", { homeBase: home });
+    expect(graph.display?.cast).toContain("postings at Corrigan Spindle");
+    const where = offers.map((o) => (jobOf(o).fields.posting as { where: string }).where).join(" ");
+    expect(where).not.toContain("the port");
+    // without one: the port, as before
+    expect(board("home").graph.display?.cast).toContain("postings at the port");
+  });
+
+  it("plural cargo is delivered as 'them', and no job repeats a complication", () => {
+    let plural = 0;
+    for (let i = 0; i < 80; i++) {
+      for (const o of board(`text-${i}`, { frame: "space-truckers" }).offers) {
+        const pitch = (jobOf(o).fields.posting as { pitch: string }).pitch;
+        if (/deliver them/.test(pitch)) plural++;
+        expect(pitch).not.toMatch(/(parts|supplies|ingots|samples|crates) and deliver it/);
+        const complications = jobOf(o).fields.complications as string[];
+        expect(new Set(complications).size, complications.join("; ")).toBe(complications.length);
+      }
+      for (const o of board(`npc-${i}`, { frame: "colonial-marines" }).offers) for (const n of npcsOf(o)) expect(String(n.fields.goal ?? "")).not.toMatch(/^For /);
+    }
+    expect(plural).toBeGreaterThan(0);
+  });
+
+  it("the job generator never rolls the same complication twice", () => {
+    for (let i = 0; i < 200; i++) {
+      const g = runProcedure(jobCreate, mod, { seed: `cx-${i}`, inputs: { frame: FRAMES[i % 3] } });
+      const c = g.produced.entities[0]!.fields.complications as string[];
+      expect(new Set(c).size).toBe(c.length);
+    }
+  });
+});
+

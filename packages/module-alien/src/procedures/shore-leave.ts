@@ -95,6 +95,12 @@ export const shoreLeave: Procedure = {
         default: "normal",
         description: "Weekly living expenses: minimum $25, basic $100, normal $300, luxurious $2,000 (p. 116).",
       },
+      advanceDate: {
+        type: "boolean",
+        title: "Move the date a week",
+        default: true,
+        description: "Accepting moves the campaign's in-world date 7 days on. Between jobs already counts its weeks in port, so the week chained from it leaves the date be.",
+      },
     },
   },
   steps: [
@@ -200,6 +206,7 @@ export const shoreLeave: Procedure = {
           }
         }
         if (outcomes.length > 0) effects.push({ kind: "log", text: `Shore leave week at ${standard} living standard: $${cost} per PC (p. 116).` });
+        if (ctx.inputs.advanceDate !== false) effects.push({ kind: "advanceDate", days: 7, reason: "a week of shore leave" });
         return effects;
       },
     },

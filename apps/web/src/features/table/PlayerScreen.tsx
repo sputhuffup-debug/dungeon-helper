@@ -14,7 +14,7 @@ import { useCampaign } from "../../state/hooks";
 import { hpState } from "./D20Combat";
 import { useSessionTrackerState } from "./hooks";
 import { RichTextView } from "../../editor";
-import { useAssetUrl, useList, useMeta, useRecord } from "../../state/hooks";
+import { useAssetUrl, useDocHasText, useList, useMeta, useRecord } from "../../state/hooks";
 import { useTableState } from "./hooks";
 import { PlayerSiteMap } from "./PlayerSiteMap";
 import { useSceneMap } from "./SceneMap";
@@ -139,6 +139,7 @@ export function PlayerScreen({ sessionId }: { sessionId: Id }) {
   const table = useTableState(sessionId);
   const scene = useRecord("scenes", table.sceneId);
   const map = useSceneMap(scene);
+  const hasReadAloud = useDocHasText(scene?.readAloudDoc);
   const clock = useModeTrackers().find((t) => t.kind === "clock");
   const all = useList("handouts");
   const ts = useSessionTrackerState(sessionId);
@@ -163,7 +164,8 @@ export function PlayerScreen({ sessionId }: { sessionId: Id }) {
           {scene ? (
             <>
               <h2 className="app-player__scene-title">{playerSceneTitle(scene.title)}</h2>
-              {scene.readAloudDoc ? <RichTextView docId={scene.readAloudDoc} className="app-table__readaloud-text" /> : null}
+              {/* an empty read-aloud shows nothing, not an empty bar */}
+              {scene.readAloudDoc && hasReadAloud ? <RichTextView docId={scene.readAloudDoc} className="app-table__readaloud-text" /> : null}
               {map?.layout && <PlayerSiteMap map={map} />}
             </>
           ) : (

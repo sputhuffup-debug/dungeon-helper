@@ -17,6 +17,7 @@
  * `*Label*` marks a button or label exactly as the app shows it.
  */
 import type { GuideDef, GuideStepDef } from "@campaign-forge/module-sdk";
+import { siteMapGenerator } from "./maps";
 import { CAMPAIGN } from "./modes";
 import { CAMPAIGN_AGENDAS_ID } from "./procedures/campaign-agendas";
 import { CAMPAIGN_THREAD_ID } from "./procedures/campaign-thread";
@@ -117,8 +118,8 @@ export const firstCampaignGuide: GuideDef = {
           id: "buddy-rival",
           title: "Buddy and rival",
           body: [
-            "Open a PC from the Atlas's *PCs* tab. Its sheet shows who plays it (*Played by*), and the *Identity* section's *Buddy* and *Rival* pick from the other PCs: the first connections in the campaign.",
-            "The session wrap-up's XP questions and the campaign agendas read them, so pick them now if your players have.",
+            "Open a PC from the Atlas's *PCs* tab. Its sheet shows who plays it (*Played by*), and the *Buddy and rival* section picks from the other PCs: the first connections in the campaign.",
+            "Each is a pair: making Juno Tobias's buddy makes Tobias Juno's buddy too (unless Juno already has one: then the app asks). The session wrap-up's XP questions and the campaign agendas read them, so pick them now if your players have.",
           ],
           image: { key: "buddy-rival", alt: "Tobias Reyne's sheet, played by Sam, with Juno Okafor as his buddy" },
           links: [{ label: "Open the PCs", page: "atlas", params: { tab: "pcs" } }],
@@ -312,7 +313,7 @@ export const firstCampaignGuide: GuideDef = {
           ],
           image: { key: "site-map", alt: "A generated GM deck plan for the job's site" },
           links: [{ label: "Open the job", entity: takenJob }],
-          page: [54, 56],
+          page: siteMapGenerator.page,
         }),
         step({
           id: "run-job",

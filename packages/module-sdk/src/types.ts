@@ -333,6 +333,27 @@ export interface RollTable {
   unverified?: boolean;
   /** Which family this belongs to, for the reference browser. */
   family?: string;
+  /**
+   * What a rolled row means at the table: the fields of its `result` object
+   * the app shows with the roll (an effect, a healing time, a lethal flag),
+   * in this order. Rows without the field skip it.
+   */
+  resultFields?: TableResultField[];
+}
+
+/** One field of a rolled row's result, shown with the roll (`RollTable.resultFields`). */
+export interface TableResultField {
+  /** Path into the row's `result` object. */
+  path: string;
+  label: string;
+  /** "text" (default) shows `label: value`; "flag" shows `label` alone, when the value is true. */
+  as?: "text" | "flag";
+  /** Text shown for particular values (e.g. `{ "shift": "One shift" }`). */
+  valueLabels?: Record<string, string>;
+  /** Written after a value that has no `valueLabels` entry (e.g. "days"). */
+  unit?: string;
+  /** How loud it is: a lethal flag is "danger". */
+  tone?: "danger" | "warning";
 }
 
 export interface TableModifier {
@@ -443,6 +464,13 @@ export interface ProcedureStep {
   skipIf?: (ctx: ProcedureContext) => boolean;
   /** Number of times to roll; a dice expression; or a function. Default 1. */
   repeat?: number | string | ((ctx: ProcedureContext) => number);
+  /**
+   * A repeated table step never gives the same result twice: a roll that
+   * repeats one takes the next row of the table it has not had yet (no
+   * extra die, so dice typed at the table still fit), e.g. one complication
+   * per point of difficulty, each a different one.
+   */
+  distinct?: boolean;
   /** GM may choose not to roll it. */
   optional?: boolean;
   /**
@@ -1162,6 +1190,16 @@ export interface SheetField {
   entityTypes?: string[];
   /** Widget-specific settings. */
   config?: Record<string, unknown>;
+  /**
+   * A `ref` field that pairs two entities (e.g. buddies): setting A's field to
+   * B also sets B's same field to A when B's is empty, typed by hand or
+   * already A; clearing or changing A's clears B's when it named A. When B's
+   * names someone else it is left alone, and the app says so and offers to
+   * repoint it. Never makes B name A in two paired fields at once. Wherever a
+   * module reads the link (e.g. an award question), an entity whose field is
+   * still empty counts the others that name it (`AwardContext.referencedBy`).
+   */
+  reciprocal?: boolean;
 }
 
 export interface SheetSection {
@@ -1340,11 +1378,34 @@ export interface EntityTypeDef {
   computed?: Record<string, JsonLogicRule>;
   /** Field path -> default visibility. Unlisted fields inherit the entity's. */
   defaultVisibility?: Record<string, VisibilityLevel>;
+  /**
+   * Defaults that depend on the entity's own fields, e.g. a character whose
+   * true make is a secret while a box is ticked. Each rule whose `when` holds
+   * sets its fields' default visibility over `defaultVisibility`; the GM's
+   * per-entity settings still win. See `ConditionalVisibilityDef`.
+   */
+  conditionalVisibility?: ConditionalVisibilityDef[];
   mode?: PlayModeId[];
   /** Field path -> list of fields that are players-visible on a PC sheet when the player owns it. */
   playerEditable?: string[];
   /** Sub-kinds, e.g. location subtypes. */
   subtypes?: Array<{ id: string; name: string; sheet?: SheetLayout; schema?: JsonSchema }>;
+}
+
+/** One field-dependent visibility rule of an entity type (`EntityTypeDef.conditionalVisibility`). */
+export interface ConditionalVisibilityDef {
+  /** JSONLogic over `{ fields }` (the entity's stored fields); the rule applies while it is truthy. */
+  when: JsonLogicRule;
+  /** Field path -> its default visibility while `when` holds. */
+  fields: Record<string, VisibilityLevel>;
+  /**
+   * Field path -> another field whose value a viewer who may not see the
+   * first one is shown in its place, when it has a value (a cover story:
+   * the players read the cover scores as the character's attributes).
+   */
+  standIns?: Record<string, string>;
+  /** Why these fields are hidden, shown to the GM beside them (e.g. in Field visibility). */
+  reason?: string;
 }
 
 export interface RelationshipTypeDef {
@@ -1365,7 +1426,12 @@ export interface ReferenceList {
   page?: PageRef;
   cite?: CiteRef;
   original?: boolean;
-  /** JSON Schema of one item. */
+  /**
+   * JSON Schema of one item. The Reference page reads two annotations from
+   * its `properties`: `enumLabels` (shown for enum values) and `"x-ref"`, the
+   * id of another reference list whose items a value names (on the property,
+   * or on its `items` for a list of ids), shown by those items' names.
+   */
   itemSchema?: JsonSchema;
   items: ReferenceItem[];
   unverified?: boolean;
@@ -1603,6 +1669,21 @@ export interface AdventureSourceDef {
    * surface. Pure and deterministic, like `prefill`.
    */
   people?(input: AdventureSourceInput): AdventureSourcePerson[];
+  /**
+   * In-world days the record's travel takes (e.g. a job's trip out and back),
+   * offered when the wrap-up closes it so the campaign date can move. `ship`
+   * is the group's vehicle, when one is chosen. Pure; undefined when it takes
+   * no time the module can say.
+   */
+  trip?(input: { entity: EntitySnapshot; ship?: EntitySnapshot }): AdventureSourceTrip | undefined;
+}
+
+/** What `AdventureSourceDef.trip` says the record's travel takes. */
+export interface AdventureSourceTrip {
+  days: number;
+  /** How the days were counted, e.g. "5 systems each way at FTL 2". */
+  text: string;
+  page?: PageRef;
 }
 
 /** One of the record's people, as `AdventureSourceDef.people` describes them for the GM. */
@@ -1645,7 +1726,7 @@ export interface AdventureSourceInput {
   /** Saved site maps whose location is one of the linked records. */
   maps: Array<{ id: string; name: string; location: string; generated?: boolean }>;
   /** Campaign arc clues seeded with the record. */
-  clues: Array<{ thread: string; threadTitle: string; clue: string; text: string; state: ArcClueState; slotLabel?: string; entity?: string }>;
+  clues: Array<{ thread: string; threadTitle: string; clue: string; text: string; playerText?: string; unlocks?: string; kind?: string; state: ArcClueState; slotLabel?: string; entity?: string }>;
 }
 
 /** One template scene, filled. Ids are campaign ids taken from the input. */
@@ -1660,6 +1741,22 @@ export interface AdventureSceneFill {
   participants?: string[];
   /** Extra events after the template's (the GM's checklist), e.g. a seeded clue to find. */
   events?: Array<{ text: string; mandatory?: boolean }>;
+  /**
+   * Clue records listed on the scene (its Clues). Each is made once, of the
+   * module's `type`, GM only; one that stands for an arc clue (`arcClue`) is
+   * linked to it, and an existing record linked to that clue is reused.
+   */
+  clues?: AdventureSceneClue[];
+}
+
+/** A clue record a filled scene lists (see `AdventureSceneFill.clues`). */
+export interface AdventureSceneClue {
+  /** The clue entity type (a type of kind "clue"). */
+  type: string;
+  name: string;
+  fields?: Record<string, unknown>;
+  /** The arc clue it stands for: thread and clue id from the input's `clues`. */
+  arcClue?: { thread: string; clue: string };
 }
 
 export interface AdventureSourceFill {
@@ -1877,10 +1974,23 @@ export type Effect =
   | { kind: "removeCondition"; entity: string; conditionId: string }
   | { kind: "log"; text: string }
   | { kind: "prompt"; prompt: Prompt }
+  | AdvanceDateEffect
   | CreateFromPresetEffect
   | ApplyPresetEffect
   | LedgerEffect
   | AwardEffect;
+
+/**
+ * Move the campaign's in-world date forward `days` days on the module
+ * calendar (e.g. weeks in port between jobs). Skipped when the campaign keeps
+ * no in-world date.
+ */
+export interface AdvanceDateEffect {
+  kind: "advanceDate";
+  days: number;
+  /** What the time was spent on, e.g. "1 week in port". */
+  reason?: string;
+}
 
 /**
  * Award progression points to a character and log it in the core's
@@ -3507,6 +3617,12 @@ export interface AwardContext {
   computed: Record<string, unknown>;
   /** Relationship type id -> how many relationships of that type the character has (either direction). */
   relationships: Record<string, number>;
+  /**
+   * Paired (`reciprocal`) sheet field path -> how many other entities name
+   * this character in that field (e.g. two PCs whose Buddy is this one), so a
+   * link set one way before pairing still counts. Absent: none.
+   */
+  referencedBy?: Record<string, number>;
   /** The session's tracker state (e.g. a panic log), empty outside a session. */
   trackerState: Record<string, unknown>;
 }
@@ -3968,8 +4084,13 @@ export interface SetupStepDef {
   mode?: PlayModeId[];
   /** Truthy when the step is done (JSONLogic over the `SetupSnapshot`). */
   done: JsonLogicRule;
-  /** Optional count shown with the step, e.g. "2 of 4" PCs: `count` and `of` are JSONLogic over the snapshot. */
-  progress?: { count: JsonLogicRule; of: JsonLogicRule };
+  /**
+   * Optional count shown with the step, e.g. "2 of 4" PCs: `count` and `of`
+   * are JSONLogic over the snapshot. `label` (JSONLogic too, so a plain
+   * string will do) says what is counted and where the target comes from,
+   * e.g. "PCs, one per player"; it follows the numbers.
+   */
+  progress?: { count: JsonLogicRule; of: JsonLogicRule; label?: JsonLogicRule };
   /** Where it is done; the first `primary` link (else the first) is the main button. */
   links?: SetupLink[];
   page?: PageRef;
@@ -4222,13 +4343,21 @@ export interface GameModule {
   guide?: GuideDef;
   /** Campaign-level settings (e.g. the campaign frame), asked at creation when marked; same-named procedure inputs default to them. Packs can declare them. */
   campaignSettings?: CampaignSettingDef[];
+  /**
+   * Plain tags the module's generators write for their own bookkeeping (e.g.
+   * "job-board" on a dealt job). The app treats them like `key:value` machine
+   * tags: never offered as tag filters, never listed for people to read, and
+   * never shown to players. Code may still match on them.
+   */
+  machineTags?: string[];
   /** Upgrade stored entity fields from an older module version. */
   migrations?: Array<{ from: string; to: string; migrate: (entity: { type: string; fields: Record<string, unknown> }) => Record<string, unknown> }>;
 }
 
 /** Core relationship types every module gets for free. */
 export const CORE_RELATIONSHIP_TYPES: RelationshipTypeDef[] = [
-  { id: "within", forward: "within", reverse: "contains" },
+  // the location tree: anything can be within a place, only places contain things
+  { id: "within", forward: "within", reverse: "contains", toKinds: ["location"] },
   { id: "member_of", forward: "member of", reverse: "has member" },
   { id: "knows", forward: "knows", reverse: "known by", symmetric: true },
   { id: "owns", forward: "owns", reverse: "owned by" },

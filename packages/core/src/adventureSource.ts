@@ -7,6 +7,7 @@
  */
 import { adventureSourcesFor, sourceOpen, type AdventureSourceDef, type AdventureSourceInput, type AdventureSourceLink, type GameModule, type PlayModeId } from "@campaign-forge/module-sdk";
 import type { Adventure, CampaignMaps, Entity, Id } from "./types";
+import { activeVisibilityRules } from "./visibility";
 
 type SourceMaps = Pick<CampaignMaps, "entities" | "relationships" | "maps" | "arcs">;
 type ModuleLike = Pick<GameModule, "entityTypes"> & Partial<Pick<GameModule, "adventureSources">>;
@@ -58,6 +59,9 @@ export function adventureSourceInput(maps: SourceMaps, module: ModuleLike, entit
           threadTitle: t.title,
           clue: c.id,
           text: c.text,
+          ...(c.playerText && c.playerText !== c.text ? { playerText: c.playerText } : {}),
+          ...(c.unlocks ? { unlocks: c.unlocks } : {}),
+          kind: c.kind,
           state: c.state,
           ...(c.seeded?.slotLabel ? { slotLabel: c.seeded.slotLabel } : {}),
           ...(c.seeded?.entity ? { entity: c.seeded.entity } : {}),
@@ -67,7 +71,10 @@ export function adventureSourceInput(maps: SourceMaps, module: ModuleLike, entit
   }
   const { kind: _kind, ...self } = snapshot(entity, module);
   // field paths the players may not see: the type's defaults, then the GM's overrides
-  const levels: Record<string, string> = { ...(module.entityTypes.find((t) => t.id === entity.type)?.defaultVisibility ?? {}) };
+  const typeDef = module.entityTypes.find((t) => t.id === entity.type);
+  const levels: Record<string, string> = { ...(typeDef?.defaultVisibility ?? {}) };
+  // field-dependent defaults that hold (a secret kept while a box is ticked), first rule first
+  for (const rule of [...activeVisibilityRules(entity, typeDef)].reverse()) Object.assign(levels, rule.fields);
   for (const [path, v] of Object.entries(entity.fieldVisibility ?? {})) levels[path] = v.level;
   const gmFields = Object.keys(levels)
     .filter((p) => levels[p] === "gm")

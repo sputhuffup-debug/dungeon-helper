@@ -223,7 +223,7 @@ const GENERAL_SKILLS: Skill[] = [
   "closeCombat", "heavyMachinery", "stamina", "mobility", "piloting", "rangedCombat",
   "comtech", "observation", "survival", "command", "manipulation", "medicalAid",
 ];
-const SKILL_LABELS: Record<Skill, string> = {
+export const SKILL_LABELS: Record<Skill, string> = {
   heavyMachinery: "Heavy Machinery", closeCombat: "Close Combat", stamina: "Stamina", rangedCombat: "Ranged Combat",
   mobility: "Mobility", piloting: "Piloting", observation: "Observation", survival: "Survival", comtech: "Comtech",
   manipulation: "Manipulation", command: "Command", medicalAid: "Medical Aid",

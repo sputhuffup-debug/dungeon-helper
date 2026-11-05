@@ -102,7 +102,11 @@ function legacyRefText(v: string, cx: ValueContext): string {
 
 /** One value of a row object (a gear line, a talent, a condition): its name and count. */
 function rowName(v: unknown, f: SheetField | undefined, cx: ValueContext): string {
-  if (typeof v === "string") return v;
+  // a bare id of the field's reference list (a talent written as "stealthy") reads as its item's name
+  if (typeof v === "string") {
+    const ref = refListOf(f);
+    return (ref ? cx.referenceName?.(ref, v) : undefined) ?? v;
+  }
   if (typeof v === "number") return String(v);
   if (!isRec(v)) return "";
   const ref = refListOf(f);
@@ -199,7 +203,9 @@ function packetCharacter(raw: Entity, projected: Entity, module: PacketModule | 
     const fields = section.fields.filter((f) => inMode(f, mode));
     // a section that opens on a field the player may not see, and holds nothing shown to a character's own player, is a GM section: left out, title and all
     const lead = fields.find((f) => f.widget !== "computed" && getPath(raw.fields, f.path) !== undefined);
-    if (!lead || (def && !canSeeField(raw, def, lead.path, viewer) && !fields.some((f) => ownerField(f.path)))) continue;
+    // (a field the projection shows in place of a hidden one, a cover story's stand-in, counts as seen)
+    const leadSeen = !def || canSeeField(raw, def, lead?.path ?? "", viewer) || (!!lead && getPath(projected.fields, lead.path) !== undefined);
+    if (!lead || (!leadSeen && !fields.some((f) => ownerField(f.path)))) continue;
     const rows: PacketSheetRow[] = [];
     for (const f of fields) {
       if (skip.has(f.path)) continue;

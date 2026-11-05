@@ -51,6 +51,7 @@ export function OfferBoard({
   controls,
   run,
   onMarked,
+  onBeforeAct,
 }: {
   procedure: string;
   def: OfferDef;
@@ -60,6 +61,8 @@ export function OfferBoard({
   run: OfferRun;
   /** An offer was taken or kept: the page pins it, so a new seed leaves it as it was. */
   onMarked: (keys: string[]) => void;
+  /** Before an offer is marked (taken, kept, discarded): the page keeps its draft, so the mark has somewhere to go. */
+  onBeforeAct?: () => void;
 }) {
   const ctx = useCampaign();
   const marks = useOfferMarks(procedure);
@@ -72,6 +75,7 @@ export function OfferBoard({
   const take = async (offer: Offer, as: "accept" | "keep") => {
     setBusy(offer.key);
     try {
+      onBeforeAct?.();
       const res = await takeDraftOffer(ctx, { procedure, graph, offer, def, as, ...run });
       onMarked([offer.key]);
       if (res.thread) {
@@ -89,6 +93,7 @@ export function OfferBoard({
   const keepOthers = async () => {
     setBusy("*");
     try {
+      onBeforeAct?.();
       const kept = await keepOpenOffers(ctx, { procedure, graph, def, offers: open, ...run });
       onMarked(open.map((o) => o.key));
       pushToast(`Kept ${kept.length} ${def.noun}${kept.length === 1 ? "" : "s"} as lead${kept.length === 1 ? "" : "s"}.`, { tone: "success" });
@@ -179,7 +184,10 @@ export function OfferBoard({
                       {def.keep.label}
                     </Button>
                   )}
-                  <Button variant="ghost" disabled={busy !== undefined} onClick={() => discardDraftOffer(ctx, procedure, offer.key)} data-testid="offer-discard">
+                  <Button variant="ghost" disabled={busy !== undefined} onClick={() => {
+                      onBeforeAct?.();
+                      discardDraftOffer(ctx, procedure, offer.key);
+                    }} data-testid="offer-discard">
                     Discard
                   </Button>
                 </>

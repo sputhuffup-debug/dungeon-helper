@@ -312,6 +312,19 @@ describe("campaign agendas: deal", () => {
 // the no-betrayal guarantee, over many seeds and party sizes
 // ---------------------------------------------------------------------------
 
+describe("campaign agendas: the first beats", () => {
+  it("spread across the NPCs: no two PCs' beats name the same NPC while another is free", () => {
+    for (let i = 0; i < 60; i++) {
+      for (const n of [2, 3]) {
+        const slots = run(`spread-${n}-${i}`, inputsFor(n)).results.slots as Array<{ fill: { npc: string } }>;
+        const npcs = slots.map((s) => s.fill.npc);
+        // two NPCs in the campaign: the first two PCs never share one
+        expect(new Set(npcs.slice(0, 2)).size, npcs.join(", ")).toBe(2);
+      }
+    }
+  });
+});
+
 describe("campaign agendas: no betrayal, for any deal", () => {
   const SEEDS = 200;
   for (let n = 1; n <= 8; n++) {

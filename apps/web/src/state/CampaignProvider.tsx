@@ -19,9 +19,10 @@ import {
   type StoreChange,
 } from "@campaign-forge/core";
 import type { LoadedModule } from "@campaign-forge/module-sdk";
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { useContext, useEffect, useState, type ReactNode } from "react";
 import * as Y from "yjs";
 import { loadModuleById, moduleEntry } from "../modules/registry";
+import { CampaignContext } from "./campaignContext";
 
 /** Per-map change counters so list hooks can hand React a stable snapshot. */
 export type VersionKey = MapName | "meta" | "*" | "docs";
@@ -200,7 +201,7 @@ function watchDocs(registry: RichTextRegistry, onChange: () => void): () => void
   };
 }
 
-export const CampaignContext = createContext<CampaignContextValue | undefined>(undefined);
+export { CampaignContext };
 
 export type CampaignLoadState = { status: "loading"; progress: OpenProgress } | { status: "error"; error: unknown } | { status: "ready"; value: CampaignContextValue };
 

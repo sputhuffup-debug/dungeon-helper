@@ -30,6 +30,7 @@ A data pack is a JSON object. The SDK validates it (`validatePack`), joins its p
   "campaignSettings": [],   // optional; campaign-level settings, some asked at creation (see Setting up a campaign)
   "characterBuilders": [],  // optional; step-by-step character builders (see Character builder)
   "ownerHandouts": [],      // optional; handout kinds that reach the player of the character they are for (see Sheets and widgets)
+  "machineTags": [],        // optional; plain tags the pack's generators write for their own bookkeeping: never tag filters, never shown to players
   "mapGenerators": [],      // optional; built-in map engines configured as data (see Map generators)
   "parts": ["tables.json"]  // optional; see Split packs
 }
@@ -101,7 +102,7 @@ Each collection uses the contract's own shape from `packages/module-sdk/src/type
 |---|---|---|
 | `entityTypes` | `EntityTypeDef` | `schema` is a JSON Schema (safe subset), `sheet` the layout, `computed` JSONLogic. See [sheets](sheets.md). |
 | `relationshipTypes` | `RelationshipTypeDef` | Ids may not repeat the core types. |
-| `referenceLists` | `ReferenceList` | Items carry `id`, `name` and any data of their own (e.g. `attribute` for a skill). `itemSchema` validates them; `columns` picks the item keys the reference browser shows as columns (default: the first five). Opening an item shows every key; long text renders as Markdown (paragraphs, lists, pipe tables). |
+| `referenceLists` | `ReferenceList` | Items carry `id`, `name` and any data of their own (e.g. `attribute` for a skill). `itemSchema` validates them; `columns` picks the item keys the reference browser shows as columns (default: the first five). Opening an item shows every key; long text renders as Markdown (paragraphs, lists, pipe tables). In `itemSchema.properties`, `enumLabels` beside `enum` and `"x-ref": "<list id>"` (on the property, or on its `items` for a list of ids) make the browser show labels and the other list's item names instead of ids (Alien careers: key skills, talents and key attribute by name). |
 | `presets` | `EntityPreset` | `fields` are validated against the entity type's schema. |
 | `tables` | `RollTable` | See [tables and procedures](tables-procedures.md). |
 | `procedures` | pack procedure | Declarative steps and `produce`; see [tables and procedures](tables-procedures.md). |

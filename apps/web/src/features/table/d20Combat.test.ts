@@ -122,3 +122,22 @@ describe("d20 combat at the table", () => {
     expect(pool.breakdown?.map((b) => b.label)).toContain("Dazed 2 (status)");
   });
 });
+
+describe("one round counter in a d20 fight", () => {
+  it("the header clock reads round 1 once initiative is rolled and moves with each new round", async () => {
+    const ctx: CampaignContextValue = await openCampaign(await createCampaign({ name: "d20 rounds", moduleId: "dnd5e-srd" }));
+    opened.push(ctx.close);
+    const goblin = ctx.module.preset("dnd5e-srd.preset.goblin")!;
+    const a = presetToEntity(ctx.store, goblin, { name: "Goblin 1" });
+    const b = presetToEntity(ctx.store, goblin, { name: "Goblin 2" });
+    const sessionId = startPlannedSession(ctx, planNextSession(ctx, { title: "Ambush" }).id).id as Id;
+    const clock = ctx.module.forMode(ctx.store.meta().mode).trackers.find((t) => t.kind === "clock")!;
+    const clockRound = () => ((sessionTrackerState(ctx.store, sessionId)?.state[clock.id] as { counters?: Record<string, number> } | undefined)?.counters?.["round"] ?? 0);
+    expect(clockRound()).toBe(0);
+    expect(startCombat(ctx, sessionId, [a.id, b.id]).round).toBe(1);
+    expect(clockRound()).toBe(1);
+    nextTurn(ctx, sessionId);
+    expect(nextTurn(ctx, sessionId).round).toBe(2);
+    expect(clockRound()).toBe(2);
+  }, 30_000);
+});

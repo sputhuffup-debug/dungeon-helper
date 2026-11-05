@@ -1,4 +1,5 @@
 import { Button } from "../primitives/Button";
+import { pushToast } from "../primitives/Toast";
 import { asNumber, isRecord } from "../sheet/paths";
 import { TrackerFrame } from "./TrackerFrame";
 import { stateRecord, type TrackerProps } from "./types";
@@ -93,11 +94,23 @@ export function ClockTracker({ def, state, onChange, onLog, readonly, className 
     commit(counters);
     onLog?.(clockLogText(units, counters, unitId, by));
   };
+  const atZero = units.every((u) => (clock.counters[u.id] ?? 0) === 0);
+  // a reset wipes the clock in one tap, so it can be taken back for a few seconds
   const reset = () => {
+    const before = stateRecord(state);
     const counters: Record<string, number> = {};
     for (const u of units) counters[u.id] = 0;
     commit(counters);
     onLog?.("Clock reset");
+    pushToast(`Clock reset (it was ${units.map((u) => `${u.name} ${clock.counters[u.id] ?? 0}`).join(", ")}).`, {
+      action: {
+        label: "Undo",
+        onClick: () => {
+          onChange(before);
+          onLog?.("Clock reset undone");
+        },
+      },
+    });
   };
 
   const elapsedMinutes = units.reduce((sum, u) => sum + (u.minutes ?? 0) * (clock.counters[u.id] ?? 0), 0);
@@ -109,8 +122,9 @@ export function ClockTracker({ def, state, onChange, onLog, readonly, className 
       className={className}
       actions={
         !readonly && (
-          <Button size="sm" variant="ghost" onClick={reset}>
-            Reset
+          <Button size="sm" variant="ghost" className="cf-clock__reset" onClick={reset} disabled={atZero} aria-label="Reset the clock" title="Set every counter back to 0 (you can undo it)">
+            <span aria-hidden="true">↺</span>
+            <span className="cf-clock__reset-label"> Reset</span>
           </Button>
         )
       }
@@ -124,12 +138,12 @@ export function ClockTracker({ def, state, onChange, onLog, readonly, className 
             </span>
             {u.duration && <span className="cf-clock__unit-duration">{u.duration}</span>}
             {!readonly && (
-              <div className="cf-toolbar__group">
+              <div className="cf-toolbar__group cf-clock__steps">
                 <Button size="sm" onClick={() => advance(u.id, -1)} aria-label={`Back one ${u.name}`} disabled={(clock.counters[u.id] ?? 0) <= 0}>
                   −
                 </Button>
                 <Button size="sm" variant="primary" onClick={() => advance(u.id, 1)} aria-label={`Advance one ${u.name}`}>
-                  + {u.name}
+                  +<span className="cf-clock__step-unit"> {u.name}</span>
                 </Button>
               </div>
             )}

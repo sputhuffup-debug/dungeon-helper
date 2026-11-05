@@ -51,9 +51,16 @@ export function AtlasPage() {
   const relVersion = useMapVersion("relationships");
   const asPlayer = search.as === "player";
   const setAsPlayer = (on: boolean) => void navigate({ search: (s) => ({ ...s, as: on ? ("player" as const) : undefined }), replace: true });
-  const [tag, setTag] = useState("");
-  const [typeFilter, setTypeFilter] = useState("");
-  const [text, setText] = useState("");
+  // the filters live in the URL with the tab, so Back from an entity finds them as they were
+  const tag = search.tag ?? "";
+  const typeFilter = search.type ?? "";
+  const text = search.q ?? "";
+  const setFilter = (patch: { q?: string; tag?: string; type?: string }) =>
+    void navigate({ search: (s) => Object.fromEntries(Object.entries({ ...s, ...patch }).filter(([, v]) => v !== undefined && v !== "")), replace: true });
+  const setTag = (v: string) => setFilter({ tag: v });
+  const setTypeFilter = (v: string) => setFilter({ type: v });
+  const setText = (v: string) => setFilter({ q: v });
+  const machineTags = ctx.module.module.machineTags;
 
   const types = ctx.module.module.entityTypes;
   const typeById = useMemo(() => new Map(types.map((t) => [t.id, t])), [types]);
@@ -69,7 +76,7 @@ export function AtlasPage() {
   const visibleIds = useMemo(() => new Set(visible.map((e) => e.id)), [visible]);
 
   // the GM's own tags; machine tags ("within:...", "subtype:...") are data, not filters
-  const allTags = useMemo(() => [...new Set(all.flatMap((e) => readableTags(e.tags)))].sort(), [all]);
+  const allTags = useMemo(() => [...new Set(all.flatMap((e) => readableTags(e.tags, machineTags)))].sort(), [all, machineTags]);
   const matches = (e: Entity) =>
     (!tag || e.tags.includes(tag)) && (!typeFilter || e.type === typeFilter) && (!text.trim() || e.name.toLowerCase().includes(text.trim().toLowerCase()));
 
@@ -169,12 +176,24 @@ export function AtlasPage() {
         tabs={tabs}
         value={tabs.some((t) => t.id === tab) ? tab : "locations"}
         onChange={(id) => {
-          setTypeFilter("");
-          void navigate({ search: { tab: id, ...(asPlayer ? { as: "player" as const } : {}) }, replace: true });
+          // a tab keeps the name and tag filters; the type filter is per tab
+          void navigate({ search: { tab: id, ...(asPlayer ? { as: "player" as const } : {}), ...(text ? { q: text } : {}), ...(tag ? { tag } : {}) }, replace: true });
         }}
       />
       </PreviewContext.Provider>
     </div>
+  );
+}
+
+/** The GM's own summary first, then the stat line from the sheet (Health left, not the maximum). */
+function EntitySummary({ entity, line }: { entity: Entity; line: string }) {
+  const own = entity.summary?.trim();
+  if (!own) return <>{line}</>;
+  return (
+    <>
+      <span className="app-entity-table__summary">{own}</span>
+      {line && <span className="app-entity-table__stats">{line}</span>}
+    </>
   );
 }
 
@@ -229,6 +248,7 @@ function TreeItem({ node, keep, typeById }: { node: TreeNode; keep: (n: TreeNode
 function EntityTable({ entities, typeById, kind, pc }: { entities: Entity[]; typeById: Map<string, EntityTypeDef>; kind?: CoreEntityKind; pc?: boolean }) {
   const { campaignId, module } = useCampaign();
   const preview = usePreview();
+  const asPlayer = useContext(PreviewContext);
   const refName = (list: string, id: string) => module.referenceItem(list, id)?.name;
   const sorted = [...entities].sort((a, b) => a.name.localeCompare(b.name));
   if (sorted.length === 0) {
@@ -277,9 +297,11 @@ function EntityTable({ entities, typeById, kind, pc }: { entities: Entity[]; typ
                   {def?.name ?? e.type}
                   {subtype ? ` · ${subtype}` : ""}
                 </td>
-                <td className="cf-muted">{summaryLine(def, e, [], refName)}</td>
+                <td className="cf-muted">
+                  <EntitySummary entity={e} line={summaryLine(def, e, [], refName, asPlayer ? { computed: false } : {})} />
+                </td>
                 <td>
-                  {readableTags(e.tags).map((t) => (
+                  {readableTags(e.tags, module.module.machineTags).map((t) => (
                     <Badge key={t}>{t}</Badge>
                   ))}
                 </td>

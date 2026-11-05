@@ -73,6 +73,8 @@ export interface PackProcedureStep {
   skipIf?: JsonLogicRule;
   /** Roll this many times: a number, a dice expression, or JSONLogic. The result is a list. */
   repeat?: number | string | JsonLogicRule;
+  /** A repeated table step never gives the same result twice: a repeat takes the next row it has not had. */
+  distinct?: boolean;
   /** The GM may choose not to roll it. */
   optional?: boolean;
   /** JSONLogic: a flat modifier added to the table roll. */
@@ -187,6 +189,8 @@ export interface ModulePack extends PackCollections {
   guide?: GuideDef;
   /** Campaign-level settings, some asked at creation; same-named procedure inputs default to them (main file only). */
   campaignSettings?: CampaignSettingDef[];
+  /** Plain tags the pack's generators write for their own bookkeeping, treated like machine tags (main file only). */
+  machineTags?: string[];
   /** Handout kinds that reach the player of the character they are for (player packets; main file only). */
   ownerHandouts?: OwnerHandoutDef[];
   /** Step-by-step character builders (main file only). */

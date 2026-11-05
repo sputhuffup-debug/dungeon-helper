@@ -89,8 +89,8 @@ export interface SetupStepState {
   hint?: string;
   page?: PageRef;
   done: boolean;
-  /** `progress`, evaluated: how many of how many. */
-  count?: { value: number; of: number };
+  /** `progress`, evaluated: how many of how many, and what (its `label`). */
+  count?: { value: number; of: number; label?: string };
   /** Links to show (an `entity` link that matches nothing is left out). */
   links: SetupLinkState[];
 }
@@ -103,6 +103,16 @@ function truthy(rule: JsonLogicRule, data: unknown): boolean {
   }
 }
 
+function textOf(rule: JsonLogicRule | undefined, data: unknown): string | undefined {
+  if (rule === undefined) return undefined;
+  try {
+    const v = evaluateLogic(rule, data);
+    return typeof v === "string" && v.trim() ? v.trim() : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 function numberOf(rule: JsonLogicRule, data: unknown): number {
   try {
     const v = Number(evaluateLogic(rule, data));
@@ -110,6 +120,11 @@ function numberOf(rule: JsonLogicRule, data: unknown): number {
   } catch {
     return 0;
   }
+}
+
+function countOf(progress: NonNullable<SetupStepDef["progress"]>, snapshot: SetupSnapshot): NonNullable<SetupStepState["count"]> {
+  const label = textOf(progress.label, snapshot);
+  return { value: numberOf(progress.count, snapshot), of: numberOf(progress.of, snapshot), ...(label ? { label } : {}) };
 }
 
 /** The first entity (by name, then id) a rule matches. */
@@ -133,7 +148,7 @@ export function evaluateSetupSteps(steps: readonly SetupStepDef[], snapshot: Set
       ...(step.hint ? { hint: step.hint } : {}),
       ...(step.page !== undefined ? { page: step.page } : {}),
       done: truthy(step.done, snapshot),
-      ...(step.progress ? { count: { value: numberOf(step.progress.count, snapshot), of: numberOf(step.progress.of, snapshot) } } : {}),
+      ...(step.progress ? { count: countOf(step.progress, snapshot) } : {}),
       links,
     };
   });
@@ -247,7 +262,7 @@ export function setupIssues(module: CheckedModule): SetupIssue[] {
     if (s.done === undefined) err(where, "step needs a done rule");
     for (const m of s.mode ?? []) if (!declared.has(m)) err(where, `mode "${m}" is not declared by the module`);
     for (const m of logicIssues(s.done)) err(where, `done: ${m}`);
-    if (s.progress) for (const m of [...logicIssues(s.progress.count), ...logicIssues(s.progress.of)]) err(where, `progress: ${m}`);
+    if (s.progress) for (const m of [...logicIssues(s.progress.count), ...logicIssues(s.progress.of), ...(s.progress.label !== undefined ? logicIssues(s.progress.label) : [])]) err(where, `progress: ${m}`);
     for (const l of s.links ?? []) checkSetupLink(l, where, module, err);
     const modes = s.mode && s.mode.length ? s.mode : [...declared];
     for (const mode of modes) {

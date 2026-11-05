@@ -3,16 +3,19 @@
  * (or blank) and a name, then the fields the type's sheet asks for at
  * creation (`sheet.create`, e.g. starting weapons), with the sheet's widgets.
  */
-import { defaultFieldsFor, getPath, setPath, type EntityPreset, type EntityTypeDef, type ReferenceList } from "@campaign-forge/module-sdk";
+import { sheetValueText } from "@campaign-forge/core";
+import { defaultFieldsFor, fieldSchemaAt, getPath, setPath, type EntityPreset, type EntityTypeDef, type ReferenceList } from "@campaign-forge/module-sdk";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { EntityIcon } from "../../components/EntityIcon";
 import { RuleDrawer } from "../../components/RulePanel";
-import { Badge, Button, Card, PageRef, SheetRenderer } from "../../components/ui";
+import { Badge, Button, Card, PageRef } from "../../components/ui";
+import { SheetRenderer } from "../../components/SheetRenderer";
 import { humanize } from "../../lib/format";
 import { createEntity, createEntityFromPreset } from "../../state/actions";
 import { useCampaign, useMeta, useSheetSources } from "../../state/hooks";
 import { BuildCharacterButton, CharacterProcedureLinks, useCharacterBuilder, useCharacterProcedures } from "../builder/entry";
+import { sheetFieldOf } from "./summary";
 
 /** Values the form starts with for the creation fields: `isPC` from the PCs tab, when the type has it. */
 function initialDraft(def: EntityTypeDef | undefined, pc: number | undefined): Record<string, unknown> {
@@ -195,7 +198,7 @@ export function NewEntityPage() {
         </label>
         {preset && (
           <Card title={preset.name} subtitle="Preset preview">
-            <PresetFields preset={preset} />
+            <PresetFields preset={preset} def={def} />
           </Card>
         )}
         {def && createPaths.length > 0 && (
@@ -234,16 +237,23 @@ function groupTag(p: EntityPreset): string | undefined {
   return t ? humanize(t) : undefined;
 }
 
-function PresetFields({ preset }: { preset: EntityPreset }) {
+/** A preset's fields as the sheet names them: labels from the sheet, reference ids (a talent, a career) by their item's name. */
+function PresetFields({ preset, def }: { preset: EntityPreset; def: EntityTypeDef | undefined }) {
+  const ctx = useCampaign();
+  const cx = { referenceName: (list: string, id: string) => ctx.module.referenceItem(list, id)?.name, entityName: () => undefined };
   const rows = Object.entries(preset.fields).filter(([, v]) => v !== undefined && v !== null && v !== "" && !(Array.isArray(v) && v.length === 0));
   return (
     <dl className="app-dl">
-      {rows.slice(0, 14).map(([k, v]) => (
-        <div key={k} className="app-dl__row">
-          <dt>{humanize(k)}</dt>
-          <dd>{formatValue(v)}</dd>
-        </div>
-      ))}
+      {rows.slice(0, 14).map(([k, v]) => {
+        const field = sheetFieldOf(def, k);
+        const text = (field && def ? sheetValueText(field, v, cx, fieldSchemaAt(def, k)) : "") || formatValue(v);
+        return (
+          <div key={k} className="app-dl__row">
+            <dt>{field?.label ?? humanize(k)}</dt>
+            <dd>{text}</dd>
+          </div>
+        );
+      })}
     </dl>
   );
 }

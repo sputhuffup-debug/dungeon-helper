@@ -170,6 +170,10 @@ function checkTable(table: RollTable, registry: TableRegistry, declaredModes: Se
       }
     }
   }
+  // A result field no row has shows nothing: likely a typo.
+  for (const f of table.resultFields ?? []) {
+    if (!table.rows.some((r) => r.result && typeof r.result === "object" && getPath(r.result, f.path) !== undefined)) c.warn(where, `result field "${f.path}" is in no row's result`);
+  }
   // Pairwise overlap.
   for (let i = 0; i < table.rows.length; i++) {
     for (let j = i + 1; j < table.rows.length; j++) {
@@ -266,6 +270,11 @@ function checkEntityType(def: EntityTypeDef, module: GameModule, declaredModes: 
         }
         if (field.widget === "weapons") checkWeaponsField(field, schemaOwner, module, fw, c);
         if (field.widget === "gear" && field.config?.catalog !== undefined) checkGearCatalog(field, schemaOwner, module, fw, c);
+        if (field.reciprocal) {
+          // a pair is the same field on both ends: a ref to entities of this very type
+          if (field.widget !== "ref") c.error(fw, `a reciprocal field must use the "ref" widget (got "${field.widget ?? "none"}")`);
+          if (!(field.entityTypes ?? []).includes(def.id)) c.error(fw, `a reciprocal field must name its own entity type "${def.id}" in entityTypes`);
+        }
       }
     }
   };
@@ -282,6 +291,19 @@ function checkEntityType(def: EntityTypeDef, module: GameModule, declaredModes: 
   for (const path of Object.keys(def.defaultVisibility ?? {})) {
     if (!fieldPathExists(def, path)) c.error(where, `defaultVisibility path "${path}" does not exist`);
   }
+  (def.conditionalVisibility ?? []).forEach((rule, i) => {
+    const at = `conditionalVisibility[${i}]`;
+    checkLogic(rule.when, where, `${at}.when`, c);
+    if (Object.keys(rule.fields ?? {}).length === 0) c.error(where, `${at} hides no fields`);
+    for (const path of Object.keys(rule.fields ?? {})) {
+      if (!fieldPathExists(def, path)) c.error(where, `${at} path "${path}" does not exist`);
+    }
+    for (const [path, from] of Object.entries(rule.standIns ?? {})) {
+      if (!fieldPathExists(def, path)) c.error(where, `${at} stand-in for "${path}": no such field`);
+      if (!fieldPathExists(def, from)) c.error(where, `${at} stand-in for "${path}" reads "${from}", which does not exist`);
+      if (!(path in (rule.fields ?? {}))) c.warn(where, `${at} stand-in for "${path}" applies only where the GM hides it by hand: the rule does not set its visibility`);
+    }
+  });
   for (const path of def.playerEditable ?? []) {
     if (!fieldPathExists(def, path)) c.error(where, `playerEditable path "${path}" does not exist`);
   }

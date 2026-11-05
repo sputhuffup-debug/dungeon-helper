@@ -85,10 +85,11 @@ describe("alien.campaign-thread", () => {
       expect(a.graph.parts).toEqual(b.graph.parts);
     }
     // recorded: any change to the tables or the dealing shows here; re-recorded once when later mentions
-    // of the agent became "the ..." ({theAgent}), a text-only change
+    // of the agent became "the ..." ({theAgent}), a text-only change, and once when two GM title patterns
+    // were reworded ("{Sponsor} and the {subject}", "The squeeze on the {subject}"), text only
     const out: string[] = [];
     for (let i = 0; i < 40; i++) out.push(JSON.stringify(threads(`thread-fixture-${i}`, { sponsors: i % 3 === 0 ? "new" : "mixed" }).graph.results.offers));
-    expect(createHash("sha256").update(out.join("\n")).digest("hex")).toBe("eab2a8f24ff01980ba68045d8991ee0ff71da541352de2831107bda9f70acaed");
+    expect(createHash("sha256").update(out.join("\n")).digest("hex")).toBe("51b2aed716d4ed84d0d506dc2abcc6a971c72d573cc56df8ed33ea3fbccc0c93");
   });
 
   it("deals 1-3 threads from different sponsors, each with a goal, method, weakness, cost and title", () => {
@@ -215,8 +216,10 @@ describe("the job board without arcs", () => {
   }
   // recorded before the arcs were added to the board; re-recorded once when the typical NPCs' kit moved
   // their weapons to the Weapons list (the NPCs' gear rows changed, nothing the board deals did), and once when a
-  // trucker pitch's verb began to agree with plural cargo ("metal ingots or pellets go to"), a text-only change
-  const BEFORE_ARCS = "74cf6977a3b385a536771d52a151571d2c454f5f2ee324bc58fc6336d59221ac";
+  // trucker pitch's verb began to agree with plural cargo ("metal ingots or pellets go to"), a text-only change,
+  // and once for: the job's complications no longer repeating in one job (`distinct`, a repeat takes the next row), "deliver them" for plural
+  // cargo and an NPC who wants "someone who will listen" (text only)
+  const BEFORE_ARCS = "52fd9dc3a5f0f6fc2551bdaf6194794b8a30226e7e4205294cd0ac6b3095b7f0";
 
   it("is byte-identical to the board before arcs", () => {
     expect(baseline()).toBe(BEFORE_ARCS);

@@ -24,6 +24,7 @@
 - `rows[].roll`: nested rolls, `{ "table": "<id>", "as": "key", "times": 2 | "1d3" }`; the nested results land under `as` in the row's result.
 - `modifiers`: `when` (JSONLogic, optional) and `add` (number or JSONLogic). A JSONLogic `add` cannot be enumerated, so cover its range with open-ended rows.
 - `gmDecides`: the app shows the row and lets the GM choose.
+- `resultFields`: what a rolled row means at the table, shown with the roll (the roll result dialog, a condition's tooltip): `[{ "path": "effect", "label": "Effect" }, { "path": "fatal", "label": "Lethal", "as": "flag", "tone": "danger" }, { "path": "healingTime", "label": "Healing time", "unit": "days", "valueLabels": { "shift": "one shift" } }]`. `path` reads the row's object `result`; `as: "flag"` shows the label alone when the value is `true`; `unit` follows a value with no `valueLabels` entry. Rows without the field skip it; `module-check` warns about a field no row has.
 - Cite the source with `page` (or `[first, last]`), `cite` for a section, or mark it `original`. Rows may cite their own `page` / `cite`.
 - `mode`, `tags`, `notes`, `unverified` as in the contract.
 
@@ -67,6 +68,7 @@ A procedure is a list of steps rolled in order with a seed, then `produce` turns
 | `reads` | Step ids it depends on: the step graph, and re-rolling one of them invalidates this step. |
 | `skipIf` | JSONLogic; true skips the step. |
 | `repeat` | A number, a dice expression (`"1d3"`) or JSONLogic. The result becomes a list. |
+| `distinct` | With `repeat` on a table step: never the same result twice. A roll that repeats one takes the next row of the table it has not had (no extra die, so dice typed at the table still fit). |
 | `optional` | The GM ticks it to include it. |
 | `modifier` | JSONLogic number added to the table roll, on top of the table's own modifiers. |
 | `derive` | Keys added to the result: name → JSONLogic over the context plus `result`. A non-object result becomes `{ value, ...derived }`. |

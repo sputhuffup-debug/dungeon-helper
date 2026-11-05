@@ -84,6 +84,11 @@ export const locationSchema = objectSchema({
   threat: stringField("A threat or event tied to this place."),
 });
 
+/**
+ * Every location's sheet: region, allegiance and description. A subtype's
+ * sheet follows it with that kind of place's own fields and never repeats
+ * these (the app shows both).
+ */
 const generalSheet: SheetLayout = {
   sections: [
     {
@@ -105,9 +110,6 @@ const starSystemSheet: SheetLayout = {
       fields: [
         select("starClass", "Spectral class", [...STAR_CLASSES], { span: 4, rule: "alien.rule.star-systems" }),
         select("brightness", "Brightness class", [...BRIGHTNESS_CLASSES], { span: 4, rule: "alien.rule.star-systems" }),
-        regionField,
-        allegianceField,
-        textarea("description", "Description"),
       ],
     },
     {
@@ -141,14 +143,11 @@ const planetSheet: SheetLayout = {
         text("climate", "Climate", { span: 3 }),
         checkbox("inhabited", "Inhabited"),
         text("population", "Population", { span: 3 }),
-        regionField,
-        allegianceField,
         text("affiliation", "Affiliation", { span: 4 }),
         text("classification", "Classification", { span: 4 }),
         tags("orbitalComponents", "Orbital components", { rule: "alien.rule.world-creation" }),
         tags("keyResources", "Key resources"),
         tags("colonies", "Colonies"),
-        textarea("description", "Description"),
       ],
     },
   ],
@@ -164,7 +163,6 @@ const colonySheet: SheetLayout = {
       fields: [
         select("colonySize", "Size", [...COLONY_SIZES], { span: 3, rule: "alien.rule.colonies" }),
         text("population", "Population", { span: 3 }),
-        allegianceField,
         text("affiliation", "Affiliation", { span: 4 }),
         text("classification", "Classification", { span: 4 }),
         text("resources", "Resources", { span: 4 }),
@@ -174,7 +172,6 @@ const colonySheet: SheetLayout = {
           config: { columns: [{ path: "type", label: "Type" }, { path: "name", label: "Name" }] },
         }),
         textarea("campaignHook", "Campaign hook", { rule: "alien.rule.campaign-hooks" }),
-        textarea("description", "Description"),
       ],
     },
   ],
@@ -188,7 +185,6 @@ const siteSheet: SheetLayout = {
       title: "Site",
       columns: 1,
       fields: [
-        textarea("description", "Description"),
         { path: "mapId", label: "Zone map", widget: "zonemap", span: 12, rule: "alien.rule.zones", config: { zoneKinds: ["cluttered", "open"], borderKinds: ["open", "blocked", "door"] } },
       ],
     },
@@ -229,8 +225,9 @@ export const locationType: EntityTypeDef = {
     threat: "gm",
   },
   subtypes: [
-    { id: "region", name: "Region", sheet: generalSheet },
-    { id: "sector", name: "Sector", sheet: generalSheet },
+    // the general sheet is all a region or sector has
+    { id: "region", name: "Region" },
+    { id: "sector", name: "Sector" },
     { id: "star-system", name: "Star system", sheet: starSystemSheet },
     { id: "planet", name: "Planet", sheet: planetSheet },
     { id: "colony", name: "Colony", sheet: colonySheet },

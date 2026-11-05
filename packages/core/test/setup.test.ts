@@ -46,7 +46,7 @@ describe("core setup steps", () => {
     store.createSession({ title: "One", status: "planned" });
     const setup = campaignSetup(store.toJSON(), fixtureModule);
     expect(setup).toMatchObject({ done: 3, total: 3, complete: true });
-    expect(setup.steps.find((s) => s.id === "setup.pcs")?.count).toEqual({ value: 2, of: 2 });
+    expect(setup.steps.find((s) => s.id === "setup.pcs")?.count).toEqual({ value: 2, of: 2, label: "PCs, one per player" });
   });
 });
 

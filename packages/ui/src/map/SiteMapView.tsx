@@ -105,6 +105,8 @@ export interface SiteMapViewProps {
    * "Fit" still shows the whole deck.
    */
   focus?: string[] | undefined;
+  /** Frame the focus zones again whenever they change (a display nobody pans, e.g. the player screen). */
+  followFocus?: boolean | undefined;
 }
 
 /** Grid units kept around focused zones, and the smallest box a focus frames (so one room is not blown up to the whole screen). */
@@ -174,6 +176,7 @@ export function SiteMapView({
   toolbar = true,
   actions,
   focus,
+  followFocus = false,
 }: SiteMapViewProps) {
   const prefix = useId().replace(/[^a-zA-Z0-9_-]/g, "");
   const [innerDeck, setInnerDeck] = useState<string | undefined>(() => busiestDeck(layout, focus) ?? layout.decks[0]?.id);
@@ -229,6 +232,15 @@ export function SiteMapView({
     ro.observe(el);
     return () => ro.disconnect();
   }, [viewportRef]);
+  // a display that follows the crew reframes as zones are revealed and tokens move
+  const firstFocus = useRef(true);
+  useEffect(() => {
+    if (firstFocus.current) {
+      firstFocus.current = false;
+      return;
+    }
+    if (followFocus) fitRef.current();
+  }, [followFocus, focusKey]);
 
   const pickDeck = (id: string) => {
     setInnerDeck(id);
@@ -247,7 +259,8 @@ export function SiteMapView({
     <Button
       key={d.id}
       size="sm"
-      variant={d.id === deck ? "primary" : "ghost"}
+      // bordered either way, so a deck not shown still reads as a button
+      variant={d.id === deck ? "primary" : "default"}
       aria-pressed={d.id === deck}
       onClick={() => pickDeck(d.id)}
       className={duct ? "cf-sitemap__ductbtn" : undefined}

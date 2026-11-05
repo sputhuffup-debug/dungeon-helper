@@ -6,6 +6,7 @@ import { VisibilitySelect } from "../../components/VisibilitySelect";
 import { Badge, Button, Card, IconButton } from "../../components/ui";
 import { RichTextEditor } from "../../editor";
 import { addHandout, actHandouts, deleteHandout, ensureDoc, updateHandout } from "../../state/prepActions";
+import { HANDOUT_KIND_LABELS } from "../../lib/format";
 import { useCampaign, useMapVersion, useMeta } from "../../state/hooks";
 import { CommitInput, EntityRefInput, useTypesOfKind } from "./fields";
 
@@ -120,7 +121,7 @@ function HandoutRow({ handout }: { handout: Handout }) {
               <select className="cf-select" aria-label="Handout kind" value={handout.kind} onChange={(e) => updateHandout(ctx, handout.id, { kind: e.target.value as HandoutKind })}>
                 {KINDS.map((k) => (
                   <option key={k} value={k}>
-                    {k}
+                    {HANDOUT_KIND_LABELS[k]}
                   </option>
                 ))}
               </select>

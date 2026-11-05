@@ -124,6 +124,8 @@ export const jobCreate: Procedure = {
       table: (ctx) => `alien.jobs.${frameKey(ctx)}.complications`,
       reads: ["difficulty"],
       repeat: (ctx) => Math.max(1, num(ctx.get("difficulty"), 1)),
+      // module decision: the same complication twice in one job is re-rolled
+      distinct: true,
     },
     { id: "plotTwist", title: "Plot twist", table: "alien.jobs.plot-twist", optional: true, page: 252 },
     {

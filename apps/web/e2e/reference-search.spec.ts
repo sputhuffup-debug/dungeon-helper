@@ -14,11 +14,15 @@ async function searchFor(page: import("@playwright/test").Page, query: string) {
   // no dialog left open: closing one moves focus, which would close the results under the click
   await expect(page.getByRole("dialog")).toHaveCount(0);
   const box = page.getByRole("searchbox", { name: "Search campaign" });
-  await box.click();
-  await box.fill(query);
   const results = page.getByRole("listbox", { name: "Search results" });
   const group = results.getByRole("group", { name: "Reference" });
-  await expect(group).toBeVisible();
+  // on a slow runner the page can still hand focus back from the closed dialog just after the box
+  // is focused, closing the results; focus it again, as a GM would, until the results stay open
+  await expect(async () => {
+    await box.click();
+    await box.fill(query);
+    await expect(group).toBeVisible({ timeout: 2_000 });
+  }).toPass({ timeout: 15_000 });
   return group;
 }
 
@@ -52,4 +56,26 @@ test("search opens a reference list item, a roll table and a preset on the Refer
   await expect(page.getByRole("tab", { name: /Presets/ })).toHaveAttribute("aria-selected", "true");
   await expect(page.locator("tr.is-target")).toContainText("engineer");
   await expect(page.getByRole("searchbox", { name: "Filter presets" })).toHaveValue(/engineer/);
+});
+
+test("the best title wins: Enter opens the Pulse Rifle, not a record that only mentions it; Escape keeps the box focused", async ({ page }) => {
+  const box = page.getByRole("searchbox", { name: "Search campaign" });
+  await box.click();
+  await box.fill("pulse rifle");
+  const results = page.getByRole("listbox", { name: "Search results" });
+  // the first group holds the best match, and the first option is the one Enter opens
+  const first = results.getByRole("option").first();
+  await expect(first).toContainText(/Pulse Rifle/i);
+  await expect(first).toHaveAttribute("aria-selected", "true");
+  // Escape closes the results and keeps the focus in the box; a second one clears it
+  await box.press("Escape");
+  await expect(results).toHaveCount(0);
+  await expect(box).toBeFocused();
+  await expect(box).toHaveValue("pulse rifle");
+  await box.press("Escape");
+  await expect(box).toHaveValue("");
+  await expect(box).toBeFocused();
+  await box.fill("pulse rifle");
+  await box.press("Enter");
+  await expect(page).toHaveURL(/\/reference\?.*preset=/);
 });

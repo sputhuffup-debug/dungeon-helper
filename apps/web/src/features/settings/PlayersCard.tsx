@@ -87,6 +87,19 @@ export function PlayersCard() {
   );
 }
 
+/**
+ * Who plays a PC: one player at a time, so ticking a second player moves the
+ * PC. Say so, with an Undo, instead of silently unticking the first.
+ */
+function movePc(ctx: ReturnType<typeof useCampaign>, pc: Entity, from: CampaignMember | undefined, to: CampaignMember | undefined): void {
+  setCharacterOwner(ctx.store, pc.id, to?.id);
+  if (!from || !to || from.id === to.id) return;
+  pushToast(`${pc.name} moved from ${from.name} to ${to.name}.`, {
+    tone: "info",
+    action: { label: "Undo", onClick: () => setCharacterOwner(ctx.store, pc.id, from.id) },
+  });
+}
+
 function PlayerRow({ player, pcs, meta, onRemove }: { player: CampaignMember; pcs: Entity[]; meta: ReturnType<typeof useMeta>; onRemove: () => void }) {
   const ctx = useCampaign();
   return (
@@ -120,7 +133,7 @@ function PlayerRow({ player, pcs, meta, onRemove }: { player: CampaignMember; pc
           const mine = owner?.id === player.id;
           return (
             <label key={pc.id} className="app-chip-toggle" title={owner && !mine ? `Played by ${owner.name}; ticking moves it to ${player.name}` : undefined}>
-              <input type="checkbox" checked={mine} onChange={(e) => setCharacterOwner(ctx.store, pc.id, e.target.checked ? player.id : undefined)} aria-label={`${player.name} plays ${pc.name}`} />
+              <input type="checkbox" checked={mine} onChange={(e) => movePc(ctx, pc, owner, e.target.checked ? player : undefined)} aria-label={`${player.name} plays ${pc.name}`} />
               {pc.name}
               {owner && !mine && <span className="cf-muted"> ({owner.name})</span>}
             </label>

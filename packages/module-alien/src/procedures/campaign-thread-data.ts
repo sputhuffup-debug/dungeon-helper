@@ -106,7 +106,7 @@ export const COSTS: string[] = [
 ];
 
 /** GM titles: the secret name of the thread. */
-export const GM_TITLES: string[] = ["Project {Codename}", "Operation {Codename}", "The {codename} file", "{Sponsor}: the {subject} play", "The {subject} squeeze"];
+export const GM_TITLES: string[] = ["Project {Codename}", "Operation {Codename}", "The {codename} file", "{Sponsor} and the {subject}", "The squeeze on the {subject}"];
 
 /** Stage tiers, in order: hints, pattern, middleman, exposure, endgame. A thread uses the first and last and 1-3 of the middle ones, in order. */
 export const STAGE_TIERS = ["hints", "pattern", "middleman", "exposure", "endgame"] as const;

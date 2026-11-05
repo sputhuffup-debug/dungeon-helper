@@ -11,6 +11,11 @@ import {
   campaignDbName,
   clone,
   deleteCampaignData,
+  deletePath,
+  importedCampaignName,
+  listCampaigns,
+  reciprocalChanges,
+  type ReciprocalChanges,
   docIdsOf,
   exportBundle,
   exportJSON,
@@ -198,6 +203,9 @@ async function installBundleSupplements(supplements: ReadonlyArray<{ file: strin
 export async function importCampaignBundle(bytes: Uint8Array): Promise<BundleImportResult> {
   const imported = await importBundle(bytes, { onConflict: "new-id" });
   const store = imported.store;
+  // a second copy of a campaign this device has gets a name of its own
+  const name = importedCampaignName(store.meta().name, (await listCampaigns()).map((c) => c.name));
+  if (name !== store.meta().name) store.updateMeta({ name });
   const meta = store.meta();
   let installedPack: string | undefined;
   await whenImportedModulesLoaded();
@@ -370,13 +378,39 @@ export function updateEntityField(ctx: Ctx, id: Id, path: string, value: unknown
 
 /** Replace the whole fields object (sheet renderers that hand back the full object). */
 export function updateEntityFields(ctx: Ctx, id: Id, fields: Record<string, unknown>, changedPaths: string[] = []): Entity {
+  return saveEntityFields(ctx, id, fields, changedPaths).entity;
+}
+
+/** What a save did to paired fields elsewhere (`SheetField.reciprocal`): other entities changed, and those left alone. */
+export interface SavedFields extends ReciprocalChanges {
+  entity: Entity;
+}
+
+/**
+ * Save an entity's fields, keeping its paired fields paired: the other end of
+ * a buddy (say) is set or cleared with it, in one transaction. A partner
+ * whose own field names someone else is left alone and returned in
+ * `conflicts`, for the caller to offer the change.
+ */
+export function saveEntityFields(ctx: Ctx, id: Id, fields: Record<string, unknown>, changedPaths: string[] = []): SavedFields {
   const entity = ctx.store.get("entities", id);
   if (!entity) throw new Error(`entities/${id} not found`);
   return ctx.store.transact(() => {
     const updated = ctx.store.update("entities", id, { fields: clone(fields) });
     const run = entity.provenance?.generatorRun;
     if (run) for (const p of changedPaths) recordEdit(ctx.store, run, id, p);
-    return updated;
+    const linked = reciprocalChanges(ctx.module.entityType(entity.type), id, entity.fields, fields, (other) => ctx.store.get("entities", other));
+    for (const edit of linked.edits) {
+      const other = ctx.store.get("entities", edit.entityId);
+      if (!other) continue;
+      const next = clone(other.fields);
+      if (edit.value === undefined) deletePath(next, edit.path);
+      else setPath(next, edit.path, edit.value);
+      ctx.store.update("entities", other.id, { fields: next });
+      const otherRun = other.provenance?.generatorRun;
+      if (otherRun) recordEdit(ctx.store, otherRun, other.id, edit.path);
+    }
+    return { entity: updated, ...linked };
   });
 }
 

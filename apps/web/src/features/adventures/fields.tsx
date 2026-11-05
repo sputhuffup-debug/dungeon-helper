@@ -106,8 +106,8 @@ export function EntityRefInput({ value, onChange, types, label }: { value: Id | 
   );
 }
 
-/** Several entity references as chips with an "Add" picker. */
-export function EntityListInput({ value, onChange, types, label }: { value: Id[]; onChange: (ids: Id[]) => void; types?: string[]; label: string }) {
+/** Several entity references as chips with an "Add" picker (`create`: the picker also makes a new one of that type). */
+export function EntityListInput({ value, onChange, types, label, create }: { value: Id[]; onChange: (ids: Id[]) => void; types?: string[]; label: string; create?: string }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="cf-chips">
@@ -123,6 +123,7 @@ export function EntityListInput({ value, onChange, types, label }: { value: Id[]
         title={`Add ${label.toLowerCase()}`}
         types={types}
         exclude={value}
+        {...(create ? { create } : {})}
         onClose={() => setOpen(false)}
         onPick={(e: Entity) => {
           setOpen(false);

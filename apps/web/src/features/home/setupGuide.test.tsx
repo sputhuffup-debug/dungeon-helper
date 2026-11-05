@@ -71,7 +71,8 @@ describe("the setup guide card", () => {
     const crew = steps()[0]!;
     expect(crew.getAttribute("aria-current")).toBe("step");
     expect([...crew.querySelectorAll("a")].map((a) => a.textContent)).toEqual(["Roll a Life Path", "+ Character"]);
-    expect(within(crew).getByText("0 of 4")).toBeTruthy();
+    // the count says what it counts and where the four comes from
+    expect(crew.querySelector(".setup-step__count")?.textContent).toBe("0 of 4 PCs: a crew of four until you add the players");
     cleanup();
 
     // two PCs, played by two players: the crew and the players are done, the ship is next

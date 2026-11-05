@@ -121,20 +121,15 @@ test("SRD 5.1 & 5.2 pack: a campaign, a PC and a Goblin, a skill roll at the tab
   await expect(panel.getByTestId("dicepool")).toContainText("1d20 + 3");
   await shot(page, "table-dice");
 
-  // 6. trackers: rolled initiative (highest first) and hit points on the sheet
+  // 6. trackers: the Combat panel runs rolled initiative (round 1 from the first roll) and each combatant's hit points,
+  // so the Trackers tab keeps the rest and no Initiative or Hit points tracker shows a second time
   await page.getByRole("tab", { name: "Trackers" }).click();
-  const init = page.locator('[data-tracker="dnd5e-srd.tracker.initiative"]');
-  await init.getByRole("combobox", { name: "Add from entities" }).selectOption({ label: "Tamsin" });
-  await init.getByRole("button", { name: "Add", exact: true }).click();
-  await init.getByRole("textbox", { name: "Participant name" }).fill("Goblin boss");
-  await init.getByRole("button", { name: "Add", exact: true }).click();
-  await init.getByRole("button", { name: "Roll initiative" }).click();
-  const scores = await init.locator("[data-testid^=card-]").evaluateAll((els) => els.map((e) => Number((e as HTMLInputElement).value)));
-  expect(scores).toHaveLength(2);
-  expect(scores).toEqual([...scores].sort((a, b) => b - a));
-  const hp = page.locator('[data-tracker="dnd5e-srd.tracker.hp"]');
-  await hp.getByRole("button", { name: "Decrease Tamsin HP" }).click();
-  await expect(hp.getByRole("spinbutton", { name: "Tamsin HP" })).toHaveValue("7");
+  await expect(page.locator('[data-tracker="dnd5e-srd.tracker.death-saves"]')).toBeVisible();
+  for (const id of ["initiative", "hp", "temp-hp"]) await expect(page.locator(`[data-tracker="dnd5e-srd.tracker.${id}"]`)).toHaveCount(0);
+  const combat = page.getByTestId("d20-combat");
+  await combat.getByTestId("roll-initiative-all").click();
+  await expect(combat.getByTestId("combat-round")).toHaveText("Round 1");
+  await expect(combat.getByTestId("current-turn")).toHaveText("Tamsin's turn");
   await shot(page, "table-trackers");
 
   // 7. reference lists open an item with its full text

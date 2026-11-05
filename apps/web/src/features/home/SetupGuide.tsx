@@ -63,6 +63,7 @@ export function SetupGuide({ setup }: { setup: CampaignSetup }) {
                   {step.count && !step.done && (
                     <span className="cf-muted setup-step__count">
                       {step.count.value} of {step.count.of}
+                      {step.count.label ? ` ${step.count.label}` : ""}
                     </span>
                   )}
                   <span className="cf-sr-only">{step.done ? " (done)" : " (to do)"}</span>

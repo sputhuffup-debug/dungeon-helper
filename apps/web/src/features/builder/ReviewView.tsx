@@ -5,7 +5,8 @@
  */
 import { describeGrant, type AppliedGrant, type CharacterBuilderDef, type CharacterBuilderResult, type CharacterBuilderStep, type EntityTypeDef, type GameModule, type ReferenceList } from "@campaign-forge/module-sdk";
 import { useMemo } from "react";
-import { Badge, Button, SheetRenderer } from "../../components/ui";
+import { Badge, Button } from "../../components/ui";
+import { SheetRenderer } from "../../components/SheetRenderer";
 
 export interface ReviewViewProps {
   module: GameModule;

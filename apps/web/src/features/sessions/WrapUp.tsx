@@ -6,6 +6,9 @@
  * entries, loose ends and, when the session ran one of the module's
  * adventure sources (a job), closing it.
  *
+ * The session timer pauses while the wrap-up is open (wrap-up time is not
+ * play time); going back to the table starts it again.
+ *
  * Everything typed is saved on the session as a draft while the GM types
  * (see wrapUpActions.ts), so leaving and coming back keeps it. Finishing
  * commits: it marks the session done, archives its tracker state, plans the
@@ -28,6 +31,7 @@ import {
   sessionEndPrompts,
   sessionLabel,
   sessionLogText,
+  setTimer,
   suggestTimeline,
   wrapUpOf,
   type TimelineDraft,
@@ -35,7 +39,7 @@ import {
 } from "../../state/tableActions";
 import { SessionRollPanel, attributeIds, skillInput } from "../table/DicePanel";
 import { WrapChecklistPanel } from "./SessionChecklist";
-import { usePlayerCharacters } from "../table/hooks";
+import { usePlayerCharacters, useTableState } from "../table/hooks";
 import { BetweenJobsLink } from "../ship/BetweenJobsLink";
 import { AwardsStep, useAwardsShown } from "../progression/AwardsStep";
 import { LongAgendaWrapUp } from "../agendas/LongAgendas";
@@ -139,6 +143,23 @@ export function WrapUpWizard({ sessionId, onCancel, onDone }: WrapUpWizardProps)
     };
   }, []);
 
+  // wrap-up time is not play time: the timer pauses while the wrap-up is open, and starts again on going back to the table
+  const table = useTableState(sessionId);
+  const pausedTimer = useRef(false);
+  useEffect(() => {
+    if (!table.timer?.running || session?.status !== "running") return;
+    setTimer(ctx, sessionId, "pause");
+    pausedTimer.current = true;
+    // only on opening
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const backToTable = onCancel
+    ? () => {
+        if (pausedTimer.current && ctx.store.get("sessions", sessionId)?.status === "running") setTimer(ctx, sessionId, "start");
+        onCancel();
+      }
+    : undefined;
+
   const sources = useSessionSources(sessionId);
   const closeLabel = closeStepLabel(ctx, sources);
   // the questions step holds the module's prompts, its award checklist and the arcs; with none of them it is left out
@@ -183,10 +204,11 @@ export function WrapUpWizard({ sessionId, onCancel, onDone }: WrapUpWizardProps)
           <p className="cf-muted">Close the session: summary, questions, rewards, timeline, and what carries over.</p>
           <p className="cf-muted app-small" data-testid="wrapup-saved" data-saved={savedAt ? "" : undefined}>
             {savedAt ? "Everything you type is kept on the session until you finish." : "Everything you type is kept on the session as you go."}
+            {table.timer && !table.timer.running && (table.timer.accumulatedMs ?? 0) > 0 ? " The session timer is paused while you wrap up." : ""}
           </p>
         </div>
-        {onCancel && (
-          <Button variant="ghost" onClick={onCancel}>
+        {backToTable && (
+          <Button variant="ghost" onClick={backToTable} title={pausedTimer.current ? "Back to the table: the session timer starts again" : undefined}>
             Back to the table
           </Button>
         )}
@@ -256,13 +278,25 @@ export function WrapUpWizard({ sessionId, onCancel, onDone }: WrapUpWizardProps)
           {current === "rewards" && <BetweenJobsLink />}
 
           {current === "timeline" && (
-            <Card title="Timeline entries" subtitle={`Dated ${meta.currentDate ?? "(no in-world date set)"}, the campaign's current in-world date.`}>
+            <Card
+              title="Timeline entries"
+              subtitle={meta.currentDate ? `Each is dated by the in-world date it happened on (the campaign's date when the scene was run); the rest by today's in-world date, ${meta.currentDate}.` : "No in-world date set: entries are kept undated."}
+            >
               {timeline.length === 0 && <p className="cf-muted">No scenes were marked run and no handouts revealed. Add an entry by hand if something happened.</p>}
               <ul className="app-list" aria-label="Timeline entries">
                 {timeline.map((t, i) => (
                   <li key={t.key} className="app-list__row">
                     <input type="checkbox" className="cf-checkbox" aria-label={`Include ${t.text}`} checked={t.include} onChange={(e) => setTimeline(timeline.map((x, j) => (j === i ? { ...x, include: e.target.checked } : x)))} />
                     <AutoGrowText className="cf-input app-grow" aria-label="Timeline text" value={t.text} onChange={(e) => setTimeline(timeline.map((x, j) => (j === i ? { ...x, text: e.target.value } : x)))} />
+                    {meta.currentDate && (
+                      <input
+                        className="cf-input cf-mono app-wrapup__date"
+                        aria-label={`In-world date of ${t.text || "the entry"}`}
+                        value={t.inWorldDate ?? meta.currentDate}
+                        onChange={(e) => setTimeline(timeline.map((x, j) => (j === i ? { ...x, inWorldDate: e.target.value } : x)))}
+                        data-testid="timeline-date"
+                      />
+                    )}
                     <EntityNames ids={t.entities} />
                   </li>
                 ))}

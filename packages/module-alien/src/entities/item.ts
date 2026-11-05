@@ -42,14 +42,16 @@ export const itemSchema = objectSchema({
   airSupply: intField(0, undefined, undefined, "Air supply rating for suits (p. 28)."),
 });
 
-const common = (extra: SheetLayout["sections"][number]["fields"]): SheetLayout => ({
+type Fields = SheetLayout["sections"][number]["fields"];
+
+/** Every item's sheet: weight, cost, special and effect. */
+const common = (): SheetLayout => ({
   sections: [
     {
       id: "stats",
       title: "Stats",
       columns: 4,
       fields: [
-        ...extra,
         number("weight", "Weight", { rule: "alien.rule.encumbrance" }),
         checkbox("portable", "Portable"),
         number("cost", "Cost ($)"),
@@ -62,8 +64,16 @@ const common = (extra: SheetLayout["sections"][number]["fields"]): SheetLayout =
   summary: ["weight", "cost"],
 });
 
-const weaponSheet: SheetLayout = {
-  ...common([
+/**
+ * A subtype's own fields, shown after the item's Stats (the app shows the
+ * type's sheet and the subtype's together, so a subtype never repeats them).
+ */
+const subtypeSheet = (id: string, title: string, fields: Fields, summary: string[]): SheetLayout => ({ sections: [{ id, title, columns: 4, fields }], summary });
+
+const weaponSheet: SheetLayout = subtypeSheet(
+  "weapon",
+  "Weapon",
+  [
     number("bonus", "Modifier", { rule: "alien.rule.weapons" }),
     number("damage", "Damage", { rule: "alien.rule.damage-armor" }),
     checkbox("explosive", "Explosive"),
@@ -72,26 +82,23 @@ const weaponSheet: SheetLayout = {
     select("range", "Max range", [...WEAPON_RANGE_IDS], { span: 3, rule: "alien.rule.range-bands" }),
     text("ammo", "Ammo", { span: 3, rule: "alien.rule.consumables" }),
     number("power", "Power", { rule: "alien.rule.consumables" }),
-  ]),
-  summary: ["bonus", "damage", "range", "weight"],
-};
+  ],
+  ["bonus", "damage", "range", "weight"],
+);
 
-const armorSheet: SheetLayout = {
-  ...common([
-    number("armorRating", "Armor Level", { rule: "alien.rule.armor" }),
-    number("airSupply", "Air supply", { rule: "alien.rule.consumables" }),
-  ]),
-  summary: ["armorRating", "airSupply", "weight"],
-};
+const armorSheet: SheetLayout = subtypeSheet(
+  "armor",
+  "Armor",
+  [number("armorRating", "Armor Level", { rule: "alien.rule.armor" }), number("airSupply", "Air supply", { rule: "alien.rule.consumables" })],
+  ["armorRating", "airSupply", "weight"],
+);
 
-const gearSheet: SheetLayout = {
-  ...common([
-    select("range", "Range", [...WEAPON_RANGE_IDS], { span: 3 }),
-    number("power", "Power", { rule: "alien.rule.consumables" }),
-    number("supply", "Supply", { rule: "alien.rule.supply-rolls" }),
-  ]),
-  summary: ["weight", "cost"],
-};
+const gearSheet: SheetLayout = subtypeSheet(
+  "gear",
+  "Gear",
+  [select("range", "Range", [...WEAPON_RANGE_IDS], { span: 3 }), number("power", "Power", { rule: "alien.rule.consumables" }), number("supply", "Supply", { rule: "alien.rule.supply-rolls" })],
+  ["weight", "cost"],
+);
 
 export const itemType: EntityTypeDef = {
   id: "alien.item",
@@ -100,7 +107,7 @@ export const itemType: EntityTypeDef = {
   plural: "Items",
   icon: "package",
   schema: itemSchema,
-  sheet: common([]),
+  sheet: common(),
   subtypes: [
     { id: "weapon", name: "Weapon", sheet: weaponSheet },
     { id: "armor", name: "Armor", sheet: armorSheet },

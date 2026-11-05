@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, type ReactNode } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, type ReactNode } from "react";
 import { cx } from "../sheet/paths";
 import { IconButton } from "./Button";
 
@@ -19,7 +19,10 @@ export function Dialog({ open, onClose, title, children, footer, className, dism
   // one id per dialog: two can be open at once (a picker over the dialog that opened it)
   const titleId = `cf-dialog-title-${useId()}`;
 
-  useEffect(() => {
+  // a layout effect: the native dialog opens and closes in the same commit that mounts or drops its
+  // content, so a closed dialog never lingers open and empty, and the focus it hands back on closing
+  // can't land after the user has already moved on (e.g. typed into the header search)
+  useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
     if (open) {

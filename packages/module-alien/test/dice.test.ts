@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createRng, createTableRegistry } from "@campaign-forge/module-sdk";
+import { createRng, createTableRegistry, tableResultLines } from "@campaign-forge/module-sdk";
 import type { Effect, RollResult } from "@campaign-forge/module-sdk";
 import { diceSystem, BASE_DIE, STRESS_DIE, FACEHUGGER, PANIC_TABLE, STRESS_RESPONSE_TABLE } from "../src/dice";
 import { tables } from "../src/tables";
@@ -186,6 +186,32 @@ describe("operations", () => {
     expect(ci.rolls[0]!.raw).toHaveLength(2);
     expect(ci.total).toBeGreaterThanOrEqual(11);
     expect(ci.total).toBeLessThanOrEqual(66);
+  });
+
+  it("criticalInjury writes the injury onto the sheet's Critical injuries, keeping what is there", () => {
+    const old = { id: "critical-injury:31", label: "Broken Nose", page: 70 };
+    const ci = ops.criticalInjury!.run({ entity: "pc1", criticalInjuries: [old], conditions: ["critical-injury:31"] }, createRng("ci-sheet"), registry);
+    const set = ci.effects?.find((e): e is Extract<Effect, { kind: "setField" }> => e.kind === "setField");
+    expect(set).toMatchObject({ entity: "pc1", path: "criticalInjuries" });
+    expect(set!.value).toEqual([old, { id: `critical-injury:${ci.total}`, label: ci.label, page: 70 }]);
+    // an injury already on the sheet is not written twice
+    const again = ops.criticalInjury!.run({ entity: "pc1", criticalInjuries: set!.value }, createRng("ci-sheet"), registry);
+    if (again.total === ci.total) expect(again.effects?.some((e) => e.kind === "setField")).toBe(false);
+  });
+
+  it("the character tables say what a rolled row means (resultFields)", () => {
+    const crit = tables.find((t) => t.id === "alien.character.critical-injury")!;
+    const row = (label: string) => crit.rows.find((r) => r.label === label)!.result;
+    expect(tableResultLines(crit, row("Blood in Eyes"))).toEqual([
+      { label: "Effect", value: "−1 die to Ranged Combat and Observation." },
+      { label: "Healing time", value: "one shift" },
+    ]);
+    const lethal = tableResultLines(crit, crit.rows.find((r) => (r.result as { fatal?: boolean; timeLimit?: string }).fatal && (r.result as { timeLimit?: string }).timeLimit)!.result);
+    expect(lethal[0]).toEqual({ label: "Lethal", tone: "danger" });
+    expect(lethal[1]?.label).toBe("Death roll (Stamina) every");
+    const panicTable = tables.find((t) => t.id === "alien.character.panic")!;
+    const scream = tableResultLines(panicTable, panicTable.rows.find((r) => r.label === "Scream")!.result);
+    expect(scream.map((l) => l.label)).toEqual(["Effect", "Trauma check after the session (p. 74)"]);
   });
 
   it("every operation id matches its key and cites a page", () => {

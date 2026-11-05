@@ -4,7 +4,7 @@
  * with Sam only reaches Sam's packet. Fields the module shows a character's
  * own player are marked.
  */
-import { fieldVisibilityOf, ownerMemberOf, playerMembers, type Entity, type Visibility } from "@campaign-forge/core";
+import { fieldVisibilityOf, ownerMemberOf, playerMembers, visibilityRuleFor, type Entity, type Visibility } from "@campaign-forge/core";
 import { ownerVisiblePaths, sheetFieldsForMode, type EntityTypeDef } from "@campaign-forge/module-sdk";
 import { useMemo, useState } from "react";
 import { VisibilitySelect } from "../../components/VisibilitySelect";
@@ -71,11 +71,18 @@ function FieldVisibilityList({ entity, def }: { entity: Entity; def: EntityTypeD
           const effective = fieldVisibilityOf(entity, def, r.path);
           const ownerAll = ownerPaths.includes(r.path);
           const ownerPart = !ownerAll && ownerPaths.some((p) => p.startsWith(`${r.path}.`));
+          // a default the module sets from this entity's own fields (e.g. a secret kept while a box is ticked), with why
+          const ruled = override ? undefined : visibilityRuleFor(entity, def, r.path);
           return (
             <li key={r.path} className="app-list__row" data-field={r.path}>
               <span className="app-grow">
                 {r.label}
                 {!override && <span className="cf-muted"> · default {levelName[effective.level].toLowerCase()}</span>}
+                {ruled?.rule.reason && (
+                  <span className="app-fieldvis__reason cf-muted" data-testid="field-visibility-reason">
+                    {ruled.rule.reason}
+                  </span>
+                )}
               </span>
               {owner && ownerAll && !override && <Badge tone="success">{owner.name} sees it</Badge>}
               {owner && ownerPart && !override && <Badge tone="success">{owner.name} sees part</Badge>}

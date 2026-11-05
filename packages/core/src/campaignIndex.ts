@@ -17,6 +17,21 @@ export interface CampaignIndexEntry {
   updated: string;
 }
 
+/**
+ * The name an imported campaign gets: its own, unless a campaign on this
+ * device already has it; then "Name (imported 4 Nov 2026)", numbered on
+ * from "(imported 4 Nov 2026, 2)" if that is taken too.
+ */
+export function importedCampaignName(name: string, existing: readonly string[], date: Date = new Date()): string {
+  const taken = new Set(existing.map((n) => n.trim().toLowerCase()));
+  const free = (n: string) => !taken.has(n.trim().toLowerCase());
+  if (free(name)) return name;
+  const day = date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  const base = `${name} (imported ${day}`;
+  if (free(`${base})`)) return `${base})`;
+  for (let i = 2; ; i++) if (free(`${base}, ${i})`)) return `${base}, ${i})`;
+}
+
 function openIndex(): Promise<IDBDatabase> {
   return openDb(INDEX_DB, CAMPAIGNS, { keyPath: "id" });
 }

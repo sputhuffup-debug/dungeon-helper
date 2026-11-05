@@ -4,7 +4,7 @@
  * the landing page's "Start a campaign" button named with its visible text.
  */
 import "fake-indexeddb/auto";
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { createCampaign } from "../../state/actions";
@@ -50,7 +50,7 @@ describe("preview as player on an entity page", () => {
       type: "alien.job",
       name: "Ore run to Hadley",
       visibility: { level: "players" },
-      tags: ["job-board", "within:alien.location.x"],
+      tags: ["job-board", "smuggling", "within:alien.location.x"],
       fields: { frame: "space-truckers", status: "accepted", cargo: "Ore", complications: ["SECRET-COMPLICATION"], plotTwist: "SECRET-TWIST", employerIntent: "SECRET-INTENT", posting: { title: "Ore run", pitch: "Haul ore to Hadley." } },
     });
     const contact = ctx.store.createEntity({ type: "alien.character", name: "Ken Ibana", visibility: { level: "players" }, fields: {} });
@@ -71,9 +71,10 @@ describe("preview as player on an entity page", () => {
     const page = screen.getByTestId("entity-page");
     expect(page.textContent).toContain("Ore run to Hadley");
     expect(page.textContent).toContain("Haul ore to Hadley.");
-    // enum values by their labels, machine tags left out
+    // enum values by their labels; the GM's own tags, never machine tags nor the generator's bookkeeping ones
     expect(page.textContent).toContain("Space Truckers");
-    expect(page.textContent).toContain("job-board");
+    expect(page.textContent).toContain("smuggling");
+    expect(page.textContent).not.toContain("job-board");
     expect(page.textContent).not.toContain("within:");
     for (const secret of ["SECRET-COMPLICATION", "SECRET-TWIST", "SECRET-INTENT", "SECRET-INSIDER", "Complications (GM)", "Behind the posting"]) expect(page.textContent).not.toContain(secret);
     // a link to another entity keeps the preview
@@ -128,6 +129,40 @@ describe("global search", () => {
     expect(hit.textContent).toContain("Talents");
     fireEvent.click(hit);
     expect(nav.navigate).toHaveBeenCalledWith({ to: "/c/$campaignId/reference", params: { campaignId }, search: { tab: "lists", list: "alien.talents", item: "full-throttle" } });
+  });
+
+  it("keeps the results open when the box loses focus and gets it back at once", async () => {
+    const ctx = await open();
+    render(
+      <CampaignContext.Provider value={ctx}>
+        <GlobalSearch />
+      </CampaignContext.Provider>,
+    );
+    const box = screen.getByRole("searchbox", { name: "Search campaign" });
+    box.focus();
+    fireEvent.change(box, { target: { value: "panic" } });
+    expect(screen.queryByRole("listbox", { name: "Search results" })).not.toBeNull();
+    // a blur schedules the close; focusing again before it fires cancels it
+    vi.useFakeTimers();
+    try {
+      act(() => {
+        box.blur();
+        box.focus();
+      });
+      act(() => vi.advanceTimersByTime(500));
+    } finally {
+      vi.useRealTimers();
+    }
+    expect(screen.queryByRole("listbox", { name: "Search results" })).not.toBeNull();
+    // a blur that sticks still closes it
+    vi.useFakeTimers();
+    try {
+      act(() => box.blur());
+      act(() => vi.advanceTimersByTime(500));
+    } finally {
+      vi.useRealTimers();
+    }
+    expect(screen.queryByRole("listbox", { name: "Search results" })).toBeNull();
   });
 });
 

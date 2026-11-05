@@ -9,7 +9,7 @@ import { describe, expect, it } from "vitest";
 import { adventureSourceIssues, runProcedure, templateSceneKey, type AdventureSourceInput, type ModuleManifest, type Offer, type OfferSet, type TemplateAdventure } from "@campaign-forge/module-sdk";
 import { alienModule } from "../src/index";
 import { jobBoard } from "../src/procedures/job-board";
-import { runJob, runJobPeople, runJobPrefill } from "../src/runJob";
+import { runJob, runJobPeople, runJobPrefill, runJobTrip } from "../src/runJob";
 import { jobCardTemplate } from "../src/templates/jobCard";
 import { tables } from "../src/tables/index";
 
@@ -36,7 +36,7 @@ function inputFor(offer: Offer, extra: { site?: boolean; clue?: boolean } = {}):
     entity: { id: "job", name: job!.name, type: job!.type, fields: { ...job!.fields, status: "accepted" }, visibility: "players", gmFields },
     links,
     maps: extra.site ? [{ id: "map-1", name: "Site map", location: "site-1", generated: true }] : [],
-    clues: extra.clue ? [{ thread: "t1", threadTitle: "Operation White Ledger", clue: "c1", text: "A ledger page in the cargo manifest", state: "seeded", slotLabel: "Cargo detail" }] : [],
+    clues: extra.clue ? [{ thread: "t1", threadTitle: "Operation White Ledger", clue: "c1", text: "A ledger page in the cargo manifest", playerText: "A page torn from a ledger", kind: "object", state: "seeded", slotLabel: "Cargo detail" }] : [],
   };
 }
 
@@ -134,5 +134,31 @@ describe("Run this job", () => {
       }
     }
     expect(turned).toBeGreaterThan(0);
+  });
+
+  it("lists the seeded arc clue on the arrival scene as a GM-only Clue record that stands for it", () => {
+    const fill = runJobPrefill(inputFor(postings("run-a")[0]!, { site: true, clue: true }));
+    expect(fill.scenes?.arrival?.clues).toEqual([
+      {
+        type: "alien.clue",
+        name: "A ledger page in the cargo manifest",
+        fields: { clueKind: "physical", revealed: false, text: "A page torn from a ledger", truth: "Arc clue for “Operation White Ledger”: A ledger page in the cargo manifest", foundBy: "Cargo detail", pointsTo: "Operation White Ledger" },
+        arcClue: { thread: "t1", clue: "c1" },
+      },
+    ]);
+    // a clue the crew already found is not one to find
+    const input = inputFor(postings("run-a")[0]!, { site: true, clue: true });
+    expect(runJobPrefill({ ...input, clues: input.clues.map((c) => ({ ...c, state: "found" as const })) }).scenes?.arrival?.clues).toBeUndefined();
+  });
+
+  it("says how many days the trip out and back takes at the ship's FTL rating, when it can", () => {
+    const job = (distance: number) => ({ id: "j", name: "Job", type: "alien.job", fields: { distance } });
+    const ship = { id: "s", name: "Kestrel Ward", type: "alien.spaceship", fields: { ftl: 2 } };
+    expect(runJobTrip({ entity: job(5), ship })).toEqual({ days: 20, text: "5 systems each way at Kestrel Ward's FTL rating 2: 10 days out and 10 back", page: 108 });
+    expect(runJobTrip({ entity: job(1), ship })?.days).toBe(4);
+    // in-system, no ship, or no FTL rating: no time the module can say
+    expect(runJobTrip({ entity: job(0), ship })).toBeUndefined();
+    expect(runJobTrip({ entity: job(3) })).toBeUndefined();
+    expect(runJobTrip({ entity: job(3), ship: { ...ship, fields: {} } })).toBeUndefined();
   });
 });

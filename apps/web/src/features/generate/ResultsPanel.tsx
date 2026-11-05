@@ -69,6 +69,8 @@ export function describeEffect(e: Effect, name: (id: Id) => string, presetName: 
       return `${name(e.entity)}: becomes ${presetName(e.preset)}`;
     case "ledger":
       return `Ledger ${money(e.amount)}: ${e.note}${e.account ? ` (${name(e.account)})` : ""}`;
+    case "advanceDate":
+      return `The in-world date moves forward ${e.days} day${e.days === 1 ? "" : "s"}${e.reason ? ` (${e.reason})` : ""}`;
     case "award":
       return `${name(e.entity)}: ${e.reason ?? (e.question ? "award" : `+${e.amount ?? 1} ${e.pool === "story" ? "story points" : "XP"}`)}`;
   }
