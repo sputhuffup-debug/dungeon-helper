@@ -139,8 +139,8 @@ test("build a fifth edition character in the Thornwick Crossing demo, resume it,
   // 9. the sheet: stored fields written, numbers computed
   await expect(page.getByTestId("entity-page")).toBeVisible();
   await expect(page.getByTestId("entity-title")).toHaveValue("Hilda Stonebrook");
-  await expect(page.getByTestId("computed-proficiencyBonus")).toHaveText("2");
-  await expect(page.getByTestId("computed-constitutionMod")).toHaveText("3");
+  await expect(page.getByTestId("computed-proficiencyBonus")).toHaveText("+2");
+  await expect(page.getByTestId("computed-constitutionMod")).toHaveText("+3");
   await expect(page.getByTestId("pool-strength-save")).toHaveText("1d20 + 4");
   await expect(page.getByTestId("pool-athletics")).toHaveText("1d20 + 4");
   await expect(page.getByTestId("pool-perception")).toHaveText("1d20 + 2");

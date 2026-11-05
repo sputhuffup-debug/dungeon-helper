@@ -70,7 +70,9 @@ Vampire, Bat Form: action "Children of the Night" kept as text only (no attack b
 Will-o'-Wisp: action "Invisibility" kept as text only (no attack bonus or save DC in the source)
 Wraith: action "Create Specter" kept as text only (no attack bonus or save DC in the source)
 attacks: 330 of 334 monsters have structured attacks (656 attacks, 195 with a save effect); 148 Multiattack actions and 59 other actions stay text only
+SRD 5.1 subclass Life: Guardian of Faith added to its 7th-level domain spells, missing in the source
 table dnd5e-srd.magic-item.robe-of-useful-items-patch: skipped (no row for 45)
 table dnd5e-srd.magic-item.wand-of-wonder-effect: skipped (no row for 16)
 SRD 5.2 background Sage: origin feat Magic Initiate given its spell list (Wizard), missing in the source
+SRD 5.2 subclass Oath of Devotion spells: spelling "Shielf of Faith" corrected to "Shield of Faith"
 SRD 5.2 feature Oath of Devotion Spells: spelling "Shielf of Faith" corrected to "Shield of Faith"

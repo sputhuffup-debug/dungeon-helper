@@ -27,7 +27,7 @@ export const PARTS = ["srd-basics.json", "srd-rules.json", "srd-character.json",
 
 export interface GeneratedData {
   monsters: EntityPreset[];
-  /** The basic and character-option reference lists. */
+  /** The basic, character-option and spell reference lists. */
   lists: ReferenceList[];
   /** Weapons, armor, adventuring gear, tools and mounts (not magic items). */
   equipment: ReferenceList[];

@@ -9,6 +9,8 @@ import {
   builderChoices,
   checkSupplement,
   characterBuilderIssues,
+  d20Attacks,
+  d20CombatantFor,
   describeGrant,
   emptyDraft,
   formatPackIssue,
@@ -59,6 +61,7 @@ describe("the fifth edition builder", () => {
         level: ["1"],
         "level/subclass": ["life"],
         "spells/cantrips": ["guidance", "sacred-flame", "spare-the-dying"],
+        "spells/prepared": ["command", "guiding-bolt", "healing-word", "shield-of-faith"],
         "equipment/pick-gear.0": ["amulet"],
         "equipment/class.0": ["cleric-0-a"],
         "equipment/class.1": ["cleric-1-a"],
@@ -80,11 +83,21 @@ describe("the fifth edition builder", () => {
     expect(f.saves).toEqual({ "wisdom-save": 1, "charisma-save": 1 });
     expect(f.skills).toEqual({ insight: 1, religion: 1, history: 1, medicine: 1 });
     expect(f.languages).toEqual(["Common", "Dwarvish", "Elvish", "Giant"]);
-    expect(f.spells).toEqual(["Guidance", "Sacred Flame", "Spare the Dying"]);
+    // the Life domain's level 1 spells, always prepared, then the cantrips and the spells prepared today (Wisdom 3 + level 1)
+    expect(f.spells).toEqual(["Bless", "Cure Wounds", "Guidance", "Sacred Flame", "Spare the Dying", "Command", "Guiding Bolt", "Healing Word", "Shield of Faith"]);
+    const prepared = builderChoices(r).find((x) => x.path === "spells/prepared")!;
+    expect(prepared.label).toBe("Prepare 4 Cleric spells (up to level 1)");
+    expect(prepared.options.find((o) => o.id === "bless")).toMatchObject({ available: false, reason: "Always prepared." });
     expect(String(f.proficiencies)).toBe("Battleaxe, handaxe, light hammer, warhammer; Smith's Tools; Light armor, medium armor, shields; simple weapons; Heavy armor");
+    // the weapons become attack rows that table mode can roll: Strength (or Dexterity for the crossbow) plus proficiency
+    expect(f.attacks).toEqual([
+      { name: "Mace", damage: "1d6", type: "bludgeoning", ability: "strength", kind: "melee", proficient: true, notes: "monk" },
+      { name: "Crossbow, light", damage: "1d8", type: "piercing", ability: "dexterity", kind: "ranged", proficient: true, notes: "ammunition (range 80/320), loading, two-handed" },
+    ]);
     expect(featureNames(r)).toEqual(expect.arrayContaining(["Darkvision", "Dwarven Toughness", "Spellcasting: Cleric", "Divine Domain", "Disciple of Life", "Bonus Proficiency", "Shelter of the Faithful"]));
     expect(featureNames(r)).not.toContain("Ability Score Improvement");
-    expect((f.equipment as Array<{ name: string }>).map((e) => e.name)).toEqual(["Shield", "Clothes, common", "Pouch", "Holy symbol", "Amulet", "Mace", "Scale Mail", "Crossbow, light", "Crossbow bolt", "Priest's Pack"]);
+    // the Acolyte's kit as the SRD 5.1 lists it: holy symbol, prayer book, five sticks of incense, vestments, common clothes, pouch
+    expect((f.equipment as Array<{ name: string }>).map((e) => e.name)).toEqual(["Shield", "Holy symbol", "Prayer book", "Incense (stick)", "Vestments", "Clothes, common", "Pouch", "Amulet", "Mace", "Scale Mail", "Crossbow, light", "Crossbow bolt", "Priest's Pack"]);
     expect((f.coins as { gp: number }).gp).toBe(15);
     // computed values stay computed
     const c = r.computed;
@@ -93,9 +106,17 @@ describe("the fifth edition builder", () => {
     expect(c.medicineBonus).toBe(5);
     expect(c.spellSaveDc).toBe(13);
     expect(c.slotMax1).toBe(2);
-    expect(c.suggestedHpMax).toBe(11);
+    // the sheet's fixed-value maximum counts Dwarven Toughness too, so it agrees with the builder
+    expect(c.suggestedHpMax).toBe(12);
+    expect(c.spellAbility).toBe("wisdom");
     expect(r.name).toBe("Test");
     expect(r.summary).toBe("Hill Dwarf Cleric 1");
+    expect(f.edition).toBe("2014");
+    // the review reads values as the sheet does
+    const cls = r.grants.find((x) => x.field === "class")!;
+    expect(describeGrant(module, pc(), cls)).toBe("Class Cleric");
+    const skill = r.grants.find((x) => x.field === "skills.history")!;
+    expect(describeGrant(module, pc(), skill)).toBe("History Proficient");
     // every grant names its source
     const g = (field: string) => r.grants.find((x) => x.field === field && x.op === "add")!;
     expect(`${describeGrant(module, pc(), g("abilities.constitution"))} from ${g("abilities.constitution").source}`).toBe("+2 Constitution from race Dwarf");
@@ -143,7 +164,13 @@ describe("the fifth edition builder", () => {
     expect(f.languages).toEqual(["Common", "Dwarvish", "Elvish"]);
     // the lineage's Prestidigitation (level 1) and Detect Magic (level 3), Magic Initiate's, then the class's
     expect(f.spells).toEqual(["Prestidigitation", "Detect Magic", "Fire Bolt", "Mage Hand", "Shield", "Light", "Ray of Frost", "Minor Illusion", "Magic Missile", "Sleep", "Burning Hands", "Mage Armor", "Thunderwave", "Misty Step", "Scorching Ray", "Web", "Hold Person", "Identify"]);
-    expect(featureNames(r)).toEqual(expect.arrayContaining(["Darkvision (60 ft.)", "Keen Senses", "Trance", "High Elf: Cantrip Versatility", "Detect Magic", "Magic Initiate (Wizard)", "Arcane Recovery", "Arcane Tradition", "Evocation Savant", "Potent Cantrip"]));
+    // an SRD 5.2 build gets the SRD 5.2 wizard's features, not the SRD 5.1 ones (no "Arcane Tradition"), and its subclass at level 3
+    expect(featureNames(r)).toEqual(expect.arrayContaining(["Darkvision (60 ft.)", "Keen Senses", "Trance", "High Elf: Cantrip Versatility", "Detect Magic", "Magic Initiate (Wizard)", "Spellcasting", "Ritual Adept", "Arcane Recovery", "Scholar", "Evocation Savant", "Potent Cantrip"]));
+    expect(featureNames(r)).not.toContain("Arcane Tradition");
+    expect(featureNames(r)).not.toContain("Wizard Subclass");
+    expect((r.fields.features as Array<{ name: string; desc: string }>).find((x) => x.name === "Arcane Recovery")!.desc).toMatch(/Short Rest/);
+    // the species without its edition mark ("Elf", not "Elf (2024)")
+    expect(r.summary).toBe("Elf Wizard 3");
     expect(featureNames(r)).not.toContain("Misty Step");
     expect((f.coins as { gp: number }).gp).toBe(8);
     const c = r.computed;
@@ -225,6 +252,57 @@ describe("the fifth edition builder", () => {
     // Int 13 is the wizard's prerequisite; with Int 12 the option is closed
     const low = resolveCharacterBuilder(module, builder, { ...emptyDraft(builder, "levelUp"), picks: {} }, { base: { ...fields, abilities: { ...(fields.abilities as object), intelligence: 12 }, classLevels: [], class: "fighter", level: 2 } });
     expect(low.steps[0]!.choice!.options.find((o) => o.id === "wizard")).toMatchObject({ available: false, reason: "Needs Intelligence 13." });
+  });
+
+  it("levels a Fighter 1 into a Life Cleric: Wisdom casting, prepared and domain spells; the fighter's weapons attack in table mode", () => {
+    const r = build(
+      {
+        edition: ["2014"],
+        species: ["human"],
+        "species/languages": ["elvish"],
+        class: ["fighter"],
+        "class/skills": ["athletics", "perception"],
+        background: ["acolyte"],
+        "background/languages": ["dwarvish", "giant"],
+        level: ["1"],
+        "level/options.0": ["fighter-fighting-style-defense"],
+        "equipment/class.0": ["fighter-0-a"],
+        "equipment/class.1": ["fighter-1-a"],
+        "equipment/class.1/pick-weapons.0": ["longsword"],
+        "equipment/class.2": ["fighter-2-b"],
+        "equipment/class.3": ["fighter-3-b"],
+      },
+      scores({ strength: 15, dexterity: 13, constitution: 14, intelligence: 10, wisdom: 12, charisma: 8 }),
+    );
+    expect(problems(r)).toEqual([]);
+    // Str 16 (+3), proficient: +5 to hit, 1d8+3; the handaxes too
+    expect(r.fields.attacks).toEqual([
+      { name: "Longsword", damage: "1d8", type: "slashing", ability: "strength", kind: "melee", proficient: true, notes: "versatile (1d10)" },
+      { name: "Handaxe", damage: "1d6", type: "slashing", ability: "strength", kind: "melee", proficient: true, notes: "light, thrown (range 20/60), monk" },
+    ]);
+    const combat = module.d20Combat!;
+    const pcCombatant = d20CombatantFor(combat, "dnd5e-srd.character")!;
+    const attacks = d20Attacks(combat, pcCombatant, { fields: r.fields, computed: r.computed });
+    expect(attacks.map((a) => [a.name, a.bonus, a.damage.map((d) => `${d.dice} ${d.type}`).join(" ")])).toEqual([
+      ["Longsword", 5, "1d8+3 slashing"],
+      ["Handaxe", 5, "1d6+3 slashing"],
+    ]);
+
+    const up = resolveCharacterBuilder(module, builder, { ...emptyDraft(builder, "levelUp"), picks: { class: ["cleric"], hp: ["average"], "features/subclass": ["life"], "spells/cantrips": ["guidance", "light", "sacred-flame"], "spells/prepared": ["command", "healing-word"] } }, { base: r.fields });
+    expect(problems(up)).toEqual([]);
+    const f = up.fields;
+    expect(f.classLevels).toEqual([
+      { class: "fighter", level: 1, subclass: "" },
+      { class: "cleric", level: 1, subclass: "Life" },
+    ]);
+    // the Life domain's level 1 spells come with the subclass; Wisdom 13 (+1) + level 1 = 2 prepared
+    expect(f.spells).toEqual(["Bless", "Cure Wounds", "Guidance", "Light", "Sacred Flame", "Command", "Healing Word"]);
+    expect(builderChoices(up).find((c) => c.path === "spells/prepared")!.label).toBe("Prepare 2 more Cleric spells (up to level 1)");
+    // a multiclass character casts with its spellcasting class's ability: DC 8 + 2 + 1, attack +3
+    expect(up.computed.spellAbility).toBe("wisdom");
+    expect(up.computed.spellSaveDc).toBe(11);
+    expect(up.computed.spellAttack).toBe("+3");
+    expect(up.computed.spellSlots).toBe("1st: 2  ");
   });
 
   it("offers a supplement's options with their badge, and uses their builder data", () => {

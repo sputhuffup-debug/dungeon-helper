@@ -138,8 +138,8 @@ test("Thornwick Crossing: the fifth edition demo loads with derived sheets, SRD 
   await page.getByRole("tab", { name: /^PCs/ }).click();
   await expect(page.getByRole("tabpanel").getByRole("link")).toHaveCount(4);
   await page.getByRole("tabpanel").getByRole("link", { name: "Wren Talliver", exact: true }).click();
-  await expect(page.getByTestId("computed-proficiencyBonus")).toHaveText("2");
-  await expect(page.getByTestId("computed-dexterityMod")).toHaveText("3");
+  await expect(page.getByTestId("computed-proficiencyBonus")).toHaveText("+2");
+  await expect(page.getByTestId("computed-dexterityMod")).toHaveText("+3");
   await expect(page.getByTestId("pool-stealth")).toHaveText("1d20 + 7");
   await expect(page.getByRole("spinbutton", { name: "Initiative bonus", exact: true })).toHaveValue("0");
   await shot(page, "dnd5e-pc");

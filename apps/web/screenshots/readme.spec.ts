@@ -1364,9 +1364,9 @@ test("dnd5e-sheet", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1720 });
   await openPc(page, "Isolde Fairweather");
   // scores and proficiencies are stored; every number marked "computed" is derived at render time
-  await expect(page.getByTestId("computed-proficiencyBonus")).toHaveText("2");
-  await expect(page.getByTestId("computed-intelligenceMod")).toHaveText("3");
-  await expect(page.getByTestId("computed-initiative")).toHaveText("2");
+  await expect(page.getByTestId("computed-proficiencyBonus")).toHaveText("+2");
+  await expect(page.getByTestId("computed-intelligenceMod")).toHaveText("+3");
+  await expect(page.getByTestId("computed-initiative")).toHaveText("+2");
   await page.evaluate(() => window.scrollTo(0, 0));
   await shot(page, "dnd5e-sheet");
 });
@@ -2161,7 +2161,7 @@ test("guide-dnd5e-srd", async ({ page }) => {
   // the finished sheet: its numbers computed
   await expect(page.getByTestId("entity-page")).toBeVisible();
   await expect(page.getByTestId("entity-title")).toHaveValue("Doran Kettleby");
-  await expect(page.getByTestId("computed-proficiencyBonus")).toHaveText("2");
+  await expect(page.getByTestId("computed-proficiencyBonus")).toHaveText("+2");
   await g("pc-sheet", [page.locator('[data-section="abilities"]'), page.locator('[data-section="combat"]')], { maxHeight: 760 });
 
   // a PC by hand
@@ -2321,7 +2321,7 @@ test("guide-dnd5e-srd", async ({ page }) => {
   await nav(page, "Generate").click();
   await main.getByText("Random encounter", { exact: true }).click();
   await page.getByRole("spinbutton", { name: "Party level" }).fill("1");
-  await page.getByRole("combobox", { name: "Terrain" }).selectOption({ label: "Grassland" });
+  await page.getByRole("combobox", { name: "Terrain" }).selectOption({ label: "Grassland and hills" });
   await page.getByTestId("seed").fill("wilby-road-6");
   await expect(page.getByTestId("preview")).toContainText("3 × Bandit");
   await g("encounter", [main.locator(".app-page__header").first(), page.getByTestId("preview")], { maxHeight: 760 });
@@ -2405,7 +2405,9 @@ test("guide-dnd5e-srd", async ({ page }) => {
   await planned.getByText("Add scenes", { exact: true }).click();
   await page.getByRole("textbox", { name: "New plan item" }).fill("Tobin lies about the crypt key");
   await page.getByRole("textbox", { name: "New plan item" }).press("Enter");
-  await g("session-plan", planned);
+  await expect.poll(() => page.locator('[aria-label^="Plan item "]').evaluateAll((els) => els.map((e) => (e as HTMLTextAreaElement).value))).toContain("Tobin lies about the crypt key");
+  // the scenes and the plan item the step asks for
+  await g("session-plan", [planned, main.locator(".cf-card").filter({ has: page.getByRole("textbox", { name: "New plan item" }) })]);
 
   // start it: table mode
   await nav(page, "Home").click();

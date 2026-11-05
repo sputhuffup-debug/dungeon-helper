@@ -54,7 +54,7 @@ test("SRD 5.1 & 5.2 pack: a campaign, a PC and a Goblin, a skill roll at the tab
   await page.getByRole("spinbutton", { name: "Intelligence", exact: true }).fill("16");
   await page.getByRole("spinbutton", { name: "Dexterity", exact: true }).fill("14");
   await page.locator('tr[data-skill="stealth"]').getByRole("combobox", { name: "Stealth" }).selectOption("2");
-  await expect(page.getByTestId("computed-proficiencyBonus")).toHaveText("3");
+  await expect(page.getByTestId("computed-proficiencyBonus")).toHaveText("+3");
   await expect(page.getByTestId("computed-spellSaveDc")).toHaveText("14");
   await expect(page.getByTestId("computed-spellAttack")).toHaveText("+6");
   await expect(page.getByTestId("computed-spellSlots")).toContainText("3rd: 2");
@@ -187,7 +187,7 @@ test("SRD 5.1 & 5.2 pack: a campaign, a PC and a Goblin, a skill roll at the tab
   await page.getByRole("tab", { name: "Relationships" }).click();
   const creature = page.getByTestId("entity-page").getByRole("link", { name: / 1$/ }).first();
   await creature.click();
-  await expect(page.getByTestId("computed-proficiencyBonus")).toHaveText("2");
+  await expect(page.getByTestId("computed-proficiencyBonus")).toHaveText("+2");
   await expect(page.getByTestId("computed-crLabel")).toHaveText(/^(1\/8|1\/4|1\/2|1|2|3)$/);
   await shot(page, "generated-creature");
 

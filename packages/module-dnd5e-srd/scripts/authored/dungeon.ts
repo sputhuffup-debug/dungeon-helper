@@ -5,7 +5,9 @@
  * - room purposes, read-aloud lines and dressing: original (dungeonText.ts);
  * - encounters: the pack's own original encounter tables by terrain and
  *   level band (tables.ts), the count scaled by the threat dial and the
- *   party's size (original; the SRD 5.1 has no encounter-building rules);
+ *   party's size, and an XP budget per encounter so a small low-level party
+ *   is not handed a lone CR 2 brute (original; the SRD 5.1 has no
+ *   encounter-building rules);
  * - traps: the SRD 5.1 sample traps with their DCs and damage, and the SRD's
  *   Trap Save DCs and Attack Bonuses and Damage Severity by Level tables for
  *   scaling them (cited);
@@ -210,6 +212,9 @@ export function dungeonGenerator(): PackMapGenerator {
         ],
         creatureType: MONSTER,
         xp: v("preset.fields.xp", 0),
+        // what one encounter may cost the party (original rule of thumb; the SRD 5.1 has no encounter budget):
+        // level × (50 + 15 × level) XP per character, by the threat dial, half again in the lair. Dearer rolls are re-rolled.
+        budget: mul(mul(v("inputs.partySize", 4), mul(v("inputs.partyLevel", 1), { "+": [50, mul(15, v("inputs.partyLevel", 1))] })), mul(v("threat.scale", 1), ifs(v("room.lair"), 1.5, 1))),
         activity: id("encounter.activity"),
         detail: cat("CR ", v("result.cr", "?"), " each; ", v("encounter.xp", 0), " XP in all"),
         passages: 0.08,
