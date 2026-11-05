@@ -13,6 +13,7 @@ import {
   CHECKLIST_PHASE_TITLES,
   adventureActs,
   castMembers,
+  exportLicences,
   generatorFor,
   getPath,
   handoutsOfAct,
@@ -27,7 +28,7 @@ import {
   type Scene,
   type SiteMap,
 } from "@campaign-forge/core";
-import { computeFields, type AdventureBuilderDef, type CastRoleDef, type EntityTypeDef, type LoadedModule, type NarrativeFieldsDef, type SheetField, type SheetLayout, type SheetSection } from "@campaign-forge/module-sdk";
+import { computeFields, entitySheet, type AdventureBuilderDef, type CastRoleDef, type EntityTypeDef, type LoadedModule, type NarrativeFieldsDef, type SheetField, type SheetLayout, type SheetSection } from "@campaign-forge/module-sdk";
 import { LIGHT_PALETTE, drawSiteMap, labelFromPath, nodeToString, zoneKeyEntries, type SiteMapPalette } from "@campaign-forge/ui";
 import { adventureDocIds, plainRefs, syncDocs, type BookletCtx } from "./booklet";
 
@@ -175,6 +176,8 @@ export interface BookletDocument {
   adventureId: Id;
   title: BookletTitlePage;
   sections: BookletSection[];
+  /** The attribution the module's licence requires in every copy (`ModuleLicense.inExports`), paragraph by paragraph: the booklet's last page. */
+  licence?: string[];
 }
 
 export type BookletDocCtx = BookletCtx & { module: Pick<LoadedModule, "module" | "referenceItem" | "builder"> };
@@ -239,10 +242,9 @@ function sheetFields(sheet: SheetLayout | undefined): Map<string, SheetField> {
   return out;
 }
 
+/** The entity's sheet: the type's sections and its subtype's. */
 function sheetOf(def: EntityTypeDef | undefined, entity: Entity): SheetLayout | undefined {
-  if (!def) return undefined;
-  const sub = entity.subtype ? def.subtypes?.find((s) => s.id === entity.subtype) : undefined;
-  return sub?.sheet ?? def.sheet;
+  return def ? entitySheet(def, entity.subtype) : undefined;
 }
 
 class Formatter {
@@ -780,7 +782,8 @@ export function buildBookletDocument(ctx: BookletDocCtx, adventureId: Id): Bookl
   if (allHandouts.length) appendix.push({ kind: "handouts", title: "Handouts", items: allHandouts });
   if (appendix.length) sections.push({ id: "appendix", kind: "appendix", title: "Appendix", blocks: appendix });
 
-  return { adventureId, title, sections };
+  const licence = exportLicences(gm).flatMap((l) => l.text.split(/\n\s*\n/).map((x) => x.trim()).filter(Boolean));
+  return { adventureId, title, sections, ...(licence.length ? { licence } : {}) };
 }
 
 function sceneEntry(

@@ -1,6 +1,6 @@
 import "fake-indexeddb/auto";
 import { LONG_AGENDA_PURPOSE, memberViewer, playerMembers, projectCampaignForViewer, type Id, type PlayerPacket } from "@campaign-forge/core";
-import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { strFromU8, unzipSync } from "fflate";
 import { afterEach, describe, expect, it } from "vitest";
 import { GiveToPlayer } from "../../components/GiveToPlayer";
@@ -143,6 +143,46 @@ describe("Give to <player>", () => {
     const toggles = view.getAllByTestId("give-to-player");
     expect(toggles).toHaveLength(1);
     expect(toggles[0]!.getAttribute("aria-label")).toBe(`Give ${jobCard.title} to ${playerMembers(ctx.store.meta()).find((m) => m.id === ctx.store.get("entities", jobCard.character!)!.ownerMemberId)!.name}`);
+  });
+
+  it("is the handout's visibility: giving names the player in Some players, taking it back leaves the others", async () => {
+    const { ctx } = await skyfire();
+    const jobCard = ctx.store.list("handouts").find((h) => h.kind === "agenda" && h.title.startsWith("Agenda: "))!;
+    const owner = playerMembers(ctx.store.meta()).find((m) => m.id === ctx.store.get("entities", jobCard.character!)!.ownerMemberId)!;
+    const other = playerMembers(ctx.store.meta()).find((m) => m.id !== owner.id)!;
+    // the demo gives each agenda card to its player through its visibility, never a separate mark
+    expect(jobCard.toOwner).toBeUndefined();
+    expect(jobCard.visibility).toEqual({ level: "some_players", players: [owner.id] });
+    const view = render(
+      <CampaignContext.Provider value={ctx}>
+        <GiveToPlayer handout={ctx.store.get("handouts", jobCard.id)!} />
+      </CampaignContext.Provider>,
+    );
+    const box = () => view.getByTestId("give-to-player") as HTMLInputElement;
+    expect(box().checked).toBe(true);
+    fireEvent.click(box());
+    expect(ctx.store.get("handouts", jobCard.id)!.visibility).toEqual({ level: "gm" });
+    // the visibility row and the toggle agree: naming the player there reads as given
+    ctx.store.update("handouts", jobCard.id, { visibility: { level: "some_players", players: [other.id] } });
+    view.rerender(
+      <CampaignContext.Provider value={ctx}>
+        <GiveToPlayer handout={ctx.store.get("handouts", jobCard.id)!} />
+      </CampaignContext.Provider>,
+    );
+    expect(box().checked).toBe(false);
+    fireEvent.click(box());
+    expect(ctx.store.get("handouts", jobCard.id)!.visibility).toEqual({ level: "some_players", players: [other.id, owner.id] });
+    // an older handout given the separate way reads as given, and the change moves it onto the visibility
+    ctx.store.update("handouts", jobCard.id, { visibility: { level: "gm" }, toOwner: true });
+    view.rerender(
+      <CampaignContext.Provider value={ctx}>
+        <GiveToPlayer handout={ctx.store.get("handouts", jobCard.id)!} />
+      </CampaignContext.Provider>,
+    );
+    expect(box().checked).toBe(true);
+    fireEvent.click(box());
+    expect(ctx.store.get("handouts", jobCard.id)).toMatchObject({ visibility: { level: "gm" } });
+    expect(ctx.store.get("handouts", jobCard.id)!.toOwner).toBeUndefined();
   });
 });
 

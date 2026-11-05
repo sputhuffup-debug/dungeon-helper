@@ -761,6 +761,16 @@ export function BookletPages({ doc }: { doc: BookletDocument }) {
           <SectionBody section={s} />
         </section>
       ))}
+      {doc.licence && (
+        <section className="bk-sheet bk-section bk-licence" aria-label="Licence" data-testid="booklet-licence">
+          <h2 className="bk-label-head">Licence</h2>
+          {doc.licence.map((p, i) => (
+            <p key={i} className="bk-licence__text">
+              {p}
+            </p>
+          ))}
+        </section>
+      )}
     </article>
   );
 }

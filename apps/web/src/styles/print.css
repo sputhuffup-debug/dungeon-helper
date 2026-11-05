@@ -541,6 +541,12 @@
 .bk-contents__title {
   font: 500 11.5pt var(--bk-display);
 }
+/* the attribution a licence requires in every copy, on the booklet's last page */
+.bk-licence__text {
+  margin: 0 0 6pt;
+  font: 400 8pt/1.4 var(--bk-sans);
+  color: var(--bk-text-2);
+}
 .bk-titlepage__foot {
   margin: auto 0 0 !important;
   padding-top: 6pt;

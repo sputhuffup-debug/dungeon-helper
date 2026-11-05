@@ -43,7 +43,7 @@ export type ShareFormat = "images" | "pdf" | "page";
 /** One item of the share: a title and blocks. */
 export interface ShareSection {
   id: string;
-  kind: "briefing" | "map" | "handout" | "party" | "primer" | "character" | "agenda" | "notes" | "recap";
+  kind: "briefing" | "map" | "handout" | "party" | "primer" | "character" | "agenda" | "notes" | "recap" | "licence";
   eyebrow: string;
   title: string;
   blocks: Block[];
@@ -186,6 +186,32 @@ export function shareSections(input: ShareLayoutInput): ShareSection[] {
     out.push({ id: "party", kind: "party", eyebrow: "The party", title: "Who's who", blocks, file: "party" });
   }
   return out;
+}
+
+/**
+ * The attribution the module's licence requires in every copy
+ * (`PlayerShare.licence`) as the share's last section, or undefined when it
+ * requires none. Every format ends with it: the last card, the last page,
+ * the end of the web page.
+ */
+export function licenceSection(share: Pick<PlayerShare, "licence">): ShareSection | undefined {
+  const licences = share.licence ?? [];
+  if (licences.length === 0) return undefined;
+  const blocks: Block[] = [];
+  for (const l of licences) {
+    for (const para of l.text.split(/\n\s*\n/)) {
+      const text = para.replace(/\s*\n\s*/g, " ").trim();
+      if (text) blocks.push({ kind: "note", text });
+    }
+  }
+  return { id: "licence", kind: "licence", eyebrow: "Licence", title: licences.map((l) => l.name).join(" · "), blocks, file: "licence" };
+}
+
+/** The sections with the licence section last (once), when the share has anything else and its module's licence asks for it. */
+export function withLicence(sections: ShareSection[], share: Pick<PlayerShare, "licence">): ShareSection[] {
+  if (sections.length === 0 || sections.some((s) => s.kind === "licence")) return sections;
+  const l = licenceSection(share);
+  return l ? [...sections, l] : sections;
 }
 
 /**
@@ -505,7 +531,7 @@ export function shareTime(at: string): string {
 }
 
 /** The share's header fields; `for` names the one player of a packet. */
-export type ShareHeader = Pick<PlayerShare, "campaign" | "session" | "at" | "for">;
+export type ShareHeader = Pick<PlayerShare, "campaign" | "session" | "at" | "for" | "licence">;
 
 export function footerLine(share: ShareHeader): string {
   return `${share.campaign}${share.for ? ` · for ${share.for}` : ""} · ${share.session.label} · shared ${shareTime(share.at)}`;
@@ -537,7 +563,8 @@ export interface PhoneCard {
 export const PHONE_MAX_HEIGHT = 2340;
 
 /** One or more 1080 px cards per section, each with the campaign, session and share time in its footer. */
-export function phoneCards(sections: ShareSection[], share: ShareHeader, opts: Pick<ShareLayoutInput, "passable"> = {}): PhoneCard[] {
+export function phoneCards(given: ShareSection[], share: ShareHeader, opts: Pick<ShareLayoutInput, "passable"> = {}): PhoneCard[] {
+  const sections = withLicence(given, share);
   const th = PHONE;
   const inner = th.width - 2 * th.margin;
   const footer = footerLine(share);
@@ -616,7 +643,8 @@ export interface PacketPages {
  * a map that does not fit starts a new page), body text in 11 pt, greyscale
  * maps with solid fog, and a footer with the share time and page number.
  */
-export function packetPages(sections: ShareSection[], share: ShareHeader, paper: Paper, opts: Pick<ShareLayoutInput, "passable"> = {}): PacketPages {
+export function packetPages(given: ShareSection[], share: ShareHeader, paper: Paper, opts: Pick<ShareLayoutInput, "passable"> = {}): PacketPages {
+  const sections = withLicence(given, share);
   const { width, height } = PAPER_POINTS[paper];
   const th: Theme = { ...PAGE, width };
   const inner = width - 2 * th.margin;
@@ -758,7 +786,8 @@ footer{font-size:13px;color:#555;text-align:center;padding:8px 16px 24px}
  * app needed): the same sections and blocks as the cards and the PDF, with
  * images inline as data URLs and maps as inline SVG. Pure.
  */
-export function sharePageHtml(sections: ShareSection[], share: ShareHeader, opts: Pick<ShareLayoutInput, "passable"> = {}): string {
+export function sharePageHtml(given: ShareSection[], share: ShareHeader, opts: Pick<ShareLayoutInput, "passable"> = {}): string {
+  const sections = withLicence(given, share);
   const title = shareTitle(share);
   const lead = share.for ? `For ${share.for} only, from ${share.campaign}: ${share.session.label}.` : `For the players of ${share.campaign}: ${share.session.label}.`;
   const toc = sections.length > 1 ? `<nav aria-label="Contents"><ul>${sections.map((s, i) => `<li><a href="#s${i + 1}">${escHtml(s.eyebrow)}: ${escHtml(s.title)}</a></li>`).join("")}</ul></nav>` : "";

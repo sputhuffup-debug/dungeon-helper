@@ -5,7 +5,7 @@
  * the generator's checks, the zone key and the distance table.
  * Image maps keep the rectangle editor (MapPage).
  */
-import { distanceTable, playerMembers, exitText, isDuctSheet, markGroup, zoneKeyRows, zoneNumbers, type SiteMap, type ZoneKeyMark, type ZoneKeyRow } from "@campaign-forge/core";
+import { distanceTable, exportLicences, exportLicenceText, playerMembers, exitText, isDuctSheet, markGroup, zoneKeyRows, zoneNumbers, type SiteMap, type ZoneKeyMark, type ZoneKeyRow } from "@campaign-forge/core";
 import type { MapCheck } from "@campaign-forge/module-sdk";
 import { Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
@@ -87,9 +87,11 @@ export function SiteMapPage({ record, onDelete, scenesCard }: { record: SiteMap;
   const numbers = useMemo(() => zoneNumbers(layout), [layout]);
   const playable = numbers.size;
   const failing = layout.checks.filter((c) => !c.ok);
-  const fileOpts = { view, deck, def, titleBlock: exportTitle };
+  // every file of the map carries the attribution the module's licence requires in every copy
+  const notice = useMemo(() => exportLicenceText(exportLicences(ctx.module.module)) || undefined, [ctx.module]);
+  const fileOpts = { view, deck, def, titleBlock: exportTitle, notice };
   const gridSquares = gridChoice ?? defaultGridSquares(view, mmPerMetre);
-  const rollOpts = useMemo(() => ({ view, deck, def, rollWidthIn: roll, mmPerMetre, gridSquares, titleBlock: rollTitle }), [view, deck, def, roll, mmPerMetre, gridSquares, rollTitle]);
+  const rollOpts = useMemo(() => ({ view, deck, def, rollWidthIn: roll, mmPerMetre, gridSquares, titleBlock: rollTitle, notice }), [view, deck, def, roll, mmPerMetre, gridSquares, rollTitle, notice]);
   const plan = useMemo(() => rollPlan(record, rollOpts), [record, rollOpts]);
   // marker texts that did not fit in their zones: the map shows a letter, this line the text
   const callouts = useMemo(() => drawSiteMap(shown, { view, deck, legend, passable: def?.passable }).callouts, [shown, view, deck, legend, def]);

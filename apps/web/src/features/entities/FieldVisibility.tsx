@@ -5,7 +5,7 @@
  * own player are marked.
  */
 import { fieldVisibilityOf, ownerMemberOf, playerMembers, visibilityRuleFor, type Entity, type Visibility } from "@campaign-forge/core";
-import { ownerVisiblePaths, sheetFieldsForMode, type EntityTypeDef } from "@campaign-forge/module-sdk";
+import { entitySheet, ownerVisiblePaths, type EntityTypeDef } from "@campaign-forge/module-sdk";
 import { useMemo, useState } from "react";
 import { VisibilitySelect } from "../../components/VisibilitySelect";
 import { Badge, Button, Drawer } from "../../components/ui";
@@ -19,8 +19,8 @@ interface FieldRow {
 
 /** The sheet's fields for the play mode, one row per top-level field (a group such as attributes is one row). */
 function fieldRows(def: EntityTypeDef, entity: Entity, mode: string): FieldRow[] {
-  const sub = entity.subtype ? def.subtypes?.find((s) => s.id === entity.subtype) : undefined;
-  const sections = sub?.sheet ? sub.sheet.sections : sheetFieldsForMode(def, mode);
+  // the type's fields and the subtype's, as the sheet shows them
+  const sections = entitySheet(def, entity.subtype, mode).sections;
   const out: FieldRow[] = [];
   const seen = new Set<string>();
   for (const s of sections) {

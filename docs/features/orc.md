@@ -58,7 +58,7 @@ Demo: *Hollowmere*, a one-shot with four level 1 characters, kobold oil thieves 
 
 ## Licence
 
-The Fantasy d20 Remaster (ORC) module (`packages/module-pf2e-orc`) includes material from Player Core, Player Core 2, GM Core and Monster Core under the ORC License, and only entries the source marks as ORC-licensed and remastered. Its notices, shown in the app wherever the module's licence appears and in full in its [NOTICE](../../packages/module-pf2e-orc/NOTICE):
+The Fantasy d20 Remaster (ORC) module (`packages/module-pf2e-orc`) includes material from Player Core, Player Core 2, GM Core and Monster Core under the ORC License, and only entries the source marks as ORC-licensed and remastered. Its notices, shown in the app wherever the module's licence appears, at the end of every share, player packet, adventure booklet and map export, and in full in its [NOTICE](../../packages/module-pf2e-orc/NOTICE):
 
 > **ORC Notice.** This product is licensed under the ORC License located at the Library of Congress at TX 9-307-067 and available online at various locations. All warranties are disclaimed as set forth therein.
 >

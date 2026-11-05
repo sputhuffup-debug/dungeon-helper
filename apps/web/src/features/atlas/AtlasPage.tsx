@@ -1,6 +1,8 @@
 /**
  * Atlas: location tree, rosters per entity kind, and a relationship graph.
- * "Preview as player" runs every entity through `projectEntityForViewer`.
+ * "Preview as player" runs every entity through `projectEntityForViewer`:
+ * the tag filter offers only the tags of what players see, and the GM's
+ * creation buttons and drafts are left out of the preview.
  */
 import { locationTree, projectEntityForViewer, readableTags, relationshipLabel, type Entity, type TreeNode, type Viewer } from "@campaign-forge/core";
 import type { CoreEntityKind, EntityTypeDef } from "@campaign-forge/module-sdk";
@@ -43,6 +45,24 @@ export function isPlayerCharacter(e: Entity): boolean {
   return e.fields.isPC === true || !!e.ownerMemberId;
 }
 
+/** A character type made for player characters: its schema starts new ones as PCs (`isPC` defaults to true). */
+function isPcType(t: EntityTypeDef): boolean {
+  const props = t.schema.properties as Record<string, { default?: unknown } | undefined> | undefined;
+  return props?.isPC?.default === true;
+}
+
+/**
+ * The types a roster's "+ New" makes: those of its kind and, for the PCs and
+ * NPCs tabs of a module with a type for each, the PC type or the others
+ * (a module with one character type for both keeps it on either tab).
+ */
+export function typesForGroup(types: EntityTypeDef[], kind: CoreEntityKind | undefined, pc: boolean | undefined): EntityTypeDef[] {
+  const of = types.filter((t) => t.kind === kind);
+  if (pc === undefined) return of;
+  const fit = of.filter((t) => isPcType(t) === pc);
+  return fit.length ? fit : of;
+}
+
 export function AtlasPage() {
   const ctx = useCampaign();
   const search = useSearch({ from: "/c/$campaignId/atlas" });
@@ -75,8 +95,8 @@ export function AtlasPage() {
   }, [all, asPlayer, typeById]);
   const visibleIds = useMemo(() => new Set(visible.map((e) => e.id)), [visible]);
 
-  // the GM's own tags; machine tags ("within:...", "subtype:...") are data, not filters
-  const allTags = useMemo(() => [...new Set(all.flatMap((e) => readableTags(e.tags, machineTags)))].sort(), [all, machineTags]);
+  // the GM's own tags of what is shown (in the preview, only what players see); machine tags ("within:...", "subtype:...") are data, not filters
+  const allTags = useMemo(() => [...new Set(visible.flatMap((e) => readableTags(e.tags, machineTags)))].sort(), [visible, machineTags]);
   const matches = (e: Entity) =>
     (!tag || e.tags.includes(tag)) && (!typeFilter || e.type === typeFilter) && (!text.trim() || e.name.toLowerCase().includes(text.trim().toLowerCase()));
 
@@ -110,7 +130,7 @@ export function AtlasPage() {
       content:
         g.id === "pcs" ? (
           <>
-            <DraftList />
+            {!asPlayer && <DraftList />}
             <EntityTable entities={groupEntities(g)} typeById={typeById} kind={g.kind} pc={g.pc} />
           </>
         ) : (
@@ -128,7 +148,7 @@ export function AtlasPage() {
   const pcProcedures = useCharacterProcedures({ pc: true });
   const typesForTab = (() => {
     const g = groups.find((x) => x.id === tab);
-    if (g) return types.filter((t) => t.kind === g.kind);
+    if (g) return typesForGroup(types, g.kind, g.pc);
     if (tab === "locations") return types.filter((t) => t.kind === "location");
     return types;
   })();
@@ -142,11 +162,14 @@ export function AtlasPage() {
             <input type="checkbox" checked={asPlayer} onChange={(e) => setAsPlayer(e.target.checked)} data-testid="preview-as-player" />
             Preview as player
           </label>
-          {tab === "pcs" && pcBuilder && <BuildCharacterButton entityType={pcBuilder.entityType} />}
-          {tab === "pcs" && <CharacterProcedureLinks pc primary={!pcBuilder} />}
-          <Link to="/c/$campaignId/entities/new" params={{ campaignId: ctx.campaignId }} search={typesForTab.length === 1 && typesForTab[0] ? { type: typesForTab[0].id, ...(tab === "pcs" ? { pc: 1 as const } : {}) } : {}} className={`cf-btn${tab === "pcs" && (pcBuilder || pcProcedures.length > 0) ? "" : " cf-btn--primary"}`}>
-            + New
-          </Link>
+          {/* making things is the GM's: the player preview shows none of it */}
+          {!asPlayer && tab === "pcs" && pcBuilder && <BuildCharacterButton entityType={pcBuilder.entityType} />}
+          {!asPlayer && tab === "pcs" && <CharacterProcedureLinks pc primary={!pcBuilder} />}
+          {!asPlayer && (
+            <Link to="/c/$campaignId/entities/new" params={{ campaignId: ctx.campaignId }} search={typesForTab.length === 1 && typesForTab[0] ? { type: typesForTab[0].id, ...(tab === "pcs" ? { pc: 1 as const } : {}) } : {}} className={`cf-btn${tab === "pcs" && (pcBuilder || pcProcedures.length > 0) ? "" : " cf-btn--primary"}`}>
+              + New
+            </Link>
+          )}
         </div>
       </header>
       {asPlayer && <p className="app-note">Showing only what a player could see: GM-only entities and fields are hidden. Open an entity to see its page as players do.</p>}
@@ -252,7 +275,9 @@ function EntityTable({ entities, typeById, kind, pc }: { entities: Entity[]; typ
   const refName = (list: string, id: string) => module.referenceItem(list, id)?.name;
   const sorted = [...entities].sort((a, b) => a.name.localeCompare(b.name));
   if (sorted.length === 0) {
-    const def = module.module.entityTypes.find((t) => t.kind === kind);
+    // the NPCs tab makes an NPC, the PCs tab a player character, when the module has a type for each
+    const def = typesForGroup(module.module.entityTypes, kind, pc)[0];
+    if (asPlayer) return <EmptyState title="Nothing here players can see" />;
     return (
       <EmptyState
         title="Nothing here yet"

@@ -623,8 +623,11 @@ function setupPlayers(store: CampaignStore, registry: RichTextRegistry, pcs: Ent
     const member = addPlayer(store, { name: p.name, contact: p.contact, characters: [pc.id] });
     return member;
   });
+  // given to its player as the app gives it: the handout's visibility names them
   for (const h of store.list("handouts")) {
-    if (h.kind === "agenda" && h.attachedTo?.kind === "adventure" && h.character) store.update("handouts", h.id, { toOwner: true });
+    if (h.kind !== "agenda" || h.attachedTo?.kind !== "adventure" || !h.character) continue;
+    const owner = members[pcs.findIndex((pc) => pc.id === h.character)];
+    if (owner) store.update("handouts", h.id, { visibility: { level: "some_players", players: [owner.id] } });
   }
   const second = pcs[1];
   const priya = members[1];
@@ -994,6 +997,8 @@ function setupLiveHunt(store: CampaignStore, registry: RichTextRegistry, s: { ma
   const location = store.get("entities", s.location)!;
   const scene = store.createScene(undefined, {
     title: DEMO_HUNT.scene,
+    // the heading on the player screen: the players know the run, not what moves in the ducts
+    playerTitle: DEMO_HUNT.scene,
     purpose: "The crew crosses the site with the ore; something moves in the ducts.",
     location: s.location,
     map: s.mapId,
