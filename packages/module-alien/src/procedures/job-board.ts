@@ -530,6 +530,9 @@ function hasArc(a: PostingArc): boolean {
 }
 const lowerFirst = (s: string) => (s ? s.charAt(0).toLowerCase() + s.slice(1) : s);
 
+/** A job contact's stat block (alien.character fields): GM-only on the contact the crew meets. */
+const CONTACT_STATS = ["android", "attributes", "skills", "talents", "stress", "damage", "gear", "weapons", "cash", "signatureItem", "xp", "storyPoints", "fatigued", "rads", "criticalInjuries", "mentalTraumas"] as const;
+
 function npcEntity(p: PostingData, n: PostingData["npcs"][number], k: number): ProducedEntity {
   const human = npcPresets.find((x) => x.id === n.preset) ?? npcPresets[0]!;
   const row = roleRow(n.role);
@@ -565,8 +568,9 @@ function npcEntity(p: PostingData, n: PostingData["npcs"][number], k: number): P
     fields,
     preset: preset.id,
     visibility: visible ? "players" : "gm",
-    // the tie, the agenda and a secret synthetic's true make stay GM-only even on the contact
-    fieldVisibility: { background: "gm", personalAgenda: "gm", ...(synthetic ? { android: "gm", attributes: "gm", talents: "gm", skills: "gm" } : {}) },
+    // the crew meets the contact (name, summary, public role, career), not their stat block: the tie, the agenda and the
+    // stats stay GM-only, the same for everyone, so a secret synthetic's (hidden like any other) gives nothing away
+    fieldVisibility: { background: "gm", personalAgenda: "gm", ...Object.fromEntries(CONTACT_STATS.map((k) => [k, "gm" as const])) },
   };
   return e;
 }

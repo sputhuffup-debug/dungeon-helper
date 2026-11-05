@@ -108,6 +108,27 @@ const hpSchema: JsonSchema = {
   additionalProperties: false,
 };
 
+/**
+ * A player character's own player sees their whole sheet but the GM's notes
+ * (`"x-visibility": "owner"` on every other field), even while the GM keeps
+ * the character from the other players: their packet and player sheet are
+ * the sheet they play from. Copies the property schemas (some are shared
+ * with other types).
+ */
+function ownerVisible(schema: JsonSchema, gmOnly: string[]): JsonSchema {
+  const props = schema.properties as Record<string, JsonSchema>;
+  return { ...schema, properties: Object.fromEntries(Object.entries(props).map(([k, v]) => [k, gmOnly.includes(k) ? v : { ...v, "x-visibility": "owner" }])) };
+}
+
+/**
+ * A stat block stays with the GM by default (like an NPC's `statBlock`):
+ * players who meet the creature see its name, summary and these fields,
+ * and the GM reveals the rest field by field.
+ */
+function statsGmOnly(schema: JsonSchema, shown: string[]): Record<string, "gm"> {
+  return Object.fromEntries(Object.keys(schema.properties as Record<string, unknown>).filter((k) => !shown.includes(k)).map((k) => [k, "gm" as const]));
+}
+
 /** Computed bonuses: ability modifiers, then every skill and save as modifier + proficiency × multiplier + flat bonus. */
 function rollBonuses(): Record<string, Rule> {
   const out: Record<string, Rule> = {};
@@ -277,7 +298,7 @@ export function characterType(classes: ReferenceList, spellSlots: Record<string,
     spellSlots: slotSummary,
   };
 
-  const schema: JsonSchema = {
+  const baseSchema: JsonSchema = {
     type: "object",
     properties: {
       isPC: { type: "boolean", default: true },
@@ -348,6 +369,8 @@ export function characterType(classes: ReferenceList, spellSlots: Record<string,
     required: ["abilities", "level", "hp"],
     additionalProperties: false,
   };
+  // the player of the character sees all of it but the GM's notes
+  const schema = ownerVisible(baseSchema, ["notes"]);
 
   return {
     id: CHARACTER,
@@ -617,7 +640,8 @@ export function monsterType(): EntityTypeDef {
       ],
       summary: ["crLabel", "ac", "hp.current", "passivePerception"],
     },
-    defaultVisibility: { notes: "gm", description: "gm" },
+    // what the party sees of a creature it meets: its size and kind; the stat block, description and notes stay with the GM
+    defaultVisibility: statsGmOnly(schema, ["size", "creatureType", "creatureSubtype"]),
   };
 }
 

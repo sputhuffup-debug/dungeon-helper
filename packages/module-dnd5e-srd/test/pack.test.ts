@@ -6,6 +6,7 @@ import {
   createRng,
   loadModule,
   moduleFromPackSource,
+  ownerVisiblePaths,
   packFromSource,
   runProcedure,
   type EntityTypeDef,
@@ -77,8 +78,17 @@ describe("SRD 5.1 data pack", () => {
     expect(checkDeterminism(module, { seeds: 10 })).toEqual([]);
   });
 
+  it("shows a PC's own player the whole sheet but the GM's notes, and keeps a monster's stat block with the GM", () => {
+    const pc = module.entityTypes.find((t) => t.id === "dnd5e-srd.character")!;
+    const keys = Object.keys(pc.schema.properties as object);
+    expect(ownerVisiblePaths(pc).sort()).toEqual(keys.filter((k) => k !== "notes").sort());
+    const monster = module.entityTypes.find((t) => t.id === "dnd5e-srd.monster")!;
+    for (const k of ["ac", "hp", "abilities", "cr", "xp", "actions", "traits", "attacks", "senses", "languages", "alignment", "description", "notes"]) expect(monster.defaultVisibility?.[k], k).toBe("gm");
+    for (const k of ["size", "creatureType", "creatureSubtype"]) expect(monster.defaultVisibility?.[k], k).toBeUndefined();
+  });
+
   it("ships the SRD 5.1 and SRD 5.2 licence and attributions exactly", () => {
-    expect(module.manifest.license).toEqual({ spdx: "CC-BY-4.0", name: "Creative Commons Attribution 4.0 International", url: "https://creativecommons.org/licenses/by/4.0/", attribution: `${ATTRIBUTION}\n\n${ATTRIBUTION_52}` });
+    expect(module.manifest.license).toEqual({ spdx: "CC-BY-4.0", name: "Creative Commons Attribution 4.0 International", url: "https://creativecommons.org/licenses/by/4.0/", attribution: `${ATTRIBUTION}\n\n${ATTRIBUTION_52}`, inExports: true });
     expect(module.manifest).toMatchObject({ name: "5th Edition SRD 5.1 & 5.2 (fantasy d20)", ruleset: "SRD 5.1 / 5.2", citationStyle: "section" });
     const notice = readFileSync(join(__dirname, "../NOTICE"), "utf8");
     expect(notice).toContain(ATTRIBUTION);

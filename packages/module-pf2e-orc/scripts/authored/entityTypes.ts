@@ -45,6 +45,27 @@ const attributeFields = (): SheetField[] => ATTRIBUTES.map((a): SheetField => ({
 /** Hit Points by ancestry or class id; a supplement's ids ("<supplement id>.<item id>") nest under the supplement id, which is how `lookup` reads a dotted path. */
 export type HpTable = Record<string, number | Record<string, number>>;
 
+/**
+ * A player character's own player sees their whole sheet but the GM's notes
+ * (`"x-visibility": "owner"` on every other field), even while the GM keeps
+ * the character from the other players: their packet and player sheet are
+ * the sheet they play from. Copies the property schemas (some are shared
+ * with other types).
+ */
+function ownerVisible(schema: JsonSchema, gmOnly: string[]): JsonSchema {
+  const props = schema.properties as Record<string, JsonSchema>;
+  return { ...schema, properties: Object.fromEntries(Object.entries(props).map(([k, v]) => [k, gmOnly.includes(k) ? v : { ...v, "x-visibility": "owner" }])) };
+}
+
+/**
+ * A stat block stays with the GM by default (like an NPC's `statBlock`):
+ * players who meet the creature see its name, summary and these fields,
+ * and the GM reveals the rest field by field.
+ */
+function statsGmOnly(schema: JsonSchema, shown: string[]): Record<string, "gm"> {
+  return Object.fromEntries(Object.keys(schema.properties as Record<string, unknown>).filter((k) => !shown.includes(k)).map((k) => [k, "gm" as const]));
+}
+
 export function characterType(ancestryHp: HpTable, classHp: HpTable): EntityTypeDef {
   for (const a of ANCESTRIES) if (!(a in ancestryHp)) throw new Error(`ancestry ${a} missing from the ancestry list`);
   for (const c of CLASSES) if (!(c in classHp)) throw new Error(`class ${c} missing from the class list`);
@@ -91,7 +112,7 @@ export function characterType(ancestryHp: HpTable, classHp: HpTable): EntityType
     additionalProperties: false,
     default: {},
   };
-  const schema: JsonSchema = {
+  const baseSchema: JsonSchema = {
     type: "object",
     properties: {
       isPC: { type: "boolean", default: true },
@@ -201,6 +222,8 @@ export function characterType(ancestryHp: HpTable, classHp: HpTable): EntityType
     required: ["attributes", "level", "hp"],
     additionalProperties: false,
   };
+  // the player of the character sees all of it but the GM's notes
+  const schema = ownerVisible(baseSchema, ["notes"]);
 
   const savesWidget: SheetField = {
     path: "saves.*",
@@ -522,7 +545,8 @@ export function creatureType(): EntityTypeDef {
       ],
       summary: ["level", "ac", "hp.current", "saves.perception"],
     },
-    defaultVisibility: { notes: "gm", description: "gm" },
+    // what the party sees of a creature it meets: its size, traits and conditions; the stat block, description and notes stay with the GM
+    defaultVisibility: statsGmOnly(schema, ["size", "traits", "conditions"]),
   };
 }
 

@@ -182,6 +182,24 @@ describe("alien.job-board", () => {
     throw new Error("no synthetic contact in 300 boards");
   });
 
+  it("lets the crew meet a contact, not read their stat block: name, summary, role and career shown, stats GM-only, the same for a human and a synthetic", () => {
+    const stats = ["android", "attributes", "skills", "talents", "stress", "damage", "gear", "weapons", "cash", "signatureItem", "xp", "storyPoints", "fatigued", "rads", "criticalInjuries", "mentalTraumas"];
+    let human = false;
+    let synthetic = false;
+    for (let i = 0; i < 300 && !(human && synthetic); i++) {
+      for (const o of board(`contact-stats-${i}`, { treachery: "common" }).offers) {
+        const contact = npcsOf(o)[0]!;
+        expect(contact.visibility).toBe("players");
+        for (const k of stats) expect(contact.fieldVisibility?.[k], k).toBe("gm");
+        for (const k of ["role", "career", "appearance"]) expect(contact.fieldVisibility?.[k], k).toBeUndefined();
+        expect(contact.summary).toBeTruthy();
+        if (contact.fields.secretAndroid === true) synthetic = true;
+        else human = true;
+      }
+    }
+    expect(human && synthetic).toBe(true);
+  });
+
   it("re-rolls or pins each posting and each part on its own", () => {
     const base = board("parts");
     const key = "offers/posting-2/title";

@@ -218,8 +218,9 @@ describe("the job board without arcs", () => {
   // their weapons to the Weapons list (the NPCs' gear rows changed, nothing the board deals did), and once when a
   // trucker pitch's verb began to agree with plural cargo ("metal ingots or pellets go to"), a text-only change,
   // and once for: the job's complications no longer repeating in one job (`distinct`, a repeat takes the next row), "deliver them" for plural
-  // cargo and an NPC who wants "someone who will listen" (text only)
-  const BEFORE_ARCS = "52fd9dc3a5f0f6fc2551bdaf6194794b8a30226e7e4205294cd0ac6b3095b7f0";
+  // cargo and an NPC who wants "someone who will listen" (text only), and once when the contact the crew meets kept its stat
+  // block GM-only (the produced NPC's fieldVisibility, nothing the board deals)
+  const BEFORE_ARCS = "a6851bc9c14efa89172a0910d41e84a507eab40ba5f80eec8aedaf5fe607ff31";
 
   it("is byte-identical to the board before arcs", () => {
     expect(baseline()).toBe(BEFORE_ARCS);

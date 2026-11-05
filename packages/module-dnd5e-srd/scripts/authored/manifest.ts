@@ -38,6 +38,8 @@ export const manifest: PackManifest = {
     name: "Creative Commons Attribution 4.0 International",
     url: "https://creativecommons.org/licenses/by/4.0/",
     attribution: `${SRD_ATTRIBUTION}\n\n${SRD52_ATTRIBUTION}`,
+    // CC BY 4.0: every copy of SRD text the players get (shares, packets, booklets, maps) carries the attribution
+    inExports: true,
   },
 };
 

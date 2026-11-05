@@ -53,6 +53,8 @@ export const manifest: PackManifest = {
     name: "ORC License",
     url: "https://paizo.com/orclicense",
     attribution: ATTRIBUTION,
+    // the ORC License: every copy of the licensed material the players get (shares, packets, booklets, maps) carries the notices
+    inExports: true,
   },
 };
 

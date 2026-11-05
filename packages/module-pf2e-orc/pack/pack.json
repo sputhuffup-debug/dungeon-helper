@@ -38,7 +38,8 @@
    "spdx": "LicenseRef-ORC",
    "name": "ORC License",
    "url": "https://paizo.com/orclicense",
-   "attribution": "ORC Notice: This product is licensed under the ORC License located at the Library of Congress at TX 9-307-067 and available online at various locations. All warranties are disclaimed as set forth therein.\n\nAttribution Notice: this module includes material from:\nPathfinder Player Core © 2023, Paizo Inc.; Designers: Logan Bonner, Jason Bulmahn, Stephen Radney-MacFarland, and Mark Seifter. Authors: Alexander Augunas, Kate Baker, Logan Bonner, Jason Bulmahn, Carlos Cabrera, Calder CaDavid, James Case, Eleanor Ferron, Steven Hammond, Joan Hong, Vanessa Hoskins, James Jacobs, Jenny Jarzabski, Erik Keith, Dustin Knight, Lyz Liddell, Luis Loza, Patchen Mortimer, Dennis Muldoon, Stephen Radney-MacFarland, Mikhail Rekun, David N. Ross, Michael Sayre, Mark Seifter, Kendra Leigh, Speedling, Mark Thompson, Clark Valentine, Andrew White, Landon Winkler, and Linda Zayas-Palmer\nPathfinder GM Core © 2023, Paizo Inc.; Designers: Logan Bonner and Mark Seifter. Authors: Amirali Attar Olyaee, Logan Bonner, Creighton Broadhurst, Jason Bulmahn, James Case, Jesse Decker, Eleanor Ferron, Fabby Garza Marroquín, Jaym Gates, Matthew Goetz, James Jacobs, Brian R. James, Jenny Jarzabski, Dustin Knight, Jason LeMaitre, Lyz Liddell, Luis Loza, Ron Lundeen, Stephen Radney-MacFarland, David N. Ross, Michael Sayre, Mark Seifter, Owen K.C. Stephens, Amber Stewart, Clark Valentine, Landon Winkler, and Linda Zayas-Palmer\nPathfinder Player Core 2 © 2024, Paizo Inc.; Authors: Amirali Attar Olyaee, Alexander Augunas, Brian Bauman, Joshua Birdsong, Logan Bonner, Jason Bulmahn, James Case, Jessica Catalan, John Compton, Paris Crenshaw, Jesse Decker, Eleanor Ferron, Fabby Garza Marroquín, Steven Hammond, Sasha Laranoa Harving, Joan Hong, Nicolas Hornyak, Vanessa Hoskins, James Jacobs, Jason Keeley, Dustin Knight, Avi Kool, Lyz Liddell, Nicolas Logue, Luis Loza, Ron Lundeen, Patchen Mortimer, Stephen Radney‑MacFarland, Jessica Redekop, Mikhail Rekun, Alex Riggs, David N. Ross, Michael Sayre, Mark Seifter, Owen K.C. Stephens, Jason Tondro, Clark Valentine, Andrew White, Landon Winkler, and Tonya Woldridge.\nPathfinder Monster Core © 2024, Paizo Inc.\n\nReserved Material: none of the publishers' Reserved Material (trademarks, and setting names such as deities, places, organizations and characters) is used. The converted rules text and statistics are Licensed Material under the ORC License. The JSON structure of the data is derived from the Foundry VTT pf2e system (Apache License 2.0; see the module's NOTICE).\n\nCompatible with Pathfinder Second Edition (Remaster). Not affiliated with or endorsed by Paizo Inc. Pathfinder is a trademark of Paizo Inc."
+   "attribution": "ORC Notice: This product is licensed under the ORC License located at the Library of Congress at TX 9-307-067 and available online at various locations. All warranties are disclaimed as set forth therein.\n\nAttribution Notice: this module includes material from:\nPathfinder Player Core © 2023, Paizo Inc.; Designers: Logan Bonner, Jason Bulmahn, Stephen Radney-MacFarland, and Mark Seifter. Authors: Alexander Augunas, Kate Baker, Logan Bonner, Jason Bulmahn, Carlos Cabrera, Calder CaDavid, James Case, Eleanor Ferron, Steven Hammond, Joan Hong, Vanessa Hoskins, James Jacobs, Jenny Jarzabski, Erik Keith, Dustin Knight, Lyz Liddell, Luis Loza, Patchen Mortimer, Dennis Muldoon, Stephen Radney-MacFarland, Mikhail Rekun, David N. Ross, Michael Sayre, Mark Seifter, Kendra Leigh, Speedling, Mark Thompson, Clark Valentine, Andrew White, Landon Winkler, and Linda Zayas-Palmer\nPathfinder GM Core © 2023, Paizo Inc.; Designers: Logan Bonner and Mark Seifter. Authors: Amirali Attar Olyaee, Logan Bonner, Creighton Broadhurst, Jason Bulmahn, James Case, Jesse Decker, Eleanor Ferron, Fabby Garza Marroquín, Jaym Gates, Matthew Goetz, James Jacobs, Brian R. James, Jenny Jarzabski, Dustin Knight, Jason LeMaitre, Lyz Liddell, Luis Loza, Ron Lundeen, Stephen Radney-MacFarland, David N. Ross, Michael Sayre, Mark Seifter, Owen K.C. Stephens, Amber Stewart, Clark Valentine, Landon Winkler, and Linda Zayas-Palmer\nPathfinder Player Core 2 © 2024, Paizo Inc.; Authors: Amirali Attar Olyaee, Alexander Augunas, Brian Bauman, Joshua Birdsong, Logan Bonner, Jason Bulmahn, James Case, Jessica Catalan, John Compton, Paris Crenshaw, Jesse Decker, Eleanor Ferron, Fabby Garza Marroquín, Steven Hammond, Sasha Laranoa Harving, Joan Hong, Nicolas Hornyak, Vanessa Hoskins, James Jacobs, Jason Keeley, Dustin Knight, Avi Kool, Lyz Liddell, Nicolas Logue, Luis Loza, Ron Lundeen, Patchen Mortimer, Stephen Radney‑MacFarland, Jessica Redekop, Mikhail Rekun, Alex Riggs, David N. Ross, Michael Sayre, Mark Seifter, Owen K.C. Stephens, Jason Tondro, Clark Valentine, Andrew White, Landon Winkler, and Tonya Woldridge.\nPathfinder Monster Core © 2024, Paizo Inc.\n\nReserved Material: none of the publishers' Reserved Material (trademarks, and setting names such as deities, places, organizations and characters) is used. The converted rules text and statistics are Licensed Material under the ORC License. The JSON structure of the data is derived from the Foundry VTT pf2e system (Apache License 2.0; see the module's NOTICE).\n\nCompatible with Pathfinder Second Edition (Remaster). Not affiliated with or endorsed by Paizo Inc. Pathfinder is a trademark of Paizo Inc.",
+   "inExports": true
   }
  },
  "dice": {
@@ -208,46 +209,55 @@
     "properties": {
      "isPC": {
       "type": "boolean",
-      "default": true
+      "default": true,
+      "x-visibility": "owner"
      },
      "player": {
       "type": "string",
-      "maxLength": 120
+      "maxLength": 120,
+      "x-visibility": "owner"
      },
      "ancestry": {
       "type": "string",
       "maxLength": 120,
-      "description": "An ancestry id from the Ancestries list (catfolk, dwarf, elf, gnome, goblin, halfling, hobgoblin, human, kholo, kobold, leshy, lizardfolk, orc, ratfolk, tengu, tripkee, or one a supplement adds)."
+      "description": "An ancestry id from the Ancestries list (catfolk, dwarf, elf, gnome, goblin, halfling, hobgoblin, human, kholo, kobold, leshy, lizardfolk, orc, ratfolk, tengu, tripkee, or one a supplement adds).",
+      "x-visibility": "owner"
      },
      "heritage": {
       "type": "string",
-      "maxLength": 120
+      "maxLength": 120,
+      "x-visibility": "owner"
      },
      "background": {
       "type": "string",
-      "maxLength": 120
+      "maxLength": 120,
+      "x-visibility": "owner"
      },
      "class": {
       "type": "string",
       "maxLength": 120,
-      "description": "A class id from the Classes list (alchemist, barbarian, bard, champion, cleric, druid, fighter, investigator, monk, oracle, ranger, rogue, sorcerer, swashbuckler, witch, wizard, or one a supplement adds)."
+      "description": "A class id from the Classes list (alchemist, barbarian, bard, champion, cleric, druid, fighter, investigator, monk, oracle, ranger, rogue, sorcerer, swashbuckler, witch, wizard, or one a supplement adds).",
+      "x-visibility": "owner"
      },
      "subclass": {
       "type": "string",
       "maxLength": 120,
-      "description": "Class choice: a doctrine, instinct, muse, racket, mystery, school and so on."
+      "description": "Class choice: a doctrine, instinct, muse, racket, mystery, school and so on.",
+      "x-visibility": "owner"
      },
      "level": {
       "type": "integer",
       "minimum": 1,
       "maximum": 20,
-      "default": 1
+      "default": 1,
+      "x-visibility": "owner"
      },
      "xp": {
       "type": "integer",
       "minimum": 0,
       "maximum": 999,
-      "default": 0
+      "default": 0,
+      "x-visibility": "owner"
      },
      "keyAttribute": {
       "type": "string",
@@ -260,6 +270,7 @@
        "charisma"
       ],
       "default": "strength",
+      "x-visibility": "owner",
       "enumLabels": [
        "Strength",
        "Dexterity",
@@ -323,7 +334,8 @@
        "wisdom",
        "charisma"
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-visibility": "owner"
      },
      "partialBoosts": {
       "type": "array",
@@ -347,7 +359,8 @@
        ]
       },
       "default": [],
-      "description": "Attributes at +4 or more with one boost of the two the next +1 takes (a partial boost)."
+      "description": "Attributes at +4 or more with one boost of the two the next +1 takes (a partial boost).",
+      "x-visibility": "owner"
      },
      "size": {
       "type": "string",
@@ -360,6 +373,7 @@
        "Gargantuan"
       ],
       "default": "Medium",
+      "x-visibility": "owner",
       "enumLabels": [
        "Tiny",
        "Small",
@@ -375,7 +389,8 @@
        "type": "string"
       },
       "default": [],
-      "description": "Special senses: low-light vision, darkvision, scent and so on."
+      "description": "Special senses: low-light vision, darkvision, scent and so on.",
+      "x-visibility": "owner"
      },
      "traits": {
       "type": "array",
@@ -383,20 +398,24 @@
        "type": "string"
       },
       "default": [],
-      "description": "The character's traits (ancestry and heritage), which ancestry feats are filed under."
+      "description": "The character's traits (ancestry and heritage), which ancestry feats are filed under.",
+      "x-visibility": "owner"
      },
      "deity": {
       "type": "string",
       "maxLength": 120,
-      "description": "Free text; the module suggests none (the setting's deities are not part of the ORC content)."
+      "description": "Free text; the module suggests none (the setting's deities are not part of the ORC content).",
+      "x-visibility": "owner"
      },
      "age": {
       "type": "string",
-      "maxLength": 60
+      "maxLength": 60,
+      "x-visibility": "owner"
      },
      "pronouns": {
       "type": "string",
-      "maxLength": 60
+      "maxLength": 60,
+      "x-visibility": "owner"
      },
      "saves": {
       "type": "object",
@@ -427,7 +446,8 @@
        }
       },
       "additionalProperties": false,
-      "default": {}
+      "default": {},
+      "x-visibility": "owner"
      },
      "skills": {
       "type": "object",
@@ -542,7 +562,8 @@
        }
       },
       "additionalProperties": false,
-      "default": {}
+      "default": {},
+      "x-visibility": "owner"
      },
      "loreTopics": {
       "type": "object",
@@ -557,7 +578,8 @@
        }
       },
       "additionalProperties": false,
-      "default": {}
+      "default": {},
+      "x-visibility": "owner"
      },
      "bonuses": {
       "type": "object",
@@ -703,14 +725,16 @@
        }
       },
       "additionalProperties": false,
-      "default": {}
+      "default": {},
+      "x-visibility": "owner"
      },
      "classDcRank": {
       "type": "integer",
       "minimum": 0,
       "maximum": 4,
       "default": 1,
-      "title": "Class DC proficiency"
+      "title": "Class DC proficiency",
+      "x-visibility": "owner"
      },
      "defenses": {
       "type": "object",
@@ -746,7 +770,8 @@
        "light": 0,
        "medium": 0,
        "heavy": 0
-      }
+      },
+      "x-visibility": "owner"
      },
      "attacks": {
       "type": "object",
@@ -782,7 +807,8 @@
        "martial": 0,
        "advanced": 0,
        "unarmed": 1
-      }
+      },
+      "x-visibility": "owner"
      },
      "armor": {
       "type": "object",
@@ -846,7 +872,8 @@
        "category": "unarmored",
        "acBonus": 0,
        "potency": 0
-      }
+      },
+      "x-visibility": "owner"
      },
      "shield": {
       "type": "object",
@@ -881,7 +908,8 @@
        }
       },
       "additionalProperties": false,
-      "default": {}
+      "default": {},
+      "x-visibility": "owner"
      },
      "hp": {
       "type": "object",
@@ -906,51 +934,59 @@
       "default": {
        "current": 10,
        "temp": 0
-      }
+      },
+      "x-visibility": "owner"
      },
      "hpBonus": {
       "type": "integer",
       "minimum": 0,
       "maximum": 200,
       "default": 0,
-      "description": "Extra maximum Hit Points from feats and the like (a flat number)."
+      "description": "Extra maximum Hit Points from feats and the like (a flat number).",
+      "x-visibility": "owner"
      },
      "hpPerLevel": {
       "type": "integer",
       "minimum": 0,
       "maximum": 10,
       "default": 0,
-      "description": "Extra maximum Hit Points per level (Toughness gives 1)."
+      "description": "Extra maximum Hit Points per level (Toughness gives 1).",
+      "x-visibility": "owner"
      },
      "speed": {
       "type": "integer",
       "minimum": 0,
       "maximum": 200,
-      "default": 25
+      "default": 25,
+      "x-visibility": "owner"
      },
      "heroPoints": {
       "type": "integer",
       "minimum": 0,
       "maximum": 3,
-      "default": 1
+      "default": 1,
+      "x-visibility": "owner"
      },
      "dying": {
       "type": "integer",
       "minimum": 0,
       "maximum": 4,
-      "default": 0
+      "default": 0,
+      "x-visibility": "owner"
      },
      "wounded": {
       "type": "integer",
       "minimum": 0,
       "maximum": 3,
-      "default": 0
+      "default": 0,
+      "x-visibility": "owner"
      },
      "doomed": {
       "type": "integer",
       "minimum": 0,
       "maximum": 3,
-      "default": 0
+      "default": 0,
+      "x-visibility": "owner"
      },
      "conditions": {
       "type": "object",
@@ -1015,14 +1051,16 @@
        "stupefied": 0,
        "slowed": 0,
        "stunned": 0
-      }
+      },
+      "x-visibility": "owner"
      },
      "otherConditions": {
       "type": "array",
       "items": {
        "type": "object"
       },
-      "default": []
+      "default": [],
+      "x-visibility": "owner"
      },
      "initiativeSkill": {
       "type": "string",
@@ -1046,6 +1084,7 @@
        "thievery"
       ],
       "default": "perception",
+      "x-visibility": "owner",
       "enumLabels": [
        "Perception",
        "Acrobatics",
@@ -1086,7 +1125,8 @@
       "default": {
        "current": 0,
        "max": 0
-      }
+      },
+      "x-visibility": "owner"
      },
      "spellcasting": {
       "type": "object",
@@ -1147,7 +1187,8 @@
       "additionalProperties": false,
       "default": {
        "rank": 0
-      }
+      },
+      "x-visibility": "owner"
      },
      "slots": {
       "type": "object",
@@ -1344,7 +1385,8 @@
        }
       },
       "additionalProperties": false,
-      "default": {}
+      "default": {},
+      "x-visibility": "owner"
      },
      "spells": {
       "type": "array",
@@ -1352,7 +1394,8 @@
        "type": "string"
       },
       "default": [],
-      "description": "Spells known or prepared (names from the spell lists)."
+      "description": "Spells known or prepared (names from the spell lists).",
+      "x-visibility": "owner"
      },
      "strikes": {
       "type": "array",
@@ -1392,7 +1435,8 @@
         "name"
        ]
       },
-      "default": []
+      "default": [],
+      "x-visibility": "owner"
      },
      "feats": {
       "type": "array",
@@ -1433,7 +1477,8 @@
         "name"
        ]
       },
-      "default": []
+      "default": [],
+      "x-visibility": "owner"
      },
      "features": {
       "type": "array",
@@ -1452,14 +1497,16 @@
         "name"
        ]
       },
-      "default": []
+      "default": [],
+      "x-visibility": "owner"
      },
      "languages": {
       "type": "array",
       "items": {
        "type": "string"
       },
-      "default": []
+      "default": [],
+      "x-visibility": "owner"
      },
      "inventory": {
       "type": "array",
@@ -1494,7 +1541,8 @@
         "name"
        ]
       },
-      "default": []
+      "default": [],
+      "x-visibility": "owner"
      },
      "coins": {
       "type": "object",
@@ -1522,19 +1570,23 @@
        "sp": 0,
        "gp": 15,
        "pp": 0
-      }
+      },
+      "x-visibility": "owner"
      },
      "appearance": {
       "type": "string",
-      "maxLength": 4000
+      "maxLength": 4000,
+      "x-visibility": "owner"
      },
      "personality": {
       "type": "string",
-      "maxLength": 4000
+      "maxLength": 4000,
+      "x-visibility": "owner"
      },
      "backstory": {
       "type": "string",
-      "maxLength": 40000
+      "maxLength": 40000,
+      "x-visibility": "owner"
      },
      "notes": {
       "type": "string",
@@ -5357,8 +5409,35 @@
     ]
    },
    "defaultVisibility": {
-    "notes": "gm",
-    "description": "gm"
+    "level": "gm",
+    "rarity": "gm",
+    "saves": "gm",
+    "senses": "gm",
+    "languages": "gm",
+    "skills": "gm",
+    "lore": "gm",
+    "attributes": "gm",
+    "items": "gm",
+    "ac": "gm",
+    "acNote": "gm",
+    "saveNote": "gm",
+    "hp": "gm",
+    "hpNote": "gm",
+    "hardness": "gm",
+    "immunities": "gm",
+    "weaknesses": "gm",
+    "resistances": "gm",
+    "damageModifiers": "gm",
+    "conditionImmunities": "gm",
+    "speed": "gm",
+    "strikes": "gm",
+    "abilities": "gm",
+    "defenses": "gm",
+    "actions": "gm",
+    "spells": "gm",
+    "focusPoints": "gm",
+    "description": "gm",
+    "notes": "gm"
    }
   },
   {

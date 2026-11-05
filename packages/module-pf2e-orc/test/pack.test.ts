@@ -6,6 +6,7 @@ import {
   createRng,
   loadModule,
   moduleFromPackSource,
+  ownerVisiblePaths,
   packFromSource,
   runProcedure,
   type DicePool,
@@ -85,9 +86,18 @@ describe("Fantasy d20 Remaster (ORC) data pack", () => {
     expect(checkDeterminism(module, { seeds: 8 })).toEqual([]);
   });
 
+  it("shows a PC's own player the whole sheet but the GM's notes, and keeps a creature's stat block with the GM", () => {
+    const pc = module.entityTypes.find((t) => t.id === "pf2e-orc.character")!;
+    const keys = Object.keys(pc.schema.properties as object);
+    expect(ownerVisiblePaths(pc).sort()).toEqual(keys.filter((k) => k !== "notes").sort());
+    const creature = module.entityTypes.find((t) => t.id === "pf2e-orc.creature")!;
+    for (const k of ["level", "ac", "hp", "saves", "attributes", "strikes", "abilities", "actions", "spells", "description", "notes"]) expect(creature.defaultVisibility?.[k], k).toBe("gm");
+    for (const k of ["size", "traits", "conditions"]) expect(creature.defaultVisibility?.[k], k).toBeUndefined();
+  });
+
   it("ships the ORC notice, the attribution notices and the trademark disclaimer", () => {
     const license = module.manifest.license!;
-    expect(license).toMatchObject({ spdx: "LicenseRef-ORC", name: "ORC License", url: "https://paizo.com/orclicense" });
+    expect(license).toMatchObject({ spdx: "LicenseRef-ORC", name: "ORC License", url: "https://paizo.com/orclicense", inExports: true });
     expect(license.attribution).toContain(ORC_NOTICE);
     for (const l of ATTRIBUTION_LINES) expect(license.attribution).toContain(l);
     expect(license.attribution).toContain(TRADEMARK_NOTICE);

@@ -38,7 +38,8 @@
    "spdx": "CC-BY-4.0",
    "name": "Creative Commons Attribution 4.0 International",
    "url": "https://creativecommons.org/licenses/by/4.0/",
-   "attribution": "This work includes material taken from the System Reference Document 5.1 (\"SRD 5.1\") by Wizards of the Coast LLC and available at https://dnd.wizards.com/resources/systems-reference-document. The SRD 5.1 is licensed under the Creative Commons Attribution 4.0 International License available at https://creativecommons.org/licenses/by/4.0/legalcode.\n\nThis work includes material from the System Reference Document 5.2 (“SRD 5.2”) by Wizards of the Coast LLC, available at https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License, available at https://creativecommons.org/licenses/by/4.0/legalcode."
+   "attribution": "This work includes material taken from the System Reference Document 5.1 (\"SRD 5.1\") by Wizards of the Coast LLC and available at https://dnd.wizards.com/resources/systems-reference-document. The SRD 5.1 is licensed under the Creative Commons Attribution 4.0 International License available at https://creativecommons.org/licenses/by/4.0/legalcode.\n\nThis work includes material from the System Reference Document 5.2 (“SRD 5.2”) by Wizards of the Coast LLC, available at https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License, available at https://creativecommons.org/licenses/by/4.0/legalcode.",
+   "inExports": true
   }
  },
  "dice": {
@@ -103,27 +104,32 @@
     "properties": {
      "isPC": {
       "type": "boolean",
-      "default": true
+      "default": true,
+      "x-visibility": "owner"
      },
      "player": {
       "type": "string",
-      "maxLength": 120
+      "maxLength": 120,
+      "x-visibility": "owner"
      },
      "class": {
       "type": "string",
       "maxLength": 120,
-      "description": "A class id from the Classes list (barbarian, bard, cleric, druid, fighter, monk, paladin, ranger, rogue, sorcerer, warlock, wizard, or one a supplement adds)."
+      "description": "A class id from the Classes list (barbarian, bard, cleric, druid, fighter, monk, paladin, ranger, rogue, sorcerer, warlock, wizard, or one a supplement adds).",
+      "x-visibility": "owner"
      },
      "subclass": {
       "type": "string",
-      "maxLength": 120
+      "maxLength": 120,
+      "x-visibility": "owner"
      },
      "level": {
       "type": "integer",
       "minimum": 1,
       "maximum": 20,
       "default": 1,
-      "description": "Character level (all classes together)."
+      "description": "Character level (all classes together).",
+      "x-visibility": "owner"
      },
      "classLevels": {
       "type": "array",
@@ -154,19 +160,23 @@
        ],
        "additionalProperties": false
       },
-      "default": []
+      "default": [],
+      "x-visibility": "owner"
      },
      "race": {
       "type": "string",
-      "maxLength": 120
+      "maxLength": 120,
+      "x-visibility": "owner"
      },
      "subrace": {
       "type": "string",
-      "maxLength": 120
+      "maxLength": 120,
+      "x-visibility": "owner"
      },
      "background": {
       "type": "string",
-      "maxLength": 120
+      "maxLength": 120,
+      "x-visibility": "owner"
      },
      "alignment": {
       "type": "string",
@@ -181,6 +191,7 @@
        "neutral-evil",
        "chaotic-evil"
       ],
+      "x-visibility": "owner",
       "enumLabels": [
        "Lawful good",
        "Neutral good",
@@ -197,7 +208,8 @@
       "type": "integer",
       "minimum": 0,
       "maximum": 10000000,
-      "default": 0
+      "default": 0,
+      "x-visibility": "owner"
      },
      "abilities": {
       "type": "object",
@@ -247,7 +259,8 @@
        "wisdom",
        "charisma"
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-visibility": "owner"
      },
      "saves": {
       "type": "object",
@@ -290,7 +303,8 @@
        }
       },
       "additionalProperties": false,
-      "default": {}
+      "default": {},
+      "x-visibility": "owner"
      },
      "skills": {
       "type": "object",
@@ -405,7 +419,8 @@
        }
       },
       "additionalProperties": false,
-      "default": {}
+      "default": {},
+      "x-visibility": "owner"
      },
      "bonuses": {
       "type": "object",
@@ -557,25 +572,29 @@
        }
       },
       "additionalProperties": false,
-      "default": {}
+      "default": {},
+      "x-visibility": "owner"
      },
      "ac": {
       "type": "integer",
       "minimum": 0,
       "maximum": 40,
-      "default": 10
+      "default": 10,
+      "x-visibility": "owner"
      },
      "initiativeBonus": {
       "type": "integer",
       "minimum": -10,
       "maximum": 20,
-      "default": 0
+      "default": 0,
+      "x-visibility": "owner"
      },
      "speed": {
       "type": "integer",
       "minimum": 0,
       "maximum": 200,
-      "default": 30
+      "default": 30,
+      "x-visibility": "owner"
      },
      "size": {
       "type": "string",
@@ -586,6 +605,7 @@
        "Large"
       ],
       "default": "Medium",
+      "x-visibility": "owner",
       "enumLabels": [
        "Tiny",
        "Small",
@@ -597,7 +617,8 @@
       "type": "integer",
       "minimum": 0,
       "maximum": 300,
-      "description": "Darkvision range in feet (0 or empty: none)."
+      "description": "Darkvision range in feet (0 or empty: none).",
+      "x-visibility": "owner"
      },
      "hp": {
       "type": "object",
@@ -625,13 +646,15 @@
        "max",
        "current"
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-visibility": "owner"
      },
      "hitDiceSpent": {
       "type": "integer",
       "minimum": 0,
       "maximum": 20,
-      "default": 0
+      "default": 0,
+      "x-visibility": "owner"
      },
      "deathSaves": {
       "type": "object",
@@ -653,17 +676,20 @@
       "default": {
        "successes": 0,
        "failures": 0
-      }
+      },
+      "x-visibility": "owner"
      },
      "exhaustion": {
       "type": "integer",
       "minimum": 0,
       "maximum": 6,
-      "default": 0
+      "default": 0,
+      "x-visibility": "owner"
      },
      "inspiration": {
       "type": "boolean",
-      "default": false
+      "default": false,
+      "x-visibility": "owner"
      },
      "spellcastingAbility": {
       "type": "string",
@@ -676,6 +702,7 @@
        "charisma"
       ],
       "description": "Leave empty to use the class's spellcasting ability.",
+      "x-visibility": "owner",
       "enumLabels": [
        "Strength",
        "Dexterity",
@@ -753,7 +780,8 @@
        }
       },
       "additionalProperties": false,
-      "default": {}
+      "default": {},
+      "x-visibility": "owner"
      },
      "spells": {
       "type": "array",
@@ -761,7 +789,8 @@
        "type": "string"
       },
       "default": [],
-      "description": "Spells known or prepared (names from the Spells list)."
+      "description": "Spells known or prepared (names from the Spells list).",
+      "x-visibility": "owner"
      },
      "attacks": {
       "type": "array",
@@ -837,7 +866,8 @@
         "name"
        ]
       },
-      "default": []
+      "default": [],
+      "x-visibility": "owner"
      },
      "features": {
       "type": "array",
@@ -856,18 +886,21 @@
         "name"
        ]
       },
-      "default": []
+      "default": [],
+      "x-visibility": "owner"
      },
      "proficiencies": {
       "type": "string",
-      "maxLength": 4000
+      "maxLength": 4000,
+      "x-visibility": "owner"
      },
      "languages": {
       "type": "array",
       "items": {
        "type": "string"
       },
-      "default": []
+      "default": [],
+      "x-visibility": "owner"
      },
      "equipment": {
       "type": "array",
@@ -897,7 +930,8 @@
         "name"
        ]
       },
-      "default": []
+      "default": [],
+      "x-visibility": "owner"
      },
      "coins": {
       "type": "object",
@@ -930,7 +964,8 @@
        "ep": 0,
        "gp": 0,
        "pp": 0
-      }
+      },
+      "x-visibility": "owner"
      },
      "personality": {
       "type": "object",
@@ -953,15 +988,18 @@
        }
       },
       "additionalProperties": false,
-      "default": {}
+      "default": {},
+      "x-visibility": "owner"
      },
      "appearance": {
       "type": "string",
-      "maxLength": 4000
+      "maxLength": 4000,
+      "x-visibility": "owner"
      },
      "backstory": {
       "type": "string",
-      "maxLength": 20000
+      "maxLength": 20000,
+      "x-visibility": "owner"
      },
      "notes": {
       "type": "string",
@@ -8515,8 +8553,33 @@
     ]
    },
    "defaultVisibility": {
-    "notes": "gm",
-    "description": "gm"
+    "alignment": "gm",
+    "ac": "gm",
+    "acNote": "gm",
+    "hp": "gm",
+    "hitDice": "gm",
+    "speed": "gm",
+    "initiativeBonus": "gm",
+    "abilities": "gm",
+    "saves": "gm",
+    "skills": "gm",
+    "bonuses": "gm",
+    "damageVulnerabilities": "gm",
+    "damageResistances": "gm",
+    "damageImmunities": "gm",
+    "conditionImmunities": "gm",
+    "damageModifiers": "gm",
+    "senses": "gm",
+    "languages": "gm",
+    "cr": "gm",
+    "xp": "gm",
+    "traits": "gm",
+    "actions": "gm",
+    "reactions": "gm",
+    "legendaryActions": "gm",
+    "attacks": "gm",
+    "description": "gm",
+    "notes": "gm"
    }
   },
   {
