@@ -10,6 +10,7 @@
  */
 import { diceRange } from "./dice";
 import { evaluateLogic, logicIssues } from "./logic";
+import { pageRefSpans, pageRefText, validPageRef } from "./pages";
 import type {
   AppliedSupplement,
   GameModule,
@@ -227,9 +228,10 @@ export function ruleExcerpt(card: Pick<RuleCard, "summary">, excerpt: { section?
 // citations
 // ---------------------------------------------------------------------------
 
-/** "p. 72" or "pp. 72–73". */
+/** "p. 72", "pp. 72–73" or "pp. 27, 158". */
 export function pageLabel(page: PageRef): string {
-  return Array.isArray(page) ? (page[0] === page[1] ? `p. ${page[0]}` : `pp. ${page[0]}–${page[1]}`) : `p. ${page}`;
+  const spans = pageRefSpans(page);
+  return pageRefText(page, spans.length === 1 && spans[0]![0] === spans[0]![1] ? "p." : "pp.");
 }
 
 /** The source part of a section citation: "SRD 5.1 — Combat: Cover" reads "SRD 5.1". */
@@ -516,11 +518,6 @@ const SIZES: readonly GmScreenSize[] = ["third", "half", "full"];
 const SIDES: readonly GmScreenSide[] = ["gm", "players"];
 /** A quick-rules note longer than this is no longer quick (a warning). */
 export const GM_SCREEN_TEXT_LIMIT = 700;
-
-function validPageRef(p: unknown): boolean {
-  if (typeof p === "number") return Number.isInteger(p) && p > 0;
-  return Array.isArray(p) && p.length === 2 && p.every((x) => Number.isInteger(x) && x > 0) && (p[0] as number) <= (p[1] as number);
-}
 
 /** Problems in a module's `gmScreen`: unknown references, excerpts not in their card, uncited or unoriginal notes, undeclared modes. */
 export function gmScreenIssues(module: GameModule): GmScreenIssue[] {

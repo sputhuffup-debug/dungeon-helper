@@ -44,9 +44,14 @@ test("build a fifth edition character in the Thornwick Crossing demo, resume it,
   await expect(page).toHaveURL(/\/c\/[0-9A-Z]{26}\/home$/, { timeout: 30_000 });
   const base = page.url().replace(/\/home$/, "");
 
-  // 1. from the Atlas PCs tab
+  // 1. from the Atlas PCs tab; opening the builder and leaving without a pick leaves no draft behind
   await page.getByRole("navigation", { name: "Campaign" }).getByRole("link", { name: "Atlas", exact: true }).click();
   await page.getByRole("tab", { name: /^PCs/ }).click();
+  await page.getByTestId("build-character").click();
+  await expect(page.getByTestId("character-builder")).toBeVisible();
+  await page.getByRole("link", { name: "PCs", exact: true }).click();
+  await expect(page.getByTestId("build-character")).toBeVisible();
+  await expect(page.getByTestId("character-drafts")).toHaveCount(0);
   await page.getByTestId("build-character").click();
   await expect(page.getByTestId("character-builder")).toBeVisible();
   await expect(page.getByTestId("builder-title")).toHaveText("Build a character");

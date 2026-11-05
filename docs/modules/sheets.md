@@ -63,18 +63,24 @@ A field: `{ path, label?, widget?, rule?, mode?, readonly?, span?, options?, ent
 | `number`, `skill` | numbers | `min`, `max`, `step` (else the schema's `minimum`/`maximum`); `number`: `suggested` (a computed key offered beside the value with a *Use* button, e.g. the fifth edition hit point maximum from the fixed values) and `suggestedLabel` |
 | `attribute` | a big number with steppers | as `number` |
 | `checkbox` | booleans | `text` (its accessible name is always the field's label, never Yes or No) |
-| `select`, `multiselect`, `tags` | enums, lists of strings | `ref` (reference list) |
+| `select`, `multiselect`, `tags` | enums, lists of strings | `ref` (reference list). A `select` on an integer field with an `enum` stores the number, so a rank reads by its `enumLabels` (`{ "type": "integer", "enum": [0, 1, 2], "enumLabels": ["Untrained", "Trained", "Expert"] }`); the `object` and `table` widgets do the same for such properties |
 | `skills` | an object of skill ratings | `ref` (reference list whose items have `attribute`), `attributesPath` (default `attributes`), `min`, `max`, or an inline `skills` list; `levels` (named ratings shown as a select, e.g. `[{ "value": 0, "label": "—" }, { "value": 1, "label": "Proficient" }, { "value": 2, "label": "Expertise" }]`), `labels` (column headings: `skill`, `attribute`, `attributeValue`, `value`, `pool`), `hideZero` (list only rated skills, with a "Show all" toggle) |
 | `talents` | a list of `{ id, count }` picked from a reference list | `ref`, `maxStack` |
 | `conditions`, `gear` | conditions; a gear list with weights | `limitComputed` (a computed limit), `totalComputed` (a computed total shown instead of the gear's own weight, e.g. gear plus weapons), `qty`; `catalog`: the *From the gear list…* picker, see [The gear list](#the-gear-list) |
 | `weapons` | a list of weapons with their stats as columns, an "Add weapon" picker over the module's presets, "From campaign items", "Custom weapon" and inline editing | see [The weapons widget](#the-weapons-widget) |
 | `supply`, `stress` | pips | `supplyMax`, `warnAt` |
-| `computed` | a computed value (read-only) | |
+| `computed` | a computed value (read-only) | `signed: true` shows a number as a modifier: "+2", "−1", "+0" |
 | `dicepool` | a pool shown as a breakdown | `computed` |
 | `ref`, `reflist` | links to other entities | `entityTypes` on the field; `ref` with `pick: "select"`: a dropdown of the campaign's entities of those types (never the sheet's own), `pc: true` for player characters only. A value that is no entity's id (a name typed in an older campaign) shows as typed, with *Link to …* when an entity has that name |
-| `list`, `object`, `table`, `statblock` | nested data, edited by schema | `columns`, `keys`, `valueWidget` |
+| `list`, `object`, `table`, `statblock` | nested data, edited by schema | `columns`, `keys`, `valueWidget`; see [Tables](#tables) |
 | `entries` | a list of named texts (traits, actions, features), read like a stat block ("**Name.** text", Markdown) with an Edit toggle | `nameKey` (default `name`), `textKey` (default `desc`) |
 | `image`, `zonemap` | an image asset; a zone map | |
+
+### Tables
+
+A `table` field is a list of rows with one editable cell per column. `columns` lists row keys, or `{ key, label?, type?, readonly? }`, or a computed column `{ key, label, computed }`: JSONLogic over `{ fields, computed, item }` (the row is `item`), shown read-only and worked out each render (rule 4: a weapon row's to-hit that follows the character's scores). A new row starts from the item schema's defaults, with its required text keys present and empty.
+
+`addFrom` adds a picker beside *Add row* that fills a row from a reference list: `{ ref, label?, where?, row }`, `where` JSONLogic over `{ item }` choosing the items offered, `row` the new row's keys as JSONLogic over `{ item, fields, computed }`. The fifth edition sheet's Attacks table is the example: *Add a weapon* copies the weapon's name, damage and type and the ability it uses, and computed columns show the attack bonus and damage with the character's modifiers; table mode reads the same rows through the combat definition's attack `bonus` and `damageBonus` (see [Declarative d20 combat](tables-procedures.md)).
 
 ### The skills widget and rolling
 

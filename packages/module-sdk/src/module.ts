@@ -16,6 +16,7 @@ import { runProcedure } from "./procedures";
 import { createTableRegistry } from "./tables";
 import { lifecycleConfig, lifecycleConfigIssues } from "./lifecycle";
 import { getPath, logicIssues } from "./logic";
+import { validPageRef } from "./pages";
 import { mapGeneratorIssues } from "./mapgen/check";
 import { attackRanges, planWeaponAttack, weaponListConfig, weaponPresets, weaponRowFrom } from "./weapons";
 import { catalogPresets, gearCatalogConfig, sheetFieldAt } from "./gear";
@@ -89,12 +90,7 @@ class Collector {
 }
 
 function validPage(page: PageRef | undefined): boolean {
-  if (typeof page === "number") return Number.isInteger(page) && page > 0;
-  if (Array.isArray(page) && page.length === 2) {
-    const [a, b] = page;
-    return Number.isInteger(a) && Number.isInteger(b) && a > 0 && b >= a;
-  }
-  return false;
+  return validPageRef(page);
 }
 
 /** A section citation: a short non-empty line of text. */

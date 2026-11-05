@@ -1,3 +1,4 @@
+import { validPageRef } from "@campaign-forge/module-sdk";
 import { useState } from "react";
 import { Button } from "../primitives/Button";
 import { PageRef } from "../primitives/PageRef";
@@ -19,7 +20,7 @@ export function normalizeConditions(value: unknown): ConditionEntry[] {
     else if (isRecord(v) && typeof v.id === "string") {
       const entry: ConditionEntry = { id: v.id, label: typeof v.label === "string" ? v.label : v.id };
       if (typeof v.source === "string") entry.source = v.source;
-      if (typeof v.page === "number" || Array.isArray(v.page)) entry.page = v.page as ConditionEntry["page"];
+      if (validPageRef(v.page)) entry.page = v.page as ConditionEntry["page"];
       out.push(entry);
     }
   }

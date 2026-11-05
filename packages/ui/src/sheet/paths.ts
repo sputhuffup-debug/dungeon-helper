@@ -23,12 +23,23 @@ export function labelFromPath(fieldPath: string): string {
   return humanize(last);
 }
 
+/** Abbreviations a key spells in lower case that read in capitals ("hp" → "HP", "classDc" → "Class DC"). */
+const ABBREVIATIONS = new Set(["hp", "ac", "dc", "xp", "gp", "cr", "npc", "npcs", "pc", "pcs", "gm"]);
+
 export function humanize(key: string): string {
   const spaced = key
     .replace(/[_-]+/g, " ")
     .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
     .trim();
-  return spaced.charAt(0).toUpperCase() + spaced.slice(1).toLowerCase();
+  const sentence = spaced.charAt(0).toUpperCase() + spaced.slice(1).toLowerCase();
+  return sentence
+    .split(" ")
+    .map((w) => {
+      const low = w.toLowerCase();
+      if (!ABBREVIATIONS.has(low)) return w;
+      return low.endsWith("s") && low.length > 2 ? `${low.slice(0, -1).toUpperCase()}s` : low.toUpperCase();
+    })
+    .join(" ");
 }
 
 let counter = 0;

@@ -691,3 +691,6 @@
     grid-template-columns: repeat(5, minmax(40px, 1fr));
   }
 }
+.cb__step-todo {
+  color: var(--cf-warning);
+}

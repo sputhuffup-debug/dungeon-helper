@@ -25,7 +25,7 @@
 - `modifiers`: `when` (JSONLogic, optional) and `add` (number or JSONLogic). A JSONLogic `add` cannot be enumerated, so cover its range with open-ended rows.
 - `gmDecides`: the app shows the row and lets the GM choose.
 - `resultFields`: what a rolled row means at the table, shown with the roll (the roll result dialog, a condition's tooltip): `[{ "path": "effect", "label": "Effect" }, { "path": "fatal", "label": "Lethal", "as": "flag", "tone": "danger" }, { "path": "healingTime", "label": "Healing time", "unit": "days", "valueLabels": { "shift": "one shift" } }]`. `path` reads the row's object `result`; `as: "flag"` shows the label alone when the value is `true`; `unit` follows a value with no `valueLabels` entry. Rows without the field skip it; `module-check` warns about a field no row has.
-- Cite the source with `page` (or `[first, last]`), `cite` for a section, or mark it `original`. Rows may cite their own `page` / `cite`.
+- Cite the source with `page` (or `[first, last]` for a range, or `{ "pages": [27, 158] }` for pages and ranges cited together, which reads "p. 27, 158"), `cite` for a section, or mark it `original`. Rows may cite their own `page` / `cite`.
 - `mode`, `tags`, `notes`, `unverified` as in the contract.
 
 ## Procedures (generators)

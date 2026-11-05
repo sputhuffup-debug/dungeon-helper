@@ -46,7 +46,7 @@ export function SchemaValueEditor({ schema, value, onChange, readonly, label, id
     const str = value === undefined || value === null ? "" : String(value);
     if (readonly) return <span>{(str && (enumLabel(schema, str) ?? str)) || "—"}</span>;
     return (
-      <select id={id} className="cf-select" aria-label={label} value={str} onChange={(e) => onChange(e.target.value === "" ? undefined : e.target.value)}>
+      <select id={id} className="cf-select" aria-label={label} value={str} onChange={(e) => onChange(e.target.value === "" ? undefined : type === "integer" || type === "number" ? Number(e.target.value) : e.target.value)}>
         <option value="">—</option>
         {en.map((v) => (
           <option key={String(v)} value={String(v)}>

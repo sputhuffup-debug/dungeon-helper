@@ -275,8 +275,15 @@ export function readD20Attack(def: D20CombatDef, source: D20AttackSource, item: 
     .map((t) => t.trim().toLowerCase())
     .filter(Boolean);
   const attack: D20Attack = { name: name.trim(), kind, damage: dmg.parts, traits, source: { path: source.path, index } };
-  const bonus = parseD20Bonus(at("bonus"), { ...dataOf(c), item });
+  const bonus = parseD20Bonus(at("bonus"), { ...dataOf(c), item }) ?? (source.bonus !== undefined ? parseD20Bonus(source.bonus, { ...dataOf(c), item }) : undefined);
   if (bonus !== undefined) attack.bonus = bonus;
+  if (source.damageBonus !== undefined && attack.damage[0]) {
+    const extra = d20Number(source.damageBonus, { ...dataOf(c), item });
+    if (extra !== undefined && Math.floor(extra) !== 0) {
+      const n = Math.floor(extra);
+      attack.damage = [{ ...attack.damage[0], dice: `${attack.damage[0].dice}${n > 0 ? "+" : "-"}${Math.abs(n)}` }, ...attack.damage.slice(1)];
+    }
+  }
   if (dmg.note) attack.damageNote = dmg.note;
   const str = (k: keyof NonNullable<D20AttackSource["keys"]>) => {
     const v = at(k);
@@ -1031,6 +1038,10 @@ export function d20CombatIssues(def: D20CombatDef, ctx: D20CombatCheckContext): 
       }
       if (typesSeen.has(t)) err(cw, `entity type "${t}" is in more than one combatant`);
       typesSeen.add(t);
+      for (const a of cb.attacks ?? []) {
+        if (a.bonus !== undefined) logic(a.bonus, cw, `attacks ${a.path} bonus`);
+        if (a.damageBonus !== undefined) logic(a.damageBonus, cw, `attacks ${a.path} damageBonus`);
+      }
       for (const p of [cb.hp?.current, cb.hp?.damage, cb.hp?.temp, cb.damageModifiers, cb.conditionImmunities, ...(cb.attacks ?? []).map((a) => a.path)]) {
         if (p && !ctx.hasPath(t, p)) err(cw, `field "${p}" is not on ${t}`);
       }

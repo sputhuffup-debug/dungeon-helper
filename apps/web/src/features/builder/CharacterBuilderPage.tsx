@@ -8,6 +8,7 @@
  */
 import { builderSteps, evaluateLogic, signed, type CharacterBuilderAbilityStep, type CharacterBuilderDef, type CharacterBuilderStep, type StepState } from "@campaign-forge/module-sdk";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
+import type { BuildSearch } from "../../router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { Badge, Button, EmptyState, PageRef, pushToast } from "../../components/ui";
@@ -15,18 +16,26 @@ import { errorMessage } from "../../lib/format";
 import { useCampaign, useMeta, useRecord } from "../../state/hooks";
 import { AbilitiesView } from "./AbilitiesView";
 import { ChoiceView } from "./ChoiceView";
-import { discardDraft, draftLabel, finishDraft, readDraft, resolveDraft, saveDraft, type StoredDraft } from "./drafts";
+import { discardDraft, draftLabel, finishDraft, newDraft, readDraft, resolveDraft, saveDraft, type StoredDraft } from "./drafts";
 import { FieldsView } from "./FieldsView";
 import { ReviewView } from "./ReviewView";
 import "./builder.css";
 
 const STATUS_LABEL: Record<StepState["status"], string> = { ok: "Done", incomplete: "To do", error: "Needs a fix" };
 
+/** How many choices of a step are still missing a pick. */
+const toChoose = (s: StepState): number => s.issues.filter((i) => i.level === "incomplete").length;
+
 export function CharacterBuilderPage() {
   const ctx = useCampaign();
   const meta = useMeta();
   const search = useSearch({ from: "/c/$campaignId/build" });
-  const stored = useMemo(() => readDraft(meta.settings, search.draft), [meta.settings, search.draft]);
+  // a draft opened from a button is not saved until its first change (`builder` in the address names its builder)
+  const fresh = useMemo(() => {
+    const b = search.builder && search.draft ? ctx.module.characterBuilder(search.builder) : undefined;
+    return b ? newDraft(b, search.entity ? "levelUp" : "create", search.entity, search.draft) : undefined;
+  }, [ctx.module, search.builder, search.draft, search.entity]);
+  const stored = useMemo(() => readDraft(meta.settings, search.draft) ?? fresh, [meta.settings, search.draft, fresh]);
   const builder = stored ? ctx.module.characterBuilder(stored.builder) : undefined;
   if (!stored || !builder) {
     return (
@@ -99,7 +108,8 @@ function Wizard({ initial, builder, stepParam }: { initial: StoredDraft; builder
         const from = d.step ?? stepId;
         return { ...d, step: id, visited: [...new Set([...(d.visited ?? []), ...(from ? [from] : []), id])] };
       });
-      void navigate({ to: "/c/$campaignId/build", params: { campaignId: ctx.campaignId }, search: { draft: initial.id, step: id }, replace: true });
+      // an unsaved draft keeps its builder in the address until the save lands
+      void navigate({ to: "/c/$campaignId/build", params: { campaignId: ctx.campaignId }, search: (prev: BuildSearch) => ({ ...prev, draft: initial.id, step: id }), replace: true });
     },
     [navigate, ctx.campaignId, initial.id, stepId],
   );
@@ -123,8 +133,9 @@ function Wizard({ initial, builder, stepParam }: { initial: StoredDraft; builder
       pushToast(errorMessage(e), { tone: "danger" });
     }
   };
-  const leave = () => {
-    if (!closed.current && pending.current) saveDraft(ctx, pending.current);
+  const leave = (keep = false) => {
+    // Keep for later keeps even a draft nothing was picked in yet
+    if (!closed.current && (pending.current || keep)) saveDraft(ctx, pending.current ?? draft);
     pending.current = undefined;
     if (draft.mode === "levelUp" && draft.entity) void navigate({ to: "/c/$campaignId/entities/$entityId", params: { campaignId: ctx.campaignId, entityId: draft.entity } });
     else void navigate({ to: "/c/$campaignId/atlas", params: { campaignId: ctx.campaignId }, search: { tab: "pcs" } });
@@ -152,7 +163,7 @@ function Wizard({ initial, builder, stepParam }: { initial: StoredDraft; builder
           <span className="cb__progress" aria-label={`${done} of ${visible.length} steps done`}>
             <progress max={visible.length} value={done} /> <span className="cf-muted">{done} of {visible.length} done</span>
           </span>
-          <Button onClick={leave} data-testid="builder-keep">
+          <Button onClick={() => leave(true)} data-testid="builder-keep">
             Keep for later
           </Button>
           <Button variant="ghost" onClick={() => setConfirmDiscard(true)} data-testid="builder-discard">
@@ -172,6 +183,12 @@ function Wizard({ initial, builder, stepParam }: { initial: StoredDraft; builder
                   <span className="cb__step-text">
                     <span className="cb__step-title">{s.title}</span>
                     {s.summary && <span className="cb__step-summary">{s.summary}</span>}
+                    {/* a step that shows a value (a pick made for the player) but still asks for something says so */}
+                    {s.summary && toChoose(s) > 0 && (
+                      <span className="cb__step-summary cb__step-todo" data-testid={`step-todo-${s.id}`}>
+                        {toChoose(s)} still to choose
+                      </span>
+                    )}
                   </span>
                   <span className="cf-sr-only">({STATUS_LABEL[statusOf(s)]})</span>
                 </button>

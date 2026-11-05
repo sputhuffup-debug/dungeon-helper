@@ -31,8 +31,18 @@ export type JsonSchema = Record<string, unknown>;
 
 export type PlayModeId = string;
 
-/** A rulebook page reference. A single page or an inclusive range. */
-export type PageRef = number | [number, number];
+/**
+ * A rulebook page reference: a single page, an inclusive range, or a list of
+ * either when the book covers a subject in separate places
+ * (`{ "pages": [27, 158] }` reads "p. 27, 158"; `{ "pages": [27, [44, 46]] }`
+ * "p. 27, 44–46"). `[a, b]` is always a range.
+ */
+export type PageRef = number | [number, number] | PageList;
+
+/** Several pages or ranges cited together (see `PageRef`). */
+export interface PageList {
+  pages: Array<number | [number, number]>;
+}
 
 /**
  * A citation that is not a page number, for sources cited by section (e.g.
@@ -2906,6 +2916,19 @@ export interface D20AttackSource {
   kind?: D20AttackKind;
   /** Item keys that differ from the convention, e.g. `{ "kind": "type" }`. */
   keys?: Partial<Record<"name" | "kind" | "bonus" | "damage" | "damageType" | "traits" | "reach" | "range" | "save" | "onHit" | "effect" | "ability", string>>;
+  /**
+   * The attack bonus of an item that states none: JSONLogic over
+   * `{ fields, computed, item }` (e.g. the ability modifier plus proficiency
+   * for the weapon the row names). A number, or nothing for "no bonus known".
+   * Lets a sheet keep weapon rows whose to-hit follows the character (rule 4).
+   */
+  bonus?: JsonLogicRule;
+  /**
+   * A flat number added to the item's first damage part: JSONLogic over
+   * `{ fields, computed, item }` (e.g. the ability modifier for a row that
+   * names its ability). 0 or nothing adds nothing.
+   */
+  damageBonus?: JsonLogicRule;
 }
 
 /** How the app reads one or more entity types as combatants. Rules are JSONLogic over `{ fields, computed }`. */

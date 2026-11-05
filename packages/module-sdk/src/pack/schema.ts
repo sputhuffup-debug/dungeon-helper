@@ -232,7 +232,19 @@ const httpUrl = str({ pattern: "^https?://", maxLength: 2000 });
 
 const definitions: Record<string, JsonSchema> = {
   id: str({ minLength: 1, maxLength: 200, pattern: ID_PATTERN }),
-  page: { anyOf: [int({ minimum: 1 }), list(int({ minimum: 1 }), { minItems: 2, maxItems: 2 })], description: "A page, or an inclusive [first, last] range." },
+  page: {
+    anyOf: [
+      int({ minimum: 1 }),
+      list(int({ minimum: 1 }), { minItems: 2, maxItems: 2 }),
+      {
+        type: "object",
+        properties: { pages: list({ anyOf: [int({ minimum: 1 }), list(int({ minimum: 1 }), { minItems: 2, maxItems: 2 })] }, { minItems: 1 }) },
+        required: ["pages"],
+        additionalProperties: false,
+      },
+    ],
+    description: "A page, an inclusive [first, last] range, or { pages: [...] } for pages and ranges cited together (\"p. 27, 158\").",
+  },
   cite: str({ minLength: 1, maxLength: 200, description: "A section citation, e.g. \"SRD 5.1, Conditions\"." }),
   modes: list(ref("id")),
   tone: oneOfValues<RollTone>()(ROLL_TONES),
@@ -685,6 +697,8 @@ const definitions: Record<string, JsonSchema> = {
         additionalProperties: false,
         description: "Item keys that differ from the attack convention.",
       },
+      bonus: { ...logic, description: "The attack bonus of an item that states none: JSONLogic over { fields, computed, item }." },
+      damageBonus: { ...logic, description: "A flat number added to the item's first damage part: JSONLogic over { fields, computed, item }." },
     },
     ["path"],
   ),

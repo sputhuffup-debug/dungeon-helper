@@ -363,6 +363,11 @@ describe("grants, sub-choices and validation", () => {
     // a third pick drops the oldest
     d = togglePick(d, skills, "stealth");
     expect(d.picks["class/skills"]).toEqual(["history", "stealth"]);
+    // ... unless a pick is no longer available: that one makes room
+    const blocked = { ...skills, options: skills.options.map((o) => ({ ...o, available: o.id !== "stealth" })) };
+    expect(togglePick(d, blocked, "arcana").picks["class/skills"]).toEqual(["history", "arcana"]);
+    // and an unavailable pick can still be unpicked
+    expect(togglePick(d, blocked, "stealth").picks["class/skills"]).toEqual(["history"]);
     // too many (typed into the draft) is an error
     res = resolveCharacterBuilder(M, builder, { ...d, picks: { ...d.picks, "class/skills": ["arcana", "history", "stealth"] } });
     expect(res.issues.some((i) => i.level === "error" && /choose at most 2/.test(i.message))).toBe(true);

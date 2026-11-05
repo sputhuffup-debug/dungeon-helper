@@ -1,5 +1,6 @@
 /** Campaign Forge module SDK: the GameModule contract plus its runtime. */
 export * from "./types";
+export * from "./pages";
 export * from "./arcs";
 export * from "./recap";
 export * from "./setup";

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useSheetContext } from "../context";
 import { Button } from "../primitives/Button";
 import { cx } from "../sheet/paths";
+import { schemaType } from "./SchemaValueEditor";
 import type { WidgetProps } from "./types";
 import { resolveOptions } from "./types";
 
@@ -10,6 +11,8 @@ export function SelectField({ id, value, onChange, readonly, invalid, field, sch
   const options = resolveOptions(field, schema, referenceLists, mode);
   const str = value === undefined || value === null ? "" : String(value);
   const current = options.find((o) => o.value === str);
+  // a number field with labelled values (a proficiency rank) stores the number
+  const numeric = schemaType(schema) === "integer" || schemaType(schema) === "number";
   if (readonly) return <div className="cf-field__readonly">{(current?.label ?? str) || <span className="cf-muted">—</span>}</div>;
   return (
     <select
@@ -17,7 +20,7 @@ export function SelectField({ id, value, onChange, readonly, invalid, field, sch
       className={cx("cf-select", invalid && "cf-select--invalid")}
       value={str}
       aria-invalid={invalid || undefined}
-      onChange={(e) => onChange(e.target.value === "" ? undefined : e.target.value)}
+      onChange={(e) => onChange(e.target.value === "" ? undefined : numeric ? Number(e.target.value) : e.target.value)}
     >
       <option value="">—</option>
       {!current && str !== "" && <option value={str}>{str}</option>}

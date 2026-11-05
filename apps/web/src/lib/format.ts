@@ -32,11 +32,17 @@ export const ADVENTURE_STATUS_LABELS: Record<"planned" | "active" | "done", stri
 export const SCENE_STATUS_LABELS: Record<"planned" | "run" | "skipped", string> = { planned: "Planned", run: "Run", skipped: "Skipped" };
 export const HANDOUT_KIND_LABELS: Record<"text" | "image" | "card" | "agenda", string> = { agenda: "Agenda card", text: "Text", card: "Card", image: "Image" };
 
+/** Abbreviations a key spells in lower case that read in capitals ("hp" → "HP", "classDc" → "Class DC"). */
+const ABBREVIATIONS = new Set(["hp", "ac", "dc", "xp", "gp", "cr", "npc", "npcs", "pc", "pcs", "gm"]);
+
 export function humanize(key: string): string {
   const spaced = key
     .replace(/[_-]+/g, " ")
     .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
-    .trim();
+    .trim()
+    .split(" ")
+    .map((w) => (ABBREVIATIONS.has(w.toLowerCase()) ? (w.toLowerCase().endsWith("s") && w.length > 2 ? `${w.slice(0, -1).toUpperCase()}s` : w.toUpperCase()) : w))
+    .join(" ");
   return spaced.charAt(0).toUpperCase() + spaced.slice(1);
 }
 

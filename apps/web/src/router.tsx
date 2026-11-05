@@ -100,6 +100,10 @@ const newEntityRoute = createRoute({
 export interface BuildSearch {
   draft?: string;
   step?: string;
+  /** A draft not saved yet: its builder (saved on the first change, so a visit that changes nothing leaves no draft behind). */
+  builder?: string;
+  /** With `builder`: the character a new level-up draft is for. */
+  entity?: string;
 }
 
 const buildRoute = createRoute({
@@ -107,7 +111,7 @@ const buildRoute = createRoute({
   path: "build",
   validateSearch: (search: Record<string, unknown>): BuildSearch => {
     const out: BuildSearch = {};
-    for (const k of ["draft", "step"] as const) if (typeof search[k] === "string" && search[k] !== "") out[k] = search[k] as string;
+    for (const k of ["draft", "step", "builder", "entity"] as const) if (typeof search[k] === "string" && search[k] !== "") out[k] = search[k] as string;
     return out;
   },
   component: lazyRouteComponent(() => import("./features/builder/CharacterBuilderPage"), "CharacterBuilderPage"),
