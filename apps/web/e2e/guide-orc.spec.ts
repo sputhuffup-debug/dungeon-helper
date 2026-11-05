@@ -36,8 +36,6 @@ test("ORC guide: from a new campaign's Home, its Look it up and Take me there li
   test.setTimeout(120_000);
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
-  const consoleErrors: string[] = []; // DIAGNOSTIC (temporary)
-  page.on("console", (m) => { if (m.type() === "error") consoleErrors.push(m.text().slice(0, 1500)); });
   await page.setViewportSize({ width: 1440, height: 1000 });
   await newOrcCampaign(page, "The Wardens of Mossford");
 
@@ -69,27 +67,14 @@ test("ORC guide: from a new campaign's Home, its Look it up and Take me there li
   await expect(page.locator("tr.is-target")).toContainText("Halfling Street Watcher");
   await page.goBack();
   await expect(page).toHaveURL(/\/guide$/);
+  // leaving the Presets tab must not break the page (a stray effect cleanup once did, on newer Chrome)
+  await expect(page.getByTestId("guide")).toBeVisible();
 
   // "Open the quest" waits for a quest: none yet
   await expect(takeMeThere(page, "A quest from the quest board").getByRole("link", { name: "Open the quest" })).toHaveCount(0);
 
   // Take me there: the settlement generator; its local trouble lands on the quest board
-  const rollLink = takeMeThere(page, "Or roll a settlement and its tavern").getByRole("link", { name: "Roll a settlement" });
-  try {
-    await expect(rollLink).toBeVisible({ timeout: 15_000 });
-  } catch (e) {
-    // DIAGNOSTIC (temporary): what the page shows when the link is missing
-    console.log("URL", page.url());
-    const t0 = Date.now();
-    const text = await Promise.race([page.evaluate(() => `articles=${document.querySelectorAll("article").length} title=${document.title}\n${document.body.innerText.slice(0, 3000)}`), new Promise<string>((r) => setTimeout(() => r("EVALUATE HUNG"), 5000))]);
-    console.log(`after ${Date.now() - t0} ms:`, text);
-    await page.getByRole("button", { name: "Show Error" }).click({ timeout: 3000 }).catch(() => {});
-    console.log("SHOWN:", await page.evaluate(() => document.body.innerText.slice(0, 3000)));
-    console.log("PAGEERRORS:", JSON.stringify(errors));
-    console.log("CONSOLE ERRORS:\n" + consoleErrors.join("\n---\n"));
-    throw e;
-  }
-  await rollLink.click();
+  await takeMeThere(page, "Or roll a settlement and its tavern").getByRole("link", { name: "Roll a settlement" }).click();
   await expect(page).toHaveURL(/\/generate\/pf2e-orc\.proc\.settlement$/);
   await page.getByTestId("seed").fill("mossford-7");
   await expect(page.getByTestId("step-result-trouble")).toHaveText("Livestock vanish at night");
