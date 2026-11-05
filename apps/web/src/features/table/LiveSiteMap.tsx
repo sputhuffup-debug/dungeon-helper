@@ -31,7 +31,7 @@ import {
   setZoneFlag,
   startLive,
   updateToken,
-  zoneNumbers,
+  zoneLabels,
   type Entity,
   type Id,
   type Scene,
@@ -63,12 +63,6 @@ const TOOLS: Array<{ id: LiveTool; label: string; hint: string }> = [
 
 const THREAT_TOOL: { id: LiveTool; label: string; hint: string } = { id: "threat", label: "Move threat", hint: "Pick a hidden threat in the panel below, then click the zone it moves to." };
 
-function zoneName(z: MapZoneData | undefined, n: number | undefined): string {
-  if (!z) return "?";
-  const name = z.name ?? (z.layer === "duct" ? "Duct" : z.kind.replace(/-/g, " "));
-  return n !== undefined ? `${n} ${name}` : name;
-}
-
 function flagTarget(e: MapLegendEntry): { flag: string; value: unknown } | undefined {
   return "flag" in e.target ? { flag: e.target.flag, value: e.target.value ?? true } : undefined;
 }
@@ -97,9 +91,10 @@ export function LiveSiteMap({
   const layout = map.layout!;
   const live = liveOf(map);
   const legend = def?.legend ?? [];
-  const numbers = useMemo(() => zoneNumbers(layout), [layout]);
+  // one label per zone that tells same-named corridors apart ("Tunnel by 2 Entrance")
   const byId = useMemo(() => new Map(layout.zones.map((z) => [z.id, z])), [layout]);
-  const label = (id: string) => zoneName(byId.get(id), numbers.get(id));
+  const labels = useMemo(() => zoneLabels(layout), [layout]);
+  const label = (id: string) => labels.get(id) ?? "?";
   const maxAct = maxActOf(layout);
 
   // start live play the first time the map is on the table

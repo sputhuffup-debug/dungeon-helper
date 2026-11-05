@@ -2070,8 +2070,25 @@ export interface SessionEndContext {
   trackerState: Record<string, unknown>;
 }
 
+/** What the table clock just did, for `ModuleHooks.onClockAdvance`. */
+export interface ClockAdvanceContext {
+  mode: PlayModeId;
+  /** The clock units whose counter went up (e.g. `["round"]`, or `["round", "stretch"]` when a round rolled a stretch over). */
+  units: string[];
+  /** Every unit's counter after the advance. */
+  counters: Record<string, number>;
+  /** The campaign's entities that carry conditions, with their condition ids. */
+  entities: Array<{ id: string; name: string; type: string; fields: Record<string, unknown>; conditions: string[] }>;
+}
+
 export interface ModuleHooks {
   onSessionEnd?(ctx: SessionEndContext): Prompt[];
+  /**
+   * The table clock moved on: prompts for what that calls for (e.g. a death
+   * roll every round for a lethal injury). Shown at the table like any
+   * other prompt; answering applies the chosen option's effects.
+   */
+  onClockAdvance?(ctx: ClockAdvanceContext): Prompt[];
   onEntityChange?(ctx: { mode: PlayModeId }, entity: { id: string; type: string; fields: Record<string, unknown> }): Effect[];
 }
 
@@ -2702,6 +2719,12 @@ export interface CombatHealthDef {
    * dice operation for the entity instead of rolling `table` directly (so the operation's effects apply).
    */
   broken?: Array<{ when?: JsonLogicRule; table: string; label?: string; operation?: string }>;
+  /**
+   * What being at zero health means for what the character can still do,
+   * paraphrased (e.g. "only one move action a round"). The app shows it
+   * beside a roll made for a character who is down.
+   */
+  brokenNote?: { text: string; page?: PageRef; rule?: string };
   page?: PageRef;
 }
 
@@ -3018,6 +3041,26 @@ export interface D20ConditionDef {
 }
 
 /** What happens to a combatant whose hit points drop to 0 (the first rule whose `when` matches applies). */
+/** See `D20ZeroHpRule.deathSaves`. */
+export interface D20DeathSaves {
+  /** Sheet field paths of the two counters. */
+  successes: string;
+  failures: string;
+  /** How many of either settle it: that many successes stabilise, that many failures kill (default 3). */
+  max?: number;
+  /** A total at or above this succeeds (default 10). */
+  dc?: number;
+  /** Failures for damage taken while down (default 1), and for a critical hit (default 2). */
+  damageFailures?: number;
+  criticalFailures?: number;
+  /** Failures a natural 1 counts as (default 1). */
+  natural1Failures?: number;
+  /** Hit points a natural 20 brings back (the rule's `recover` then applies); absent: a natural 20 is a plain success. */
+  natural20Heals?: number;
+  /** Damage while down (or left over when dropping to 0) of at least the hit point maximum kills outright. */
+  massiveDamage?: boolean;
+}
+
 export interface D20ZeroHpRule {
   /** JSONLogic over `{ kind, type, fields, computed }` (`kind`: the entity type's core kind); absent: every combatant. */
   when?: JsonLogicRule;
@@ -3027,6 +3070,13 @@ export interface D20ZeroHpRule {
   defeated?: boolean;
   /** When hit points rise above 0 again: conditions removed, conditions added (value as above), fields set. */
   recover?: { remove?: string[]; conditions?: Array<{ id: string; value?: number | JsonLogicRule }>; setFields?: Record<string, number | string | boolean> };
+  /**
+   * Death saves while at 0 hit points (e.g. the fifth edition's): the sheet
+   * counters they keep, damage taken while down as failures, and the save
+   * itself, a d20 with no modifier that the combat card offers. Without it
+   * the GM keeps any such count by hand (`text`).
+   */
+  deathSaves?: D20DeathSaves;
   /** The rule in the module's words (what the GM still does by hand: death saves, recovery checks). */
   text: string;
   page?: PageRef;
@@ -3322,6 +3372,14 @@ export interface EntitySnapshot {
   name: string;
   type: string;
   fields: Record<string, unknown>;
+  /**
+   * The entity's payout already on the ledger, when one is (the module's
+   * `LedgerDef.payouts` button, e.g. a job's payment collected in the
+   * wrap-up, or an idempotent posting keyed `<category>:<entity id>`): its
+   * amount and key, so a procedure does not count that money again. Filled
+   * by the app when the entity is picked as an input.
+   */
+  paidOut?: { amount: number; key?: string };
 }
 
 /**
@@ -3633,6 +3691,13 @@ export interface AwardContext {
   referencedBy?: Record<string, number>;
   /** The session's tracker state (e.g. a panic log), empty outside a session. */
   trackerState: Record<string, unknown>;
+  /**
+   * Money the session brought in, in the ledger's currency: positive ledger
+   * entries on the shared account or this character's own that are linked to
+   * the session or pay for a record closed in its wrap-up (a job's payment).
+   * Absent outside a session.
+   */
+  income?: number;
 }
 
 /** One line of the end-of-session (or end-of-act) award checklist. */

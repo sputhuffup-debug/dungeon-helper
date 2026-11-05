@@ -87,9 +87,11 @@ export function takeHit(ctx: Ctx, sessionId: Id, entityId: Id, req: HitRequest):
     const seed = nextRollSeed(store, sessionId);
     const out = applyDamage(store, ctx.module, entityId, req.amount, { rng: createRng(seed), ...hitOptions(req) });
     const label = `${entity.name} takes a hit${req.by ? ` (${req.by})` : ""}`;
-    const data: DiceLogData = { kind: "damage", seed, label, total: out.result.damage, ...(out.result.rolls?.length ? { rolls: out.result.rolls } : {}), gmOnly: true };
+    const data: DiceLogData = { kind: "damage", seed, label, total: out.result.damage, ...(out.result.rolls?.length ? { rolls: out.result.rolls } : {}), ...(out.newlyBroken ? { broken: true } : {}), gmOnly: true };
     const health = `Health ${out.after.remaining}/${out.after.max}${out.after.broken ? ", broken" : ""}`;
-    appendTrackerLog(store, sessionId, { tracker: DICE_LOG, text: `${label}: ${out.result.damage} damage. ${out.result.explain}. ${health}`, entity: entity.id, data });
+    // the module's explanation may end its own sentence: one full stop
+    const explain = out.result.explain.trim().replace(/[.!?…]+$/, "");
+    appendTrackerLog(store, sessionId, { tracker: DICE_LOG, text: `${label}: ${out.result.damage} damage. ${explain ? `${explain}. ` : ""}${health}`, entity: entity.id, data });
     const reaction = damageReaction(ctx.module, entity, out.result.damage, req.source);
     return { ...out, entity: store.get("entities", entityId)!, seed, ...(reaction ? { reaction } : {}) };
   });

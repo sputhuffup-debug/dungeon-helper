@@ -113,7 +113,7 @@ A procedure's `inputs` is a JSON Schema; the workbench builds its form from it a
 
 | Hint | The app passes |
 |---|---|
-| `"x-entity": { "types": ["my-pack.ship"], "setting": "ship" }` | One entity picked from a list, as `{ id, name, type, fields }`, pre-filled from the campaign setting `setting`. |
+| `"x-entity": { "types": ["my-pack.ship"], "setting": "ship" }` | One entity picked from a list, as `{ id, name, type, fields }`, pre-filled from the campaign setting `setting`. When the entity's payout is already on the ledger (its `ledger.payouts` button was pressed, e.g. a job's payment collected in the wrap-up), the snapshot also carries `paidOut: { amount, key }`, so the procedure does not post or count that money again. |
 | `"x-campaign": { "kinds"?, "types"?, "fields"?, "relationships"? }` | A snapshot of the campaign: `{ entities: [{ id, name, type, kind, subtype?, pc?, tags, fields? }], relationships: [{ type, from, to }] }`, sorted by name. Only ids, names, kinds, tags and the scalar `fields` you list (e.g. `["career", "android"]`) are copied, never text; `kinds`/`types` and `relationships` filter it. It is read when the page opens. |
 | `"x-adventure": {}` | An adventure picked from a list (the campaign's only one by default, or the one the page was opened for): `{ id, title, premise, situation, fields, acts: [{ number, title, goal, fields }], cast: { role: [ids] }, rooms }`, with the hidden situation as plain text, string narrative fields only and the named rooms of the adventure's site maps. Per-character inputs (arrays whose items have `id` and `name`) are filled from that adventure's PCs. |
 

@@ -5,12 +5,13 @@
  * whole run step by step), a preview of what will be created, accept into
  * the campaign, chained procedures and recent runs.
  *
- * The page is the procedure's draft (core `GeneratorDraft`): once the GM
- * changes something (a re-roll, a pin, an edit, an accept), the seed, inputs,
- * re-rolls, pins, entered dice and the GM's edits are saved to the campaign
- * as they change, so leaving and coming back (or reloading) shows the same
- * deal; a deal nobody touched is not kept, so the next visit reads the
- * campaign afresh. "New deal" deals a fresh one. A search that asks for a run
+ * The page is the procedure's draft (core `GeneratorDraft`): a deal is kept
+ * in the campaign as soon as it is dealt (the GM may have read it out at the
+ * table), then the seed, inputs, re-rolls, pins, entered dice and the GM's
+ * edits are saved as they change, so leaving and coming back (or reloading)
+ * shows the same deal. A past run reopened (`?run=`) is kept once the GM
+ * changes it (the run itself is already in the campaign). "New deal" deals
+ * a fresh one. A search that asks for a run
  * (`?run=`, `?chainFrom=`, `?pick=`) starts a new draft unless the draft
  * already came from it; `?deal=` deals afresh and is dropped from the
  * address at once (the page stays as dealt). A kept draft remembers what the campaign
@@ -157,7 +158,7 @@ function useInitial(procedure: Procedure, search: ProcedureSearch): Initial {
     const inputs0 = initialInputs(procedure, ctx.store, ctx.module, { docText, picked });
     const now = { inputs: inputs0, context: campaignContext(procedure, inputs0, ctx.store.meta().settings ?? {}) };
     const mine = !search.deal && existing && (source === undefined || existing.source === source) ? existing : undefined;
-    // an old draft nobody touched (kept before untouched deals were left unsaved): read the campaign again, same seed
+    // an old draft nobody touched from before drafts kept their campaign: read the campaign again, same seed (kept again as dealt)
     const untouched = mine && !mine.context && !draftHasWork(mine) && !mine.accepted;
     // reopen the draft unless a fresh deal was asked for, or the search asks for something the draft did not come from
     if (mine && !untouched) return fromDraft(ctx, procedure, mine, search, now);
@@ -262,7 +263,7 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
     return out;
   }, [procedure.id, ctx.module, seed, inputs, stepSeeds, stepDice, pinned, pinnedRolls, partSeeds, pinnedParts, includeOptional, within, edits, longEdits, names, unticked, moveClocks, clockSeed, initial.source, offerKeys, acceptMark, context]);
   const pendingSave = useRef<(() => void) | undefined>(undefined);
-  /** The deal is in the campaign (a reopened draft, or one the GM changed since). */
+  /** The deal is in the campaign (a reopened draft, or one dealt here; a restored run once changed). */
   const kept = useRef(!!initial.draft);
   /** The deal as it opened (and as the page itself changed it, e.g. an adventure's text loading): changing it keeps the draft. */
   const baseline = useRef<string | undefined>(undefined);
@@ -299,11 +300,17 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
   useEffect(() => {
     const json = JSON.stringify(draftInput);
     if (baseline.current === undefined || pageChange.current) {
+      const opening = baseline.current === undefined;
       baseline.current = json;
       pageChange.current = false;
+      // a deal is kept as soon as it is dealt: coming back shows it as dealt, never a different one
+      if (opening && !kept.current && !initial.restoredFrom) {
+        lastAccept.current = acceptMark;
+        keepNow();
+      }
       return;
     }
-    // nothing kept until the GM changes the deal: an untouched deal reads the campaign afresh next time
+    // a restored run is kept once the GM changes it
     if (!kept.current) {
       if (json === baseline.current) return;
       lastAccept.current = acceptMark;
@@ -594,7 +601,7 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
           <Button onClick={() => (draftHasWork(liveDraft) && !accepted ? setAskNewDeal(true) : newDeal())} data-testid="new-deal" title="Deal this procedure afresh: a new seed, inputs read from the campaign again. What you accepted stays.">
             New deal
           </Button>
-          <span className="cf-muted app-small" data-testid="draft-status" data-state={!isKept ? "unkept" : saved ? "saved" : "saving"} title={isKept ? undefined : "A deal you have not changed is not kept: coming back reads the campaign afresh."}>
+          <span className="cf-muted app-small" data-testid="draft-status" data-state={!isKept ? "unkept" : saved ? "saved" : "saving"} title={isKept ? undefined : "A past run you have not changed is not kept as a draft: it stays in Recent runs."}>
             {!isKept ? "Kept once you change it" : saved ? "Draft kept in the campaign" : "Saving the draft…"}
           </span>
         </div>
@@ -863,8 +870,7 @@ function Workbench({ procedure, search }: { procedure: Procedure; search: Proced
           {accepted && !drafts && !longDrafts && !offers && (
             <>
               {accepted.produced.length === 0 && <ResultsPanel results={accepted.results} runId={accepted.id} {...(appliedNow ? { applied: appliedNow } : {})} />}
-              {isBetweenJobs && <NextAfterBetweenJobs />}
-              <ChainButtons run={accepted} />
+              {isBetweenJobs ? <NextAfterBetweenJobs run={accepted} /> : <ChainButtons run={accepted} />}
             </>
           )}
         </aside>
@@ -881,8 +887,8 @@ function acceptLabel(effects: number, clocks: boolean): string {
   return parts.length ? `Accept and ${parts.join(" and ")}` : "Accept into campaign";
 }
 
-/** After between jobs: deal the next board of offers (the arcs' board), plan the next session. */
-function NextAfterBetweenJobs() {
+/** After between jobs: deal the next board of offers (the arcs' board), the run's other chained procedures (shore leave), plan the next session; once each. */
+function NextAfterBetweenJobs({ run }: { run: GeneratorRun }) {
   const ctx = useCampaign();
   const meta = useMeta();
   const navigate = useNavigate();
@@ -916,6 +922,8 @@ function NextAfterBetweenJobs() {
           </Button>
         )}
       </div>
+      {/* the chained board would be a second "deal the next board" */}
+      <ChainButtons run={run} {...(board ? { exclude: [board.id] } : {})} />
     </Card>
   );
 }

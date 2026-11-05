@@ -16,6 +16,7 @@ import {
   awardRowsFor,
   entityAdvances,
   poolOf,
+  actTickKey,
   postActAward,
   postSessionAwards,
   progressionOf,
@@ -74,7 +75,11 @@ function SessionAwards({ sessionId, pcs, questions }: { sessionId: Id; pcs: Enti
   const ctx = useCampaign();
   const { mode } = useMeta();
   const log = useList("advancement");
-  const rows = useMemo(() => Object.fromEntries(pcs.map((pc) => [pc.id, awardRowsFor(ctx, pc, sessionId, "session")])) as Record<Id, AwardRow[]>, [ctx, pcs, sessionId]);
+  // the ledger and the session feed suggestions (income collected in this wrap-up, a panic roll)
+  const ledger = useList("ledger");
+  const session = useRecord("sessions", sessionId);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const rows = useMemo(() => Object.fromEntries(pcs.map((pc) => [pc.id, awardRowsFor(ctx, pc, sessionId, "session")])) as Record<Id, AwardRow[]>, [ctx, pcs, sessionId, ledger, session]);
   const posted = useMemo(() => Object.fromEntries(pcs.map((pc) => [pc.id, sessionAwardsOf(ctx, sessionId, pc.id)])), [ctx, pcs, sessionId, log]);
   // the ticks the GM left in the wrap-up's draft, else those the log answers
   const [ticks, setTicks] = useState<Record<Id, string[]>>(() => {
@@ -111,7 +116,7 @@ function SessionAwards({ sessionId, pcs, questions }: { sessionId: Id; pcs: Enti
   return (
     <Card
       title="Experience"
-      subtitle="Tick each question a player can answer yes to. The group talks it through; the GM has the final say."
+      subtitle="Tick each question a player can answer yes to. The group talks it through; the GM has the final say. Finishing the session awards what is ticked."
       actions={
         <Button variant="primary" onClick={award} disabled={pending.length === 0} data-testid="award-xp">
           Award
@@ -199,8 +204,14 @@ function ActAwards({ sessionId, pcs, questions }: { sessionId: Id; pcs: Entity[]
   useList("advancement");
   const acts = useMemo(() => sessionActs(ctx, session), [ctx, session]);
   const pool = poolOf(ctx.module, mode, questions[0]?.pool ?? "story");
-  const [ticks, setTicks] = useState<Set<string>>(new Set());
-  const cellKey = (act: SessionAct, pcId: Id, q: string) => `${act.adventure ?? ""}|${act.number}|${pcId}|${q}`;
+  // kept in the wrap-up's draft, so finishing the session awards them (see postWrapUpAwards)
+  const [ticks, setTicksState] = useState<Set<string>>(() => new Set(wrapUpDraftOf(ctx.store.get("sessions", sessionId)).actTicks ?? []));
+  const setTicks = (update: (t: Set<string>) => Set<string>) => {
+    const next = update(ticks);
+    setTicksState(next);
+    saveWrapUpDraft(ctx, sessionId, { actTicks: [...next] });
+  };
+  const cellKey = (act: SessionAct, pcId: Id, q: string) => actTickKey(act, pcId, q);
   const award = () => {
     try {
       let n = 0;
@@ -211,7 +222,7 @@ function ActAwards({ sessionId, pcs, questions }: { sessionId: Id; pcs: Entity[]
             postActAward(ctx, { character: pc.id, act, question: q.id, sessionId });
             n++;
           }
-      setTicks(new Set());
+      setTicks(() => new Set());
       pushToast(`${n} ${pool?.label ?? "award"}${n === 1 ? "" : "s"} awarded.`, { tone: "success" });
     } catch (e) {
       pushToast(`Could not post the awards: ${errorMessage(e)}`, { tone: "danger" });
@@ -221,7 +232,7 @@ function ActAwards({ sessionId, pcs, questions }: { sessionId: Id; pcs: Entity[]
   return (
     <Card
       title={pool?.name ?? pool?.label ?? "Awards"}
-      subtitle="At the end of each act. Already awarded acts are ticked and locked."
+      subtitle="At the end of each act. Already awarded acts are ticked and locked; finishing the session awards what is ticked."
       actions={
         <Button variant="primary" onClick={award} disabled={pendingCount === 0} data-testid="award-acts">
           Award {pool?.label ?? ""}

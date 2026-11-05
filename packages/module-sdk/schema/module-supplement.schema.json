@@ -2917,6 +2917,52 @@
           },
           "additionalProperties": false
         },
+        "deathSaves": {
+          "type": "object",
+          "properties": {
+            "successes": {
+              "type": "string",
+              "minLength": 1
+            },
+            "failures": {
+              "type": "string",
+              "minLength": 1
+            },
+            "max": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "dc": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "damageFailures": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "criticalFailures": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "natural1Failures": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "natural20Heals": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "massiveDamage": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "successes",
+            "failures"
+          ],
+          "additionalProperties": false,
+          "description": "Death saves while at 0 hit points: the sheet counters, damage while down as failures, and the save the combat card offers."
+        },
         "text": {
           "type": "string",
           "minLength": 1

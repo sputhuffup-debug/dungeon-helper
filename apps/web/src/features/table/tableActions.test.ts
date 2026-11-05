@@ -7,6 +7,8 @@ import { openCampaign, type CampaignContextValue } from "../../state/CampaignPro
 import { awardRowsFor, postSessionAwards, sessionAwardsOf } from "../../state/progressionActions";
 import {
   DICE_LOG,
+  advanceTableClock,
+  setClockState,
   answerPrompt,
   appendLogLine,
   finishSession,
@@ -251,4 +253,43 @@ describe("demo campaign loader", () => {
     expect(playerCharacters(ctx)).toHaveLength(4);
     expect(ctx.store.list("sessions").find((s) => s.status === "planned")?.nextPlan.length).toBeGreaterThan(0);
   }, 60_000);
+});
+
+describe("the table clock asks for what a unit calls for (hooks.onClockAdvance)", () => {
+  it("passes the units that moved, the counters and the entities with conditions; nothing when no unit moved", async () => {
+    const ctx = await open(await createCampaign({ name: "Clock hook", moduleId: "example" }));
+    const seen: Array<{ units: string[]; counters: Record<string, number>; names: string[] }> = [];
+    const hooks = ctx.module.module.hooks!;
+    const before = hooks.onClockAdvance;
+    hooks.onClockAdvance = (c) => {
+      seen.push({ units: c.units, counters: c.counters, names: c.entities.map((e) => e.name) });
+      return [{ id: `remind:${c.counters.turn}`, kind: "yesno", text: "Remember the bleeding" }];
+    };
+    try {
+      const hurt = createEntity(ctx, { type: "example.hero", name: "Aud", fields: { isPC: true } });
+      ctx.store.update("entities", hurt.id, { conditions: [{ id: "bleeding", label: "Bleeding", since: new Date().toISOString() }] });
+      createEntity(ctx, { type: "example.hero", name: "Bo", fields: { isPC: true } });
+      const session = runningSession(ctx);
+      const def = { id: "example.test-clock", name: "Clock", kind: "clock", scope: "session", config: { units: [{ id: "turn", name: "Turn", minutes: 1 }, { id: "watch", name: "Watch", minutes: 60 }] } } as const;
+      expect(setClockState(ctx, session.id, def, { counters: { turn: 1, watch: 0 } }).map((p) => p.id)).toEqual(["remind:1"]);
+      expect(seen.at(-1)).toEqual({ units: ["turn"], counters: { turn: 1, watch: 0 }, names: ["Aud"] });
+      // going back a unit asks nothing
+      expect(setClockState(ctx, session.id, def, { counters: { turn: 0, watch: 0 } })).toEqual([]);
+      expect(seen).toHaveLength(1);
+    } finally {
+      hooks.onClockAdvance = before;
+    }
+  }, 30_000);
+
+  // Walkthrough 3 (A14): + Round did not prompt the death roll of a lethal critical injury
+  it("Alien: + Round prompts the death roll of a lethal critical injury", async () => {
+    const ctx = await open(alienCampaign);
+    const desmond = pc(ctx, "Desmond");
+    ctx.store.update("entities", desmond.id, { conditions: [{ id: "critical-injury:63", label: "Massive Hemorrhage", since: new Date().toISOString() }] });
+    const session = runningSession(ctx);
+    const clock = ctx.module.forMode("campaign").trackers.find((t) => t.kind === "clock")!;
+    const prompts = advanceTableClock(ctx, session.id, clock, "round");
+    expect(prompts.find((p) => p.entity === desmond.id)?.text).toContain("Massive Hemorrhage is lethal");
+    ctx.store.update("entities", desmond.id, { conditions: [] });
+  }, 30_000);
 });

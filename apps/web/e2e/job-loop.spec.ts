@@ -111,13 +111,16 @@ test("job loop: take a job, run it, play it with its site map and NPCs, close it
   await close.getByTestId("payout").click();
   await expect(close.getByTestId("payout-posted")).toBeVisible();
   await wrap.getByTestId("finish-session").click();
+  // the award checklist's ticks (Award was never pressed) are awarded on finishing
+  await expect(page.getByText(/wrapped up.*Awarded: .*\+\d+ XP/)).toBeVisible();
 
   // 5. Finish lands on Between jobs with the job picked; accepting applies the effects and moves the clocks in one go
   await expect(page).toHaveURL(new RegExp(`/generate/alien\\.between-jobs\\?pick=job(%3A|:)${jobId}`));
   await expect(page.getByTestId("input-job")).not.toHaveValue("");
   const picker = page.getByTestId("effects-picker");
-  // the job's pay is already on the ledger: not listed again
-  await expect(picker.getByTestId("effects-posted")).toContainText(`Payment: ${taken}`);
+  // the job's pay is already on the ledger: neither posted nor counted again
+  await expect(page.locator('[data-step="payment"]')).toContainText("already collected");
+  await expect(page.locator('[data-step="balance"]')).toContainText("already collected");
   await expect(picker.getByTestId("effects")).not.toContainText(`Payment: ${taken}`);
   await expect(page.getByTestId("arc-tick-include")).toBeChecked();
   const accept = page.getByTestId("accept");
@@ -132,6 +135,8 @@ test("job loop: take a job, run it, play it with its site map and NPCs, close it
   // 6. what comes next: the next job board (and the next session)
   const next = page.getByTestId("between-jobs-next");
   await expect(next.getByTestId("plan-next-session")).toContainText("Plan the next session");
+  // each next step once: shore leave chained, the board not twice, no second way to the next job
+  await expect(next.getByTestId("chains").getByRole("link")).toHaveText(["Shore leave week"]);
   await next.getByTestId("deal-next-board").click();
   await expect(page).toHaveURL(/\/generate\/alien\.job-board$/);
   await expect(page.getByTestId("offer-board").getByTestId("offer-card").first()).toBeVisible();

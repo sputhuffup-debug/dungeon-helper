@@ -5,10 +5,10 @@
  * logs its seed, so the log can reproduce it; a roll made with physical dice
  * logs the faces the GM typed (`entered`) instead.
  */
-import { getPath, type Entity, type Id, type TrackerState } from "@campaign-forge/core";
+import { combatHealthFor, getPath, healthState, type Entity, type Id, type TrackerState } from "@campaign-forge/core";
 import { computeFields, createRng, gearSkillBonuses, poolValue, type DicePool, type EntityTypeDef, type LoadedModule, type PlayModeId, type RollResult, type Rng, type SheetField } from "@campaign-forge/module-sdk";
 import { useMemo, useRef, useState } from "react";
-import { Badge, Button, Card, DiceRollPanel, DieFace, RollLog, Stepper, humanize, pushToast, resolveBindPath, showsTotal, specById, toneBadge, useDiceRoller, type RollInfo, type RollLogEntry } from "../../components/ui";
+import { Badge, Button, Card, DiceRollPanel, DieFace, PageRef, RollLog, Stepper, humanize, pushToast, resolveBindPath, showsTotal, specById, toneBadge, useDiceRoller, type RollInfo, type RollLogEntry } from "../../components/ui";
 import { errorMessage } from "../../lib/format";
 import { useCampaign, useMeta, useRecord } from "../../state/hooks";
 import { entityAdvances, poolOf, spendStoryPoint, storyUses } from "../../state/progressionActions";
@@ -241,6 +241,7 @@ export function SessionRollPanel({
   return (
     <>
     <ConditionNotes input={input} />
+    {entity && <BrokenNote entity={entity} />}
     <DiceRollPanel
       {...(story ? { storyPoints: story.points, storyPointName: story.pool.label, storyPointLabel: `Spend: ${story.use.label.toLowerCase()}`, storyPointNeedsResult: true, onSpendStoryPoint: spendStory } : {})}
       {...(storyOp ? { storyPointRun: (result: RollResult, rng: Rng) => storyOp.run({ result }, rng, ctx.module.tables) } : {})}
@@ -265,6 +266,19 @@ export function SessionRollPanel({
       }}
     />
     </>
+  );
+}
+
+/** A character who is down (zero health) rolls with what the module says that allows (`CombatHealthDef.brokenNote`). */
+function BrokenNote({ entity }: { entity: Entity }) {
+  const ctx = useCampaign();
+  const fresh = useRecord("entities", entity.id) ?? entity;
+  const note = healthState(ctx.module, fresh)?.broken ? combatHealthFor(ctx.module, fresh)?.brokenNote : undefined;
+  if (!note) return null;
+  return (
+    <p className="app-note app-note--warning" role="status" data-testid="roll-broken-note">
+      {fresh.name} is broken. {note.text} <PageRef page={note.page} />
+    </p>
   );
 }
 

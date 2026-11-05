@@ -11241,7 +11241,18 @@
       "deathSaves.failures": 0
      }
     },
-    "text": "A character at 0 hit points falls unconscious and makes a death saving throw at the start of each of its turns (the death save tracker): 10 or higher is a success, three successes stabilize it, three failures kill it, a natural 20 brings it back with 1 hit point. Damage at 0 hit points is a failed death save (two on a critical hit), and damage that leaves the rest equal to its hit point maximum kills it outright. Any healing wakes it.",
+    "deathSaves": {
+     "successes": "deathSaves.successes",
+     "failures": "deathSaves.failures",
+     "max": 3,
+     "dc": 10,
+     "damageFailures": 1,
+     "criticalFailures": 2,
+     "natural1Failures": 2,
+     "natural20Heals": 1,
+     "massiveDamage": true
+    },
+    "text": "A character at 0 hit points falls unconscious and makes a death saving throw at the start of each of its turns (Roll death save on its card): 10 or higher is a success, a natural 1 counts as two failures, a natural 20 brings it back with 1 hit point. Three successes stabilize it; three failures kill it. Damage while at 0 hit points is a failed death save (two on a critical hit), and the card counts it. If the damage left over after dropping to 0, or taken while down, is at least its hit point maximum, it dies outright. Any healing wakes it.",
     "cite": "SRD 5.1 — Combat: Damage and Healing, Dropping to 0 Hit Points"
    },
    {

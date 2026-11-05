@@ -1,5 +1,5 @@
 /** Scene pane: titles (the GM's and the players'), purpose, status, location, participants, clues, encounter, map, events, body and read-aloud text. */
-import { newId, playerSceneHeading, type Scene, type SceneStatus } from "@campaign-forge/core";
+import { mapZoneCount, newId, playerSceneHeading, type Scene, type SceneStatus } from "@campaign-forge/core";
 import { useMemo } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Badge, Button, Card, IconButton } from "../../components/ui";
@@ -100,7 +100,7 @@ export function SceneEditor({ scene }: { scene: Scene }) {
                   </Link>
                   {(() => {
                     // a generated site map keeps its zones in its layout; an imported image has drawn ones
-                    const n = map.layout ? map.layout.zones.length : map.zones.length;
+                    const n = mapZoneCount(map);
                     return (
                       <Badge>
                         {n} zone{n === 1 ? "" : "s"}

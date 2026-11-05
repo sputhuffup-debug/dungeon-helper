@@ -145,6 +145,26 @@ export function plannedScenesOf(session: Session | undefined): Id[] {
   return Array.isArray(raw) ? raw.filter((x): x is Id => typeof x === "string") : [];
 }
 
+/**
+ * The scenes a session played: those marked run, then those the table moved
+ * into (and nobody marked skipped), in the order it reached them. The one
+ * source the wrap-up's summary, timeline and loose ends read; finishing the
+ * session marks the moved-into ones run, so the session page agrees.
+ */
+export function playedScenes(store: CampaignStore, sessionId: Id): Id[] {
+  const session = store.get("sessions", sessionId);
+  if (!session) return [];
+  const out = session.scenesRun.filter((id) => store.has("scenes", id));
+  const states = store.list("trackerState").filter((t) => t.session === sessionId);
+  const log = [...((states.find((t) => !t.archived) ?? states[0])?.log ?? [])].sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : 0));
+  for (const l of log) {
+    const id = l.tracker === TABLE_LOG && isRecord(l.data) && typeof l.data.scene === "string" && l.text.startsWith("Scene: ") ? l.data.scene : undefined;
+    const scene = id ? store.get("scenes", id) : undefined;
+    if (scene && scene.status !== "skipped" && !out.includes(scene.id)) out.push(scene.id);
+  }
+  return out;
+}
+
 export function wrapUpOf(session: Session | undefined): WrapUpRecord {
   return isRecord(session?.wrapUp) ? (session.wrapUp as WrapUpRecord) : {};
 }
@@ -490,6 +510,8 @@ export interface DiceLogData {
   zone?: Id;
   /** GM-only entries never reach a player output. */
   gmOnly?: boolean;
+  /** A hit (`kind: "damage"`) that took the target's health to zero. */
+  broken?: boolean;
 }
 
 /** How many dice log entries the session has (the per-roll seed counter). */
@@ -794,12 +816,33 @@ export function setClockState(ctx: Ctx, sessionId: Id, def: TrackerDef, next: un
     const state = getTrackerState(ctx.store, sessionId).state;
     const stored = state[countedKey(def.id)];
     const counted = typeof stored === "number" ? stored : clockElapsedMinutes(units, state[def.id]);
+    const before = clockState(state[def.id], units).counters;
     updateTrackerState(ctx.store, sessionId, def.id, next);
+    const after = clockState(next, units).counters;
+    // what the module asks for when a unit passes (a death roll every round for a lethal injury)
+    const ticked = units.map((u) => u.id).filter((id) => (after[id] ?? 0) > (before[id] ?? 0));
+    const reminders = ticked.length ? clockAdvancePrompts(ctx, ticked, after) : [];
     const minutes = clockAdvanceMinutes(units, counted, next);
-    if (minutes <= 0) return [];
+    if (minutes <= 0) return reminders;
     updateTrackerState(ctx.store, sessionId, countedKey(def.id), counted + minutes);
-    return advanceWorldTime(ctx, sessionId, minutes).prompts;
+    return [...reminders, ...advanceWorldTime(ctx, sessionId, minutes).prompts];
   });
+}
+
+/** The module's prompts for clock units that just passed (`hooks.onClockAdvance`), over the entities that carry conditions. */
+export function clockAdvancePrompts(ctx: Ctx, units: string[], counters: Record<string, number>): Prompt[] {
+  const hook = ctx.module.module.hooks?.onClockAdvance;
+  if (!hook) return [];
+  const entities = ctx.store
+    .list("entities")
+    .filter((e) => (e.conditions?.length ?? 0) > 0)
+    .map((e) => ({ id: e.id, name: e.name, type: e.type, fields: e.fields, conditions: (e.conditions ?? []).map((c) => c.id) }));
+  if (entities.length === 0) return [];
+  try {
+    return hook({ mode: ctx.store.meta().mode, units, counters, entities });
+  } catch {
+    return [];
+  }
 }
 
 /** Campaign-scoped life-cycle trackers of the module. */
@@ -1215,7 +1258,7 @@ export function suggestTimeline(store: CampaignStore, sessionId: Id): TimelineDr
     if (d && typeof d.scene === "string" && d.status === "run" && typeof d.inWorldDate === "string") ranOn.set(d.scene, { date: d.inWorldDate, at: l.at });
   }
   const out: TimelineDraft[] = [];
-  for (const sceneId of session.scenesRun) {
+  for (const sceneId of playedScenes(store, sessionId)) {
     const scene = store.get("scenes", sceneId);
     if (!scene) continue;
     const location = scene.location ? store.get("entities", scene.location) : undefined;
@@ -1272,6 +1315,10 @@ export function finishSession(ctx: Ctx, sessionId: Id, input: FinishSessionInput
       .filter((t) => t.include && t.text.trim())
       .map((t) => store.createTimelineEvent({ inWorldDate: t.inWorldDate?.trim() || date, text: t.text.trim(), entities: t.entities, session: sessionId }));
     const looseEnds = (input.looseEnds ?? []).map((l) => l.trim()).filter(Boolean);
+    // the scenes the table moved into count as run, as the wrap-up's summary and timeline said
+    const played = playedScenes(store, sessionId);
+    for (const id of played) if (store.get("scenes", id)?.status === "planned") store.update("scenes", id, { status: "run" });
+    if (played.some((id) => !session.scenesRun.includes(id))) store.update("sessions", sessionId, { scenesRun: [...session.scenesRun, ...played.filter((id) => !session.scenesRun.includes(id))] });
     const rewards = (input.rewards ?? []).filter((r) => r.characterId && (String(r.value ?? "").trim() || r.kind.trim()));
 
     // carry loose ends into the next planned session (or a new one)

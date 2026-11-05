@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { checkModule } from "@campaign-forge/module-sdk";
 import alienModule, { alienModule as named, ALIEN_MODULE_ID, onEntityChange, onSessionEnd } from "../src";
+import { DEAD_CONDITION, STABILISED_CONDITION, onClockAdvance } from "../src/hooks";
 
 describe("alienModule", () => {
   it("exports the module as default and named with id 'alien'", () => {
@@ -52,6 +53,24 @@ describe("hooks", () => {
     expect(rolls[0]!.entity).toBe("pc1");
     expect(rolls[0]!.page).toBe(74);
     expect(rolls[0]!.roll?.operation).toBe("mentalTrauma");
+  });
+
+  // Walkthrough 3 (A14): a lethal critical injury's death roll each round was neither tracked nor prompted
+  it("asks for a death roll each time a lethal injury's time limit passes, until stabilised or dead (p. 68, 71)", () => {
+    const entity = (conditions: string[]) => ({ id: "pc1", name: "Desmond", type: "alien.character", fields: {}, conditions });
+    const round = (conditions: string[], units = ["round"]) => onClockAdvance({ mode: "campaign", units, counters: { round: 4 }, entities: [entity(conditions)] });
+    const [p] = round(["critical-injury:63", "critical-injury:12"]);
+    expect(p).toMatchObject({ id: "alien.death-roll:pc1:63:round:4", kind: "choice", entity: "pc1", page: [68, 71] });
+    expect(p!.text).toContain("Massive Hemorrhage is lethal");
+    expect(p!.options?.map((o) => o.id)).toEqual(["survived", "stabilised", "dead"]);
+    expect(p!.options?.find((o) => o.id === "dead")?.effects).toContainEqual({ kind: "addCondition", entity: "pc1", condition: { id: DEAD_CONDITION, label: "Dead", page: 71 } });
+    // a stretch-long bleed waits for a stretch; a stabilised injury or a dead character asks nothing
+    expect(round(["critical-injury:53"])).toEqual([]);
+    expect(round(["critical-injury:53"], ["stretch"])).toHaveLength(1);
+    expect(round(["critical-injury:63", `${STABILISED_CONDITION}63`])).toEqual([]);
+    expect(round(["critical-injury:63", DEAD_CONDITION])).toEqual([]);
+    // instantly fatal results and harmless ones ask nothing
+    expect(round(["critical-injury:64", "critical-injury:13"])).toEqual([]);
   });
 
   it("leaves Story Points to the progression's end-of-act award in cinematic mode (p. 158)", () => {

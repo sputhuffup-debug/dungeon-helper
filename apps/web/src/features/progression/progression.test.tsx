@@ -1,11 +1,11 @@
 import "fake-indexeddb/auto";
-import { advancementLog } from "@campaign-forge/core";
+import { advancementLog, postLedgerEntry } from "@campaign-forge/core";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
 import { createCampaign, createEntity, startSession } from "../../state/actions";
 import { CampaignContext, openCampaign, type CampaignContextValue } from "../../state/CampaignProvider";
-import { routeStoryPointEffects } from "../../state/progressionActions";
+import { awardedText, pendingSessionAwards, postWrapUpAwards, routeStoryPointEffects, sessionIncome } from "../../state/progressionActions";
 import { AwardsStep } from "./AwardsStep";
 import { ProgressionTab } from "./ProgressionTab";
 import { StoryPointCard } from "./StoryPointControl";
@@ -27,6 +27,7 @@ async function setup() {
   ctx.store.transact(() => {
     for (const e of ctx.store.list("entities")) ctx.store.remove("entities", e.id);
     for (const e of ctx.store.list("advancement")) ctx.store.remove("advancement", e.id);
+    for (const e of ctx.store.list("ledger")) ctx.store.remove("ledger", e.id);
     for (const s of ctx.store.list("sessions")) ctx.store.remove("sessions", s.id);
   });
   const aud = createEntity(ctx, { type: "example.hero", name: "Aud", fields: { isPC: true, attributes: { might: 3, wits: 2 }, skills: { fight: 1, lore: 0, sneak: 0 }, wounds: 2, xp: 10, luck: 1, origin: "hill", feats: [] } });
@@ -91,6 +92,64 @@ describe("wrap-up awards", () => {
     const box = within(screen.getByTestId("act-awards")).getByRole("checkbox", { name: "Aud, act 1: Did you do something daring this act?" }) as HTMLInputElement;
     expect(box.checked && box.disabled).toBe(true);
     expect(advancementLog(ctx.store, aud.id)[0]).toMatchObject({ pool: "story", act: 1, session: session.id });
+  });
+
+  it("finishing the wrap-up awards the ticks shown when Award was not pressed, and never twice", async () => {
+    const { ctx, aud, bo } = await setup();
+    const session = startSession(ctx, { title: "Night three" });
+    render(
+      <Harness ctx={ctx}>
+        <AwardsStep sessionId={session.id} />
+      </Harness>,
+    );
+    const grid = screen.getByTestId("award-checklist");
+    // Bo's ticks are the GM's (kept in the draft); Aud's are the checklist's own (attendance, a wound)
+    act(() => {
+      fireEvent.click(within(grid).getByRole("checkbox", { name: "Bo: Did you finish a quest?" }));
+    });
+    act(() => {
+      fireEvent.click(within(screen.getByTestId("act-awards")).getByRole("checkbox", { name: "Aud, act 1: Did you do something daring this act?" }));
+    });
+    expect(pendingSessionAwards(ctx, session.id)).toEqual({ [aud.id]: ["example.award.came", "example.award.wounded"], [bo.id]: ["example.award.came", "example.award.quest"] });
+    const posted = postWrapUpAwards(ctx, session.id);
+    expect(xpOf(ctx, aud.id)).toBe(12);
+    expect(xpOf(ctx, bo.id)).toBe(3);
+    expect(ctx.store.get("entities", aud.id)?.fields.luck).toBe(2);
+    expect(awardedText(ctx, posted)).toBe(" Awarded: Aud +2 XP, +1 Luck; Bo +3 XP.");
+    // a second finish (or one after Award) posts nothing
+    expect(postWrapUpAwards(ctx, session.id)).toEqual([]);
+    expect(xpOf(ctx, aud.id)).toBe(12);
+  });
+
+  it("does not post again what the Award button posted", async () => {
+    const { ctx, aud, bo } = await setup();
+    const session = startSession(ctx, { title: "Night four" });
+    render(
+      <Harness ctx={ctx}>
+        <AwardsStep sessionId={session.id} />
+      </Harness>,
+    );
+    act(() => {
+      fireEvent.click(screen.getByTestId("award-xp"));
+    });
+    const before = advancementLog(ctx.store).length;
+    expect(postWrapUpAwards(ctx, session.id)).toEqual([]);
+    expect(advancementLog(ctx.store)).toHaveLength(before);
+    expect([xpOf(ctx, aud.id), xpOf(ctx, bo.id)]).toEqual([12, 1]);
+  });
+
+  it("counts the session's income: entries linked to it or paying a record closed in its wrap-up, shared or the character's own", async () => {
+    const { ctx, aud, bo } = await setup();
+    const session = startSession(ctx, { title: "Night five" });
+    const job = createEntity(ctx, { type: "example.hero", name: "A job", fields: {} });
+    ctx.store.update("sessions", session.id, { wrapUp: { closed: { [job.id]: "done" } } });
+    const post = (amount: number, links: Record<string, string>, account?: string) => postLedgerEntry(ctx.store, { amount, category: "pay", links, ...(account ? { account } : {}) });
+    post(500, { job: job.id });
+    post(100, { session: session.id }, aud.id);
+    post(-50, { session: session.id });
+    post(900, {});
+    expect(sessionIncome(ctx, session.id, aud.id)).toBe(600);
+    expect(sessionIncome(ctx, session.id, bo.id)).toBe(500);
   });
 });
 

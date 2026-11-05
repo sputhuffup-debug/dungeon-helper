@@ -24,6 +24,14 @@ Rules every module follows (from `CLAUDE.md`):
 
 You can mix: keep the data in JSON (a pack) and add code around it, by building the module with `packToModule(pack)` and then adding `combat`, `hooks` and so on to the object it returns.
 
+## Contract parts that react to play
+
+A few TypeScript-only parts of the contract answer to what happens at the table (`packages/module-alien` uses each; `src/types.ts` documents them):
+
+- `hooks.onClockAdvance(ctx)`: called when the table clock moves a unit on (`ctx.units`, e.g. `["round"]`, with every unit's `counters` and the campaign's entities that carry conditions, with their condition ids). It returns prompts, shown at the table like any other. The Alien module asks for a death roll each round, stretch or shift a lethal critical injury's time limit passes, with *survived*, *stabilised* and *dead* as the options.
+- `combat.health[].brokenNote` (`{ text, page?, rule? }`): what a character at zero health can still do, paraphrased; the app shows it beside a roll made for a character who is down.
+- `progression.awards[].suggest(ctx)`: the award context carries `income`, the money the session brought in (positive ledger entries on the shared account or the character's own, linked to the session or paying for a record closed in its wrap-up), so a "did you earn money?" question can be ticked for the GM. Finishing the session awards the ticks the checklist shows, unless the GM already pressed *Award*.
+
 ## Registering a built-in module
 
 The app's registry (`apps/web/src/modules/registry.ts`) lists every built-in module with a small static manifest, so the campaign list never downloads module data. For a TypeScript module:
