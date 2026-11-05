@@ -36,6 +36,8 @@ test("ORC guide: from a new campaign's Home, its Look it up and Take me there li
   test.setTimeout(120_000);
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
+  const consoleErrors: string[] = []; // DIAGNOSTIC (temporary)
+  page.on("console", (m) => { if (m.type() === "error") consoleErrors.push(m.text().slice(0, 1500)); });
   await page.setViewportSize({ width: 1440, height: 1000 });
   await newOrcCampaign(page, "The Wardens of Mossford");
 
@@ -81,7 +83,10 @@ test("ORC guide: from a new campaign's Home, its Look it up and Take me there li
     const t0 = Date.now();
     const text = await Promise.race([page.evaluate(() => `articles=${document.querySelectorAll("article").length} title=${document.title}\n${document.body.innerText.slice(0, 3000)}`), new Promise<string>((r) => setTimeout(() => r("EVALUATE HUNG"), 5000))]);
     console.log(`after ${Date.now() - t0} ms:`, text);
-    console.log(await page.locator("main").ariaSnapshot({ timeout: 5000 }).catch((x) => `no main: ${x}`));
+    await page.getByRole("button", { name: "Show Error" }).click({ timeout: 3000 }).catch(() => {});
+    console.log("SHOWN:", await page.evaluate(() => document.body.innerText.slice(0, 3000)));
+    console.log("PAGEERRORS:", JSON.stringify(errors));
+    console.log("CONSOLE ERRORS:\n" + consoleErrors.join("\n---\n"));
     throw e;
   }
   await rollLink.click();
