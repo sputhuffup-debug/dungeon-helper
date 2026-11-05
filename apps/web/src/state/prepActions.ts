@@ -451,23 +451,46 @@ export interface AcceptGeneratedInput {
   pinnedParts?: Record<string, unknown>;
 }
 
+/** Every whole-word `from` in the strings of `value` (deeply) replaced by `to`. */
+export function renameInText<T>(value: T, from: string, to: string): T {
+  if (!from || from === to) return value;
+  const re = new RegExp(`(?<![\\p{L}\\p{N}])${from.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![\\p{L}\\p{N}])`, "gu");
+  const walk = (v: unknown): unknown => {
+    if (typeof v === "string") return v.replace(re, () => to);
+    if (Array.isArray(v)) return v.map(walk);
+    if (v && typeof v === "object") return Object.fromEntries(Object.entries(v as Record<string, unknown>).map(([k, x]) => [k, walk(x)]));
+    return v;
+  };
+  return walk(value) as T;
+}
+
 /**
  * Accept a generated graph: entities, relationships and a generator-run
  * record with every roll. Names the GM changed before accepting are
- * recorded as edits on the run.
+ * recorded as edits on the run, and the generated text that named the old
+ * name (a tavern "of Willowhithe", a rumour "In Willowhithe: ...") follows.
  */
 export function acceptGenerated(ctx: StoreCtx & { module: Pick<LoadedModule, "manifest"> }, input: AcceptGeneratedInput): AcceptResult {
   return ctx.store.transact(() => {
     const names = input.names ?? {};
     const renamed = new Set<string>();
-    const entities = input.graph.produced.entities.map((e) => {
+    const renames: Array<[string, string]> = [];
+    let entities = input.graph.produced.entities.map((e) => {
       const n = names[e.tempId]?.trim();
       if (n && n !== e.name) {
         renamed.add(e.tempId);
+        if (e.name.trim().length >= 3) renames.push([e.name, n]);
         return { ...e, name: n };
       }
       return e;
     });
+    // longer names first, so "Willowhithe Mill" is renamed before "Willowhithe"
+    for (const [from, to] of [...renames].sort((a, b) => b[0].length - a[0].length)) {
+      entities = entities.map((e) => {
+        const next = { ...e, fields: renameInText(e.fields, from, to), ...(e.summary !== undefined ? { summary: renameInText(e.summary, from, to) } : {}) };
+        return renamed.has(e.tempId) ? next : { ...next, name: renameInText(e.name, from, to) };
+      });
+    }
     const graph: GeneratedGraph = { ...input.graph, produced: { ...input.graph.produced, entities } };
     const opts: Parameters<typeof acceptGeneratedGraph>[2] = { moduleId: ctx.module.manifest.id };
     if (input.stepSeeds && Object.keys(input.stepSeeds).length) opts.stepSeeds = input.stepSeeds;

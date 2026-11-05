@@ -1136,6 +1136,7 @@ const definitions: Record<string, JsonSchema> = {
     {
       table: logic,
       prefer: logic,
+      budget: logic,
       groups: list(ref("dungeonEncounterGroup"), { minItems: 1, maxItems: 6 }),
       creatureType: ref("id"),
       xp: logic,

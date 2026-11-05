@@ -162,7 +162,7 @@ The candidate is `preset` (or `item`) in `where` and `fits`. The rules' context 
 }
 ```
 
-Each occupied room rolls `table`; each group then picks `n` creatures. `prefer` re-rolls the table (up to four more times) while the row's creature does not suit the theme; the engine keeps the roll whose groups all found a creature and that fits best. `xp` per creature sums into `encounter.xp`; `detail` is the key's line (XP, DCs, tactics); `activity` says what they are doing. `passages` is the chance a passage holds a wandering group. Use your game's own encounter rules here and cite them; where the rules give none, keep the tables original and say so.
+Each occupied room rolls `table`; each group then picks `n` creatures. `prefer` re-rolls the table (up to four more times) while the row's creature does not suit the theme; the engine keeps the roll whose groups all found a creature and that fits best. `xp` per creature sums into `encounter.xp`; `detail` is the key's line (XP, DCs, tactics); `activity` says what they are doing. `passages` is the chance a passage holds a wandering group. `budget` (JSONLogic over the room's context: `inputs.partyLevel`, `inputs.partySize`, `threat`, `room`) is the most `encounter.xp` one encounter should cost for the party: a roll over it is re-rolled (up to eleven more times), a group that comes in numbers is thinned to fit, and the Checks list every encounter still above it, so a small low-level party is not handed a lone ogre. Use your game's own encounter rules here and cite them; where the rules give none, keep the tables original and say so.
 
 ### Traps and treasure
 

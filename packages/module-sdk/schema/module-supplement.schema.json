@@ -4920,6 +4920,9 @@
         "prefer": {
           "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
         },
+        "budget": {
+          "description": "JSONLogic (https://jsonlogic.com), evaluated by the SDK. Literals evaluate to themselves."
+        },
         "groups": {
           "type": "array",
           "items": {
