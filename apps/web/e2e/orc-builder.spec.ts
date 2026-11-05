@@ -71,6 +71,8 @@ test("build a remaster character in the Hollowmere demo, create it and level it 
 
   // 3. the Warrior: Strength (of Constitution or Strength) and a free Dexterity
   await next(page, "background");
+  // the first step stays done once left (a new draft used to forget it had been seen)
+  await expect(step(page, "ancestry")).toHaveAttribute("data-status", "ok");
   await pick(page, "background", "warrior");
   await pick(page, "background/boost", "strength");
   // the background cannot boost Strength twice

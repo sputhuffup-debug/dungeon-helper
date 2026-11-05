@@ -17,6 +17,14 @@ import { useCampaign, useMeta, useSheetSources } from "../../state/hooks";
 import { BuildCharacterButton, CharacterProcedureLinks, useCharacterBuilder, useCharacterProcedures } from "../builder/entry";
 import { sheetFieldOf } from "./summary";
 
+/** A type's name in a button ("Create player character"): lower case, but an acronym such as NPC stays as it is. */
+function buttonNoun(name: string): string {
+  return name
+    .split(" ")
+    .map((w) => (/^[A-Z0-9]{2,}$/.test(w) ? w : w.toLowerCase()))
+    .join(" ");
+}
+
 /** Values the form starts with for the creation fields: `isPC` from the PCs tab, when the type has it. */
 function initialDraft(def: EntityTypeDef | undefined, pc: number | undefined): Record<string, unknown> {
   const props = def?.schema.properties as Record<string, unknown> | undefined;
@@ -220,7 +228,7 @@ export function NewEntityPage() {
         )}
         <div className="app-row">
           <Button variant="primary" type="submit" disabled={!def} data-testid="create-entity">
-            Create {def?.name.toLowerCase() ?? "entity"}
+            Create {def ? buttonNoun(def.name) : "entity"}
           </Button>
           <Button variant="ghost" onClick={() => history.back()}>
             Cancel
