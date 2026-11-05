@@ -54,8 +54,8 @@ test("session checklist: plan, tick and read guidance, run at the table, wrap up
   await expect(page.getByTestId("table-mode")).toBeVisible();
   const reveal = page.getByTestId("reveal-panel");
   // the demo's handouts are each PC's agenda: showing one to everyone asks first
-  page.once("dialog", (d) => void d.accept());
   await reveal.getByRole("button", { name: /^Show .* to everyone$/ }).first().click();
+  await page.getByRole("dialog", { name: "Show it to everyone?" }).getByRole("button", { name: "Show everyone" }).click();
   await page.getByRole("tab", { name: "Checklist" }).click();
   const tableList = page.getByTestId("session-checklist");
   await expect(tableList).toHaveAttribute("data-focus", "play");

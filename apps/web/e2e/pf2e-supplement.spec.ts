@@ -4,7 +4,8 @@
  * default); switched on, the Hollowmere demo's module has its ancestries,
  * classes and creatures (with source badges), a character can take one of
  * its ancestries and classes with the right Hit Points, and Settings lists it
- * as active; switched off, its content is gone again.
+ * as active; switched off, its content is gone again and Settings names it
+ * as built in and off.
  */
 import { expect, test } from "@playwright/test";
 
@@ -29,11 +30,13 @@ test("built-in supplement: off by default, switched on per device, its content i
   await expect(licence).toContainText("Not affiliated with or endorsed by Paizo Inc. Pathfinder is a trademark of Paizo Inc.");
   const toggle = row.getByTestId("toggle-supplement-pf2e-orc-books");
   await expect(toggle).not.toBeChecked();
+  // the switch says what it does on this device ("On on this device" read oddly)
+  await expect(row).toContainText("Off on this device");
 
   // 2. switched on for this device (and still on after a reload)
   await toggle.check();
   await expect(toggle).toBeChecked();
-  await expect(row).toContainText("On on this device");
+  await expect(row).toContainText("Used on this device");
   await page.reload();
   await page.getByTestId("open-modules").click();
   await expect(page.getByRole("dialog", { name: "Game modules" }).getByTestId("toggle-supplement-pf2e-orc-books")).toBeChecked();
@@ -85,6 +88,10 @@ test("built-in supplement: off by default, switched on per device, its content i
   await page.getByRole("combobox", { name: "Reference list" }).selectOption("pf2e-orc.ancestries");
   await expect(page.getByTestId("reference-items").getByRole("row").filter({ hasText: "Dwarf" })).toBeVisible();
   await expect(page.getByTestId("reference-items").getByRole("row").filter({ hasText: "Centaur" })).toHaveCount(0);
+  // settings no longer say no supplement extends the module: the built-in one is there, switched off
+  await page.goto(`${base}/settings`);
+  await expect(page.getByTestId("supplements-info")).not.toContainText("No supplements extend this module");
+  await expect(page.getByTestId("supplements-available")).toContainText("Built in and off: Remaster ORC books.");
 
   expect(errors).toEqual([]);
 });

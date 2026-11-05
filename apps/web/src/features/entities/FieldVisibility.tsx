@@ -77,7 +77,7 @@ function FieldVisibilityList({ entity, def }: { entity: Entity; def: EntityTypeD
             <li key={r.path} className="app-list__row" data-field={r.path}>
               <span className="app-grow">
                 {r.label}
-                {!override && <span className="cf-muted"> · default {levelName[effective.level].toLowerCase()}</span>}
+                {!override && <span className="cf-muted"> · {levelName[effective.level]} by default</span>}
                 {ruled?.rule.reason && (
                   <span className="app-fieldvis__reason cf-muted" data-testid="field-visibility-reason">
                     {ruled.rule.reason}

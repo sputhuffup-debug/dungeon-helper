@@ -53,6 +53,7 @@ import {
   lifecycleConfig,
   lifecycleState,
   rollTable,
+  DEFAULT_TERMS,
   tableResultLines,
   startLifecycle,
   type DiceOperation,
@@ -1203,7 +1204,7 @@ const placeName = (s: string) => s.replace(/\s*\([^)]*\)\s*$/, "").trim();
  * table marked it run (travel and time passing move the date during play), a
  * handout by the last scene run before it was shown.
  */
-export function suggestTimeline(store: CampaignStore, sessionId: Id): TimelineDraft[] {
+export function suggestTimeline(store: CampaignStore, sessionId: Id, party: string = DEFAULT_TERMS.party): TimelineDraft[] {
   const session = store.get("sessions", sessionId);
   if (!session) return [];
   const states = store.list("trackerState").filter((t) => t.session === sessionId);
@@ -1237,7 +1238,7 @@ export function suggestTimeline(store: CampaignStore, sessionId: Id): TimelineDr
     const h = store.get("handouts", r.handout);
     if (!h) continue;
     const before = runs.filter((x) => x.at <= r.at).pop()?.date;
-    out.push({ key: `handout:${h.id}`, text: `The crew learns: ${h.title}.`, entities: h.character && store.has("entities", h.character) ? [h.character] : [], include: true, ...(before ? { inWorldDate: before } : {}) });
+    out.push({ key: `handout:${h.id}`, text: `The ${party} learns: ${h.title}.`, entities: h.character && store.has("entities", h.character) ? [h.character] : [], include: true, ...(before ? { inWorldDate: before } : {}) });
   }
   return out;
 }

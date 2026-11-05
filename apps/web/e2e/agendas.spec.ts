@@ -15,6 +15,8 @@ test("agenda drafts for Cold Harbor: generate for the four PCs, re-roll a slot, 
   page.on("pageerror", (e) => errors.push(e.message));
   await page.setViewportSize({ width: 1440, height: 1000 });
   const base = await loadCinematicDemo(page);
+  // cinematic play has no jobs: Home offers no job board (the job type is for campaign play only)
+  await expect(page.getByRole("region", { name: "Job board" })).toHaveCount(0);
 
   // the guided builder's PCs step offers the generator for this adventure
   await nav(page, "Adventures").click();

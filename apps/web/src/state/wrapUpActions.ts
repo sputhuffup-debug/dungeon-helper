@@ -18,7 +18,7 @@
  * The session record is GM-only, so the draft never reaches players.
  */
 import { cluesOf, type Id, type Session, type TrackerState } from "@campaign-forge/core";
-import type { Effect, LoadedModule, RollResult } from "@campaign-forge/module-sdk";
+import { DEFAULT_TERMS, resolveTerms, type Effect, type LoadedModule, type RollResult } from "@campaign-forge/module-sdk";
 import type { CampaignContextValue } from "./CampaignProvider";
 import { DICE_LOG, REVEAL_LOG, TABLE_LOG, summaryDraft, wrapUpOf, type DiceLogData, type TimelineDraft } from "./tableActions";
 
@@ -225,17 +225,17 @@ export function sessionFacts(ctx: Ctx, sessionId: Id, logText = ""): SessionFact
   return facts;
 }
 
-/** The summary drafted from the facts, one sentence a line; empty when the session recorded nothing. */
-export function summaryFromFacts(f: SessionFacts): string {
+/** The summary drafted from the facts, one sentence a line; empty when the session recorded nothing. `party` is the module's word for the group ("crew"). */
+export function summaryFromFacts(f: SessionFacts, party: string = DEFAULT_TERMS.party): string {
   const lines: string[] = [];
-  if (f.scenes.length) lines.push(`The crew played ${f.scenes.length === 1 ? "one scene" : `${f.scenes.length} scenes`}: ${list(f.scenes)}.`);
+  if (f.scenes.length) lines.push(`The ${party} played ${f.scenes.length === 1 ? "one scene" : `${f.scenes.length} scenes`}: ${list(f.scenes)}.`);
   if (f.clues.length === 1) lines.push(`They found a clue: ${f.clues[0]}.`);
   else if (f.clues.length > 1) lines.push(`They found ${f.clues.length} clues: ${f.clues.join("; ")}.`);
   if (f.shown.length) lines.push(`The players were shown ${list(f.shown)}.`);
   for (const p of f.panics) lines.push(`${p.who} panicked: ${p.label}.`);
   for (const i of f.injuries) lines.push(`${i.who} was hurt (${i.what}).`);
   if (f.damage.length) lines.push(`Damage taken: ${list(f.damage.map((d) => `${d.who} ${d.amount}`))}.`);
-  if (f.sweeps.count) lines.push(`The crew swept for movement ${times(f.sweeps.count)}${f.sweeps.withContacts ? ` and picked something up ${times(f.sweeps.withContacts)}` : " and picked up nothing"}.`);
+  if (f.sweeps.count) lines.push(`The ${party} swept for movement ${times(f.sweeps.count)}${f.sweeps.withContacts ? ` and picked something up ${times(f.sweeps.withContacts)}` : " and picked up nothing"}.`);
   if (f.seen.length) lines.push(`${list(f.seen)} came into view.`);
   if (f.rolls.length) lines.push(`Rolls of note: ${f.rolls.slice(0, 5).join("; ")}${f.rolls.length > 5 ? `; and ${f.rolls.length - 5} more` : ""}.`);
   lines.push(...f.notes);
@@ -244,5 +244,5 @@ export function summaryFromFacts(f: SessionFacts): string {
 
 /** Draft the session's summary from what it recorded (`logText`: the log document's plain text). Deterministic. */
 export function draftSessionSummary(ctx: Ctx, sessionId: Id, logText = ""): string {
-  return summaryFromFacts(sessionFacts(ctx, sessionId, logText));
+  return summaryFromFacts(sessionFacts(ctx, sessionId, logText), resolveTerms(ctx.module.module).party);
 }

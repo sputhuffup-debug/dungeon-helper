@@ -51,11 +51,12 @@ test("run a session at the table: demo campaign, clock, panic roll, reveal, wrap
   const first = reveal.getByRole("button", { name: /^Show .* to everyone$/ }).first();
   const label = (await first.getAttribute("aria-label")) ?? "";
   const title = label.replace(/^Show /, "").replace(/ to everyone$/, "");
-  page.once("dialog", (d) => void d.dismiss());
+  // asked in the app's confirm dialog: Cancel keeps it private, Show everyone reveals it
   await first.click();
+  await page.getByRole("dialog", { name: "Show it to everyone?" }).getByRole("button", { name: "Cancel" }).click();
   await expect(reveal.getByRole("button", { name: label })).toBeVisible();
-  page.once("dialog", (d) => void d.accept());
   await first.click();
+  await page.getByRole("dialog", { name: "Show it to everyone?" }).getByRole("button", { name: "Show everyone" }).click();
   // revealed: the row now offers to hide it again
   const hide = reveal.getByRole("button", { name: `Hide ${title} from the players` });
   await expect(hide).toHaveText("Hide again");
@@ -134,8 +135,8 @@ test("table mode keeps working offline and the player screen shows what the GM r
   const reveal = page.getByTestId("reveal-panel");
   const firstTitle = (await reveal.locator("[data-handout] .app-reveal__title").first().textContent()) ?? "";
   // the demo's handouts are each PC's agenda: showing one to everyone asks first
-  page.once("dialog", (d) => void d.accept());
   await reveal.getByRole("button", { name: /^Show .* to everyone$/ }).first().click();
+  await page.getByRole("dialog", { name: "Show it to everyone?" }).getByRole("button", { name: "Show everyone" }).click();
   await expect(players.locator("[data-handout]").first()).toContainText(firstTitle.trim());
   await expect(players.locator("[data-handout]")).toHaveCount(1);
   const clock = page.getByTestId("table-clock");

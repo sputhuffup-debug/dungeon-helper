@@ -5,12 +5,12 @@
  * the draft as the GM edits and never blocks saving or leaving.
  */
 import type { Adventure } from "@campaign-forge/core";
-import type { AdventureBuilderDef, BuilderPanel, ReviewResult, ReviewStepStatus } from "@campaign-forge/module-sdk";
+import { upperFirst, type AdventureBuilderDef, type BuilderPanel, type ReviewResult, type ReviewStepStatus } from "@campaign-forge/module-sdk";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef } from "react";
 import { Badge, Button, PageRef } from "../../../components/ui";
 import { adventureTitle } from "../../../lib/format";
-import { useCampaign, useMeta } from "../../../state/hooks";
+import { useCampaign, useMeta, useTerms } from "../../../state/hooks";
 import { SiteMapCard, siteMapSteps } from "../../mapgen/SiteMapCard";
 import { statusTone } from "../AdventuresPage";
 import { ActPanel, AdventurePanel, AgendasPanel, CastPanel, ReviewPanel, reviewSummaryLine } from "./panels";
@@ -79,6 +79,7 @@ function Panel({ adventure, builder, panel, review, onJump }: { adventure: Adven
 
 export function GuidedBuilder({ adventure, builder, stepId }: { adventure: Adventure; builder: AdventureBuilderDef; stepId: string | undefined }) {
   const ctx = useCampaign();
+  const terms = useTerms();
   const navigate = useNavigate({ from: "/c/$campaignId/adventures/$adventureId" });
   const review = useAdventureReview(adventure.id, builder);
   const found = builder.steps.findIndex((s) => s.id === stepId);
@@ -130,7 +131,7 @@ export function GuidedBuilder({ adventure, builder, stepId }: { adventure: Adven
             Booklet
           </Link>
           <Link to="/c/$campaignId/adventures/$adventureId" params={{ campaignId: ctx.campaignId, adventureId: adventure.id }} search={{ view: "agendas" }} className="cf-btn cf-btn--sm" data-testid="guided-agenda-cards">
-            Agenda cards
+            {upperFirst(terms.agenda)} cards
           </Link>
           <ViewToggle adventureId={adventure.id} current="guided" />
         </div>

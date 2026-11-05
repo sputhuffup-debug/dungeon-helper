@@ -10,7 +10,7 @@ import { useRecordLinks } from "../../components/EntityLinkContext";
 import { AutoGrowText, Badge, Button, Card, EmptyState, IconButton } from "../../components/ui";
 import { RichTextView } from "../../editor";
 import { formatDate } from "../../lib/format";
-import { useCampaign, useList, useMapVersion, useMeta, useRecord } from "../../state/hooks";
+import { useCampaign, useList, useMapVersion, useMeta, useRecord, useWorldDate } from "../../state/hooks";
 import {
   plannedScenesOf,
   scenesInAdventureOrder,
@@ -337,6 +337,7 @@ function ScenePlanner({ session }: { session: Session }) {
 function DoneSession({ session }: { session: Session }) {
   const ctx = useCampaign();
   const links = useRecordLinks();
+  const worldDate = useWorldDate();
   const name = (id: Id) => ctx.store.get("entities", id)?.name ?? "?";
   const wrapUp = wrapUpOf(session);
   const timelineAll = useList("timeline");
@@ -451,7 +452,7 @@ function DoneSession({ session }: { session: Session }) {
           <ul className="app-list" data-testid="session-timeline">
             {timeline.map((t) => (
               <li key={t.id} className="app-list__row">
-                <span className="cf-mono">{t.inWorldDate}</span>
+                <span className="cf-mono">{worldDate(t.inWorldDate)}</span>
                 <span className="app-grow">{t.text}</span>
               </li>
             ))}

@@ -97,7 +97,8 @@ describe("the summary drafted from the log", () => {
     expect(facts.sweeps).toEqual({ count: 2, withContacts: 1 });
     expect(facts.seen).toEqual(["Xenomorph drone"]);
 
-    const text = summaryFromFacts(facts);
+    // Alien's word for the group (its terms); the draft below reads it from the module
+    const text = summaryFromFacts(facts, "crew");
     expect(text).toContain("The crew played one scene: ");
     expect(text).toContain("They found a clue: ");
     expect(text).toContain("The players were shown ");
@@ -111,6 +112,9 @@ describe("the summary drafted from the log", () => {
     expect(text).not.toContain("GM secret roll");
     // deterministic
     expect(draftSessionSummary(ctx, sessionId, "[20:10] The crew takes the job.")).toBe(text);
+    // another game's group, and the neutral word for a module without one
+    expect(summaryFromFacts(facts, "party")).toContain("The party played one scene: ");
+    expect(summaryFromFacts(facts)).toContain("The group played one scene: ");
   });
 });
 

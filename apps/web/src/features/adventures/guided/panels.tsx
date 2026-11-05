@@ -4,7 +4,7 @@
  * panel edits the same records as the outline view.
  */
 import { adventureActs, agendaFor, castMembers, moveInCast, newId, type Act, type Adventure, type AdventureStatus, type Entity, type Id, type Scene, type SceneStatus } from "@campaign-forge/core";
-import { computeFields, reviewHeadline, type AdventureBuilderDef, type BuilderPanel, type CastRoleDef, type ReviewItemLevel, type ReviewResult } from "@campaign-forge/module-sdk";
+import { computeFields, nounOf, reviewHeadline, type AdventureBuilderDef, type BuilderPanel, type CastRoleDef, type ReviewItemLevel, type ReviewResult } from "@campaign-forge/module-sdk";
 import { Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ConfirmDialog } from "../../../components/ConfirmDialog";
@@ -124,8 +124,8 @@ export function AdventurePanel({ adventure, fields }: { adventure: Adventure; fi
 
 function roleHint(role: CastRoleDef, count: number): string | undefined {
   if (role.min !== undefined && role.max !== undefined) return `${count} of ${role.min === role.max ? role.min : `${role.min}–${role.max}`}`;
-  if (role.min !== undefined) return `${count}, at least ${role.min}`;
-  if (role.max !== undefined) return `${count}, at most ${role.max}`;
+  if (role.min !== undefined) return `${count} (at least ${role.min})`;
+  if (role.max !== undefined) return `${count} (at most ${role.max})`;
   return undefined;
 }
 
@@ -159,7 +159,7 @@ export function CastPanel({ adventure, role }: { adventure: Adventure; role: Cas
         </Button>
       }
     >
-      {members.length === 0 && <p className="cf-muted">No {role.label.toLowerCase()} yet.</p>}
+      {members.length === 0 && <p className="cf-muted">No {nounOf(role.label)} yet.</p>}
       <ul className="guided-cast">
         {members.map((e, i) => (
           <CastMemberCard key={e.id} adventureId={adventure.id} role={role} entity={e} index={i} count={members.length} />

@@ -29,6 +29,8 @@ import {
   d20SaveConditions,
   d20Speed,
   d20ZeroHpRule,
+  rollModeNames,
+  upperFirst,
   type ActiveCondition,
   type D20Attack,
   type D20CombatDef,
@@ -111,15 +113,31 @@ function RollFaces({ result }: { result: RollResult }) {
   );
 }
 
-const MODE_LABEL: Record<Mode, string> = { normal: "Normal", advantage: "Advantage", disadvantage: "Disadvantage" };
+/** The roll modes as the module's dice name them ("Fortune", "Misfortune"), the same words as the sheet's roll panel. */
+function useModeLabels(): Record<Mode, string> {
+  const { module } = useCampaign();
+  return useMemo(() => {
+    const names = rollModeNames(module.module.dice);
+    return { normal: upperFirst(names.normal), advantage: upperFirst(names.advantage), disadvantage: upperFirst(names.disadvantage) };
+  }, [module]);
+}
 
 /** "Disadvantage: Poisoned" lines for a roll mode the conditions give. */
 function ModeReasons({ advantage, disadvantage }: { advantage: string[]; disadvantage: string[] }) {
+  const modeLabel = useModeLabels();
   if (!advantage.length && !disadvantage.length) return null;
   return (
     <span className="app-d20__reasons" data-testid="roll-reasons">
-      {advantage.length > 0 && <span>Advantage: {advantage.join(", ")}</span>}
-      {disadvantage.length > 0 && <span>Disadvantage: {disadvantage.join(", ")}</span>}
+      {advantage.length > 0 && (
+        <span>
+          {modeLabel.advantage}: {advantage.join(", ")}
+        </span>
+      )}
+      {disadvantage.length > 0 && (
+        <span>
+          {modeLabel.disadvantage}: {disadvantage.join(", ")}
+        </span>
+      )}
       {advantage.length > 0 && disadvantage.length > 0 && <span className="cf-muted">(they cancel out)</span>}
     </span>
   );
@@ -700,6 +718,7 @@ export function AttackPanel({ sessionId, combatants, attackerId, onClose }: { se
   const ctx = useCampaign();
   const def = useD20Combat()!;
   const roller = useDiceRoller();
+  const MODE_LABEL = useModeLabels();
   const withAttacks = combatants.filter((c) => (combatantOf(ctx, c)?.attacks.length ?? 0) > 0);
   const [attacker, setAttacker] = useState<Id>(attackerId && withAttacks.some((c) => c.id === attackerId) ? attackerId : (withAttacks[0]?.id ?? ""));
   const attackerEntity = combatants.find((c) => c.id === attacker);

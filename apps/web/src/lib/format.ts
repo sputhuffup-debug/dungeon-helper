@@ -32,6 +32,11 @@ export const ADVENTURE_STATUS_LABELS: Record<"planned" | "active" | "done", stri
 export const SCENE_STATUS_LABELS: Record<"planned" | "run" | "skipped", string> = { planned: "Planned", run: "Run", skipped: "Skipped" };
 export const HANDOUT_KIND_LABELS: Record<"text" | "image" | "card" | "agenda", string> = { agenda: "Agenda card", text: "Text", card: "Card", image: "Image" };
 
+/** A module's data status as a badge reads it: "partially-verified" -> "Partially verified". */
+export function dataStatusLabel(status: string): string {
+  return status === "partially-verified" ? "Partially verified" : status === "unverified" ? "Unverified" : status === "verified" ? "Verified" : humanize(status);
+}
+
 export function humanize(key: string): string {
   const spaced = key
     .replace(/[_-]+/g, " ")

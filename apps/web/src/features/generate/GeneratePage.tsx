@@ -42,7 +42,9 @@ export function GeneratePage() {
                 </span>
                 {p.description && <span className="cf-muted">{p.description}</span>}
                 <span className="app-row">
-                  <Badge>{p.steps.length} steps</Badge>
+                  <Badge>
+                    {p.steps.length} {p.steps.length === 1 ? "step" : "steps"}
+                  </Badge>
                   {p.chains && p.chains.length > 0 && <Badge tone="accent">chains</Badge>}
                 </span>
               </Link>

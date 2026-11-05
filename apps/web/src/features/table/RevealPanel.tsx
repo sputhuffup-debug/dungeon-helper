@@ -5,11 +5,12 @@
  * the screen" and a pin per handout that should stay.
  */
 import { canSee, handoutStaysWithGm, type Entity, type Handout, type Id, type Scene, type Visibility } from "@campaign-forge/core";
+import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { GiveToPlayer } from "../../components/GiveToPlayer";
 import { useCallback, useMemo, useState } from "react";
 import { Badge, Button, Card, pushToast, type BadgeTone } from "../../components/ui";
 import { RichTextView } from "../../editor";
-import { useAssetUrl, useCampaign, useList, useRecord } from "../../state/hooks";
+import { useAssetUrl, useCampaign, useList, useRecord, useTerms } from "../../state/hooks";
 import { clearPlayerScreen, hideHandout, pinHandout, playerScreenHandouts, restorePlayerScreen, revealEntityAtTable, revealHandout } from "../../state/tableActions";
 import { useEntities, useSessionTrackerState, useTableState } from "./hooks";
 
@@ -33,23 +34,23 @@ export function VisibilityBadge({ visibility }: { visibility: Visibility }) {
  */
 function HandoutRow({ handout, onReveal, onHide, sessionId, onScreen }: { handout: Handout; onReveal: () => void; onHide: () => void; sessionId: Id; onScreen: boolean }) {
   const ctx = useCampaign();
+  const terms = useTerms();
   const [open, setOpen] = useState(false);
+  // showing a personal handout to everyone asks first, in the app's own dialog
+  const [asking, setAsking] = useState(false);
   const character = useRecord("entities", handout.character);
   const url = useAssetUrl(open ? handout.asset : undefined);
   const revealed = handout.visibility.level === "revealed";
   const staysWithGm = handoutStaysWithGm(handout, ctx.module.module);
   const personal = !!handout.character && !canSee(handout.visibility, { role: "player" });
-  const showEveryone = () => {
-    const who = character ? `${character.name}'s` : "this";
-    if (window.confirm(`This puts ${who} handout "${handout.title}" on the screen every player sees. Show it to everyone?`)) onReveal();
-  };
+  const who = character ? `${character.name}'s` : "this";
   return (
     <li className={`app-reveal${personal || staysWithGm ? " app-reveal--private" : ""}`} data-handout={handout.id}>
       <div className="app-reveal__row">
         <button type="button" className="app-linkbtn app-reveal__title" onClick={() => setOpen(!open)} aria-expanded={open}>
           {handout.title}
         </button>
-        <Badge>{handout.kind}</Badge>
+        <Badge>{handout.kind === "agenda" ? terms.agenda : handout.kind}</Badge>
         {character && <span className="cf-muted">for {character.name}</span>}
         <VisibilityBadge visibility={handout.visibility} />
         {revealed && handout.revealedIn === sessionId && <span className="cf-muted">this session</span>}
@@ -73,9 +74,23 @@ function HandoutRow({ handout, onReveal, onHide, sessionId, onScreen }: { handou
         ) : personal ? (
           <>
             <GiveToPlayer handout={handout} />
-            <Button variant="ghost" onClick={showEveryone} aria-label={`Show ${handout.title} to everyone`} data-testid="reveal-everyone">
+            <Button variant="ghost" onClick={() => setAsking(true)} aria-label={`Show ${handout.title} to everyone`} data-testid="reveal-everyone">
               Show everyone…
             </Button>
+            <ConfirmDialog
+              open={asking}
+              title="Show it to everyone?"
+              confirmLabel="Show everyone"
+              onCancel={() => setAsking(false)}
+              onConfirm={() => {
+                setAsking(false);
+                onReveal();
+              }}
+            >
+              <p data-testid="reveal-everyone-question">
+                This puts {who} {handout.kind === "agenda" ? terms.agenda : "handout"} “{handout.title}” on the screen every player sees.
+              </p>
+            </ConfirmDialog>
           </>
         ) : (
           <Button variant="primary" onClick={onReveal} aria-label={`Reveal ${handout.title}`}>

@@ -65,7 +65,11 @@ export function AtlasPage() {
   const types = ctx.module.module.entityTypes;
   const typeById = useMemo(() => new Map(types.map((t) => [t.id, t])), [types]);
   const kinds = new Set(types.map((t) => t.kind));
-  const groups = KIND_GROUPS.filter((g) => g.kind && kinds.has(g.kind));
+  // a kind the module has one type of is named after it ("Quests", "Monsters"); NPCs and PCs keep their own names
+  const groups = KIND_GROUPS.filter((g) => g.kind && kinds.has(g.kind)).map((g) => {
+    const ofKind = types.filter((t) => t.kind === g.kind);
+    return g.kind !== "character" && ofKind.length === 1 && ofKind[0]!.plural.trim() ? { ...g, label: ofKind[0]!.plural } : g;
+  });
   const tab = search.tab ?? "locations";
 
   // player preview: drop what a player cannot see, strip hidden fields
@@ -201,7 +205,7 @@ function LocationTree({ nodes, matches, typeById }: { nodes: TreeNode[]; matches
   // keep a node when it or a descendant matches the filters
   const keep = (n: TreeNode): boolean => matches(n.entity) || n.children.some(keep);
   const shown = nodes.filter(keep);
-  if (shown.length === 0) return <EmptyState title="No locations" text="Add a location, or generate a star system, and nest places with “within” relationships." />;
+  if (shown.length === 0) return <EmptyState title="No locations" text="Add a location with + New, and nest places in one another with “within” relationships." />;
   return (
     <ul className="app-tree" role="tree" aria-label="Locations">
       {shown.map((n) => (
@@ -251,12 +255,16 @@ function EntityTable({ entities, typeById, kind, pc }: { entities: Entity[]; typ
   const asPlayer = useContext(PreviewContext);
   const refName = (list: string, id: string) => module.referenceItem(list, id)?.name;
   const sorted = [...entities].sort((a, b) => a.name.localeCompare(b.name));
+  // say only the ways in this module offers: a builder, a roller (a life path), by hand
+  const pcBuilder = useCharacterBuilder();
+  const pcRollers = useCharacterProcedures({ pc: true });
   if (sorted.length === 0) {
     const def = module.module.entityTypes.find((t) => t.kind === kind);
+    const ways = [pcBuilder ? "build one step by step" : "", pcRollers.length > 0 ? "roll one" : "", "make one by hand"].filter(Boolean);
     return (
       <EmptyState
         title="Nothing here yet"
-        text={pc ? "Player characters are characters marked as PCs: roll one, or make one by hand." : "Create one from a preset or from scratch."}
+        text={pc ? `Player characters are characters marked as PCs: ${ways.length > 2 ? `${ways.slice(0, -1).join(", ")} or ${ways[ways.length - 1]}` : ways.join(", or ")}.` : "Create one from a preset or from scratch."}
         action={
           def && (
             <span className="app-row">
