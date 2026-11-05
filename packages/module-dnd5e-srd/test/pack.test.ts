@@ -99,8 +99,8 @@ describe("SRD 5.1 data pack", () => {
       const text = readFileSync(join(PACK_DIR, f), "utf8");
       expect(Buffer.byteLength(text), f).toBeLessThan(2 * 1024 * 1024);
       expect(text, f).not.toMatch(/Dungeons\s*&\s*Dragons|\bD&D\b|Forgotten Realms|Greyhawk/);
-      // No API urls or image paths from the source.
-      expect(text, f).not.toMatch(/"image":|"url": "\/|\/api\/(2014|2024|images)\//);
+      // No API urls or image paths from the source (the guide's step images are objects naming a screenshot, not paths).
+      expect(text, f).not.toMatch(/"image": "|"url": "\/|\/api\/(2014|2024|images)\//);
     }
   });
 

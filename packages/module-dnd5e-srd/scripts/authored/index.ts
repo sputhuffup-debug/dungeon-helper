@@ -1,6 +1,6 @@
 /**
  * The authored files of the pack: `pack.json` (manifest, dice, entity types,
- * trackers, play guide, templates, calendar) and `tables.json` (original
+ * trackers, play guide, templates, calendar, the first-campaign guide) and `tables.json` (original
  * tables, generators and GM advice cards). They read a little of the converted
  * SRD data (the class list, spell slot tables, monster presets), so they are
  * built after the SRD parts; `test/authored.test.ts` checks the committed
@@ -10,6 +10,7 @@ import type { EntityPreset, ReferenceList } from "@campaign-forge/module-sdk";
 import { LIST, PACK } from "../ids.ts";
 import { builderRules, characterBuilder } from "./builder.ts";
 import { d20Combat } from "./combat.ts";
+import { firstCampaignGuide } from "./firstCampaign.ts";
 import { gmScreen } from "./gmScreen.ts";
 import { labelEnums } from "./labels.ts";
 import { characterType, encounterType, factionType, itemType, locationType, monsterType, npcType, questType } from "./entityTypes.ts";
@@ -55,6 +56,7 @@ export function buildAuthored(data: GeneratedData): Record<string, unknown> {
     mapGenerators: [dungeonGenerator()],
     templates,
     calendar,
+    guide: firstCampaignGuide,
     styleNotes: [
       "Heroic fantasy: describe the world vividly, let the dice decide what is uncertain, and keep the spotlight moving between players.",
       "SRD rules text is quoted as written; GM advice, tables and generators marked Original are Campaign Forge's own.",
