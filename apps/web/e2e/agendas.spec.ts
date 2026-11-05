@@ -27,7 +27,7 @@ test("agenda drafts for Cold Harbor: generate for the four PCs, re-roll a slot, 
 
   // inputs: the adventure, its four PCs, the campaign snapshot
   await expect(page.getByTestId("input-adventure")).toHaveValue(/[0-9A-Z]{26}/);
-  await expect(page.getByTestId("input-campaign")).toContainText(/\d+ entities and \d+ links/);
+  await expect(page.getByTestId("input-campaign")).toContainText(/\d+ entities and \d+ links?,/);
   const drafts = page.getByTestId("agenda-drafts");
   await expect(drafts).toContainText("DRAFT");
   const cards = drafts.getByTestId("agenda-character");
