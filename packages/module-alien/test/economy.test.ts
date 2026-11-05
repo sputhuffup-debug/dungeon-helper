@@ -239,8 +239,20 @@ describe("between jobs", () => {
     expect(postings(company.results.effects as Effect[]).some((e) => e.category === LEDGER.lease)).toBe(false);
   });
 
-  it("chains into shore leave and the next job", () => {
-    expect(betweenJobs.chains?.map((c) => c.procedure)).toEqual(["alien.shore-leave", "alien.job.create", "alien.job-board"]);
+  // Walkthrough 3 (A8): pay collected in the wrap-up was counted again in the net change
+  it("does not post or count a payment already collected (on the ledger)", () => {
+    const g = go("s1", { job: { ...job, paidOut: { amount: 12000, key: "job-payment:job-1" } } });
+    const ledgerOut = postings(g.results.effects as Effect[]);
+    expect(ledgerOut.some((e) => e.category === LEDGER.jobPayment)).toBe(false);
+    expect(g.results.payment).toMatchObject({ amount: 0, collected: true, label: "Haul ore: $12,000, already collected (on the ledger)" });
+    const balance = g.results.balance as { net: number; label: string };
+    expect(balance.net).toBe(ledgerOut.reduce((n, e) => n + e.amount, 0));
+    expect(balance.net).toBe((go("s1").results.balance as { net: number }).net - 12000);
+    expect(balance.label).toContain("already collected");
+  });
+
+  it("chains into shore leave and the next job board (one way to the next job)", () => {
+    expect(betweenJobs.chains?.map((c) => c.procedure)).toEqual(["alien.shore-leave", "alien.job-board"]);
     expect(betweenJobs.inputs?.properties).toMatchObject({ job: { "x-entity": { types: ["alien.job"] } }, ship: { "x-entity": { types: ["alien.spaceship"], setting: "ship" } } });
   });
 });
