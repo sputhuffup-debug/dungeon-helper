@@ -170,7 +170,7 @@ const BUILTIN: ModuleEntry[] = [
   ),
   // The ORC core rules for the second edition remaster. Its static manifest (with the long ORC
   // attribution) is generated next to the pack, so it is imported rather than copied here.
-  builtinPack(pf2eOrcManifest, () => import("@campaign-forge/module-pf2e-orc").then((m) => m.pf2eOrcSource)),
+  builtinPack({ ...pf2eOrcManifest, hasGuide: true }, () => import("@campaign-forge/module-pf2e-orc").then((m) => m.pf2eOrcSource)),
 ];
 
 const BUILTIN_IDS = new Set(BUILTIN.map((e) => e.id));
