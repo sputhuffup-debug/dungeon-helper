@@ -12,6 +12,9 @@ import {
   builderChoices,
   characterBuilderIssues,
   computeFields,
+  d20Attacks,
+  d20CombatantFor,
+  describeGrant,
   emptyDraft,
   moduleFromPackSource,
   resolveCharacterBuilder,
@@ -116,7 +119,11 @@ describe("the remaster character builder", { timeout: 60_000 }, () => {
     // scale mail and a steel shield on the sheet, the longsword as a Strike, the rest of 15 gp as money
     expect(f.armor).toMatchObject({ name: "Scale Mail", category: "medium", acBonus: 3, dexCap: 2, strength: 2, checkPenalty: -2, speedPenalty: -5 });
     expect(f.shield).toMatchObject({ name: "Steel Shield", acBonus: 2, hardness: 5, hp: 20, maxHp: 20 });
-    expect(f.strikes).toEqual([{ name: "Longsword", damage: "1d8 S", traits: expect.stringContaining("versatile P"), type: "melee" }]);
+    // the Strike names its category and attribute, so table mode works out its attack: Str 4 + expert martial (1 + 4) = +9, damage 1d8+4
+    expect(f.strikes).toEqual([{ name: "Longsword", damage: "1d8 slashing", category: "martial", attribute: "strength", traits: expect.stringContaining("versatile P"), type: "melee" }]);
+    const combat = base.d20Combat!;
+    const attacks = d20Attacks(combat, d20CombatantFor(combat, "pf2e-orc.character")!, { fields: res.fields, computed: res.computed });
+    expect(attacks.map((a) => [a.name, a.bonus, a.damage.map((d) => `${d.dice} ${d.type}`).join(" ")])).toEqual([["Longsword", 9, "1d8+4 slashing"]]);
     expect(f.coins).toEqual({ cp: 0, sp: 5, gp: 6, pp: 0 });
     // computed, never stored: HP 8 + (10 + 2) × 1; AC 10 + Dex 2 (cap 2) + trained 3 + 3; Perception Wis 1 + expert 5
     const c = res.computed as Record<string, unknown>;
@@ -133,7 +140,10 @@ describe("the remaster character builder", { timeout: 60_000 }, () => {
     const label = (field: string) => res.grants.filter((g) => g.field === field && !g.hidden).map((g) => `${g.label} from ${g.source}`);
     expect(label("attributes.strength")).toEqual(["+1 Strength from ancestry Human", "+1 Strength from background Warrior", "+1 Strength from class Fighter", "+1 Strength from Attribute boosts: Strength"]);
     expect(label("saves.fortitude")).toEqual(["Fortitude expert from class Fighter"]);
-    expect(res.todo.some((t) => /Strikes: write in each weapon's attack bonus/.test(t))).toBe(true);
+    expect(res.todo.some((t) => /Strikes: the attack and damage are worked out/.test(t))).toBe(true);
+    // the review reads ids as names
+    const g = (field: string) => res.grants.find((x) => x.field === field)!;
+    expect(describeGrant(base, base.entityTypes.find((t) => t.id === "pf2e-orc.character"), g("class"))).toBe("Class Fighter");
   });
 
   it("builds a level 1 elf wizard by the rules, with a school, a thesis and spellcasting", () => {

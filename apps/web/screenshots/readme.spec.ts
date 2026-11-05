@@ -2818,7 +2818,9 @@ test("guide-pf2e-orc", async ({ page }) => {
   await page.getByText("Add scenes", { exact: true }).click();
   await page.getByRole("textbox", { name: "New plan item" }).fill("Hesper knows a hidden way into the warren");
   await page.getByRole("textbox", { name: "New plan item" }).press("Enter");
-  await orcShot("session-plan", main.locator(".cf-card").filter({ hasText: "Scenes planned" }));
+  await expect.poll(() => page.locator('[aria-label^="Plan item "]').evaluateAll((els) => els.map((e) => (e as HTMLTextAreaElement).value))).toContain("Hesper knows a hidden way into the warren");
+  // the scenes and the plan item the step asks for
+  await orcShot("session-plan", [main.locator(".cf-card").filter({ hasText: "Scenes planned" }), main.locator(".cf-card").filter({ has: page.getByRole("textbox", { name: "New plan item" }) })]);
 
   // start it: table mode, on to the road, initiative for everyone
   await nav(page, "Home").click();

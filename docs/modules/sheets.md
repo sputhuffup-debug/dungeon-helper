@@ -60,7 +60,7 @@ A field: `{ path, label?, widget?, rule?, mode?, readonly?, span?, options?, ent
 | Widget | For | `config` |
 |---|---|---|
 | `text`, `textarea`, `richtext` | strings | `placeholder`, `rows`, `maxLength`; `text` with `options`: `optionsFilter` |
-| `number`, `skill` | numbers | `min`, `max`, `step` (else the schema's `minimum`/`maximum`); `number`: `suggested` (a computed key offered beside the value with a *Use* button, e.g. the fifth edition hit point maximum from the fixed values) and `suggestedLabel` |
+| `number`, `skill` | numbers | `min`, `max`, `step` (else the schema's `minimum`/`maximum`); `number`: `suggested` (a computed key offered beside the value with a *Use* button, e.g. the fifth edition hit point maximum from the fixed values) and `suggestedLabel`; `unsetComputed` (a computed key a value not stored yet reads as, e.g. current Hit Points that start at the computed maximum) |
 | `attribute` | a big number with steppers | as `number` |
 | `checkbox` | booleans | `text` (its accessible name is always the field's label, never Yes or No) |
 | `select`, `multiselect`, `tags` | enums, lists of strings | `ref` (reference list). A `select` on an integer field with an `enum` stores the number, so a rank reads by its `enumLabels` (`{ "type": "integer", "enum": [0, 1, 2], "enumLabels": ["Untrained", "Trained", "Expert"] }`); the `object` and `table` widgets do the same for such properties |

@@ -16,7 +16,7 @@ export const primer: PrimerDef = {
       id: "characters",
       title: "Making your character",
       prompt: "Starting level, which ancestries, heritages, backgrounds, classes and rarities are allowed, and how the party knows each other.",
-      starter: "- **Options**: common ancestries, heritages, backgrounds and classes; ask before anything uncommon or rare\n- **Ability boosts**: as the core rules give them\n- **Bring**: a reason to adventure and a tie to one other character",
+      starter: "- **Options**: common ancestries, heritages, backgrounds and classes; ask before anything uncommon or rare\n- **Attribute boosts**: as the core rules give them\n- **Bring**: a reason to adventure and a tie to one other character",
       original: true,
     },
     { id: "opening", title: "Where we begin", prompt: "Where the party is when the first session starts, and the trouble that brings them together.", original: true },

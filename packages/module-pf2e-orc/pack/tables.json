@@ -169,12 +169,12 @@
    "name": "Creatures of level -1",
    "family": "creature",
    "cite": "Monster Core — Creatures by Level",
-   "dice": "1d18",
+   "dice": "1d20",
    "rows": [
     {
      "range": [
       1,
-      1
+      2
      ],
      "label": "Animated Broom",
      "result": {
@@ -185,8 +185,8 @@
     },
     {
      "range": [
-      2,
-      2
+      3,
+      4
      ],
      "label": "Compsognathus",
      "result": {
@@ -197,8 +197,8 @@
     },
     {
      "range": [
-      3,
-      3
+      5,
+      5
      ],
      "label": "Crawling Hand",
      "result": {
@@ -209,8 +209,8 @@
     },
     {
      "range": [
-      4,
-      4
+      6,
+      6
      ],
      "label": "Eagle",
      "result": {
@@ -221,8 +221,8 @@
     },
     {
      "range": [
-      5,
-      5
+      7,
+      7
      ],
      "label": "Flash Beetle",
      "result": {
@@ -233,8 +233,8 @@
     },
     {
      "range": [
-      6,
-      6
+      8,
+      8
      ],
      "label": "Giant Centipede",
      "result": {
@@ -245,8 +245,8 @@
     },
     {
      "range": [
-      7,
-      7
+      9,
+      9
      ],
      "label": "Giant Rat",
      "result": {
@@ -257,8 +257,8 @@
     },
     {
      "range": [
-      8,
-      8
+      10,
+      10
      ],
      "label": "Goblin Warrior",
      "result": {
@@ -269,8 +269,8 @@
     },
     {
      "range": [
-      9,
-      9
+      11,
+      11
      ],
      "label": "Guard Dog",
      "result": {
@@ -281,8 +281,8 @@
     },
     {
      "range": [
-      10,
-      10
+      12,
+      12
      ],
      "label": "Halfling Street Watcher",
      "result": {
@@ -293,8 +293,8 @@
     },
     {
      "range": [
-      11,
-      11
+      13,
+      13
      ],
      "label": "Kobold Warrior",
      "result": {
@@ -305,8 +305,8 @@
     },
     {
      "range": [
-      12,
-      12
+      14,
+      14
      ],
      "label": "Mitflit",
      "result": {
@@ -317,8 +317,8 @@
     },
     {
      "range": [
-      13,
-      13
+      15,
+      15
      ],
      "label": "Skeleton Guard",
      "result": {
@@ -329,8 +329,8 @@
     },
     {
      "range": [
-      14,
-      14
+      16,
+      16
      ],
      "label": "Sprigjack",
      "result": {
@@ -341,8 +341,8 @@
     },
     {
      "range": [
-      15,
-      15
+      17,
+      17
      ],
      "label": "Sprite",
      "result": {
@@ -353,8 +353,8 @@
     },
     {
      "range": [
-      16,
-      16
+      18,
+      18
      ],
      "label": "Tooth Fairy",
      "result": {
@@ -365,8 +365,8 @@
     },
     {
      "range": [
-      17,
-      17
+      19,
+      19
      ],
      "label": "Viper",
      "result": {
@@ -377,8 +377,8 @@
     },
     {
      "range": [
-      18,
-      18
+      20,
+      20
      ],
      "label": "Zombie Shambler",
      "result": {
@@ -547,12 +547,12 @@
    "name": "Creatures of level 1",
    "family": "creature",
    "cite": "Monster Core — Creatures by Level",
-   "dice": "1d54",
+   "dice": "1d100",
    "rows": [
     {
      "range": [
       1,
-      1
+      2
      ],
      "label": "Air Scamp",
      "result": {
@@ -563,8 +563,8 @@
     },
     {
      "range": [
-      2,
-      2
+      3,
+      4
      ],
      "label": "Arbiter",
      "result": {
@@ -575,8 +575,8 @@
     },
     {
      "range": [
-      3,
-      3
+      5,
+      6
      ],
      "label": "Boggard Scout",
      "result": {
@@ -587,8 +587,8 @@
     },
     {
      "range": [
-      4,
-      4
+      7,
+      8
      ],
      "label": "Cacodaemon",
      "result": {
@@ -599,8 +599,8 @@
     },
     {
      "range": [
-      5,
-      5
+      9,
+      10
      ],
      "label": "Caligni Dancer",
      "result": {
@@ -611,8 +611,8 @@
     },
     {
      "range": [
-      6,
-      6
+      11,
+      12
      ],
      "label": "Cassisian",
      "result": {
@@ -623,8 +623,8 @@
     },
     {
      "range": [
-      7,
-      7
+      13,
+      14
      ],
      "label": "Catfolk Pouncer",
      "result": {
@@ -635,8 +635,8 @@
     },
     {
      "range": [
-      8,
-      8
+      15,
+      16
      ],
      "label": "Cythnigot",
      "result": {
@@ -647,8 +647,8 @@
     },
     {
      "range": [
-      9,
-      9
+      17,
+      18
      ],
      "label": "Dwarf Warrior",
      "result": {
@@ -659,8 +659,8 @@
     },
     {
      "range": [
-      10,
-      10
+      19,
+      20
      ],
      "label": "Earth Scamp",
      "result": {
@@ -671,8 +671,8 @@
     },
     {
      "range": [
-      11,
-      11
+      21,
+      22
      ],
      "label": "Electric Eel",
      "result": {
@@ -683,8 +683,8 @@
     },
     {
      "range": [
-      12,
-      12
+      23,
+      24
      ],
      "label": "Elf Ranger",
      "result": {
@@ -695,8 +695,8 @@
     },
     {
      "range": [
-      13,
-      13
+      25,
+      26
      ],
      "label": "Fire Scamp",
      "result": {
@@ -707,8 +707,8 @@
     },
     {
      "range": [
-      14,
-      14
+      27,
+      28
      ],
      "label": "Ghoul Stalker",
      "result": {
@@ -719,8 +719,8 @@
     },
     {
      "range": [
-      15,
-      15
+      29,
+      30
      ],
      "label": "Giant Gecko",
      "result": {
@@ -731,8 +731,8 @@
     },
     {
      "range": [
-      16,
-      16
+      31,
+      32
      ],
      "label": "Gnome Bard",
      "result": {
@@ -743,8 +743,8 @@
     },
     {
      "range": [
-      17,
-      17
+      33,
+      34
      ],
      "label": "Goblin Commando",
      "result": {
@@ -755,8 +755,8 @@
     },
     {
      "range": [
-      18,
-      18
+      35,
+      36
      ],
      "label": "Goblin Dog",
      "result": {
@@ -767,8 +767,8 @@
     },
     {
      "range": [
-      19,
-      19
+      37,
+      38
      ],
      "label": "Goblin Pyro",
      "result": {
@@ -779,8 +779,8 @@
     },
     {
      "range": [
-      20,
-      20
+      39,
+      40
      ],
      "label": "Goblin War Chanter",
      "result": {
@@ -791,8 +791,8 @@
     },
     {
      "range": [
-      21,
-      21
+      41,
+      42
      ],
      "label": "Gourd Leshy",
      "result": {
@@ -803,8 +803,8 @@
     },
     {
      "range": [
-      22,
-      22
+      43,
+      44
      ],
      "label": "Halfling Troublemaker",
      "result": {
@@ -815,8 +815,8 @@
     },
     {
      "range": [
-      23,
-      23
+      45,
+      46
      ],
      "label": "Hippocampus",
      "result": {
@@ -827,8 +827,8 @@
     },
     {
      "range": [
-      24,
-      24
+      47,
+      48
      ],
      "label": "Hobgoblin Soldier",
      "result": {
@@ -839,8 +839,8 @@
     },
     {
      "range": [
-      25,
-      25
+      49,
+      50
      ],
      "label": "Hryngar Bombardier",
      "result": {
@@ -851,8 +851,8 @@
     },
     {
      "range": [
-      26,
-      26
+      51,
+      52
      ],
      "label": "Hunting Spider",
      "result": {
@@ -863,8 +863,8 @@
     },
     {
      "range": [
-      27,
-      27
+      53,
+      54
      ],
      "label": "Hyena",
      "result": {
@@ -875,8 +875,8 @@
     },
     {
      "range": [
-      28,
-      28
+      55,
+      56
      ],
      "label": "Imp",
      "result": {
@@ -887,8 +887,8 @@
     },
     {
      "range": [
-      29,
-      29
+      57,
+      58
      ],
      "label": "Jinkin",
      "result": {
@@ -899,8 +899,8 @@
     },
     {
      "range": [
-      30,
-      30
+      59,
+      60
      ],
      "label": "Kobold Scout",
      "result": {
@@ -911,8 +911,8 @@
     },
     {
      "range": [
-      31,
-      31
+      61,
+      62
      ],
      "label": "Lizardfolk Defender",
      "result": {
@@ -923,8 +923,8 @@
     },
     {
      "range": [
-      32,
-      32
+      63,
+      64
      ],
      "label": "Lizardfolk Scout",
      "result": {
@@ -935,8 +935,8 @@
     },
     {
      "range": [
-      33,
-      33
+      65,
+      66
      ],
      "label": "Lyrakien",
      "result": {
@@ -947,8 +947,8 @@
     },
     {
      "range": [
-      34,
-      34
+      67,
+      68
      ],
      "label": "Merfolk Warrior",
      "result": {
@@ -959,8 +959,8 @@
     },
     {
      "range": [
-      35,
-      35
+      69,
+      70
      ],
      "label": "Naiad",
      "result": {
@@ -971,8 +971,8 @@
     },
     {
      "range": [
-      36,
-      36
+      71,
+      72
      ],
      "label": "Nosoi",
      "result": {
@@ -983,8 +983,8 @@
     },
     {
      "range": [
-      37,
-      37
+      73,
+      74
      ],
      "label": "Orc Veteran",
      "result": {
@@ -995,8 +995,8 @@
     },
     {
      "range": [
-      38,
-      38
+      75,
+      76
      ],
      "label": "Plague Zombie",
      "result": {
@@ -1007,8 +1007,8 @@
     },
     {
      "range": [
-      39,
-      39
+      77,
+      78
      ],
      "label": "Python",
      "result": {
@@ -1019,8 +1019,8 @@
     },
     {
      "range": [
-      40,
-      40
+      79,
+      80
      ],
      "label": "Raktavarna",
      "result": {
@@ -1031,8 +1031,8 @@
     },
     {
      "range": [
-      41,
-      41
+      81,
+      82
      ],
      "label": "Rat Swarm",
      "result": {
@@ -1043,8 +1043,8 @@
     },
     {
      "range": [
-      42,
-      42
+      83,
+      84
      ],
      "label": "Reefclaw",
      "result": {
@@ -1055,8 +1055,8 @@
     },
     {
      "range": [
-      43,
-      43
+      85,
+      86
      ],
      "label": "Riding Dog",
      "result": {
@@ -1067,8 +1067,8 @@
     },
     {
      "range": [
-      44,
-      44
+      87,
+      88
      ],
      "label": "Riding Horse",
      "result": {
@@ -1079,8 +1079,8 @@
     },
     {
      "range": [
-      45,
-      45
+      89,
+      90
      ],
      "label": "Sewer Ooze",
      "result": {
@@ -1091,8 +1091,8 @@
     },
     {
      "range": [
-      46,
-      46
+      91,
+      92
      ],
      "label": "Umbral Gnome Scout",
      "result": {
@@ -1103,8 +1103,8 @@
     },
     {
      "range": [
-      47,
-      47
+      93,
+      93
      ],
      "label": "Vampire Bat Swarm",
      "result": {
@@ -1115,8 +1115,8 @@
     },
     {
      "range": [
-      48,
-      48
+      94,
+      94
      ],
      "label": "Velociraptor",
      "result": {
@@ -1127,8 +1127,8 @@
     },
     {
      "range": [
-      49,
-      49
+      95,
+      95
      ],
      "label": "Voidworm",
      "result": {
@@ -1139,8 +1139,8 @@
     },
     {
      "range": [
-      50,
-      50
+      96,
+      96
      ],
      "label": "War Pony",
      "result": {
@@ -1151,8 +1151,8 @@
     },
     {
      "range": [
-      51,
-      51
+      97,
+      97
      ],
      "label": "Water Scamp",
      "result": {
@@ -1163,8 +1163,8 @@
     },
     {
      "range": [
-      52,
-      52
+      98,
+      98
      ],
      "label": "Wolf",
      "result": {
@@ -1175,8 +1175,8 @@
     },
     {
      "range": [
-      53,
-      53
+      99,
+      99
      ],
      "label": "Xulgath Warrior",
      "result": {
@@ -1187,8 +1187,8 @@
     },
     {
      "range": [
-      54,
-      54
+      100,
+      100
      ],
      "label": "Zoaem",
      "result": {
@@ -1204,12 +1204,12 @@
    "name": "Creatures of level 2",
    "family": "creature",
    "cite": "Monster Core — Creatures by Level",
-   "dice": "1d60",
+   "dice": "1d100",
    "rows": [
     {
      "range": [
       1,
-      1
+      2
      ],
      "label": "Aiuvarin Elementalist",
      "result": {
@@ -1220,8 +1220,8 @@
     },
     {
      "range": [
-      2,
-      2
+      3,
+      4
      ],
      "label": "Animated Armor",
      "result": {
@@ -1232,8 +1232,8 @@
     },
     {
      "range": [
-      3,
-      3
+      5,
+      6
      ],
      "label": "Boar",
      "result": {
@@ -1244,8 +1244,8 @@
     },
     {
      "range": [
-      4,
-      4
+      7,
+      8
      ],
      "label": "Boggard Warrior",
      "result": {
@@ -1256,8 +1256,8 @@
     },
     {
      "range": [
-      5,
-      5
+      9,
+      10
      ],
      "label": "Bugbear Prowler",
      "result": {
@@ -1268,8 +1268,8 @@
     },
     {
      "range": [
-      6,
-      6
+      11,
+      12
      ],
      "label": "Caligni Skulker",
      "result": {
@@ -1280,8 +1280,8 @@
     },
     {
      "range": [
-      7,
-      7
+      13,
+      14
      ],
      "label": "Crocodile",
      "result": {
@@ -1292,8 +1292,8 @@
     },
     {
      "range": [
-      8,
-      8
+      15,
+      16
      ],
      "label": "Deinonychus",
      "result": {
@@ -1304,8 +1304,8 @@
     },
     {
      "range": [
-      9,
-      9
+      17,
+      18
      ],
      "label": "Dero Stalker",
      "result": {
@@ -1316,8 +1316,8 @@
     },
     {
      "range": [
-      10,
-      10
+      19,
+      20
      ],
      "label": "Dhampir Wizard",
      "result": {
@@ -1328,8 +1328,8 @@
     },
     {
      "range": [
-      11,
-      11
+      21,
+      22
      ],
      "label": "Dromaar Mountaineer",
      "result": {
@@ -1340,8 +1340,8 @@
     },
     {
      "range": [
-      12,
-      12
+      23,
+      24
      ],
      "label": "Envyspawn",
      "result": {
@@ -1352,8 +1352,8 @@
     },
     {
      "range": [
-      13,
-      13
+      25,
+      26
      ],
      "label": "Fey Dragonet",
      "result": {
@@ -1364,8 +1364,8 @@
     },
     {
      "range": [
-      14,
-      14
+      27,
+      28
      ],
      "label": "Fungus Leshy",
      "result": {
@@ -1376,8 +1376,8 @@
     },
     {
      "range": [
-      15,
-      15
+      29,
+      30
      ],
      "label": "Ghoul Soldier",
      "result": {
@@ -1388,8 +1388,8 @@
     },
     {
      "range": [
-      16,
-      16
+      31,
+      32
      ],
      "label": "Giant Ant",
      "result": {
@@ -1400,8 +1400,8 @@
     },
     {
      "range": [
-      17,
-      17
+      33,
+      34
      ],
      "label": "Giant Bat",
      "result": {
@@ -1412,8 +1412,8 @@
     },
     {
      "range": [
-      18,
-      18
+      35,
+      36
      ],
      "label": "Giant Monitor Lizard",
      "result": {
@@ -1424,8 +1424,8 @@
     },
     {
      "range": [
-      19,
-      19
+      37,
+      38
      ],
      "label": "Giant Viper",
      "result": {
@@ -1436,8 +1436,8 @@
     },
     {
      "range": [
-      20,
-      20
+      39,
+      40
      ],
      "label": "Gluttonyspawn",
      "result": {
@@ -1448,8 +1448,8 @@
     },
     {
      "range": [
-      21,
-      21
+      41,
+      42
      ],
      "label": "Greedspawn",
      "result": {
@@ -1460,8 +1460,8 @@
     },
     {
      "range": [
-      22,
-      22
+      43,
+      44
      ],
      "label": "Herexen",
      "result": {
@@ -1472,8 +1472,8 @@
     },
     {
      "range": [
-      23,
-      23
+      45,
+      46
      ],
      "label": "Hippogriff",
      "result": {
@@ -1484,8 +1484,8 @@
     },
     {
      "range": [
-      24,
-      24
+      47,
+      48
      ],
      "label": "Hryngar Taskmaster",
      "result": {
@@ -1496,8 +1496,8 @@
     },
     {
      "range": [
-      25,
-      25
+      49,
+      50
      ],
      "label": "Kholo Hunter",
      "result": {
@@ -1508,8 +1508,8 @@
     },
     {
      "range": [
-      26,
-      26
+      51,
+      52
      ],
      "label": "Kobold Cavern Mage",
      "result": {
@@ -1520,8 +1520,8 @@
     },
     {
      "range": [
-      27,
-      27
+      53,
+      54
      ],
      "label": "Leopard",
      "result": {
@@ -1532,8 +1532,8 @@
     },
     {
      "range": [
-      28,
-      28
+      55,
+      56
      ],
      "label": "Lizardfolk Stargazer",
      "result": {
@@ -1544,8 +1544,8 @@
     },
     {
      "range": [
-      29,
-      29
+      57,
+      58
      ],
      "label": "Lustspawn",
      "result": {
@@ -1556,8 +1556,8 @@
     },
     {
      "range": [
-      30,
-      30
+      59,
+      60
      ],
      "label": "Merfolk Wavecaller",
      "result": {
@@ -1568,8 +1568,8 @@
     },
     {
      "range": [
-      31,
-      31
+      61,
+      62
      ],
      "label": "Orc Commander",
      "result": {
@@ -1580,8 +1580,8 @@
     },
     {
      "range": [
-      32,
-      32
+      63,
+      64
      ],
      "label": "Pipefox",
      "result": {
@@ -1592,8 +1592,8 @@
     },
     {
      "range": [
-      33,
-      33
+      65,
+      66
      ],
      "label": "Pridespawn",
      "result": {
@@ -1604,8 +1604,8 @@
     },
     {
      "range": [
-      34,
-      34
+      67,
+      68
      ],
      "label": "Pteranodon",
      "result": {
@@ -1616,8 +1616,8 @@
     },
     {
      "range": [
-      35,
-      35
+      69,
+      70
      ],
      "label": "Pusk",
      "result": {
@@ -1628,8 +1628,8 @@
     },
     {
      "range": [
-      36,
-      36
+      71,
+      72
      ],
      "label": "Sedacthy Scout",
      "result": {
@@ -1640,8 +1640,8 @@
     },
     {
      "range": [
-      37,
-      37
+      73,
+      74
      ],
      "label": "Skeletal Champion",
      "result": {
@@ -1652,8 +1652,8 @@
     },
     {
      "range": [
-      38,
-      38
+      75,
+      76
      ],
      "label": "Skeletal Horse",
      "result": {
@@ -1664,8 +1664,8 @@
     },
     {
      "range": [
-      39,
-      39
+      77,
+      78
      ],
      "label": "Slothspawn",
      "result": {
@@ -1676,8 +1676,8 @@
     },
     {
      "range": [
-      40,
-      40
+      79,
+      80
      ],
      "label": "Slurk",
      "result": {
@@ -1688,8 +1688,8 @@
     },
     {
      "range": [
-      41,
-      41
+      81,
+      81
      ],
      "label": "Soulbound Doll (Brave)",
      "result": {
@@ -1700,8 +1700,8 @@
     },
     {
      "range": [
-      42,
-      42
+      82,
+      82
      ],
      "label": "Soulbound Doll (Calm)",
      "result": {
@@ -1712,8 +1712,8 @@
     },
     {
      "range": [
-      43,
-      43
+      83,
+      83
      ],
      "label": "Soulbound Doll (Careful)",
      "result": {
@@ -1724,8 +1724,8 @@
     },
     {
      "range": [
-      44,
-      44
+      84,
+      84
      ],
      "label": "Soulbound Doll (Cruel)",
      "result": {
@@ -1736,8 +1736,8 @@
     },
     {
      "range": [
-      45,
-      45
+      85,
+      85
      ],
      "label": "Soulbound Doll (Gentle)",
      "result": {
@@ -1748,8 +1748,8 @@
     },
     {
      "range": [
-      46,
-      46
+      86,
+      86
      ],
      "label": "Soulbound Doll (Impish)",
      "result": {
@@ -1760,8 +1760,8 @@
     },
     {
      "range": [
-      47,
-      47
+      87,
+      87
      ],
      "label": "Soulbound Doll (Jolly)",
      "result": {
@@ -1772,8 +1772,8 @@
     },
     {
      "range": [
-      48,
-      48
+      88,
+      88
      ],
      "label": "Soulbound Doll (Kind)",
      "result": {
@@ -1784,8 +1784,8 @@
     },
     {
      "range": [
-      49,
-      49
+      89,
+      89
      ],
      "label": "Soulbound Doll (Rash)",
      "result": {
@@ -1796,8 +1796,8 @@
     },
     {
      "range": [
-      50,
-      50
+      90,
+      90
      ],
      "label": "Soulbound Doll (Sassy)",
      "result": {
@@ -1808,8 +1808,8 @@
     },
     {
      "range": [
-      51,
-      51
+      91,
+      91
      ],
      "label": "Soulbound Doll (Timid)",
      "result": {
@@ -1820,8 +1820,8 @@
     },
     {
      "range": [
-      52,
-      52
+      92,
+      92
      ],
      "label": "Tengu Sneak",
      "result": {
@@ -1832,8 +1832,8 @@
     },
     {
      "range": [
-      53,
-      53
+      93,
+      93
      ],
      "label": "Umbral Gnome Warrior",
      "result": {
@@ -1844,8 +1844,8 @@
     },
     {
      "range": [
-      54,
-      54
+      94,
+      94
      ],
      "label": "War Horse",
      "result": {
@@ -1856,8 +1856,8 @@
     },
     {
      "range": [
-      55,
-      55
+      95,
+      95
      ],
      "label": "Warg",
      "result": {
@@ -1868,8 +1868,8 @@
     },
     {
      "range": [
-      56,
-      56
+      96,
+      96
      ],
      "label": "Wererat",
      "result": {
@@ -1880,8 +1880,8 @@
     },
     {
      "range": [
-      57,
-      57
+      97,
+      97
      ],
      "label": "Wrathspawn",
      "result": {
@@ -1892,8 +1892,8 @@
     },
     {
      "range": [
-      58,
-      58
+      98,
+      98
      ],
      "label": "Xulgath Skulker",
      "result": {
@@ -1904,8 +1904,8 @@
     },
     {
      "range": [
-      59,
-      59
+      99,
+      99
      ],
      "label": "Zombie Brute",
      "result": {
@@ -1916,8 +1916,8 @@
     },
     {
      "range": [
-      60,
-      60
+      100,
+      100
      ],
      "label": "Zyss Serpentfolk",
      "result": {
@@ -1933,12 +1933,12 @@
    "name": "Creatures of level 3",
    "family": "creature",
    "cite": "Monster Core — Creatures by Level",
-   "dice": "1d46",
+   "dice": "1d100",
    "rows": [
     {
      "range": [
       1,
-      1
+      3
      ],
      "label": "Aapoph Serpentfolk",
      "result": {
@@ -1949,8 +1949,8 @@
     },
     {
      "range": [
-      2,
-      2
+      4,
+      6
      ],
      "label": "Animated Statue",
      "result": {
@@ -1961,8 +1961,8 @@
     },
     {
      "range": [
-      3,
-      3
+      7,
+      9
      ],
      "label": "Ankhrav",
      "result": {
@@ -1973,8 +1973,8 @@
     },
     {
      "range": [
-      4,
-      4
+      10,
+      12
      ],
      "label": "Athamaru Hunter",
      "result": {
@@ -1985,8 +1985,8 @@
     },
     {
      "range": [
-      5,
-      5
+      13,
+      15
      ],
      "label": "Boggard Swampseer",
      "result": {
@@ -1997,8 +1997,8 @@
     },
     {
      "range": [
-      6,
-      6
+      16,
+      18
      ],
      "label": "Brine Shark",
      "result": {
@@ -2009,8 +2009,8 @@
     },
     {
      "range": [
-      7,
-      7
+      19,
+      21
      ],
      "label": "Bugbear Tormentor",
      "result": {
@@ -2021,8 +2021,8 @@
     },
     {
      "range": [
-      8,
-      8
+      22,
+      24
      ],
      "label": "Centaur Herbalist",
      "result": {
@@ -2033,8 +2033,8 @@
     },
     {
      "range": [
-      9,
-      9
+      25,
+      26
      ],
      "label": "Centipede Swarm",
      "result": {
@@ -2045,8 +2045,8 @@
     },
     {
      "range": [
-      10,
-      10
+      27,
+      28
      ],
      "label": "Changeling Exile",
      "result": {
@@ -2057,8 +2057,8 @@
     },
     {
      "range": [
-      11,
-      11
+      29,
+      30
      ],
      "label": "Chupacabra",
      "result": {
@@ -2069,8 +2069,8 @@
     },
     {
      "range": [
-      12,
-      12
+      31,
+      32
      ],
      "label": "Cinder Rat",
      "result": {
@@ -2081,8 +2081,8 @@
     },
     {
      "range": [
-      13,
-      13
+      33,
+      34
      ],
      "label": "Cockatrice",
      "result": {
@@ -2093,8 +2093,8 @@
     },
     {
      "range": [
-      14,
-      14
+      35,
+      36
      ],
      "label": "Dero Strangler",
      "result": {
@@ -2105,8 +2105,8 @@
     },
     {
      "range": [
-      15,
-      15
+      37,
+      38
      ],
      "label": "Dire Wolf",
      "result": {
@@ -2117,8 +2117,8 @@
     },
     {
      "range": [
-      16,
-      16
+      39,
+      40
      ],
      "label": "Draxie",
      "result": {
@@ -2129,8 +2129,8 @@
     },
     {
      "range": [
-      17,
-      17
+      41,
+      42
      ],
      "label": "Dryad",
      "result": {
@@ -2141,8 +2141,8 @@
     },
     {
      "range": [
-      18,
-      18
+      43,
+      44
      ],
      "label": "Giant Eagle",
      "result": {
@@ -2153,8 +2153,8 @@
     },
     {
      "range": [
-      19,
-      19
+      45,
+      46
      ],
      "label": "Giant Mantis",
      "result": {
@@ -2165,8 +2165,8 @@
     },
     {
      "range": [
-      20,
-      20
+      47,
+      48
      ],
      "label": "Giant Scorpion",
      "result": {
@@ -2177,8 +2177,8 @@
     },
     {
      "range": [
-      21,
-      21
+      49,
+      50
      ],
      "label": "Giant Wasp",
      "result": {
@@ -2189,8 +2189,8 @@
     },
     {
      "range": [
-      22,
-      22
+      51,
+      52
      ],
      "label": "Gorilla",
      "result": {
@@ -2201,8 +2201,8 @@
     },
     {
      "range": [
-      23,
-      23
+      53,
+      54
      ],
      "label": "Grizzly Bear",
      "result": {
@@ -2213,8 +2213,8 @@
     },
     {
      "range": [
-      24,
-      24
+      55,
+      56
      ],
      "label": "Grothlut",
      "result": {
@@ -2225,8 +2225,8 @@
     },
     {
      "range": [
-      25,
-      25
+      57,
+      58
      ],
      "label": "Hell Hound",
      "result": {
@@ -2237,8 +2237,8 @@
     },
     {
      "range": [
-      26,
-      26
+      59,
+      60
      ],
      "label": "Hyaenodon",
      "result": {
@@ -2249,8 +2249,8 @@
     },
     {
      "range": [
-      27,
-      27
+      61,
+      62
      ],
      "label": "Kholo Bonekeeper",
      "result": {
@@ -2261,8 +2261,8 @@
     },
     {
      "range": [
-      28,
-      28
+      63,
+      64
      ],
      "label": "Lion",
      "result": {
@@ -2273,8 +2273,8 @@
     },
     {
      "range": [
-      29,
-      29
+      65,
+      66
      ],
      "label": "Ogre Warrior",
      "result": {
@@ -2285,8 +2285,8 @@
     },
     {
      "range": [
-      30,
-      30
+      67,
+      68
      ],
      "label": "Pachycephalosaurus",
      "result": {
@@ -2297,8 +2297,8 @@
     },
     {
      "range": [
-      31,
-      31
+      69,
+      70
      ],
      "label": "Pegasus",
      "result": {
@@ -2309,8 +2309,8 @@
     },
     {
      "range": [
-      32,
-      32
+      71,
+      72
      ],
      "label": "Pitborn Adept",
      "result": {
@@ -2321,8 +2321,8 @@
     },
     {
      "range": [
-      33,
-      33
+      73,
+      74
      ],
      "label": "River Drake",
      "result": {
@@ -2333,8 +2333,8 @@
     },
     {
      "range": [
-      34,
-      34
+      75,
+      76
      ],
      "label": "Sea Hag",
      "result": {
@@ -2345,8 +2345,8 @@
     },
     {
      "range": [
-      35,
-      35
+      77,
+      78
      ],
      "label": "Skeletal Giant",
      "result": {
@@ -2357,8 +2357,8 @@
     },
     {
      "range": [
-      36,
-      36
+      79,
+      80
      ],
      "label": "Snapping Flytrap",
      "result": {
@@ -2369,8 +2369,8 @@
     },
     {
      "range": [
-      37,
-      37
+      81,
+      82
      ],
      "label": "Sod Hound",
      "result": {
@@ -2381,8 +2381,8 @@
     },
     {
      "range": [
-      38,
-      38
+      83,
+      84
      ],
      "label": "String Slime",
      "result": {
@@ -2393,8 +2393,8 @@
     },
     {
      "range": [
-      39,
-      39
+      85,
+      86
      ],
      "label": "Tooth Fairy Swarm",
      "result": {
@@ -2405,8 +2405,8 @@
     },
     {
      "range": [
-      40,
-      40
+      87,
+      88
      ],
      "label": "Twigjack",
      "result": {
@@ -2417,8 +2417,8 @@
     },
     {
      "range": [
-      41,
-      41
+      89,
+      90
      ],
      "label": "Unicorn",
      "result": {
@@ -2429,8 +2429,8 @@
     },
     {
      "range": [
-      42,
-      42
+      91,
+      92
      ],
      "label": "Werewolf",
      "result": {
@@ -2441,8 +2441,8 @@
     },
     {
      "range": [
-      43,
-      43
+      93,
+      94
      ],
      "label": "Wight",
      "result": {
@@ -2453,8 +2453,8 @@
     },
     {
      "range": [
-      44,
-      44
+      95,
+      96
      ],
      "label": "Winged Chupacabra",
      "result": {
@@ -2465,8 +2465,8 @@
     },
     {
      "range": [
-      45,
-      45
+      97,
+      98
      ],
      "label": "Xulgath Leader",
      "result": {
@@ -2477,8 +2477,8 @@
     },
     {
      "range": [
-      46,
-      46
+      99,
+      100
      ],
      "label": "Zephyr Hawk",
      "result": {
@@ -2494,12 +2494,12 @@
    "name": "Creatures of level 4",
    "family": "creature",
    "cite": "Monster Core — Creatures by Level",
-   "dice": "1d41",
+   "dice": "1d100",
    "rows": [
     {
      "range": [
       1,
-      1
+      3
      ],
      "label": "Alce",
      "result": {
@@ -2510,8 +2510,8 @@
     },
     {
      "range": [
-      2,
-      2
+      4,
+      6
      ],
      "label": "Arboreal Warden",
      "result": {
@@ -2522,8 +2522,8 @@
     },
     {
      "range": [
-      3,
-      3
+      7,
+      9
      ],
      "label": "Barghest",
      "result": {
@@ -2534,8 +2534,8 @@
     },
     {
      "range": [
-      4,
-      4
+      10,
+      12
      ],
      "label": "Caligni Hunter",
      "result": {
@@ -2546,8 +2546,8 @@
     },
     {
      "range": [
-      5,
-      5
+      13,
+      15
      ],
      "label": "Coil Spy",
      "result": {
@@ -2558,8 +2558,8 @@
     },
     {
      "range": [
-      6,
-      6
+      16,
+      18
      ],
      "label": "Daeodon",
      "result": {
@@ -2570,8 +2570,8 @@
     },
     {
      "range": [
-      7,
-      7
+      19,
+      21
      ],
      "label": "Duskwalker Ghost Hunter",
      "result": {
@@ -2582,8 +2582,8 @@
     },
     {
      "range": [
-      8,
-      8
+      22,
+      24
      ],
      "label": "Dwarf Stonecaster",
      "result": {
@@ -2594,8 +2594,8 @@
     },
     {
      "range": [
-      9,
-      9
+      25,
+      27
      ],
      "label": "Gancanagh",
      "result": {
@@ -2606,8 +2606,8 @@
     },
     {
      "range": [
-      10,
-      10
+      28,
+      30
      ],
      "label": "Gargoyle",
      "result": {
@@ -2618,8 +2618,8 @@
     },
     {
      "range": [
-      11,
-      11
+      31,
+      33
      ],
      "label": "Ghost Commoner",
      "result": {
@@ -2630,8 +2630,8 @@
     },
     {
      "range": [
-      12,
-      12
+      34,
+      36
      ],
      "label": "Giant Stag Beetle",
      "result": {
@@ -2642,8 +2642,8 @@
     },
     {
      "range": [
-      13,
-      13
+      37,
+      39
      ],
      "label": "Gigantopithecus",
      "result": {
@@ -2654,8 +2654,8 @@
     },
     {
      "range": [
-      14,
-      14
+      40,
+      42
      ],
      "label": "Great White Shark",
      "result": {
@@ -2666,8 +2666,8 @@
     },
     {
      "range": [
-      15,
-      15
+      43,
+      45
      ],
      "label": "Griffon",
      "result": {
@@ -2678,8 +2678,8 @@
     },
     {
      "range": [
-      16,
-      16
+      46,
+      48
      ],
      "label": "Hadrosaurid",
      "result": {
@@ -2690,8 +2690,8 @@
     },
     {
      "range": [
-      17,
-      17
+      49,
+      51
      ],
      "label": "Hobgoblin Archer",
      "result": {
@@ -2702,8 +2702,8 @@
     },
     {
      "range": [
-      18,
-      18
+      52,
+      54
      ],
      "label": "Jann",
      "result": {
@@ -2714,8 +2714,8 @@
     },
     {
      "range": [
-      19,
-      19
+      55,
+      56
      ],
      "label": "Kholo Sergeant",
      "result": {
@@ -2726,8 +2726,8 @@
     },
     {
      "range": [
-      20,
-      20
+      57,
+      58
      ],
      "label": "Larval Ofalth",
      "result": {
@@ -2738,8 +2738,8 @@
     },
     {
      "range": [
-      21,
-      21
+      59,
+      60
      ],
      "label": "Minotaur Hunter",
      "result": {
@@ -2750,8 +2750,8 @@
     },
     {
      "range": [
-      22,
-      22
+      61,
+      62
      ],
      "label": "Ogre Glutton",
      "result": {
@@ -2762,8 +2762,8 @@
     },
     {
      "range": [
-      23,
-      23
+      63,
+      64
      ],
      "label": "Phantom Knight",
      "result": {
@@ -2774,8 +2774,8 @@
     },
     {
      "range": [
-      24,
-      24
+      65,
+      66
      ],
      "label": "Pixie",
      "result": {
@@ -2786,8 +2786,8 @@
     },
     {
      "range": [
-      25,
-      25
+      67,
+      68
      ],
      "label": "Poracha",
      "result": {
@@ -2798,8 +2798,8 @@
     },
     {
      "range": [
-      26,
-      26
+      69,
+      70
      ],
      "label": "Qarna",
      "result": {
@@ -2810,8 +2810,8 @@
     },
     {
      "range": [
-      27,
-      27
+      71,
+      72
      ],
      "label": "Ratfolk Grenadier",
      "result": {
@@ -2822,8 +2822,8 @@
     },
     {
      "range": [
-      28,
-      28
+      73,
+      74
      ],
      "label": "Rhinoceros",
      "result": {
@@ -2834,8 +2834,8 @@
     },
     {
      "range": [
-      29,
-      29
+      75,
+      76
      ],
      "label": "Satyr",
      "result": {
@@ -2846,8 +2846,8 @@
     },
     {
      "range": [
-      30,
-      30
+      77,
+      78
      ],
      "label": "Scarecrow",
      "result": {
@@ -2858,8 +2858,8 @@
     },
     {
      "range": [
-      31,
-      31
+      79,
+      80
      ],
      "label": "Scorpion Swarm",
      "result": {
@@ -2870,8 +2870,8 @@
     },
     {
      "range": [
-      32,
-      32
+      81,
+      82
      ],
      "label": "Sedacthy Marauder",
      "result": {
@@ -2882,8 +2882,8 @@
     },
     {
      "range": [
-      33,
-      33
+      83,
+      84
      ],
      "label": "Shadow",
      "result": {
@@ -2894,8 +2894,8 @@
     },
     {
      "range": [
-      34,
-      34
+      85,
+      86
      ],
      "label": "Shadow Spawn",
      "result": {
@@ -2906,8 +2906,8 @@
     },
     {
      "range": [
-      35,
-      35
+      87,
+      88
      ],
      "label": "Sweet Hag",
      "result": {
@@ -2918,8 +2918,8 @@
     },
     {
      "range": [
-      36,
-      36
+      89,
+      90
      ],
      "label": "Tiger",
      "result": {
@@ -2930,8 +2930,8 @@
     },
     {
      "range": [
-      37,
-      37
+      91,
+      92
      ],
      "label": "Ugothol",
      "result": {
@@ -2942,8 +2942,8 @@
     },
     {
      "range": [
-      38,
-      38
+      93,
+      94
      ],
      "label": "Vampire Servitor",
      "result": {
@@ -2954,8 +2954,8 @@
     },
     {
      "range": [
-      39,
-      39
+      95,
+      96
      ],
      "label": "Wasp Swarm",
      "result": {
@@ -2966,8 +2966,8 @@
     },
     {
      "range": [
-      40,
-      40
+      97,
+      98
      ],
      "label": "Werebear",
      "result": {
@@ -2978,8 +2978,8 @@
     },
     {
      "range": [
-      41,
-      41
+      99,
+      100
      ],
      "label": "Weretiger",
      "result": {
@@ -2995,12 +2995,12 @@
    "name": "Creatures of level 5",
    "family": "creature",
    "cite": "Monster Core — Creatures by Level",
-   "dice": "1d30",
+   "dice": "1d100",
    "rows": [
     {
      "range": [
       1,
-      1
+      4
      ],
      "label": "Army Ant Swarm",
      "result": {
@@ -3011,8 +3011,8 @@
     },
     {
      "range": [
-      2,
-      2
+      5,
+      8
      ],
      "label": "Azuretzi",
      "result": {
@@ -3023,8 +3023,8 @@
     },
     {
      "range": [
-      3,
-      3
+      9,
+      12
      ],
      "label": "Basilisk",
      "result": {
@@ -3035,8 +3035,8 @@
     },
     {
      "range": [
-      4,
-      4
+      13,
+      16
      ],
      "label": "Bogwid",
      "result": {
@@ -3047,8 +3047,8 @@
     },
     {
      "range": [
-      5,
-      5
+      17,
+      20
      ],
      "label": "Brimorak",
      "result": {
@@ -3059,8 +3059,8 @@
     },
     {
      "range": [
-      6,
-      6
+      21,
+      24
      ],
      "label": "Cyclops",
      "result": {
@@ -3071,8 +3071,8 @@
     },
     {
      "range": [
-      7,
-      7
+      25,
+      28
      ],
      "label": "Dero Magister",
      "result": {
@@ -3083,8 +3083,8 @@
     },
     {
      "range": [
-      8,
-      8
+      29,
+      32
      ],
      "label": "Flame Drake",
      "result": {
@@ -3095,8 +3095,8 @@
     },
     {
      "range": [
-      9,
-      9
+      33,
+      36
      ],
      "label": "Forest Troll",
      "result": {
@@ -3107,8 +3107,8 @@
     },
     {
      "range": [
-      10,
-      10
+      37,
+      40
      ],
      "label": "Giant Crawling Hand",
      "result": {
@@ -3119,8 +3119,8 @@
     },
     {
      "range": [
-      11,
-      11
+      41,
+      43
      ],
      "label": "Giant Frilled Lizard",
      "result": {
@@ -3131,8 +3131,8 @@
     },
     {
      "range": [
-      12,
-      12
+      44,
+      46
      ],
      "label": "Giant Moray Eel",
      "result": {
@@ -3143,8 +3143,8 @@
     },
     {
      "range": [
-      13,
-      13
+      47,
+      49
      ],
      "label": "Globster",
      "result": {
@@ -3155,8 +3155,8 @@
     },
     {
      "range": [
-      14,
-      14
+      50,
+      52
      ],
      "label": "Harpy",
      "result": {
@@ -3167,8 +3167,8 @@
     },
     {
      "range": [
-      15,
-      15
+      53,
+      55
      ],
      "label": "Jaathoom",
      "result": {
@@ -3179,8 +3179,8 @@
     },
     {
      "range": [
-      16,
-      16
+      56,
+      58
      ],
      "label": "Lawbringer Warpriest",
      "result": {
@@ -3191,8 +3191,8 @@
     },
     {
      "range": [
-      17,
-      17
+      59,
+      61
      ],
      "label": "Living Landslide",
      "result": {
@@ -3203,8 +3203,8 @@
     },
     {
      "range": [
-      18,
-      18
+      62,
+      64
      ],
      "label": "Living Waterfall",
      "result": {
@@ -3215,8 +3215,8 @@
     },
     {
      "range": [
-      19,
-      19
+      65,
+      67
      ],
      "label": "Living Whirlwind",
      "result": {
@@ -3227,8 +3227,8 @@
     },
     {
      "range": [
-      20,
-      20
+      68,
+      70
      ],
      "label": "Living Wildfire",
      "result": {
@@ -3239,8 +3239,8 @@
     },
     {
      "range": [
-      21,
-      21
+      71,
+      73
      ],
      "label": "Orca",
      "result": {
@@ -3251,8 +3251,8 @@
     },
     {
      "range": [
-      22,
-      22
+      74,
+      76
      ],
      "label": "Poltergeist",
      "result": {
@@ -3263,8 +3263,8 @@
     },
     {
      "range": [
-      23,
-      23
+      77,
+      79
      ],
      "label": "Redcap",
      "result": {
@@ -3275,8 +3275,8 @@
     },
     {
      "range": [
-      24,
-      24
+      80,
+      82
      ],
      "label": "Tomb Jelly",
      "result": {
@@ -3287,8 +3287,8 @@
     },
     {
      "range": [
-      25,
-      25
+      83,
+      85
      ],
      "label": "Umbral Gnome Rockwarden",
      "result": {
@@ -3299,8 +3299,8 @@
     },
     {
      "range": [
-      26,
-      26
+      86,
+      88
      ],
      "label": "Venedaemon",
      "result": {
@@ -3311,8 +3311,8 @@
     },
     {
      "range": [
-      27,
-      27
+      89,
+      91
      ],
      "label": "Vescavor Swarm",
      "result": {
@@ -3323,8 +3323,8 @@
     },
     {
      "range": [
-      28,
-      28
+      92,
+      94
      ],
      "label": "Vordine",
      "result": {
@@ -3335,8 +3335,8 @@
     },
     {
      "range": [
-      29,
-      29
+      95,
+      97
      ],
      "label": "Witchwarg",
      "result": {
@@ -3347,8 +3347,8 @@
     },
     {
      "range": [
-      30,
-      30
+      98,
+      100
      ],
      "label": "Yeti",
      "result": {
@@ -3364,12 +3364,12 @@
    "name": "Creatures of level 6",
    "family": "creature",
    "cite": "Monster Core — Creatures by Level",
-   "dice": "1d28",
+   "dice": "1d100",
    "rows": [
     {
      "range": [
       1,
-      1
+      4
      ],
      "label": "Aapoph Granitescale",
      "result": {
@@ -3380,8 +3380,8 @@
     },
     {
      "range": [
-      2,
-      2
+      5,
+      8
      ],
      "label": "Ankylosaurus",
      "result": {
@@ -3392,8 +3392,8 @@
     },
     {
      "range": [
-      3,
-      3
+      9,
+      12
      ],
      "label": "Awakened Tree",
      "result": {
@@ -3404,8 +3404,8 @@
     },
     {
      "range": [
-      4,
-      4
+      13,
+      16
      ],
      "label": "Cave Bear",
      "result": {
@@ -3416,8 +3416,8 @@
     },
     {
      "range": [
-      5,
-      5
+      17,
+      20
      ],
      "label": "Choral",
      "result": {
@@ -3428,8 +3428,8 @@
     },
     {
      "range": [
-      6,
-      6
+      21,
+      24
      ],
      "label": "Elananx",
      "result": {
@@ -3440,8 +3440,8 @@
     },
     {
      "range": [
-      7,
-      7
+      25,
+      28
      ],
      "label": "Giant Tarantula",
      "result": {
@@ -3452,8 +3452,8 @@
     },
     {
      "range": [
-      8,
-      8
+      29,
+      32
      ],
      "label": "Hobgoblin General",
      "result": {
@@ -3464,8 +3464,8 @@
     },
     {
      "range": [
-      9,
-      9
+      33,
+      36
      ],
      "label": "Hydra",
      "result": {
@@ -3476,8 +3476,8 @@
     },
     {
      "range": [
-      10,
-      10
+      37,
+      40
      ],
      "label": "Iron Hag",
      "result": {
@@ -3488,8 +3488,8 @@
     },
     {
      "range": [
-      11,
-      11
+      41,
+      44
      ],
      "label": "Jungle Drake",
      "result": {
@@ -3500,8 +3500,8 @@
     },
     {
      "range": [
-      12,
-      12
+      45,
+      48
      ],
      "label": "Lamia",
      "result": {
@@ -3512,8 +3512,8 @@
     },
     {
      "range": [
-      13,
-      13
+      49,
+      52
      ],
      "label": "Manticore (Quill Tail)",
      "result": {
@@ -3524,8 +3524,8 @@
     },
     {
      "range": [
-      14,
-      14
+      53,
+      56
      ],
      "label": "Manticore (Scorpion Tail)",
      "result": {
@@ -3536,8 +3536,8 @@
     },
     {
      "range": [
-      15,
-      15
+      57,
+      60
      ],
      "label": "Mummy Guardian",
      "result": {
@@ -3548,8 +3548,8 @@
     },
     {
      "range": [
-      16,
-      16
+      61,
+      64
      ],
      "label": "Nightmare",
      "result": {
@@ -3560,8 +3560,8 @@
     },
     {
      "range": [
-      17,
-      17
+      65,
+      67
      ],
      "label": "Revenant",
      "result": {
@@ -3572,8 +3572,8 @@
     },
     {
      "range": [
-      18,
-      18
+      68,
+      70
      ],
      "label": "Rhu-Chalik",
      "result": {
@@ -3584,8 +3584,8 @@
     },
     {
      "range": [
-      19,
-      19
+      71,
+      73
      ],
      "label": "Sargassum Heap",
      "result": {
@@ -3596,8 +3596,8 @@
     },
     {
      "range": [
-      20,
-      20
+      74,
+      76
      ],
      "label": "Sedacthy Speaker",
      "result": {
@@ -3608,8 +3608,8 @@
     },
     {
      "range": [
-      21,
-      21
+      77,
+      79
      ],
      "label": "Smilodon",
      "result": {
@@ -3620,8 +3620,8 @@
     },
     {
      "range": [
-      22,
-      22
+      80,
+      82
      ],
      "label": "Vampire Count",
      "result": {
@@ -3632,8 +3632,8 @@
     },
     {
      "range": [
-      23,
-      23
+      83,
+      85
      ],
      "label": "Will-o'-Wisp",
      "result": {
@@ -3644,8 +3644,8 @@
     },
     {
      "range": [
-      24,
-      24
+      86,
+      88
      ],
      "label": "Woolly Rhinoceros",
      "result": {
@@ -3656,8 +3656,8 @@
     },
     {
      "range": [
-      25,
-      25
+      89,
+      91
      ],
      "label": "Wraith",
      "result": {
@@ -3668,8 +3668,8 @@
     },
     {
      "range": [
-      26,
-      26
+      92,
+      94
      ],
      "label": "Wyvern",
      "result": {
@@ -3680,8 +3680,8 @@
     },
     {
      "range": [
-      27,
-      27
+      95,
+      97
      ],
      "label": "Zecui",
      "result": {
@@ -3692,8 +3692,8 @@
     },
     {
      "range": [
-      28,
-      28
+      98,
+      100
      ],
      "label": "Zombie Hulk",
      "result": {
@@ -3709,12 +3709,12 @@
    "name": "Creatures of level 7",
    "family": "creature",
    "cite": "Monster Core — Creatures by Level",
-   "dice": "1d26",
+   "dice": "1d100",
    "rows": [
     {
      "range": [
       1,
-      1
+      4
      ],
      "label": "Aesra",
      "result": {
@@ -3725,8 +3725,8 @@
     },
     {
      "range": [
-      2,
-      2
+      5,
+      8
      ],
      "label": "Azarketi Tide Tamer",
      "result": {
@@ -3737,8 +3737,8 @@
     },
     {
      "range": [
-      3,
-      3
+      9,
+      12
      ],
      "label": "Coarti",
      "result": {
@@ -3749,8 +3749,8 @@
     },
     {
      "range": [
-      4,
-      4
+      13,
+      16
      ],
      "label": "Con Rit",
      "result": {
@@ -3761,8 +3761,8 @@
     },
     {
      "range": [
-      5,
-      5
+      17,
+      20
      ],
      "label": "Dullahan",
      "result": {
@@ -3773,8 +3773,8 @@
     },
     {
      "range": [
-      6,
-      6
+      21,
+      24
      ],
      "label": "Elephant",
      "result": {
@@ -3785,8 +3785,8 @@
     },
     {
      "range": [
-      7,
-      7
+      25,
+      28
      ],
      "label": "Frost Drake",
      "result": {
@@ -3797,8 +3797,8 @@
     },
     {
      "range": [
-      8,
-      8
+      29,
+      32
      ],
      "label": "Giant Animated Statue",
      "result": {
@@ -3809,8 +3809,8 @@
     },
     {
      "range": [
-      9,
-      9
+      33,
+      36
      ],
      "label": "Greater Shadow",
      "result": {
@@ -3821,8 +3821,8 @@
     },
     {
      "range": [
-      10,
-      10
+      37,
+      40
      ],
      "label": "Jabali",
      "result": {
@@ -3833,8 +3833,8 @@
     },
     {
      "range": [
-      11,
-      11
+      41,
+      44
      ],
      "label": "Kanya",
      "result": {
@@ -3845,8 +3845,8 @@
     },
     {
      "range": [
-      12,
-      12
+      45,
+      48
      ],
      "label": "Living Tar",
      "result": {
@@ -3857,8 +3857,8 @@
     },
     {
      "range": [
-      13,
-      13
+      49,
+      52
      ],
      "label": "Medusa",
      "result": {
@@ -3869,8 +3869,8 @@
     },
     {
      "range": [
-      14,
-      14
+      53,
+      56
      ],
      "label": "Naiad Queen",
      "result": {
@@ -3881,8 +3881,8 @@
     },
     {
      "range": [
-      15,
-      15
+      57,
+      60
      ],
      "label": "Ogre Boss",
      "result": {
@@ -3893,8 +3893,8 @@
     },
     {
      "range": [
-      16,
-      16
+      61,
+      64
      ],
      "label": "Omen Dragon (Young, Spellcaster)",
      "result": {
@@ -3905,8 +3905,8 @@
     },
     {
      "range": [
-      17,
-      17
+      65,
+      68
      ],
      "label": "Omen Dragon (Young)",
      "result": {
@@ -3917,8 +3917,8 @@
     },
     {
      "range": [
-      18,
-      18
+      69,
+      72
      ],
      "label": "Phade",
      "result": {
@@ -3929,8 +3929,8 @@
     },
     {
      "range": [
-      19,
-      19
+      73,
+      76
      ],
      "label": "Pukwudgie",
      "result": {
@@ -3941,8 +3941,8 @@
     },
     {
      "range": [
-      20,
-      20
+      77,
+      80
      ],
      "label": "Quatoid",
      "result": {
@@ -3953,8 +3953,8 @@
     },
     {
      "range": [
-      21,
-      21
+      81,
+      84
      ],
      "label": "Quetzalcoatlus",
      "result": {
@@ -3965,8 +3965,8 @@
     },
     {
      "range": [
-      22,
-      22
+      85,
+      88
      ],
      "label": "Skeletal Hulk",
      "result": {
@@ -3977,8 +3977,8 @@
     },
     {
      "range": [
-      23,
-      23
+      89,
+      91
      ],
      "label": "Smaranava",
      "result": {
@@ -3989,8 +3989,8 @@
     },
     {
      "range": [
-      24,
-      24
+      92,
+      94
      ],
      "label": "Stegosaurus",
      "result": {
@@ -4001,8 +4001,8 @@
     },
     {
      "range": [
-      25,
-      25
+      95,
+      97
      ],
      "label": "Succubus",
      "result": {
@@ -4013,8 +4013,8 @@
     },
     {
      "range": [
-      26,
-      26
+      98,
+      100
      ],
      "label": "Vanth",
      "result": {
@@ -4030,12 +4030,12 @@
    "name": "Creatures of level 8",
    "family": "creature",
    "cite": "Monster Core — Creatures by Level",
-   "dice": "1d28",
+   "dice": "1d100",
    "rows": [
     {
      "range": [
       1,
-      1
+      4
      ],
      "label": "Ankhrav Hive Mother",
      "result": {
@@ -4046,8 +4046,8 @@
     },
     {
      "range": [
-      2,
-      2
+      5,
+      8
      ],
      "label": "Arboreal Regent",
      "result": {
@@ -4058,8 +4058,8 @@
     },
     {
      "range": [
-      3,
-      3
+      9,
+      12
      ],
      "label": "Axiomite",
      "result": {
@@ -4070,8 +4070,8 @@
     },
     {
      "range": [
-      4,
-      4
+      13,
+      16
      ],
      "label": "Balisse",
      "result": {
@@ -4082,8 +4082,8 @@
     },
     {
      "range": [
-      5,
-      5
+      17,
+      20
      ],
      "label": "Bone Prophet",
      "result": {
@@ -4094,8 +4094,8 @@
     },
     {
      "range": [
-      6,
-      6
+      21,
+      24
      ],
      "label": "Charnel Creation",
      "result": {
@@ -4106,8 +4106,8 @@
     },
     {
      "range": [
-      7,
-      7
+      25,
+      28
      ],
      "label": "Chimera",
      "result": {
@@ -4118,8 +4118,8 @@
     },
     {
      "range": [
-      8,
-      8
+      29,
+      32
      ],
      "label": "Conspirator Dragon (Young, Spellcaster)",
      "result": {
@@ -4130,8 +4130,8 @@
     },
     {
      "range": [
-      9,
-      9
+      33,
+      36
      ],
      "label": "Conspirator Dragon (Young)",
      "result": {
@@ -4142,8 +4142,8 @@
     },
     {
      "range": [
-      10,
-      10
+      37,
+      40
      ],
      "label": "Desert Drake",
      "result": {
@@ -4154,8 +4154,8 @@
     },
     {
      "range": [
-      11,
-      11
+      41,
+      44
      ],
      "label": "Giant Anaconda",
      "result": {
@@ -4166,8 +4166,8 @@
     },
     {
      "range": [
-      12,
-      12
+      45,
+      48
      ],
      "label": "Giant Hippocampus",
      "result": {
@@ -4178,8 +4178,8 @@
     },
     {
      "range": [
-      13,
-      13
+      49,
+      52
      ],
      "label": "Giant Octopus",
      "result": {
@@ -4190,8 +4190,8 @@
     },
     {
      "range": [
-      14,
-      14
+      53,
+      56
      ],
      "label": "Greater Herexen",
      "result": {
@@ -4202,8 +4202,8 @@
     },
     {
      "range": [
-      15,
-      15
+      57,
+      60
      ],
      "label": "Horned Dragon (Young, Spellcaster)",
      "result": {
@@ -4214,8 +4214,8 @@
     },
     {
      "range": [
-      16,
-      16
+      61,
+      64
      ],
      "label": "Horned Dragon (Young)",
      "result": {
@@ -4226,8 +4226,8 @@
     },
     {
      "range": [
-      17,
-      17
+      65,
+      67
      ],
      "label": "Jah-Tohl",
      "result": {
@@ -4238,8 +4238,8 @@
     },
     {
      "range": [
-      18,
-      18
+      68,
+      70
      ],
      "label": "Krooth",
      "result": {
@@ -4250,8 +4250,8 @@
     },
     {
      "range": [
-      19,
-      19
+      71,
+      73
      ],
      "label": "Lamia Matriarch",
      "result": {
@@ -4262,8 +4262,8 @@
     },
     {
      "range": [
-      20,
-      20
+      74,
+      76
      ],
      "label": "Marsh Giant",
      "result": {
@@ -4274,8 +4274,8 @@
     },
     {
      "range": [
-      21,
-      21
+      77,
+      79
      ],
      "label": "Megaprimatus",
      "result": {
@@ -4286,8 +4286,8 @@
     },
     {
      "range": [
-      22,
-      22
+      80,
+      82
      ],
      "label": "Mountain Oni",
      "result": {
@@ -4298,8 +4298,8 @@
     },
     {
      "range": [
-      23,
-      23
+      83,
+      85
      ],
      "label": "Phantom Beast",
      "result": {
@@ -4310,8 +4310,8 @@
     },
     {
      "range": [
-      24,
-      24
+      86,
+      88
      ],
      "label": "Sarglagon",
      "result": {
@@ -4322,8 +4322,8 @@
     },
     {
      "range": [
-      25,
-      25
+      89,
+      91
      ],
      "label": "Sphinx",
      "result": {
@@ -4334,8 +4334,8 @@
     },
     {
      "range": [
-      26,
-      26
+      92,
+      94
      ],
      "label": "Stone Giant",
      "result": {
@@ -4346,8 +4346,8 @@
     },
     {
      "range": [
-      27,
-      27
+      95,
+      97
      ],
      "label": "Triceratops",
      "result": {
@@ -4358,8 +4358,8 @@
     },
     {
      "range": [
-      28,
-      28
+      98,
+      100
      ],
      "label": "Xoarian",
      "result": {
@@ -4375,12 +4375,12 @@
    "name": "Creatures of level 9",
    "family": "creature",
    "cite": "Monster Core — Creatures by Level",
-   "dice": "1d23",
+   "dice": "1d100",
    "rows": [
     {
      "range": [
       1,
-      1
+      5
      ],
      "label": "Adamantine Dragon (Young, Spellcaster)",
      "result": {
@@ -4391,8 +4391,8 @@
     },
     {
      "range": [
-      2,
-      2
+      6,
+      10
      ],
      "label": "Adamantine Dragon (Young)",
      "result": {
@@ -4403,8 +4403,8 @@
     },
     {
      "range": [
-      3,
-      3
+      11,
+      15
      ],
      "label": "Cuckoo Hag",
      "result": {
@@ -4415,8 +4415,8 @@
     },
     {
      "range": [
-      4,
-      4
+      16,
+      20
      ],
      "label": "Deinosuchus",
      "result": {
@@ -4427,8 +4427,8 @@
     },
     {
      "range": [
-      5,
-      5
+      21,
+      25
      ],
      "label": "Doldrums Heap",
      "result": {
@@ -4439,8 +4439,8 @@
     },
     {
      "range": [
-      6,
-      6
+      26,
+      30
      ],
      "label": "Dragon Turtle",
      "result": {
@@ -4451,8 +4451,8 @@
     },
     {
      "range": [
-      7,
-      7
+      31,
+      35
      ],
      "label": "Faydhaan",
      "result": {
@@ -4463,8 +4463,8 @@
     },
     {
      "range": [
-      8,
-      8
+      36,
+      40
      ],
      "label": "Firewyrm",
      "result": {
@@ -4475,8 +4475,8 @@
     },
     {
      "range": [
-      9,
-      9
+      41,
+      44
      ],
      "label": "Frost Giant",
      "result": {
@@ -4487,8 +4487,8 @@
     },
     {
      "range": [
-      10,
-      10
+      45,
+      48
      ],
      "label": "Greater Hell Hound",
      "result": {
@@ -4499,8 +4499,8 @@
     },
     {
      "range": [
-      11,
-      11
+      49,
+      52
      ],
      "label": "Ifrit",
      "result": {
@@ -4511,8 +4511,8 @@
     },
     {
      "range": [
-      12,
-      12
+      53,
+      56
      ],
      "label": "Irnakurse",
      "result": {
@@ -4523,8 +4523,8 @@
     },
     {
      "range": [
-      13,
-      13
+      57,
+      60
      ],
      "label": "Leukodaemon",
      "result": {
@@ -4535,8 +4535,8 @@
     },
     {
      "range": [
-      14,
-      14
+      61,
+      64
      ],
      "label": "Megalodon",
      "result": {
@@ -4547,8 +4547,8 @@
     },
     {
      "range": [
-      15,
-      15
+      65,
+      68
      ],
      "label": "Mirage Dragon (Young, Spellcaster)",
      "result": {
@@ -4559,8 +4559,8 @@
     },
     {
      "range": [
-      16,
-      16
+      69,
+      72
      ],
      "label": "Mirage Dragon (Young)",
      "result": {
@@ -4571,8 +4571,8 @@
     },
     {
      "range": [
-      17,
-      17
+      73,
+      76
      ],
      "label": "Mummy Pharaoh",
      "result": {
@@ -4583,8 +4583,8 @@
     },
     {
      "range": [
-      18,
-      18
+      77,
+      80
      ],
      "label": "Noxious Needler",
      "result": {
@@ -4595,8 +4595,8 @@
     },
     {
      "range": [
-      19,
-      19
+      81,
+      84
      ],
      "label": "Nuckelavee",
      "result": {
@@ -4607,8 +4607,8 @@
     },
     {
      "range": [
-      20,
-      20
+      85,
+      88
      ],
      "label": "Roc",
      "result": {
@@ -4619,8 +4619,8 @@
     },
     {
      "range": [
-      21,
-      21
+      89,
+      92
      ],
      "label": "Stone Mauler",
      "result": {
@@ -4631,8 +4631,8 @@
     },
     {
      "range": [
-      22,
-      22
+      93,
+      96
      ],
      "label": "Vampire Mastermind",
      "result": {
@@ -4643,8 +4643,8 @@
     },
     {
      "range": [
-      23,
-      23
+      97,
+      100
      ],
      "label": "Vescavor Queen",
      "result": {
@@ -4660,12 +4660,12 @@
    "name": "Creatures of level 10",
    "family": "creature",
    "cite": "Monster Core — Creatures by Level",
-   "dice": "1d21",
+   "dice": "1d100",
    "rows": [
     {
      "range": [
       1,
-      1
+      5
      ],
      "label": "Brontosaurus",
      "result": {
@@ -4676,8 +4676,8 @@
     },
     {
      "range": [
-      2,
-      2
+      6,
+      10
      ],
      "label": "Clay Effigy",
      "result": {
@@ -4688,8 +4688,8 @@
     },
     {
      "range": [
-      3,
-      3
+      11,
+      15
      ],
      "label": "Dezullon",
      "result": {
@@ -4700,8 +4700,8 @@
     },
     {
      "range": [
-      4,
-      4
+      16,
+      20
      ],
      "label": "Empyreal Dragon (Young, Spellcaster)",
      "result": {
@@ -4712,8 +4712,8 @@
     },
     {
      "range": [
-      5,
-      5
+      21,
+      25
      ],
      "label": "Empyreal Dragon (Young)",
      "result": {
@@ -4724,8 +4724,8 @@
     },
     {
      "range": [
-      6,
-      6
+      26,
+      30
      ],
      "label": "Fire Giant",
      "result": {
@@ -4736,8 +4736,8 @@
     },
     {
      "range": [
-      7,
-      7
+      31,
+      35
      ],
      "label": "Fortune Dragon (Young, Spellcaster)",
      "result": {
@@ -4748,8 +4748,8 @@
     },
     {
      "range": [
-      8,
-      8
+      36,
+      40
      ],
      "label": "Fortune Dragon (Young)",
      "result": {
@@ -4760,8 +4760,8 @@
     },
     {
      "range": [
-      9,
-      9
+      41,
+      45
      ],
      "label": "Ghost Mage",
      "result": {
@@ -4772,8 +4772,8 @@
     },
     {
      "range": [
-      10,
-      10
+      46,
+      50
      ],
      "label": "Giant Flytrap",
      "result": {
@@ -4784,8 +4784,8 @@
     },
     {
      "range": [
-      11,
-      11
+      51,
+      55
      ],
      "label": "Graveknight",
      "result": {
@@ -4796,8 +4796,8 @@
     },
     {
      "range": [
-      12,
-      12
+      56,
+      60
      ],
      "label": "Mammoth",
      "result": {
@@ -4808,8 +4808,8 @@
     },
     {
      "range": [
-      13,
-      13
+      61,
+      65
      ],
      "label": "Nilith",
      "result": {
@@ -4820,8 +4820,8 @@
     },
     {
      "range": [
-      14,
-      14
+      66,
+      70
      ],
      "label": "Ofalth",
      "result": {
@@ -4832,8 +4832,8 @@
     },
     {
      "range": [
-      15,
-      15
+      71,
+      75
      ],
      "label": "Phistophilus",
      "result": {
@@ -4844,8 +4844,8 @@
     },
     {
      "range": [
-      16,
-      16
+      76,
+      80
      ],
      "label": "Quetz Coatl",
      "result": {
@@ -4856,8 +4856,8 @@
     },
     {
      "range": [
-      17,
-      17
+      81,
+      84
      ],
      "label": "Raja-Krodha",
      "result": {
@@ -4868,8 +4868,8 @@
     },
     {
      "range": [
-      18,
-      18
+      85,
+      88
      ],
      "label": "Rekhep",
      "result": {
@@ -4880,8 +4880,8 @@
     },
     {
      "range": [
-      19,
-      19
+      89,
+      92
      ],
      "label": "Troll Warleader",
      "result": {
@@ -4892,8 +4892,8 @@
     },
     {
      "range": [
-      20,
-      20
+      93,
+      96
      ],
      "label": "Tyrannosaurus",
      "result": {
@@ -4904,8 +4904,8 @@
     },
     {
      "range": [
-      21,
-      21
+      97,
+      100
      ],
      "label": "Vicharamuni",
      "result": {
@@ -4921,12 +4921,12 @@
    "name": "Creatures of level 11",
    "family": "creature",
    "cite": "Monster Core — Creatures by Level",
-   "dice": "1d15",
+   "dice": "1d20",
    "rows": [
     {
      "range": [
       1,
-      1
+      2
      ],
      "label": "Cloud Giant",
      "result": {
@@ -4937,8 +4937,8 @@
     },
     {
      "range": [
-      2,
-      2
+      3,
+      4
      ],
      "label": "Deadly Mantis",
      "result": {
@@ -4949,8 +4949,8 @@
     },
     {
      "range": [
-      3,
-      3
+      5,
+      6
      ],
      "label": "Diabolic Dragon (Young, Spellcaster)",
      "result": {
@@ -4961,8 +4961,8 @@
     },
     {
      "range": [
-      4,
-      4
+      7,
+      8
      ],
      "label": "Diabolic Dragon (Young)",
      "result": {
@@ -4973,8 +4973,8 @@
     },
     {
      "range": [
-      5,
-      5
+      9,
+      10
      ],
      "label": "Elemental Avalanche",
      "result": {
@@ -4985,8 +4985,8 @@
     },
     {
      "range": [
-      6,
-      6
+      11,
+      11
      ],
      "label": "Elemental Hurricane",
      "result": {
@@ -4997,8 +4997,8 @@
     },
     {
      "range": [
-      7,
-      7
+      12,
+      12
      ],
      "label": "Elemental Inferno",
      "result": {
@@ -5009,8 +5009,8 @@
     },
     {
      "range": [
-      8,
-      8
+      13,
+      13
      ],
      "label": "Elemental Tsunami",
      "result": {
@@ -5021,8 +5021,8 @@
     },
     {
      "range": [
-      9,
-      9
+      14,
+      14
      ],
      "label": "Goliath Spider",
      "result": {
@@ -5033,8 +5033,8 @@
     },
     {
      "range": [
-      10,
-      10
+      15,
+      15
      ],
      "label": "Gongorinan",
      "result": {
@@ -5045,8 +5045,8 @@
     },
     {
      "range": [
-      11,
-      11
+      16,
+      16
      ],
      "label": "Gosreg",
      "result": {
@@ -5057,8 +5057,8 @@
     },
     {
      "range": [
-      12,
-      12
+      17,
+      17
      ],
      "label": "Greater Nightmare",
      "result": {
@@ -5069,8 +5069,8 @@
     },
     {
      "range": [
-      13,
-      13
+      18,
+      18
      ],
      "label": "Omen Dragon (Adult, Spellcaster)",
      "result": {
@@ -5081,8 +5081,8 @@
     },
     {
      "range": [
-      14,
-      14
+      19,
+      19
      ],
      "label": "Omen Dragon (Adult)",
      "result": {
@@ -5093,8 +5093,8 @@
     },
     {
      "range": [
-      15,
-      15
+      20,
+      20
      ],
      "label": "Stone Bulwark",
      "result": {
@@ -5110,12 +5110,12 @@
    "name": "Creatures of level 12",
    "family": "creature",
    "cite": "Monster Core — Creatures by Level",
-   "dice": "1d16",
+   "dice": "1d20",
    "rows": [
     {
      "range": [
       1,
-      1
+      2
      ],
      "label": "Aeolaeka",
      "result": {
@@ -5126,8 +5126,8 @@
     },
     {
      "range": [
-      2,
-      2
+      3,
+      4
      ],
      "label": "Akhana",
      "result": {
@@ -5138,8 +5138,8 @@
     },
     {
      "range": [
-      3,
-      3
+      5,
+      6
      ],
      "label": "Cauthooj",
      "result": {
@@ -5150,8 +5150,8 @@
     },
     {
      "range": [
-      4,
-      4
+      7,
+      8
      ],
      "label": "Conspirator Dragon (Adult, Spellcaster)",
      "result": {
@@ -5162,8 +5162,8 @@
     },
     {
      "range": [
-      5,
-      5
+      9,
+      9
      ],
      "label": "Conspirator Dragon (Adult)",
      "result": {
@@ -5174,8 +5174,8 @@
     },
     {
      "range": [
-      6,
-      6
+      10,
+      10
      ],
      "label": "Gimmerling",
      "result": {
@@ -5186,8 +5186,8 @@
     },
     {
      "range": [
-      7,
-      7
+      11,
+      11
      ],
      "label": "Gogiteth",
      "result": {
@@ -5198,8 +5198,8 @@
     },
     {
      "range": [
-      8,
-      8
+      12,
+      12
      ],
      "label": "Great Cyclops",
      "result": {
@@ -5210,8 +5210,8 @@
     },
     {
      "range": [
-      9,
-      9
+      13,
+      13
      ],
      "label": "Horned Dragon (Adult, Spellcaster)",
      "result": {
@@ -5222,8 +5222,8 @@
     },
     {
      "range": [
-      10,
-      10
+      14,
+      14
      ],
      "label": "Horned Dragon (Adult)",
      "result": {
@@ -5234,8 +5234,8 @@
     },
     {
      "range": [
-      11,
-      11
+      15,
+      15
      ],
      "label": "Lich",
      "result": {
@@ -5246,8 +5246,8 @@
     },
     {
      "range": [
-      12,
-      12
+      16,
+      16
      ],
      "label": "Omox",
      "result": {
@@ -5258,8 +5258,8 @@
     },
     {
      "range": [
-      13,
-      13
+      17,
+      17
      ],
      "label": "Paleohemoth",
      "result": {
@@ -5270,8 +5270,8 @@
     },
     {
      "range": [
-      14,
-      14
+      18,
+      18
      ],
      "label": "Sea Serpent",
      "result": {
@@ -5282,8 +5282,8 @@
     },
     {
      "range": [
-      15,
-      15
+      19,
+      19
      ],
      "label": "Shining Child",
      "result": {
@@ -5294,8 +5294,8 @@
     },
     {
      "range": [
-      16,
-      16
+      20,
+      20
      ],
      "label": "Shuln",
      "result": {
@@ -5440,12 +5440,12 @@
    "name": "Creatures of level 14",
    "family": "creature",
    "cite": "Monster Core — Creatures by Level",
-   "dice": "1d11",
+   "dice": "1d20",
    "rows": [
     {
      "range": [
       1,
-      1
+      2
      ],
      "label": "Augnagar",
      "result": {
@@ -5456,8 +5456,8 @@
     },
     {
      "range": [
-      2,
-      2
+      3,
+      4
      ],
      "label": "Caldera Oni",
      "result": {
@@ -5468,8 +5468,8 @@
     },
     {
      "range": [
-      3,
-      3
+      5,
+      6
      ],
      "label": "Crag Linnorm",
      "result": {
@@ -5480,8 +5480,8 @@
     },
     {
      "range": [
-      4,
-      4
+      7,
+      8
      ],
      "label": "Empyreal Dragon (Adult, Spellcaster)",
      "result": {
@@ -5492,8 +5492,8 @@
     },
     {
      "range": [
-      5,
-      5
+      9,
+      10
      ],
      "label": "Empyreal Dragon (Adult)",
      "result": {
@@ -5504,8 +5504,8 @@
     },
     {
      "range": [
-      6,
-      6
+      11,
+      12
      ],
      "label": "Fortune Dragon (Adult, Spellcaster)",
      "result": {
@@ -5516,8 +5516,8 @@
     },
     {
      "range": [
-      7,
-      7
+      13,
+      14
      ],
      "label": "Fortune Dragon (Adult)",
      "result": {
@@ -5528,8 +5528,8 @@
     },
     {
      "range": [
-      8,
-      8
+      15,
+      16
      ],
      "label": "Grikkitog",
      "result": {
@@ -5540,8 +5540,8 @@
     },
     {
      "range": [
-      9,
-      9
+      17,
+      18
      ],
      "label": "Gylou",
      "result": {
@@ -5552,8 +5552,8 @@
     },
     {
      "range": [
-      10,
-      10
+      19,
+      19
      ],
      "label": "Tabellia",
      "result": {
@@ -5564,8 +5564,8 @@
     },
     {
      "range": [
-      11,
-      11
+      20,
+      20
      ],
      "label": "Vidileth",
      "result": {
@@ -5581,12 +5581,12 @@
    "name": "Creatures of level 15",
    "family": "creature",
    "cite": "Monster Core — Creatures by Level",
-   "dice": "1d9",
+   "dice": "1d20",
    "rows": [
     {
      "range": [
       1,
-      1
+      3
      ],
      "label": "Benthic Worm",
      "result": {
@@ -5597,8 +5597,8 @@
     },
     {
      "range": [
-      2,
-      2
+      4,
+      6
      ],
      "label": "Diabolic Dragon (Adult, Spellcaster)",
      "result": {
@@ -5609,8 +5609,8 @@
     },
     {
      "range": [
-      3,
-      3
+      7,
+      8
      ],
      "label": "Diabolic Dragon (Adult)",
      "result": {
@@ -5621,8 +5621,8 @@
     },
     {
      "range": [
-      4,
-      4
+      9,
+      10
      ],
      "label": "Dybbuk",
      "result": {
@@ -5633,8 +5633,8 @@
     },
     {
      "range": [
-      5,
-      5
+      11,
+      12
      ],
      "label": "Morrigna",
      "result": {
@@ -5645,8 +5645,8 @@
     },
     {
      "range": [
-      6,
-      6
+      13,
+      14
      ],
      "label": "Mukradi",
      "result": {
@@ -5657,8 +5657,8 @@
     },
     {
      "range": [
-      7,
-      7
+      15,
+      16
      ],
      "label": "Phoenix",
      "result": {
@@ -5669,8 +5669,8 @@
     },
     {
      "range": [
-      8,
-      8
+      17,
+      18
      ],
      "label": "Quelaunt",
      "result": {
@@ -5681,8 +5681,8 @@
     },
     {
      "range": [
-      9,
-      9
+      19,
+      20
      ],
      "label": "Seraptis",
      "result": {
@@ -5698,12 +5698,12 @@
    "name": "Creatures of level 16",
    "family": "creature",
    "cite": "Monster Core — Creatures by Level",
-   "dice": "1d9",
+   "dice": "1d20",
    "rows": [
     {
      "range": [
       1,
-      1
+      3
      ],
      "label": "Astradaemon",
      "result": {
@@ -5714,8 +5714,8 @@
     },
     {
      "range": [
-      2,
-      2
+      4,
+      6
      ],
      "label": "Giylea",
      "result": {
@@ -5726,8 +5726,8 @@
     },
     {
      "range": [
-      3,
-      3
+      7,
+      8
      ],
      "label": "Lesser Death",
      "result": {
@@ -5738,8 +5738,8 @@
     },
     {
      "range": [
-      4,
-      4
+      9,
+      10
      ],
      "label": "Omen Dragon (Ancient, Spellcaster)",
      "result": {
@@ -5750,8 +5750,8 @@
     },
     {
      "range": [
-      5,
-      5
+      11,
+      12
      ],
      "label": "Omen Dragon (Ancient)",
      "result": {
@@ -5762,8 +5762,8 @@
     },
     {
      "range": [
-      6,
-      6
+      13,
+      14
      ],
      "label": "Rune Giant",
      "result": {
@@ -5774,8 +5774,8 @@
     },
     {
      "range": [
-      7,
-      7
+      15,
+      16
      ],
      "label": "Shemhazian",
      "result": {
@@ -5786,8 +5786,8 @@
     },
     {
      "range": [
-      8,
-      8
+      17,
+      18
      ],
      "label": "Vilderavn",
      "result": {
@@ -5798,8 +5798,8 @@
     },
     {
      "range": [
-      9,
-      9
+      19,
+      20
      ],
      "label": "Warsworn",
      "result": {
@@ -5815,12 +5815,12 @@
    "name": "Creatures of level 17",
    "family": "creature",
    "cite": "Monster Core — Creatures by Level",
-   "dice": "1d9",
+   "dice": "1d20",
    "rows": [
     {
      "range": [
       1,
-      1
+      3
      ],
      "label": "Bandersnatch",
      "result": {
@@ -5831,8 +5831,8 @@
     },
     {
      "range": [
-      2,
-      2
+      4,
+      6
      ],
      "label": "Banshee",
      "result": {
@@ -5843,8 +5843,8 @@
     },
     {
      "range": [
-      3,
-      3
+      7,
+      8
      ],
      "label": "Conspirator Dragon (Ancient, Spellcaster)",
      "result": {
@@ -5855,8 +5855,8 @@
     },
     {
      "range": [
-      4,
-      4
+      9,
+      10
      ],
      "label": "Conspirator Dragon (Ancient)",
      "result": {
@@ -5867,8 +5867,8 @@
     },
     {
      "range": [
-      5,
-      5
+      11,
+      12
      ],
      "label": "Horned Dragon (Ancient, Spellcaster)",
      "result": {
@@ -5879,8 +5879,8 @@
     },
     {
      "range": [
-      6,
-      6
+      13,
+      14
      ],
      "label": "Horned Dragon (Ancient)",
      "result": {
@@ -5891,8 +5891,8 @@
     },
     {
      "range": [
-      7,
-      7
+      15,
+      16
      ],
      "label": "Ice Linnorm",
      "result": {
@@ -5903,8 +5903,8 @@
     },
     {
      "range": [
-      8,
-      8
+      17,
+      18
      ],
      "label": "Island Oni",
      "result": {
@@ -5915,8 +5915,8 @@
     },
     {
      "range": [
-      9,
-      9
+      19,
+      20
      ],
      "label": "Keketar",
      "result": {
@@ -5932,12 +5932,12 @@
    "name": "Creatures of level 18",
    "family": "creature",
    "cite": "Monster Core — Creatures by Level",
-   "dice": "1d9",
+   "dice": "1d20",
    "rows": [
     {
      "range": [
       1,
-      1
+      3
      ],
      "label": "Adamantine Dragon (Ancient, Spellcaster)",
      "result": {
@@ -5948,8 +5948,8 @@
     },
     {
      "range": [
-      2,
-      2
+      4,
+      6
      ],
      "label": "Adamantine Dragon (Ancient)",
      "result": {
@@ -5960,8 +5960,8 @@
     },
     {
      "range": [
-      3,
-      3
+      7,
+      8
      ],
      "label": "Aolaz",
      "result": {
@@ -5972,8 +5972,8 @@
     },
     {
      "range": [
-      4,
-      4
+      9,
+      10
      ],
      "label": "Kraken",
      "result": {
@@ -5984,8 +5984,8 @@
     },
     {
      "range": [
-      5,
-      5
+      11,
+      12
      ],
      "label": "Magma Worm",
      "result": {
@@ -5996,8 +5996,8 @@
     },
     {
      "range": [
-      6,
-      6
+      13,
+      14
      ],
      "label": "Mirage Dragon (Ancient, Spellcaster)",
      "result": {
@@ -6008,8 +6008,8 @@
     },
     {
      "range": [
-      7,
-      7
+      15,
+      16
      ],
      "label": "Mirage Dragon (Ancient)",
      "result": {
@@ -6020,8 +6020,8 @@
     },
     {
      "range": [
-      8,
-      8
+      17,
+      18
      ],
      "label": "Skulltaker",
      "result": {
@@ -6032,8 +6032,8 @@
     },
     {
      "range": [
-      9,
-      9
+      19,
+      20
      ],
      "label": "Thulgant",
      "result": {
@@ -6235,12 +6235,12 @@
    "name": "Creatures of level 21",
    "family": "creature",
    "cite": "Monster Core — Creatures by Level",
-   "dice": "1d1",
+   "dice": "1d20",
    "rows": [
     {
      "range": [
       1,
-      1
+      20
      ],
      "label": "Tor Linnorm",
      "result": {
@@ -6506,7 +6506,8 @@
      "result": {
       "occupation": "Innkeeper",
       "statBlock": "Dwarf Warrior",
-      "preset": "pf2e-orc.preset.dwarf-warrior"
+      "preset": "pf2e-orc.preset.dwarf-warrior",
+      "ancestry": "Dwarf"
      }
     },
     {
@@ -6518,7 +6519,8 @@
      "result": {
       "occupation": "Watch sergeant",
       "statBlock": "Halfling Street Watcher",
-      "preset": "pf2e-orc.preset.halfling-street-watcher"
+      "preset": "pf2e-orc.preset.halfling-street-watcher",
+      "ancestry": "Halfling"
      }
     },
     {
@@ -6542,7 +6544,8 @@
      "result": {
       "occupation": "Hedge mage",
       "statBlock": "Dhampir Wizard",
-      "preset": "pf2e-orc.preset.dhampir-wizard"
+      "preset": "pf2e-orc.preset.dhampir-wizard",
+      "ancestry": "Dhampir"
      }
     },
     {
@@ -6554,7 +6557,8 @@
      "result": {
       "occupation": "Smuggler",
       "statBlock": "Goblin Commando",
-      "preset": "pf2e-orc.preset.goblin-commando"
+      "preset": "pf2e-orc.preset.goblin-commando",
+      "ancestry": "Goblin"
      }
     },
     {
@@ -6566,7 +6570,8 @@
      "result": {
       "occupation": "Retired soldier",
       "statBlock": "Orc Veteran",
-      "preset": "pf2e-orc.preset.orc-veteran"
+      "preset": "pf2e-orc.preset.orc-veteran",
+      "ancestry": "Orc"
      }
     },
     {
@@ -6578,7 +6583,8 @@
      "result": {
       "occupation": "Mercenary captain",
       "statBlock": "Orc Commander",
-      "preset": "pf2e-orc.preset.orc-commander"
+      "preset": "pf2e-orc.preset.orc-commander",
+      "ancestry": "Orc"
      }
     },
     {
@@ -6590,7 +6596,8 @@
      "result": {
       "occupation": "Ranger of the borderlands",
       "statBlock": "Elf Ranger",
-      "preset": "pf2e-orc.preset.elf-ranger"
+      "preset": "pf2e-orc.preset.elf-ranger",
+      "ancestry": "Elf"
      }
     },
     {
@@ -6602,7 +6609,8 @@
      "result": {
       "occupation": "Herbalist",
       "statBlock": "Centaur Herbalist",
-      "preset": "pf2e-orc.preset.centaur-herbalist"
+      "preset": "pf2e-orc.preset.centaur-herbalist",
+      "ancestry": "Centaur"
      }
     },
     {
@@ -6614,7 +6622,8 @@
      "result": {
       "occupation": "Stonemason",
       "statBlock": "Dwarf Stonecaster",
-      "preset": "pf2e-orc.preset.dwarf-stonecaster"
+      "preset": "pf2e-orc.preset.dwarf-stonecaster",
+      "ancestry": "Dwarf"
      }
     },
     {
@@ -6626,7 +6635,8 @@
      "result": {
       "occupation": "Street musician",
       "statBlock": "Gnome Bard",
-      "preset": "pf2e-orc.preset.gnome-bard"
+      "preset": "pf2e-orc.preset.gnome-bard",
+      "ancestry": "Gnome"
      }
     },
     {
@@ -6638,7 +6648,8 @@
      "result": {
       "occupation": "Pickpocket",
       "statBlock": "Halfling Troublemaker",
-      "preset": "pf2e-orc.preset.halfling-troublemaker"
+      "preset": "pf2e-orc.preset.halfling-troublemaker",
+      "ancestry": "Halfling"
      }
     },
     {
@@ -6650,7 +6661,8 @@
      "result": {
       "occupation": "Tracker",
       "statBlock": "Kholo Hunter",
-      "preset": "pf2e-orc.preset.kholo-hunter"
+      "preset": "pf2e-orc.preset.kholo-hunter",
+      "ancestry": "Kholo"
      }
     },
     {
@@ -6662,7 +6674,8 @@
      "result": {
       "occupation": "Scout for hire",
       "statBlock": "Kobold Scout",
-      "preset": "pf2e-orc.preset.kobold-scout"
+      "preset": "pf2e-orc.preset.kobold-scout",
+      "ancestry": "Kobold"
      }
     },
     {
@@ -6674,7 +6687,8 @@
      "result": {
       "occupation": "Bounty hunter",
       "statBlock": "Hobgoblin Archer",
-      "preset": "pf2e-orc.preset.hobgoblin-archer"
+      "preset": "pf2e-orc.preset.hobgoblin-archer",
+      "ancestry": "Hobgoblin"
      }
     },
     {
@@ -6686,7 +6700,8 @@
      "result": {
       "occupation": "Sailor",
       "statBlock": "Merfolk Warrior",
-      "preset": "pf2e-orc.preset.merfolk-warrior"
+      "preset": "pf2e-orc.preset.merfolk-warrior",
+      "ancestry": "Merfolk"
      }
     },
     {
@@ -6698,7 +6713,8 @@
      "result": {
       "occupation": "Fortune-teller",
       "statBlock": "Lizardfolk Stargazer",
-      "preset": "pf2e-orc.preset.lizardfolk-stargazer"
+      "preset": "pf2e-orc.preset.lizardfolk-stargazer",
+      "ancestry": "Lizardfolk"
      }
     },
     {
@@ -6710,7 +6726,8 @@
      "result": {
       "occupation": "Bodyguard",
       "statBlock": "Dwarf Warrior",
-      "preset": "pf2e-orc.preset.dwarf-warrior"
+      "preset": "pf2e-orc.preset.dwarf-warrior",
+      "ancestry": "Dwarf"
      }
     },
     {
@@ -6722,7 +6739,8 @@
      "result": {
       "occupation": "Ghost hunter",
       "statBlock": "Duskwalker Ghost Hunter",
-      "preset": "pf2e-orc.preset.duskwalker-ghost-hunter"
+      "preset": "pf2e-orc.preset.duskwalker-ghost-hunter",
+      "ancestry": "Duskwalker"
      }
     },
     {
@@ -6734,7 +6752,8 @@
      "result": {
       "occupation": "Alchemist's assistant",
       "statBlock": "Ratfolk Grenadier",
-      "preset": "pf2e-orc.preset.ratfolk-grenadier"
+      "preset": "pf2e-orc.preset.ratfolk-grenadier",
+      "ancestry": "Ratfolk"
      }
     }
    ]
@@ -12790,17 +12809,6 @@
      "table": "pf2e-orc.npc.family-name"
     },
     {
-     "id": "ancestry",
-     "title": "Ancestry",
-     "table": "pf2e-orc.npc.ancestry",
-     "display": {
-      "var": [
-       "result.ancestry",
-       ""
-      ]
-     }
-    },
-    {
      "id": "occupation",
      "title": "Occupation",
      "table": "pf2e-orc.npc.occupation",
@@ -12814,6 +12822,38 @@
         "var": "result.statBlock"
        },
        ")"
+      ]
+     }
+    },
+    {
+     "id": "ancestry",
+     "title": "Ancestry",
+     "table": "pf2e-orc.npc.ancestry",
+     "reads": [
+      "occupation"
+     ],
+     "display": {
+      "if": [
+       {
+        "var": [
+         "results.occupation.ancestry",
+         ""
+        ]
+       },
+       {
+        "cat": [
+         {
+          "var": "results.occupation.ancestry"
+         },
+         " (the stat block's)"
+        ]
+       },
+       {
+        "var": [
+         "result.ancestry",
+         ""
+        ]
+       }
       ]
      }
     },
@@ -12881,7 +12921,20 @@
       "summary": {
        "cat": [
         {
-         "var": "results.ancestry.ancestry"
+         "if": [
+          {
+           "var": [
+            "results.occupation.ancestry",
+            ""
+           ]
+          },
+          {
+           "var": "results.occupation.ancestry"
+          },
+          {
+           "var": "results.ancestry.ancestry"
+          }
+         ]
         },
         " ",
         {
@@ -12894,7 +12947,20 @@
         "var": "results.occupation.occupation"
        },
        "ancestry": {
-        "var": "results.ancestry.ancestry"
+        "if": [
+         {
+          "var": [
+           "results.occupation.ancestry",
+           ""
+          ]
+         },
+         {
+          "var": "results.occupation.ancestry"
+         },
+         {
+          "var": "results.ancestry.ancestry"
+         }
+        ]
        },
        "quirk": {
         "var": "results.quirk.text"

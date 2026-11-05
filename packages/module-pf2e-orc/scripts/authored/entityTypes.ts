@@ -7,8 +7,8 @@
  * JSONLogic, never stored (rule 4).
  */
 import type { EntityTypeDef, JsonSchema, SheetField, SheetSection } from "@campaign-forge/module-sdk";
-import { ANCESTRIES, ATTRIBUTES, CHARACTER, CLASSES, CREATURE, ENCOUNTER, FACTION, HAZARD, ITEM, LIST, LOCATION, LORE_SLOTS, NPC, QUEST, RANKS, rule, SAVES, SKILLS, totalName, TRADITIONS } from "../ids.ts";
-import { add, floor, gt, ifs, lookup, max, min, proficiency, signedText, sub, v, type Rule } from "./logic.ts";
+import { ANCESTRIES, ATTRIBUTES, CHARACTER, CLASSES, CREATURE, ENCOUNTER, FACTION, HAZARD, id, ITEM, LIST, LOCATION, LORE_SLOTS, NPC, QUEST, RANKS, rule, SAVES, SKILLS, totalName, TRADITIONS } from "../ids.ts";
+import { add, cat, eq, floor, gt, ifs, lookup, max, min, proficiency, signedText, sub, v, type Rule } from "./logic.ts";
 
 const int = (minV?: number, maxV?: number, def?: number): JsonSchema => ({ type: "integer", ...(minV !== undefined ? { minimum: minV } : {}), ...(maxV !== undefined ? { maximum: maxV } : {}), ...(def !== undefined ? { default: def } : {}) });
 const text = (maxLength?: number): JsonSchema => ({ type: "string", ...(maxLength ? { maxLength } : {}) });
@@ -19,7 +19,8 @@ const select = (path: string, label: string, values: string[]): SheetField => ({
 
 /** The checks a character rolls: Perception, saves, the sixteen skills and two Lore skills. */
 const CHECKS = [...SAVES, ...SKILLS, ...LORE_SLOTS];
-const rankSchema = int(0, 4, 0);
+/** A proficiency rank, 0 to 4, read by name in selects and the object editor. */
+const rankSchema: JsonSchema = { ...int(0, 4, 0), enum: RANKS.map((r) => r.value), enumLabels: RANKS.map((r) => r.label) };
 const rankLevels = RANKS.map((r) => ({ value: r.value, label: r.label }));
 /** The valued conditions tracked as numbers on a sheet (the rest are listed by name). */
 export const VALUED_CONDITIONS = ["frightened", "sickened", "clumsy", "drained", "enfeebled", "stupefied", "slowed", "stunned"] as const;
@@ -37,6 +38,67 @@ const attributesSchema = (minV: number, maxV: number): JsonSchema => ({
   additionalProperties: false,
 });
 const attributeFields = (): SheetField[] => ATTRIBUTES.map((a): SheetField => ({ path: `attributes.${a.id}`, label: a.name, widget: "attribute", rule: rule("advice.attributes") }));
+
+// ---------------------------------------------------------------------------
+// Strikes: a weapon row's attack and damage, worked out from the sheet
+// ---------------------------------------------------------------------------
+
+const strikeAttr = (a: string): Rule => v(`fields.attributes.${a}`, 0);
+/** A Strike's attribute modifier: its own, the better of Strength and Dexterity with finesse. */
+const STRIKE_ATTRIBUTE: Rule = ifs(
+  eq(v("item.attribute", ""), "finesse"),
+  max(strikeAttr("strength"), strikeAttr("dexterity")),
+  eq(v("item.attribute", ""), "dexterity"),
+  strikeAttr("dexterity"),
+  eq(v("item.attribute", ""), "strength"),
+  strikeAttr("strength"),
+  eq(v("item.type", "melee"), "ranged"),
+  strikeAttr("dexterity"),
+  strikeAttr("strength"),
+);
+/** A Strike's attack modifier, when the row names its weapon category: attribute + proficiency in the category + potency. */
+export const STRIKE_BONUS: Rule = ifs(
+  v("item.category", ""),
+  add(STRIKE_ATTRIBUTE, proficiency(v({ cat: ["fields.attacks.", v("item.category", "")] } as unknown as string, 0), v("fields.level", 1)), v("item.potency", 0)),
+  null,
+);
+const traitHas = (t: string): Rule => ({ matches: [v("item.traits", ""), `\\b${t}\\b`] });
+/** Damage added to the dice: Strength for melee and thrown weapons, half a positive Strength for propulsive ones. */
+export const STRIKE_DAMAGE_BONUS: Rule = ifs(
+  v("item.category", ""),
+  ifs(
+    { or: [{ "!=": [v("item.type", "melee"), "ranged"] }, traitHas("thrown")] },
+    strikeAttr("strength"),
+    traitHas("propulsive"),
+    floor({ "/": [max(0, strikeAttr("strength")), 2] }),
+    0,
+  ),
+  0,
+);
+const signedOr = (x: Rule): Rule => ifs({ ">=": [x, 0] }, cat("+", x), cat(x));
+/** "+11 [+6/+1]" (agile: −4 and −8), or the bonus typed by hand. */
+const STRIKE_ATTACK_TEXT: Rule = ifs(
+  v("item.bonus", ""),
+  v("item.bonus"),
+  v("item.category", ""),
+  cat(signedOr(STRIKE_BONUS), " [", signedOr(sub(STRIKE_BONUS, ifs(traitHas("agile"), 4, 5))), "/", signedOr(sub(STRIKE_BONUS, ifs(traitHas("agile"), 8, 10))), "]"),
+  "",
+);
+/** "1d8 bludgeoning +4": the dice and type with the damage bonus. */
+const STRIKE_DAMAGE_TEXT: Rule = ifs(v("item.damage", ""), ifs({ "==": [STRIKE_DAMAGE_BONUS, 0] }, v("item.damage"), cat(v("item.damage"), " ", signedOr(STRIKE_DAMAGE_BONUS))), "");
+/** A weapon of the list as a Strike row: its damage with the type written out, category, the attribute it attacks with. */
+export const STRIKE_ROW: Record<string, Rule> = {
+  name: v("item.name"),
+  type: v("item.builder.strike", "melee"),
+  category: v("item.category"),
+  attribute: ifs({ matches: [v("item.traits", ""), "\\bfinesse\\b"] }, "finesse", eq(v("item.builder.strike", ""), "ranged"), "dexterity", "strength"),
+  damage: ifs(
+    { matches: [v("item.damage", ""), " [BPS]$"] },
+    cat({ substr: [v("item.damage"), 0, -2] }, " ", lookup({ B: "bludgeoning", P: "piercing", S: "slashing" }, { substr: [v("item.damage"), -1] }, "")),
+    v("item.damage", ""),
+  ),
+  traits: v("item.traits", ""),
+};
 
 // ---------------------------------------------------------------------------
 // Player character
@@ -127,9 +189,10 @@ export function characterType(ancestryHp: HpTable, classHp: HpTable): EntityType
         additionalProperties: false,
         default: {},
       },
-      classDcRank: { ...int(0, 4, 1), title: "Class DC proficiency" },
-      defenses: { type: "object", properties: { unarmored: rankSchema, light: rankSchema, medium: rankSchema, heavy: rankSchema }, additionalProperties: false, default: { unarmored: 1, light: 0, medium: 0, heavy: 0 } },
-      attacks: { type: "object", properties: { simple: rankSchema, martial: rankSchema, advanced: rankSchema, unarmed: rankSchema }, additionalProperties: false, default: { simple: 1, martial: 0, advanced: 0, unarmed: 1 } },
+      // a blank sheet starts untrained everywhere, like its saves and skills; the class (or the builder) sets the ranks
+      classDcRank: { ...rankSchema, title: "Class DC proficiency" },
+      defenses: { type: "object", properties: { unarmored: { ...rankSchema, title: "Unarmored" }, light: { ...rankSchema, title: "Light armor" }, medium: { ...rankSchema, title: "Medium armor" }, heavy: { ...rankSchema, title: "Heavy armor" } }, additionalProperties: false, default: { unarmored: 0, light: 0, medium: 0, heavy: 0 } },
+      attacks: { type: "object", properties: { simple: { ...rankSchema, title: "Simple weapons" }, martial: { ...rankSchema, title: "Martial weapons" }, advanced: { ...rankSchema, title: "Advanced weapons" }, unarmed: { ...rankSchema, title: "Unarmed attacks" } }, additionalProperties: false, default: { simple: 0, martial: 0, advanced: 0, unarmed: 0 } },
       armor: {
         type: "object",
         properties: {
@@ -146,7 +209,8 @@ export function characterType(ancestryHp: HpTable, classHp: HpTable): EntityType
         default: { category: "unarmored", acBonus: 0, potency: 0 },
       },
       shield: { type: "object", properties: { name: text(80), acBonus: int(0, 5, 0), hardness: int(0, 50, 0), hp: int(0, 200, 0), maxHp: int(0, 200, 0) }, additionalProperties: false, default: {} },
-      hp: { type: "object", properties: { current: int(0, 1000, 10), temp: int(0, 500, 0) }, required: ["current"], additionalProperties: false, default: { current: 10, temp: 0 } },
+      // no current Hit Points stored means full (the maximum): a blank sheet is never above its maximum
+      hp: { type: "object", properties: { current: { ...int(0, 1000), description: "Empty while at the maximum." }, temp: int(0, 500, 0) }, additionalProperties: false, default: { temp: 0 } },
       hpBonus: { ...int(0, 200, 0), description: "Extra maximum Hit Points from feats and the like (a flat number)." },
       hpPerLevel: { ...int(0, 10, 0), description: "Extra maximum Hit Points per level (Toughness gives 1)." },
       speed: int(0, 200, 25),
@@ -175,7 +239,16 @@ export function characterType(ancestryHp: HpTable, classHp: HpTable): EntityType
         type: "array",
         items: {
           type: "object",
-          properties: { name: text(80), bonus: text(30), damage: text(80), traits: text(200), type: { type: "string", enum: ["melee", "ranged"], description: "Melee (the default) or ranged." } },
+          properties: {
+            name: text(80),
+            category: { type: "string", enum: ["simple", "martial", "advanced", "unarmed"], enumLabels: ["Simple", "Martial", "Advanced", "Unarmed"], description: "The weapon's category: its proficiency rank goes on the attack." },
+            attribute: { type: "string", enum: ["strength", "dexterity", "finesse"], enumLabels: ["Strength", "Dexterity", "Strength or Dexterity (finesse)"], description: "The attribute of the attack roll (a ranged weapon uses Dexterity)." },
+            potency: { ...int(0, 3), description: "Weapon potency rune: its item bonus to attack rolls." },
+            bonus: { ...text(30), description: "An attack bonus typed by hand; leave empty to work it out from the category and attribute." },
+            damage: { ...text(80), description: "The damage dice and type (\"1d8 bludgeoning\"); Strength is added for melee and thrown weapons, half for propulsive." },
+            traits: text(200),
+            type: { type: "string", enum: ["melee", "ranged"], description: "Melee (the default) or ranged." },
+          },
           required: ["name"],
         },
         default: [],
@@ -261,14 +334,14 @@ export function characterType(ancestryHp: HpTable, classHp: HpTable): EntityType
             { path: "ac", label: "Armor Class", widget: "computed", rule: rule("advice.armor-class") },
             { path: "acShieldRaised", label: "AC with shield raised", widget: "computed", rule: rule("action.raise-a-shield") },
             { path: "hpMax", label: "Hit Point maximum", widget: "computed", rule: rule("advice.hit-points") },
-            { path: "hp.current", label: "Hit Points", widget: "number" },
+            { path: "hp.current", label: "Hit Points", widget: "number", config: { unsetComputed: "hpMax" } },
             { path: "hp.temp", label: "Temporary Hit Points", widget: "number" },
             { path: "hpBonus", label: "Bonus max HP", widget: "number" },
             { path: "hpPerLevel", label: "Bonus max HP per level", widget: "number" },
             { path: "speed", label: "Speed (feet)", widget: "number" },
             { path: "heroPoints", label: "Hero Points", widget: "number", rule: rule("advice.hero-points") },
             { path: "classDc", label: "Class DC", widget: "computed" },
-            { path: "classDcRank", label: "Class DC proficiency (0–4)", widget: "number" },
+            { path: "classDcRank", label: "Class DC proficiency", widget: "select" },
             { path: "initiative", label: "Initiative", widget: "computed" },
             select("initiativeSkill", "Initiative uses", ["perception", ...SKILLS.map((s) => s.id)]),
           ],
@@ -283,11 +356,37 @@ export function characterType(ancestryHp: HpTable, classHp: HpTable): EntityType
           fields: [
             { path: "armor", label: "Armor", widget: "object" },
             { path: "shield", label: "Shield", widget: "object" },
-            { path: "defenses", label: "Armor proficiency (0 untrained ... 4 legendary)", widget: "object" },
-            { path: "attacks", label: "Weapon proficiency (0 untrained ... 4 legendary)", widget: "object" },
+            { path: "defenses", label: "Armor proficiency", widget: "object" },
+            { path: "attacks", label: "Weapon proficiency", widget: "object" },
           ],
         },
-        { id: "strikes", title: "Strikes", fields: [{ path: "strikes", label: "Strikes", widget: "table", config: { columns: ["name", { key: "bonus", label: "Attack" }, "damage", "traits", { key: "type", label: "Melee or ranged" }] } }] },
+        {
+          id: "strikes",
+          title: "Strikes",
+          fields: [
+            {
+              path: "strikes",
+              label: "Strikes",
+              widget: "table",
+              rule: rule("action.strike"),
+              config: {
+                columns: [
+                  "name",
+                  { key: "type", label: "Melee or ranged" },
+                  "category",
+                  "attribute",
+                  { key: "attack", label: "Attack [MAP]", computed: STRIKE_ATTACK_TEXT },
+                  { key: "bonus", label: "Attack (by hand)" },
+                  { key: "damage", label: "Damage dice" },
+                  { key: "damageTotal", label: "Damage", computed: STRIKE_DAMAGE_TEXT },
+                  "traits",
+                  { key: "potency", label: "Potency" },
+                ],
+                addFrom: { ref: id("equipment.weapons"), label: "Add a weapon", where: { var: "item.builder.strike" }, row: STRIKE_ROW },
+              },
+            },
+          ],
+        },
         {
           id: "conditions",
           title: "Conditions and dying",
@@ -672,7 +771,8 @@ export function npcType(): EntityTypeDef {
       ],
       summary: ["occupation", "attitude"],
     },
-    defaultVisibility: { secret: "gm", notes: "gm", statBlock: "gm" },
+    // what an NPC wants is the GM's until the party learns it
+    defaultVisibility: { motivation: "gm", secret: "gm", notes: "gm", statBlock: "gm" },
   };
 }
 
