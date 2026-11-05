@@ -18,6 +18,14 @@ import { BuildCharacterButton, CharacterProcedureLinks, useCharacterBuilder, use
 import { sheetFieldOf } from "./summary";
 
 /** Values the form starts with for the creation fields: `isPC` from the PCs tab, when the type has it. */
+/** A type's name in running text ("New player character", "Create monster"): lowercased, an acronym such as "NPC" kept as it is written. */
+export function typeWord(name: string): string {
+  return name
+    .split(" ")
+    .map((w) => (w.length > 1 && /[A-Z]/.test(w) && w === w.toUpperCase() ? w : w.toLowerCase()))
+    .join(" ");
+}
+
 function initialDraft(def: EntityTypeDef | undefined, pc: number | undefined): Record<string, unknown> {
   const props = def?.schema.properties as Record<string, unknown> | undefined;
   return pc === 1 && props && "isPC" in props && def?.sheet.create?.includes("isPC") ? { isPC: true } : {};
@@ -78,13 +86,13 @@ export function NewEntityPage() {
     const fields = Object.keys(draft).length > 0 ? { fields: draftFields } : {};
     const entity = preset
       ? createEntityFromPreset(ctx, preset, { name: name.trim() || preset.name, subtype: subtype || preset.subtype, ...fields })
-      : createEntity(ctx, { type: def.id, name: name.trim() || `New ${def.name.toLowerCase()}`, subtype: subtype || undefined, ...fields });
+      : createEntity(ctx, { type: def.id, name: name.trim() || `New ${typeWord(def.name)}`, subtype: subtype || undefined, ...fields });
     void navigate({ to: "/c/$campaignId/entities/$entityId", params: { campaignId: ctx.campaignId, entityId: entity.id } });
   };
 
   return (
     <div className="app-page app-page--narrow">
-      <h1 className="app-title">New {def?.name.toLowerCase() ?? "entity"}</h1>
+      <h1 className="app-title">New {def ? typeWord(def.name) : "entity"}</h1>
       <form
         className="app-form"
         onSubmit={(e) => {
@@ -194,7 +202,7 @@ export function NewEntityPage() {
 
         <label className="app-label">
           Name
-          <input className="cf-input" value={name} placeholder={preset?.name ?? `New ${def?.name.toLowerCase() ?? "entity"}`} onChange={(e) => setName(e.target.value)} data-testid="entity-name" />
+          <input className="cf-input" value={name} placeholder={preset?.name ?? `New ${def ? typeWord(def.name) : "entity"}`} onChange={(e) => setName(e.target.value)} data-testid="entity-name" />
         </label>
         {preset && (
           <Card title={preset.name} subtitle="Preset preview">
@@ -220,7 +228,7 @@ export function NewEntityPage() {
         )}
         <div className="app-row">
           <Button variant="primary" type="submit" disabled={!def} data-testid="create-entity">
-            Create {def?.name.toLowerCase() ?? "entity"}
+            Create {def ? typeWord(def.name) : "entity"}
           </Button>
           <Button variant="ghost" onClick={() => history.back()}>
             Cancel

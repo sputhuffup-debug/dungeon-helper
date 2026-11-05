@@ -1,11 +1,12 @@
 /**
  * The authored files of the pack: `pack.json` (manifest, dice, entity types,
- * the basic reference lists, trackers, play guide, templates, calendar) and
- * `tables.json` (original tables, the encounter builder and other
- * generators, rule summaries and GM advice cards). They read a little of the
- * converted data (creature presets for the encounter tables, Hit Points by
- * ancestry and class for the sheet), so they are built after the converted
- * parts; `test/authored.test.ts` checks the committed files are up to date.
+ * the basic reference lists, trackers, play guide, the first campaign guide,
+ * templates, calendar) and `tables.json` (original tables, the encounter
+ * builder and other generators, rule summaries and GM advice cards). They
+ * read a little of the converted data (creature presets for the encounter
+ * tables, Hit Points by ancestry and class for the sheet), so they are built
+ * after the converted parts; `test/authored.test.ts` checks the committed
+ * files are up to date.
  */
 import type { EntityPreset, ReferenceList } from "@campaign-forge/module-sdk";
 import { CREATURE, PACK } from "../ids.ts";
@@ -14,6 +15,7 @@ import { labelEnums } from "./labels.ts";
 import { d20Combat } from "./combat.ts";
 import { gmScreen } from "./gmScreen.ts";
 import { characterType, creatureType, type HpTable, encounterType, factionType, hazardType, itemType, locationType, npcType, questType } from "./entityTypes.ts";
+import { firstCampaignGuide } from "./firstCampaign.ts";
 import { playGuide } from "./guides.ts";
 import { primer } from "./primer.ts";
 import { dice, manifest } from "./manifest.ts";
@@ -48,6 +50,7 @@ export function buildAuthored(data: GeneratedData): Record<string, unknown> {
     referenceLists: basicLists,
     trackers,
     playGuides: [playGuide],
+    guide: firstCampaignGuide,
     primer,
     d20Combat: d20Combat(data.lists),
     gmScreen,

@@ -22,6 +22,12 @@ export const BUILTIN_MODULES: Record<string, () => Promise<GameModule>> = {
   "pf2e-orc": async () => moduleFromPackSource((await import("@campaign-forge/module-pf2e-orc")).pf2eOrcSource),
 };
 
+/** The built-in modules' feature pages in docs/features/, where a page is not named after its module id. */
+export const FEATURE_PAGES: Record<string, string> = {
+  "dnd5e-srd": "dnd5e.md",
+  "pf2e-orc": "orc.md",
+};
+
 export interface GuidePage {
   moduleId: string;
   /** Relative to the repo root, e.g. docs/guides/alien-first-campaign.md. */
@@ -90,14 +96,15 @@ export async function builtinGuidePages(root: string): Promise<GuidePage[]> {
     const module = await load();
     const guide = module.guide;
     if (!guide) continue;
-    const feature = `docs/features/${id}.md`;
+    const featureFile = FEATURE_PAGES[id] ?? `${id}.md`;
+    const feature = `docs/features/${featureFile}`;
     out.push({
       moduleId: id,
       file: `${GUIDES_DIR}/${guideDocFile(guide)}`,
       markdown: guideMarkdown(guide, {
         moduleId: id,
         moduleName: module.manifest.name,
-        ...(existsSync(resolve(root, feature)) ? { featurePage: `../features/${id}.md` } : {}),
+        ...(existsSync(resolve(root, feature)) ? { featurePage: `../features/${featureFile}` } : {}),
         modeName: (m) => module.manifest.modes.find((x) => x.id === m)?.name ?? m,
       }),
     });

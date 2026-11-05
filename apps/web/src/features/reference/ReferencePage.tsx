@@ -191,7 +191,10 @@ function PresetsTab({ target }: { target?: string }) {
   const targetPreset = target ? ctx.module.module.presets.find((p) => p.id === target) : undefined;
   const [q, setQ] = useState(targetPreset?.name ?? "");
   const targetRow = useRef<HTMLTableRowElement>(null);
-  useEffect(() => targetRow.current?.scrollIntoView?.({ block: "center" }), []);
+  // a block body: newer browsers' scrollIntoView returns a promise, and React would call a returned value as the cleanup
+  useEffect(() => {
+    targetRow.current?.scrollIntoView?.({ block: "center" });
+  }, []);
   const [type, setType] = useState("");
   const types = ctx.module.module.entityTypes.filter((t) => ctx.module.presetsFor(t.id).length > 0);
   const presets = ctx.module.module.presets.filter(

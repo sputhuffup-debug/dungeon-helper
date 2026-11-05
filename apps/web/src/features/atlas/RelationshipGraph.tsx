@@ -19,6 +19,18 @@ const MAX_NODES = 400;
 
 const KIND_ORDER = ["location", "faction", "character", "creature", "job", "vehicle", "item", "clue", "encounter"];
 
+/**
+ * A column's heading: the plural of the module's first type of that kind, or
+ * the kind's own word when the column holds entities of several types (a
+ * module's player characters beside its NPCs are "Characters", not the
+ * first type's "Player characters").
+ */
+export function columnLabel(kind: string, column: Entity[], typeById: Map<string, EntityTypeDef>, module: GameModule): string {
+  const types = new Set(column.map((e) => typeById.get(e.type)?.id ?? e.type));
+  if (types.size > 1) return `${kind.charAt(0).toUpperCase()}${kind.slice(1)}s`;
+  return module.entityTypes.find((t) => t.kind === kind)?.plural ?? kind;
+}
+
 export interface RelationshipGraphProps {
   entities: Entity[];
   typeById: Map<string, EntityTypeDef>;
@@ -70,7 +82,7 @@ export function RelationshipGraph({ entities, typeById, module, label, asPlayer 
       <svg width={layout.width} height={layout.height} role="img" aria-label="Relationship graph" className="app-graph__svg">
         {layout.kinds.map((k, ci) => (
           <text key={k} x={colX(ci)} y={PAD + 8} className="app-graph__kind">
-            {(module.entityTypes.find((t) => t.kind === k)?.plural ?? k).toUpperCase()}
+            {columnLabel(k, layout.byKind.get(k) ?? [], typeById, module).toUpperCase()}
           </text>
         ))}
         {layout.edges.map((r) => {

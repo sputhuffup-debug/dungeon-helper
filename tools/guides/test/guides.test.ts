@@ -11,6 +11,9 @@ describe("the committed guide pages", () => {
   it("are what `pnpm guides` writes from the modules' guides (run it after changing a guide)", async () => {
     const pages = await builtinGuidePages(ROOT);
     expect(pages.map((p) => p.file)).toContain(`${GUIDES_DIR}/alien-first-campaign.md`);
+    expect(pages.map((p) => p.file)).toContain(`${GUIDES_DIR}/pf2e-orc-first-campaign.md`);
+    // each page links back to its module's feature page (the ORC module's is orc.md)
+    expect(pages.find((p) => p.moduleId === "pf2e-orc")?.markdown).toContain("[Fantasy d20 Remaster (ORC)](../features/orc.md)");
     for (const page of pages) {
       const path = resolve(ROOT, page.file);
       expect(existsSync(path), `${page.file} is missing: run pnpm guides`).toBe(true);

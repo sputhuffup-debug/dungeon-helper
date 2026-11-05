@@ -94,10 +94,14 @@ function Wizard({ initial, builder, stepParam }: { initial: StoredDraft; builder
   const step = steps.find((s) => s.id === stepId);
   const go = useCallback(
     (id: string) => {
-      setDraft((d) => ({ ...d, step: id, visited: [...new Set([...(d.visited ?? []), ...(d.step ? [d.step] : []), id])] }));
+      // the step being left counts as seen; a new draft stores no step yet, so that is the one on screen (the first)
+      setDraft((d) => {
+        const from = d.step ?? stepId;
+        return { ...d, step: id, visited: [...new Set([...(d.visited ?? []), ...(from ? [from] : []), id])] };
+      });
       void navigate({ to: "/c/$campaignId/build", params: { campaignId: ctx.campaignId }, search: { draft: initial.id, step: id }, replace: true });
     },
-    [navigate, ctx.campaignId, initial.id],
+    [navigate, ctx.campaignId, initial.id, stepId],
   );
   const mainRef = useRef<HTMLElement>(null);
   useEffect(() => {
