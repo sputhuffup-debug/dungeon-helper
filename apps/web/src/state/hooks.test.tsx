@@ -3,7 +3,8 @@ import { listCampaigns } from "@campaign-forge/core";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import { useMemo } from "react";
 import { afterEach, describe, expect, it } from "vitest";
-import { createCampaign, createEntity, createEntityFromPreset, deleteCampaign, linkEntities, updateEntityField } from "./actions";
+import { createCampaign, createEntity, createEntityFromPreset, deleteCampaign, linkEntities, updateEntity, updateEntityField } from "./actions";
+import { createSiteMap } from "./prepActions";
 import { CampaignProvider, openCampaign, useCampaign } from "./CampaignProvider";
 import { useComputed, useList, useMeta, useOfflineStatus, useRecord } from "./hooks";
 
@@ -38,6 +39,19 @@ describe("campaign actions", () => {
     expect(blank.fields.danger).toBe("quiet");
     const rel = linkEntities(ctx, "example.guards", e.id, blank.id);
     expect(linkEntities(ctx, "example.guards", e.id, blank.id).id).toBe(rel.id);
+  });
+
+  // Walkthrough 3 (O9): the dungeon's location was renamed, its map stayed "Dungeon"
+  it("renaming a place renames its maps named after it, and leaves other maps alone", async () => {
+    const ctx = await openCampaign(await createCampaign({ name: "Rename", moduleId: "example" }));
+    opened.push(ctx.close);
+    const place = createEntity(ctx, { type: "example.place", name: "Dungeon" });
+    const a = createSiteMap(ctx, { name: "Dungeon", location: place.id });
+    const b = createSiteMap(ctx, { name: "Dungeon map", location: place.id });
+    const c = createSiteMap(ctx, { name: "Upper floor", location: place.id });
+    const d = createSiteMap(ctx, { name: "Dungeon" });
+    updateEntity(ctx, place.id, { name: "The Bramble Pit" });
+    expect([a, b, c, d].map((m) => ctx.store.get("maps", m.id)!.name)).toEqual(["The Bramble Pit", "The Bramble Pit map", "Upper floor", "Dungeon"]);
   });
 
   it("records edits on generated entities", async () => {

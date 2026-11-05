@@ -1,9 +1,10 @@
 /**
- * The workbench's drafts: a deal nobody touched is not kept (the next visit
- * reads the campaign afresh), the first change keeps it, a kept draft that
- * reopens after the campaign changed says so and reads it again on request,
- * an old untouched draft is read afresh with its seed, "New deal" starts the
- * draft's age over, and the pinned-slots badge counts only the GM's pins.
+ * The workbench's drafts: a deal is kept as soon as it is dealt (the GM may
+ * have read it to the table, so coming back shows the same deal), a kept
+ * draft that reopens after the campaign changed says so and reads it again
+ * on request, an old draft from before drafts kept their campaign is read
+ * afresh with its seed, "New deal" starts the draft's age over, and the
+ * pinned-slots badge counts only the GM's pins.
  */
 import "fake-indexeddb/auto";
 import { generatorDraftOf, saveGeneratorDraft } from "@campaign-forge/core";
@@ -52,29 +53,29 @@ function page(ctx: CampaignContextValue) {
 const seed = () => (screen.getByTestId("seed") as HTMLInputElement).value;
 const pcs = () => (screen.getByLabelText("PCs") as HTMLInputElement).value;
 
-describe("the workbench keeps a deal once the GM changes it", () => {
-  it("keeps nothing for a deal nobody touched; the first change keeps it with the campaign it read", async () => {
+describe("the workbench keeps a deal as soon as it is dealt", () => {
+  // Walkthrough 3 (A3): a deal nobody changed used to be dropped on leaving, so a board read out at the table came back different.
+  it("keeps an untouched deal with the campaign it read; the next visit reopens the same deal; a change is saved too", async () => {
     const ctx = await campaign(["Rhea", "Dov", "Sefa"]);
     page(ctx);
-    expect(screen.getByTestId("draft-status").getAttribute("data-state")).toBe("unkept");
-    await act(async () => new Promise((r) => setTimeout(r, 400)));
-    expect(generatorDraftOf(ctx.store, JOB)).toBeUndefined();
-    cleanup();
-
-    // the next visit is a fresh deal again: nothing was kept
-    page(ctx);
-    const first = seed();
-    fireEvent.click(screen.getByTestId("new-seed"));
-    expect(seed()).not.toBe(first);
-    await waitFor(() => expect(generatorDraftOf(ctx.store, JOB)?.seed).toBe(seed()));
+    const dealt = seed();
+    await waitFor(() => expect(generatorDraftOf(ctx.store, JOB)?.seed).toBe(dealt));
     expect(screen.getByTestId("draft-status").getAttribute("data-state")).toBe("saved");
     expect(generatorDraftOf(ctx.store, JOB)?.context?.pcCount).toBeTruthy();
+    cleanup();
+
+    // the next visit: the same deal, said so
+    page(ctx);
+    expect(seed()).toBe(dealt);
+    expect(screen.getByTestId("draft-note").textContent).toContain("as you left it");
+    fireEvent.click(screen.getByTestId("new-seed"));
+    expect(seed()).not.toBe(dealt);
+    await waitFor(() => expect(generatorDraftOf(ctx.store, JOB)?.seed).toBe(seed()));
   }, 30_000);
 
   it("reopened after the campaign changed: says what changed and reads it again on request, same seed", async () => {
     const ctx = await campaign(["Rhea", "Dov", "Sefa"]);
     page(ctx);
-    fireEvent.click(screen.getByTestId("new-seed"));
     await waitFor(() => expect(generatorDraftOf(ctx.store, JOB)).toBeDefined());
     const kept = seed();
     expect(pcs()).toBe("3");
@@ -99,7 +100,7 @@ describe("the workbench keeps a deal once the GM changes it", () => {
     expect(screen.queryByTestId("draft-stale")).toBeNull();
   }, 30_000);
 
-  it("an old draft nobody touched is read afresh from the campaign with its seed, and dropped", async () => {
+  it("an old draft from before drafts kept their campaign is read afresh with its seed, and kept again with the campaign it read", async () => {
     const ctx = await campaign(["Rhea", "Dov", "Sefa"]);
     // kept the old way: dealt when the campaign had no PCs, never changed
     const procedure = ctx.module.procedure(JOB)!;
@@ -108,13 +109,13 @@ describe("the workbench keeps a deal once the GM changes it", () => {
     expect(seed()).toBe("old-seed");
     expect(pcs()).toBe("3");
     expect(screen.queryByTestId("draft-note")).toBeNull();
-    await waitFor(() => expect(generatorDraftOf(ctx.store, JOB)).toBeUndefined());
+    await waitFor(() => expect(generatorDraftOf(ctx.store, JOB)?.context).toBeDefined());
+    expect(generatorDraftOf(ctx.store, JOB)).toMatchObject({ seed: "old-seed", inputs: { pcCount: 3 } });
   }, 30_000);
 
   it("New deal drops the deal on the page, so the next kept draft is dated from then", async () => {
     const ctx = await campaign(["Rhea"]);
     page(ctx);
-    fireEvent.click(screen.getByTestId("new-seed"));
     await waitFor(() => expect(generatorDraftOf(ctx.store, JOB)).toBeDefined());
     const before = generatorDraftOf(ctx.store, JOB)!;
     await act(async () => new Promise((r) => setTimeout(r, 20)));
@@ -124,13 +125,13 @@ describe("the workbench keeps a deal once the GM changes it", () => {
     expect(deal.search.deal).toBeTruthy();
     cleanup();
 
-    // the fresh deal the address asked for, changed once: a new draft, its own age
+    // the fresh deal the address asked for: kept at once, a new draft with its own age
     nav.search = { deal: deal.search.deal };
     page(ctx);
     // the consumed nonce is dropped from the address at once
     expect(nav.navigate.mock.calls.at(-1)?.[0]).toMatchObject({ replace: true, search: {} });
-    fireEvent.click(screen.getByTestId("new-seed"));
     await waitFor(() => expect(generatorDraftOf(ctx.store, JOB)).toBeDefined());
+    expect(generatorDraftOf(ctx.store, JOB)?.seed).toBe(seed());
     const after = generatorDraftOf(ctx.store, JOB)!;
     expect(after.id).not.toBe(before.id);
     expect(after.created > before.created).toBe(true);

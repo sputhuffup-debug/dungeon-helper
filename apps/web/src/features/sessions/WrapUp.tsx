@@ -28,6 +28,7 @@ import {
   operationRun,
   operationTitle,
   plannedScenesOf,
+  playedScenes,
   sessionEndPrompts,
   sessionLabel,
   sessionLogText,
@@ -48,6 +49,7 @@ import { betweenJobsFor, closeStepLabel, CloseSourcesStep, useSessionSources } f
 import type { WrapUpLanding } from "./afterWrapUp";
 import { draftSessionSummary, mergeTimeline, saveWrapUpDraft, wrapUpDraftOf, type RewardDraft } from "../../state/wrapUpActions";
 import { arcsDefOf } from "../../state/arcActions";
+import { awardedText, postWrapUpAwards } from "../../state/progressionActions";
 
 const BASE_STEPS = [
   { id: "summary", label: "Summary" },
@@ -80,7 +82,9 @@ export function WrapUpWizard({ sessionId, onCancel, onDone }: WrapUpWizardProps)
   const [timeline, setTimeline] = useState<TimelineDraft[]>(() => mergeTimeline(saved.timeline, suggestTimeline(ctx.store, sessionId)));
   const [looseEnds, setLooseEnds] = useState<string>(() => {
     if (saved.looseEnds !== undefined) return saved.looseEnds;
-    const planned = plannedScenesOf(session).map((id) => ctx.store.get("scenes", id)).filter((s) => s && s.status === "planned");
+    // the same scenes the summary and timeline count as played (moved into at the table counts)
+    const played = new Set(playedScenes(ctx.store, sessionId));
+    const planned = plannedScenesOf(session).map((id) => ctx.store.get("scenes", id)).filter((s) => s && s.status === "planned" && !played.has(s.id));
     return planned.map((s) => `Not reached: ${s!.title}`).join("\n");
   });
   const [savedAt, setSavedAt] = useState<string | undefined>(saved.at);
@@ -178,13 +182,15 @@ export function WrapUpWizard({ sessionId, onCancel, onDone }: WrapUpWizardProps)
     // finishing commits what is typed: no draft write after it
     pendingSave.current = undefined;
     try {
+      // the award checklists' ticks are awarded on finishing (those the GM already awarded are not posted twice)
+      const awarded = postWrapUpAwards(ctx, sessionId);
       const result = finishSession(ctx, sessionId, {
         summary: summary ?? "",
         rewards: rewards.filter((r) => r.kind.trim() || r.value.trim()).map((r) => ({ characterId: r.characterId, kind: r.kind.trim() || "reward", value: r.value.trim(), ...(r.note.trim() ? { note: r.note.trim() } : {}) })),
         timeline,
         looseEnds: looseEnds.split("\n"),
       });
-      pushToast(`${sessionLabel(result.session)} wrapped up${result.next ? `; ${sessionLabel(result.next)} is planned` : ""}.`, { tone: "success" });
+      pushToast(`${sessionLabel(result.session)} wrapped up${result.next ? `; ${sessionLabel(result.next)} is planned` : ""}.${awardedText(ctx, awarded)}`, { tone: "success" });
       // a record just closed (a finished job) goes on to between jobs; otherwise the next session's page
       const closed = sources.find((s) => s.def.outcomes?.some((o) => o.id === s.outcome && o.closes));
       const between = closed ? betweenJobsFor(ctx, meta.mode, closed.entity) : undefined;

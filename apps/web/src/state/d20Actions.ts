@@ -12,7 +12,9 @@ import {
   addD20Condition,
   appendTrackerLog,
   applyD20Damage,
+  applyD20DeathSave,
   d20Combatant,
+  d20DeathSaveState,
   d20CombatOf,
   d20ConditionsOf,
   healD20,
@@ -63,6 +65,7 @@ import {
   type D20SaveDef,
   type D20SaveEffect,
   type D20SaveResolution,
+  type D20DeathSaveResult,
   type DicePool,
   type Rng,
   type RollResult,
@@ -426,9 +429,46 @@ export function applyD20Hit(ctx: Ctx, sessionId: Id, targetId: Id, amount: numbe
       out.fromTemp ? `${out.fromTemp} from temporary hit points` : "",
       `HP ${out.after.current}/${out.after.max}`,
       out.dropped ? `down to 0${out.conditionsAdded.length ? `: ${out.conditionsAdded.join(", ")}` : ""}${out.defeated ? ", defeated" : ""}` : "",
+      out.deathSaves ? deathSaveDamageText(out.deathSaves) : "",
     ].filter(Boolean);
     logTable(ctx, sessionId, parts.join(". "), { entity: targetId, damage: amount, ...gm });
     return { ...out, entity, amount };
+  });
+}
+
+function deathSaveDamageText(ds: NonNullable<D20DamageOutcome["deathSaves"]>): string {
+  if (ds.massive) return "massive damage: dead";
+  return `${ds.added === 1 ? "a failed death save" : `${ds.added} failed death saves`} (${ds.failures} failure${ds.failures === 1 ? "" : "s"})${ds.dead ? ": dead" : ""}`;
+}
+
+/** The death save as a roll: a d20 with no modifier against the rule's DC. */
+export function deathSavePool(ctx: Pick<Ctx, "module">, entity: Entity): DicePool {
+  const state = d20DeathSaveState(ctx.module, entity);
+  return ctx.module.module.dice.buildPool(d20RollInput({ base: [{ label: "Death save", value: 0 }], advantage: "normal", dc: state?.def.dc ?? 10 }));
+}
+
+export interface DeathSaveRoll extends D20DeathSaveResult {
+  seed: string;
+  entered?: number[];
+  text: string;
+}
+
+/** Roll a death save for a creature at 0 hit points (seeded, or typed), keep the counters, log it GM-only. */
+export function rollDeathSave(ctx: Ctx, sessionId: Id, entityId: Id, entered?: number[]): DeathSaveRoll {
+  return ctx.store.transact(() => {
+    const entity = entityOf(ctx, entityId);
+    const pool = deathSavePool(ctx, entity);
+    const seed = nextRollSeed(ctx.store, sessionId);
+    const result = withRollRng(seed, entered, (rng) => ctx.module.module.dice.roll(pool, rng));
+    const natural = result.dice.find((d) => !d.dropped)?.value ?? result.total ?? 0;
+    const res = applyD20DeathSave(ctx.store, ctx.module, entityId, natural);
+    const max = d20DeathSaveState(ctx.module, entity)?.max ?? 3;
+    const text = res.heals
+      ? `natural 20: back up with ${res.heals} hit point${res.heals === 1 ? "" : "s"}`
+      : `${natural}: ${res.success ? "success" : "failure"} (${res.successes}/${max} successes, ${res.failures}/${max} failures)${res.stable ? ", stable" : ""}${res.dead ? ", dead" : ""}`;
+    const label = `${entity.name}: death save`;
+    appendTrackerLog(ctx.store, sessionId, { tracker: DICE_LOG, text: `${label}: ${text}`, entity: entityId, data: { kind: "pool", seed, ...enteredField(entered), label, result, ...gm } satisfies DiceLogData });
+    return { ...res, seed, ...enteredField(entered), text };
   });
 }
 

@@ -6,7 +6,7 @@
  * validation checklist. Save the result to the campaign as a site map.
  * `map=` re-opens a saved generated map with its seed, brief and stage seeds.
  */
-import { adventureOfSource, castMembers, type Adventure, type Entity, type Id, type SiteMap } from "@campaign-forge/core";
+import { adventureOfSource, castMembers, mapZoneCount, type Adventure, type Entity, type Id, type SiteMap } from "@campaign-forge/core";
 import type { EntityMapBrief, MapGeneratorDef, MapGeneratorResult } from "@campaign-forge/module-sdk";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
@@ -323,7 +323,7 @@ function Workbench({
                   <Badge data-testid="map-attempts">
                     {result.attempts} attempt{result.attempts === 1 ? "" : "s"}
                   </Badge>
-                  <Badge>{result.layout.zones.length} zones</Badge>
+                  <Badge>{mapZoneCount(result)} zones</Badge>
                 </span>
               }
             >

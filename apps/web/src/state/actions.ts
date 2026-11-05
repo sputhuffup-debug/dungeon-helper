@@ -350,7 +350,15 @@ export function createEntityFromPreset(ctx: Ctx, preset: EntityPreset | string, 
 }
 
 export function updateEntity(ctx: Ctx, id: Id, patch: Partial<Entity>): Entity {
-  return ctx.store.update("entities", id, patch);
+  const before = ctx.store.get("entities", id);
+  const renamed = before && typeof patch.name === "string" && patch.name.trim() && patch.name !== before.name ? { from: before.name, to: patch.name } : undefined;
+  if (!renamed) return ctx.store.update("entities", id, patch);
+  return ctx.store.transact(() => {
+    const out = ctx.store.update("entities", id, patch);
+    // a place's maps named after it follow the new name ("Dungeon" -> "The Bramble Pit", "Dungeon map" -> "The Bramble Pit map")
+    for (const m of ctx.store.list("maps")) if (m.location === id && renamed.from && m.name.includes(renamed.from)) ctx.store.update("maps", m.id, { name: m.name.split(renamed.from).join(renamed.to) });
+    return out;
+  });
 }
 
 /** Set one dotted field path. Records the edit on the generator run when the entity was generated. */

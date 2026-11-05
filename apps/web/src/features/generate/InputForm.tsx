@@ -98,7 +98,7 @@ export function InputForm({ properties, value, onChange, store, module, docText,
                 value={current ?? ""}
                 onChange={(e) => {
                   const picked = options.find((o) => o.id === e.target.value);
-                  set(key, picked ? entitySnapshot(picked) : undefined);
+                  set(key, picked ? entitySnapshot(picked, store) : undefined);
                 }}
                 data-testid={`input-${key}`}
               >

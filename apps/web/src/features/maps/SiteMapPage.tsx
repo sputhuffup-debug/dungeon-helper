@@ -5,7 +5,7 @@
  * the generator's checks, the zone key and the distance table.
  * Image maps keep the rectangle editor (MapPage).
  */
-import { distanceTable, playerMembers, exitText, isDuctSheet, markGroup, zoneKeyRows, zoneNumbers, type SiteMap, type ZoneKeyMark, type ZoneKeyRow } from "@campaign-forge/core";
+import { distanceTable, playerMembers, exitText, isDuctSheet, mapZoneCount, markGroup, zoneKeyRows, zoneNumbers, type SiteMap, type ZoneKeyMark, type ZoneKeyRow } from "@campaign-forge/core";
 import type { MapCheck } from "@campaign-forge/module-sdk";
 import { Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
@@ -85,7 +85,9 @@ export function SiteMapPage({ record, onDelete, scenesCard }: { record: SiteMap;
   const sheets = layout.decks.filter(isDuctSheet).length;
   const legend = def?.legend ?? [];
   const numbers = useMemo(() => zoneNumbers(layout), [layout]);
-  const playable = numbers.size;
+  // the same count as the location's Maps card and the scene's map picker; with key numbering, how many carry a number too
+  const playable = mapZoneCount(record);
+  const keyed = layout.numbering === "key" ? numbers.size : undefined;
   const failing = layout.checks.filter((c) => !c.ok);
   const fileOpts = { view, deck, def, titleBlock: exportTitle };
   const gridSquares = gridChoice ?? defaultGridSquares(view, mmPerMetre);
@@ -265,7 +267,10 @@ export function SiteMapPage({ record, onDelete, scenesCard }: { record: SiteMap;
               </>
             )}
             <VisibilitySelect value={record.visibility} onChange={(v) => updateSiteMap(ctx, record.id, { visibility: v })} players={playerMembers(meta)} />
-            <Badge>{playable} zones</Badge>
+            <Badge data-testid="map-zone-count">
+              {playable} zone{playable === 1 ? "" : "s"}
+              {keyed !== undefined ? `, ${keyed} numbered` : ""}
+            </Badge>
             <Badge>
               {layout.decks.length - sheets} deck{layout.decks.length - sheets === 1 ? "" : "s"}
             </Badge>

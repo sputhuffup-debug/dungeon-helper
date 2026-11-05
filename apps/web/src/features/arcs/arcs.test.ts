@@ -8,6 +8,17 @@ import { openCampaign, type CampaignContextValue } from "../../state/CampaignPro
 import { acceptOffer, offersOf } from "../../state/offerActions";
 import { initialInputs } from "../generate/prefill";
 import { runGenerator } from "../generate/runner";
+import { tickStepsText } from "./ArcClockTicker";
+
+describe("the thread clocks' tick table", () => {
+  // Walkthrough 3 (A8): "1+ nothing, 3+ +1, 6+ +2" read badly
+  it("reads as ranges of the roll with what each moves", () => {
+    expect(tickStepsText({ dice: "1d6", steps: [{ min: 3, ticks: 1, label: "The sponsor moves" }, { min: 1, ticks: 0 }, { min: 6, ticks: 2, label: "GM pushes" }], ignored: 1 })).toBe(
+      "1–2 no move, 3–5 one segment (the sponsor moves), 6 two segments (GM pushes)",
+    );
+    expect(tickStepsText({ dice: "not dice", steps: [{ min: 1, ticks: 0 }, { min: 4, ticks: 1 }], ignored: 0 })).toBe("1–3 no move, 4+ one segment");
+  });
+});
 
 const opened: Array<() => void> = [];
 afterEach(() => {

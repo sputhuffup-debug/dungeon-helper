@@ -147,12 +147,14 @@ export function postPayout(ctx: Ctx, entity: Entity, payout: LedgerPayoutDef): P
   return ctx.store.transact(() => {
     const before = payout.setOnPost ? getPath(ctx.store.get("entities", entity.id)?.fields ?? entity.fields, payout.setOnPost.path) : undefined;
     const ship = theCrewShip(ctx);
+    // collected while a session runs (or is being wrapped up): it is that session's income
+    const session = runningSession(ctx.store);
     const res = postLedgerEntry(ctx.store, {
       amount: payoutAmount(ctx, entity, payout),
       category: payout.category,
       note: `${payout.label}: ${entity.name}`,
       key: payoutKey(payout, entity.id),
-      links: { job: entity.id, ...(ship ? { ship: ship.id } : {}) },
+      links: { job: entity.id, ...(ship ? { ship: ship.id } : {}), ...(session ? { session } : {}) },
       source: { kind: "payout", id: entity.id },
       ...(ctx.module.module.ledger ? { currency: ctx.module.module.ledger.currency } : {}),
     });

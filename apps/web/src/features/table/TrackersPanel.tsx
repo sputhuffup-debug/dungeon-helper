@@ -1,10 +1,11 @@
 /** Every tracker of the module's current mode, bound to its state (the session's, or the campaign's for campaign scope) and to the app's effect, log and roll handlers. */
-import { getWorldMinutes, type Entity, type Id, type SiteMap } from "@campaign-forge/core";
+import { getWorldMinutes, huntOf, liveOf, zoneNumbers, type Entity, type Id, type SiteMap } from "@campaign-forge/core";
 import { createRng, lifecycleState, type Effect, type Prompt, type TrackerDef } from "@campaign-forge/module-sdk";
 import { useMemo } from "react";
-import { TrackerHost, clockState, clockUnits, pushToast, type ClockUnit, type TrackerEntity } from "../../components/ui";
+import { Badge, Card, TrackerHost, clockState, clockUnits, pushToast, stealthState, type ClockUnit, type TrackerEntity } from "../../components/ui";
 import { errorMessage } from "../../lib/format";
-import { useCampaign, useList, useMeta } from "../../state/hooks";
+import { useCampaign, useList, useMeta, useRecord } from "../../state/hooks";
+import { useMapGenerator } from "../maps/siteMapFiles";
 import { advanceTableClock, playerCharacters, setClockState, setTrackerStateOf, trackerStateOf } from "../../state/tableActions";
 import { useEntities, useSessionTrackerState, useTrackerEntities } from "./hooks";
 import { FundsReadout } from "../ship/FundsReadout";
@@ -139,6 +140,47 @@ function LifecycleBound(props: BoundTrackerProps & { everyone: Entity[] }) {
   return <BoundTracker {...props} entities={entities} witnesses={witnesses} />;
 }
 
+/**
+ * A stealth tracker beside a scene map that runs the hunt (the map
+ * generator's `hunt`): the map's hidden threats are the one list, shown here
+ * with where they are and handled under the map. The tracker's own list
+ * shows only while it still holds someone added by hand.
+ */
+export function StealthOnMap(props: BoundTrackerProps & { map: SiteMap }) {
+  const ctx = useCampaign();
+  const gen = useMapGenerator(props.map);
+  const map = useRecord("maps", props.map.id) ?? props.map;
+  const own = stealthState(trackerStateOf(ctx, props.sessionId, props.def)).npcs.length;
+  if (!gen?.hunt) return <BoundTracker {...props} />;
+  const tokens = huntOf(liveOf(map)).tokens.filter((t) => t.state !== "gone");
+  const numbers = map.layout ? zoneNumbers(map.layout) : new Map<string, number>();
+  const zoneLabel = (id: string) => {
+    const z = map.layout?.zones.find((x) => x.id === id);
+    const name = z?.name ?? z?.kind.replace(/-/g, " ") ?? "?";
+    return numbers.has(id) ? `${numbers.get(id)} ${name}` : name;
+  };
+  return (
+    <>
+      <Card title={props.def.name} subtitle={`Hidden threats on ${map.name}: move, sweep and reveal them in Hidden threats under the map.`} data-testid="stealth-on-map">
+        {tokens.length === 0 ? (
+          <p className="cf-muted">No hidden threat on the map yet: place one under the map.</p>
+        ) : (
+          <ul className="app-list" aria-label="Hidden threats on the map">
+            {tokens.map((t) => (
+              <li key={t.id} className="app-list__row" data-testid="stealth-map-threat">
+                <span className="app-grow">{t.label}</span>
+                <span className="cf-muted">in {zoneLabel(t.zone)}</span>
+                <Badge tone={t.state === "seen" ? "danger" : "warning"}>{t.state === "detected" ? "blip" : t.state}</Badge>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+      {own > 0 && <BoundTracker {...props} />}
+    </>
+  );
+}
+
 export function TrackersPanel({ sessionId, trackers, pcs, participants, map, handlers }: { sessionId: Id; trackers: TrackerDef[]; pcs: Entity[]; participants: Entity[]; map?: SiteMap; handlers: TrackerHandlers }) {
   const pcEntities = useTrackerEntities(pcs);
   const everyone = useMemo(() => {
@@ -153,7 +195,11 @@ export function TrackersPanel({ sessionId, trackers, pcs, participants, map, han
         def.kind === "lifecycle" ? (
           <LifecycleBound key={def.id} sessionId={sessionId} def={def} entities={allEntities} everyone={everyone} {...handlers} />
         ) : (
-          <BoundTracker key={def.id} sessionId={sessionId} def={def} entities={def.scope === "encounter" ? allEntities : pcEntities} map={def.kind === "stealth" ? map : undefined} {...handlers} />
+          def.kind === "stealth" && map ? (
+            <StealthOnMap key={def.id} sessionId={sessionId} def={def} entities={pcEntities} map={map} {...handlers} />
+          ) : (
+            <BoundTracker key={def.id} sessionId={sessionId} def={def} entities={def.scope === "encounter" ? allEntities : pcEntities} map={def.kind === "stealth" ? map : undefined} {...handlers} />
+          )
         ),
       )}
     </div>

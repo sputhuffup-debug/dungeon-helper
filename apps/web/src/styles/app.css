@@ -4052,8 +4052,10 @@ a.cf-btn {
   grid-area: more;
   margin-left: 0;
 }
+/* the bar and its numbers stay together (.cf-health); the broken roll and Take a hit wrap under them rather than run into "More" */
 .app-participant__vitals .app-participant__health {
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 @container (max-width: 620px) {
   .app-participant .app-participant__row {
