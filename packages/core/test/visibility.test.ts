@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { VisibilityLevel } from "@campaign-forge/module-sdk";
-import { GM_VIEWER, canSee, fieldVisibilityOf, projectCampaignForViewer, projectEntityForViewer, reveal, visibilityRuleFor, type Entity, type Visibility, type Viewer } from "../src";
+import { computedFieldInputs, type VisibilityLevel } from "@campaign-forge/module-sdk";
+import { GM_VIEWER, canSee, canSeeComputed, canSeeSheetValue, fieldVisibilityOf, projectCampaignForViewer, projectEntityForViewer, reveal, visibilityRuleFor, type Entity, type Visibility, type Viewer } from "../src";
 import { PERSON, fixtureModule, newStore, seededRandom } from "./fixtures";
 
 const LEVELS: VisibilityLevel[] = ["gm", "players", "some_players", "revealed"];
@@ -170,6 +170,14 @@ describe("conditional field visibility (a type's conditionalVisibility)", () => 
     expect(projectEntityForViewer(e, DISGUISED, player)!.fields.stats).toEqual({ grit: 4, wit: 2 });
   });
 
+  it("shows no stand-in for a field hidden anyway, so a disguised person reads like anyone else whose stats are hidden", () => {
+    // the GM hides the stats of every contact: the disguised one shows no cover in their place either
+    const disguised = projectEntityForViewer(person({ disguised: true, cover: { grit: 1, wit: 1 } }, { stats: { level: "gm" } }), DISGUISED, player)!;
+    const plain = projectEntityForViewer(person({ disguised: false }, { stats: { level: "gm" } }), DISGUISED, player)!;
+    expect(disguised.fields.stats).toBeUndefined();
+    expect(plain.fields.stats).toBeUndefined();
+  });
+
   it("counts a rule that cannot be evaluated as holding", () => {
     const broken: typeof PERSON = { ...DISGUISED, conditionalVisibility: [{ when: { nosuchop: [1] }, fields: { role: "gm" } }] };
     expect(projectEntityForViewer(person({}), broken, player)!.fields.role).toBeUndefined();
@@ -181,5 +189,40 @@ describe("conditional field visibility (a type's conditionalVisibility)", () => 
     const types = [DISGUISED, ...fixtureModule.entityTypes.filter((t) => t.id !== PERSON.id)];
     const view = projectCampaignForViewer(store.toJSON(), { ...fixtureModule, entityTypes: types }, player);
     expect(view.entities[e.id]!.fields).toEqual({ stats: { grit: 2, wit: 2 }, disguised: true });
+  });
+});
+
+describe("computed values a viewer may see", () => {
+  // toughness reads grit; standing reads toughness (and so grit) and role; label is built at run time
+  const COMPUTING: typeof PERSON = {
+    ...PERSON,
+    computed: {
+      toughness: { "+": [{ var: "fields.stats.grit" }, 2] },
+      standing: { cat: [{ var: "fields.role" }, " ", { var: "computed.toughness" }] },
+      label: { var: { cat: ["fields.", "role"] } },
+      constant: 3,
+    },
+  };
+  const player: Viewer = { role: "player" };
+
+  it("follows computed reads to the stored fields", () => {
+    expect(computedFieldInputs(COMPUTING, "toughness")).toEqual(["stats.grit"]);
+    expect(computedFieldInputs(COMPUTING, "standing")).toEqual(["role", "stats.grit"]);
+    expect(computedFieldInputs(COMPUTING, "label")).toEqual(["*"]);
+    expect(computedFieldInputs(COMPUTING, "constant")).toEqual([]);
+  });
+
+  it("shows a computed value only when every field it reads may be seen", () => {
+    const e = entity({ level: "players" }, { "stats.grit": { level: "gm" } });
+    expect(canSeeComputed(e, COMPUTING, "toughness", player)).toBe(false);
+    expect(canSeeComputed(e, COMPUTING, "standing", player)).toBe(false);
+    expect(canSeeComputed(e, COMPUTING, "constant", player)).toBe(true);
+    // a run-time read needs every field, and the type hides secret and plan
+    expect(canSeeComputed(e, COMPUTING, "label", player)).toBe(false);
+    expect(canSeeSheetValue(e, COMPUTING, "toughness", player)).toBe(false);
+    expect(canSeeSheetValue(e, COMPUTING, "role", player)).toBe(true);
+    const open = entity({ level: "players" });
+    expect(canSeeComputed(open, COMPUTING, "standing", player)).toBe(true);
+    expect(canSeeComputed(e, COMPUTING, "toughness", GM_VIEWER)).toBe(true);
   });
 });

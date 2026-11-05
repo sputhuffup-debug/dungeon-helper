@@ -682,6 +682,40 @@ export function playerLayout(layout: SiteLayout, opts: PlayerLayoutOptions): Pla
   return out;
 }
 
+/**
+ * The legend as the players get it with a map: the entries they may see
+ * (not `gmOnly`) of what is on the part of the map they see, so the legend
+ * never names a hazard, a zone kind or a border that is not drawn for them
+ * (an alien structure on a station deck, a shaft in an unexplored duct).
+ * Zones count when not fogged; borders when one side is such a zone;
+ * flags from the zones (cluttered included), their live flags and the
+ * borders; markers as drawn. In legend order.
+ */
+export function playerLegendInUse(legend: MapLegendEntry[] | undefined, layout: PlayerLayout, live?: Pick<PlayerLiveState, "zoneFlags"> | undefined): MapLegendEntry[] {
+  const fogged = new Set(layout.fogged);
+  const seen = layout.zones.filter((z) => !fogged.has(z.id));
+  const seenIds = new Set(seen.map((z) => z.id));
+  const borders = layout.borders.filter((b) => seenIds.has(b.a) || seenIds.has(b.b));
+  const flagSets: Array<Record<string, unknown>> = [];
+  for (const z of seen) {
+    flagSets.push({ ...(z.flags ?? {}), ...(live?.zoneFlags[z.id] ?? {}), ...(z.cluttered ? { cluttered: true } : {}) });
+  }
+  for (const b of borders) flagSets.push({ ...(b.flags ?? {}), ...(b.sealed ? { sealed: true } : {}) });
+  const kinds = new Set<string>(seen.map((z) => z.kind));
+  const areas = new Set(seen.map((z) => z.area).filter((a): a is string => typeof a === "string"));
+  const borderKinds = new Set<string>(borders.map((b) => b.kind));
+  const markerKinds = new Set<string>(layout.markers.filter((m) => seenIds.has(m.zone)).map((m) => m.kind));
+  return (legend ?? []).filter((e) => {
+    if (e.gmOnly) return false;
+    const t = e.target;
+    if ("border" in t) return borderKinds.has(t.border);
+    if ("kind" in t) return kinds.has(t.kind);
+    if ("area" in t) return areas.has(t.area);
+    if ("marker" in t) return markerKinds.has(t.marker);
+    return flagSets.some((f) => flagEntryMatches(e, f));
+  });
+}
+
 export interface PlayerLiveState {
   zoneFlags: Record<Id, Record<string, unknown>>;
   /** `badge` is a revealed threat's kept blip letter. */

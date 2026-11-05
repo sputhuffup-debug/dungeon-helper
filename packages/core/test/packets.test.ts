@@ -396,3 +396,45 @@ describe("modules without owner marks", () => {
     expect(JSON.stringify(out)).not.toContain("SECRET-X");
   });
 });
+
+describe("what a sheet shows a player", () => {
+  const cx = { entityName: () => undefined };
+  const player = { role: "player" as const };
+
+  it("leaves out a computed value read from a hidden field, never showing it worked out from defaults", () => {
+    const TOUGH: EntityTypeDef = {
+      ...PERSON,
+      computed: { toughness: { "+": [{ var: "fields.stats.grit", default: 0 }, 10] }, wits: { "+": [{ var: "fields.stats.wit" }, 1] } },
+      sheet: { sections: [{ id: "main", title: "Main", fields: [{ path: "role", label: "Role" }, { path: "toughness", label: "Toughness", widget: "computed" }, { path: "wits", label: "Wits", widget: "computed" }] }] },
+    };
+    const store = newStore();
+    const e = store.createEntity({ type: PERSON.id, name: "Ilse", visibility: { level: "players" }, fields: { role: "engineer", stats: { grit: 4, wit: 2 } } });
+    store.update("entities", e.id, { fieldVisibility: { "stats.grit": { level: "gm" } } });
+    const maps = store.toJSON();
+    const sheet = viewerSheetOf(maps.entities[e.id]!, { entityTypes: [TOUGH] }, maps, player, cx)!;
+    // toughness would read 10 from the projection (grit removed): it is left out, not shown wrong
+    expect(sheet.sections[0]!.rows).toEqual([
+      { label: "Role", value: "engineer" },
+      { label: "Wits", value: "3" },
+    ]);
+  });
+
+  it("shows a subtype's sheet below the type's, not instead of it", () => {
+    const TOWNISH: EntityTypeDef = {
+      ...PLACE,
+      schema: { type: "object", properties: { climate: { type: "string" }, secrets: { type: "string" } } },
+      sheet: { sections: [{ id: "main", title: "Overview", fields: [{ path: "climate", label: "Climate" }, { path: "secrets", label: "Secrets" }] }] },
+      subtypes: [{ id: "town", name: "Town", schema: { type: "object", properties: { population: { type: "string" } } }, sheet: { sections: [{ id: "town", title: "Town", fields: [{ path: "population", label: "Population" }] }] } }],
+      defaultVisibility: { secrets: "gm" },
+    };
+    const store = newStore();
+    const e = store.createEntity({ type: PLACE.id, subtype: "town", name: "Northmoor", visibility: { level: "players" }, fields: { climate: "wet", secrets: "SECRET-TOWN", population: "900" } });
+    const maps = store.toJSON();
+    const sheet = viewerSheetOf(maps.entities[e.id]!, { entityTypes: [TOWNISH] }, maps, player, cx)!;
+    expect(sheet.sections).toEqual([
+      { title: "Overview", rows: [{ label: "Climate", value: "wet" }] },
+      { title: "Town", rows: [{ label: "Population", value: "900" }] },
+    ]);
+    expect(JSON.stringify(sheet)).not.toContain("SECRET-TOWN");
+  });
+});

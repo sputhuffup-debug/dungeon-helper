@@ -218,7 +218,14 @@ export interface Act extends BaseRecord {
 
 export interface Scene extends BaseRecord {
   act?: Id;
+  /** The GM's title. Never shown to the players: they read `playerTitle` (see core `playerSceneHeading`). */
   title: string;
+  /**
+   * The scene's heading as the players read it on the player screen, in
+   * shares and packets. When empty they read the scene's location (when they
+   * may see it) or its number ("Scene 3"), never the GM's `title`.
+   */
+  playerTitle?: string;
   purpose?: string;
   location?: Id;
   participants: Id[];

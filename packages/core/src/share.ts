@@ -7,21 +7,21 @@
  * (`projectCampaignForViewer` for entities, handouts and assets,
  * `playerLayout` / `playerLive` for maps, the same projection the player
  * screen draws) or from the two player-facing texts of the GM structures:
- * a scene's title and read-aloud text and an adventure's title and player
- * intro. It is built by copying allowed fields, never by deleting forbidden
+ * a scene's player heading (`playerSceneHeading`, never the GM's own title)
+ * and read-aloud text and an adventure's title and player intro. It is built by copying allowed fields, never by deleting forbidden
  * ones. `some_players` content is left out of a group share: it has no
  * single viewer. A player packet (packets.ts) runs the same snapshot with
  * one player's viewer (`memberViewer`) instead. Nothing here names a game.
  */
 import type { EntityTypeDef, MapLegendEntry, SheetField, SheetLayout, TemplateAdventure } from "@campaign-forge/module-sdk";
-import { computeFields, templateGuidance } from "@campaign-forge/module-sdk";
+import { computeFields, entitySheet, templateGuidance } from "@campaign-forge/module-sdk";
 import type * as Y from "yjs";
 import { getPath } from "./paths";
 import { toMarkdown } from "./richtext";
-import { liveOf, playerLayout, playerLive, type PlayerLayout, type PlayerLiveState } from "./sitemap";
+import { liveOf, playerLayout, playerLegendInUse, playerLive, type PlayerLayout, type PlayerLiveState } from "./sitemap";
 import type { CampaignStore } from "./store";
 import type { CampaignMaps, Entity, HandoutKind, Id, Scene, Session, ShareRecord, SiteMap } from "./types";
-import { canSee, canSeeField, findEntityType, projectCampaignForViewer, type ModuleTypes, type Viewer } from "./visibility";
+import { canSee, canSeeSheetValue, findEntityType, projectCampaignForViewer, type ModuleTypes, type Viewer } from "./visibility";
 
 /** A group share is seen by every player: only `players` and `revealed` content. */
 export const SHARE_VIEWER: Viewer = { role: "player" };
@@ -37,7 +37,7 @@ export interface ShareMap {
   visibleZones: Id[];
   /** Decks with at least one zone the players can see, in layout order. */
   decks: Id[];
-  /** Legend entries players may see. */
+  /** Legend entries players may see, of what is on the part of the map they see. */
   legend: MapLegendEntry[];
 }
 
@@ -96,6 +96,39 @@ export interface PlayerShare {
   party: ShareMember[];
   /** For one player only (a player packet): their name, for titles ("for Sam"). */
   for?: string;
+  /** The attribution the module's licence (and its supplements') requires in every copy (`ModuleLicense.inExports`): every export of the share ends with it. */
+  licence?: ShareLicence[];
+}
+
+/** One licence notice an export carries, as the module wrote it. */
+export interface ShareLicence {
+  /** The licence's name ("Creative Commons Attribution 4.0 International"). */
+  name: string;
+  url?: string;
+  /** The attribution, as written (paragraphs separated by blank lines). */
+  text: string;
+}
+
+/**
+ * The licence notices every player-facing export of a campaign on this
+ * module carries: the module's and each applied supplement's licence that
+ * asks for its attribution in copies (`inExports`), in that order, each
+ * text once. Empty when none does.
+ */
+export function exportLicences(module: Pick<ModuleTypes, "manifest"> | undefined): ShareLicence[] {
+  const m = module?.manifest;
+  if (!m) return [];
+  const out: ShareLicence[] = [];
+  for (const l of [m.license, ...(m.supplements ?? []).map((s) => s.license)]) {
+    if (!l?.inExports || !l.attribution.trim() || out.some((x) => x.text === l.attribution)) continue;
+    out.push({ name: l.name, text: l.attribution, ...(l.url ? { url: l.url } : {}) });
+  }
+  return out;
+}
+
+/** The licence notices as plain text (for a file's last page, a map's foot, a text export). */
+export function exportLicenceText(licences: readonly ShareLicence[]): string {
+  return licences.map((l) => l.text.trim()).join("\n\n");
 }
 
 export interface PlayerShareInput {
@@ -123,6 +156,39 @@ export interface PlayerShareInput {
  */
 export function playerSceneTitle(title: string): string {
   return title.replace(/\s*\((?:link|see|e\.g\.)[^)]*(?:\)|…|$)/gi, "").trim();
+}
+
+/** "Scene 3": the scene's place in its adventure (acts in order), or undefined for a scene in no act. */
+function sceneNumber(maps: Pick<CampaignMaps, "acts">, scene: Pick<Scene, "id" | "act">): number | undefined {
+  const act = scene.act ? maps.acts[scene.act] : undefined;
+  if (!act) return undefined;
+  const acts = Object.values(maps.acts)
+    .filter((a) => a.adventure === act.adventure)
+    .sort((a, b) => a.number - b.number || a.id.localeCompare(b.id));
+  let n = 0;
+  for (const a of acts) {
+    const i = a.scenes.indexOf(scene.id);
+    if (i >= 0) return n + i + 1;
+    n += a.scenes.length;
+  }
+  return undefined;
+}
+
+/**
+ * A scene's heading as the players read it (the player screen, the share's
+ * briefing, packets): the GM's player-facing title (`Scene.playerTitle`)
+ * when set, else the name of the scene's location when the viewer may see
+ * it, else "Scene 3" (its place in the adventure), else "The scene". The
+ * GM's own title is never used: it is written for the GM and may name what
+ * the players have not met ("Brandt turns", "Briefing with the spy").
+ */
+export function playerSceneHeading(maps: Pick<CampaignMaps, "acts" | "entities">, scene: Pick<Scene, "id" | "act" | "location" | "playerTitle">, viewer: Viewer = SHARE_VIEWER): string {
+  const own = scene.playerTitle ? playerSceneTitle(scene.playerTitle) : "";
+  if (own) return own;
+  const place = scene.location ? maps.entities[scene.location] : undefined;
+  if (place && canSee(place.visibility, viewer) && place.name.trim()) return place.name.trim();
+  const n = sceneNumber(maps, scene);
+  return n ? `Scene ${n}` : "The scene";
 }
 
 const plainWords = (text: string) =>
@@ -187,18 +253,18 @@ export function shareMapOf(map: SiteMap, module: ModuleTypes | undefined): Share
   const visibleZones = layout.zones.filter((z) => !fogged.has(z.id) && z.kind !== "out-of-bounds").map((z) => z.id).sort();
   const visible = new Set(visibleZones);
   const decks = layout.decks.filter((d) => layout.zones.some((z) => z.deck === d.id && visible.has(z.id))).map((d) => d.id);
-  const legend = (legendAll ?? []).filter((e) => !e.gmOnly).map((e) => ({ target: e.target, label: e.label }) as MapLegendEntry);
-  return { id: map.id, name: map.name, layout, live: playerLive(live, layout, legendAll), act: live.act, visibleZones, decks, legend };
+  const pLive = playerLive(live, layout, legendAll);
+  const legend = playerLegendInUse(legendAll, layout, pLive).map((e) => ({ target: e.target, label: e.label }) as MapLegendEntry);
+  return { id: map.id, name: map.name, layout, live: pLive, act: live.act, visibleZones, decks, legend };
 }
 
 const isRec = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
 const humanize = (s: string): string => s.replace(/[-_]+/g, " ").replace(/([a-z])([A-Z])/g, "$1 $2").replace(/^./, (c) => c.toUpperCase());
 const fieldLabel = (f: Pick<SheetField, "label" | "path"> | undefined, path: string): string => f?.label ?? humanize(path.split(".").pop() ?? path);
 
+/** The entity's sheet: the type's sections and its subtype's. */
 function sheetOf(def: EntityTypeDef | undefined, entity: Entity): SheetLayout | undefined {
-  if (!def) return undefined;
-  const sub = entity.subtype ? def.subtypes?.find((s) => s.id === entity.subtype) : undefined;
-  return sub?.sheet ?? def.sheet;
+  return def ? entitySheet(def, entity.subtype) : undefined;
 }
 
 function sheetField(sheet: SheetLayout | undefined, path: string): SheetField | undefined {
@@ -236,7 +302,8 @@ function partyMember(raw: Entity, projected: Entity, module: ModuleTypes | undef
   }
   const stats: ShareMember["stats"] = [];
   for (const path of sheet?.summary ?? def?.sheet.summary ?? []) {
-    if (!canSeeField(raw, def, path, viewer)) continue;
+    // a computed stat shows only when every field it reads may be seen
+    if (!canSeeSheetValue(raw, def, path, viewer)) continue;
     const f = sheetField(sheet, path) ?? sheetField(def?.sheet, path);
     if (f?.widget === "image" || f?.widget === "zonemap") continue;
     const v = path in computed ? computed[path] : getPath(projected.fields, path);
@@ -286,13 +353,13 @@ export function playerShareSnapshot(input: PlayerShareInput): PlayerShare {
     handouts: [],
     party: [],
   };
+  const licence = exportLicences(module);
+  if (licence.length) out.licence = licence;
 
   // the briefing: only the player-facing texts of the scene and its adventure
   const scene = input.sceneId ? maps.scenes[input.sceneId] : undefined;
   if (scene) {
-    const briefing: ShareBriefing = { sceneId: scene.id };
-    const title = playerSceneTitle(scene.title);
-    if (title) briefing.scene = title;
+    const briefing: ShareBriefing = { sceneId: scene.id, scene: playerSceneHeading(maps, scene, viewer) };
     const readAloud = scene.readAloudDoc ? bodyText(input.doc(scene.readAloudDoc), visibleNames) : undefined;
     if (readAloud) briefing.readAloud = readAloud;
     const act = scene.act ? maps.acts[scene.act] : undefined;

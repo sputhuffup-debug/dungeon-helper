@@ -14,13 +14,13 @@
  * material is never in the projection. Nothing here names a game.
  */
 import type { GameModule, LongAgendaDef, SheetField, SheetSection } from "@campaign-forge/module-sdk";
-import { computeFields, enumLabel, fieldSchemaAt, ownerVisiblePaths, sectionApplies, type JsonSchema } from "@campaign-forge/module-sdk";
+import { computeFields, entityFieldSchemaAt, entitySheet, enumLabel, ownerVisiblePaths, sectionApplies, type JsonSchema } from "@campaign-forge/module-sdk";
 import { longAgendaMarkdown, longAgendaRecordOf } from "./longAgendas";
 import { charactersOfMember, memberViewer } from "./members";
 import { getPath } from "./paths";
 import { planShare, playerShareSnapshot, shareBaseline, type PlayerShare, type PlayerShareInput, type ShareBaseline, type ShareImage, type ShareOptions, type SharePlan } from "./share";
 import type { CampaignMaps, Entity, Id, Session } from "./types";
-import { canSee, canSeeField, findEntityType, projectCampaignForViewer, projectEntityForViewer, viewerOwns, type ModuleTypes, type Viewer } from "./visibility";
+import { canSee, canSeeComputed, canSeeField, findEntityType, projectCampaignForViewer, projectEntityForViewer, viewerOwns, type ModuleTypes, type Viewer } from "./visibility";
 
 /** A module as packets read it: entity types, owner handout kinds, and procedures (for a long-term agenda). */
 export type PacketModule = ModuleTypes & Partial<Pick<GameModule, "procedures">>;
@@ -177,7 +177,8 @@ function sheetValue(f: SheetField | undefined, v: unknown, cx: ValueContext, sch
 function packetCharacter(raw: Entity, projected: Entity, module: PacketModule | undefined, mode: string, assets: CampaignMaps["assets"], viewer: Viewer, cx: ValueContext): PacketCharacter {
   const def = findEntityType(module, raw.type);
   const sub = raw.subtype ? def?.subtypes?.find((s) => s.id === raw.subtype) : undefined;
-  const sheet = sub?.sheet ?? def?.sheet;
+  // the type's sheet and the subtype's, as the sheet shows them
+  const sheet = def ? entitySheet(def, raw.subtype) : undefined;
   let computed: Record<string, unknown> = {};
   if (def) {
     try {
@@ -210,10 +211,11 @@ function packetCharacter(raw: Entity, projected: Entity, module: PacketModule | 
     for (const f of fields) {
       if (skip.has(f.path)) continue;
       const isComputed = f.widget === "computed" || (f.path in computed && getPath(raw.fields, f.path) === undefined);
-      // computed values come from projected fields only; a stored field must be in the projection
+      // computed values come from projected fields only, and only when the player may see every field they read; a stored field must be in the projection
+      if (isComputed && !canSeeComputed(raw, def, f.path, viewer)) continue;
       const v = isComputed ? computed[f.path] : getPath(projected.fields, f.path);
       if (isRec(v) && f.widget !== "skills" && !f.options) continue;
-      const value = sheetValue(f, v, cx, def ? fieldSchemaAt(def, f.path) : undefined);
+      const value = sheetValue(f, v, cx, def ? entityFieldSchemaAt(def, raw.subtype, f.path) : undefined);
       if (!value) continue;
       rows.push({ label: f.label ?? humanize(f.path.split(".").pop() ?? f.path), value });
     }

@@ -9,7 +9,7 @@
  * the handouts given to the character's player (`Handout.toOwner`, or a
  * module `ownerHandouts` kind with `when: "always"`).
  */
-import { evaluateLogic, ownerVisiblePaths, type ConditionalVisibilityDef, type EntityTypeDef, type GameModule, type VisibilityLevel } from "@campaign-forge/module-sdk";
+import { ANY_FIELD, computedFieldInputs, evaluateLogic, ownerVisiblePaths, type ConditionalVisibilityDef, type EntityTypeDef, type GameModule, type VisibilityLevel } from "@campaign-forge/module-sdk";
 import { now } from "./ids";
 import { clone, deletePath, getPath, setPath } from "./paths";
 import type { CampaignStore } from "./store";
@@ -27,7 +27,7 @@ export interface Viewer {
 export const GM_VIEWER: Viewer = { role: "gm" };
 
 /** Modules are consulted for entity type definitions (and map legends and owner handout kinds, when given). */
-export type ModuleTypes = Pick<GameModule, "entityTypes"> & Partial<Pick<GameModule, "mapGenerators" | "ownerHandouts" | "templates">>;
+export type ModuleTypes = Pick<GameModule, "entityTypes"> & Partial<Pick<GameModule, "mapGenerators" | "ownerHandouts" | "templates" | "manifest">>;
 
 /** Does this player play the character? */
 export function viewerOwns(viewer: Viewer, entity: Pick<Entity, "id" | "ownerMemberId"> | undefined): boolean {
@@ -53,6 +53,36 @@ export function canSeeField(entity: Entity, def: EntityTypeDef | undefined, path
   if (canSee(fieldVisibilityOf(entity, def, path), viewer)) return true;
   if (!def || !viewerOwns(viewer, entity) || hasOverride(entity, path)) return false;
   return ownerVisiblePaths(def, entity.subtype).some((p) => path === p || path.startsWith(`${p}.`));
+}
+
+/**
+ * May the viewer see this computed value of the entity? Only when they may
+ * see every stored field it reads (`computedFieldInputs`): a value worked
+ * out from a hidden field would give the field away, and computed from the
+ * player projection it would read the schema's default in its place (a
+ * wrong number). A read of any field (`ANY_FIELD`) needs every field.
+ */
+export function canSeeComputed(entity: Entity, def: EntityTypeDef | undefined, name: string, viewer: Viewer): boolean {
+  if (viewer.role === "gm") return true;
+  if (!def) return false;
+  const inputs = computedFieldInputs(def, name);
+  if (inputs.includes(ANY_FIELD)) {
+    const all = new Set([...Object.keys(entity.fields), ...Object.keys(def.schema.properties ?? {})]);
+    return [...all].every((p) => canSeeField(entity, def, p, viewer));
+  }
+  return inputs.every((p) => canSeeField(entity, def, p, viewer));
+}
+
+/**
+ * May the viewer see the value at this sheet path: a computed value (one
+ * the type computes and the entity does not store) by its inputs, a stored
+ * field by its own visibility. What a player sheet, a packet or a share
+ * reads before it shows a value.
+ */
+export function canSeeSheetValue(entity: Entity, def: EntityTypeDef | undefined, path: string, viewer: Viewer): boolean {
+  if (viewer.role === "gm") return true;
+  if (def?.computed && path in def.computed && getPath(entity.fields, path) === undefined) return canSeeComputed(entity, def, path, viewer);
+  return canSeeField(entity, def, path, viewer);
 }
 
 /** Field paths with a visibility of their own: the GM's overrides, the type's defaults and, for the owner, the owner-visible marks. */
@@ -145,9 +175,11 @@ export function visibilityRuleFor(entity: Pick<Entity, "fields">, def: EntityTyp
 /**
  * Effective visibility of one field path on an entity: the GM's setting on
  * the path or a parent, else a holding `conditionalVisibility` rule's, else
- * the type's default, else the entity's own visibility.
+ * the type's default, else the entity's own visibility. With `rules: false`
+ * the `conditionalVisibility` rules are left out (what the field would be
+ * without them).
  */
-export function fieldVisibilityOf(entity: Entity, def: EntityTypeDef | undefined, path: string): Visibility {
+export function fieldVisibilityOf(entity: Entity, def: EntityTypeDef | undefined, path: string, opts: { rules?: boolean } = {}): Visibility {
   const override = entity.fieldVisibility?.[path];
   if (override) return override;
   // the closest ancestor path with an override also applies
@@ -157,7 +189,7 @@ export function fieldVisibilityOf(entity: Entity, def: EntityTypeDef | undefined
     const o = entity.fieldVisibility?.[parent];
     if (o) return o;
   }
-  const ruled = visibilityRuleFor(entity, def, path);
+  const ruled = opts.rules === false ? undefined : visibilityRuleFor(entity, def, path);
   if (ruled) return { level: ruled.level };
   const def_: VisibilityLevel | undefined = def?.defaultVisibility?.[path];
   if (def_) return { level: def_ };
@@ -207,11 +239,12 @@ export function projectEntityForViewer(entity: Entity, def: EntityTypeDef | unde
   // longest paths first so a hidden parent removes everything underneath
   const sorted = [...paths].sort((a, b) => b.length - a.length || a.localeCompare(b));
   for (const path of sorted) prune(path, 0);
-  // a hidden field with a stand-in shows the stand-in's value in its place (a cover story), never a gap that gives it away
+  // a field the rule hides shows the stand-in's value in its place (a cover story), never a gap that gives it away;
+  // a field hidden anyway (the GM's setting, the type's default) shows nothing, as it would on anyone else
   for (const rule of activeVisibilityRules(entity, def)) {
     for (const [target, from] of Object.entries(rule.standIns ?? {})) {
       const value = getPath(entity.fields, from);
-      if (value !== undefined && !canSeeField(entity, def, target, viewer)) setPath(copy.fields, target, clone(value));
+      if (value !== undefined && !canSeeField(entity, def, target, viewer) && canSee(fieldVisibilityOf(entity, def, target, { rules: false }), viewer)) setPath(copy.fields, target, clone(value));
     }
   }
   delete copy.fieldVisibility;
