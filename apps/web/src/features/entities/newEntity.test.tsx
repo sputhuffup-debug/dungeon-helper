@@ -4,7 +4,7 @@ import { cleanup, fireEvent, render, screen, within } from "@testing-library/rea
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { createCampaign } from "../../state/actions";
 import { CampaignContext, openCampaign } from "../../state/CampaignProvider";
-import { NewEntityPage } from "./NewEntityPage";
+import { NewEntityPage, typeWord } from "./NewEntityPage";
 
 const nav = vi.hoisted(() => ({ search: {} as Record<string, unknown>, navigate: vi.fn() }));
 vi.mock("@tanstack/react-router", async (importOriginal) => ({
@@ -107,5 +107,14 @@ describe("new entity form: the fields the sheet asks for at creation", () => {
   it("asks nothing more for a type whose sheet declares no creation fields", async () => {
     await renderPage(exampleId, { type: "example.hero" });
     expect(screen.queryByTestId("create-fields")).toBeNull();
+  });
+});
+
+describe("typeWord: a type's name in the page's title and buttons", () => {
+  it("lowercases the name but keeps an acronym as written", () => {
+    expect(typeWord("Player character")).toBe("player character");
+    expect(typeWord("Monster")).toBe("monster");
+    expect(typeWord("NPC")).toBe("NPC");
+    expect(typeWord("A")).toBe("a");
   });
 });

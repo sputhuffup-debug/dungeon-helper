@@ -155,6 +155,7 @@ const BUILTIN: ModuleEntry[] = [
       ],
       defaultMode: "campaign",
       dataStatus: "partially-verified",
+      hasGuide: true,
       ruleset: "SRD 5.1 / 5.2",
       publisher: "Wizards of the Coast LLC (SRD 5.1 and SRD 5.2, CC-BY-4.0)",
       license: {

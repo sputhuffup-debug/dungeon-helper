@@ -4,7 +4,11 @@
  * followed into the campaign (the Life Path, the players, a new location,
  * the job once one is taken), and the same guide from the campaign list
  * before any campaign exists. Along the way, the relationship the guide
- * shows: "+ Add relationship", "Choose…" and back to the dialog.
+ * shows: "+ Add relationship", "Choose…" and back to the dialog. Then the
+ * fifth edition module's guide: from the campaign list, and from a new 5e
+ * campaign's Home with a Look it up link to the Reference page and Take me
+ * there links into the campaign (the settlement generator, then the quest
+ * once its rumour is in the campaign).
  */
 import { expect, test, type Page } from "@playwright/test";
 
@@ -126,9 +130,12 @@ test("guide: the campaign list opens a module's guide before any campaign, witho
   await expect(page.getByTestId("guide-no-campaign")).toContainText("Start a campaign with Alien RPG (Evolved Edition)");
   await expect(page.getByRole("article")).toHaveCount(30);
   await expect(page.getByTestId("guide-link")).toHaveCount(0);
-  // the other built-in modules have no guide yet: no button
+  // the fifth edition module has its own
   await page.getByRole("link", { name: "← All campaigns" }).click();
-  await expect(page.locator('[data-module="dnd5e-srd"]').getByTestId("module-guide")).toHaveCount(0);
+  await page.locator('[data-module="dnd5e-srd"]').getByTestId("module-guide").click();
+  await expect(page).toHaveURL(/\/guide\/dnd5e-srd$/);
+  await expect(page.getByRole("heading", { level: 1, name: "Your first 5e campaign" })).toBeVisible();
+  await expect(page.getByTestId("guide-link")).toHaveCount(0);
   expect(errors).toEqual([]);
 });
 
@@ -142,4 +149,55 @@ test("guide: a cinematic campaign says the guide is written for campaign play", 
   await expect(page).toHaveURL(/\/home$/);
   await openGuide(page);
   await expect(page.getByTestId("guide-mode-note")).toContainText("Written for Campaign play. This campaign is Cinematic");
+});
+
+test("guide: the fifth edition guide from a new 5e campaign's Home, a Take me there and a Look it up link", async ({ page }) => {
+  test.setTimeout(120_000);
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/");
+  await page.getByRole("button", { name: "New campaign" }).click();
+  const dialog = page.getByRole("dialog", { name: "New campaign" });
+  await dialog.getByLabel("Name", { exact: true }).fill("The Wilby Watch");
+  await dialog.getByRole("combobox", { name: "Game module" }).selectOption("dnd5e-srd");
+  await dialog.getByRole("button", { name: "Create campaign" }).click();
+  await expect(page).toHaveURL(/\/home$/);
+
+  const open5eGuide = async () => {
+    await page.getByTestId("home-guide").click();
+    await expect(page).toHaveURL(/\/c\/[0-9A-Z]{26}\/guide$/);
+    await expect(page.getByRole("heading", { level: 1, name: "Your first 5e campaign" })).toBeVisible();
+  };
+  await open5eGuide();
+  const guide = page.getByTestId("guide");
+  await expect(guide.getByRole("navigation", { name: "Chapters" }).getByRole("link")).toHaveCount(7);
+  await expect(guide.getByRole("article")).toHaveCount(28);
+  await expect(page.getByTestId("guide-mode-note")).toHaveCount(0);
+  const img = step(page, /Build a character step by step/).getByRole("img");
+  await img.scrollIntoViewIfNeeded();
+  await expect.poll(() => img.evaluate((i: HTMLImageElement) => i.complete && i.naturalWidth > 0)).toBe(true);
+  // no quest yet: "Open the quest" waits for one
+  await expect(takeMeThere(page, "Take a quest from the quest board").getByRole("link", { name: "Open the quest" })).toHaveCount(0);
+
+  // Look it up: the class list on the Reference page
+  await page.getByRole("group", { name: "Look it up: Build a character step by step" }).getByRole("link", { name: "Classes" }).click();
+  await expect(page).toHaveURL(/\/reference\?.*list=dnd5e-srd\.classes/);
+  await expect(page.getByRole("combobox", { name: "Reference list" })).toHaveValue("dnd5e-srd.classes");
+  await page.goBack();
+
+  // Take me there: the settlement generator, accepted, and its rumour opened from the guide as the quest
+  await takeMeThere(page, "Generate a town and its tavern").getByRole("link", { name: "Generate a settlement" }).click();
+  await expect(page).toHaveURL(/\/generate\/dnd5e-srd\.proc\.settlement$/);
+  await page.getByTestId("seed").fill("barrow-14");
+  await expect(page.getByTestId("preview-name-settlement")).toHaveValue("Wilby");
+  await page.getByTestId("accept").click();
+  await expect(page.getByTestId("entity-title")).toHaveValue("Wilby");
+  await nav(page, "Home").click();
+  await open5eGuide();
+  await takeMeThere(page, "Take a quest from the quest board").getByRole("link", { name: "Open the quest" }).click();
+  await expect(page).toHaveURL(/\/entities\/[0-9A-Z]{26}$/);
+  await expect(page.getByTestId("entity-title")).toHaveValue("Graves are found opened");
+
+  expect(errors).toEqual([]);
 });
