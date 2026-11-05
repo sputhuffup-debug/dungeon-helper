@@ -57,6 +57,9 @@ export function GlobalSearch() {
   const [open, setOpen] = useState(false);
   const [index, setIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  // the close that a blur schedules (so a click on a result lands first); focusing the box again cancels it
+  const blurTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => clearTimeout(blurTimer.current), []);
 
   const refIndex = useMemo(() => referenceIndex(ctx.module.module), [ctx.module]);
   const groups = useMemo(() => {
@@ -143,8 +146,16 @@ export function GlobalSearch() {
           setIndex(0);
           setOpen(true);
         }}
-        onFocus={() => setOpen(true)}
-        onBlur={() => setTimeout(() => setOpen(false), 150)}
+        onFocus={() => {
+          clearTimeout(blurTimer.current);
+          setOpen(true);
+        }}
+        onBlur={() => {
+          clearTimeout(blurTimer.current);
+          blurTimer.current = setTimeout(() => {
+            if (document.activeElement !== inputRef.current) setOpen(false);
+          }, 150);
+        }}
         onKeyDown={onKey}
       />
       {open && query.trim() !== "" && (
