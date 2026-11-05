@@ -56,6 +56,8 @@ export function buildAuthored(data: GeneratedData): Record<string, unknown> {
     mapGenerators: [dungeonGenerator()],
     templates,
     calendar,
+    // the words the app's generic screens use (a site map's levels keep the default "level")
+    terms: { party: "party", rewardExamples: "coin, gear, a favour owed, a new ally" },
     guide: firstCampaignGuide,
     styleNotes: [
       "Heroic fantasy: describe the world vividly, let the dice decide what is uncertain, and keep the spotlight moving between players.",

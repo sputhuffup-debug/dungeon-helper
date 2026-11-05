@@ -58,6 +58,8 @@ export function buildAuthored(data: GeneratedData): Record<string, unknown> {
     mapGenerators: [dungeonGenerator()],
     templates,
     calendar,
+    // the words the app's generic screens use (a site map's levels keep the default "level")
+    terms: { party: "party", rewardExamples: "coin, gear, a favour owed, a new ally" },
     styleNotes: [
       "Heroic fantasy with teeth: describe the world vividly, set DCs before the dice land, and give all four degrees of success a meaning.",
       "ORC core-rules text is used as written, without the publisher's setting names; GM advice, tables and generators marked Original are Campaign Forge's own.",

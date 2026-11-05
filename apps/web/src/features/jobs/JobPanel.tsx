@@ -6,7 +6,7 @@
  * an earlier brief says so.
  */
 import type { Entity, Handout, Id, Relationship, SiteMap } from "@campaign-forge/core";
-import type { EntityMapBrief, MapGeneratorDef } from "@campaign-forge/module-sdk";
+import { nounOf, type EntityMapBrief, type MapGeneratorDef } from "@campaign-forge/module-sdk";
 import { Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { Badge, Card } from "../../components/ui";
@@ -64,11 +64,13 @@ export function JobPanel({ entity }: { entity: Entity }) {
   const props = ((found?.generator.inputs as Schema | undefined)?.properties ?? {}) as Record<string, Schema>;
   const inputs = found?.brief.inputs ?? {};
   const count = (k: string) => (Array.isArray(inputs[k]) ? (inputs[k] as unknown[]).length : 0);
+  // the record's own type names it: "People in this quest"
+  const noun = nounOf(ctx.module.entityType(entity.type)?.name ?? "job");
 
   return (
     <div className="job-panel" data-testid="job-panel">
       {people.length > 0 && (
-        <Card title="People in this job" data-testid="job-npcs" className="job-panel__wide">
+        <Card title={`People in this ${noun}`} data-testid="job-npcs" className="job-panel__wide">
           <ul className="job-panel__npcs">
             {people.map(({ r, other }) => {
               const open = other.visibility.level !== "gm";
@@ -148,7 +150,7 @@ export function JobPanel({ entity }: { entity: Entity }) {
                 ))}
               </ul>
             ) : (
-              <p className="cf-muted app-small">No site map yet. Generate one from this brief; it is saved with the job's site.</p>
+              <p className="cf-muted app-small">No site map yet. Generate one from this brief; it is saved with the {noun}'s site.</p>
             )}
           </div>
         </Card>

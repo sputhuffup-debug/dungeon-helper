@@ -17,7 +17,7 @@ import { useCampaign } from "../../state/hooks";
 import { hpState } from "./D20Combat";
 import { useSessionTrackerState } from "./hooks";
 import { RichTextView } from "../../editor";
-import { useAssetUrl, useDocHasText, useList, useMeta, useRecord } from "../../state/hooks";
+import { useAssetUrl, useDocHasText, useList, useMeta, useRecord, useWorldDate } from "../../state/hooks";
 import { useTableState } from "./hooks";
 import { PlayerSiteMap } from "./PlayerSiteMap";
 import { useSceneMap } from "./SceneMap";
@@ -168,6 +168,7 @@ export function PlayerScreen({ sessionId }: { sessionId: Id }) {
   const all = useList("handouts");
   const ts = useSessionTrackerState(sessionId);
   const session = useRecord("sessions", sessionId);
+  const worldDate = useWorldDate();
   const handouts = useMemo(() => playerScreenHandouts(ctx, sessionId), [all, ts, session, sessionId, ctx]); // eslint-disable-line react-hooks/exhaustive-deps
   const acts = useList("acts");
   const entities = useList("entities");
@@ -181,7 +182,11 @@ export function PlayerScreen({ sessionId }: { sessionId: Id }) {
     <div className="cf-table-mode app-table app-player" data-testid="player-screen">
       <header className="app-table__header">
         <strong className="app-player__campaign">{meta.name}</strong>
-        {meta.currentDate && <span className="cf-muted">{meta.currentDate}</span>}
+        {meta.currentDate && (
+          <span className="cf-muted" data-testid="player-screen-date">
+            {worldDate(meta.currentDate)}
+          </span>
+        )}
       </header>
       {clock && (
         <div className="app-table__clock">

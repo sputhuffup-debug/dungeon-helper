@@ -542,7 +542,7 @@ export function SessionRollLog({ sessionId, max }: { sessionId: Id; max?: number
   const ctx = useCampaign();
   const ts = useSessionTrackerState(sessionId);
   const entries = useMemo(() => rollLogEntries(ts), [ts]);
-  return <RollLog entries={entries} dice={ctx.module.module.dice} max={max} />;
+  return <RollLog entries={entries} dice={ctx.module.module.dice} max={max} tableName={(id) => ctx.module.table(id)?.name} />;
 }
 
 export function DicePanel({ sessionId, pcs, others = [] }: { sessionId: Id; pcs: Entity[]; others?: Entity[] }) {

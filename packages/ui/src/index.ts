@@ -130,7 +130,7 @@ export { Tabs, type TabsProps, type TabItem } from "./primitives/Tabs";
 export { Dialog, Drawer, type DialogProps, type DrawerProps } from "./primitives/Dialog";
 export { AutoGrowText, singleLineText, type AutoGrowTextProps } from "./primitives/AutoGrowText";
 export { Toolbar, ToolbarGroup, ToolbarSpacer, EmptyState, type ToolbarProps, type EmptyStateProps } from "./primitives/Toolbar";
-export { ProvenanceBadge, RollRecordList, type ProvenanceBadgeProps, type ProvenanceKind } from "./primitives/ProvenanceBadge";
+export { ProvenanceBadge, RollRecordList, rollStepLabel, type ProvenanceBadgeProps, type ProvenanceKind } from "./primitives/ProvenanceBadge";
 export { PageRef, HidePageRefs, usePageRefsHidden, formatPageRef, formatCitation, type PageRefProps } from "./primitives/PageRef";
 export { Markdown, renderInline } from "./primitives/Markdown";
 export { RuleCardView, RuleCardList, filterRuleCards, rulePreview, type RuleCardViewProps, type RuleCardListProps } from "./primitives/RuleCard";

@@ -470,7 +470,7 @@ export function creatureType(): EntityTypeDef {
     kind: "creature",
     name: "Creature",
     plural: "Creatures",
-    icon: "bug",
+    icon: "claw",
     schema,
     computed,
     sheet: {

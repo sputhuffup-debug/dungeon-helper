@@ -17,7 +17,6 @@ import { useCampaign, useMeta, useSheetSources } from "../../state/hooks";
 import { BuildCharacterButton, CharacterProcedureLinks, useCharacterBuilder, useCharacterProcedures } from "../builder/entry";
 import { sheetFieldOf } from "./summary";
 
-/** Values the form starts with for the creation fields: `isPC` from the PCs tab, when the type has it. */
 /** A type's name in running text ("New player character", "Create monster"): lowercased, an acronym such as "NPC" kept as it is written. */
 export function typeWord(name: string): string {
   return name
@@ -26,9 +25,14 @@ export function typeWord(name: string): string {
     .join(" ");
 }
 
+/**
+ * Values the form starts with: `isPC` from the PCs tab whenever the type has
+ * the field, listed among the creation fields or not (a pack's sheet need not
+ * name it in `sheet.create` for the PCs tab to make a PC).
+ */
 function initialDraft(def: EntityTypeDef | undefined, pc: number | undefined): Record<string, unknown> {
   const props = def?.schema.properties as Record<string, unknown> | undefined;
-  return pc === 1 && props && "isPC" in props && def?.sheet.create?.includes("isPC") ? { isPC: true } : {};
+  return pc === 1 && props && "isPC" in props ? { isPC: true } : {};
 }
 
 export function NewEntityPage() {
@@ -162,7 +166,7 @@ export function NewEntityPage() {
             <input type="radio" name="preset" checked={presetId === ""} onChange={() => setPresetId("")} />
             <EntityIcon icon={def?.icon} kind={def?.kind} />
             <span>
-              <strong>Blank</strong> <span className="cf-muted">schema defaults</span>
+              <strong>Blank</strong> <span className="cf-muted">start from empty fields</span>
             </span>
           </label>
           {presets.length > 0 && (

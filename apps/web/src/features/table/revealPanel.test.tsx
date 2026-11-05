@@ -66,13 +66,16 @@ describe("RevealPanel", () => {
     renderPanel(ctx, session.id);
     const r = within(row(personal.id));
     expect(r.queryByRole("button", { name: `Reveal ${personal.title}` })).toBeNull();
-    const confirm = vi.spyOn(window, "confirm").mockReturnValueOnce(false);
+    // the app's own confirm dialog (not the browser's window.confirm): Cancel keeps it with its player
+    const confirm = vi.spyOn(window, "confirm");
     fireEvent.click(r.getByRole("button", { name: `Show ${personal.title} to everyone` }));
-    expect(confirm).toHaveBeenCalledWith(expect.stringContaining("every player sees"));
+    expect(screen.getByTestId("reveal-everyone-question").textContent).toContain("every player sees");
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
     expect(vis(ctx, personal.id)).toBe("gm");
-    confirm.mockReturnValueOnce(true);
-    act(() => fireEvent.click(r.getByRole("button", { name: `Show ${personal.title} to everyone` })));
+    fireEvent.click(r.getByRole("button", { name: `Show ${personal.title} to everyone` }));
+    act(() => fireEvent.click(screen.getByRole("button", { name: "Show everyone" })));
     expect(vis(ctx, personal.id)).toBe("revealed");
+    expect(confirm).not.toHaveBeenCalled();
     act(() => fireEvent.click(within(row(personal.id)).getByRole("button", { name: `Hide ${personal.title} from the players` })));
     expect(vis(ctx, personal.id)).toBe("gm");
   });

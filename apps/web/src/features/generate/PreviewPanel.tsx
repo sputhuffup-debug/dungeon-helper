@@ -3,7 +3,7 @@
  * relationships. Field values read as the sheet shows them: reference ids
  * by their item's name (a career, talents with their count), list rows by
  * name and quantity (gear, weapons), entity references by name. The raw
- * results stay behind each step's "Raw result" toggle.
+ * results stay behind each step's "Full result" toggle.
  */
 import { readableTags, sheetValueText, type SheetValueContext } from "@campaign-forge/core";
 import { fieldSchemaAt, type GeneratedGraph } from "@campaign-forge/module-sdk";

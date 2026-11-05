@@ -1012,7 +1012,7 @@ test("secret-synthetic", async ({ page }) => {
 });
 
 test("critical-injury-result", async ({ page }) => {
-  // a PC broken by a hit rolls a critical injury: what it does, how long it takes to heal, and the ids kept under Raw result
+  // a PC broken by a hit rolls a critical injury: what it does, how long it takes to heal, and the ids kept under Full result
   await page.setViewportSize({ width: 1440, height: 1000 });
   await loadDemo(page, "skyfire");
   await startPlannedSession(page);

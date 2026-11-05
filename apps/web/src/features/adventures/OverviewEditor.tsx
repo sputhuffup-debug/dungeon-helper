@@ -3,10 +3,11 @@ import type { Adventure } from "@campaign-forge/core";
 import { Button, Card } from "../../components/ui";
 import { RichTextEditor } from "../../editor";
 import { ensureAdventureDocs } from "../../state/prepActions";
-import { useCampaign, useList } from "../../state/hooks";
+import { useCampaign, useList, useTerms } from "../../state/hooks";
 
 export function OverviewEditor({ adventure, onSelect }: { adventure: Adventure; onSelect: (node: string) => void }) {
   const ctx = useCampaign();
+  const terms = useTerms();
   const acts = useList("acts");
   const missing = !adventure.playerIntroDoc || !adventure.gmSituationDoc || !adventure.epilogueDoc;
   return (
@@ -52,7 +53,7 @@ export function OverviewEditor({ adventure, onSelect }: { adventure: Adventure; 
       </Card>
       {adventure.epilogueDoc && (
         <Card title="Epilogue">
-          <RichTextEditor docId={adventure.epilogueDoc} label="Epilogue" placeholder={adventure.guide?.epilogue ?? "What happens to the survivors…"} />
+          <RichTextEditor docId={adventure.epilogueDoc} label="Epilogue" placeholder={adventure.guide?.epilogue ?? terms.epiloguePrompt} />
         </Card>
       )}
     </div>

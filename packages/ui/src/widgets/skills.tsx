@@ -56,6 +56,9 @@ export function SkillsField(props: WidgetProps) {
   const hideZero = field.config?.hideZero === true;
   const rows = hideZero && !showAll ? allRows.filter((r) => asNumber(skills[r.id]) !== 0) : allRows;
   const head = headingsOf(field, ctx.dice?.resultStyle === "total");
+  // a list whose rows name no attribute (a creature's flat modifiers) leaves the attribute columns out, not blank "—" headings
+  const showAttr = allRows.some((r) => !!r.attribute);
+  const cols = (ctx.onRoll ? 6 : 5) - (showAttr ? 0 : 2);
   const attrPath = configString(field, "attributesPath", "attributes") as string;
   const min = configNumber(field, "min", 0);
   const maxFor = (skillId: string): number | undefined => {
@@ -92,12 +95,16 @@ export function SkillsField(props: WidgetProps) {
         <thead>
           <tr>
             <th scope="col">{head.skill}</th>
-            <th scope="col" className="cf-skills__attr">
-              {head.attribute}
-            </th>
-            <th scope="col" className="cf-skills__num">
-              {head.attributeValue}
-            </th>
+            {showAttr && (
+              <>
+                <th scope="col" className="cf-skills__attr">
+                  {head.attribute}
+                </th>
+                <th scope="col" className="cf-skills__num">
+                  {head.attributeValue}
+                </th>
+              </>
+            )}
             <th scope="col" className="cf-skills__num">
               {head.value}
             </th>
@@ -110,7 +117,7 @@ export function SkillsField(props: WidgetProps) {
         <tbody>
           {rows.length === 0 && (
             <tr>
-              <td colSpan={ctx.onRoll ? 6 : 5} className="cf-muted">
+              <td colSpan={cols} className="cf-muted">
                 None
               </td>
             </tr>
@@ -123,8 +130,12 @@ export function SkillsField(props: WidgetProps) {
             return (
               <tr key={r.id} data-skill={r.id}>
                 <th scope="row">{r.name}</th>
-                <td className="cf-muted cf-skills__attr">{r.attribute ? humanize(r.attribute) : "—"}</td>
-                <td className="cf-skills__num">{attrValue}</td>
+                {showAttr && (
+                  <>
+                    <td className="cf-muted cf-skills__attr">{r.attribute ? humanize(r.attribute) : "—"}</td>
+                    <td className="cf-skills__num">{attrValue}</td>
+                  </>
+                )}
                 <td className="cf-skills__num">
                   {readonly ? (
                     levels ? levelLabel(skillValue) : skillValue

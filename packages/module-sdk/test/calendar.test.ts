@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addCalendarDays, addDaysToDate, compareCalendarDates, daysBetween, formatAmount, formatCalendarDate, parseCalendarDate, roundAmount } from "../src/calendar";
+import { addCalendarDays, addDaysToDate, compareCalendarDates, daysBetween, displayCalendarDate, formatAmount, formatCalendarDate, parseCalendarDate, roundAmount } from "../src/calendar";
 import type { CalendarDef } from "../src/types";
 
 const gregorian: CalendarDef = {
@@ -18,6 +18,17 @@ describe("calendar dates", () => {
     expect(parseCalendarDate(odd, "4/2/3")).toEqual({ year: 3, month: 2, day: 4 });
     expect(parseCalendarDate(odd, "6/2/3")).toBeUndefined();
     expect(parseCalendarDate(gregorian, "2183-13-01")).toBeUndefined();
+  });
+
+  it("shows a stored date with its month name, or the calendar's own display format", () => {
+    const named: CalendarDef = { ...odd, months: [{ name: "Frostwane", days: 30 }, { name: "Thawmonth", days: 30 }], weekdays: ["Firstday", "Seedday", "Wellday"], format: "{year}-{month:02}-{day:02}" };
+    expect(displayCalendarDate(named, "812-02-03")).toBe("3 Thawmonth 812");
+    expect(displayCalendarDate({ ...named, displayFormat: "{weekday}, {day} {monthName} {year}" }, "812-01-01")).toBe(`${named.weekdays![(812 * 60) % 3]}, 1 Frostwane 812`);
+    // a calendar that shows dates as stored (Alien's), and text that is not a date
+    expect(displayCalendarDate({ ...gregorian, displayFormat: gregorian.format! }, "2183-06-01")).toBe("2183-06-01");
+    expect(displayCalendarDate(named, "the day after")).toBe("the day after");
+    expect(displayCalendarDate(undefined, "812-02-03")).toBe("812-02-03");
+    expect(displayCalendarDate(named, undefined)).toBeUndefined();
   });
 
   it("adds days across months and years, both ways", () => {

@@ -16,11 +16,11 @@
  * for a record just closed, else the next session's page.
  */
 import type { Entity, Id } from "@campaign-forge/core";
-import type { Prompt } from "@campaign-forge/module-sdk";
+import { resolveTerms, type GameModule, type Prompt } from "@campaign-forge/module-sdk";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AutoGrowText, Badge, Button, Card, PageRef, pushToast, useDiceRoller } from "../../components/ui";
 import { errorMessage } from "../../lib/format";
-import { useCampaign, useMeta, useRecord } from "../../state/hooks";
+import { useCampaign, useMeta, useRecord, useTerms, useWorldDate } from "../../state/hooks";
 import {
   answerPrompt,
   answerRollOperation,
@@ -58,6 +58,23 @@ const BASE_STEPS = [
   { id: "timeline", label: "Timeline" },
   { id: "loose", label: "Loose ends" },
 ] as const;
+
+/** "a, b and c". */
+const listOf = (parts: string[]) => (parts.length > 1 ? `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}` : (parts[0] ?? ""));
+
+/** What the drafted summary reads, as the module records it: clues with arcs, panic with a stress tracker, the hunt with a hunting map. */
+function summarySources(module: GameModule): string {
+  const parts = ["scenes"];
+  if (module.arcs) parts.push("clues");
+  parts.push("what the players saw");
+  if (module.trackers.some((t) => t.kind === "stress")) parts.push("panic");
+  parts.push("injuries", "rolls of note");
+  if (module.mapGenerators?.some((g) => !!g.hunt)) parts.push("the hunt");
+  return listOf(parts);
+}
+
+/** The wrap-up's steps in its intro line: "summary, questions, rewards, timeline and what carries over". */
+const STEP_WORDS: Record<string, string> = { summary: "summary", prompts: "questions", rewards: "rewards", timeline: "timeline", loose: "what carries over" };
 type StepId = (typeof BASE_STEPS)[number]["id"] | "close";
 
 export interface WrapUpWizardProps {
@@ -70,6 +87,7 @@ export interface WrapUpWizardProps {
 export function WrapUpWizard({ sessionId, onCancel, onDone }: WrapUpWizardProps) {
   const ctx = useCampaign();
   const meta = useMeta();
+  const worldDate = useWorldDate();
   const session = useRecord("sessions", sessionId);
   const pcs = usePlayerCharacters();
   // what the GM typed last time, kept on the session
@@ -79,7 +97,7 @@ export function WrapUpWizard({ sessionId, onCancel, onDone }: WrapUpWizardProps)
   /** The summary is the one drafted from the log, not yet the GM's words. */
   const [summaryDrafted, setSummaryDrafted] = useState(saved.summaryDrafted === true);
   const [rewards, setRewards] = useState<RewardDraft[]>(saved.rewards ?? []);
-  const [timeline, setTimeline] = useState<TimelineDraft[]>(() => mergeTimeline(saved.timeline, suggestTimeline(ctx.store, sessionId)));
+  const [timeline, setTimeline] = useState<TimelineDraft[]>(() => mergeTimeline(saved.timeline, suggestTimeline(ctx.store, sessionId, resolveTerms(ctx.module.module).party)));
   const [looseEnds, setLooseEnds] = useState<string>(() => {
     if (saved.looseEnds !== undefined) return saved.looseEnds;
     // the same scenes the summary and timeline count as played (moved into at the table counts)
@@ -207,7 +225,7 @@ export function WrapUpWizard({ sessionId, onCancel, onDone }: WrapUpWizardProps)
       <header className="app-page__header">
         <div>
           <h1 className="app-title">Wrap up {sessionLabel(session)}</h1>
-          <p className="cf-muted">Close the session: summary, questions, rewards, timeline, and what carries over.</p>
+          <p className="cf-muted">Close the session: {listOf(STEPS.filter((s) => s.id in STEP_WORDS).map((s) => STEP_WORDS[s.id]!))}.</p>
           <p className="cf-muted app-small" data-testid="wrapup-saved" data-saved={savedAt ? "" : undefined}>
             {savedAt ? "Everything you type is kept on the session until you finish." : "Everything you type is kept on the session as you go."}
             {table.timer && !table.timer.running && (table.timer.accumulatedMs ?? 0) > 0 ? " The session timer is paused while you wrap up." : ""}
@@ -236,7 +254,7 @@ export function WrapUpWizard({ sessionId, onCancel, onDone }: WrapUpWizardProps)
           {current === "summary" && (
             <Card
               title="Summary"
-              subtitle={summaryDrafted ? "A draft from what the session logged: scenes, clues, what the players saw, panic, injuries, rolls of note and the hunt, then your own log lines. Edit it into your words." : "What happened this session, in your words. It opens next session's recap."}
+              subtitle={summaryDrafted ? `A draft from what the session logged: ${summarySources(ctx.module.module)}, then your own log lines. Edit it into your words.` : "What happened this session, in your words. It opens next session's recap."}
               actions={
                 <span className="app-row">
                   {summaryDrafted && (
@@ -286,7 +304,7 @@ export function WrapUpWizard({ sessionId, onCancel, onDone }: WrapUpWizardProps)
           {current === "timeline" && (
             <Card
               title="Timeline entries"
-              subtitle={meta.currentDate ? `Each is dated by the in-world date it happened on (the campaign's date when the scene was run); the rest by today's in-world date, ${meta.currentDate}.` : "No in-world date set: entries are kept undated."}
+              subtitle={meta.currentDate ? `Each is dated by the in-world date it happened on (the campaign's date when the scene was run); the rest by today's in-world date, ${worldDate(meta.currentDate)}.` : "No in-world date set: entries are kept undated."}
             >
               {timeline.length === 0 && <p className="cf-muted">No scenes were marked run and no handouts revealed. Add an entry by hand if something happened.</p>}
               <ul className="app-list" aria-label="Timeline entries">
@@ -509,6 +527,7 @@ function PromptRow({ sessionId, prompt, answer, entity }: { sessionId: Id; promp
 }
 
 function RewardsStep({ pcs, rewards, setRewards }: { pcs: Entity[]; rewards: RewardDraft[]; setRewards: (r: RewardDraft[]) => void }) {
+  const terms = useTerms();
   if (pcs.length === 0) {
     return (
       <Card title="Rewards">
@@ -518,7 +537,7 @@ function RewardsStep({ pcs, rewards, setRewards }: { pcs: Entity[]; rewards: Rew
   }
   const update = (key: number, patch: Partial<RewardDraft>) => setRewards(rewards.map((r) => (r.key === key ? { ...r, ...patch } : r)));
   return (
-    <Card title="Rewards" subtitle="Free entries per character: cash, gear, favours, a new contact. Recorded on the session.">
+    <Card title="Rewards" subtitle={`Free entries per character: ${terms.rewardExamples}. Recorded on the session.`}>
       {pcs.map((pc) => {
         const mine = rewards.filter((r) => r.characterId === pc.id);
         return (

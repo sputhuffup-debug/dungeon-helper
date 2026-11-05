@@ -151,7 +151,7 @@ const BUILTIN: ModuleEntry[] = [
       version: "0.1.0",
       modes: [
         { id: "campaign", name: "Campaign", description: "Long-running play: characters level up over many sessions, with factions, quests and a living world between adventures." },
-        { id: "one-shot", name: "One-shot", description: "A single session: ready-made characters, one adventure in three acts, and a clear ending tonight." },
+        { id: "one-shot", name: "One-shot", description: "A single session: quick characters from the step-by-step builder, one adventure in three acts, and a clear ending tonight." },
       ],
       defaultMode: "campaign",
       dataStatus: "partially-verified",

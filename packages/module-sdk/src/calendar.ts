@@ -24,6 +24,29 @@ export function formatCalendarDate(cal: CalendarDef, date: CalendarDate): string
   });
 }
 
+const DEFAULT_DISPLAY = "{day} {monthName} {year}";
+const DISPLAY_TOKEN = /\{(year|month|day|monthName|weekday)(?::0(\d))?\}/g;
+
+/**
+ * A stored date as the app shows it to people: the calendar's
+ * `displayFormat` (default "{day} {monthName} {year}", e.g. "3 Frostwane
+ * 812"). Text that does not parse as a date of the calendar comes back as it is.
+ */
+export function displayCalendarDate(cal: CalendarDef | undefined, text: string): string;
+export function displayCalendarDate(cal: CalendarDef | undefined, text: string | undefined): string | undefined;
+export function displayCalendarDate(cal: CalendarDef | undefined, text: string | undefined): string | undefined {
+  if (!cal || text === undefined) return text;
+  const date = parseCalendarDate(cal, text);
+  if (!date) return text;
+  const weekdays = cal.weekdays ?? [];
+  return (cal.displayFormat ?? DEFAULT_DISPLAY).replace(DISPLAY_TOKEN, (_m, key: string, pad?: string) => {
+    if (key === "monthName") return cal.months[date.month - 1]?.name ?? String(date.month);
+    if (key === "weekday") return weekdays.length ? weekdays[((calendarDayNumber(cal, date) % weekdays.length) + weekdays.length) % weekdays.length]! : "";
+    const v = key === "year" ? date.year : key === "month" ? date.month : date.day;
+    return pad ? String(v).padStart(Number(pad), "0") : String(v);
+  }).replace(/\s{2,}/g, " ").trim();
+}
+
 function escapeRegExp(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

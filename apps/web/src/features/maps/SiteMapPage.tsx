@@ -6,7 +6,7 @@
  * Image maps keep the rectangle editor (MapPage).
  */
 import { distanceTable, exportLicences, exportLicenceText, playerMembers, exitText, isDuctSheet, mapZoneCount, markGroup, zoneKeyRows, zoneNumbers, type SiteMap, type ZoneKeyMark, type ZoneKeyRow } from "@campaign-forge/core";
-import type { MapCheck } from "@campaign-forge/module-sdk";
+import type { MapCheck, ResolvedTerms } from "@campaign-forge/module-sdk";
 import { Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { VisibilitySelect } from "../../components/VisibilitySelect";
@@ -15,6 +15,7 @@ import {
   Button,
   Card,
   MapLegend,
+  AutoGrowText,
   PageRef,
   ROLL_WIDTHS,
   SiteMapView,
@@ -31,7 +32,7 @@ import {
 import { errorMessage } from "../../lib/format";
 import { RegenerateMapLink } from "../mapgen/RegenerateMapLink";
 import { updateSiteMap } from "../../state/prepActions";
-import { useCampaign, useMeta, useRecord } from "../../state/hooks";
+import { useCampaign, useMeta, useRecord, useTerms } from "../../state/hooks";
 import { deckIn, layoutForView, maxActOf, rollPlan, useMapGenerator, useMapPalette } from "./siteMapFiles";
 import "./sitemap.css";
 
@@ -44,18 +45,23 @@ function download(what: string, fn: (d: Downloads) => unknown): void {
     .catch((e: unknown) => pushToast(`${what} failed: ${errorMessage(e)}`, { tone: "danger" }));
 }
 
-const VIEWS: Array<{ id: SiteMapViewKind; label: string; note: string }> = [
-  { id: "gm", label: "GM map", note: "Everything: zone numbers, spawns, clues, NPCs, hazards, locks and act shading." },
-  { id: "player", label: "Player map", note: "What the crew can see, printed whole. At the table the player screen adds fog. Duct sheets join it once the players have crawled into one, fogged where they have not been." },
-  { id: "tracking", label: "Tracking map", note: "Zone outlines, numbers and ducts, large enough to move hidden tokens on. One page per deck." },
-];
+/** The map's views, in the module's words for the group and a map level; duct sheets are named only on a map that has them. */
+function zoneViews(terms: ResolvedTerms, ducts: boolean): Array<{ id: SiteMapViewKind; label: string; note: string }> {
+  return [
+    { id: "gm", label: "GM map", note: "Everything: zone numbers, spawns, clues, NPCs, hazards, locks and act shading." },
+    { id: "player", label: "Player map", note: `What the ${terms.party} can see, printed whole. At the table the player screen adds fog.${ducts ? " Duct sheets join it once the players have crawled into one, fogged where they have not been." : ""}` },
+    { id: "tracking", label: "Tracking map", note: `Zone outlines${ducts ? ", numbers and ducts" : " and numbers"}, large enough to move hidden tokens on. One page per ${terms.mapLevel}.` },
+  ];
+}
 
 /** The same views for a map the players explore room by room (unseen rooms are left out, not fogged). */
-const ROOM_VIEWS: Array<{ id: SiteMapViewKind; label: string; note: string }> = [
-  { id: "gm", label: "GM map", note: "Everything: room numbers, encounters, traps, treasure, locked and secret doors (dashed)." },
-  { id: "player", label: "Player map", note: "The plan the players may see, printed whole without its secret rooms and doors or any GM mark. At the table the player screen shows only the rooms you reveal." },
-  { id: "tracking", label: "Tracking map", note: "Room outlines and numbers, large enough to move hidden tokens on. One page per level." },
-];
+function roomViews(terms: ResolvedTerms): Array<{ id: SiteMapViewKind; label: string; note: string }> {
+  return [
+    { id: "gm", label: "GM map", note: "Everything: room numbers, encounters, traps, treasure, locked and secret doors (dashed)." },
+    { id: "player", label: "Player map", note: "The plan the players may see, printed whole without its secret rooms and doors or any GM mark. At the table the player screen shows only the rooms you reveal." },
+    { id: "tracking", label: "Tracking map", note: `Room outlines and numbers, large enough to move hidden tokens on. One page per ${terms.mapLevel}.` },
+  ];
+}
 
 export function SiteMapPage({ record, onDelete, scenesCard }: { record: SiteMap; onDelete: () => void; scenesCard: React.ReactNode }) {
   const ctx = useCampaign();
@@ -75,7 +81,8 @@ export function SiteMapPage({ record, onDelete, scenesCard }: { record: SiteMap;
   // a map in squares prints its tiles at a choice of scales; a metric map at 1 m = 1 cm
   const tileScales = useMemo(() => (layout.gridUnit ? scales.filter((s) => s.id !== "true-28mm").reverse() : undefined), [layout, scales]);
   const [tileMm, setTileMm] = useState<number | undefined>(() => tileScales?.[0]?.mmPerMetre);
-  const views = layout.fog === "hide" ? ROOM_VIEWS : VIEWS;
+  const terms = useTerms();
+  const views = layout.fog === "hide" ? roomViews(terms) : zoneViews(terms, layout.decks.some(isDuctSheet));
   // grid squares follow the view and scale until the GM ticks or unticks them
   const [gridChoice, setGridChoice] = useState<boolean | undefined>();
   const [rollTitle, setRollTitle] = useState(true);
@@ -245,8 +252,9 @@ export function SiteMapPage({ record, onDelete, scenesCard }: { record: SiteMap;
     <div className="app-page prep-mappage prep-sitemap" data-testid="map-page" data-layout="generated">
       <header className="app-page__header">
         <div className="app-stack prep-mappage__meta">
-          <input
-            className="app-entity__name"
+          {/* wraps on a phone instead of cutting a long name off */}
+          <AutoGrowText
+            className="app-entity__name app-entity__name--wrap"
             aria-label="Map name"
             defaultValue={record.name}
             key={record.name}
@@ -255,7 +263,7 @@ export function SiteMapPage({ record, onDelete, scenesCard }: { record: SiteMap;
               if (v && v !== record.name) updateSiteMap(ctx, record.id, { name: v });
             }}
             onKeyDown={(e) => {
-              if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+              if (e.key === "Enter") (e.target as HTMLTextAreaElement).blur();
             }}
             data-testid="map-name"
           />
@@ -274,7 +282,7 @@ export function SiteMapPage({ record, onDelete, scenesCard }: { record: SiteMap;
               {keyed !== undefined ? `, ${keyed} numbered` : ""}
             </Badge>
             <Badge>
-              {layout.decks.length - sheets} deck{layout.decks.length - sheets === 1 ? "" : "s"}
+              {layout.decks.length - sheets} {layout.decks.length - sheets === 1 ? terms.mapLevel : terms.mapLevels}
             </Badge>
             {sheets > 0 && (
               <Badge>

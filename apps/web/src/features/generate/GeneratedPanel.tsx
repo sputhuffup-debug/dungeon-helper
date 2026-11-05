@@ -11,18 +11,22 @@ export function GeneratedPanel({ entity }: { entity: Entity }) {
   const run = useRecord("generatorRuns", entity.provenance?.generatorRun);
   if (!run) return null;
   const procedure = ctx.module.procedure(run.procedure);
+  // a run names its generator: a procedure, or a site map generator; never its id
+  const generatorName = procedure?.name ?? ctx.module.module.mapGenerators?.find((g) => g.id === run.procedure)?.name ?? "A generator";
+  const moduleName = run.moduleId === ctx.module.manifest.id ? ctx.module.manifest.name : run.moduleId;
+  const tableName = (id: string) => ctx.module.table(id)?.name;
   const edited = run.editedFields.filter((e) => e.entity === entity.id).map((e) => e.path);
   const siblings = run.produced.filter((id) => id !== entity.id).map((id) => ctx.store.get("entities", id)).filter((e): e is Entity => !!e);
   return (
     <Card
       title={
         <span className="app-row">
-          Generated <ProvenanceBadge kind="rolled" label="rolled" rolls={run.rolls} detail={`${procedure?.name ?? run.procedure}, seed ${run.seed}`} />
+          Generated <ProvenanceBadge kind="rolled" label="rolled" rolls={run.rolls} detail={`${generatorName}, seed ${run.seed}`} tableName={tableName} />
         </span>
       }
       subtitle={
         <>
-          {procedure?.name ?? run.procedure} <PageRef page={procedure?.page} /> · seed <span className="cf-mono">{run.seed}</span> · {formatDateTime(run.created)} · module {run.moduleId} {run.moduleVersion}
+          {generatorName} <PageRef page={procedure?.page} /> · seed <span className="cf-mono">{run.seed}</span> · {formatDateTime(run.created)} · {moduleName} {run.moduleVersion}
           {run.supplements && run.supplements.length > 0 ? ` + ${run.supplements.map((s) => `${s.id} ${s.version}`).join(", ")}` : ""}
         </>
       }
@@ -81,7 +85,7 @@ export function GeneratedPanel({ entity }: { entity: Entity }) {
             <summary>
               {run.rolls.length} roll{run.rolls.length === 1 ? "" : "s"}
             </summary>
-            <RollRecordList rolls={run.rolls} />
+            <RollRecordList rolls={run.rolls} tableName={tableName} />
           </details>
         ) : (
           <p className="cf-muted">No table rolls (computed steps only).</p>

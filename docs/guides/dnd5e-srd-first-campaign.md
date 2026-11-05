@@ -160,7 +160,7 @@ A quest gives the party a reason; an adventure holds what you run: acts, scenes,
 
 Home's *Quest board* groups the campaign's quests by status. The rumour from the settlement generator sits under *Rumour*; *Generate a quest* opens *Generate*, and *+ Quest* writes one by hand.
 
-Open the rumour and fill in its sheet: *Patron* (Captain Hollis Varrow), *Objective*, *Reward* and *Deadline*, with *Complications* kept GM only. Set *Status* to *Offered* when the party hears it and *Active* when they take it; the board moves it along. *People in this job* lists who is tied to it (Quilla, who heard the rumour).
+Open the rumour and fill in its sheet: *Patron* (Captain Hollis Varrow), *Objective*, *Reward* and *Deadline*, with *Complications* kept GM only. Set *Status* to *Offered* when the party hears it and *Active* when they take it; the board moves it along. *People in this quest* lists who is tied to it (Quilla, who heard the rumour).
 
 ![Home's Quest board with the graves quest under Active, its patron Captain Hollis Varrow](../screenshots/guide-dnd5e-srd-quest-board.png)
 
@@ -204,7 +204,7 @@ Below, *Events* lists what must or may happen, *Read-aloud text* is the boxed te
 
 ### 6.7 Add a handout
 
-Click an act in the outline (Act 1) and, under *Handouts*, *+ Handout*. Title it (here “A page torn from the burial register”), open it to write the text or add an image, and leave it *GM only*: you reveal it at the table. *+ Agenda* adds a handout for one character, which goes to that player alone.
+Click an act in the outline (Act 1) and, under *Handouts*, *+ Handout*. Title it (here “A page torn from the burial register”), open it to write the text or add an image, and leave it *GM only*: you reveal it at the table. *+ Personal handout* adds a handout for one character, which goes to that player alone.
 
 ![Act 1's Handouts card with the burial register page](../screenshots/guide-dnd5e-srd-handout.png)
 

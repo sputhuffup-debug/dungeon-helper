@@ -23,7 +23,7 @@
    {
     "id": "one-shot",
     "name": "One-shot",
-    "description": "A single session: ready-made characters, one adventure in three acts, and a clear ending tonight."
+    "description": "A single session: quick characters from the step-by-step builder, one adventure in three acts, and a clear ending tonight."
    }
   ],
   "defaultMode": "campaign",
@@ -6195,7 +6195,7 @@
    "kind": "creature",
    "name": "Monster",
    "plural": "Monsters",
-   "icon": "bug",
+   "icon": "claw",
    "schema": {
     "type": "object",
     "properties": {
@@ -34723,6 +34723,10 @@
   ],
   "format": "{year}-{month:02}-{day:02}"
  },
+ "terms": {
+  "party": "party",
+  "rewardExamples": "coin, gear, a favour owed, a new ally"
+ },
  "guide": {
   "id": "dnd5e-srd.first-campaign",
   "title": "Your first 5e campaign",
@@ -35111,7 +35115,7 @@
       "title": "Take a quest from the quest board",
       "body": [
        "Home's *Quest board* groups the campaign's quests by status. The rumour from the settlement generator sits under *Rumour*; *Generate a quest* opens *Generate*, and *+ Quest* writes one by hand.",
-       "Open the rumour and fill in its sheet: *Patron* (Captain Hollis Varrow), *Objective*, *Reward* and *Deadline*, with *Complications* kept GM only. Set *Status* to *Offered* when the party hears it and *Active* when they take it; the board moves it along. *People in this job* lists who is tied to it (Quilla, who heard the rumour)."
+       "Open the rumour and fill in its sheet: *Patron* (Captain Hollis Varrow), *Objective*, *Reward* and *Deadline*, with *Complications* kept GM only. Set *Status* to *Offered* when the party hears it and *Active* when they take it; the board moves it along. *People in this quest* lists who is tied to it (Quilla, who heard the rumour)."
       ],
       "image": {
        "key": "quest-board",
@@ -35230,7 +35234,7 @@
       "id": "handout",
       "title": "Add a handout",
       "body": [
-       "Click an act in the outline (Act 1) and, under *Handouts*, *+ Handout*. Title it (here “A page torn from the burial register”), open it to write the text or add an image, and leave it *GM only*: you reveal it at the table. *+ Agenda* adds a handout for one character, which goes to that player alone."
+       "Click an act in the outline (Act 1) and, under *Handouts*, *+ Handout*. Title it (here “A page torn from the burial register”), open it to write the text or add an image, and leave it *GM only*: you reveal it at the table. *+ Personal handout* adds a handout for one character, which goes to that player alone."
       ],
       "image": {
        "key": "handout",

@@ -54,7 +54,7 @@ export const firstCampaignGuide: GuideDef = {
           title: "Start a campaign",
           body: [
             "On the campaign list, click *New campaign*. Give it a name (the example is The Wardens of Mossford) and choose *Fantasy d20 Remaster (ORC)* as the *Game module*. The dialog shows the module's licence and notices.",
-            "Under *Play mode*, *Campaign* is long-running play: characters gain levels over many sessions, with factions, quests and a world that moves between adventures; this guide follows it. *One-shot* is a single evening with ready-made characters. Click *Create campaign*.",
+            "Under *Play mode*, *Campaign* is long-running play: characters gain levels over many sessions, with factions, quests and a world that moves between adventures; this guide follows it. *One-shot* is a single evening: quick characters from the builder, one adventure and a clear ending. Click *Create campaign*.",
           ],
           image: { key: "new-campaign", alt: "The New campaign dialog with the Fantasy d20 Remaster (ORC) module chosen and its ORC License line" },
         }),
@@ -331,7 +331,7 @@ export const firstCampaignGuide: GuideDef = {
           id: "handout",
           title: "Add a handout",
           body: [
-            "Click an act in the outline (Act 1) and, under *Handouts*, *+ Handout*. Title it (here “A letter from the reeve”), open it to write the text or add an image, and leave it *GM only*: you reveal it at the table. *+ Agenda* adds a character's agenda card, which goes to that player alone.",
+            "Click an act in the outline (Act 1) and, under *Handouts*, *+ Handout*. Title it (here “A letter from the reeve”), open it to write the text or add an image, and leave it *GM only*: you reveal it at the table. *+ Personal handout* adds a handout for one character, which goes to that player alone.",
           ],
           image: { key: "handout", alt: "Act 1's Handouts card with A letter from the reeve" },
           links: [{ label: "Open Adventures", page: "adventures" }],

@@ -30,7 +30,7 @@ Then open the app, choose **Game modules… → Import data pack…** on the cam
 
 ## The guide
 
-1. [Pack format reference](pack-format.md): the top-level shape, the manifest, ids, every collection, split packs, limits.
+1. [Pack format reference](pack-format.md): the top-level shape, the manifest, ids, every collection, the game's own words for shared screens ([terms](pack-format.md#terms)), split packs, limits.
 2. [Dice engines](dice-engines.md): `d20`, `pool`, `2d6`, `d100`, their options and what the roll panel shows.
 3. [JSONLogic cookbook](jsonlogic.md): computed values, table modifiers, procedure expressions.
 4. [Sheets and widgets](sheets.md): entity types, the JSON Schema subset, sheet layout, widgets and their config.

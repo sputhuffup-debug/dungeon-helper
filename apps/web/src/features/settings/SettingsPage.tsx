@@ -21,7 +21,7 @@ import { PlayersCard } from "./PlayersCard";
 import { CampaignSettingsFields } from "./CampaignSettingsFields";
 import { SetupGuideCard } from "./SetupGuideCard";
 import { setCampaignSetting } from "../../state/setupActions";
-import { describeSupplement, moduleEntry, supplementProblems } from "../../modules/registry";
+import { builtinSupplementsFor, describeSupplement, moduleEntry, supplementProblems } from "../../modules/registry";
 import { ModuleLicenseView, safeHttpUrl } from "../modules/ModuleLicense";
 
 export function SettingsPage() {
@@ -293,10 +293,18 @@ function SupplementsCard() {
   const manifest = ctx.module.manifest;
   const active = manifest.supplements ?? [];
   const left = supplementProblems(manifest.id);
+  // built-in supplements this device has switched off: there to switch on, not "none"
+  const offBuiltins = builtinSupplementsFor(manifest.id).filter((b) => !active.some((s) => s.id === b.id) && !left.some((p) => p.id === b.id));
   return (
     <Card title="Supplements" subtitle={active.length > 0 ? `${active.length} active for ${manifest.name}` : undefined}>
       <div className="app-stack" data-testid="supplements-info">
-        {active.length === 0 && left.length === 0 && <p className="cf-muted">No supplements extend this module on this device.</p>}
+        {active.length === 0 && left.length === 0 && offBuiltins.length === 0 && <p className="cf-muted">No supplements extend this module on this device.</p>}
+        {offBuiltins.length > 0 && (
+          <p className="cf-muted" data-testid="supplements-available">
+            {active.length === 0 ? "None is on for this device. " : ""}
+            Built in and off: {offBuiltins.map((b) => b.name).join(", ")}. Switch {offBuiltins.length === 1 ? "it" : "them"} on under Game modules on the campaign list.
+          </p>
+        )}
         {active.length > 0 && (
           <ul className="app-modules">
             {active.map((s) => {

@@ -56,16 +56,21 @@ export function listColumns(list: ReferenceList | undefined): string[] {
   return [...keys].slice(0, 5);
 }
 
-/** An item's value as the list's schema reads it: ids of another list (`x-ref`) by those items' names, enum values by their labels. */
-export function itemValueText(list: ReferenceList, key: string, value: unknown, itemName: (listId: string, id: string) => string | undefined): string {
+/** An item's value as the list's schema reads it: ids of another list (`x-ref`) by those items' names, enum values by their labels, a roll table's id (`tableName`) by the table's name. */
+export function itemValueText(list: ReferenceList, key: string, value: unknown, itemName: (listId: string, id: string) => string | undefined, tableName?: (id: string) => string | undefined): string {
   const prop = (list.itemSchema?.properties as Record<string, JsonSchema> | undefined)?.[key];
   const items = prop?.items && typeof prop.items === "object" && !Array.isArray(prop.items) ? (prop.items as JsonSchema) : undefined;
   const ref = typeof prop?.["x-ref"] === "string" ? prop["x-ref"] : typeof items?.["x-ref"] === "string" ? items["x-ref"] : undefined;
   const one = (v: unknown): string => {
     if (typeof v !== "string") return formatValue(v);
-    return (ref ? itemName(ref, v) : undefined) ?? enumLabel(prop, v) ?? (ref ? humanize(v) : v);
+    return (ref ? itemName(ref, v) : undefined) ?? enumLabel(prop, v) ?? tableName?.(v) ?? (ref ? humanize(v) : v);
   };
   if (Array.isArray(value) && value.every((v) => typeof v === "string")) return value.map(one).join(", ");
+  // an object of table ids (a campaign frame's tables): each by its table's name
+  if (tableName && value && typeof value === "object" && !Array.isArray(value)) {
+    const entries = Object.entries(value as Record<string, unknown>).filter(([, x]) => x !== undefined && x !== null && x !== "");
+    if (entries.some(([, x]) => typeof x === "string" && tableName(x))) return entries.map(([k, x]) => `${humanize(k)}: ${typeof x === "string" ? (tableName(x) ?? x) : formatValue(x)}`).join(", ");
+  }
   return typeof value === "string" ? one(value) : formatValue(value);
 }
 
@@ -84,7 +89,7 @@ function ListsTab() {
   const open = search.item ? list?.items.find((i) => i.id === search.item) : undefined;
   const setOpen = (item: ReferenceItem | undefined) => setSearch({ tab: "lists", list: listId, ...(item ? { item: item.id } : {}) });
   const columns = useMemo(() => listColumns(list), [list]);
-  const valueText = (key: string, v: unknown) => (list ? itemValueText(list, key, v, (l, id) => ctx.module.referenceItem(l, id)?.name) : formatValue(v));
+  const valueText = (key: string, v: unknown) => (list ? itemValueText(list, key, v, (l, id) => ctx.module.referenceItem(l, id)?.name, (id) => ctx.module.table(id)?.name) : formatValue(v));
   const needle = q.trim().toLowerCase();
   const items = (list?.items ?? []).filter((i) => !needle || itemText(i, columns, valueText).includes(needle));
   return (
@@ -165,7 +170,7 @@ export function ReferenceItemView({ item, list }: { item: ReferenceItem; list: R
           .map(([k, v]) => (
             <div key={k} className="app-dl__row">
               <dt>{humanize(k)}</dt>
-              <dd>{typeof v === "boolean" ? (v ? "Yes" : "No") : itemValueText(list, k, v, (l, id) => ctx.module.referenceItem(l, id)?.name)}</dd>
+              <dd>{typeof v === "boolean" ? (v ? "Yes" : "No") : itemValueText(list, k, v, (l, id) => ctx.module.referenceItem(l, id)?.name, (id) => ctx.module.table(id)?.name)}</dd>
             </div>
           ))}
       </dl>

@@ -36,6 +36,8 @@ export interface StepListProps {
 
 export function StepList({ steps, changed, pinnedRolls, includeOptional, onReroll, onPin, onUnpin, onResetSeed, onToggleOptional, entering, canEnter, onEnter, onEntered, onSkipEnter, onCancelEnter, onClearEntered, dice, describe, tableName }: StepListProps) {
   const titleOf = (id: string) => steps.find((s) => s.id === id)?.title ?? id;
+  // a roll's step by its title (a nested roll's own key reads from its id)
+  const stepName = (id: string) => steps.find((s) => s.id === id)?.title;
   return (
     <ol className="prep-steps" aria-label="Procedure steps">
       {steps.map((s, i) => {
@@ -132,12 +134,12 @@ export function StepList({ steps, changed, pinnedRolls, includeOptional, onRerol
                     <span className="prep-step__value" data-testid={`step-result-${s.id}`}>
                       {s.display ?? summarizeValue(s.result, 220, describe)}
                     </span>
-                    <ProvenanceBadge kind={s.state === "pinned" ? "edited" : s.kind === "compute" ? "computed" : "rolled"} label={s.state === "pinned" ? "pinned" : undefined} rolls={rolls} detail={`Step ${s.id}`} onReroll={s.state === "pinned" ? undefined : () => onReroll(s.id)} />
+                    <ProvenanceBadge kind={s.state === "pinned" ? "edited" : s.kind === "compute" ? "computed" : "rolled"} label={s.state === "pinned" ? "pinned" : undefined} rolls={rolls} detail={s.title} {...(tableName ? { tableName } : {})} stepName={stepName} onReroll={s.state === "pinned" ? undefined : () => onReroll(s.id)} />
                   </div>
                 )}
                 {s.hasResult && typeof s.result === "object" && s.result !== null && !(Array.isArray(s.result) && s.result.length === 0) && (
                   <details className="prep-step__raw">
-                    <summary>Raw result</summary>
+                    <summary>Full result</summary>
                     <pre className="cf-mono">{JSON.stringify(s.result, null, 2)}</pre>
                   </details>
                 )}

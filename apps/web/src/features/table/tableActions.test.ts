@@ -150,6 +150,9 @@ describe("table actions", () => {
     expect(ctx.store.get("sessions", session.id)?.scenesRun).toEqual([scene.id]);
     const drafts = suggestTimeline(ctx.store, session.id);
     expect(drafts.map((d) => d.key)).toEqual([`scene:${scene.id}`, `handout:${handout.id}`]);
+    // the handout line names the group in the module's word, else the neutral one
+    expect(drafts[1]!.text).toBe("The group learns: Distress call.");
+    expect(suggestTimeline(ctx.store, session.id, "crew")[1]!.text).toBe("The crew learns: Distress call.");
   });
 
   it("builds the wrap-up award checklist from the Alien progression; posting adds XP once and ticks the XP checklist item", async () => {

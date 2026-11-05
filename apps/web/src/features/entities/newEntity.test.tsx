@@ -108,6 +108,28 @@ describe("new entity form: the fields the sheet asks for at creation", () => {
     await renderPage(exampleId, { type: "example.hero" });
     expect(screen.queryByTestId("create-fields")).toBeNull();
   });
+
+  it("makes a player character from the PCs tab even when the sheet does not ask for isPC at creation (a data pack's)", async () => {
+    // the example data pack's adventurer has an isPC box on its sheet but no `sheet.create`, like a create-module scaffold
+    const packId = await createCampaign({ name: "Pack PCs", moduleId: "example-pack", mode: "campaign" });
+    const ctx = await renderPage(packId, { type: "example-pack.adventurer", pc: 1 });
+    expect(screen.queryByTestId("create-fields")).toBeNull();
+    fireEvent.change(screen.getByTestId("entity-name"), { target: { value: "Wren" } });
+    fireEvent.click(screen.getByTestId("create-entity"));
+    expect(ctx.store.list("entities").find((e) => e.name === "Wren")?.fields.isPC).toBe(true);
+    cleanup();
+    // from anywhere else it stays an NPC
+    const ctx2 = await renderPage(packId, { type: "example-pack.adventurer" });
+    fireEvent.change(screen.getByTestId("entity-name"), { target: { value: "Moss" } });
+    fireEvent.click(screen.getByTestId("create-entity"));
+    expect(ctx2.store.list("entities").find((e) => e.name === "Moss")?.fields.isPC).not.toBe(true);
+  }, 30_000);
+
+  it("calls a blank start what it is, not schema defaults", async () => {
+    await renderPage(exampleId, { type: "example.hero" });
+    expect(screen.getByText("start from empty fields")).toBeTruthy();
+    expect(screen.queryByText(/schema defaults/)).toBeNull();
+  });
 });
 
 describe("typeWord: a type's name in the page's title and buttons", () => {

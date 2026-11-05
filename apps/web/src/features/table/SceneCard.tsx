@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Badge, Button, Card, EmptyState } from "../../components/ui";
 import { RichTextEditor, RichTextView } from "../../editor";
 import { markScene, setCurrentScene, toggleSceneEvent } from "../../state/tableActions";
-import { useCampaign, useDocHasText, useRecord } from "../../state/hooks";
+import { useCampaign, useDocHasText, useRecord, useTerms } from "../../state/hooks";
 
 export interface SceneCardProps {
   sessionId: Id;
@@ -18,6 +18,7 @@ const STATUS_TONE = { planned: "muted", run: "success", skipped: "warning" } as 
 
 export function SceneCard({ sessionId, scenes, scene, onOpenEntity }: SceneCardProps) {
   const ctx = useCampaign();
+  const terms = useTerms();
   const index = scene ? scenes.findIndex((s) => s.id === scene.id) : -1;
   const act = useRecord("acts", scene?.act);
   const adventure = useRecord("adventures", act?.adventure);
@@ -53,7 +54,7 @@ export function SceneCard({ sessionId, scenes, scene, onOpenEntity }: SceneCardP
     return (
       <Card title="Scene" className="app-table__scene">
         {scenes.length > 0 ? nav : null}
-        <EmptyState title="No scene" text={scenes.length ? "Pick the scene the crew is in." : "This campaign has no scenes yet. Build them in an adventure, or run the session from the log alone."} />
+        <EmptyState title="No scene" text={scenes.length ? `Pick the scene the ${terms.party} is in.` : "This campaign has no scenes yet. Build them in an adventure, or run the session from the log alone."} />
       </Card>
     );
   }

@@ -1,7 +1,7 @@
 /**
  * The result of a module dice operation: what was rolled, what it means
  * (the rolled rows' result fields the module marks for display: an effect, a
- * healing time, a lethal flag), the effects applied, and under "Raw result"
+ * healing time, a lethal flag), the effects applied, and under "Full result"
  * the rolls behind it with their step and table ids and the seed.
  */
 import { tableResultLines, type Effect, type RollRecord, type TableResultLine } from "@campaign-forge/module-sdk";
@@ -135,7 +135,7 @@ export function RollResultDialog({ roll, onClose, resolveName }: { roll: Operati
             </p>
           )}
           <details className="app-roll-result__raw" data-testid="roll-result-raw">
-            <summary>Raw result</summary>
+            <summary>Full result</summary>
             <RollRecordList rolls={roll.result.rolls} tableName={tableName} />
             <p className="cf-muted cf-mono app-roll-result__seed">Seed {roll.seed}</p>
           </details>

@@ -28,6 +28,7 @@ import type {
 } from "../engines/types";
 import type {
   CalendarDef,
+  ModuleTerms,
   ConditionalVisibilityDef,
   CoreEntityKind,
   D20AttackKind,
@@ -553,8 +554,22 @@ const definitions: Record<string, JsonSchema> = {
       months: list(object<CalendarDef["months"][number]>()({ name: text, days: int({ minimum: 1, maximum: 1000 }) }, ["name", "days"]), { minItems: 1, maxItems: 100 }),
       weekdays: list(text),
       format: str({ maxLength: 100 }),
+      displayFormat: str({ maxLength: 100, description: "How dates are shown: {year} {month} {day} (with :02), {monthName}, {weekday}. Default \"{day} {monthName} {year}\"." }),
     },
     ["id", "name", "defaultYear", "months"],
+  ),
+  terms: object<ModuleTerms>()(
+    {
+      party: str({ minLength: 1, maxLength: 40, description: "The player characters together, lower case: \"crew\", \"party\". Default \"group\"." }),
+      mapLevel: str({ minLength: 1, maxLength: 40, description: "One level of a site map: \"deck\", \"floor\". Default \"level\"." }),
+      mapLevels: str({ minLength: 1, maxLength: 40 }),
+      agenda: str({ minLength: 1, maxLength: 40, description: "A handout for one character's player: \"agenda\". Default \"personal handout\"." }),
+      agendas: str({ minLength: 1, maxLength: 40 }),
+      rewardExamples: str({ minLength: 1, maxLength: 200 }),
+      epiloguePrompt: str({ minLength: 1, maxLength: 200 }),
+    },
+    [],
+    { description: "The words generic screens use for the game. See docs/modules/pack-format.md#terms." },
   ),
   playGuideGroup: object<PlayGuideGroup>()({ id: ref("id"), label: text, summary: str(), page: ref("page") }, ["id", "label"]),
   playGuideEntry: object<PlayGuideEntry>()(
@@ -1281,6 +1296,7 @@ export const MODULE_PACK_SCHEMA: JsonSchema = {
       manifest: ref("manifest"),
       dice: ref("dice"),
       calendar: ref("calendar"),
+      terms: ref("terms"),
       styleNotes: list(str()),
       primer: ref("primer"),
       d20Combat: ref("d20Combat"),

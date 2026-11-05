@@ -209,7 +209,7 @@ function EntityHeader({ entity, def }: { entity: Entity; def: EntityTypeDef | un
           )}
           <VisibilitySelect value={entity.visibility} onChange={(v) => setEntityVisibility(ctx, entity.id, v)} players={playerMembers(meta)} />
           {preset && <ProvenanceBadge kind="preset" label="preset" detail={`From preset “${preset.name}”`} />}
-          {run && <ProvenanceBadge kind="rolled" label="generated" rolls={run.rolls} detail={`Procedure ${run.procedure}, seed ${run.seed}`} />}
+          {run && <ProvenanceBadge kind="rolled" label="generated" rolls={run.rolls} detail={`${ctx.module.procedure(run.procedure)?.name ?? ctx.module.module.mapGenerators?.find((g) => g.id === run.procedure)?.name ?? "A generator"}, seed ${run.seed}`} tableName={(id) => ctx.module.table(id)?.name} />}
           {edited.length > 0 && <ProvenanceBadge kind="edited" detail={`Edited after creation: ${edited.join(", ")}`} />}
         </div>
         <TagInput value={entity.tags} onChange={(tags) => updateEntity(ctx, entity.id, { tags })} />

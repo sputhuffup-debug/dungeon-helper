@@ -21,4 +21,6 @@ export const calendar: CalendarDef = {
   ],
   weekdays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
   format: "{year}-{month:02}-{day:02}",
+  // dates read as the setting's own records write them
+  displayFormat: "{year}-{month:02}-{day:02}",
 };

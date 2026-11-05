@@ -196,7 +196,7 @@ export function changedSteps(before: GeneratedGraph | undefined, after: Generate
 // ---------------------------------------------------------------------------
 
 const HIDDEN_KEYS = new Set(["cumulative"]);
-/** Record ids (ULIDs) and other machine ids: never shown in a step's line, only under Raw result. */
+/** Record ids (ULIDs) and other machine ids: never shown in a step's line, only under Full result. */
 const ID_LIKE = /^[0-9A-HJKMNP-TV-Z]{26}$/;
 const isIdKey = (k: string) => k === "id" || k === "key" || /Id$|Ids$/.test(k) || k === "links";
 
@@ -207,7 +207,7 @@ export type DescribeValue = (value: Record<string, unknown>) => string | undefin
  * Compact one-line rendering of a step result for the GM: strings as is; an
  * object by its `label` (or name, text, title) alone; an object without one
  * as "Key: value" pairs with readable keys, ids left out. The whole object
- * stays one click away under the step's Raw result.
+ * stays one click away under the step's Full result.
  */
 export function summarizeValue(value: unknown, max = 220, describe?: DescribeValue): string {
   const text = summarize(value, 0, describe);

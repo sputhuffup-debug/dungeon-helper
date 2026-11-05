@@ -11,13 +11,13 @@
  * local.
  */
 import { appendTrackerLog, creatureTurnFor, d20CoveredTrackers, type Id } from "@campaign-forge/core";
-import type { Effect, Prompt } from "@campaign-forge/module-sdk";
+import { upperFirst, type Effect, type Prompt } from "@campaign-forge/module-sdk";
 import { Link, useParams } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { lazyView } from "../../components/lazyView";
 import { Badge, Button, DiceModeSwitch, EmptyState, PromptDialog, Tabs, pushToast, useDiceRoller, type PromptAnswer } from "../../components/ui";
 import { errorMessage } from "../../lib/format";
-import { useCampaign, useOfflineStatus, useRecord } from "../../state/hooks";
+import { useCampaign, useOfflineStatus, useRecord, useTerms } from "../../state/hooks";
 import {
   answerPrompt,
   answerRollOperation,
@@ -67,7 +67,8 @@ type TablePanelId = "scene" | "map" | "crew" | "dice" | "log";
 const TABLE_PANELS: Array<{ id: TablePanelId; label: string; icon: string }> = [
   { id: "scene", label: "Scene", icon: "▤" },
   { id: "map", label: "Map", icon: "⌖" },
-  { id: "crew", label: "Crew", icon: "☰" },
+  // labelled with the module's word for the group ("Crew", "Party")
+  { id: "crew", label: "Group", icon: "☰" },
   { id: "dice", label: "Dice", icon: "⚄" },
   { id: "log", label: "Log", icon: "✎" },
 ];
@@ -81,6 +82,7 @@ export function TableModePage() {
 function GmTable({ sessionId }: { sessionId: Id }) {
   const ctx = useCampaign();
   const roller = useDiceRoller();
+  const terms = useTerms();
   const campaignId = ctx.campaignId;
   const land = useLandAfterWrapUp(campaignId);
   const session = useRecord("sessions", sessionId);
@@ -432,7 +434,7 @@ function GmTable({ sessionId }: { sessionId: Id }) {
                   <span className="app-table__tabbar-icon" aria-hidden>
                     {p.icon}
                   </span>
-                  <span>{p.label}</span>
+                  <span>{p.id === "crew" ? upperFirst(terms.party) : p.label}</span>
                   {p.id === "crew" && turnCreature && <span className="app-table__tabbar-dot" title="A creature's turn" />}
                 </button>
               ))}

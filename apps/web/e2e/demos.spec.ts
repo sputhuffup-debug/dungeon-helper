@@ -132,6 +132,9 @@ test("Thornwick Crossing: the fifth edition demo loads with derived sheets, SRD 
   await expect(page).toHaveURL(/\/c\/[0-9A-Z]{26}\/home$/, { timeout: 30_000 });
   await expect(page.getByTestId("campaign-name")).toHaveText("Thornwick Crossing");
   const base = page.url().replace(/\/home$/, "");
+  // the in-world date in the calendar's words ("1 Deepwinter 1000"), not as stored ("1000-01-01")
+  await expect(page.locator(".app-page__header")).toContainText(/In-world date \d+ [A-Z][a-z]+ \d+/);
+  await expect(page.locator(".app-page__header")).not.toContainText(/In-world date \d+-\d\d-\d\d/);
 
   // a PC whose numbers are derived: Wren's Stealth is expertise on Dexterity 17 at level 3
   await page.goto(`${base}/atlas`);
@@ -144,9 +147,9 @@ test("Thornwick Crossing: the fifth edition demo loads with derived sheets, SRD 
   await expect(page.getByRole("spinbutton", { name: "Initiative bonus", exact: true })).toHaveValue("0");
   await shot(page, "dnd5e-pc");
 
-  // the bugbear chief is an SRD preset with its stat block
+  // the bugbear chief is an SRD preset with its stat block; the tab takes the module's name for its creatures
   await page.goto(`${base}/atlas`);
-  await page.getByRole("tab", { name: /^Creatures/ }).click();
+  await page.getByRole("tab", { name: /^Monsters/ }).click();
   await page.getByRole("tabpanel").getByRole("link", { name: "Grisk Hollowjaw", exact: true }).click();
   await expect(page.getByTestId("computed-crLabel")).toHaveText("1");
   await expect(page.locator('[data-entry="Surprise Attack"]')).toBeVisible();

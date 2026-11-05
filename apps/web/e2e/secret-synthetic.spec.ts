@@ -33,7 +33,8 @@ test("a secret synthetic shows the players its cover, never its true make", asyn
   const fv = page.getByTestId("field-visibility");
   for (const f of ["android", "attributes", "skills", "talents"]) {
     const row = fv.locator(`[data-field="${f}"]`);
-    await expect(row, f).toContainText("default gm only");
+    // the level as the menu names it ("GM only"), not lowercased into "gm only"
+    await expect(row, f).toContainText("GM only by default");
     await expect(row.getByTestId("field-visibility-reason"), f).toContainText("Poses as human");
   }
   await page.keyboard.press("Escape");

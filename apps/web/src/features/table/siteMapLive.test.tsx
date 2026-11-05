@@ -174,8 +174,9 @@ describe("duct sheets at the table", () => {
     const entry = ts.log.find((l) => (l.data as { kind?: string } | undefined)?.kind === "table")!;
     expect(entry.tracker).toBe("dice");
     expect(entry.data).toMatchObject({ kind: "table", table: "example.table.crawl", zone: "D01", map: map.id, gmOnly: true, seed: `${session.id}:0` });
-    // the same seed gives the same result
-    expect(result.textContent).toContain(`seed ${session.id}:0`);
+    // the same seed gives the same result: kept in the line's tooltip, not its text (a raw id people do not read)
+    expect(result.textContent).not.toContain("seed ");
+    expect(within(result).getByTestId("roll-source-seed").getAttribute("title")).toBe(`Seed ${session.id}:0`);
 
     // closing the zone (no token in a duct) takes the duct event away
     fireEvent.click(within(screen.getByTestId("live-zone")).getByRole("button", { name: "Close zone" }));

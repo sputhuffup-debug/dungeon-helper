@@ -23,6 +23,9 @@
     "calendar": {
       "$ref": "#/definitions/calendar"
     },
+    "terms": {
+      "$ref": "#/definitions/terms"
+    },
     "styleNotes": {
       "type": "array",
       "items": {
@@ -1906,6 +1909,11 @@
         "format": {
           "type": "string",
           "maxLength": 100
+        },
+        "displayFormat": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "How dates are shown: {year} {month} {day} (with :02), {monthName}, {weekday}. Default \"{day} {monthName} {year}\"."
         }
       },
       "required": [
@@ -1915,6 +1923,51 @@
         "months"
       ],
       "additionalProperties": false
+    },
+    "terms": {
+      "type": "object",
+      "properties": {
+        "party": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40,
+          "description": "The player characters together, lower case: \"crew\", \"party\". Default \"group\"."
+        },
+        "mapLevel": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40,
+          "description": "One level of a site map: \"deck\", \"floor\". Default \"level\"."
+        },
+        "mapLevels": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "agenda": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40,
+          "description": "A handout for one character's player: \"agenda\". Default \"personal handout\"."
+        },
+        "agendas": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "rewardExamples": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "epiloguePrompt": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        }
+      },
+      "additionalProperties": false,
+      "description": "The words generic screens use for the game. See docs/modules/pack-format.md#terms."
     },
     "playGuideGroup": {
       "type": "object",
