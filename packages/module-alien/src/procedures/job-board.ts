@@ -55,7 +55,7 @@ import {
   type NpcRoleRow,
   type TreacheryDial,
 } from "./job-board-data";
-import { agendaText, dealNpcAgenda, effectiveDifficulty, isBetrayer, type NpcAgenda } from "./npc-agendas";
+import { agendaContradicts, agendaText, dealNpcAgenda, effectiveDifficulty, isBetrayer, type NpcAgenda } from "./npc-agendas";
 import {
   arcAgent,
   arcGrudge,
@@ -403,8 +403,10 @@ function buildPosting(ctx: ProcedureContext, index: number, cast: BoardCast, tak
     roles.add(npc.role);
     const row = roleRow(npc.role);
     const agendaFill = fillWith({ ...vars, employer: employerName, contact: npcs[0]?.name ?? "the contact" });
-    const ctxA = { dial, contact: k === 0, openAndroid: row.android === true, role: npc.role, noSynthetic: npcs.some((n) => n.agenda.synthetic), secret: npc.secret, dealt: npcs.map((n) => n.agenda.arc), fill: agendaFill };
+    const ctxA = { dial, contact: k === 0, openAndroid: row.android === true, role: npc.role, noSynthetic: npcs.some((n) => n.agenda.synthetic), fill: agendaFill };
     let agenda = part(`npc-${k + 1}/agenda`, (r) => dealNpcAgenda(r, ctxA));
+    // an agenda that contradicts the NPC's secret, or repeats another NPC's in this posting, is dealt again (a few tries)
+    for (let t = 0; t < 6 && (agendaContradicts(agenda.arc, npc.secret) || npcs.some((n) => n.agenda.arc === agenda.arc)); t++) agenda = dealNpcAgenda(local(`npc-${k + 1}/agenda-fit-${t}`), ctxA);
     // at most one hidden synthetic per job, none under the "none" dial, none on an open android: a pinned or stale agenda that breaks this is re-dealt
     if (agenda.synthetic && (ctxA.noSynthetic || ctxA.openAndroid || dial === "none")) agenda = dealNpcAgenda(local(`npc-${k + 1}/agenda-alt`), { ...ctxA, noSynthetic: true });
     if (dial === "none" && agenda.betrayal >= 2) agenda = dealNpcAgenda(local(`npc-${k + 1}/agenda-none`), { ...ctxA, noSynthetic: true });

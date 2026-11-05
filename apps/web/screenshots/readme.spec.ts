@@ -2764,7 +2764,8 @@ test("guide-pf2e-orc", async ({ page }) => {
   await nav(page, "Generate").click();
   await page.getByTestId("procedure-pf2e-orc.proc.encounter").click();
   await page.getByRole("spinbutton", { name: "Party size" }).fill("2");
-  await page.getByTestId("seed").fill("mossford-road-0");
+  // (re-picked when the creature tables moved to dice a GM can roll: the old seed now deals halfling watchers)
+  await page.getByTestId("seed").fill("mossford-road-84");
   await expect(page.getByTestId("step-result-g1list")).toHaveText(/^2 × Kobold Warrior/);
   await orcShot("encounter", [main.locator(".cf-card").filter({ hasText: "Inputs" }).first(), page.getByTestId("preview")], { maxHeight: 760 });
   await page.getByTestId("accept").click();
@@ -2848,7 +2849,7 @@ test("guide-pf2e-orc", async ({ page }) => {
   await page.getByTestId("mark-run").click();
   await page.getByTestId("end-session").click();
   const wrap = page.getByTestId("wrapup");
-  await wrap.getByRole("textbox", { name: "Session summary" }).fill("Reeve Brand sent the wardens to Ivyford; kobolds ambushed them on the ferry road.");
+  await wrap.getByRole("textbox", { name: "Session summary" }).fill("Reeve Brand sent the wardens to Ivyford; the wardens surprised two kobolds resting by the ferry road.");
   await orcShot("wrap-up", wrap, { maxHeight: 640 });
   await wrap.getByRole("button", { name: /^Next: Rewards/ }).click();
   await wrap.getByRole("button", { name: /^Next: Timeline/ }).click();

@@ -60,15 +60,16 @@ export interface AgendaContext {
   role: string;
   /** No hidden synthetic: the job has one already. */
   noSynthetic: boolean;
-  /** The NPC's secret, so the agenda does not contradict it. */
-  secret?: string;
-  /** Agenda arcs the posting's other NPCs already have (a second one of the same is rare). */
-  dealt?: string[];
   fill: (text: string) => string;
 }
 
 /** Module decision: secrets that work against the crew, which an honest agenda would contradict. */
 const AGAINST_THE_CREW = /drop the crew|sound safer|took a cut/i;
+
+/** An agenda that reads wrong beside the NPC's secret (an honest broker told to drop the crew). */
+export function agendaContradicts(arc: string, secret: string): boolean {
+  return arc === "honest-broker" && AGAINST_THE_CREW.test(secret);
+}
 
 const pick = <T>(rng: Rng, list: readonly T[]): T => list[rng.int(0, list.length - 1)]!;
 
@@ -156,9 +157,6 @@ export function arcWeight(arc: ResolvedArc, c: Omit<AgendaContext, "fill">): num
     if (c.contact && arc.betrayal === 2) w *= CONTACT_TREACHERY.level2;
   }
   if (arc.roles.includes(c.role)) w *= 2;
-  // an honest broker told to drop the crew contradicts itself; two of the same agenda in one posting reads like a template
-  if (arc.id === "honest-broker" && c.secret && AGAINST_THE_CREW.test(c.secret)) return 0;
-  if (c.dealt?.includes(arc.id)) w *= 0.15;
   return w;
 }
 

@@ -305,10 +305,10 @@ export const firstCampaignGuide: GuideDef = {
           id: "encounter",
           title: "Build an encounter",
           body: [
-            "On *Generate*, open *Encounter builder*. Set the *Party level*, *Party size* and *Threat*: it spends the XP budget for them on Monster Core creatures, then rolls what they are doing and a twist. Here two kobold warriors lie in ambush on the road. Click *Accept into campaign*: the encounter and each creature, with its stat block, join the campaign.",
+            "On *Generate*, open *Encounter builder*. Set the *Party level*, *Party size* and *Threat*: it spends the XP budget for them on Monster Core creatures, then rolls what they are doing and a twist. Here two kobold warriors rest by the road, one lookout half awake. Click *Accept into campaign*: the encounter and each creature, with its stat block, join the campaign.",
             "Back in the adventure, open the scene for it (*The road there*) and *Pick* it as the *Encounter*. Picking it does not bring its creatures along: *+ Add* them as *Participants* too, since at the table the combat panel fights whoever is in the scene.",
           ],
-          image: { key: "encounter", alt: "The encounter builder for a party of two at level 1, moderate threat: its XP budget and rolls beside the preview of two kobold warriors laying an ambush" },
+          image: { key: "encounter", alt: "The encounter builder for a party of two at level 1, moderate threat: its XP budget and rolls beside the preview of two kobold warriors resting with a lookout" },
           links: [
             { label: "Build an encounter", procedure: ENCOUNTER_BUILDER },
             { label: "Open Adventures", page: "adventures" },

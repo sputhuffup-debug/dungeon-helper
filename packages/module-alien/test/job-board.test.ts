@@ -4,7 +4,7 @@ import { runProcedure, type ModuleManifest, type Offer, type OfferSet, type Proc
 import { jobCreate } from "../src/procedures/job";
 import { boardCast, jobBoard, titleWords, type PostingData } from "../src/procedures/job-board";
 import { NPC_ARCS, TREACHERY_DIAL } from "../src/procedures/job-board-data";
-import { RESOLVED_NPC_ARCS, arcWeight, effectiveDifficulty, isBetrayer } from "../src/procedures/npc-agendas";
+import { RESOLVED_NPC_ARCS, agendaContradicts, effectiveDifficulty, isBetrayer } from "../src/procedures/npc-agendas";
 import { tables } from "../src/tables/index";
 import * as jobTables from "../src/tables/jobs";
 import { JOB_BRIEF_ROWS, SIZE_BY_DIFFICULTY, briefFromJob, jobSiteBrief, type JobSiteBrief } from "../src/maps/jobBrief";
@@ -342,12 +342,22 @@ describe("the job board reads well", () => {
 
 
 describe("walkthrough fixes: what the board writes", () => {
-  it("an honest agenda never sits on a secret that works against the crew, and a second copy of one agenda in a posting is rare", () => {
-    const honest = RESOLVED_NPC_ARCS.find((a) => a.id === "honest-broker")!;
-    const base = { dial: "common" as const, contact: true, openAndroid: false, role: "contact", noSynthetic: false };
-    expect(arcWeight(honest, { ...base, secret: "Was told to drop the crew if anything goes wrong" })).toBe(0);
-    expect(arcWeight(honest, { ...base, secret: "Has never set foot at the outpost and is guessing" })).toBeGreaterThan(0);
-    expect(arcWeight(honest, { ...base, dealt: ["honest-broker"] })).toBeLessThan(arcWeight(honest, base));
+  it("an honest agenda never sits on a secret that works against the crew, and one posting rarely deals the same agenda twice", () => {
+    expect(agendaContradicts("honest-broker", "Was told to drop the crew if anything goes wrong")).toBe(true);
+    expect(agendaContradicts("honest-broker", "Has never set foot at the outpost and is guessing")).toBe(false);
+    let postings = 0;
+    let repeats = 0;
+    for (let i = 0; i < 40; i++) {
+      for (const o of board(`fit-${i}`, { treachery: "common" }).offers) {
+        postings++;
+        // the agenda's name opens its text ("The Honest Broker: ...")
+        const npcs = npcsOf(o).map((n) => ({ name: n.name, secret: String(n.fields.secret), agenda: String(n.fields.personalAgenda).split(":")[0]! }));
+        for (const n of npcs) expect(n.agenda === "The Honest Broker" && agendaContradicts("honest-broker", n.secret), `${n.name}: ${n.secret} / ${n.agenda}`).toBe(false);
+        const names = npcs.map((n) => n.agenda);
+        if (new Set(names).size < names.length) repeats++;
+      }
+    }
+    expect(repeats / postings).toBeLessThan(0.05);
   });
 
   it("titles read table labels as titles, and a bar inside the home base is where the booth is", () => {

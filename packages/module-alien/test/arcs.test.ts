@@ -245,10 +245,10 @@ describe("the job board without arcs", () => {
   // trucker pitch's verb began to agree with plural cargo ("metal ingots or pellets go to"), a text-only change,
   // and once for: the job's complications no longer repeating in one job (`distinct`, a repeat takes the next row), "deliver them" for plural
   // cargo and an NPC who wants "someone who will listen" (text only), and once for: employers given only as a kind
-  // named (1b55ea83...), an NPC's agenda that no longer contradicts its secret nor repeats the posting's other
-  // agenda (65cba153...), and titles with "or"/"and" in lower case plus a want that no longer reads "a way off a
-  // starship in orbit on the crew's ship" (text only, 7dad5e5e...)
-  const BEFORE_ARCS = "7dad5e5e7ff48e54655697244367e3c1debd8b4a4d32ce724ce19fc104a38ca0";
+  // named (1b55ea83...), an NPC's agenda that contradicts its secret or repeats the posting's other agenda dealt
+  // again (66b14b55...), and titles with "or"/"and" in lower case plus a want that no longer reads "a way off a
+  // starship in orbit on the crew's ship" (text only, 3d8e841f...)
+  const BEFORE_ARCS = "3d8e841fa5b17a4ae2941ee9e8bd3df615dfc4cc03347a6a3920793c6ff68aa1";
 
   it("is byte-identical to the board before arcs", () => {
     expect(baseline()).toBe(BEFORE_ARCS);
