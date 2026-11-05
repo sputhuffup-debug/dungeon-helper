@@ -13,7 +13,7 @@
  * System Generator for the destination system.
  */
 import { FRAME_LABELS, labelledEnum } from "../entities/common";
-import type { Procedure, ProcedureContext, ProducedEntity } from "@campaign-forge/module-sdk";
+import type { Procedure, ProcedureContext, ProducedEntity, Rng } from "@campaign-forge/module-sdk";
 import { frameKey, input, isObj, list, num, obj, str } from "./helpers";
 
 const JOB_TYPE: Record<string, "job" | "mission" | "expedition"> = { truckers: "job", marines: "mission", colonists: "expedition" };
@@ -38,6 +38,29 @@ const STAR_TYPES: Array<{ starClass: string; brightness: string }> = [
   { starClass: "A", brightness: "V" },
 ];
 
+/**
+ * Module decision: the employer tables name a kind of client ("Colony
+ * representative", "Wealthy Individual"), not one the crew can deal with. Those
+ * kinds get a name of their own (module-original lists); a row that already
+ * names someone (a corporation, Colonial Administration, a government) keeps it.
+ */
+const SURNAMES = ["Halvorsen", "Okonkwo", "Teague", "Marlow", "Brandt", "Castellan", "Voss", "Arden", "Kirsch", "Nakamura", "Oyelaran", "Petrov", "Sandoval", "Whitcombe", "Ibarra", "Lindgren"];
+const COLONIES = ["Hadfield", "New Carthage", "Corvina", "Bright Hollow", "Tannhauser", "Kellerman's Rest", "Port Ishani", "Juniper Flats", "Merrow", "Saint Brendan", "Vasquez Station", "Greyreach"];
+const FREIGHT = ["Freight Lines", "Shipping", "Haulage", "Interstellar Freight", "Cargo Combine"];
+const pick = <T>(r: Rng, xs: readonly T[]): T => xs[r.int(0, xs.length - 1)]!;
+const NAMED_KINDS: Record<string, (r: Rng) => string> = {
+  "Colony representative": (r) => `${pick(r, COLONIES)} Colony Council`,
+  "Shipping Corporation": (r) => `${pick(r, SURNAMES)} ${pick(r, FREIGHT)}`,
+  "USCMC Colonel or other military officer": (r) => `Colonel ${pick(r, SURNAMES)}'s office (USCMC)`,
+  "Wealthy Individual": (r) => `The ${pick(r, SURNAMES)} family trust`,
+  Scientist: (r) => `Dr. ${pick(r, SURNAMES)}'s research group`,
+};
+/** The generated name of an employer kind (see NAMED_KINDS), or undefined when the row names the employer itself. */
+export function employerKindName(kind: string, rng: Rng): string | undefined {
+  const make = NAMED_KINDS[kind];
+  return make ? make(rng) : undefined;
+}
+
 function marineCorps(ctx: ProcedureContext): { name: string; allegiance: string } {
   return MARINE_CORPS[str(input(ctx, "marineCorps"), "uscmc")] ?? MARINE_CORPS.uscmc!;
 }
@@ -50,8 +73,9 @@ function employerResult(ctx: ProcedureContext): { name: string; factionType: str
   const e = obj(ctx, "employer");
   const detail = isObj(e.detail) ? e.detail : undefined;
   const source = detail ?? e;
+  const named = str(ctx.get("employerName"));
   return {
-    name: str(source.name, str(source.label, "Unknown employer")),
+    name: named || str(source.name, str(source.label, "Unknown employer")),
     factionType: str(source.factionType, str(e.factionType, "other")),
     allegiance: str(source.allegiance, str(e.allegiance, "unknown")),
     summary: str(e.label),
@@ -128,6 +152,13 @@ export const jobCreate: Procedure = {
       distinct: true,
     },
     { id: "plotTwist", title: "Plot twist", table: "alien.jobs.plot-twist", optional: true, page: 252 },
+    {
+      id: "employerName",
+      title: "Employer's name",
+      reads: ["employer"],
+      skipIf: (ctx) => frameKey(ctx) === "marines" || !(str(obj(ctx, "employer").name) in NAMED_KINDS),
+      compute: (ctx, rng) => employerKindName(str(obj(ctx, "employer").name), rng) ?? "",
+    },
     {
       id: "destinationStar",
       title: "Destination star (for the system generator)",

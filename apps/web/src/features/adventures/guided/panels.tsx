@@ -124,8 +124,8 @@ export function AdventurePanel({ adventure, fields }: { adventure: Adventure; fi
 
 function roleHint(role: CastRoleDef, count: number): string | undefined {
   if (role.min !== undefined && role.max !== undefined) return `${count} of ${role.min === role.max ? role.min : `${role.min}–${role.max}`}`;
-  if (role.min !== undefined) return `${count}, at least ${role.min}`;
-  if (role.max !== undefined) return `${count}, at most ${role.max}`;
+  if (role.min !== undefined) return count === 0 ? `none yet (at least ${role.min})` : `${count} (at least ${role.min})`;
+  if (role.max !== undefined) return `${count} (at most ${role.max})`;
   return undefined;
 }
 
@@ -159,7 +159,8 @@ export function CastPanel({ adventure, role }: { adventure: Adventure; role: Cas
         </Button>
       }
     >
-      {members.length === 0 && <p className="cf-muted">No {role.label.toLowerCase()} yet.</p>}
+      {/* the role's label in lower case, its abbreviations kept ("No crew NPCs yet") */}
+      {members.length === 0 && <p className="cf-muted">No {role.label.split(" ").map((w) => (/[A-Z].*[A-Z]/.test(w) ? w : w.toLowerCase())).join(" ")} yet.</p>}
       <ul className="guided-cast">
         {members.map((e, i) => (
           <CastMemberCard key={e.id} adventureId={adventure.id} role={role} entity={e} index={i} count={members.length} />

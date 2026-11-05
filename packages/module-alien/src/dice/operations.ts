@@ -121,7 +121,7 @@ export const panicRoll: DiceOperation = {
 export const storyPoint: DiceOperation = {
   id: "storyPoint",
   name: "Spend a Story Point",
-  page: [44, 158],
+  page: { pages: [44, 158] },
   input: {
     type: "object",
     required: ["result"],

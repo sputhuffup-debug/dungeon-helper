@@ -53,7 +53,7 @@ export const ledger: LedgerDef = {
   categories: [
     { id: LEDGER.jobPayment, label: "Job payment", direction: "in", page: 244, rule: "alien.rule.job-payment", description: "(Distance + difficulty) × PCs × $1,000, plus 20% per negotiation success." },
     { id: LEDGER.bonus, label: "Bonus reward", direction: "in", page: [244, 251], rule: "alien.rule.jobs", description: "An additional financial bonus or a debt cancelled, from the frame's bonus table." },
-    { id: LEDGER.salary, label: "Salary", direction: "in", page: [117, 235], rule: "alien.rule.salaries", description: "Weekly pay; time in stasis pays 10%." },
+    { id: LEDGER.salary, label: "Salary", direction: "in", page: { pages: [117, 235] }, rule: "alien.rule.salaries", description: "Weekly pay; time in stasis pays 10%." },
     { id: LEDGER.sideJob, label: "Side job or trade", direction: "either", page: [257, 258], rule: "alien.rule.shore-leave-events", description: "Shore leave favours, side jobs (D6 × $200) and local goods (D6 × $400, sold at 50% profit)." },
     { id: LEDGER.lease, label: "Ship lease", direction: "out", page: 121, rule: "alien.rule.ship-ownership", description: "A typical lease is 2% of the ship's price a year." },
     { id: LEDGER.spareParts, label: "Spare parts", direction: "out", page: 147, rule: "alien.rule.spare-parts", description: "About $100,000 per mechanical part and twice that per electronic part." },

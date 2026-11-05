@@ -11,7 +11,7 @@ export const gmToolsRules: RuleCard[] = [
     tags: ["gm"],
     links: { rules: ["alien.rule.themes", "alien.rule.stages-of-fear"] },
   }),
-  card("themes", "Key themes", "Every game mixes three themes, usually stressing one: Space Horror (survival and fear, with the sub-themes Space Is Hell and Killing Greed), Sci-Fi Action (big set pieces, with Someone Else's War and Expendable Assets) and Sense of Wonder (ancient mysteries, with The Origin of Life and Old and New Gods).", [19, 153], {
+  card("themes", "Key themes", "Every game mixes three themes, usually stressing one: Space Horror (survival and fear, with the sub-themes Space Is Hell and Killing Greed), Sci-Fi Action (big set pieces, with Someone Else's War and Expendable Assets) and Sense of Wonder (ancient mysteries, with The Origin of Life and Old and New Gods).", { pages: [19, 153] }, {
     tags: ["gm"],
     links: { rules: ["alien.rule.gm-principles", "alien.rule.campaign-theme"] },
   }),
@@ -57,7 +57,7 @@ export const gmToolsRules: RuleCard[] = [
     tags: ["gm", "generator", "world"],
     links: { tables: ["alien.world.faction-count", "alien.world.campaign-hook"], rules: ["alien.rule.world-creation", "alien.rule.allegiance"] },
   }),
-  card("regions", "Regions of charted space", "From Earth outward lie the prosperous Core Systems, the resource-rich Outer Veil, and the Outer Rim at the edge of civilized space. The Far Reach stretches out from the American Arm, and the ever-expanding Frontier runs along the edge of explored space.", [112, 201], {
+  card("regions", "Regions of charted space", "From Earth outward lie the prosperous Core Systems, the resource-rich Outer Veil, and the Outer Rim at the edge of civilized space. The Far Reach stretches out from the American Arm, and the ever-expanding Frontier runs along the edge of explored space.", { pages: [112, 201] }, {
     tags: ["gm", "setting"],
     links: { rules: ["alien.rule.allegiance"] },
   }),
@@ -78,7 +78,7 @@ export const gmToolsRules: RuleCard[] = [
     tags: ["gm", "npc"],
     links: { rules: ["alien.rule.npcs"] },
   }),
-  card("countdowns", "Countdowns", "During a countdown to disaster, time becomes a consumable: the GM or adventure sets a number of minutes, and after each combat round a supply roll lowers it by one per facehugger rolled.", [28, 55], {
+  card("countdowns", "Countdowns", "During a countdown to disaster, time becomes a consumable: the GM or adventure sets a number of minutes, and after each combat round a supply roll lowers it by one per facehugger rolled.", { pages: [28, 55] }, {
     tags: ["gm", "time"],
     links: { rules: ["alien.rule.time-units", "alien.rule.supply-rolls"], trackers: [TR.countdown, TR.clock] },
   }),

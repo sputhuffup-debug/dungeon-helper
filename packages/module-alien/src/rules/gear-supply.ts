@@ -23,7 +23,7 @@ export const gearSupplyRules: RuleCard[] = [
     tags: ["gear", "supply", "combat"],
     links: { rules: ["alien.rule.supply-rolls", "alien.rule.full-auto"], trackers: [TR.supply] },
   }),
-  card("power-supply", "Power", "Electrical gear makes a power supply roll after each use, or as its description says, and stops working at zero. A power cell restores one item's full supply.", [29, 97], {
+  card("power-supply", "Power", "Electrical gear makes a power supply roll after each use, or as its description says, and stops working at zero. A power cell restores one item's full supply.", { pages: [29, 97] }, {
     tags: ["gear", "supply"],
     links: { rules: ["alien.rule.supply-rolls", "alien.rule.motion-tracker"], trackers: [TR.supply] },
   }),

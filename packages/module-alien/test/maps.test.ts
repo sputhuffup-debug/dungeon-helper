@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createTableRegistry, rollTable, createRng, type MapCheck, type SiteLayout } from "@campaign-forge/module-sdk";
+import { createTableRegistry, rollTable, createRng, validPageRef, type MapCheck, type SiteLayout } from "@campaign-forge/module-sdk";
 import {
   alienModule,
   createMapContext,
@@ -76,7 +76,7 @@ describe("site map generator: registration and data", () => {
     for (const k of ["start", "spawn", "waypoint", "clue", "npc", "win", "hazard"]) expect(markers.some((e) => (e.target as { marker: string }).marker === k), k).toBe(true);
     for (const e of markers) if ((e.target as { marker: string }).marker !== "start") expect(e.gmOnly, JSON.stringify(e.target)).toBe(true);
     for (const flag of ["dark", "flammable", "radiation", "flooded"]) expect(MAP_LEGEND.find((e) => "flag" in e.target && e.target.flag === flag)?.gmOnly, flag).toBe(true);
-    for (const e of MAP_LEGEND) if (e.page !== undefined) expect(typeof e.page === "number" || Array.isArray(e.page)).toBe(true);
+    for (const e of MAP_LEGEND) if (e.page !== undefined) expect(validPageRef(e.page), JSON.stringify(e.page)).toBe(true);
   });
 
   it("treats walls, locks and sealed access points as impassable", () => {

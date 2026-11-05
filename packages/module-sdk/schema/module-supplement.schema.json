@@ -1563,6 +1563,9 @@
             "type": "string"
           }
         },
+        "group": {
+          "type": "string"
+        },
         "fields": {
           "type": "object"
         },

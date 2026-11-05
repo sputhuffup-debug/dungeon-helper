@@ -3,7 +3,7 @@
  * rolled with the Job Generator (p. 244-252) reads as a posting, who posted
  * it, what it asks for, how risky it claims to be, what the employer really
  * wants, and the NPCs that come with it. Placeholders: {employer}, {what},
- * {dest}, {home}, {pay}, {contact}, {prize}.
+ * {dest}, {home}, {bar} (a bar inside the home base, else "the bar at {home}"), {pay}, {contact}, {prize}.
  */
 
 export type FrameKey = "truckers" | "marines" | "colonists";
@@ -76,7 +76,7 @@ export interface PosterRow {
 export const POSTERS: PosterRow[] = [
   { postedBy: "{employer}", where: "the freight board at {home}", clientShown: true },
   { postedBy: "{employer}", where: "a message on the ship's terminal, addressed to the captain", clientShown: true },
-  { postedBy: "A representative of {employer}", where: "a corner booth in the bar at {home}", clientShown: true },
+  { postedBy: "A representative of {employer}", where: "a corner booth in {bar}", clientShown: true },
   { postedBy: "{employer}", where: "the dockmaster's job list at {home}", clientShown: true, frames: ["truckers", "colonists"] },
   { postedBy: "A broker who will not name the client", where: "a note pinned to the airlock at {home}", clientShown: false },
   { postedBy: "An agency acting for a confidential client", where: "an encrypted drop on the ship's terminal", clientShown: false },
@@ -216,7 +216,7 @@ export const NPC_ROLES: NpcRoleRow[] = [
     mapRole: "survivor",
     weight: 3,
     when: ["Sabotage", "Snatch And Grab", "Courier", "Data Collection", "Investigation", "Space Station", "Established Colony", "Colony", "Isolated Outpost", "Outpost", "Waiting Game"],
-    wants: ["A way off {dest} on the crew's ship", "Someone to believe what they saw", "Payment for the codes they can give", "To keep their job after this"],
+    wants: ["A ride out with the crew when the job is done", "Someone to believe what they saw", "Payment for the codes they can give", "To keep their job after this"],
     secrets: ["Reported the crew's arrival to someone else", "Caused the trouble at {dest} by accident", "Has been stealing from the site for months", "Is the only one who knows the real layout"],
     ties: ["Knows the site and can open its doors", "Sent the message that started the job", "Is the person the cargo is meant for"],
   },

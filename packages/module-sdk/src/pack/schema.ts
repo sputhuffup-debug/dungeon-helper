@@ -490,6 +490,7 @@ const definitions: Record<string, JsonSchema> = {
       cite: ref("cite"),
       original: bool,
       tags: list(str()),
+      group: str(),
       fields: freeObject,
       unverified: bool,
     },

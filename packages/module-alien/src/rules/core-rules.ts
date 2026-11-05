@@ -73,7 +73,7 @@ export const coreRules: RuleCard[] = [
     tags: ["core", "skills", "social"],
     links: { rules: ["alien.rule.skill-rolls", "alien.rule.opposed-rolls"] },
   }),
-  card("story-points", "Story Points", "In a cinematic adventure, spend a Story Point to turn one base die into a success, before or after pushing. You earn them by following your personal agenda and can hold at most three.", [44, 158], {
+  card("story-points", "Story Points", "In a cinematic adventure, spend a Story Point to turn one base die into a success, before or after pushing. You earn them by following your personal agenda and can hold at most three.", { pages: [44, 158] }, {
     mode: [CINEMATIC],
     tags: ["core", "dice", "cinematic"],
     links: { fields: [F.storyPoints], rules: ["alien.rule.story-point-award", "alien.rule.cinematic-agendas"], trackers: [TR.storyPoints] },

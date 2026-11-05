@@ -1482,6 +1482,12 @@ export interface EntityPreset {
   cite?: CiteRef;
   original?: boolean;
   tags?: string[];
+  /**
+   * The heading the GM's preset picker files it under (default: its subtype,
+   * else its first tag). Never shown to players, unlike a tag: a covert
+   * android can sit with the androids without carrying an "android" tag.
+   */
+  group?: string;
   fields: Record<string, unknown>;
   unverified?: boolean;
 }

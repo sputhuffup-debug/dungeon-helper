@@ -18,7 +18,7 @@ export const trackers: TrackerDef[] = [
     name: "Stress & panic",
     kind: "stress",
     scope: "character",
-    page: [44, 74],
+    page: { pages: [44, 74] },
     binds: ["alien.character.stress", "alien.character.resolve", "alien.character.criticalInjuries", "alien.character.mentalTraumas"],
     rules: ["alien.rule.stress", "alien.rule.stress-response", "alien.rule.panic-roll", "alien.rule.stopping-panic", "alien.rule.stress-recovery", "alien.rule.mental-trauma"],
     config: {
@@ -45,7 +45,7 @@ export const trackers: TrackerDef[] = [
     kind: "story-points",
     scope: "character",
     mode: [CINEMATIC],
-    page: [44, 158],
+    page: { pages: [44, 158] },
     binds: ["alien.character.storyPoints"],
     rules: ["alien.rule.story-points", "alien.rule.story-point-award"],
     // Max 3; one per act for an agenda followed at risk; one may carry to the next adventure (p. 44, 158).
@@ -74,7 +74,7 @@ export const trackers: TrackerDef[] = [
     name: "Countdown",
     kind: "countdown",
     scope: "scene",
-    page: [28, 55],
+    page: { pages: [28, 55] },
     rules: ["alien.rule.countdowns", "alien.rule.supply-rolls"],
     // Minutes remaining are a supply rating: a supply roll after each combat round, −1 minute per facehugger (p. 28, 55).
     config: { unit: "minutes", consumable: true, supplyRollPerRound: true, operation: "supplyRoll", visibleToPlayers: true },

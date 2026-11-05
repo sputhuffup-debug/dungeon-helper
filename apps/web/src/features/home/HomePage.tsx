@@ -44,7 +44,8 @@ export function HomePage() {
   const withPresets = (kind: string) => types.find((t) => t.kind === kind && ctx.module.presetsFor(t.id).length > 0);
   const characterType = withPresets("character") ?? withPresets("creature") ?? types.find((t) => t.kind === "character");
   const locationType = ctx.module.module.entityTypes.find((t) => t.kind === "location");
-  const jobType = ctx.module.module.entityTypes.find((t) => t.kind === "job");
+  // the job board only in a play mode that has jobs (cinematic play has none)
+  const jobType = ctx.module.forMode(meta.mode).entityTypes.find((t) => t.kind === "job");
 
   const openTable = (sessionId: Id) => void navigate({ to: "/c/$campaignId/table/$sessionId", params: { campaignId, sessionId } });
 

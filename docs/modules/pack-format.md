@@ -14,7 +14,7 @@ A data pack is a JSON object. The SDK validates it (`validatePack`), joins its p
   "entityTypes": [],        // sheets: what a character, a place, a monster is
   "relationshipTypes": [],  // extra relationship types (core ones: within, member_of, knows, owns, found_at, wants, appears_in, blocks)
   "referenceLists": [],     // skills, backgrounds, spells... (not campaign entities)
-  "presets": [],            // stat blocks the GM starts an entity from
+  "presets": [],            // stat blocks the GM starts an entity from ({ id, entityType, name, fields, tags?, group? }: `group` files it under a heading of the GM's picker, never shown to players)
   "tables": [],             // random tables
   "procedures": [],         // seeded generators over the tables
   "templates": [],          // adventure / session / checklist scaffolds
