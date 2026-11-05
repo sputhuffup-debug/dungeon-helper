@@ -72,7 +72,17 @@ test("ORC guide: from a new campaign's Home, its Look it up and Take me there li
   await expect(takeMeThere(page, "A quest from the quest board").getByRole("link", { name: "Open the quest" })).toHaveCount(0);
 
   // Take me there: the settlement generator; its local trouble lands on the quest board
-  await takeMeThere(page, "Or roll a settlement and its tavern").getByRole("link", { name: "Roll a settlement" }).click();
+  const rollLink = takeMeThere(page, "Or roll a settlement and its tavern").getByRole("link", { name: "Roll a settlement" });
+  try {
+    await expect(rollLink).toBeVisible({ timeout: 15_000 });
+  } catch (e) {
+    // DIAGNOSTIC (temporary): what the page shows when the link is missing
+    console.log("URL", page.url());
+    console.log(await page.getByRole("article", { name: /Or roll a settlement/ }).ariaSnapshot().catch((x) => `no article: ${x}`));
+    console.log((await page.locator("body").ariaSnapshot()).slice(0, 4000));
+    throw e;
+  }
+  await rollLink.click();
   await expect(page).toHaveURL(/\/generate\/pf2e-orc\.proc\.settlement$/);
   await page.getByTestId("seed").fill("mossford-7");
   await expect(page.getByTestId("step-result-trouble")).toHaveText("Livestock vanish at night");
