@@ -54,14 +54,19 @@ test("ORC guide: from a new campaign's Home, its Look it up and Take me there li
   await expect(page).toHaveURL(/\/reference\?.*list=pf2e-orc\.classes/);
   await expect(page.getByRole("combobox", { name: "Reference list" })).toHaveValue("pf2e-orc.classes");
   await page.goBack();
+  await expect(page).toHaveURL(/\/guide$/);
   await lookUp(page, "Or roll a settlement and its tavern").getByRole("link", { name: "Settlement size" }).click();
   await expect(page).toHaveURL(/\/reference\?.*table=pf2e-orc\.settlement\.size/);
   await expect(page.getByRole("dialog", { name: /Settlement size/ })).toBeVisible();
   await page.goBack();
+  await expect(page).toHaveURL(/\/guide$/);
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await lookUp(page, "An NPC from a stat block").getByRole("link", { name: "Halfling Street Watcher" }).click();
   await expect(page).toHaveURL(/\/reference\?.*preset=pf2e-orc\.preset\.halfling-street-watcher/);
+  // the Presets tab has drawn the stat block's row before going back
+  await expect(page.locator("tr.is-target")).toContainText("Halfling Street Watcher");
   await page.goBack();
+  await expect(page).toHaveURL(/\/guide$/);
 
   // "Open the quest" waits for a quest: none yet
   await expect(takeMeThere(page, "A quest from the quest board").getByRole("link", { name: "Open the quest" })).toHaveCount(0);
