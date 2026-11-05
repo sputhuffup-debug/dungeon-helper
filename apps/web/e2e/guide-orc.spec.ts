@@ -78,8 +78,10 @@ test("ORC guide: from a new campaign's Home, its Look it up and Take me there li
   } catch (e) {
     // DIAGNOSTIC (temporary): what the page shows when the link is missing
     console.log("URL", page.url());
-    console.log(await page.getByRole("article", { name: /Or roll a settlement/ }).ariaSnapshot().catch((x) => `no article: ${x}`));
-    console.log((await page.locator("body").ariaSnapshot()).slice(0, 4000));
+    const t0 = Date.now();
+    const text = await Promise.race([page.evaluate(() => `articles=${document.querySelectorAll("article").length} title=${document.title}\n${document.body.innerText.slice(0, 3000)}`), new Promise<string>((r) => setTimeout(() => r("EVALUATE HUNG"), 5000))]);
+    console.log(`after ${Date.now() - t0} ms:`, text);
+    console.log(await page.locator("main").ariaSnapshot({ timeout: 5000 }).catch((x) => `no main: ${x}`));
     throw e;
   }
   await rollLink.click();
