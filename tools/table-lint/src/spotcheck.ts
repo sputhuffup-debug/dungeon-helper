@@ -4,7 +4,7 @@
  * entity type and N items per reference list, deterministically from a seed,
  * and renders a Markdown checklist to tick off against the book.
  */
-import { createRng, type EntityPreset, type GameModule, type PageRef, type ReferenceItem, type RollTable, type TableRow } from "@campaign-forge/module-sdk";
+import { createRng, pageRefText, type EntityPreset, type GameModule, type PageRef, type ReferenceItem, type RollTable, type TableRow } from "@campaign-forge/module-sdk";
 import { tableFamily } from "./lint";
 
 export interface SpotCheckOptions {
@@ -224,7 +224,7 @@ export function spotCheck(module: GameModule, opts: SpotCheckOptions): SpotCheck
 
 export function formatPage(page: PageRef | undefined): string {
   if (page === undefined) return "p. ?";
-  return Array.isArray(page) ? `p. ${page[0]}-${page[1]}` : `p. ${page}`;
+  return pageRefText(page, "p.", "-");
 }
 
 function formatRange(range: [number, number]): string {

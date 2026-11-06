@@ -11,7 +11,8 @@ import { useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { Button } from "../../components/ui";
 import { useCampaign, useMeta } from "../../state/hooks";
-import { discardDraft, draftFor, draftLabel, readDrafts, resolveDraft, startDraft } from "./drafts";
+import { newId } from "@campaign-forge/core";
+import { discardDraft, draftFor, draftLabel, readDrafts, resolveDraft } from "./drafts";
 import "./builder.css";
 
 /** The module's builder for an entity type (the first character builder when no type is given). */
@@ -68,8 +69,8 @@ export function BuildCharacterButton({ entityType, variant = "primary", label = 
     <Button
       variant={variant}
       onClick={() => {
-        const draft = startDraft(ctx, builder, "create");
-        void navigate({ to: "/c/$campaignId/build", params: { campaignId: ctx.campaignId }, search: { draft: draft.id } });
+        // the draft is saved on its first change: opening the builder and leaving leaves nothing behind
+        void navigate({ to: "/c/$campaignId/build", params: { campaignId: ctx.campaignId }, search: { draft: newId(), builder: builder.id } });
       }}
       data-testid="build-character"
     >
@@ -133,8 +134,7 @@ export function LevelUpButton({ entity }: { entity: Entity }) {
   return (
     <Button
       onClick={() => {
-        const draft = open ?? startDraft(ctx, builder, "levelUp", entity);
-        void navigate({ to: "/c/$campaignId/build", params: { campaignId: ctx.campaignId }, search: { draft: draft.id } });
+        void navigate({ to: "/c/$campaignId/build", params: { campaignId: ctx.campaignId }, search: open ? { draft: open.id } : { draft: newId(), builder: builder.id, entity: entity.id } });
       }}
       data-testid="level-up"
     >

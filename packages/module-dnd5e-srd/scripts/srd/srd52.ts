@@ -1,7 +1,8 @@
 /**
  * SRD 5.2 character options (5e-bits/5e-database, src/2024/en): the four
  * backgrounds, the nine species with their lineages, ancestries and legacies
- * and their traits, the twelve subclasses with their features, and the feats.
+ * and their traits, the twelve subclasses with their features, the classes'
+ * own features (by class and level; the class tables stay SRD 5.1's), and the feats.
  * They are added to the SRD 5.1 reference lists (races, subraces, racial
  * traits, backgrounds, subclasses, class features, feats), each item marked
  * `edition: "2024"`, `source: "SRD 5.2"` and cited by SRD 5.2 section, so the
@@ -316,6 +317,11 @@ export function convertSrd52(src: Srd52Source, lists51: ReferenceList[]): Srd52C
     const found = own.map((x) => x.level).sort((a, b) => a - b);
     if (listed.join() !== found.join()) throw new Error(`SRD 5.2 subclass ${sid}: feature levels ${found.join()} do not match the subclass's ${listed.join()}`);
     own.sort((a, b) => a.level - b.level);
+    // spells the subclass always has prepared, from its "… Spells" table ("3: Aid, Bless; 5: …")
+    const table = own.map(({ f }) => f).find((f) => /Spells$/.test(str(f.name)) && /always have (certain spells ready|the listed spells prepared)/.test(str(f.description)));
+    const spells = table
+      ? correct(`subclass ${str(s.name)} spells`, [...text52(table.description).matchAll(/^\|?\s*(\d+)\s*[|/]\s*([^|\n]+?)\s*\|?\s*$/gm)].map((m) => `${m[1]}: ${m[2]!.trim()}`).join("; "), notes)
+      : "";
     subclasses.push({
       id: id52(s.index),
       name,
@@ -325,6 +331,7 @@ export function convertSrd52(src: Srd52Source, lists51: ReferenceList[]): Srd52C
       class: className,
       description: text52(s.description),
       features: own.map(({ f, level }) => `${level}: ${str(f.name)}`).join("; "),
+      ...(spells ? { spells } : {}),
     });
     for (const { f, level } of own) {
       classFeatures.push({
@@ -340,6 +347,23 @@ export function convertSrd52(src: Srd52Source, lists51: ReferenceList[]): Srd52C
     }
   }
   if (classFeatures.length !== subclassFeatures.length) throw new Error(`SRD 5.2: ${subclassFeatures.length - classFeatures.length} subclass features belong to no subclass`);
+
+  // the classes' own features (Classes): an SRD 5.2 build gets these instead of the SRD 5.1 ones; the class tables stay SRD 5.1's
+  for (const f of src.features.filter((x) => Object.keys(obj(x.subclass)).length === 0)) {
+    const className = refName(f.class);
+    const m = /(\d+)$/.exec(refIndex(f.level) || str(obj(f.level).name));
+    const level = typeof f.level === "number" ? f.level : m ? Number(m[1]) : NaN;
+    if (!className || !Number.isInteger(level)) throw new Error(`SRD 5.2 feature ${str(f.index)}: no class or level`);
+    classFeatures.push({
+      id: id52(f.index),
+      name: str(f.name),
+      ...mark,
+      cite: cite52("Classes", className),
+      class: className,
+      level,
+      description: correct(`feature ${str(f.name)}`, text52(f.description), notes),
+    });
+  }
 
   return {
     items: {

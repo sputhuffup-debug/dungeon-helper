@@ -115,7 +115,8 @@ describe("template guidance never reaches the players", () => {
     s.store.update("handouts", h.id, { guide: { body: "GUIDE-ONLY: write the note here." } });
     const snap = playerShareSnapshot({ maps: s.store.toJSON(), module, sessionId: session.id, sceneId: scene.id, doc: (id) => docs.get(id), at: "t" });
     const json = JSON.stringify(snap);
-    expect(snap.briefing?.scene).toBe("Arrival at the place");
+    // the GM's title never goes out: a scene with no player title and no location reads as its number
+    expect(snap.briefing?.scene).toBe("Scene 1");
     expect(snap.briefing?.intro).toBeUndefined();
     for (const bad of ["Leave out the trap", "(link", "GUIDE-ONLY"]) expect(json).not.toContain(bad);
     const projected = projectCampaignForViewer(s.store.toJSON(), module, { role: "player" });

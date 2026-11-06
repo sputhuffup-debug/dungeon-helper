@@ -1,5 +1,6 @@
 /** Act pane: number, title, goal, pacing notes and the act's handouts (per-character agendas included). */
 import { playerMembers, type Act, type Handout, type HandoutKind } from "@campaign-forge/core";
+import { upperFirst } from "@campaign-forge/module-sdk";
 import { useMemo, useState } from "react";
 import { GiveToPlayer } from "../../components/GiveToPlayer";
 import { VisibilitySelect } from "../../components/VisibilitySelect";
@@ -7,7 +8,7 @@ import { Badge, Button, Card, IconButton } from "../../components/ui";
 import { RichTextEditor } from "../../editor";
 import { addHandout, actHandouts, deleteHandout, ensureDoc, updateHandout } from "../../state/prepActions";
 import { HANDOUT_KIND_LABELS } from "../../lib/format";
-import { useCampaign, useMapVersion, useMeta } from "../../state/hooks";
+import { useCampaign, useMapVersion, useMeta, useTerms } from "../../state/hooks";
 import { CommitInput, EntityRefInput, useTypesOfKind } from "./fields";
 
 export function ActEditor({ act }: { act: Act }) {
@@ -59,16 +60,17 @@ function HandoutsCard({ act }: { act: Act }) {
   const version = useMapVersion("handouts");
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const handouts = useMemo(() => actHandouts(ctx.store, act), [ctx.store, act, version]);
+  const terms = useTerms();
   const agendas = handouts.filter((h) => h.kind === "agenda");
   const others = handouts.filter((h) => h.kind !== "agenda");
   return (
     <Card
       title="Handouts"
-      subtitle="Agendas are some-players handouts: one per character, revealed only to that player."
+      subtitle={`${upperFirst(terms.agendas)} go to one player each: one per character, revealed only to that character's player.`}
       actions={
         <>
           <Button size="sm" onClick={() => addHandout(ctx, act.id, { kind: "agenda" })} data-testid="add-agenda">
-            + Agenda
+            + {upperFirst(terms.agenda)}
           </Button>
           <Button size="sm" variant="ghost" onClick={() => addHandout(ctx, act.id, { kind: "text" })}>
             + Handout
@@ -77,7 +79,9 @@ function HandoutsCard({ act }: { act: Act }) {
       }
     >
       {handouts.length === 0 && <p className="cf-muted">No handouts for this act.</p>}
-      {agendas.length > 0 && <h4 className="prep-h4">Agendas ({agendas.length})</h4>}
+      {agendas.length > 0 && <h4 className="prep-h4">
+          {upperFirst(terms.agendas)} ({agendas.length})
+        </h4>}
       <ul className="prep-handouts" data-testid="handouts">
         {agendas.map((h) => (
           <HandoutRow key={h.id} handout={h} />
@@ -97,6 +101,7 @@ const KINDS: HandoutKind[] = ["agenda", "text", "card", "image"];
 
 function HandoutRow({ handout }: { handout: Handout }) {
   const ctx = useCampaign();
+  const terms = useTerms();
   const meta = useMeta();
   const characterTypes = useTypesOfKind(["character"]);
   const [open, setOpen] = useState(false);
@@ -121,7 +126,7 @@ function HandoutRow({ handout }: { handout: Handout }) {
               <select className="cf-select" aria-label="Handout kind" value={handout.kind} onChange={(e) => updateHandout(ctx, handout.id, { kind: e.target.value as HandoutKind })}>
                 {KINDS.map((k) => (
                   <option key={k} value={k}>
-                    {HANDOUT_KIND_LABELS[k]}
+                    {k === "agenda" ? upperFirst(terms.agenda) : HANDOUT_KIND_LABELS[k]}
                   </option>
                 ))}
               </select>

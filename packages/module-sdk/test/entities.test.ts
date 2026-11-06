@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeFields, defaultFieldsFor, fieldSchemaAt, sheetFieldsForMode, validateEntityFields } from "../src/entities";
+import { computeFields, computedFieldInputs, defaultFieldsFor, entityFieldSchemaAt, entitySheet, fieldSchemaAt, ruleFieldInputs, sheetFieldsForMode, validateEntityFields } from "../src/entities";
 import type { EntityTypeDef } from "../src/types";
 
 const def: EntityTypeDef = {
@@ -88,5 +88,46 @@ describe("fieldSchemaAt", () => {
     expect(fieldSchemaAt(def, "attributes.nope")).toBeUndefined();
     expect(fieldSchemaAt(def, "nope")).toBeUndefined();
     expect(fieldSchemaAt(def, "")).toBe(def.schema);
+  });
+});
+
+describe("entitySheet", () => {
+  const withSub: EntityTypeDef = {
+    ...def,
+    sheet: { ...def.sheet, summary: ["kind"] },
+    subtypes: [
+      { id: "big", name: "Big", schema: { type: "object", properties: { size: { type: "integer" } } }, sheet: { sections: [{ id: "s", title: "Size", fields: [{ path: "size" }, { path: "email", mode: ["y"] }] }], summary: ["size"] } },
+      { id: "plain", name: "Plain" },
+    ],
+  };
+  it("adds the subtype's sections after the type's, and filters both by mode", () => {
+    expect(entitySheet(withSub).sections.map((s) => s.id)).toEqual(["a", "b", "c"]);
+    expect(entitySheet(withSub, "plain").sections.map((s) => s.id)).toEqual(["a", "b", "c"]);
+    expect(entitySheet(withSub, "big").sections.map((s) => s.id)).toEqual(["a", "b", "c", "s"]);
+    expect(entitySheet(withSub, "big").summary).toEqual(["size"]);
+    expect(entitySheet(withSub, "plain").summary).toEqual(["kind"]);
+    expect(entitySheet(withSub, "big", "x").sections.map((s) => [s.id, s.fields.map((f) => f.path)])).toEqual([
+      ["a", ["attributes.str", "attributes.agi"]],
+      ["s", ["size"]],
+    ]);
+  });
+  it("finds a field's schema on the type, else on the subtype", () => {
+    expect(entityFieldSchemaAt(withSub, "big", "size")).toEqual({ type: "integer" });
+    expect(entityFieldSchemaAt(withSub, "big", "kind")).toEqual({ type: "string", enum: ["a", "b"] });
+    expect(entityFieldSchemaAt(withSub, "plain", "size")).toBeUndefined();
+  });
+});
+
+describe("computedFieldInputs", () => {
+  it("lists the stored fields a computed value reads, through other computed values", () => {
+    expect(computedFieldInputs(def, "health")).toEqual(["attributes.agi", "attributes.str"]);
+    expect(computedFieldInputs(def, "half")).toEqual(["attributes.agi", "attributes.str"]);
+    expect(computedFieldInputs(def, "nope")).toEqual([]);
+    expect(ruleFieldInputs(def, { var: ["fields.kind", "a"] })).toEqual(["kind"]);
+    expect(ruleFieldInputs(def, { var: { cat: ["computed.", "he", "alth"] } })).toEqual(["attributes.agi", "attributes.str"]);
+    expect(ruleFieldInputs(def, { var: { cat: ["fields.attributes.", { var: "fields.kind" }] } })).toEqual(["attributes", "kind"]);
+    expect(ruleFieldInputs(def, { var: { if: [true, "a", "b"] } })).toEqual(["*"]);
+    // an item's own keys inside map/filter are not field reads
+    expect(ruleFieldInputs(def, { map: [{ var: "fields.gear" }, { var: "weight" }] })).toEqual(["gear"]);
   });
 });

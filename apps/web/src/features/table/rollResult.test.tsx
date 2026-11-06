@@ -34,7 +34,7 @@ async function setup() {
 }
 
 describe("roll result: what the result does", () => {
-  it("a critical injury shows its effect and healing time, lands on the sheet, and keeps the ids under Raw result", async () => {
+  it("a critical injury shows its effect and healing time, lands on the sheet, and keeps the ids under Full result", async () => {
     const { ctx, rosa, sessionId } = await setup();
     const roll = rollOperation(ctx, sessionId, "criticalInjury", rosa.id);
     const table = ctx.module.tables.get("alien.character.critical-injury")!;

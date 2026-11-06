@@ -1,5 +1,5 @@
 /** Booklet export: wait for every body doc of an adventure, then render it with core `exportMarkdown`. */
-import { exportMarkdown, toMarkdown, type CampaignStore, type Handout, type Id, type RichTextRegistry } from "@campaign-forge/core";
+import { exportLicences, exportLicenceText, exportMarkdown, toMarkdown, type CampaignStore, type Handout, type Id, type RichTextRegistry } from "@campaign-forge/core";
 import type { GameModule } from "@campaign-forge/module-sdk";
 import { actHandouts } from "../../state/prepActions";
 
@@ -43,10 +43,12 @@ export function plainRefs(markdown: string): string {
     .replace(/\\([_\\[\]])/g, "$1");
 }
 
-/** The adventure booklet as Markdown, with every body loaded. */
+/** The adventure booklet as Markdown, with every body loaded, ending with the attribution the module's licence requires in every copy. */
 export async function bookletMarkdown(ctx: BookletCtx, adventureId: Id): Promise<string> {
   await syncDocs(ctx, adventureDocIds(ctx.store, adventureId));
-  return plainRefs(exportMarkdown(ctx.store, ctx.registry, { kind: "adventure", id: adventureId }, ctx.module.module));
+  const md = plainRefs(exportMarkdown(ctx.store, ctx.registry, { kind: "adventure", id: adventureId }, ctx.module.module));
+  const licence = exportLicenceText(exportLicences(ctx.module.module));
+  return licence ? `${md.trimEnd()}\n\n---\n\n## Licence\n\n${licence}\n` : md;
 }
 
 export interface AgendaCard {

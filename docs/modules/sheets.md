@@ -18,10 +18,10 @@ An entity type says what a kind of thing *is* (its `schema`), how its sheet *loo
 ```
 
 - `kind` is one of the core kinds: `character`, `creature`, `location`, `faction`, `item`, `vehicle`, `clue`, `job`, `encounter`. The app files entities by kind (characters with `isPC: true` are the player characters at the table).
-- `icon`: one of `user`, `users`, `map`, `pin`, `shield`, `flag`, `box`, `truck`, `rocket`, `search`, `briefcase`, `bug`, `swords`, `note`; without one (or with an unknown name) the kind's own icon is used.
-- `subtypes`: `{ id, name, sheet?, schema? }` for kinds of a kind (a location that is a ruin or a village); a subtype's sheet sections and schema add to the type's.
-- `defaultVisibility`: field path → `gm`, `players`, `some_players` or `revealed`. `playerEditable`: paths a player may edit once sync arrives.
-- `conditionalVisibility`: defaults that depend on the entity's own fields, for a secret kept while a box is ticked. Each rule is `{ when, fields, standIns?, reason? }`: while the JSONLogic `when` (over `{ fields }`) holds, `fields` (path → level) override `defaultVisibility`; `standIns` (path → another path) show players the other field's value in place of a hidden one, so a cover story reads as the real thing; `reason` is shown to the GM in Field visibility. The GM's per-entity settings still win. Example: `{ "when": { "==": [{ "var": "fields.disguised" }, true] }, "fields": { "construct": "gm", "attributes": "gm", "guise": "gm" }, "standIns": { "attributes": "guise" }, "reason": "Disguised: players see the guise as its attributes." }`.
+- `icon`: one of `user`, `users`, `map`, `pin`, `shield`, `flag`, `box`, `truck`, `rocket`, `search`, `briefcase`, `bug`, `claw`, `swords`, `note`; without one (or with an unknown name) the kind's own icon is used (a creature's is `claw`, a neutral mark for a beast or a monster of any make).
+- `subtypes`: `{ id, name, sheet?, schema? }` for kinds of a kind (a location that is a ruin or a village); a subtype's sheet sections and schema add to the type's. Every view of an entity reads the two together (SDK `entitySheet(def, subtype, mode?)` and `entityFieldSchemaAt`): the sheet, Field visibility, the player preview, shares and packets, the booklet and the Markdown export, so a field of the type's sheet is never lost on a subtype.
+- `defaultVisibility`: field path → `gm`, `players`, `some_players` or `revealed`. `playerEditable`: paths a player may edit once sync arrives. A creature or NPC stat block is GM-only by default (the fifth edition monster and the ORC creature show players only their size and kind or traits): the players meet the creature, the GM reveals the rest.
+- `conditionalVisibility`: defaults that depend on the entity's own fields, for a secret kept while a box is ticked. Each rule is `{ when, fields, standIns?, reason? }`: while the JSONLogic `when` (over `{ fields }`) holds, `fields` (path → level) override `defaultVisibility`; `standIns` (path → another path) show players the other field's value in place of a field the rule hides, so a cover story reads as the real thing (a field hidden anyway, by the GM's setting or `defaultVisibility`, shows nothing, as on anyone else); `reason` is shown to the GM in Field visibility. The GM's per-entity settings still win. Example: `{ "when": { "==": [{ "var": "fields.disguised" }, true] }, "fields": { "construct": "gm", "attributes": "gm", "guise": "gm" }, "standIns": { "attributes": "guise" }, "reason": "Disguised: players see the guise as its attributes." }`.
 
 ## Owner-visible fields
 
@@ -32,7 +32,7 @@ A character's own player (the campaign member who plays it, set in Settings → 
 "agenda": { "type": "object", "properties": { "goal": { "type": "string", "x-visibility": "owner" }, "secret": { "type": "string" } } }
 ```
 
-The owner then sees the field in their player packet and player sheet whatever its visibility says to everyone else, even when the field (or the whole character) is GM-only; nested properties can be marked on their own, as `agenda.goal` above, while `agenda.secret` stays GM-only. A visibility the GM sets on that field of one entity (*Field visibility…*) still wins. Handout kinds work the same way at the module level: `"ownerHandouts": [{ "kind": "agenda", "when": "given" }]` (main file only in a pack) lets a handout linked to a character (`character`) reach that character's player, `always` without the GM doing anything, `given` once the GM ticks *Give to <player>* on it. `gmOnlyPurposes` (with a one-line `gmOnlyNote`) keeps handouts a tool makes for one of those purposes with the GM, such as a GM card holding a secret: no toggle, and never given.
+The owner then sees the field in their player packet and player sheet whatever its visibility says to everyone else, even when the field (or the whole character) is GM-only (a PC is GM-only until the GM says otherwise, so mark the sheet the player plays from: the fifth edition and ORC player characters mark every field but the GM's `notes`); nested properties can be marked on their own, as `agenda.goal` above, while `agenda.secret` stays GM-only. A visibility the GM sets on that field of one entity (*Field visibility…*) still wins. Handout kinds work the same way at the module level: `"ownerHandouts": [{ "kind": "agenda", "when": "given" }]` (main file only in a pack) lets a handout linked to a character (`character`) reach that character's player, `always` without the GM doing anything, `given` once the GM ticks *Give to <player>* on it. `gmOnlyPurposes` (with a one-line `gmOnlyNote`) keeps handouts a tool makes for one of those purposes with the GM, such as a GM card holding a secret: no toggle, and never given.
 
 ## The schema (safe subset)
 
@@ -41,6 +41,8 @@ The owner then sees the field in their player packet and player sheet whatever i
 ## Computed values (rule 4)
 
 Never store what can be derived. `computed` maps a name to JSONLogic over `{ fields, computed }`; values are worked out at render time, in order, so `hpLeft` can read `computed.maxHp`. Show one with a `computed` widget whose `path` is the name. See the [JSONLogic cookbook](jsonlogic.md).
+
+A view for someone other than the GM (a player sheet, a packet, a share's party card) shows a computed value only when that viewer may see every stored field it reads (SDK `computedFieldInputs(def, name)` follows `computed.*` reads to the fields; a `var` whose path is built at run time counts as every computed value its leading text could name, or as every field). A hidden field is left out of those views, never drawn with its schema default, so a value read from it would be a wrong number. Read fields with static `var` paths where you can, so a value is not hidden for want of knowing what it reads.
 
 ## Layout
 
@@ -60,21 +62,27 @@ A field: `{ path, label?, widget?, rule?, mode?, readonly?, span?, options?, ent
 | Widget | For | `config` |
 |---|---|---|
 | `text`, `textarea`, `richtext` | strings | `placeholder`, `rows`, `maxLength`; `text` with `options`: `optionsFilter` |
-| `number`, `skill` | numbers | `min`, `max`, `step` (else the schema's `minimum`/`maximum`); `number`: `suggested` (a computed key offered beside the value with a *Use* button, e.g. the fifth edition hit point maximum from the fixed values) and `suggestedLabel` |
+| `number`, `skill` | numbers | `min`, `max`, `step` (else the schema's `minimum`/`maximum`); `number`: `suggested` (a computed key offered beside the value with a *Use* button, e.g. the fifth edition hit point maximum from the fixed values) and `suggestedLabel`; `unsetComputed` (a computed key a value not stored yet reads as, e.g. current Hit Points that start at the computed maximum) |
 | `attribute` | a big number with steppers | as `number` |
 | `checkbox` | booleans | `text` (its accessible name is always the field's label, never Yes or No) |
-| `select`, `multiselect`, `tags` | enums, lists of strings | `ref` (reference list) |
+| `select`, `multiselect`, `tags` | enums, lists of strings | `ref` (reference list). A `select` on an integer field with an `enum` stores the number, so a rank reads by its `enumLabels` (`{ "type": "integer", "enum": [0, 1, 2], "enumLabels": ["Untrained", "Trained", "Expert"] }`); the `object` and `table` widgets do the same for such properties |
 | `skills` | an object of skill ratings | `ref` (reference list whose items have `attribute`), `attributesPath` (default `attributes`), `min`, `max`, or an inline `skills` list; `levels` (named ratings shown as a select, e.g. `[{ "value": 0, "label": "—" }, { "value": 1, "label": "Proficient" }, { "value": 2, "label": "Expertise" }]`), `labels` (column headings: `skill`, `attribute`, `attributeValue`, `value`, `pool`), `hideZero` (list only rated skills, with a "Show all" toggle) |
 | `talents` | a list of `{ id, count }` picked from a reference list | `ref`, `maxStack` |
 | `conditions`, `gear` | conditions; a gear list with weights | `limitComputed` (a computed limit), `totalComputed` (a computed total shown instead of the gear's own weight, e.g. gear plus weapons), `qty`; `catalog`: the *From the gear list…* picker, see [The gear list](#the-gear-list) |
 | `weapons` | a list of weapons with their stats as columns, an "Add weapon" picker over the module's presets, "From campaign items", "Custom weapon" and inline editing | see [The weapons widget](#the-weapons-widget) |
 | `supply`, `stress` | pips | `supplyMax`, `warnAt` |
-| `computed` | a computed value (read-only) | |
+| `computed` | a computed value (read-only) | `signed: true` shows a number as a modifier: "+2", "−1", "+0" |
 | `dicepool` | a pool shown as a breakdown | `computed` |
 | `ref`, `reflist` | links to other entities | `entityTypes` on the field; `ref` with `pick: "select"`: a dropdown of the campaign's entities of those types (never the sheet's own), `pc: true` for player characters only. A value that is no entity's id (a name typed in an older campaign) shows as typed, with *Link to …* when an entity has that name |
-| `list`, `object`, `table`, `statblock` | nested data, edited by schema | `columns`, `keys`, `valueWidget` |
+| `list`, `object`, `table`, `statblock` | nested data, edited by schema | `columns`, `keys`, `valueWidget`; see [Tables](#tables) |
 | `entries` | a list of named texts (traits, actions, features), read like a stat block ("**Name.** text", Markdown) with an Edit toggle | `nameKey` (default `name`), `textKey` (default `desc`) |
 | `image`, `zonemap` | an image asset; a zone map | |
+
+### Tables
+
+A `table` field is a list of rows with one editable cell per column. `columns` lists row keys, or `{ key, label?, type?, readonly? }`, or a computed column `{ key, label, computed }`: JSONLogic over `{ fields, computed, item }` (the row is `item`), shown read-only and worked out each render (rule 4: a weapon row's to-hit that follows the character's scores). A new row starts from the item schema's defaults, with its required text keys present and empty.
+
+`addFrom` adds a picker beside *Add row* that fills a row from a reference list: `{ ref, label?, where?, row }`, `where` JSONLogic over `{ item }` choosing the items offered, `row` the new row's keys as JSONLogic over `{ item, fields, computed }`. The fifth edition sheet's Attacks table is the example: *Add a weapon* copies the weapon's name, damage and type and the ability it uses, and computed columns show the attack bonus and damage with the character's modifiers; table mode reads the same rows through the combat definition's attack `bonus` and `damageBonus` (see [Declarative d20 combat](tables-procedures.md)).
 
 ### The skills widget and rolling
 

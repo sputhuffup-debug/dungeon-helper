@@ -215,6 +215,8 @@ export function defaultPackCalendar(packId: string): CalendarDef {
     defaultYear: 1,
     months: Array.from({ length: 12 }, (_, i) => ({ name: `Month ${i + 1}`, days: 30 })),
     format: "{year}-{month:02}-{day:02}",
+    // its months have no names to show
+    displayFormat: "{year}-{month:02}-{day:02}",
   };
 }
 
@@ -241,6 +243,7 @@ export function packToModule(input: ModulePack): GameModule {
     trackers: pack.trackers ?? [],
     calendar: pack.calendar ?? defaultPackCalendar(pack.manifest.id),
   };
+  if (pack.terms) module.terms = pack.terms;
   if (pack.styleNotes) module.styleNotes = pack.styleNotes;
   if (pack.playGuides) module.playGuides = pack.playGuides;
   if (pack.primer) module.primer = pack.primer;

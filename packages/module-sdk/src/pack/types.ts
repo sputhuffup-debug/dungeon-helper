@@ -14,6 +14,7 @@ import type { DiceEngineConfig } from "../engines/types";
 import type { PackMapGenerator } from "../mapgen/types";
 import type {
   CalendarDef,
+  ModuleTerms,
   CreatesCharacterDef,
   CampaignSettingDef,
   D20CombatDef,
@@ -176,6 +177,8 @@ export interface ModulePack extends PackCollections {
   dice: DiceEngineConfig;
   /** In-world calendar (default: twelve 30-day months). */
   calendar?: CalendarDef;
+  /** The words generic screens use for the game: "the crew", a map "deck" (main file only). */
+  terms?: ModuleTerms;
   styleNotes?: string[];
   /** Prompts and starter text for the campaign primer (session 0). */
   primer?: PrimerDef;

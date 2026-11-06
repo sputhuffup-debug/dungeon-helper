@@ -55,7 +55,7 @@ import {
   type NpcRoleRow,
   type TreacheryDial,
 } from "./job-board-data";
-import { agendaText, dealNpcAgenda, effectiveDifficulty, isBetrayer, type NpcAgenda } from "./npc-agendas";
+import { agendaContradicts, agendaText, dealNpcAgenda, effectiveDifficulty, isBetrayer, type NpcAgenda } from "./npc-agendas";
 import {
   arcAgent,
   arcGrudge,
@@ -150,7 +150,12 @@ export interface BoardCast {
   factions: Array<{ id: string; name: string; visibility?: string }>;
   /** Names already taken by characters in the campaign. */
   takenNames: string[];
+  /** A bar (or the like) inside the home base, where a poster can sit: "The Rusted Anchor". */
+  bar?: string;
 }
+
+/** Names that read as a place to drink: where a broker or a client's representative takes a booth. */
+const BAR_NAME = /\b(bar|anchor|cantina|saloon|tavern|pub|lounge|club|inn|tap|taproom|diner|canteen)\b/i;
 
 export function boardCast(inputs: Obj): BoardCast {
   const snap = isObj(inputs.campaign) ? inputs.campaign : {};
@@ -161,9 +166,15 @@ export function boardCast(inputs: Obj): BoardCast {
   const home = locations.find((e) => tags(e).includes("home-base") && e.subtype === "colony") ?? locations.find((e) => tags(e).includes("home-base"));
   // the home base set for the campaign first, then a place tagged as one
   const set = isObj(inputs.homeBase) ? str(inputs.homeBase.name) : "";
+  // a bar within the home base (the campaign's "within" links), so the bar posting names it
+  const homeId = isObj(inputs.homeBase) && str(inputs.homeBase.id) ? str(inputs.homeBase.id) : home ? str(home.id) : "";
+  const links = (Array.isArray(snap.relationships) ? snap.relationships : []).filter(isObj);
+  const inside = new Set(links.filter((l) => l.type === "within" && l.to === homeId).map((l) => str(l.from)));
+  const bar = locations.find((e) => inside.has(str(e.id)) && BAR_NAME.test(str(e.name)));
   return {
     pcCount: pcs.length > 0 ? pcs.length : Math.max(1, Math.floor(num(inputs.pcCount, 4))),
     home: set || (home ? str(home.name) : "the port"),
+    ...(bar ? { bar: str(bar.name) } : {}),
     factions: entities.filter((e) => e.kind === "faction").map((e) => ({ id: str(e.id), name: str(e.name), ...(typeof e.visibility === "string" ? { visibility: e.visibility } : {}) })),
     takenNames: entities.filter((e) => e.kind === "character").map((e) => str(e.name)),
   };
@@ -284,6 +295,11 @@ export interface PostingData {
   seed?: string;
 }
 
+/** A table label inside a posting's title reads as a title: "Metal Ingots or Pellets", not "Metal Ingots Or Pellets". */
+export function titleWords(s: string): string {
+  return s.replace(/(?<=\S )(Or|And|Of|The|To|For|In|On|At|With)(?= )/g, (w) => w.toLowerCase());
+}
+
 function labelsOf(book: BookJob, fk: FrameKey): { mission: string; destination: string; complications: string[]; twist: string } {
   const r = book.results;
   const mission = isObj(r.mission) ? str(fk === "truckers" ? r.mission.cargo : r.mission.mission, str(r.mission.label)) : "";
@@ -324,7 +340,7 @@ function buildPosting(ctx: ProcedureContext, index: number, cast: BoardCast, tak
   let poster = part("poster", (r) => {
     const rows = POSTERS.filter((p) => !p.frames || p.frames.includes(fk));
     const row = pick(r, rows);
-    const f = fillWith({ employer: employerName, home: cast.home });
+    const f = fillWith({ employer: employerName, home: cast.home, bar: cast.bar ?? `the bar at ${cast.home}` });
     return { postedBy: f(row.postedBy), where: f(row.where), clientShown: row.clientShown };
   });
   if (posterContact) poster = { ...poster, postedBy: posterContact.name, where: posterContact.foundAt ?? poster.where };
@@ -339,7 +355,7 @@ function buildPosting(ctx: ProcedureContext, index: number, cast: BoardCast, tak
     const level = Math.max(0, Math.min(RISK_LABELS.length - 1, difficulty + (honesty === "understated" ? -1 : honesty === "overstated" ? 1 : 0)));
     return { label: RISK_LABELS[level]!, level, honesty };
   });
-  const title = part("title", (r) => fillWith({ ...vars, what: labels.mission || "Job", codename: pick(r.fork("codename"), CODENAMES) })(pick(r, POSTING_TITLES[fk])));
+  const title = part("title", (r) => fillWith({ ...vars, what: titleWords(labels.mission || "Job"), codename: pick(r.fork("codename"), CODENAMES) })(pick(r, POSTING_TITLES[fk])));
   const pitch = part("pitch", (r) => {
     const n = distance;
     const dist = n === 0 ? pick(r.fork("d"), PITCH_DISTANCE.near) : pick(r.fork("d"), PITCH_DISTANCE.far).replace("{n}", String(n)).replace(/\{s\}/g, n === 1 ? "" : "s");
@@ -389,6 +405,8 @@ function buildPosting(ctx: ProcedureContext, index: number, cast: BoardCast, tak
     const agendaFill = fillWith({ ...vars, employer: employerName, contact: npcs[0]?.name ?? "the contact" });
     const ctxA = { dial, contact: k === 0, openAndroid: row.android === true, role: npc.role, noSynthetic: npcs.some((n) => n.agenda.synthetic), fill: agendaFill };
     let agenda = part(`npc-${k + 1}/agenda`, (r) => dealNpcAgenda(r, ctxA));
+    // an agenda that contradicts the NPC's secret, or repeats another NPC's in this posting, is dealt again (a few tries)
+    for (let t = 0; t < 6 && (agendaContradicts(agenda.arc, npc.secret) || npcs.some((n) => n.agenda.arc === agenda.arc)); t++) agenda = dealNpcAgenda(local(`npc-${k + 1}/agenda-fit-${t}`), ctxA);
     // at most one hidden synthetic per job, none under the "none" dial, none on an open android: a pinned or stale agenda that breaks this is re-dealt
     if (agenda.synthetic && (ctxA.noSynthetic || ctxA.openAndroid || dial === "none")) agenda = dealNpcAgenda(local(`npc-${k + 1}/agenda-alt`), { ...ctxA, noSynthetic: true });
     if (dial === "none" && agenda.betrayal >= 2) agenda = dealNpcAgenda(local(`npc-${k + 1}/agenda-none`), { ...ctxA, noSynthetic: true });
@@ -530,6 +548,9 @@ function hasArc(a: PostingArc): boolean {
 }
 const lowerFirst = (s: string) => (s ? s.charAt(0).toLowerCase() + s.slice(1) : s);
 
+/** A job contact's stat block (alien.character fields): GM-only on the contact the crew meets. */
+const CONTACT_STATS = ["android", "attributes", "skills", "talents", "stress", "damage", "gear", "weapons", "cash", "signatureItem", "xp", "storyPoints", "fatigued", "rads", "criticalInjuries", "mentalTraumas"] as const;
+
 function npcEntity(p: PostingData, n: PostingData["npcs"][number], k: number): ProducedEntity {
   const human = npcPresets.find((x) => x.id === n.preset) ?? npcPresets[0]!;
   const row = roleRow(n.role);
@@ -565,8 +586,9 @@ function npcEntity(p: PostingData, n: PostingData["npcs"][number], k: number): P
     fields,
     preset: preset.id,
     visibility: visible ? "players" : "gm",
-    // the tie, the agenda and a secret synthetic's true make stay GM-only even on the contact
-    fieldVisibility: { background: "gm", personalAgenda: "gm", ...(synthetic ? { android: "gm", attributes: "gm", talents: "gm", skills: "gm" } : {}) },
+    // the crew meets the contact (name, summary, public role, career), not their stat block: the tie, the agenda and the
+    // stats stay GM-only, the same for everyone, so a secret synthetic's (hidden like any other) gives nothing away
+    fieldVisibility: { background: "gm", personalAgenda: "gm", ...Object.fromEntries(CONTACT_STATS.map((k) => [k, "gm" as const])) },
   };
   return e;
 }
@@ -779,7 +801,7 @@ export const jobBoard: Procedure = {
       campaign: {
         type: "object",
         title: "Campaign",
-        "x-campaign": { kinds: ["character", "location", "faction"], fields: ["factionType"], relationships: [] },
+        "x-campaign": { kinds: ["character", "location", "faction"], fields: ["factionType"], relationships: ["within"] },
         description: "The PCs (for pay and crew size), the home base (where postings are found), factions (an employer already in the campaign is linked) and names already taken.",
       },
       arcs: {

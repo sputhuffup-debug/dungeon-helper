@@ -58,6 +58,8 @@ function npc(spec: NpcSpec): AlienPreset {
     page: PAGE,
     // a covert synthetic carries no "android" tag: tags show wherever the players see the character
     tags: ["npc", ...(android && !covert ? ["android"] : [])],
+    // the GM's picker files a covert synthetic with the other androids (a group is never shown to players)
+    ...(covert ? { group: "Android" } : {}),
     fields: {
       isPC: false,
       android,

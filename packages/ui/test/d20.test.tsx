@@ -128,6 +128,20 @@ describe("skills widget for a d20 sheet", () => {
     fireEvent.change(arcana, { target: { value: "1" } });
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ skills: { stealth: 2, arcana: 1 } }));
   });
+
+  it("leaves the attribute columns out when no row names an attribute (a creature's flat modifiers), instead of blank headings", () => {
+    const creature: EntityTypeDef = {
+      ...def,
+      id: "g.creature",
+      kind: "creature",
+      schema: { type: "object", properties: { saves: { type: "object", properties: { fortitude: { type: "integer" }, will: { type: "integer" } } } } },
+      sheet: { sections: [{ id: "s", title: "Saves", fields: [{ path: "saves.*", widget: "skills", config: { skills: [{ id: "fortitude", name: "Fortitude" }, { id: "will", name: "Will" }], min: -10, max: 60, labels: { skill: "Check", attribute: "—", attributeValue: "—", value: "Modifier", pool: "Roll" } } }] }] },
+    };
+    render(<SheetRenderer def={creature} mode="m" fields={{ saves: { fortitude: 7, will: 4 } }} onChange={vi.fn()} dice={dice} />);
+    const heads = screen.getAllByRole("columnheader").map((h) => h.textContent);
+    expect(heads).toEqual(["Check", "Modifier", "Roll"]);
+    expect(screen.getByTestId("pool-fortitude")).toHaveTextContent(/^1d20 \+ \d+$/);
+  });
 });
 
 describe("entries widget and Markdown", () => {

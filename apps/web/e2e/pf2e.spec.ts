@@ -40,6 +40,12 @@ test("ORC core rules pack: the Hollowmere demo, derived sheets, four degrees, cr
   await expect(page).toHaveURL(/\/c\/[0-9A-Z]{26}\/home$/, { timeout: 60_000 });
   await expect(page.getByTestId("campaign-name")).toHaveText("Hollowmere");
   const base = page.url().replace(/\/home$/, "");
+  // the in-world date in the calendar's words, not as stored ("812-01-01")
+  await expect(page.locator(".app-page__header")).toContainText(/In-world date \d+ [A-Z][a-z]+ \d+/);
+  // the Atlas names the quests tab after the module's quest type, not Alien's "Jobs"
+  await page.goto(`${base}/atlas`);
+  await expect(page.getByRole("tab", { name: /^Quests/ })).toBeVisible();
+  await expect(page.getByRole("tab", { name: /^Jobs/ })).toHaveCount(0);
 
   // 3. a level 1 rogue: attribute modifiers and ranks written down, totals derived (trained = level + 2)
   await page.goto(`${base}/atlas`);
@@ -102,6 +108,12 @@ test("ORC core rules pack: the Hollowmere demo, derived sheets, four degrees, cr
   await expect(combat.getByTestId("combat-round")).toHaveText("Round 1");
   const scores = await combat.locator("[data-combatant]").evaluateAll((els) => els.length);
   expect(scores).toBeGreaterThanOrEqual(3);
+  // the attack panel names the roll modes as the module's dice do (fortune / misfortune), like the sheet's roll panel
+  await combat.getByRole("button", { name: /^Attack with / }).first().click();
+  const attack = page.getByTestId("attack-dialog");
+  await expect(attack.getByTestId("attack-mode").locator("option")).toHaveText([/^From conditions: normal$/, "Normal", "Fortune", "Misfortune"]);
+  await expect(attack).not.toContainText("Advantage");
+  await attack.getByRole("button", { name: "Close attack" }).click();
   const heroPoints = page.locator('[data-tracker="pf2e-orc.tracker.hero-points"]');
   await expect(heroPoints).toContainText("Pip Tallowgrass");
   await shot(page, "table-trackers");

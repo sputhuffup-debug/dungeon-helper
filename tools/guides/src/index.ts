@@ -10,7 +10,7 @@
  */
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
-import { guideDocFile, guideImageFile, guideSteps, moduleFromPackSource, type GameModule, type GuideDef, type PageRef } from "@campaign-forge/module-sdk";
+import { guideDocFile, guideImageFile, guideSteps, moduleFromPackSource, pageRefText, type GameModule, type GuideDef, type PageRef } from "@campaign-forge/module-sdk";
 
 /** Guide pages live here, relative to the repo root. */
 export const GUIDES_DIR = "docs/guides";
@@ -46,7 +46,7 @@ export function headingAnchor(heading: string): string {
 
 /** A printed page reference as the feature pages write it: "p. 158", "p. 244-252". */
 export function pageText(page: PageRef): string {
-  return Array.isArray(page) ? `p. ${page[0]}-${page[1]}` : `p. ${page}`;
+  return pageRefText(page, "p.", "-");
 }
 
 export interface GuideMarkdownOptions {

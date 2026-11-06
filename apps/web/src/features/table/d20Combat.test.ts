@@ -22,6 +22,7 @@ import {
   planSave,
   rollAttack,
   rollDamage,
+  rollDeathSave,
   rollSave,
   startCombat,
 } from "../../state/d20Actions";
@@ -139,5 +140,29 @@ describe("one round counter in a d20 fight", () => {
     nextTurn(ctx, sessionId);
     expect(nextTurn(ctx, sessionId).round).toBe(2);
     expect(clockRound()).toBe(2);
+  }, 30_000);
+});
+
+describe("death saves (the fifth edition's zeroHp.deathSaves)", () => {
+  // Walkthrough 3 (D11): damage at 0 hit points did not count as a failed save, and the save had to be rolled and kept by hand
+  it("counts damage while down as failed saves and rolls the save from the card's state, logged", async () => {
+    const ctx: CampaignContextValue = await openCampaign(await createCampaign({ name: "d20 dying", moduleId: "dnd5e-srd" }));
+    opened.push(ctx.close);
+    const pc = ctx.store.createEntity({ type: "dnd5e-srd.character", name: "Bryn", fields: { isPC: true, hp: { max: 12, current: 12, temp: 0 }, deathSaves: { successes: 0, failures: 0 } } });
+    const sessionId = startPlannedSession(ctx, planNextSession(ctx, { title: "Ambush" }).id).id as Id;
+    expect(applyD20Hit(ctx, sessionId, pc.id, 12).deathSaves).toBeUndefined();
+    const hit = applyD20Hit(ctx, sessionId, pc.id, 3, { critical: true });
+    expect(hit.deathSaves).toMatchObject({ failures: 2, added: 2, dead: false });
+    expect(ctx.store.get("entities", pc.id)!.fields.deathSaves).toEqual({ successes: 0, failures: 2 });
+    // typed at the table: a 14 is a success
+    const save = rollDeathSave(ctx, sessionId, pc.id, [14]);
+    expect(save).toMatchObject({ natural: 14, success: true, successes: 1, failures: 2 });
+    expect(save.text).toBe("14: success (1/3 successes, 2/3 failures)");
+    // a natural 20 brings it back with 1 hit point; the counters reset
+    expect(rollDeathSave(ctx, sessionId, pc.id, [20])).toMatchObject({ heals: 1 });
+    expect(ctx.store.get("entities", pc.id)!.fields).toMatchObject({ hp: { current: 1 }, deathSaves: { successes: 0, failures: 0 } });
+    const log = sessionTrackerState(ctx.store, sessionId)!.log.map((l) => l.text);
+    expect(log.some((t) => t.includes("2 failed death saves (2 failures)"))).toBe(true);
+    expect(log.some((t) => t === "Bryn: death save: natural 20: back up with 1 hit point")).toBe(true);
   }, 30_000);
 });

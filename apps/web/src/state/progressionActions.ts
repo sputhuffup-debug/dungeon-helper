@@ -40,7 +40,8 @@ import {
   type StoryPointUseDef,
 } from "@campaign-forge/module-sdk";
 import type { CampaignContextValue } from "./CampaignProvider";
-import { checklistEvent, computedOf, playerCharacters, sessionTrackerState } from "./tableActions";
+import { checklistEvent, computedOf, playerCharacters, sessionTrackerState, wrapUpOf } from "./tableActions";
+import { wrapUpDraftOf } from "./wrapUpActions";
 
 type Ctx = Pick<CampaignContextValue, "store" | "module">;
 
@@ -73,6 +74,23 @@ function relationshipCounts(ctx: Ctx, id: Id): Record<string, number> {
   return out;
 }
 
+/**
+ * The money a session brought in for a character: positive ledger entries on
+ * the shared account or the character's own, linked to the session, or paying
+ * for a record closed in its wrap-up (a job's payment collected there).
+ */
+export function sessionIncome(ctx: Ctx, sessionId: Id, characterId?: Id): number {
+  const session = ctx.store.get("sessions", sessionId);
+  if (!session) return 0;
+  const closed = new Set(Object.keys((wrapUpOf(session) as { closed?: Record<string, unknown> }).closed ?? {}));
+  let total = 0;
+  for (const e of ctx.store.list("ledger")) {
+    if (!(e.amount > 0) || (e.account && e.account !== characterId)) continue;
+    if (e.links?.session === sessionId || (e.links?.job && closed.has(e.links.job))) total += e.amount;
+  }
+  return total;
+}
+
 export function awardContextFor(ctx: Ctx, entity: Entity, sessionId?: Id): AwardContext {
   return {
     mode: ctx.store.meta().mode,
@@ -82,6 +100,7 @@ export function awardContextFor(ctx: Ctx, entity: Entity, sessionId?: Id): Award
     // a buddy picked one way before the pairs: the other PC still counts as this one's
     referencedBy: reciprocalReferences(ctx.module.entityType(entity.type), entity.id, ctx.store.list("entities")),
     trackerState: sessionId ? (sessionTrackerState(ctx.store, sessionId)?.state ?? {}) : {},
+    ...(sessionId ? { income: sessionIncome(ctx, sessionId, entity.id) } : {}),
   };
 }
 
@@ -120,6 +139,70 @@ export function postSessionAwards(ctx: Ctx, sessionId: Id, ticks: Record<Id, str
     if (ctx.store.has("sessions", sessionId)) checklistEvent(ctx, sessionId, "awards-given");
   });
   return out;
+}
+
+/**
+ * What the wrap-up's award checklist shows for each advancing character who
+ * has no award posted this session: the ticks the GM left in the draft, else
+ * the checklist's own (defaults and what the session suggests).
+ */
+export function pendingSessionAwards(ctx: Ctx, sessionId: Id): Record<Id, string[]> {
+  if (awardQuestionsOf(ctx, "session").length === 0) return {};
+  const saved = wrapUpDraftOf(ctx.store.get("sessions", sessionId)).awardTicks ?? {};
+  const out: Record<Id, string[]> = {};
+  for (const pc of advancingCharacters(ctx)) {
+    if (sessionAwardsOf(ctx, sessionId, pc.id).length > 0) continue;
+    const ticks = saved[pc.id] ?? awardRowsFor(ctx, pc, sessionId, "session").filter((r) => r.ticked).map((r) => r.question.id);
+    if (ticks.length > 0) out[pc.id] = ticks;
+  }
+  return out;
+}
+
+/** " Awarded: Mara +2 XP; Desmond +1 XP." for a toast ("" when nothing was posted). */
+export function awardedText(ctx: Ctx, entries: AdvancementEntry[]): string {
+  const mode = ctx.store.meta().mode;
+  const by = new Map<Id, Map<ProgressionPoolId, number>>();
+  for (const e of entries) {
+    if (!(e.amount > 0)) continue;
+    const m = by.get(e.character) ?? new Map<ProgressionPoolId, number>();
+    m.set(e.pool, (m.get(e.pool) ?? 0) + e.amount);
+    by.set(e.character, m);
+  }
+  if (by.size === 0) return "";
+  const parts = [...by].map(([id, pools]) => `${ctx.store.get("entities", id)?.name ?? "?"} ${[...pools].map(([pool, n]) => `+${n} ${poolOf(ctx.module, mode, pool)?.label ?? pool}`).join(", ")}`);
+  return ` Awarded: ${parts.join("; ")}.`;
+}
+
+/** The key an end-of-act tick is kept under in the wrap-up draft. */
+export function actTickKey(act: SessionAct, characterId: Id, question: string): string {
+  return `${act.adventure ?? ""}|${act.number}|${characterId}|${question}`;
+}
+
+/**
+ * Post what the wrap-up's award checklists show and was not awarded yet: the
+ * session questions (see pendingSessionAwards) and the end-of-act ticks left
+ * in the draft. Finishing the session calls it, so a tick shown is never
+ * lost; awards already posted (the Award button) are not posted again.
+ */
+export function postWrapUpAwards(ctx: Ctx, sessionId: Id): AdvancementEntry[] {
+  return ctx.store.transact(() => {
+    const out: AdvancementEntry[] = [];
+    const pending = pendingSessionAwards(ctx, sessionId);
+    if (Object.keys(pending).length > 0) out.push(...postSessionAwards(ctx, sessionId, pending));
+    const actTicks = wrapUpDraftOf(ctx.store.get("sessions", sessionId)).actTicks ?? [];
+    if (actTicks.length > 0) {
+      const acts = sessionActs(ctx, ctx.store.get("sessions", sessionId));
+      const advancing = new Set(advancingCharacters(ctx).map((e) => e.id));
+      const questions = new Set(awardQuestionsOf(ctx, "act").map((q) => q.id));
+      for (const act of acts)
+        for (const character of advancing)
+          for (const question of questions) {
+            if (!actTicks.includes(actTickKey(act, character, question)) || actAwardOf(ctx, act, character, question)) continue;
+            out.push(...postActAward(ctx, { character, act, question, sessionId }));
+          }
+    }
+    return out;
+  });
 }
 
 export interface SessionAct {

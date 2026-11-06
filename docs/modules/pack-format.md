@@ -14,7 +14,7 @@ A data pack is a JSON object. The SDK validates it (`validatePack`), joins its p
   "entityTypes": [],        // sheets: what a character, a place, a monster is
   "relationshipTypes": [],  // extra relationship types (core ones: within, member_of, knows, owns, found_at, wants, appears_in, blocks)
   "referenceLists": [],     // skills, backgrounds, spells... (not campaign entities)
-  "presets": [],            // stat blocks the GM starts an entity from
+  "presets": [],            // stat blocks the GM starts an entity from ({ id, entityType, name, fields, tags?, group? }: `group` files it under a heading of the GM's picker, never shown to players)
   "tables": [],             // random tables
   "procedures": [],         // seeded generators over the tables
   "templates": [],          // adventure / session / checklist scaffolds
@@ -22,6 +22,7 @@ A data pack is a JSON object. The SDK validates it (`validatePack`), joins its p
   "trackers": [],           // clocks, countdowns, initiative, counters
   "playGuides": [],         // GM hints per rollable stat or skill
   "calendar": {},           // optional; default twelve 30-day months
+  "terms": {},              // optional; the words generic screens use for the game: "the party", a map "level" (see Terms)
   "styleNotes": [],         // optional
   "primer": { "sections": [] }, // optional; campaign primer prompts and starter text (see Campaign primer)
   "d20Combat": {},          // optional; attacks, AC, saves, damage modifiers and conditions (see d20 combat)
@@ -110,7 +111,31 @@ Each collection uses the contract's own shape from `packages/module-sdk/src/type
 | `rules` | `RuleCard` | Markdown summary; must cite a `page`, a `cite`, or be `original`. |
 | `trackers` | `TrackerDef` | Kinds the app draws: `clock`, `countdown`, `initiative`, `counter`, `stress`, `story-points`, `supply`, `stealth`; anything else gets a generic editor. See [Trackers](#trackers). |
 | `playGuides` | `PlayGuideDef` | Roll ids are a skill id or `attr:<attribute id>`. |
-| `calendar` | `CalendarDef` | Its id is prefixed too. |
+| `calendar` | `CalendarDef` | Its id is prefixed too. `format` is how dates are written and stored ("{year}-{month:02}-{day:02}"); `displayFormat` is how the app shows them to people (default "{day} {monthName} {year}", e.g. "3 Frostwane 812"; tokens `{year}`, `{month}`, `{day}` with `:02` padding, `{monthName}`, `{weekday}`). Set `displayFormat` to the `format` to show dates as stored. |
+
+## Terms
+
+Screens that every game shares (the session wrap-up, the table's tab bar, a site map's badges, an act's handouts) speak of the players' group, a map's levels and so on. `terms` gives them the game's own words; every key is optional, and a screen falls back to a neutral word for any the pack leaves out. Write each in lower case, as it reads mid-sentence; the app capitalises it at the start of a sentence or a label.
+
+```json
+"terms": {
+  "party": "party",
+  "mapLevel": "floor",
+  "agenda": "secret goal",
+  "rewardExamples": "coin, gear, a favour owed, a new ally",
+  "epiloguePrompt": "What becomes of the heroes…"
+}
+```
+
+| Key | Default | Where it shows |
+|---|---|---|
+| `party` | `group` | The drafted session summary ("The party played 2 scenes…"), timeline lines for handouts ("The party learns: …"), the table's phone tab bar ("Party"), "Pick the scene the party is in.", the player map's note. |
+| `mapLevel`, `mapLevels` | `level`, `levels` | A site map's badge ("1 level") and the tracking map's "One page per level." `mapLevels` defaults to `mapLevel` + "s". |
+| `agenda`, `agendas` | `personal handout`, `personal handouts` | Handouts of kind `agenda` (one character's player only): an act's "+ Personal handout" button and list, the adventure's "Personal handout cards", the reveal panel. |
+| `rewardExamples` | `money, gear, a favour owed, a new contact` | The wrap-up's Rewards step: "Free entries per character: …". |
+| `epiloguePrompt` | `What happens afterwards…` | The placeholder of an adventure's epilogue (a template's own `guide.epilogue` wins). |
+
+Record kinds take their names from their entity types, not from `terms`: a `job` type named "Quest" (plural "Quests") makes the Atlas tab "Quests" and the job page "People in this quest"; a kind with a single type uses its plural as the Atlas tab ("Monsters"). Roll modes come from the dice: the d20 engine's `advantageNames` (e.g. fortune / misfortune) name them on the sheet's roll panel and in table combat alike. A supplement cannot change `terms`. In TypeScript the same object is `GameModule.terms` (`ModuleTerms`); `resolveTerms(module)` fills in the defaults.
 
 ## Campaign primer
 
@@ -165,11 +190,11 @@ Starter text is the pack author's own words (`original: true`), or openly licens
 }
 ```
 
-- **Attacks** are read from list fields. An item follows the attack convention `{ name, kind, bonus, damage, damageType, traits, reach, range, save, onHit, effect, ability }`, or `keys` maps those names to the item's own keys. `bonus` may be a number, text ("+5", "+7 [+3/−1]": the first number) or JSONLogic over `{ fields, computed, item }`; text such as "DC 13 Dex" makes the row a save effect. `damage` is a list of parts `{ dice, type?, persistent? }` or text ("1d8 + 3 slashing plus 2d6 fire", unknown words kept as a note). `save` is `{ dc, save, damage?, half?, conditions?, criticalConditions?, text? }`; `onHit` and a save's `conditions` are `{ id, value?, duration? }` with `duration` `{ rounds?, sourceNextTurn?, save?: { save, dc? } }`.
+- **Attacks** are read from list fields. An item follows the attack convention `{ name, kind, bonus, damage, damageType, traits, reach, range, save, onHit, effect, ability }`, or `keys` maps those names to the item's own keys. `bonus` may be a number, text ("+5", "+7 [+3/−1]": the first number) or JSONLogic over `{ fields, computed, item }`; text such as "DC 13 Dex" makes the row a save effect. `damage` is a list of parts `{ dice, type?, persistent? }` or text ("1d8 + 3 slashing plus 2d6 fire", unknown words kept as a note). `save` is `{ dc, save, damage?, half?, conditions?, criticalConditions?, text? }`; `onHit` and a save's `conditions` are `{ id, value?, duration? }` with `duration` `{ rounds?, sourceNextTurn?, save?: { save, dc? } }`. A source's own `bonus` (JSONLogic over `{ fields, computed, item }`) is the attack bonus of every row that states none, and its `damageBonus` a flat number added to the row's first damage part: a character's weapon rows can then name the weapon and the ability it uses, and the to-hit and damage follow the sheet (rule 4), e.g. `{ "path": "attacks", "bonus": { "if": [{ "var": "item.ability" }, { "+": [{ "var": [{ "cat": ["computed.", { "var": "item.ability" }, "Mod"] }, 0] }, { "var": "computed.proficiencyBonus" }] }, null] } }`.
 - **Damage modifiers**: `immunity` (none), `resistance` (halved, rounded down, or less by `value`; the strongest applies), `vulnerability` (doubled), `weakness` (more by `value`; the highest applies), in `rules.damageOrder`. A `type` that is not a damage type or group is a trait or material the attack must have ("cold-iron"); `except` lists traits (or damage types) that get past it.
 - **Resolution**: `crit` `natural20Doubles` (total ≥ AC hits, a natural 20 always hits and is critical, a natural 1 misses) or `degrees` (the d20 engine's `critMargin` and `naturalShift` against AC); `critDamage` `dice` (roll the dice twice) or `total` (double it); `save` `total` or `degrees`; `halfSave` multipliers for `half` effects per outcome.
 - **Conditions**: `summary` is the helper text the app shows (what it does, in plain words); `effects` are applied by themselves while the condition is on: `on` (`attack`, `check`, `save`, `ac`, `dc`, `damage`), a `modifier` (number or JSONLogic over `{ value }`) with an optional `bonusType` (with `stacking: "typed"` only the best bonus and worst penalty of a type count), `roll` (`advantage`/`disadvantage`, which cancel out), `autoFail`, limited by `abilities`, `saves`, `skills`, `attackKinds` or `minValue`; `against: true` applies to attacks made against the creature, with `range` (`close`/`far`) and `critOnHit`. `implies` brings other conditions along, `cannot` (act, react, move, speak, see, hear) and `speed` show on the card, `endOfTurnDecrement` drops a valued condition each turn, `levels` notes each value, `field` keeps the value in a sheet field (so a sheet tracker and the panel agree), and `manual` lists what the app leaves to the GM (shown as "not automated").
-- **0 hit points**: the first `zeroHp` rule whose `when` (JSONLogic over `{ kind, type, fields, computed }`) matches: conditions to apply (a value may be JSONLogic over `{ critical, conditions, fields, computed }`), `defeated`, what `recover` does when healing brings the creature back, and the rule's `text`.
+- **0 hit points**: the first `zeroHp` rule whose `when` (JSONLogic over `{ kind, type, fields, computed }`) matches: conditions to apply (a value may be JSONLogic over `{ critical, conditions, fields, computed }`), `defeated`, what `recover` does when healing brings the creature back, and the rule's `text`. `deathSaves` (`{ successes, failures, max?, dc?, damageFailures?, criticalFailures?, natural1Failures?, natural20Heals?, massiveDamage? }`, the first two sheet field paths) keeps death saves while down: damage taken at 0 hit points adds failed saves (two on a critical hit by default), the combatant card offers *Roll death save* (a d20 with no modifier against `dc`, default 10; a natural 1 counts `natural1Failures`; a natural 20 heals `natural20Heals` and `recover` applies), shows the counters and says *Stable* or *Dead* at `max` (default 3); with `massiveDamage`, damage beyond 0 of at least the hit point maximum kills. The fifth edition uses it.
 - `module-check` checks the references (entity types, fields, saves, conditions, rule cards), every JSONLogic rule, that AC and maximum hit points give numbers for a new entity, and that every preset's attacks read cleanly.
 
 ## GM screen

@@ -29,6 +29,8 @@ export interface RollLogProps {
   newestFirst?: boolean;
   max?: number;
   className?: string;
+  /** Names a recorded roll's table (else the table is left out; its id stays in the tooltip). */
+  tableName?: (id: string) => string | undefined;
 }
 
 function shortTime(at: string | undefined): string {
@@ -38,7 +40,7 @@ function shortTime(at: string | undefined): string {
   return d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
 }
 
-export function RollLog({ entries, dice, newestFirst = true, max, className }: RollLogProps) {
+export function RollLog({ entries, dice, newestFirst = true, max, className, tableName }: RollLogProps) {
   let list = newestFirst ? [...entries].reverse() : entries;
   if (max !== undefined) list = list.slice(0, max);
   if (list.length === 0) return <EmptyState title="No rolls yet" className={className} />;
@@ -72,7 +74,7 @@ export function RollLog({ entries, dice, newestFirst = true, max, className }: R
               </span>
             </div>
           )}
-          {e.records && e.records.length > 0 && <RollRecordList rolls={e.records} />}
+          {e.records && e.records.length > 0 && <RollRecordList rolls={e.records} {...(tableName ? { tableName } : {})} />}
         </li>
       ))}
     </ol>

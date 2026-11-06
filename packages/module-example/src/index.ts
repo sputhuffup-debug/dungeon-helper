@@ -970,6 +970,8 @@ export const exampleModule: GameModule = {
     weekdays: ["Sun", "Moon", "Tree", "Stone", "River"],
     format: "{year}-{month:02}-{day:02}",
   },
+  // the fixture's own words, so tests see the app take them from the module
+  terms: { party: "company", mapLevel: "floor" },
   styleNotes: ["Short, plain sentences."],
   narrativeFields,
   adventureBuilders: [questBuilder],

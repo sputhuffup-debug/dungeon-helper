@@ -76,7 +76,7 @@ describe("Remaster ORC books (built-in supplement)", () => {
 
   it("ships the ORC notice, the attribution lines of the books it uses and the trademark disclaimer; never says Pathfinder in its name", () => {
     const license = supplement.manifest.license!;
-    expect(license).toMatchObject({ spdx: "LicenseRef-ORC", name: "ORC License", url: "https://paizo.com/orclicense" });
+    expect(license).toMatchObject({ spdx: "LicenseRef-ORC", name: "ORC License", url: "https://paizo.com/orclicense", inExports: true });
     expect(license.attribution).toContain(ORC_NOTICE);
     expect(license.attribution).toContain(TRADEMARK_NOTICE);
     const used = BOOKS.filter((b) => b.cite !== "Rage of Elements");

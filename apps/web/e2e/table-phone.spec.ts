@@ -83,7 +83,8 @@ test("a session at 390×844: tab bar to the map, the crew and the dice; one roun
   await expect(live.getByTestId("hunt-step")).toHaveText("· Round 1");
   await expect(live.getByTestId("hunt-prompt")).toContainText("Round 1 begins");
 
-  // Crew: the compact rows and the trackers; the initiative tracker's "Next round" moves the same clock
+  // Crew (Alien's word for the group): the compact rows and the trackers; the initiative tracker's "Next round" moves the same clock
+  await expect(tab(page, "crew")).toContainText("Crew");
   await tab(page, "crew").click();
   const crew = panel(page, "crew");
   await expect(crew.getByRole("list", { name: "Player characters" })).toBeVisible();

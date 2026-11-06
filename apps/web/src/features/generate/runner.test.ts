@@ -124,7 +124,7 @@ describe("runGenerator", () => {
   });
 
   it("formats values compactly and makes fresh seeds", () => {
-    // an object reads as its label alone: the rest is under Raw result
+    // an object reads as its label alone: the rest is under Full result
     expect(summarizeValue({ label: "Weyland-Yutani", detail: { name: "W-Y", factionType: "corporation" } })).toBe("Weyland-Yutani");
     expect(summarizeValue({ job: "01M6FWNGKYSE36238Z2QRPKYBE", name: "Foodstuff", label: "Foodstuff to the outpost: $16,000", amount: 16000 })).toBe("Foodstuff to the outpost: $16,000");
     // without a label: readable keys, no ids, nothing nested past one level

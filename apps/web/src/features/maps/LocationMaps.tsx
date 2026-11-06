@@ -1,5 +1,5 @@
 /** "Maps" section on a location's page: site maps placed at this location, and a button to add one. */
-import type { Entity, Id, SiteMap } from "@campaign-forge/core";
+import { mapZoneCount, type Entity, type Id, type SiteMap } from "@campaign-forge/core";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useMemo } from "react";
 import { Badge, Button, Card, type SheetContextValue } from "../../components/ui";
@@ -64,9 +64,9 @@ export function LocationMaps({ entity }: { entity: Entity }) {
                 {m.name}
               </Link>
               <Badge>
-                {m.zones.length} zone{m.zones.length === 1 ? "" : "s"}
+                {mapZoneCount(m)} zone{mapZoneCount(m) === 1 ? "" : "s"}
               </Badge>
-              {!m.asset && <span className="cf-muted">no image</span>}
+              {!m.asset && !m.layout && <span className="cf-muted">no image</span>}
             </li>
           ))}
         </ul>

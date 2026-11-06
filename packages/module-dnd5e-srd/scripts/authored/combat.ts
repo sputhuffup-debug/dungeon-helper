@@ -9,6 +9,7 @@
  */
 import type { D20CombatDef, D20ConditionDef, ReferenceList } from "@campaign-forge/module-sdk";
 import { ABILITIES, CHARACTER, cite, LIST, MONSTER, rule, saveBonusName, SAVES, SKILLS } from "../ids.ts";
+import { ATTACK_BONUS, ATTACK_DAMAGE_BONUS } from "./entityTypes.ts";
 
 const STR_DEX = ["strength-save", "dexterity-save"];
 const condition = (c: Omit<D20ConditionDef, "cite" | "rule">): D20ConditionDef => ({ ...c, cite: cite("Conditions", c.name), rule: rule(`conditions.${c.id}`) });
@@ -182,7 +183,8 @@ export function d20Combat(lists: ReferenceList[]): D20CombatDef {
     attackAbilities: { melee: "strength", ranged: "dexterity" },
     skillAbilities: Object.fromEntries(SKILLS.map((s) => [s.id, s.ability])),
     combatants: [
-      { entityTypes: [CHARACTER], ac: { var: ["fields.ac", 10] }, hp, saves, attacks: [{ path: "attacks", keys: { damageType: "type" } }], speed: { var: ["fields.speed", 30] } },
+      // a weapon row that names its ability gets its to-hit and damage modifier from the sheet (rule 4)
+      { entityTypes: [CHARACTER], ac: { var: ["fields.ac", 10] }, hp, saves, attacks: [{ path: "attacks", keys: { damageType: "type" }, bonus: ATTACK_BONUS, damageBonus: ATTACK_DAMAGE_BONUS }], speed: { var: ["fields.speed", 30] } },
       { entityTypes: [MONSTER], ac: { var: ["fields.ac", 10] }, hp, saves, damageModifiers: "damageModifiers", conditionImmunities: "conditionImmunities", attacks: [{ path: "attacks" }], speed: { var: ["fields.speed", ""] } },
     ],
     rules: { crit: "natural20Doubles", critDamage: "dice", save: "total", halfSave: { success: 0.5, failure: 1 }, stacking: "typed", damageOrder: ["immunity", "resistance", "vulnerability"] },
@@ -192,7 +194,8 @@ export function d20Combat(lists: ReferenceList[]): D20CombatDef {
         when: { "==": [{ var: "type" }, CHARACTER] },
         conditions: [{ id: "unconscious" }],
         recover: { remove: ["unconscious"], setFields: { "deathSaves.successes": 0, "deathSaves.failures": 0 } },
-        text: "A character at 0 hit points falls unconscious and makes a death saving throw at the start of each of its turns (the death save tracker): 10 or higher is a success, three successes stabilize it, three failures kill it, a natural 20 brings it back with 1 hit point. Damage at 0 hit points is a failed death save (two on a critical hit), and damage that leaves the rest equal to its hit point maximum kills it outright. Any healing wakes it.",
+        deathSaves: { successes: "deathSaves.successes", failures: "deathSaves.failures", max: 3, dc: 10, damageFailures: 1, criticalFailures: 2, natural1Failures: 2, natural20Heals: 1, massiveDamage: true },
+        text: "A character at 0 hit points falls unconscious and makes a death saving throw at the start of each of its turns (Roll death save on its card): 10 or higher is a success, a natural 1 counts as two failures, a natural 20 brings it back with 1 hit point. Three successes stabilize it; three failures kill it. Damage while at 0 hit points is a failed death save (two on a critical hit), and the card counts it. If the damage left over after dropping to 0, or taken while down, is at least its hit point maximum, it dies outright. Any healing wakes it.",
         cite: cite("Combat", "Damage and Healing, Dropping to 0 Hit Points"),
       },
       {

@@ -71,13 +71,19 @@ export function InputForm({ properties, value, onChange, store, module, docText,
         if (isArcsInput(s)) {
           return <ArcsInput key={key} name={key} schema={s} value={value[key] as ArcSnapshot | undefined} onChange={(v) => set(key, v)} board={!!arcsBoard} clueKind={clueKind ?? ((k) => k)} />;
         }
-        if (campaignHint(s)) {
+        const campaign = campaignHint(s);
+        if (campaign) {
           const snap = value[key] as { entities?: unknown[]; relationships?: unknown[] } | undefined;
+          // a generator that reads no links (`relationships: []`) is not told "0 links" while the campaign has some
+          const readsLinks = !(Array.isArray(campaign.relationships) && campaign.relationships.length === 0);
+          const n = snap?.entities?.length ?? 0;
+          const links = snap?.relationships?.length ?? 0;
           return (
             <p key={key} className="app-label prep-form__field prep-form__note" data-testid={`input-${key}`}>
               <span>{s.title ?? humanize(key)}</span>
               <span className="cf-muted">
-                {snap?.entities?.length ?? 0} entities and {snap?.relationships?.length ?? 0} links, read when the page opened{s.description ? `. ${s.description}` : ""}
+                {n} {n === 1 ? "entity" : "entities"}
+                {readsLinks ? ` and ${links} ${links === 1 ? "link" : "links"}` : ""}, read when the page opened{s.description ? `. ${s.description}` : ""}
               </span>
             </p>
           );
@@ -98,7 +104,7 @@ export function InputForm({ properties, value, onChange, store, module, docText,
                 value={current ?? ""}
                 onChange={(e) => {
                   const picked = options.find((o) => o.id === e.target.value);
-                  set(key, picked ? entitySnapshot(picked) : undefined);
+                  set(key, picked ? entitySnapshot(picked, store) : undefined);
                 }}
                 data-testid={`input-${key}`}
               >

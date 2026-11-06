@@ -43,6 +43,8 @@ export interface MapFileOptions {
   def: MapGeneratorDef | undefined;
   /** Add a title block with a scale bar below the map (SVG and PNG). */
   titleBlock?: boolean | undefined;
+  /** The attribution the module's licence requires in every copy (`exportLicences`), printed at the foot or on a last page. */
+  notice?: string | undefined;
 }
 
 export interface RollFileOptions extends MapFileOptions {
@@ -53,7 +55,7 @@ export interface RollFileOptions extends MapFileOptions {
 }
 
 export function rollOptions(map: SiteMap, o: RollFileOptions, layout: SiteLayout): RollPrintOptions {
-  return { view: o.view, deck: deckIn(layout, o.deck), legend: o.def?.legend, passable: o.def?.passable, rollWidthIn: o.rollWidthIn, mmPerMetre: o.mmPerMetre, gridSquares: o.gridSquares, titleBlock: o.titleBlock, title: map.name, act: 1 };
+  return { view: o.view, deck: deckIn(layout, o.deck), legend: o.def?.legend, passable: o.def?.passable, rollWidthIn: o.rollWidthIn, mmPerMetre: o.mmPerMetre, gridSquares: o.gridSquares, titleBlock: o.titleBlock, title: map.name, act: 1, ...(o.notice ? { notice: o.notice } : {}) };
 }
 
 /** The roll print plan (pages and paper) for the current settings. */

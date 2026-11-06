@@ -46,7 +46,7 @@ A player character for each player, and who plays whom.
 
 Click *Open the PCs* in the checklist, then *Build a character*. The builder walks *Edition* (SRD 5.1 rules, SRD 5.2 rules or *Mixed*), *Species / race*, *Class*, *Background*, *Ability scores* (standard array, point buy, rolled or typed), *Starting level*, spells for a caster, *Equipment*, *Details* and *Review*. Each option shows its full text, and the summary on the right keeps the scores, hit points, AC, saves and skills up to date as you pick.
 
-The example is a hill dwarf fighter with the Acolyte background and a point buy, named Doran Kettleby under *Details*. *Keep for later* saves a half-built character in the campaign; on *Review*, every grant is listed with where it came from, and *Create character* makes the PC.
+The example is a hill dwarf fighter with the Acolyte background and a point buy, named Doran Kettleby under *Details*. A step that shows a pick but still needs something (the Acolyte's two languages) says how many choices are left in the list of steps; a pick a later step makes unavailable (a class skill the background also gives) is marked, and you can untick it. *Keep for later* saves a half-built character in the campaign; on *Review*, every grant is listed with where it came from, and *Create character* makes the PC.
 
 ![The character builder at the Class step: a dwarf fighter picked, with the side summary](../screenshots/guide-dnd5e-srd-build-character.png)
 
@@ -54,7 +54,7 @@ The example is a hill dwarf fighter with the Acolyte background and a point buy,
 
 The new PC opens on its sheet. You keep the scores, proficiencies, level and gear; everything marked *Computed* is worked out from them each time the sheet is shown: ability modifiers, proficiency bonus, initiative, saving throw and skill bonuses, passive Perception, hit dice and the spellcasting numbers.
 
-*Roll* beside a save or skill rolls the d20 with its bonus, with advantage, disadvantage and a DC if you want them. *Level up* adds a class level later, multiclassing included.
+The weapons from *Equipment* are on *Attacks*, each with the ability it uses: *To hit* and *Damage* follow the scores, and *Add a weapon* adds another from the SRD's list. *Roll* beside a save or skill rolls the d20 with its bonus, with advantage, disadvantage and a DC if you want them. *Level up* adds a class level later, multiclassing included.
 
 ![Doran Kettleby's ability scores and combat numbers, the modifiers, initiative and hit die marked computed](../screenshots/guide-dnd5e-srd-pc-sheet.png)
 
@@ -108,7 +108,7 @@ The stat block's numbers, attacks and senses come with it, so the captain is rea
 
 ### 4.2 An NPC by hand
 
-For someone who will mostly talk, use the *NPC* sheet. On the Atlas's *NPCs* tab, click *+ New* and choose *NPC* as the *Type*, name them (Brother Tobin Marsh) and click *Create NPC*. Write the *Summary*, then *Occupation*, *Attitude toward the party* and, under *Playing them*, a quirk, a voice, *What they want* and a *Secret*. *Stat block* names the SRD stat block to use if it does come to a fight (Acolyte, for the sexton).
+For someone who will mostly talk, use the *NPC* sheet. On the Atlas's *NPCs* tab, click *+ New*, set *Type* to *NPC* (the page can start on another type), name them (Brother Tobin Marsh) and click *Create NPC*. Write the *Summary*, then *Occupation*, *Attitude toward the party* and, under *Playing them*, *Quirk*, *Voice and manner*, *What they want* and a *Secret*. *Stat block* names the SRD stat block to use if it does come to a fight (Acolyte, for the sexton).
 
 *Generate* → *NPC* rolls one for you: a name, an occupation with a stat block, a quirk, a voice, a want and a secret.
 
@@ -122,7 +122,7 @@ Relationships, links in notes, and who gets to see what.
 
 On Brother Tobin's page, go to *Relationships* and click *+ Add relationship*. Choose how they relate (*knows*, *member of*, *serves*, *rival of*, *owns*, *wants*, *within* and more), *Choose…* who, add a *Note* if it helps (“Asked him to keep the watch away from the graveyard”) and click *Add*.
 
-A relationship shows on both pages: Captain Hollis Varrow's *Relationships* tab lists the sexton too.
+A relationship shows on both pages: Captain Hollis Varrow's *Relationships* tab lists the sexton too. The types offered follow what the page is: *serves* and *rival of* are for people and factions, so a place's dialog (Barrowfield Chapel's) leaves them out.
 
 ![The Link dialog: Brother Tobin Marsh knows Captain Hollis Varrow, with a note](../screenshots/guide-dnd5e-srd-relationship.png)
 
@@ -160,7 +160,7 @@ A quest gives the party a reason; an adventure holds what you run: acts, scenes,
 
 Home's *Quest board* groups the campaign's quests by status. The rumour from the settlement generator sits under *Rumour*; *Generate a quest* opens *Generate*, and *+ Quest* writes one by hand.
 
-Open the rumour and fill in its sheet: *Patron* (Captain Hollis Varrow), *Objective*, *Reward* and *Deadline*, with *Complications* kept GM only. Set *Status* to *Offered* when the party hears it and *Active* when they take it; the board moves it along. *People in this job* lists who is tied to it (Quilla, who heard the rumour).
+Open the rumour and fill in its sheet: *Patron* (Captain Hollis Varrow), *Objective*, *Reward* and *Deadline*, with *Complications* kept GM only. Set *Status* to *Offered* when the party hears it and *Active* when they take it; the board moves it along. *People in this quest* lists who is tied to it (Quilla, who heard the rumour).
 
 ![Home's Quest board with the graves quest under Active, its patron Captain Hollis Varrow](../screenshots/guide-dnd5e-srd-quest-board.png)
 
@@ -178,7 +178,7 @@ The adventure opens on its *Overview*: the premise, *Player introduction* (read 
 
 ### 6.4 Roll an encounter for the road
 
-The template's second scene is the road to the lair. Open *Generate* and *Random encounter*, set the *Party level* and the *Terrain* (Wilby sits in grassland), and it picks SRD monsters for the terrain and the party's level band, how many, and what they are doing; tick *Include* on *Twist* for a complication.
+The template's second scene is the road to the lair. Open *Generate* and *Random encounter*, set the *Party level* and the *Terrain* (*Grassland and hills*, for Wilby), and it picks SRD monsters for the terrain and the party's level band, how many, and what they are doing; tick *Include* on *Twist* for a complication.
 
 Click *Accept into campaign*: the encounter and each creature, from its SRD stat block, join the campaign. The example is three bandits arguing about which way to go.
 
@@ -186,7 +186,9 @@ Click *Accept into campaign*: the encounter and each creature, from its SRD stat
 
 ### 6.5 Generate the lair: a dungeon
 
-On *Generate*, under *Site maps*, click *Generate a site map: Dungeon*. Fill the *Brief*: *Site type* (*Crypt or tomb*), *Size*, *Levels*, *Party level* and *Party size*, *Threat* and *Theme* (*The dead*). Type a *Seed* or keep the one offered and click *Generate*: the GM map shows numbered rooms, doors and secret doors, and the marks for encounters, traps and treasure. *Re-run this stage* changes one stage and keeps the rest; *Checks* says every room can be reached.
+On *Generate*, under *Site maps*, click *Generate a site map: Dungeon*. Fill the *Brief*: *Site type* (*Crypt or tomb*), *Size*, *Levels*, *Party level* and *Party size*, *Threat* and *Theme* (*The dead*). Type a *Seed* or keep the one offered and click *Generate*: the GM map shows numbered rooms, doors and secret doors, and the marks for encounters, traps and treasure.
+
+Each encounter is kept within an XP budget for the party's level and size (a stronger roll is re-rolled). *Re-run this stage* changes one stage and keeps the rest; *Checks* says every room can be reached, and names any encounter still too strong for the party.
 
 Name it (The Barrowfield Crypt) and click *Save to campaign*: the dungeon, its rooms, encounters and monsters are added (GM only), and the map page has the room key and a *Player map* that shows only what you reveal.
 
@@ -196,7 +198,7 @@ Name it (The Barrowfield Crypt) and click *Save to campaign*: the dungeon, its r
 
 ### 6.6 Put places and people in a scene
 
-Back in the adventure, click a scene in the outline. *Location* *Pick* sets where it happens (the witnesses meet at The Lucky Lantern); *Participants* *+ Add* puts NPCs, PCs and monsters in it (Quilla Greyhame and Brother Tobin Marsh). *Encounter* *Pick* takes the bandits' encounter for the road, with the bandits as its participants, and *Map* shows The Barrowfield Crypt on the lair's entrance.
+Back in the adventure, click a scene in the outline. *Location* *Pick* sets where it happens (the witnesses meet at The Lucky Lantern); *Participants* *+ Add* puts NPCs, PCs and monsters in it (Quilla Greyhame and Brother Tobin Marsh). *Encounter* *Pick* links the bandits' encounter to the road; picking it does not bring the bandits along, so add them under *Participants* with *+ Add* (Bandit 1, 2 and 3), which is who the combat panel puts in the fight. On the lair's entrance, *Location* is The Barrowfield Crypt and the *Map* select shows its map.
 
 Below, *Events* lists what must or may happen, *Read-aloud text* is the boxed text for the players, and *Scene notes* take *@* links. Table mode shows all of it for the scene you are in.
 
@@ -204,7 +206,7 @@ Below, *Events* lists what must or may happen, *Read-aloud text* is the boxed te
 
 ### 6.7 Add a handout
 
-Click an act in the outline (Act 1) and, under *Handouts*, *+ Handout*. Title it (here “A page torn from the burial register”), open it to write the text or add an image, and leave it *GM only*: you reveal it at the table. *+ Agenda* adds a handout for one character, which goes to that player alone.
+Click an act in the outline (Act 1) and, under *Handouts*, *+ Handout*. Title it (here “A page torn from the burial register”), open it to write the text or add an image, and leave it *GM only*: you reveal it at the table. *+ Personal handout* adds a handout for one character, which goes to that player alone.
 
 ![Act 1's Handouts card with the burial register page](../screenshots/guide-dnd5e-srd-handout.png)
 
@@ -214,9 +216,9 @@ Plan it, run it at the table, wrap it up; the next one is planned for you.
 
 ### 7.1 Plan the session
 
-Click *Plan a session* in the checklist (or *Plan next session* on *Sessions*). Under *Scenes planned*, open *Add scenes* and click *+ Plan* on each scene for tonight, or *Add all* for an act; table mode steps through them in order, and the arrows reorder them. Add what to remember to the *Plan* (“Tobin lies about the crypt key”); the *Session checklist* has the module's own prep items, such as checking hit points and spell slots.
+Click *Plan a session* in the checklist: it opens *Sessions*, where *Plan a session* (or *Plan next session*, once there is one) makes the session and opens it. Under *Scenes planned*, open *Add scenes* and click *+ Plan* on each scene for tonight, or *Add all* for an act; table mode steps through them in order, and the arrows reorder them. Type what to remember into the *Plan* and press Enter (“Tobin lies about the crypt key”); the *Session checklist* has the module's own prep items, such as checking hit points and spell slots.
 
-![Session 1's Scenes planned: the witnesses, the road and the crypt's entrance](../screenshots/guide-dnd5e-srd-session-plan.png)
+![Session 1's Scenes planned (the witnesses, the road and the crypt's entrance) and its Plan with Tobin's lie](../screenshots/guide-dnd5e-srd-session-plan.png)
 
 ### 7.2 Start it: table mode
 
@@ -230,7 +232,7 @@ Click *Start this session* on Home. Table mode shows the scene you are in with i
 
 On the road, the *Combat* panel lists the PCs and the scene's monsters. Click *Roll initiative for everyone*: each rolls a d20 plus its initiative and the order is sorted, highest first, with whose turn it is on top. *Next turn* moves on and counts the rounds.
 
-Each card has its hit points with *Damage*, *Heal* and *Temp HP*, its AC and *+ Condition*. *Attack* rolls an attack from a stat block or the sheet's attacks against a target's AC, then its damage, with resistances, critical hits and saves applied; a condition's chip says what it does and what the app applies by itself.
+Each card has its hit points with *Damage*, *Heal* and *Temp HP*, its AC and *+ Condition*. *Attack* rolls an attack from a stat block or the sheet's attacks (Doran's longsword, with his bonus worked out) against a target's AC, then its damage, with resistances, critical hits and saves applied; a condition's chip says what it does and what the app applies by itself.
 
 *Rulebook: SRD 5.1 — Combat: The Order of Combat, Initiative.*
 

@@ -120,6 +120,14 @@ export const alienModule: GameModule = {
   rules,
   trackers,
   calendar,
+  // the words the app's generic screens use: the PCs are a crew, a site map has decks, a PC's secret handout is an agenda
+  terms: {
+    party: "crew",
+    mapLevel: "deck",
+    agenda: "agenda",
+    rewardExamples: "cash, gear, favours, a new contact",
+    epiloguePrompt: "What happens to the survivors…",
+  },
   styleNotes,
   hooks,
   narrativeFields,

@@ -1,5 +1,6 @@
-/** Scene pane: purpose, status, location, participants, clues, encounter, map, events, body and read-aloud text. */
-import { newId, type Scene, type SceneStatus } from "@campaign-forge/core";
+/** Scene pane: titles (the GM's and the players'), purpose, status, location, participants, clues, encounter, map, events, body and read-aloud text. */
+import { mapZoneCount, newId, playerSceneHeading, type Scene, type SceneStatus } from "@campaign-forge/core";
+import { useMemo } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Badge, Button, Card, IconButton } from "../../components/ui";
 import { RichTextEditor } from "../../editor";
@@ -18,7 +19,14 @@ export function SceneEditor({ scene }: { scene: Scene }) {
   const clueTypes = useTypesOfKind(["clue"]);
   const encounterTypes = useTypesOfKind(["encounter"]);
   const maps = useList("maps");
+  const acts = useList("acts");
+  const entities = useList("entities");
   const map = scene.map ? maps.find((m) => m.id === scene.map) : undefined;
+  // what the players read when no player title is set: the visible location, else the scene's number
+  const fallback = useMemo(
+    () => playerSceneHeading({ acts: Object.fromEntries(acts.map((a) => [a.id, a])), entities: Object.fromEntries(entities.map((e) => [e.id, e])) }, { ...scene, playerTitle: undefined }),
+    [scene, acts, entities],
+  );
   const set = (patch: Partial<Scene>) => updateScene(ctx, scene.id, patch);
 
   const createMap = () => {
@@ -48,6 +56,11 @@ export function SceneEditor({ scene }: { scene: Scene }) {
             </select>
           </label>
         </div>
+        <label className="app-label">
+          <span>Title for the players</span>
+          <CommitInput value={scene.playerTitle ?? ""} label="Title for the players" placeholder={fallback} onCommit={(v) => set({ playerTitle: v.trim() || undefined })} testId="scene-player-title" />
+          <span className="cf-muted app-small">The heading on the player screen, shares and packets. Left empty, they read “{fallback}”; your own title stays with you.</span>
+        </label>
         <label className="app-label">
           <span>Purpose</span>
           <CommitInput value={scene.purpose ?? ""} label="Scene purpose" placeholder="What this scene is for, in one line" grow onCommit={(v) => set({ purpose: v.trim() || undefined })} />
@@ -87,7 +100,7 @@ export function SceneEditor({ scene }: { scene: Scene }) {
                   </Link>
                   {(() => {
                     // a generated site map keeps its zones in its layout; an imported image has drawn ones
-                    const n = map.layout ? map.layout.zones.length : map.zones.length;
+                    const n = mapZoneCount(map);
                     return (
                       <Badge>
                         {n} zone{n === 1 ? "" : "s"}

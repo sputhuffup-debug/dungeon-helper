@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { MapGeneratorDef, MapZoneData, SiteLayout } from "@campaign-forge/module-sdk";
+import type { MapGeneratorDef, MapZoneData, ModuleManifest, SiteLayout } from "@campaign-forge/module-sdk";
 import * as Y from "yjs";
 import {
   CampaignStore,
@@ -127,7 +127,7 @@ function seed(): Seeded {
   store.update("maps", map.id, {
     live: { ...live, tokens: [{ id: "t1", label: "SECRET-GM-TOKEN", zone: "A", gmOnly: true }, { id: "t2", label: "Okafor", zone: "A", gmOnly: false }], pings: [{ zone: "C", at: "t" }] },
   });
-  const scene = store.createScene(act.id, { title: "Docking", map: map.id, withReadAloudDoc: true });
+  const scene = store.createScene(act.id, { title: "Docking", playerTitle: "Docking", map: map.id, withReadAloudDoc: true });
   write(scene.bodyDoc, "SECRET-SCENE-NOTES: the hatch is trapped.");
   write(scene.readAloudDoc, "The relay hangs in the dark.");
 
@@ -253,5 +253,78 @@ describe("what's new", () => {
     expect(plan.share.maps).toEqual([]);
     expect(plan.share.party).toEqual([]);
     expect(plan.share.handouts).toHaveLength(1);
+  });
+});
+
+describe("what the players read of a scene and a map", () => {
+  it("heads a scene with its player title, else its visible location, else its number; never the GM's title", () => {
+    const s = seed();
+    const scene = s.store.get("scenes", s.scene)!;
+    const npc = s.store.list("entities").find((e) => e.name === "SECRET-GM-NPC")!;
+    // the GM's title names a GM-only NPC
+    s.store.update("scenes", scene.id, { title: "SECRET-GM-NPC turns on the crew", playerTitle: undefined, participants: [npc.id] });
+    let snap = snapshot(s);
+    expect(snap.briefing?.scene).toBe("Scene 1");
+    expect(shareMessage(planShare(snap, shareBaseline([]), defaultShareOptions(shareBaseline([]))))).toContain("the briefing for “Scene 1”");
+    expect(JSON.stringify(snap)).not.toContain("SECRET-GM-NPC");
+    // a scene before it in the act moves its number
+    const act = s.store.get("acts", scene.act!)!;
+    const before = s.store.createScene(act.id, { title: "SECRET-GM-PLAN" });
+    s.store.update("acts", act.id, { scenes: [before.id, scene.id] });
+    expect(snapshot(s).briefing?.scene).toBe("Scene 2");
+    // a location the players may see names the scene; a GM-only one does not
+    const hidden = s.store.createEntity({ type: PERSON.id, name: "SECRET-ZONE-NAME", visibility: { level: "gm" } });
+    s.store.update("scenes", scene.id, { location: hidden.id });
+    expect(snapshot(s).briefing?.scene).toBe("Scene 2");
+    const place = s.store.createEntity({ type: PERSON.id, name: "Halvorsen Relay", visibility: { level: "players" } });
+    s.store.update("scenes", scene.id, { location: place.id });
+    expect(snapshot(s).briefing?.scene).toBe("Halvorsen Relay");
+    // the player title wins, without a template's aside
+    s.store.update("scenes", scene.id, { playerTitle: "Something in the vents (link the deck)" });
+    snap = snapshot(s);
+    expect(snap.briefing?.scene).toBe("Something in the vents");
+    expect(JSON.stringify(snap)).not.toContain("SECRET-GM-NPC");
+  });
+
+  it("gives the map's legend only for what is on the part the players see", () => {
+    const s = seed();
+    const withMore = {
+      ...generator,
+      legend: [
+        { target: { marker: "hazard" }, label: "Hazard" },
+        { target: { border: "door" }, label: "Door" },
+        { target: { border: "shaft" }, label: "Shaft" },
+        { target: { area: "alien" }, label: "Alien structure" },
+        { target: { kind: "out-of-bounds" }, label: "Outside" },
+        { target: { flag: "sealed" }, label: "Sealed access point" },
+        { target: { flag: "cluttered" }, label: "Cluttered" },
+      ],
+    } as unknown as MapGeneratorDef;
+    const snap = playerShareSnapshot({ maps: s.store.toJSON(), module: { ...module, mapGenerators: [withMore] }, sessionId: s.session, sceneId: s.scene, doc: (id) => s.docs.get(id), at: "t" });
+    // zones A and B are seen: the hazard marker in A, and the door from B into fogged C; nothing else is on them
+    expect(snap.maps[0]!.legend.map((l) => l.label)).toEqual(["Hazard", "Door"]);
+  });
+
+  it("carries the attribution a licence requires in every copy, and only that", () => {
+    const s = seed();
+    const manifest: ModuleManifest = { id: "example", version: "0.1.0", name: "Example", ruleset: "x", licenseNotice: "n", requiredCore: "1", modes: [], defaultMode: "default", dataStatus: "verified" };
+    const run = (m: ModuleTypes) => playerShareSnapshot({ maps: s.store.toJSON(), module: m, sessionId: s.session, sceneId: s.scene, doc: (id) => s.docs.get(id), at: "t" });
+    expect(run(module).licence).toBeUndefined();
+    expect(run({ ...module, manifest: { ...manifest, license: { name: "MIT", attribution: "MIT text" } } }).licence).toBeUndefined();
+    const licensed = run({
+      ...module,
+      manifest: {
+        ...manifest,
+        license: { name: "CC BY 4.0", url: "https://creativecommons.org/licenses/by/4.0/", attribution: "Includes SRD material.", inExports: true },
+        supplements: [
+          { id: "sup", name: "Sup", version: "1", licenseNotice: "n", license: { name: "CC BY 4.0", attribution: "Includes SRD material.", inExports: true } },
+          { id: "sup2", name: "Sup 2", version: "1", licenseNotice: "n", license: { name: "ORC", attribution: "ORC Notice.", inExports: true } },
+        ],
+      },
+    });
+    expect(licensed.licence).toEqual([
+      { name: "CC BY 4.0", url: "https://creativecommons.org/licenses/by/4.0/", text: "Includes SRD material." },
+      { name: "ORC", text: "ORC Notice." },
+    ]);
   });
 });

@@ -3,7 +3,8 @@ import { cluesOf, markClueFound, type Id } from "@campaign-forge/core";
 import type { RollResult } from "@campaign-forge/module-sdk";
 import { afterEach, describe, expect, it } from "vitest";
 import { openCampaign, type CampaignContextValue } from "./CampaignProvider";
-import { finishSession, loadDemoCampaign, logTable, markScene, playerCharacters, recordPoolRoll, revealHandout, rollOperation, startPlannedSession, suggestTimeline, wrapUpOf } from "./tableActions";
+import { finishSession, loadDemoCampaign, logTable, markScene, playedScenes, playerCharacters, recordPoolRoll, revealHandout, rollOperation, setCurrentScene, startPlannedSession, suggestTimeline, wrapUpOf } from "./tableActions";
+import { takeHit } from "./combatActions";
 import { moveDateForTrip, sourceTrip, undoTripMove } from "./sourceActions";
 import { theCrewShip } from "./shipActions";
 import { draftSessionSummary, mergeTimeline, saveWrapUpDraft, sessionFacts, summaryFromFacts, wrapUpDraftOf } from "./wrapUpActions";
@@ -97,7 +98,8 @@ describe("the summary drafted from the log", () => {
     expect(facts.sweeps).toEqual({ count: 2, withContacts: 1 });
     expect(facts.seen).toEqual(["Xenomorph drone"]);
 
-    const text = summaryFromFacts(facts);
+    // Alien's word for the group (its terms); the draft below reads it from the module
+    const text = summaryFromFacts(facts, "crew");
     expect(text).toContain("The crew played one scene: ");
     expect(text).toContain("They found a clue: ");
     expect(text).toContain("The players were shown ");
@@ -111,6 +113,45 @@ describe("the summary drafted from the log", () => {
     expect(text).not.toContain("GM secret roll");
     // deterministic
     expect(draftSessionSummary(ctx, sessionId, "[20:10] The crew takes the job.")).toBe(text);
+    // another game's group, and the neutral word for a module without one
+    expect(summaryFromFacts(facts, "party")).toContain("The party played one scene: ");
+    expect(summaryFromFacts(facts)).toContain("The group played one scene: ");
+  });
+});
+
+describe("the drafted summary tells stress from injury, and agrees with the loose ends", () => {
+  // Walkthrough 3 (A13): a stress response read as an injury; the hit that broke a PC was left out
+  it("says a stress response is one, and names the damage that broke a PC (logged GM-only)", async () => {
+    const { ctx, sessionId } = await session2();
+    const [ana, ben] = playerCharacters(ctx);
+    rollOperation(ctx, sessionId, "stressResponse", ana!.id);
+    takeHit(ctx, sessionId, ben!.id, { amount: 20, by: "Corporate security: Rifle" });
+    const facts = sessionFacts(ctx, sessionId);
+    expect(facts.injuries).toEqual([]);
+    expect(facts.stress.map((s) => s.who)).toEqual([ana!.name]);
+    expect(facts.damage).toEqual([{ who: ben!.name, amount: expect.any(Number), broken: true }]);
+    const text = summaryFromFacts(facts);
+    expect(text).toContain(`${ana!.name} reacted to the stress (Stress response, `);
+    expect(text).not.toContain(`${ana!.name} was hurt`);
+    expect(text).toMatch(new RegExp(`Damage taken: ${ben!.name} \\d+, broken\\.`));
+  });
+
+  // Walkthrough 3 (O11): "played 2 scenes" beside "Not reached" and "None marked run" for the same scenes
+  it("counts scenes the table moved into as played, everywhere, and finishing marks them run", async () => {
+    const { ctx, sessionId } = await session2();
+    const scene = ctx.store.list("scenes").find((s) => s.title && s.status === "planned")!;
+    setCurrentScene(ctx, sessionId, scene.id);
+    expect(playedScenes(ctx.store, sessionId)).toEqual([scene.id]);
+    expect(sessionFacts(ctx, sessionId).scenes).toHaveLength(1);
+    expect(suggestTimeline(ctx.store, sessionId).some((t) => t.key === `scene:${scene.id}`)).toBe(true);
+    // a scene marked skipped after the table moved into it was not played
+    const other = ctx.store.list("scenes").find((s) => s.title && s.id !== scene.id)!;
+    setCurrentScene(ctx, sessionId, other.id);
+    markScene(ctx, sessionId, other.id, "skipped");
+    expect(playedScenes(ctx.store, sessionId)).toEqual([scene.id]);
+    finishSession(ctx, sessionId, { summary: "x" });
+    expect(ctx.store.get("scenes", scene.id)?.status).toBe("run");
+    expect(ctx.store.get("sessions", sessionId)?.scenesRun).toContain(scene.id);
   });
 });
 

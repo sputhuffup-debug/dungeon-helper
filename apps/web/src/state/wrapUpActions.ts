@@ -18,9 +18,9 @@
  * The session record is GM-only, so the draft never reaches players.
  */
 import { cluesOf, type Id, type Session, type TrackerState } from "@campaign-forge/core";
-import type { Effect, LoadedModule, RollResult } from "@campaign-forge/module-sdk";
+import { DEFAULT_TERMS, resolveTerms, type Effect, type LoadedModule, type RollResult } from "@campaign-forge/module-sdk";
 import type { CampaignContextValue } from "./CampaignProvider";
-import { DICE_LOG, REVEAL_LOG, TABLE_LOG, summaryDraft, wrapUpOf, type DiceLogData, type TimelineDraft } from "./tableActions";
+import { DICE_LOG, REVEAL_LOG, TABLE_LOG, playedScenes, playerCharacters, summaryDraft, wrapUpOf, type DiceLogData, type TimelineDraft } from "./tableActions";
 
 type Ctx = Pick<CampaignContextValue, "store" | "module">;
 
@@ -44,6 +44,8 @@ export interface WrapUpDraft {
   step?: string;
   /** The award checklist's ticks per character, before awarding. */
   awardTicks?: Record<Id, string[]>;
+  /** The end-of-act award ticks not awarded yet (see actTickKey in progressionActions.ts). */
+  actTicks?: string[];
   at?: string;
 }
 
@@ -64,6 +66,7 @@ export function wrapUpDraftOf(session: Session | undefined): WrapUpDraft {
       .map((t) => ({ key: t.key, text: String(t.text ?? ""), entities: Array.isArray(t.entities) ? t.entities.filter((x): x is Id => typeof x === "string") : [], include: t.include !== false, ...(typeof t.inWorldDate === "string" ? { inWorldDate: t.inWorldDate } : {}) }));
   if (typeof d.step === "string") out.step = d.step;
   if (isRecord(d.awardTicks)) out.awardTicks = Object.fromEntries(Object.entries(d.awardTicks).filter((x): x is [string, string[]] => Array.isArray(x[1])).map(([k, v]) => [k, v.filter((q): q is string => typeof q === "string")]));
+  if (Array.isArray(d.actTicks)) out.actTicks = d.actTicks.filter((k): k is string => typeof k === "string");
   if (typeof d.at === "string") out.at = d.at;
   return out;
 }
@@ -104,7 +107,10 @@ export interface SessionFacts {
   shown: string[];
   panics: Array<{ who: string; label: string }>;
   injuries: Array<{ who: string; what: string }>;
-  damage: Array<{ who: string; amount: number }>;
+  /** Stress responses (the stress tracker's other operations): not injuries. */
+  stress: Array<{ who: string; what: string }>;
+  /** Damage the player characters took, and whether it broke them. */
+  damage: Array<{ who: string; amount: number; broken?: boolean }>;
   rolls: string[];
   sweeps: { count: number; withContacts: number };
   seen: string[];
@@ -132,6 +138,19 @@ function panicOperations(module: Pick<LoadedModule, "module">): Set<string> {
   return out;
 }
 
+/** The stress tracker's other operations (a stress response, a mental trauma roll): what they leave is not an injury. */
+function stressOperations(module: Pick<LoadedModule, "module">): Set<string> {
+  const out = new Set<string>();
+  for (const def of module.module.trackers) {
+    if (def.kind !== "stress") continue;
+    const cfg = def.config ?? {};
+    const ops = isRecord(cfg.operations) ? cfg.operations : {};
+    for (const v of [...Object.values(ops), cfg.stressResponseOperation]) if (typeof v === "string") out.add(v);
+  }
+  for (const op of panicOperations(module)) out.delete(op);
+  return out;
+}
+
 /** The session's tracker log, oldest first (the live state; an archived one once the session is done). */
 function sessionLog(ctx: Ctx, sessionId: Id): TrackerState["log"] {
   const states = ctx.store.list("trackerState").filter((t) => t.session === sessionId);
@@ -143,27 +162,20 @@ function sessionLog(ctx: Ctx, sessionId: Id): TrackerState["log"] {
 export function sessionFacts(ctx: Ctx, sessionId: Id, logText = ""): SessionFacts {
   const store = ctx.store;
   const session = store.get("sessions", sessionId);
-  const facts: SessionFacts = { scenes: [], clues: [], shown: [], panics: [], injuries: [], damage: [], rolls: [], sweeps: { count: 0, withContacts: 0 }, seen: [], notes: [] };
+  const facts: SessionFacts = { scenes: [], clues: [], shown: [], panics: [], injuries: [], stress: [], damage: [], rolls: [], sweeps: { count: 0, withContacts: 0 }, seen: [], notes: [] };
   if (!session) return facts;
   const name = (id: Id | undefined) => (id ? store.get("entities", id)?.name : undefined);
 
-  // scenes: those marked run, else those the table moved through
+  // scenes: the ones played (marked run, or moved into at the table), as the loose ends and timeline read them
   const log = sessionLog(ctx, sessionId);
-  for (const id of session.scenesRun) {
+  for (const id of playedScenes(store, sessionId)) {
     const scene = store.get("scenes", id);
     if (!scene) continue;
     // "Arrival at Gateway Station", not "Arrival at Gateway Station at Gateway Station (job site)"
     const at = placeName(name(scene.location) ?? "");
     facts.scenes.push(at && !scene.title.includes(at) ? `${stop(scene.title)} at ${at}` : stop(scene.title));
   }
-  if (facts.scenes.length === 0) {
-    for (const l of log) {
-      const sceneId = l.tracker === TABLE_LOG && isRecord(l.data) && typeof l.data.scene === "string" && l.text.startsWith("Scene: ") ? l.data.scene : undefined;
-      const scene = sceneId ? store.get("scenes", sceneId) : undefined;
-      if (scene) facts.scenes.push(stop(scene.title));
-    }
-    facts.scenes = uniq(facts.scenes);
-  }
+  facts.scenes = uniq(facts.scenes);
 
   // clues the crew found this session
   for (const t of store.list("arcs")) {
@@ -179,9 +191,21 @@ export function sessionFacts(ctx: Ctx, sessionId: Id, logText = ""): SessionFact
   facts.shown = uniq(shown);
 
   const panicOps = panicOperations(ctx.module);
+  const stressOps = stressOperations(ctx.module);
   const damage = new Map<string, number>();
+  const broken = new Set<string>();
+  // the hits a player character took are logged GM-only (armor dice and all), but the table saw them land
+  const pcs = new Set(playerCharacters(ctx).map((e) => e.id));
   for (const l of log) {
     const data = isRecord(l.data) ? l.data : undefined;
+    const entityId = l.entity ?? (typeof data?.entity === "string" ? data.entity : undefined);
+    if (entityId && pcs.has(entityId) && data) {
+      const who = name(entityId)!;
+      const amount = l.tracker === DICE_LOG && data.kind === "damage" && typeof data.total === "number" ? data.total : l.tracker === TABLE_LOG && typeof data.damage === "number" ? data.damage : 0;
+      if (amount > 0) damage.set(who, (damage.get(who) ?? 0) + amount);
+      if (data.broken === true) broken.add(who);
+      if (amount > 0 || data.kind === "damage") continue;
+    }
     if (data?.gmOnly === true) continue;
     const who = name(l.entity) ?? (typeof data?.entity === "string" ? name(data.entity) : undefined);
     if (l.tracker === DICE_LOG && data) {
@@ -193,6 +217,11 @@ export function sessionFacts(ctx: Ctx, sessionId: Id, logText = ""): SessionFact
           continue;
         }
         const opName = ctx.module.module.dice.operations?.[d.operation]?.name ?? d.operation;
+        // a stress response is not an injury, even when it leaves a condition
+        if (stressOps.has(d.operation)) {
+          if (who) facts.stress.push({ who, what: `${opName}, ${stop(label)}` });
+          continue;
+        }
         const hurt = (d.effects ?? []).some((e: Effect) => e.kind === "addCondition");
         if (hurt && who) facts.injuries.push({ who, what: `${opName}, ${stop(label)}` });
         else facts.rolls.push(`${who ? `${who}: ` : ""}${opName}, ${stop(label)}`);
@@ -207,7 +236,6 @@ export function sessionFacts(ctx: Ctx, sessionId: Id, logText = ""): SessionFact
       }
       continue;
     }
-    if (data && typeof data.damage === "number" && data.damage > 0 && who) damage.set(who, (damage.get(who) ?? 0) + data.damage);
     if (l.tracker === TABLE_LOG && data?.kind === "sweep") {
       facts.sweeps.count++;
       if (Array.isArray(data.blips) && data.blips.length > 0) facts.sweeps.withContacts++;
@@ -217,7 +245,7 @@ export function sessionFacts(ctx: Ctx, sessionId: Id, logText = ""): SessionFact
     if (l.tracker === TABLE_LOG && !data && l.text.startsWith("Revealed: ")) facts.seen.push(stop(l.text.slice("Revealed: ".length).replace(/\s*\(blip [^)]*\)\s*$/, "")));
     if (l.tracker === REVEAL_LOG) continue;
   }
-  facts.damage = [...damage.entries()].map(([who, amount]) => ({ who, amount }));
+  facts.damage = [...damage.entries()].map(([who, amount]) => ({ who, amount, ...(broken.has(who) ? { broken: true } : {}) }));
   facts.seen = uniq(facts.seen);
   facts.notes = summaryDraft(logText)
     .split("\n")
@@ -225,17 +253,18 @@ export function sessionFacts(ctx: Ctx, sessionId: Id, logText = ""): SessionFact
   return facts;
 }
 
-/** The summary drafted from the facts, one sentence a line; empty when the session recorded nothing. */
-export function summaryFromFacts(f: SessionFacts): string {
+/** The summary drafted from the facts, one sentence a line; empty when the session recorded nothing. `party` is the module's word for the group ("crew"). */
+export function summaryFromFacts(f: SessionFacts, party: string = DEFAULT_TERMS.party): string {
   const lines: string[] = [];
-  if (f.scenes.length) lines.push(`The crew played ${f.scenes.length === 1 ? "one scene" : `${f.scenes.length} scenes`}: ${list(f.scenes)}.`);
+  if (f.scenes.length) lines.push(`The ${party} played ${f.scenes.length === 1 ? "one scene" : `${f.scenes.length} scenes`}: ${list(f.scenes)}.`);
   if (f.clues.length === 1) lines.push(`They found a clue: ${f.clues[0]}.`);
   else if (f.clues.length > 1) lines.push(`They found ${f.clues.length} clues: ${f.clues.join("; ")}.`);
   if (f.shown.length) lines.push(`The players were shown ${list(f.shown)}.`);
   for (const p of f.panics) lines.push(`${p.who} panicked: ${p.label}.`);
+  for (const s of f.stress) lines.push(`${s.who} reacted to the stress (${s.what}).`);
+  if (f.damage.length) lines.push(`Damage taken: ${list(f.damage.map((d) => `${d.who} ${d.amount}${d.broken ? ", broken" : ""}`))}.`);
   for (const i of f.injuries) lines.push(`${i.who} was hurt (${i.what}).`);
-  if (f.damage.length) lines.push(`Damage taken: ${list(f.damage.map((d) => `${d.who} ${d.amount}`))}.`);
-  if (f.sweeps.count) lines.push(`The crew swept for movement ${times(f.sweeps.count)}${f.sweeps.withContacts ? ` and picked something up ${times(f.sweeps.withContacts)}` : " and picked up nothing"}.`);
+  if (f.sweeps.count) lines.push(`The ${party} swept for movement ${times(f.sweeps.count)}${f.sweeps.withContacts ? ` and picked something up ${times(f.sweeps.withContacts)}` : " and picked up nothing"}.`);
   if (f.seen.length) lines.push(`${list(f.seen)} came into view.`);
   if (f.rolls.length) lines.push(`Rolls of note: ${f.rolls.slice(0, 5).join("; ")}${f.rolls.length > 5 ? `; and ${f.rolls.length - 5} more` : ""}.`);
   lines.push(...f.notes);
@@ -244,5 +273,5 @@ export function summaryFromFacts(f: SessionFacts): string {
 
 /** Draft the session's summary from what it recorded (`logText`: the log document's plain text). Deterministic. */
 export function draftSessionSummary(ctx: Ctx, sessionId: Id, logText = ""): string {
-  return summaryFromFacts(sessionFacts(ctx, sessionId, logText));
+  return summaryFromFacts(sessionFacts(ctx, sessionId, logText), resolveTerms(ctx.module.module).party);
 }

@@ -44,9 +44,17 @@ test("build a fifth edition character in the Thornwick Crossing demo, resume it,
   await expect(page).toHaveURL(/\/c\/[0-9A-Z]{26}\/home$/, { timeout: 30_000 });
   const base = page.url().replace(/\/home$/, "");
 
-  // 1. from the Atlas PCs tab
+  // 1. from the Atlas PCs tab; opening the builder and leaving without a pick leaves no draft behind (the demo's own half-built one stays alone)
   await page.getByRole("navigation", { name: "Campaign" }).getByRole("link", { name: "Atlas", exact: true }).click();
   await page.getByRole("tab", { name: /^PCs/ }).click();
+  const drafts = page.getByTestId("character-drafts").getByRole("listitem");
+  const before = await drafts.count();
+  await page.getByTestId("build-character").click();
+  await expect(page.getByTestId("character-builder")).toBeVisible();
+  await page.getByRole("link", { name: "PCs", exact: true }).click();
+  await expect(page.getByTestId("build-character")).toBeVisible();
+  await expect(drafts).toHaveCount(before);
+  await expect(page.getByTestId("character-drafts")).not.toContainText("Unnamed character");
   await page.getByTestId("build-character").click();
   await expect(page.getByTestId("character-builder")).toBeVisible();
   await expect(page.getByTestId("builder-title")).toHaveText("Build a character");
@@ -134,8 +142,8 @@ test("build a fifth edition character in the Thornwick Crossing demo, resume it,
   // 9. the sheet: stored fields written, numbers computed
   await expect(page.getByTestId("entity-page")).toBeVisible();
   await expect(page.getByTestId("entity-title")).toHaveValue("Hilda Stonebrook");
-  await expect(page.getByTestId("computed-proficiencyBonus")).toHaveText("2");
-  await expect(page.getByTestId("computed-constitutionMod")).toHaveText("3");
+  await expect(page.getByTestId("computed-proficiencyBonus")).toHaveText("+2");
+  await expect(page.getByTestId("computed-constitutionMod")).toHaveText("+3");
   await expect(page.getByTestId("pool-strength-save")).toHaveText("1d20 + 4");
   await expect(page.getByTestId("pool-athletics")).toHaveText("1d20 + 4");
   await expect(page.getByTestId("pool-perception")).toHaveText("1d20 + 2");

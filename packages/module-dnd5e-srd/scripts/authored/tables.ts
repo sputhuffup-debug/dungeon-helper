@@ -405,7 +405,7 @@ const procedures = (): PackProcedure[] => [
       type: "object",
       properties: {
         partyLevel: { type: "integer", minimum: 1, maximum: 20, default: 3, title: "Party level" },
-        terrain: { type: "string", enum: Object.keys(TERRAIN), default: "forest", title: "Terrain" },
+        terrain: { type: "string", enum: Object.keys(TERRAIN), enumLabels: Object.values(TERRAIN).map((t) => t.name), default: "forest", title: "Terrain" },
       },
     },
     steps: [

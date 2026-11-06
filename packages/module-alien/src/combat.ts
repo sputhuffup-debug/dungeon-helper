@@ -65,6 +65,7 @@ export const characterHealth: CombatHealthDef = {
     { when: isAndroid, table: ANDROID_CRITICAL_DAMAGE_TABLE, operation: "androidCriticalDamage", label: "Android critical system damage" },
     { table: CRITICAL_INJURY_TABLE, operation: "criticalInjury", label: "Critical injury" },
   ],
+  brokenNote: { text: "Only one move action a round until first aid, a rally or a stretch gets them up; no stress gained, no panic rolls.", page: [68, 69], rule: "alien.rule.broken" },
   page: [67, 70],
 };
 

@@ -34,6 +34,17 @@ describe("SheetRenderer", () => {
     expect(onChange).toHaveBeenCalledWith({ ...fields, attributes: { might: 4, wits: 2 } });
   });
 
+  it("leaves out what a viewer may not see, and a section left with nothing, instead of drawing defaults", () => {
+    const fields = heroFields();
+    delete (fields as Record<string, unknown>).notes;
+    const hidden = new Set(["attributes.might", "health", "notes"]);
+    const { container } = render(<SheetRenderer def={hero} mode="standard" fields={fields} onChange={() => {}} readonly referenceLists={referenceLists} visible={(p) => !hidden.has(p)} />);
+    expect(container.querySelector('[data-path="attributes.might"]')).toBeNull();
+    expect(container.querySelector('[data-path="health"]')).toBeNull();
+    expect(container.querySelector('[data-path="attributes.wits"]')).not.toBeNull();
+    expect(sectionIds(container)).not.toContain("notes");
+  });
+
   it("shows the hardcore section in hardcore mode", () => {
     const { container } = render(<SheetRenderer def={hero} mode="hardcore" fields={heroFields()} onChange={() => {}} referenceLists={referenceLists} />);
     expect(sectionIds(container)).toEqual(["core", "gear", "hardcore", "advancement", "notes"]);
@@ -443,5 +454,51 @@ describe("enum labels and section conditions", () => {
     expect(sectionIds(container)).toEqual(["brief"]);
     rerender(<SheetRenderer def={def} mode="standard" fields={{ isPC: true, voice: "Gravelly" }} onChange={() => {}} />);
     expect(sectionIds(container)).toEqual(["brief", "npc"]);
+  });
+});
+
+describe("tables with worked-out columns and rows from a list", () => {
+  const schema = {
+    type: "array",
+    items: { type: "object", properties: { name: { type: "string" }, ability: { type: "string" }, damage: { type: "string" }, rank: { type: "integer", enum: [0, 1, 2], enumLabels: ["Untrained", "Trained", "Expert"] } }, required: ["name"] },
+  } as WidgetProps["schema"];
+  const lists = { "x.weapons": { id: "x.weapons", name: "Weapons", items: [{ id: "axe", name: "Axe", damage: "1d8 cut" }, { id: "net", name: "Net" }] } } as unknown as Record<string, ReferenceList>;
+  const field: SheetField = {
+    path: "attacks",
+    label: "Attacks",
+    widget: "table",
+    config: {
+      columns: ["name", "rank", { key: "toHit", label: "To hit", computed: { cat: ["+", { "+": [{ var: [{ cat: ["computed.", { var: "item.ability" }, "Mod"] }, 0] }, { var: "item.rank" }] }] } }, "damage"],
+      addFrom: { ref: "x.weapons", label: "Add a weapon", where: { var: "item.damage" }, row: { name: { var: "item.name" }, damage: { var: "item.damage" }, ability: "might" } },
+    },
+  };
+
+  it("shows a computed cell per row, adds a valid empty row, and fills a row from the list", () => {
+    const TableWidget = getWidget("table")!;
+    const onChange = vi.fn();
+    render(<TableWidget id="w-attacks" field={field} path="attacks" value={[{ name: "Claw", ability: "might", rank: 1 }]} onChange={onChange} schema={schema} fields={{}} computed={{ mightMod: 3 }} readonly={false} referenceLists={lists} />);
+    expect(screen.getByRole("columnheader", { name: "To hit" })).toBeInTheDocument();
+    expect(document.querySelector('[data-computed="toHit"]')).toHaveTextContent("+4");
+    // a number field with labelled values is a select that stores the number
+    fireEvent.change(screen.getByRole("combobox", { name: "Rank 1" }), { target: { value: "2" } });
+    expect(onChange).toHaveBeenLastCalledWith([{ name: "Claw", ability: "might", rank: 2 }]);
+    // a new row has its required text key, so it is valid before it is filled in
+    fireEvent.click(screen.getByRole("button", { name: "Add row" }));
+    expect(onChange).toHaveBeenLastCalledWith([{ name: "Claw", ability: "might", rank: 1 }, { name: "" }]);
+    // only items the `where` keeps are offered
+    const picker = screen.getByRole("combobox", { name: "Add a weapon" });
+    expect(within(picker).queryByRole("option", { name: "Net" })).toBeNull();
+    fireEvent.change(picker, { target: { value: "axe" } });
+    expect(onChange).toHaveBeenLastCalledWith([{ name: "Claw", ability: "might", rank: 1 }, { name: "Axe", damage: "1d8 cut", ability: "might" }]);
+  });
+
+  it("computed values can read as modifiers, and keys read their abbreviations in capitals", async () => {
+    const Computed = getWidget("computed")!;
+    render(<Computed id="w-mod" field={{ path: "mightMod", label: "Might modifier", widget: "computed", config: { signed: true } }} path="mightMod" value={undefined} onChange={() => {}} fields={{}} computed={{ mightMod: 0 }} readonly referenceLists={{}} />);
+    expect(screen.getByTestId("computed-mightMod")).toHaveTextContent("+0");
+    const { humanize } = await import("../src/sheet/paths");
+    expect(humanize("hp")).toBe("HP");
+    expect(humanize("classDc")).toBe("Class DC");
+    expect(humanize("crewNpcs")).toBe("Crew NPCs");
   });
 });

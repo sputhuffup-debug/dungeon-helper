@@ -30,9 +30,19 @@ type Group = { kind: SearchKind | "rule" | "reference"; label: string; hits: Hit
  * a group the best titles first (each kind's own order breaks ties), and the
  * group holding the best title first, so "panic" puts the Panic rule card,
  * not a creature whose notes mention panic, at the top, and Enter opens it.
+ * The campaign's own records count one step better than the module's rules
+ * and reference entries (and win a tie), so "lantern" lists the campaign's
+ * Tipsy Lantern before a reference item called "Lantern Bearer"; an exact
+ * rule or reference title ("Panic") still beats a record that only starts
+ * with or holds the word ("Panic room").
  */
 export function rankGroups(groups: Group[], query: string): Group[] {
-  const quality = (h: Hit) => titleMatchQuality(h.name, query);
+  const quality = (h: Hit) => {
+    // an exact title stands a step above the rest, so the boost below never lifts a near match over it
+    const raw = titleMatchQuality(h.name, query);
+    const q = raw === 6 ? 7 : raw;
+    return q > 0 && h.kind !== "rule" && h.kind !== "reference" ? q + 1 : q;
+  };
   const ranked = groups.map((g, order) => {
     const hits = g.hits.map((h, i) => ({ h, i, q: quality(h) })).sort((a, b) => b.q - a.q || a.i - b.i);
     return { group: { ...g, hits: hits.map((x) => x.h) }, best: hits[0]?.q ?? 0, order };

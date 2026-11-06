@@ -1,5 +1,5 @@
 /** The schema-driven sheet, with validation, rules drawer, entity picking, rolls and the player preview. */
-import { ownerMemberOf, playerMembers, projectEntityForViewer, setCharacterOwner, type Entity } from "@campaign-forge/core";
+import { canSeeSheetValue, ownerMemberOf, playerMembers, projectEntityForViewer, setCharacterOwner, type Entity, type Viewer } from "@campaign-forge/core";
 import { FieldVisibilityButton } from "./FieldVisibility";
 import { createRng, validateEntityFields, type EntityTypeDef, type ReferenceList, type RollResult, type SheetField } from "@campaign-forge/module-sdk";
 import { useCallback, useMemo, useState } from "react";
@@ -44,7 +44,10 @@ export function SheetTab({ entity, def }: { entity: Entity; def: EntityTypeDef |
   const players = playerMembers(meta);
   const owner = canPreview ? ownerMemberOf(meta, entity) : undefined;
   // the player sheet is what its own player sees (owner-visible fields included), else what any player sees
-  const projected = asPlayer ? projectEntityForViewer(entity, def, owner ? { role: "player", memberId: owner.id, characters: [entity.id] } : { role: "player" }) : undefined;
+  const viewer: Viewer = owner ? { role: "player", memberId: owner.id, characters: [entity.id] } : { role: "player" };
+  const projected = asPlayer ? projectEntityForViewer(entity, def, viewer) : undefined;
+  // a field the player may not see is left out, never drawn with its default (and a value worked out from one goes too)
+  const playerSees = (path: string) => canSeeSheetValue(entity, def, path, viewer);
 
   return (
     <div className="app-sheet">
@@ -94,6 +97,7 @@ export function SheetTab({ entity, def }: { entity: Entity; def: EntityTypeDef |
               subtype={projected.subtype}
               mode={meta.mode}
               fields={projected.fields}
+              visible={playerSees}
               onChange={() => undefined}
               readonly
               referenceLists={referenceLists}

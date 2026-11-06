@@ -162,7 +162,7 @@ export function buildSupplementFiles(root: string): SupplementBuild {
     version: SUPPLEMENT_VERSION,
     extends: EXTENDS,
     licenseNotice: `ORC-licensed rules content (see attribution); JSON structure derived from the Foundry VTT pf2e system (Apache-2.0). ${TRADEMARK_NOTICE}`,
-    license: { spdx: "LicenseRef-ORC", name: "ORC License", url: "https://paizo.com/orclicense", attribution: attributionText(out.included) },
+    license: { spdx: "LicenseRef-ORC", name: "ORC License", url: "https://paizo.com/orclicense", attribution: attributionText(out.included), inExports: true },
     authors: ["Campaign Forge contributors (conversion)"],
     description: `More ORC content for the remaster rules from ${bookList.slice(0, -1).join(", ")} and ${bookList[bookList.length - 1]}: creatures, NPCs and hazards as presets, and ancestries, classes, feats, spells, items and actions in the module's lists. Reserved Material is left out.`,
     dataStatus: "partially-verified" as const,

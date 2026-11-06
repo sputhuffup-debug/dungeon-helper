@@ -5,7 +5,7 @@
 import Ajv, { type ErrorObject, type ValidateFunction } from "ajv";
 import addFormats from "ajv-formats";
 import { evaluateLogic } from "./logic";
-import type { EntityTypeDef, JsonSchema, PlayModeId, SheetSection } from "./types";
+import type { EntityTypeDef, JsonLogicRule, JsonSchema, PlayModeId, SheetLayout, SheetSection } from "./types";
 
 export interface FieldValidationError {
   path: string;
@@ -339,5 +339,140 @@ export function ownerVisiblePaths(def: EntityTypeDef, subtype?: string): string[
   if (sub) walk(sub, "", sub, 0);
   const paths = [...out].sort();
   byType.set(key, paths);
+  return paths;
+}
+
+// ---------------------------------------------------------------------------
+// an entity's whole sheet: the type's and its subtype's
+// ---------------------------------------------------------------------------
+
+const sheetCache = new WeakMap<EntityTypeDef, Map<string, SheetLayout>>();
+
+/**
+ * The sheet an entity of this type and subtype shows: the type's sections,
+ * then the subtype's (a subtype adds to the type's sheet, it never replaces
+ * it), with the subtype's `summary` when it has one. With `mode`, only the
+ * sections and fields of that play mode (`sheetFieldsForMode`). Every view
+ * of an entity reads it (the sheet renderer, field visibility, shares and
+ * packets, exports), so they all show the same fields.
+ */
+export function entitySheet(def: EntityTypeDef, subtype?: string, mode?: PlayModeId): SheetLayout {
+  let byKey = sheetCache.get(def);
+  if (!byKey) {
+    byKey = new Map();
+    sheetCache.set(def, byKey);
+  }
+  const key = `${subtype ?? ""}|${mode ?? ""}`;
+  const cached = byKey.get(key);
+  if (cached) return cached;
+  const sub = subtype ? def.subtypes?.find((s) => s.id === subtype) : undefined;
+  const base = mode ? sheetFieldsForMode(def, mode) : def.sheet.sections;
+  const extra = sub?.sheet ? (mode ? sheetFieldsForMode({ ...def, sheet: sub.sheet }, mode) : sub.sheet.sections) : [];
+  const out: SheetLayout = { ...def.sheet, sections: [...base, ...extra] };
+  const summary = sub?.sheet?.summary ?? def.sheet.summary;
+  if (summary) out.summary = summary;
+  byKey.set(key, out);
+  return out;
+}
+
+/** The sub-schema at a dotted field path of an entity of this type and subtype: the type's schema, else the subtype's. */
+export function entityFieldSchemaAt(def: EntityTypeDef, subtype: string | undefined, path: string): JsonSchema | undefined {
+  const own = fieldSchemaAt(def, path);
+  if (own) return own;
+  const sub = subtype ? def.subtypes?.find((s) => s.id === subtype)?.schema : undefined;
+  return sub ? schemaAt(sub, path) : undefined;
+}
+
+// ---------------------------------------------------------------------------
+// what a computed value reads
+// ---------------------------------------------------------------------------
+
+/** Any stored field (a read whose path is built at run time, or of `fields` whole). */
+export const ANY_FIELD = "*";
+
+interface LogicReads {
+  paths: Set<string>;
+  /** Leading text of paths built at run time ("" when unknown). */
+  prefixes: Set<string>;
+}
+
+/** The `var` reads of a JSONLogic rule: static paths, and the static prefix of a dynamic one (`{ var: { cat: ["computed.", ...] } }`). */
+function logicReads(rule: unknown, out: LogicReads, depth = 0): void {
+  if (depth > 64 || rule === null || typeof rule !== "object") return;
+  if (Array.isArray(rule)) {
+    for (const r of rule) logicReads(r, out, depth + 1);
+    return;
+  }
+  for (const [op, arg] of Object.entries(rule as Record<string, unknown>)) {
+    if (op !== "var") {
+      logicReads(arg, out, depth + 1);
+      continue;
+    }
+    const first = Array.isArray(arg) ? arg[0] : arg;
+    if (typeof first === "string" || typeof first === "number") out.paths.add(String(first));
+    else if (first !== undefined && first !== null) {
+      const cat = typeof first === "object" && !Array.isArray(first) ? (first as Record<string, unknown>).cat : undefined;
+      const lead = Array.isArray(cat) ? cat[0] : undefined;
+      out.prefixes.add(typeof lead === "string" ? lead : "");
+      logicReads(first, out, depth + 1);
+    }
+    if (Array.isArray(arg)) for (const r of arg.slice(1)) logicReads(r, out, depth + 1);
+  }
+}
+
+/**
+ * The stored field paths a JSONLogic rule over `{ fields, computed }` reads,
+ * following `computed.*` reads through the type's `computed` rules, sorted
+ * (`["abilities.dexterity", "level"]`). A read whose path is built at run
+ * time counts as every computed value it could name (a `"computed."`
+ * prefix) or as any field (`ANY_FIELD`). A view that hides a field hides
+ * every value read from it (a player sheet, a packet).
+ */
+export function ruleFieldInputs(def: Pick<EntityTypeDef, "computed">, rule: JsonLogicRule): string[] {
+  const out = new Set<string>();
+  const seen = new Set<string>();
+  const computedNames = Object.keys(def.computed ?? {});
+  const follow = (names: string[], depth: number): void => {
+    for (const name of names) {
+      if (seen.has(name) || depth > 32) continue;
+      seen.add(name);
+      const sub = def.computed?.[name];
+      if (sub !== undefined) visit(sub, depth + 1);
+    }
+  };
+  const visit = (r: unknown, depth: number): void => {
+    const reads: LogicReads = { paths: new Set(), prefixes: new Set() };
+    logicReads(r, reads);
+    for (const p of reads.paths) {
+      if (p === "fields" || p === "") out.add(ANY_FIELD);
+      else if (p.startsWith("fields.")) out.add(p.slice("fields.".length));
+      else if (p === "computed") follow(computedNames, depth);
+      else if (p.startsWith("computed.")) follow([p.slice("computed.".length).split(".")[0]!], depth);
+    }
+    for (const prefix of reads.prefixes) {
+      if (prefix === "computed" || prefix.startsWith("computed.")) {
+        const start = prefix.slice("computed.".length);
+        follow(computedNames.filter((k) => k.startsWith(start)), depth);
+      } else if (prefix.startsWith("fields.") && prefix.length > "fields.".length) out.add(prefix.slice("fields.".length).replace(/\.$/, ""));
+      else out.add(ANY_FIELD);
+    }
+  };
+  visit(rule, 0);
+  return [...out].sort();
+}
+
+const inputsCache = new WeakMap<EntityTypeDef, Map<string, string[]>>();
+
+/** The stored field paths the type's computed value `name` reads (see `ruleFieldInputs`); empty for a name the type does not compute. */
+export function computedFieldInputs(def: EntityTypeDef, name: string): string[] {
+  let byName = inputsCache.get(def);
+  if (!byName) {
+    byName = new Map();
+    inputsCache.set(def, byName);
+  }
+  const cached = byName.get(name);
+  if (cached) return cached;
+  const paths = def.computed?.[name] === undefined ? [] : ruleFieldInputs(def, { var: `computed.${name}` });
+  byName.set(name, paths);
   return paths;
 }

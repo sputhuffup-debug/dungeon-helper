@@ -12,7 +12,7 @@ import { svgPagesToPdf } from "@campaign-forge/ui";
 import { zipSync } from "fflate";
 import { downloadFile, slug } from "../../lib/download";
 import type { Paper } from "../../lib/paper";
-import { cardSvg, packetPages, phoneCards, sharePageHtml, shareTitle, type PhoneCard, type ReadyImage, type ShareFormat, type ShareLayoutInput, type ShareSection } from "./shareLayout";
+import { cardSvg, packetPages, phoneCards, sharePageHtml, shareTitle, withLicence, type PhoneCard, type ReadyImage, type ShareFormat, type ShareLayoutInput, type ShareSection } from "./shareLayout";
 
 /** Longest side of an image embedded in a card or the packet. */
 const MAX_IMAGE_SIDE = 1600;
@@ -136,7 +136,9 @@ export function shareFileStem(share: Pick<PlayerShare, "campaign" | "session" | 
 
 /** The files of a share: card PNGs plus handout images as uploaded, one PDF, or one web page. */
 export async function buildShareFiles(input: ShareFilesInput): Promise<File[]> {
-  const { share, sections } = input;
+  const { share } = input;
+  // every format ends with the attribution the module's licence requires in every copy
+  const sections = withLicence(input.sections, share);
   const opts = input.passable ? { passable: input.passable } : {};
   if (input.format === "pdf") {
     const { pages } = packetPages(sections, share, input.paper, opts);

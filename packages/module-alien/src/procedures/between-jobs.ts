@@ -1,7 +1,8 @@
 /**
  * Between jobs: settle up in port before the next job. Steps, each seeded and
  * re-rollable where it rolls:
- *  1. Collect the job's payment (p. 244), once per job.
+ *  1. Collect the job's payment (p. 244), once per job: a payment already
+ *     on the ledger (collected in the wrap-up) is not posted or counted again.
  *  2. Pay the ship's lease if it is leased: 2% of the price a year (p. 121),
  *     pro rata for the weeks in port.
  *  3. Hull repairs: one Heavy Machinery roll per shift, each success removes
@@ -16,7 +17,7 @@
  *  7. Docking and fuel: the GM's own figures (the book prices neither).
  *  8. Shore leave and the next job: chained to the shore leave week
  *     (p. 257-258, living expenses come out of each PC's cash there) and the
- *     job generator (p. 244). The weeks in port move the in-world date on
+ *     job board (p. 244). The weeks in port move the in-world date on
  *     (an `advanceDate` effect, 7 days a week; module decision), so the
  *     chained shore leave weeks leave it be.
  *
@@ -37,7 +38,8 @@ export const BETWEEN_JOBS_ID = "alien.between-jobs";
 function snapshot(ctx: ProcedureContext, key: string): EntitySnapshot | undefined {
   const v = input(ctx, key);
   if (!isObj(v) || typeof v.id !== "string") return undefined;
-  return { id: v.id, name: str(v.name, v.id), type: str(v.type), fields: isObj(v.fields) ? v.fields : {} };
+  const paid = isObj(v.paidOut) && typeof v.paidOut.amount === "number" ? { amount: v.paidOut.amount, ...(typeof v.paidOut.key === "string" ? { key: v.paidOut.key } : {}) } : undefined;
+  return { id: v.id, name: str(v.name, v.id), type: str(v.type), fields: isObj(v.fields) ? v.fields : {}, ...(paid ? { paidOut: paid } : {}) };
 }
 
 /** Roll `n` base dice; a 6 is a success (p. 42). */
@@ -73,6 +75,8 @@ interface PaymentResult {
   job?: string;
   name?: string;
   amount: number;
+  /** Already on the ledger (collected in the wrap-up): not posted or counted again. */
+  collected?: boolean;
   label: string;
 }
 interface LeaseResult {
@@ -146,6 +150,7 @@ export const betweenJobs: Procedure = {
         const job = snapshot(ctx, "job");
         if (!job) return { amount: 0, label: "No finished job chosen" };
         const amount = Math.max(0, Math.round(num(job.fields.payment)));
+        if (job.paidOut && job.paidOut.amount > 0) return { job: job.id, name: job.name, amount: 0, collected: true, label: `${job.name}: ${usd(job.paidOut.amount)}, already collected (on the ledger)` };
         return { job: job.id, name: job.name, amount, label: `${job.name}: ${usd(amount)}` };
       },
     },
@@ -276,7 +281,7 @@ export const betweenJobs: Procedure = {
       id: "nextJob",
       title: "Next job",
       page: 244,
-      compute: () => ({ label: "Roll the next job with the job generator (chained below)" }),
+      compute: () => ({ label: "Deal the next job board (below)" }),
     },
     {
       id: "effects",
@@ -289,7 +294,7 @@ export const betweenJobs: Procedure = {
         const post = (amount: number, category: string, note: string, extra: Partial<LedgerEffect> = {}): LedgerEffect => ({ kind: "ledger", amount, category, note, links, ...extra });
         const effects: Effect[] = [];
         const pay = ctx.get<PaymentResult>("payment");
-        if (pay && pay.job && pay.amount > 0) {
+        if (pay && pay.job && pay.amount > 0 && !pay.collected) {
           effects.push(post(pay.amount, LEDGER.jobPayment, `Payment: ${pay.name}`, { key: `job-payment:${pay.job}`, links: { ...links, job: pay.job } }));
           effects.push({ kind: "setField", entity: pay.job, path: "status", value: "done" });
         }
@@ -333,18 +338,18 @@ export const betweenJobs: Procedure = {
     {
       id: "balance",
       title: "Net change to crew funds",
-      reads: ["effects"],
+      reads: ["effects", "payment"],
       compute: (ctx) => {
         const effects = ctx.get<Effect[]>("effects") ?? [];
         const net = effects.reduce((n, e) => (e.kind === "ledger" ? n + e.amount : n), 0);
-        return { net, label: `${net >= 0 ? "+" : "−"}${usd(Math.abs(net))}` };
+        const pay = ctx.get<PaymentResult>("payment");
+        return { net, label: `${net >= 0 ? "+" : "−"}${usd(Math.abs(net))}${pay?.collected ? " (the job's payment was already collected)" : ""}` };
       },
     },
   ],
   produce: () => ({ entities: [], relationships: [] }),
   chains: [
     { procedure: "alien.shore-leave", label: "Shore leave week", inputs: (ctx) => ({ livingStandard: str(input(ctx, "livingStandard"), "normal"), advanceDate: false }) },
-    { procedure: "alien.job.create", label: "Roll the next job", inputs: (ctx) => ({ frame: str(input(ctx, "frame"), "space-truckers"), pcCount: Math.max(1, Math.floor(num(input(ctx, "pcCount"), 4))) }) },
-    { procedure: "alien.job-board", label: "Deal a job board", inputs: (ctx) => ({ frame: str(input(ctx, "frame"), "space-truckers"), pcCount: Math.max(1, Math.floor(num(input(ctx, "pcCount"), 4))) }) },
+    { procedure: "alien.job-board", label: "Deal the next job board", inputs: (ctx) => ({ frame: str(input(ctx, "frame"), "space-truckers"), pcCount: Math.max(1, Math.floor(num(input(ctx, "pcCount"), 4))) }) },
   ],
 };

@@ -1,4 +1,4 @@
-import { checkModule, filterByMode, type TemplateChecklist } from "@campaign-forge/module-sdk";
+import { checkModule, filterByMode, pageRefSpans, validPageRef, type TemplateChecklist } from "@campaign-forge/module-sdk";
 import { describe, expect, it } from "vitest";
 import { alienModule } from "../src";
 import { rules } from "../src/rules";
@@ -21,11 +21,9 @@ describe("rule cards", () => {
       const page = r.page;
       // The Alien book is cited by page: no section citations here.
       if (page === undefined) throw new Error(`${r.id} has no page`);
-      if (typeof page === "number") expect(page).toBeGreaterThan(0);
-      else {
-        expect(page[0]).toBeGreaterThan(0);
-        expect(page[1]).toBeGreaterThanOrEqual(page[0]);
-      }
+      expect(validPageRef(page), `${r.id} page`).toBe(true);
+      // two pages cited together are a list, not a range spanning everything between them
+      for (const [a, b] of pageRefSpans(page)) expect(b - a, `${r.id} cites p. ${a}-${b}`).toBeLessThan(40);
       expect(r.summary.length).toBeGreaterThan(20);
       for (const m of r.mode ?? []) expect(modeIds.has(m)).toBe(true);
     }
@@ -47,9 +45,9 @@ describe("rule cards", () => {
     const byId = new Map(rules.map((r) => [r.id, r]));
     for (const r of rules) expect(r.summary.split(/(?<=[.!?])\s+(?=[A-Z"])/).length, r.id).toBeLessThanOrEqual(3);
     const pages: Record<string, unknown> = {
-      "play-modes": 18, push: 43, "stress-response": 44, "story-points": [44, 158], "panic-roll": 72, "panic-results": 73,
+      "play-modes": 18, push: 43, "stress-response": 44, "story-points": { pages: [44, 158] }, "panic-roll": 72, "panic-results": 73,
       "mental-trauma": 74, "range-bands": 55, initiative: 59, actions: 60, "critical-injuries": [68, 70], fatigue: 75,
-      "acid-splash": 210, "broken-xenomorph": [208, 209], "three-acts": 157, "calling-pvp": [27, 158], "gm-principles": 152,
+      "acid-splash": 210, "broken-xenomorph": [208, 209], "three-acts": 157, "calling-pvp": { pages: [27, 158] }, "gm-principles": 152,
       "ship-actions": [143, 144], "ship-modules": [122, 124], xp: 30, "shore-leave": 257, "life-paths": [282, 289], "minor-corporations": 162,
     };
     for (const [slug, page] of Object.entries(pages)) expect(byId.get(`alien.rule.${slug}`)?.page, slug).toEqual(page);

@@ -34,6 +34,7 @@ import {
   RECAP_MODULE_ORDER,
   RECAP_SECTION_ORDER,
   clueKindLabel,
+  displayCalendarDate,
   heatLabel,
   payoffLabel,
   type GameModule,
@@ -55,8 +56,8 @@ import type { CampaignStore } from "./store";
 import type { CampaignMaps, Id, RecapLine, RecapLink, RecapSection, RecapSpan, Session, SessionRecap } from "./types";
 import { canSee, findEntityType, projectCampaignForViewer, type ModuleTypes } from "./visibility";
 
-/** A module as the recap reads it. */
-export type RecapModule = ModuleTypes & Partial<Pick<GameModule, "recap" | "arcs">>;
+/** A module as the recap reads it (its calendar shows in-world dates as people read them). */
+export type RecapModule = ModuleTypes & Partial<Pick<GameModule, "recap" | "arcs" | "calendar">>;
 
 export const DEFAULT_RECAP_SPAN: RecapSpan = { kind: "last" };
 
@@ -424,7 +425,7 @@ function coreGmSections(x: CoreInput): RecapSectionDraft[] {
   const world = Object.values(maps.timeline)
     .filter((t) => !!t.session && coveredIds.has(t.session))
     .sort((a, b) => a.inWorldDate.localeCompare(b.inWorldDate) || a.created.localeCompare(b.created) || a.id.localeCompare(b.id))
-    .map((t) => ({ key: "timeline", ref: t.id, text: `${t.inWorldDate}: ${t.text}${canSee(t.visibility, GROUP) ? "" : " (GM only)"}` }));
+    .map((t) => ({ key: "timeline", ref: t.id, text: `${displayCalendarDate(module?.calendar, t.inWorldDate)}: ${t.text}${canSee(t.visibility, GROUP) ? "" : " (GM only)"}` }));
   add("world", world);
 
   // scenes run
@@ -550,7 +551,7 @@ function corePlayerSections(x: CoreInput): RecapSectionDraft[] {
   // dated in the world when the session kept a date (the table's real-world date is not story)
   const first = snapshot.sessions[0];
   const last = snapshot.sessions[snapshot.sessions.length - 1];
-  const when = (s: RecapSessionRef) => (s.inWorldDate ? ` (${s.inWorldDate})` : "");
+  const when = (s: RecapSessionRef) => (s.inWorldDate ? ` (${displayCalendarDate(module?.calendar, s.inWorldDate)})` : "");
   let opening: string;
   if (!first || !last) opening = "Nothing yet: this is where the story begins.";
   else if (snapshot.sessions.length === 1) opening = `${first.label}${when(first)}.`;

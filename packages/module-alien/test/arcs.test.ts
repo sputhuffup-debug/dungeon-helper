@@ -86,10 +86,36 @@ describe("alien.campaign-thread", () => {
     }
     // recorded: any change to the tables or the dealing shows here; re-recorded once when later mentions
     // of the agent became "the ..." ({theAgent}), a text-only change, and once when two GM title patterns
-    // were reworded ("{Sponsor} and the {subject}", "The squeeze on the {subject}"), text only
+    // were reworded ("{Sponsor} and the {subject}", "The squeeze on the {subject}"), text only; and once when a clock
+    // stopped repeating a payoff line (the endgame keeps its threat; an earlier repeat takes its kind's next line, or the next kind)
     const out: string[] = [];
     for (let i = 0; i < 40; i++) out.push(JSON.stringify(threads(`thread-fixture-${i}`, { sponsors: i % 3 === 0 ? "new" : "mixed" }).graph.results.offers));
-    expect(createHash("sha256").update(out.join("\n")).digest("hex")).toBe("51b2aed716d4ed84d0d506dc2abcc6a971c72d573cc56df8ed33ea3fbccc0c93");
+    expect(createHash("sha256").update(out.join("\n")).digest("hex")).toBe("031907531f5d1b86830f640ac99378d639796b0310fca156b89e9003b0e448ba");
+  });
+
+  it("never repeats a payoff line on one thread's clock", () => {
+    let clocks = 0;
+    for (let i = 0; i < 60; i++) {
+      for (const o of threads(`payoff-${i}`).offers) {
+        // every clock in the offer, wherever it sits
+        const found: Array<{ milestones: Array<{ payoffs: Array<{ text: string }> }> }> = [];
+        const walk = (v: unknown): void => {
+          if (Array.isArray(v)) v.forEach(walk);
+          else if (v && typeof v === "object") {
+            const c = (v as { clock?: { milestones?: unknown } }).clock;
+            if (c && Array.isArray(c.milestones)) found.push(c as never);
+            Object.values(v).forEach(walk);
+          }
+        };
+        walk(o);
+        const clock = found[0];
+        if (!clock) continue;
+        const lines = clock.milestones.flatMap((m) => m.payoffs.map((p) => p.text));
+        if (lines.length > 1) clocks++;
+        expect(new Set(lines).size, `payoff-${i}: ${lines.join(" | ")}`).toBe(lines.length);
+      }
+    }
+    expect(clocks).toBeGreaterThan(50);
   });
 
   it("deals 1-3 threads from different sponsors, each with a goal, method, weakness, cost and title", () => {
@@ -218,8 +244,11 @@ describe("the job board without arcs", () => {
   // their weapons to the Weapons list (the NPCs' gear rows changed, nothing the board deals did), and once when a
   // trucker pitch's verb began to agree with plural cargo ("metal ingots or pellets go to"), a text-only change,
   // and once for: the job's complications no longer repeating in one job (`distinct`, a repeat takes the next row), "deliver them" for plural
-  // cargo and an NPC who wants "someone who will listen" (text only)
-  const BEFORE_ARCS = "52fd9dc3a5f0f6fc2551bdaf6194794b8a30226e7e4205294cd0ac6b3095b7f0";
+  // cargo and an NPC who wants "someone who will listen" (text only), and once for: the contact the crew meets keeping
+  // its stat block GM-only (the produced NPC's fieldVisibility), employers given only as a kind named, an NPC's agenda
+  // that contradicts its secret or repeats the posting's other agenda dealt again, and titles with "or"/"and" in lower
+  // case plus a want that no longer reads "a way off a starship in orbit on the crew's ship" (text only)
+  const BEFORE_ARCS = "3c9738fd64a1d25f2de675447e4a973396aff4b15b36149c18927c5ecc5134d6";
 
   it("is byte-identical to the board before arcs", () => {
     expect(baseline()).toBe(BEFORE_ARCS);

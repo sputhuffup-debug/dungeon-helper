@@ -9,6 +9,7 @@ import { CampaignContext, openCampaign, type CampaignContextValue } from "../../
 import { useRecord } from "../../state/hooks";
 import { attachCrossTabSync } from "./crossTab";
 import { LiveSiteMap } from "./LiveSiteMap";
+import { StealthOnMap } from "./TrackersPanel";
 import { PlayerSiteMap } from "./PlayerSiteMap";
 import { huntSignal, huntStepPassed, pcTargets } from "./siteMapLive";
 
@@ -160,5 +161,23 @@ describe("the hunt across tabs", () => {
       offA();
       offB();
     }
+  });
+});
+
+describe("one list of hidden threats", () => {
+  // Walkthrough 3 (A16): the map held "Corporate security x3" while the stealth tracker said "No hidden NPCs"
+  it("a stealth tracker beside a hunting map lists the map's hidden threats, not a list of its own", async () => {
+    const { ctx, map } = await setup();
+    placeHuntToken(ctx.store, map.id, { label: "Ghoul", zone: "D03", mover: "ghoul" });
+    const stealth = { id: "example.test-stealth", name: "Stealth mode", kind: "stealth", scope: "scene" } as const;
+    const noop = { onEffects: () => undefined, onRollOperation: () => undefined, onLog: () => undefined };
+    render(
+      <CampaignContext.Provider value={ctx}>
+        <StealthOnMap sessionId="none" def={stealth} entities={[]} map={get(ctx, map.id)} {...noop} />
+      </CampaignContext.Provider>,
+    );
+    const card = await screen.findByTestId("stealth-on-map");
+    expect(within(card).getAllByTestId("stealth-map-threat").map((r) => r.textContent)).toEqual([expect.stringMatching(/^Ghoul.*in .*hidden$/)]);
+    expect(screen.queryByText("No hidden NPCs")).toBeNull();
   });
 });

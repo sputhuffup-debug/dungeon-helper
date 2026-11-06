@@ -31,8 +31,18 @@ export type JsonSchema = Record<string, unknown>;
 
 export type PlayModeId = string;
 
-/** A rulebook page reference. A single page or an inclusive range. */
-export type PageRef = number | [number, number];
+/**
+ * A rulebook page reference: a single page, an inclusive range, or a list of
+ * either when the book covers a subject in separate places
+ * (`{ "pages": [27, 158] }` reads "p. 27, 158"; `{ "pages": [27, [44, 46]] }`
+ * "p. 27, 44–46"). `[a, b]` is always a range.
+ */
+export type PageRef = number | [number, number] | PageList;
+
+/** Several pages or ranges cited together (see `PageRef`). */
+export interface PageList {
+  pages: Array<number | [number, number]>;
+}
 
 /**
  * A citation that is not a page number, for sources cited by section (e.g.
@@ -105,6 +115,14 @@ export interface ModuleLicense {
   url?: string;
   /** The attribution text the licence requires, shown as written (plain text). */
   attribution: string;
+  /**
+   * The licence requires the attribution in every copy of the content (CC BY,
+   * ORC): every player-facing export of a campaign on this module (share web
+   * page, PDF and phone images, player packets, adventure booklets, map
+   * exports and prints) then ends with `attribution`, as written. Leave it
+   * out for content without such a requirement.
+   */
+  inExports?: boolean;
 }
 
 export interface ModuleManifest {
@@ -1472,6 +1490,12 @@ export interface EntityPreset {
   cite?: CiteRef;
   original?: boolean;
   tags?: string[];
+  /**
+   * The heading the GM's preset picker files it under (default: its subtype,
+   * else its first tag). Never shown to players, unlike a tag: a covert
+   * android can sit with the androids without carrying an "android" tag.
+   */
+  group?: string;
   fields: Record<string, unknown>;
   unverified?: boolean;
 }
@@ -1958,8 +1982,16 @@ export interface CalendarDef {
   defaultYear: number;
   months: Array<{ name: string; days: number }>;
   weekdays?: string[];
-  /** Template, e.g. "{year}-{month:02}-{day:02}" */
+  /** Template, e.g. "{year}-{month:02}-{day:02}": how dates are written and stored. */
   format?: string;
+  /**
+   * How the app shows a stored date to people, e.g. "{day} {monthName} {year}"
+   * ("3 Frostwane 812"). Tokens: `{year}`, `{month}`, `{day}` (with `:02`
+   * padding, as in `format`), `{monthName}`, `{weekday}` (when `weekdays` is
+   * set). Default "{day} {monthName} {year}"; set it to `format` to show dates
+   * as they are stored.
+   */
+  displayFormat?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -2062,8 +2094,25 @@ export interface SessionEndContext {
   trackerState: Record<string, unknown>;
 }
 
+/** What the table clock just did, for `ModuleHooks.onClockAdvance`. */
+export interface ClockAdvanceContext {
+  mode: PlayModeId;
+  /** The clock units whose counter went up (e.g. `["round"]`, or `["round", "stretch"]` when a round rolled a stretch over). */
+  units: string[];
+  /** Every unit's counter after the advance. */
+  counters: Record<string, number>;
+  /** The campaign's entities that carry conditions, with their condition ids. */
+  entities: Array<{ id: string; name: string; type: string; fields: Record<string, unknown>; conditions: string[] }>;
+}
+
 export interface ModuleHooks {
   onSessionEnd?(ctx: SessionEndContext): Prompt[];
+  /**
+   * The table clock moved on: prompts for what that calls for (e.g. a death
+   * roll every round for a lethal injury). Shown at the table like any
+   * other prompt; answering applies the chosen option's effects.
+   */
+  onClockAdvance?(ctx: ClockAdvanceContext): Prompt[];
   onEntityChange?(ctx: { mode: PlayModeId }, entity: { id: string; type: string; fields: Record<string, unknown> }): Effect[];
 }
 
@@ -2694,6 +2743,12 @@ export interface CombatHealthDef {
    * dice operation for the entity instead of rolling `table` directly (so the operation's effects apply).
    */
   broken?: Array<{ when?: JsonLogicRule; table: string; label?: string; operation?: string }>;
+  /**
+   * What being at zero health means for what the character can still do,
+   * paraphrased (e.g. "only one move action a round"). The app shows it
+   * beside a roll made for a character who is down.
+   */
+  brokenNote?: { text: string; page?: PageRef; rule?: string };
   page?: PageRef;
 }
 
@@ -2906,6 +2961,19 @@ export interface D20AttackSource {
   kind?: D20AttackKind;
   /** Item keys that differ from the convention, e.g. `{ "kind": "type" }`. */
   keys?: Partial<Record<"name" | "kind" | "bonus" | "damage" | "damageType" | "traits" | "reach" | "range" | "save" | "onHit" | "effect" | "ability", string>>;
+  /**
+   * The attack bonus of an item that states none: JSONLogic over
+   * `{ fields, computed, item }` (e.g. the ability modifier plus proficiency
+   * for the weapon the row names). A number, or nothing for "no bonus known".
+   * Lets a sheet keep weapon rows whose to-hit follows the character (rule 4).
+   */
+  bonus?: JsonLogicRule;
+  /**
+   * A flat number added to the item's first damage part: JSONLogic over
+   * `{ fields, computed, item }` (e.g. the ability modifier for a row that
+   * names its ability). 0 or nothing adds nothing.
+   */
+  damageBonus?: JsonLogicRule;
 }
 
 /** How the app reads one or more entity types as combatants. Rules are JSONLogic over `{ fields, computed }`. */
@@ -3010,6 +3078,26 @@ export interface D20ConditionDef {
 }
 
 /** What happens to a combatant whose hit points drop to 0 (the first rule whose `when` matches applies). */
+/** See `D20ZeroHpRule.deathSaves`. */
+export interface D20DeathSaves {
+  /** Sheet field paths of the two counters. */
+  successes: string;
+  failures: string;
+  /** How many of either settle it: that many successes stabilise, that many failures kill (default 3). */
+  max?: number;
+  /** A total at or above this succeeds (default 10). */
+  dc?: number;
+  /** Failures for damage taken while down (default 1), and for a critical hit (default 2). */
+  damageFailures?: number;
+  criticalFailures?: number;
+  /** Failures a natural 1 counts as (default 1). */
+  natural1Failures?: number;
+  /** Hit points a natural 20 brings back (the rule's `recover` then applies); absent: a natural 20 is a plain success. */
+  natural20Heals?: number;
+  /** Damage while down (or left over when dropping to 0) of at least the hit point maximum kills outright. */
+  massiveDamage?: boolean;
+}
+
 export interface D20ZeroHpRule {
   /** JSONLogic over `{ kind, type, fields, computed }` (`kind`: the entity type's core kind); absent: every combatant. */
   when?: JsonLogicRule;
@@ -3019,6 +3107,13 @@ export interface D20ZeroHpRule {
   defeated?: boolean;
   /** When hit points rise above 0 again: conditions removed, conditions added (value as above), fields set. */
   recover?: { remove?: string[]; conditions?: Array<{ id: string; value?: number | JsonLogicRule }>; setFields?: Record<string, number | string | boolean> };
+  /**
+   * Death saves while at 0 hit points (e.g. the fifth edition's): the sheet
+   * counters they keep, damage taken while down as failures, and the save
+   * itself, a d20 with no modifier that the combat card offers. Without it
+   * the GM keeps any such count by hand (`text`).
+   */
+  deathSaves?: D20DeathSaves;
   /** The rule in the module's words (what the GM still does by hand: death saves, recovery checks). */
   text: string;
   page?: PageRef;
@@ -3314,6 +3409,14 @@ export interface EntitySnapshot {
   name: string;
   type: string;
   fields: Record<string, unknown>;
+  /**
+   * The entity's payout already on the ledger, when one is (the module's
+   * `LedgerDef.payouts` button, e.g. a job's payment collected in the
+   * wrap-up, or an idempotent posting keyed `<category>:<entity id>`): its
+   * amount and key, so a procedure does not count that money again. Filled
+   * by the app when the entity is picked as an input.
+   */
+  paidOut?: { amount: number; key?: string };
 }
 
 /**
@@ -3625,6 +3728,13 @@ export interface AwardContext {
   referencedBy?: Record<string, number>;
   /** The session's tracker state (e.g. a panic log), empty outside a session. */
   trackerState: Record<string, unknown>;
+  /**
+   * Money the session brought in, in the ledger's currency: positive ledger
+   * entries on the shared account or this character's own that are linked to
+   * the session or pay for a record closed in its wrap-up (a job's payment).
+   * Absent outside a session.
+   */
+  income?: number;
 }
 
 /** One line of the end-of-session (or end-of-act) award checklist. */
@@ -4279,6 +4389,37 @@ export interface CampaignSettingDef {
 export const RESERVED_SETTING_KEYS: readonly string[] = ["sessionChecklist", "setupGuide", "worldMinutes", "gmScreen", "characterDrafts"];
 
 // ---------------------------------------------------------------------------
+// Terms: the words the app uses for the module's game
+// ---------------------------------------------------------------------------
+
+/**
+ * The words generic screens use for things every game has but names its own
+ * way: the players' group ("the crew"), one level of a site map ("deck"), a
+ * handout for one character's player ("agenda"). All optional; the app falls
+ * back to neutral words (see `resolveTerms`). Write them in lower case as they
+ * read mid-sentence; the app capitalises them where a sentence or label starts.
+ *
+ * Record kinds are named by their entity type: a module's `job` type called
+ * "Quest" makes the Atlas tab "Quests" and the job page "People in this quest".
+ */
+export interface ModuleTerms {
+  /** The player characters together, singular: "crew", "party", "company". Default "group". */
+  party?: string;
+  /** One level of a site map: "deck", "floor". Default "level". */
+  mapLevel?: string;
+  /** Its plural. Default `mapLevel` + "s". */
+  mapLevels?: string;
+  /** A handout for one character's player only (handout kind "agenda"): "agenda". Default "personal handout". */
+  agenda?: string;
+  /** Its plural. Default `agenda` + "s". */
+  agendas?: string;
+  /** Examples of the free rewards the session wrap-up records, e.g. "cash, gear, favours, a new contact". Default "money, gear, a favour owed, a new contact". */
+  rewardExamples?: string;
+  /** The placeholder of an adventure's epilogue, e.g. "What happens to the survivors…". Default "What happens afterwards…". */
+  epiloguePrompt?: string;
+}
+
+// ---------------------------------------------------------------------------
 // The module
 // ---------------------------------------------------------------------------
 
@@ -4295,6 +4436,8 @@ export interface GameModule {
   rules: RuleCard[];
   trackers: TrackerDef[];
   calendar: CalendarDef;
+  /** The words generic screens use for the module's game: "the crew", a map "deck". Packs can declare them. See `ModuleTerms`. */
+  terms?: ModuleTerms;
   /** Style notes for future AI prompts; unused in v1. */
   styleNotes?: string[];
   hooks?: ModuleHooks;

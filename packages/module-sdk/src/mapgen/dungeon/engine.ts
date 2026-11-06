@@ -444,6 +444,7 @@ function stock(gen: PackMapGenerator, inputs: DungeonInputs, plan: Plan, ctx: Ma
   const rooms = plan.zones.filter((z) => z.kind === "room");
   let xp = 0;
   let missing = 0;
+  const overBudget: string[] = [];
   const enc = config.encounters;
   if (enc) {
     const candidates = rooms.filter((z) => !z.entrance && !z.lair);
@@ -454,7 +455,9 @@ function stock(gen: PackMapGenerator, inputs: DungeonInputs, plan: Plan, ctx: Ma
       if (!occupied.has(z) && !passages.includes(z)) continue;
       const er = rng.fork(`encounter:${z.data.id}`);
       const c = roomCtx(base, z);
-      // the encounter roll, re-rolled (up to four more times) while it does not suit the theme:
+      const budgetRaw = enc.budget !== undefined ? rule(enc.budget, c) : undefined;
+      const budget = typeof budgetRaw === "number" && Number.isFinite(budgetRaw) ? budgetRaw : undefined;
+      // the encounter roll, re-rolled (up to four more times) while it does not suit the theme (or the budget):
       // the pack's `prefer` on the row, and every group finding a creature that `fits`
       type Built = { row: { result: unknown; label: string | undefined }; groups: Array<{ n: number; preset: string; name: string; xp: number }>; misses: number; unfit: number };
       const build = (t: number): Built | undefined => {
@@ -481,12 +484,21 @@ function stock(gen: PackMapGenerator, inputs: DungeonInputs, plan: Plan, ctx: Ma
           const preset = typeof res?.preset === "string" ? content.preset(res.preset) : undefined;
           if (!rule(enc.prefer, { ...c, result: row.result, label: row.label, preset })) out.unfit++;
         }
+        // an encounter dearer than the party's budget is re-rolled like an unfit one
+        if (budget !== undefined && out.groups.reduce((s, g) => s + g.n * g.xp, 0) > budget) out.unfit++;
         return out;
       };
       let best = build(0);
-      for (let t = 1; t < 5 && best && (best.unfit > 0 || best.misses > 0); t++) {
+      // a budget gets more re-rolls (a band's dearest rows can be most of the table)
+      const tries = budget !== undefined ? 12 : 5;
+      for (let t = 1; t < tries && best && (best.unfit > 0 || best.misses > 0); t++) {
         const next = build(t);
         if (next && (next.misses < best.misses || (next.misses === best.misses && next.unfit < best.unfit))) best = next;
+      }
+      // still too dear: fewer of the creatures that come in numbers, down to one each
+      if (best && budget !== undefined) {
+        const cost = () => best!.groups.reduce((s, g) => s + g.n * g.xp, 0);
+        for (const g of [...best.groups].sort((a, b) => b.xp - a.xp)) while (g.n > 1 && cost() > budget) g.n--;
       }
       if (!best) {
         missing++;
@@ -500,6 +512,7 @@ function stock(gen: PackMapGenerator, inputs: DungeonInputs, plan: Plan, ctx: Ma
       const activity = enc.activity ? rowText(rollById(tables, enc.activity, data, er.fork("activity"))) : "";
       const total = groups.reduce((s, g) => s + g.n * g.xp, 0);
       xp += total;
+      if (budget !== undefined && total > budget) overBudget.push(`${groups.map((g) => `${g.n} × ${g.name}`).join(", ")} (${total} XP, over ${Math.round(budget)})`);
       const encounter = { groups, xp: total, activity, result: row.result };
       const detail = [activity, text(rule(enc.detail, { ...data, encounter }))].filter(Boolean).join(". ");
       markers.push({
@@ -513,6 +526,13 @@ function stock(gen: PackMapGenerator, inputs: DungeonInputs, plan: Plan, ctx: Ma
       });
     }
     checks.push({ id: "encounters", level: "warn", ok: missing === 0 && markers.length > 0, message: missing === 0 ? `${markers.length} encounter(s) from the module's own creatures${xp ? ` (${xp} XP in all)` : ""}.` : `${missing} encounter group(s) found no creature in the module.` });
+    if (enc.budget !== undefined)
+      checks.push({
+        id: "encounter-budget",
+        level: "warn",
+        ok: overBudget.length === 0,
+        message: overBudget.length === 0 ? "Every encounter is within the party's budget." : `${overBudget.length} encounter(s) above the party's budget: ${overBudget.join("; ")}. Re-roll them or swap in weaker creatures.`,
+      });
   }
 
   const traps = config.traps;

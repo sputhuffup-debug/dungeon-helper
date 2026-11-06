@@ -81,7 +81,8 @@ export function ChoiceView({ choice, draft, onDraft, depth = 0 }: ChoiceViewProp
   const complete = choice.picked.length >= choice.min && !choice.issues.some((i) => i.level === "error" || i.level === "incomplete");
 
   const pick = (o: OptionState) => {
-    if (!o.available) return;
+    // an option that is no longer available can still be unpicked (a later choice may have made it so)
+    if (!o.available && !choice.picked.includes(o.id)) return;
     setFocus(o.id);
     setDetailsOpen(undefined);
     onDraft(togglePick(draft, choice, o.id));

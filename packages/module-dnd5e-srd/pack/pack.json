@@ -23,7 +23,7 @@
    {
     "id": "one-shot",
     "name": "One-shot",
-    "description": "A single session: ready-made characters, one adventure in three acts, and a clear ending tonight."
+    "description": "A single session: quick characters from the step-by-step builder, one adventure in three acts, and a clear ending tonight."
    }
   ],
   "defaultMode": "campaign",
@@ -38,7 +38,8 @@
    "spdx": "CC-BY-4.0",
    "name": "Creative Commons Attribution 4.0 International",
    "url": "https://creativecommons.org/licenses/by/4.0/",
-   "attribution": "This work includes material taken from the System Reference Document 5.1 (\"SRD 5.1\") by Wizards of the Coast LLC and available at https://dnd.wizards.com/resources/systems-reference-document. The SRD 5.1 is licensed under the Creative Commons Attribution 4.0 International License available at https://creativecommons.org/licenses/by/4.0/legalcode.\n\nThis work includes material from the System Reference Document 5.2 (“SRD 5.2”) by Wizards of the Coast LLC, available at https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License, available at https://creativecommons.org/licenses/by/4.0/legalcode."
+   "attribution": "This work includes material taken from the System Reference Document 5.1 (\"SRD 5.1\") by Wizards of the Coast LLC and available at https://dnd.wizards.com/resources/systems-reference-document. The SRD 5.1 is licensed under the Creative Commons Attribution 4.0 International License available at https://creativecommons.org/licenses/by/4.0/legalcode.\n\nThis work includes material from the System Reference Document 5.2 (“SRD 5.2”) by Wizards of the Coast LLC, available at https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License, available at https://creativecommons.org/licenses/by/4.0/legalcode.",
+   "inExports": true
   }
  },
  "dice": {
@@ -103,27 +104,32 @@
     "properties": {
      "isPC": {
       "type": "boolean",
-      "default": true
+      "default": true,
+      "x-visibility": "owner"
      },
      "player": {
       "type": "string",
-      "maxLength": 120
+      "maxLength": 120,
+      "x-visibility": "owner"
      },
      "class": {
       "type": "string",
       "maxLength": 120,
-      "description": "A class id from the Classes list (barbarian, bard, cleric, druid, fighter, monk, paladin, ranger, rogue, sorcerer, warlock, wizard, or one a supplement adds)."
+      "description": "A class id from the Classes list (barbarian, bard, cleric, druid, fighter, monk, paladin, ranger, rogue, sorcerer, warlock, wizard, or one a supplement adds).",
+      "x-visibility": "owner"
      },
      "subclass": {
       "type": "string",
-      "maxLength": 120
+      "maxLength": 120,
+      "x-visibility": "owner"
      },
      "level": {
       "type": "integer",
       "minimum": 1,
       "maximum": 20,
       "default": 1,
-      "description": "Character level (all classes together)."
+      "description": "Character level (all classes together).",
+      "x-visibility": "owner"
      },
      "classLevels": {
       "type": "array",
@@ -154,19 +160,38 @@
        ],
        "additionalProperties": false
       },
-      "default": []
+      "default": [],
+      "x-visibility": "owner"
      },
      "race": {
       "type": "string",
-      "maxLength": 120
+      "maxLength": 120,
+      "x-visibility": "owner"
      },
      "subrace": {
       "type": "string",
-      "maxLength": 120
+      "maxLength": 120,
+      "x-visibility": "owner"
      },
      "background": {
       "type": "string",
-      "maxLength": 120
+      "maxLength": 120,
+      "x-visibility": "owner"
+     },
+     "edition": {
+      "type": "string",
+      "enum": [
+       "2014",
+       "2024",
+       "mixed"
+      ],
+      "enumLabels": [
+       "SRD 5.1 (2014 rules)",
+       "SRD 5.2 (2024 rules)",
+       "Mixed"
+      ],
+      "description": "The rules the character was built with: a level-up follows them (empty reads as SRD 5.1).",
+      "x-visibility": "owner"
      },
      "alignment": {
       "type": "string",
@@ -181,6 +206,7 @@
        "neutral-evil",
        "chaotic-evil"
       ],
+      "x-visibility": "owner",
       "enumLabels": [
        "Lawful good",
        "Neutral good",
@@ -197,7 +223,8 @@
       "type": "integer",
       "minimum": 0,
       "maximum": 10000000,
-      "default": 0
+      "default": 0,
+      "x-visibility": "owner"
      },
      "abilities": {
       "type": "object",
@@ -247,7 +274,8 @@
        "wisdom",
        "charisma"
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-visibility": "owner"
      },
      "saves": {
       "type": "object",
@@ -290,7 +318,8 @@
        }
       },
       "additionalProperties": false,
-      "default": {}
+      "default": {},
+      "x-visibility": "owner"
      },
      "skills": {
       "type": "object",
@@ -405,7 +434,8 @@
        }
       },
       "additionalProperties": false,
-      "default": {}
+      "default": {},
+      "x-visibility": "owner"
      },
      "bonuses": {
       "type": "object",
@@ -557,25 +587,29 @@
        }
       },
       "additionalProperties": false,
-      "default": {}
+      "default": {},
+      "x-visibility": "owner"
      },
      "ac": {
       "type": "integer",
       "minimum": 0,
       "maximum": 40,
-      "default": 10
+      "default": 10,
+      "x-visibility": "owner"
      },
      "initiativeBonus": {
       "type": "integer",
       "minimum": -10,
       "maximum": 20,
-      "default": 0
+      "default": 0,
+      "x-visibility": "owner"
      },
      "speed": {
       "type": "integer",
       "minimum": 0,
       "maximum": 200,
-      "default": 30
+      "default": 30,
+      "x-visibility": "owner"
      },
      "size": {
       "type": "string",
@@ -586,6 +620,7 @@
        "Large"
       ],
       "default": "Medium",
+      "x-visibility": "owner",
       "enumLabels": [
        "Tiny",
        "Small",
@@ -597,7 +632,8 @@
       "type": "integer",
       "minimum": 0,
       "maximum": 300,
-      "description": "Darkvision range in feet (0 or empty: none)."
+      "description": "Darkvision range in feet (0 or empty: none).",
+      "x-visibility": "owner"
      },
      "hp": {
       "type": "object",
@@ -625,13 +661,15 @@
        "max",
        "current"
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-visibility": "owner"
      },
      "hitDiceSpent": {
       "type": "integer",
       "minimum": 0,
       "maximum": 20,
-      "default": 0
+      "default": 0,
+      "x-visibility": "owner"
      },
      "deathSaves": {
       "type": "object",
@@ -653,17 +691,20 @@
       "default": {
        "successes": 0,
        "failures": 0
-      }
+      },
+      "x-visibility": "owner"
      },
      "exhaustion": {
       "type": "integer",
       "minimum": 0,
       "maximum": 6,
-      "default": 0
+      "default": 0,
+      "x-visibility": "owner"
      },
      "inspiration": {
       "type": "boolean",
-      "default": false
+      "default": false,
+      "x-visibility": "owner"
      },
      "spellcastingAbility": {
       "type": "string",
@@ -676,6 +717,7 @@
        "charisma"
       ],
       "description": "Leave empty to use the class's spellcasting ability.",
+      "x-visibility": "owner",
       "enumLabels": [
        "Strength",
        "Dexterity",
@@ -753,7 +795,8 @@
        }
       },
       "additionalProperties": false,
-      "default": {}
+      "default": {},
+      "x-visibility": "owner"
      },
      "spells": {
       "type": "array",
@@ -761,7 +804,8 @@
        "type": "string"
       },
       "default": [],
-      "description": "Spells known or prepared (names from the Spells list)."
+      "description": "Spells known or prepared (names from the Spells list).",
+      "x-visibility": "owner"
      },
      "attacks": {
       "type": "array",
@@ -772,13 +816,43 @@
          "type": "string",
          "maxLength": 80
         },
+        "ability": {
+         "type": "string",
+         "enum": [
+          "strength",
+          "dexterity",
+          "constitution",
+          "intelligence",
+          "wisdom",
+          "charisma",
+          "finesse",
+          "spellcasting"
+         ],
+         "enumLabels": [
+          "Strength",
+          "Dexterity",
+          "Constitution",
+          "Intelligence",
+          "Wisdom",
+          "Charisma",
+          "Strength or Dexterity (finesse)",
+          "Spellcasting ability"
+         ],
+         "description": "The ability the attack uses: its modifier goes on the attack roll and (except a spell's) the damage."
+        },
+        "proficient": {
+         "type": "boolean",
+         "description": "Proficient with the weapon: the proficiency bonus goes on the attack roll."
+        },
         "bonus": {
          "type": "string",
-         "maxLength": 20
+         "maxLength": 20,
+         "description": "An attack bonus typed by hand (\"+5\"); leave empty to work it out from the ability and proficiency."
         },
         "damage": {
          "type": "string",
-         "maxLength": 80
+         "maxLength": 80,
+         "description": "The damage dice (\"1d8\"); the ability modifier is added when an ability is set."
         },
         "type": {
          "type": "string",
@@ -837,7 +911,8 @@
         "name"
        ]
       },
-      "default": []
+      "default": [],
+      "x-visibility": "owner"
      },
      "features": {
       "type": "array",
@@ -856,18 +931,21 @@
         "name"
        ]
       },
-      "default": []
+      "default": [],
+      "x-visibility": "owner"
      },
      "proficiencies": {
       "type": "string",
-      "maxLength": 4000
+      "maxLength": 4000,
+      "x-visibility": "owner"
      },
      "languages": {
       "type": "array",
       "items": {
        "type": "string"
       },
-      "default": []
+      "default": [],
+      "x-visibility": "owner"
      },
      "equipment": {
       "type": "array",
@@ -897,7 +975,8 @@
         "name"
        ]
       },
-      "default": []
+      "default": [],
+      "x-visibility": "owner"
      },
      "coins": {
       "type": "object",
@@ -930,7 +1009,8 @@
        "ep": 0,
        "gp": 0,
        "pp": 0
-      }
+      },
+      "x-visibility": "owner"
      },
      "personality": {
       "type": "object",
@@ -953,15 +1033,18 @@
        }
       },
       "additionalProperties": false,
-      "default": {}
+      "default": {},
+      "x-visibility": "owner"
      },
      "appearance": {
       "type": "string",
-      "maxLength": 4000
+      "maxLength": 4000,
+      "x-visibility": "owner"
      },
      "backstory": {
       "type": "string",
-      "maxLength": 20000
+      "maxLength": 20000,
+      "x-visibility": "owner"
      },
      "notes": {
       "type": "string",
@@ -2337,6 +2420,29 @@
              "var": "computed.constitutionMod"
             }
            ]
+          },
+          {
+           "if": [
+            {
+             "find": [
+              {
+               "var": [
+                "fields.features",
+                []
+               ]
+              },
+              "name",
+              "Dwarven Toughness"
+             ]
+            },
+            {
+             "var": [
+              "fields.level",
+              1
+             ]
+            },
+            0
+           ]
           }
          ]
         }
@@ -2392,6 +2498,29 @@
               }
              ]
             }
+           ]
+          },
+          {
+           "if": [
+            {
+             "find": [
+              {
+               "var": [
+                "fields.features",
+                []
+               ]
+              },
+              "name",
+              "Dwarven Toughness"
+             ]
+            },
+            {
+             "var": [
+              "fields.level",
+              1
+             ]
+            },
+            0
            ]
           }
          ]
@@ -2481,6 +2610,83 @@
       },
       {
        "var": "fields.spellcastingAbility"
+      },
+      {
+       ">": [
+        {
+         "count": {
+          "var": [
+           "fields.classLevels",
+           []
+          ]
+         }
+        },
+        1
+       ]
+      },
+      {
+       "reduce": [
+        {
+         "var": [
+          "fields.classLevels",
+          []
+         ]
+        },
+        {
+         "if": [
+          {
+           "var": "accumulator"
+          },
+          {
+           "var": "accumulator"
+          },
+          {
+           "if": [
+            {
+             "in": [
+              {
+               "var": "current.class"
+              },
+              [
+               "bard",
+               "paladin",
+               "sorcerer",
+               "warlock"
+              ]
+             ]
+            },
+            "charisma",
+            {
+             "in": [
+              {
+               "var": "current.class"
+              },
+              [
+               "cleric",
+               "druid",
+               "ranger"
+              ]
+             ]
+            },
+            "wisdom",
+            {
+             "in": [
+              {
+               "var": "current.class"
+              },
+              [
+               "wizard"
+              ]
+             ]
+            },
+            "intelligence",
+            ""
+           ]
+          }
+         ]
+        },
+        ""
+       ]
       },
       {
        "if": [
@@ -5626,6 +5832,11 @@
         }
        },
        {
+        "path": "edition",
+        "label": "Rules",
+        "widget": "select"
+       },
+       {
         "path": "alignment",
         "label": "Alignment",
         "widget": "select",
@@ -5647,7 +5858,10 @@
         "path": "proficiencyBonus",
         "label": "Proficiency bonus",
         "widget": "computed",
-        "rule": "dnd5e-srd.rule.proficiency-bonus"
+        "rule": "dnd5e-srd.rule.proficiency-bonus",
+        "config": {
+         "signed": true
+        }
        },
        {
         "path": "player",
@@ -5735,32 +5949,50 @@
        {
         "path": "strengthMod",
         "label": "STR modifier",
-        "widget": "computed"
+        "widget": "computed",
+        "config": {
+         "signed": true
+        }
        },
        {
         "path": "dexterityMod",
         "label": "DEX modifier",
-        "widget": "computed"
+        "widget": "computed",
+        "config": {
+         "signed": true
+        }
        },
        {
         "path": "constitutionMod",
         "label": "CON modifier",
-        "widget": "computed"
+        "widget": "computed",
+        "config": {
+         "signed": true
+        }
        },
        {
         "path": "intelligenceMod",
         "label": "INT modifier",
-        "widget": "computed"
+        "widget": "computed",
+        "config": {
+         "signed": true
+        }
        },
        {
         "path": "wisdomMod",
         "label": "WIS modifier",
-        "widget": "computed"
+        "widget": "computed",
+        "config": {
+         "signed": true
+        }
        },
        {
         "path": "charismaMod",
         "label": "CHA modifier",
-        "widget": "computed"
+        "widget": "computed",
+        "config": {
+         "signed": true
+        }
        }
       ]
      },
@@ -5778,7 +6010,10 @@
         "path": "initiative",
         "label": "Initiative",
         "widget": "computed",
-        "rule": "dnd5e-srd.rule.the-order-of-combat.initiative"
+        "rule": "dnd5e-srd.rule.the-order-of-combat.initiative",
+        "config": {
+         "signed": true
+        }
        },
        {
         "path": "speed",
@@ -5956,14 +6191,903 @@
         "path": "attacks",
         "label": "Attacks",
         "widget": "table",
+        "rule": "dnd5e-srd.rule.making-an-attack.attack-rolls",
         "config": {
          "columns": [
           "name",
           {
-           "key": "bonus",
-           "label": "Attack bonus"
+           "key": "ability",
+           "label": "Ability"
           },
-          "damage",
+          {
+           "key": "proficient",
+           "label": "Proficient"
+          },
+          {
+           "key": "toHit",
+           "label": "To hit",
+           "computed": {
+            "if": [
+             {
+              "var": [
+               "item.bonus",
+               ""
+              ]
+             },
+             {
+              "var": "item.bonus"
+             },
+             {
+              "var": [
+               "item.ability",
+               ""
+              ]
+             },
+             {
+              "if": [
+               {
+                ">=": [
+                 {
+                  "if": [
+                   {
+                    "var": [
+                     "item.ability",
+                     ""
+                    ]
+                   },
+                   {
+                    "+": [
+                     {
+                      "if": [
+                       {
+                        "==": [
+                         {
+                          "var": [
+                           "item.ability",
+                           ""
+                          ]
+                         },
+                         "finesse"
+                        ]
+                       },
+                       {
+                        "max": [
+                         {
+                          "var": [
+                           "computed.strengthMod",
+                           0
+                          ]
+                         },
+                         {
+                          "var": [
+                           "computed.dexterityMod",
+                           0
+                          ]
+                         }
+                        ]
+                       },
+                       {
+                        "==": [
+                         {
+                          "var": [
+                           "item.ability",
+                           ""
+                          ]
+                         },
+                         "spellcasting"
+                        ]
+                       },
+                       {
+                        "var": [
+                         "computed.spellcastingMod",
+                         0
+                        ]
+                       },
+                       {
+                        "var": [
+                         {
+                          "cat": [
+                           "computed.",
+                           {
+                            "var": [
+                             "item.ability",
+                             ""
+                            ]
+                           },
+                           "Mod"
+                          ]
+                         },
+                         0
+                        ]
+                       }
+                      ]
+                     },
+                     {
+                      "if": [
+                       {
+                        "var": [
+                         "item.proficient",
+                         false
+                        ]
+                       },
+                       {
+                        "var": [
+                         "computed.proficiencyBonus",
+                         2
+                        ]
+                       },
+                       0
+                      ]
+                     }
+                    ]
+                   },
+                   null
+                  ]
+                 },
+                 0
+                ]
+               },
+               {
+                "cat": [
+                 "+",
+                 {
+                  "if": [
+                   {
+                    "var": [
+                     "item.ability",
+                     ""
+                    ]
+                   },
+                   {
+                    "+": [
+                     {
+                      "if": [
+                       {
+                        "==": [
+                         {
+                          "var": [
+                           "item.ability",
+                           ""
+                          ]
+                         },
+                         "finesse"
+                        ]
+                       },
+                       {
+                        "max": [
+                         {
+                          "var": [
+                           "computed.strengthMod",
+                           0
+                          ]
+                         },
+                         {
+                          "var": [
+                           "computed.dexterityMod",
+                           0
+                          ]
+                         }
+                        ]
+                       },
+                       {
+                        "==": [
+                         {
+                          "var": [
+                           "item.ability",
+                           ""
+                          ]
+                         },
+                         "spellcasting"
+                        ]
+                       },
+                       {
+                        "var": [
+                         "computed.spellcastingMod",
+                         0
+                        ]
+                       },
+                       {
+                        "var": [
+                         {
+                          "cat": [
+                           "computed.",
+                           {
+                            "var": [
+                             "item.ability",
+                             ""
+                            ]
+                           },
+                           "Mod"
+                          ]
+                         },
+                         0
+                        ]
+                       }
+                      ]
+                     },
+                     {
+                      "if": [
+                       {
+                        "var": [
+                         "item.proficient",
+                         false
+                        ]
+                       },
+                       {
+                        "var": [
+                         "computed.proficiencyBonus",
+                         2
+                        ]
+                       },
+                       0
+                      ]
+                     }
+                    ]
+                   },
+                   null
+                  ]
+                 }
+                ]
+               },
+               {
+                "cat": [
+                 {
+                  "if": [
+                   {
+                    "var": [
+                     "item.ability",
+                     ""
+                    ]
+                   },
+                   {
+                    "+": [
+                     {
+                      "if": [
+                       {
+                        "==": [
+                         {
+                          "var": [
+                           "item.ability",
+                           ""
+                          ]
+                         },
+                         "finesse"
+                        ]
+                       },
+                       {
+                        "max": [
+                         {
+                          "var": [
+                           "computed.strengthMod",
+                           0
+                          ]
+                         },
+                         {
+                          "var": [
+                           "computed.dexterityMod",
+                           0
+                          ]
+                         }
+                        ]
+                       },
+                       {
+                        "==": [
+                         {
+                          "var": [
+                           "item.ability",
+                           ""
+                          ]
+                         },
+                         "spellcasting"
+                        ]
+                       },
+                       {
+                        "var": [
+                         "computed.spellcastingMod",
+                         0
+                        ]
+                       },
+                       {
+                        "var": [
+                         {
+                          "cat": [
+                           "computed.",
+                           {
+                            "var": [
+                             "item.ability",
+                             ""
+                            ]
+                           },
+                           "Mod"
+                          ]
+                         },
+                         0
+                        ]
+                       }
+                      ]
+                     },
+                     {
+                      "if": [
+                       {
+                        "var": [
+                         "item.proficient",
+                         false
+                        ]
+                       },
+                       {
+                        "var": [
+                         "computed.proficiencyBonus",
+                         2
+                        ]
+                       },
+                       0
+                      ]
+                     }
+                    ]
+                   },
+                   null
+                  ]
+                 }
+                ]
+               }
+              ]
+             },
+             ""
+            ]
+           }
+          },
+          {
+           "key": "bonus",
+           "label": "Bonus (by hand)"
+          },
+          {
+           "key": "damage",
+           "label": "Damage dice"
+          },
+          {
+           "key": "damageTotal",
+           "label": "Damage",
+           "computed": {
+            "if": [
+             {
+              "var": [
+               "item.damage",
+               ""
+              ]
+             },
+             {
+              "cat": [
+               {
+                "var": "item.damage"
+               },
+               {
+                "if": [
+                 {
+                  "matches": [
+                   {
+                    "var": "item.damage"
+                   },
+                   "^\\s*\\d*d?\\d+\\s*$"
+                  ]
+                 },
+                 "",
+                 {
+                  "if": [
+                   {
+                    "!=": [
+                     {
+                      "if": [
+                       {
+                        "and": [
+                         {
+                          "var": [
+                           "item.ability",
+                           ""
+                          ]
+                         },
+                         {
+                          "!=": [
+                           {
+                            "var": [
+                             "item.ability",
+                             ""
+                            ]
+                           },
+                           "spellcasting"
+                          ]
+                         }
+                        ]
+                       },
+                       {
+                        "if": [
+                         {
+                          "==": [
+                           {
+                            "var": [
+                             "item.ability",
+                             ""
+                            ]
+                           },
+                           "finesse"
+                          ]
+                         },
+                         {
+                          "max": [
+                           {
+                            "var": [
+                             "computed.strengthMod",
+                             0
+                            ]
+                           },
+                           {
+                            "var": [
+                             "computed.dexterityMod",
+                             0
+                            ]
+                           }
+                          ]
+                         },
+                         {
+                          "==": [
+                           {
+                            "var": [
+                             "item.ability",
+                             ""
+                            ]
+                           },
+                           "spellcasting"
+                          ]
+                         },
+                         {
+                          "var": [
+                           "computed.spellcastingMod",
+                           0
+                          ]
+                         },
+                         {
+                          "var": [
+                           {
+                            "cat": [
+                             "computed.",
+                             {
+                              "var": [
+                               "item.ability",
+                               ""
+                              ]
+                             },
+                             "Mod"
+                            ]
+                           },
+                           0
+                          ]
+                         }
+                        ]
+                       },
+                       0
+                      ]
+                     },
+                     0
+                    ]
+                   },
+                   " ",
+                   ""
+                  ]
+                 }
+                ]
+               },
+               {
+                "if": [
+                 {
+                  ">": [
+                   {
+                    "if": [
+                     {
+                      "and": [
+                       {
+                        "var": [
+                         "item.ability",
+                         ""
+                        ]
+                       },
+                       {
+                        "!=": [
+                         {
+                          "var": [
+                           "item.ability",
+                           ""
+                          ]
+                         },
+                         "spellcasting"
+                        ]
+                       }
+                      ]
+                     },
+                     {
+                      "if": [
+                       {
+                        "==": [
+                         {
+                          "var": [
+                           "item.ability",
+                           ""
+                          ]
+                         },
+                         "finesse"
+                        ]
+                       },
+                       {
+                        "max": [
+                         {
+                          "var": [
+                           "computed.strengthMod",
+                           0
+                          ]
+                         },
+                         {
+                          "var": [
+                           "computed.dexterityMod",
+                           0
+                          ]
+                         }
+                        ]
+                       },
+                       {
+                        "==": [
+                         {
+                          "var": [
+                           "item.ability",
+                           ""
+                          ]
+                         },
+                         "spellcasting"
+                        ]
+                       },
+                       {
+                        "var": [
+                         "computed.spellcastingMod",
+                         0
+                        ]
+                       },
+                       {
+                        "var": [
+                         {
+                          "cat": [
+                           "computed.",
+                           {
+                            "var": [
+                             "item.ability",
+                             ""
+                            ]
+                           },
+                           "Mod"
+                          ]
+                         },
+                         0
+                        ]
+                       }
+                      ]
+                     },
+                     0
+                    ]
+                   },
+                   0
+                  ]
+                 },
+                 {
+                  "cat": [
+                   "+",
+                   {
+                    "if": [
+                     {
+                      "and": [
+                       {
+                        "var": [
+                         "item.ability",
+                         ""
+                        ]
+                       },
+                       {
+                        "!=": [
+                         {
+                          "var": [
+                           "item.ability",
+                           ""
+                          ]
+                         },
+                         "spellcasting"
+                        ]
+                       }
+                      ]
+                     },
+                     {
+                      "if": [
+                       {
+                        "==": [
+                         {
+                          "var": [
+                           "item.ability",
+                           ""
+                          ]
+                         },
+                         "finesse"
+                        ]
+                       },
+                       {
+                        "max": [
+                         {
+                          "var": [
+                           "computed.strengthMod",
+                           0
+                          ]
+                         },
+                         {
+                          "var": [
+                           "computed.dexterityMod",
+                           0
+                          ]
+                         }
+                        ]
+                       },
+                       {
+                        "==": [
+                         {
+                          "var": [
+                           "item.ability",
+                           ""
+                          ]
+                         },
+                         "spellcasting"
+                        ]
+                       },
+                       {
+                        "var": [
+                         "computed.spellcastingMod",
+                         0
+                        ]
+                       },
+                       {
+                        "var": [
+                         {
+                          "cat": [
+                           "computed.",
+                           {
+                            "var": [
+                             "item.ability",
+                             ""
+                            ]
+                           },
+                           "Mod"
+                          ]
+                         },
+                         0
+                        ]
+                       }
+                      ]
+                     },
+                     0
+                    ]
+                   }
+                  ]
+                 },
+                 {
+                  "<": [
+                   {
+                    "if": [
+                     {
+                      "and": [
+                       {
+                        "var": [
+                         "item.ability",
+                         ""
+                        ]
+                       },
+                       {
+                        "!=": [
+                         {
+                          "var": [
+                           "item.ability",
+                           ""
+                          ]
+                         },
+                         "spellcasting"
+                        ]
+                       }
+                      ]
+                     },
+                     {
+                      "if": [
+                       {
+                        "==": [
+                         {
+                          "var": [
+                           "item.ability",
+                           ""
+                          ]
+                         },
+                         "finesse"
+                        ]
+                       },
+                       {
+                        "max": [
+                         {
+                          "var": [
+                           "computed.strengthMod",
+                           0
+                          ]
+                         },
+                         {
+                          "var": [
+                           "computed.dexterityMod",
+                           0
+                          ]
+                         }
+                        ]
+                       },
+                       {
+                        "==": [
+                         {
+                          "var": [
+                           "item.ability",
+                           ""
+                          ]
+                         },
+                         "spellcasting"
+                        ]
+                       },
+                       {
+                        "var": [
+                         "computed.spellcastingMod",
+                         0
+                        ]
+                       },
+                       {
+                        "var": [
+                         {
+                          "cat": [
+                           "computed.",
+                           {
+                            "var": [
+                             "item.ability",
+                             ""
+                            ]
+                           },
+                           "Mod"
+                          ]
+                         },
+                         0
+                        ]
+                       }
+                      ]
+                     },
+                     0
+                    ]
+                   },
+                   0
+                  ]
+                 },
+                 {
+                  "cat": [
+                   {
+                    "if": [
+                     {
+                      "and": [
+                       {
+                        "var": [
+                         "item.ability",
+                         ""
+                        ]
+                       },
+                       {
+                        "!=": [
+                         {
+                          "var": [
+                           "item.ability",
+                           ""
+                          ]
+                         },
+                         "spellcasting"
+                        ]
+                       }
+                      ]
+                     },
+                     {
+                      "if": [
+                       {
+                        "==": [
+                         {
+                          "var": [
+                           "item.ability",
+                           ""
+                          ]
+                         },
+                         "finesse"
+                        ]
+                       },
+                       {
+                        "max": [
+                         {
+                          "var": [
+                           "computed.strengthMod",
+                           0
+                          ]
+                         },
+                         {
+                          "var": [
+                           "computed.dexterityMod",
+                           0
+                          ]
+                         }
+                        ]
+                       },
+                       {
+                        "==": [
+                         {
+                          "var": [
+                           "item.ability",
+                           ""
+                          ]
+                         },
+                         "spellcasting"
+                        ]
+                       },
+                       {
+                        "var": [
+                         "computed.spellcastingMod",
+                         0
+                        ]
+                       },
+                       {
+                        "var": [
+                         {
+                          "cat": [
+                           "computed.",
+                           {
+                            "var": [
+                             "item.ability",
+                             ""
+                            ]
+                           },
+                           "Mod"
+                          ]
+                         },
+                         0
+                        ]
+                       }
+                      ]
+                     },
+                     0
+                    ]
+                   }
+                  ]
+                 },
+                 ""
+                ]
+               },
+               {
+                "if": [
+                 {
+                  "var": [
+                   "item.type",
+                   ""
+                  ]
+                 },
+                 {
+                  "cat": [
+                   " ",
+                   {
+                    "var": "item.type"
+                   }
+                  ]
+                 },
+                 ""
+                ]
+               }
+              ]
+             },
+             ""
+            ]
+           }
+          },
           {
            "key": "type",
            "label": "Damage type"
@@ -5973,7 +7097,184 @@
            "label": "Attack"
           },
           "notes"
-         ]
+         ],
+         "addFrom": {
+          "ref": "dnd5e-srd.weapons",
+          "label": "Add a weapon",
+          "where": {
+           "!=": [
+            {
+             "var": [
+              "item.damage",
+              "—"
+             ]
+            },
+            "—"
+           ]
+          },
+          "row": {
+           "name": {
+            "var": "item.name"
+           },
+           "damage": {
+            "var": [
+             "item.builder.attack.dice",
+             {
+              "var": "item.damage"
+             }
+            ]
+           },
+           "type": {
+            "var": [
+             "item.builder.attack.type",
+             ""
+            ]
+           },
+           "ability": {
+            "if": [
+             {
+              "matches": [
+               {
+                "var": [
+                 "item.properties",
+                 ""
+                ]
+               },
+               "finesse"
+              ]
+             },
+             "finesse",
+             {
+              "matches": [
+               {
+                "var": [
+                 "item.category",
+                 ""
+                ]
+               },
+               "Ranged"
+              ]
+             },
+             "dexterity",
+             "strength"
+            ]
+           },
+           "kind": {
+            "if": [
+             {
+              "matches": [
+               {
+                "var": [
+                 "item.category",
+                 ""
+                ]
+               },
+               "Ranged"
+              ]
+             },
+             "ranged",
+             "melee"
+            ]
+           },
+           "proficient": {
+            "or": [
+             {
+              "and": [
+               {
+                "startsWith": [
+                 {
+                  "var": [
+                   "item.category",
+                   ""
+                  ]
+                 },
+                 "Simple"
+                ]
+               },
+               {
+                "matches": [
+                 {
+                  "var": [
+                   "fields.proficiencies",
+                   ""
+                  ]
+                 },
+                 "simple (and martial )?weapons|simple weapons"
+                ]
+               }
+              ]
+             },
+             {
+              "and": [
+               {
+                "startsWith": [
+                 {
+                  "var": [
+                   "item.category",
+                   ""
+                  ]
+                 },
+                 "Martial"
+                ]
+               },
+               {
+                "matches": [
+                 {
+                  "var": [
+                   "fields.proficiencies",
+                   ""
+                  ]
+                 },
+                 "martial weapons"
+                ]
+               }
+              ]
+             },
+             {
+              "matches": [
+               {
+                "var": [
+                 "fields.proficiencies",
+                 ""
+                ]
+               },
+               {
+                "cat": [
+                 "\\b",
+                 {
+                  "var": [
+                   "item.name",
+                   "-"
+                  ]
+                 },
+                 "s?\\b"
+                ]
+               }
+              ]
+             }
+            ]
+           },
+           "notes": {
+            "if": [
+             {
+              "!=": [
+               {
+                "var": [
+                 "item.properties",
+                 "—"
+                ]
+               },
+               "—"
+              ]
+             },
+             {
+              "var": "item.properties"
+             },
+             ""
+            ]
+           }
+          }
+         }
         }
        }
       ]
@@ -6025,7 +7326,17 @@
         "path": "spells",
         "label": "Spells known / prepared",
         "widget": "tags",
-        "span": 12
+        "span": 12,
+        "options": {
+         "ref": "dnd5e-srd.spells"
+        },
+        "config": {
+         "optionsFilter": {
+          "field": "class",
+          "key": "classes"
+         },
+         "placeholder": "Add a spell…"
+        }
        }
       ]
      },
@@ -6157,7 +7468,7 @@
    "kind": "creature",
    "name": "Monster",
    "plural": "Monsters",
-   "icon": "bug",
+   "icon": "claw",
    "schema": {
     "type": "object",
     "properties": {
@@ -8164,14 +9475,14 @@
         "span": 6
        },
        {
-        "path": "cr",
+        "path": "crLabel",
         "label": "Challenge rating",
-        "widget": "number"
+        "widget": "computed"
        },
        {
-        "path": "crLabel",
-        "label": "Challenge",
-        "widget": "computed"
+        "path": "cr",
+        "label": "CR as a number (1/4 is 0.25)",
+        "widget": "number"
        },
        {
         "path": "xp",
@@ -8182,12 +9493,18 @@
         "path": "proficiencyBonus",
         "label": "Proficiency bonus",
         "widget": "computed",
-        "rule": "dnd5e-srd.rule.proficiency-bonus"
+        "rule": "dnd5e-srd.rule.proficiency-bonus",
+        "config": {
+         "signed": true
+        }
        },
        {
         "path": "initiative",
         "label": "Initiative",
-        "widget": "computed"
+        "widget": "computed",
+        "config": {
+         "signed": true
+        }
        },
        {
         "path": "passivePerception",
@@ -8241,32 +9558,50 @@
        {
         "path": "strengthMod",
         "label": "STR modifier",
-        "widget": "computed"
+        "widget": "computed",
+        "config": {
+         "signed": true
+        }
        },
        {
         "path": "dexterityMod",
         "label": "DEX modifier",
-        "widget": "computed"
+        "widget": "computed",
+        "config": {
+         "signed": true
+        }
        },
        {
         "path": "constitutionMod",
         "label": "CON modifier",
-        "widget": "computed"
+        "widget": "computed",
+        "config": {
+         "signed": true
+        }
        },
        {
         "path": "intelligenceMod",
         "label": "INT modifier",
-        "widget": "computed"
+        "widget": "computed",
+        "config": {
+         "signed": true
+        }
        },
        {
         "path": "wisdomMod",
         "label": "WIS modifier",
-        "widget": "computed"
+        "widget": "computed",
+        "config": {
+         "signed": true
+        }
        },
        {
         "path": "charismaMod",
         "label": "CHA modifier",
-        "widget": "computed"
+        "widget": "computed",
+        "config": {
+         "signed": true
+        }
        }
       ]
      },
@@ -8515,8 +9850,33 @@
     ]
    },
    "defaultVisibility": {
-    "notes": "gm",
-    "description": "gm"
+    "alignment": "gm",
+    "ac": "gm",
+    "acNote": "gm",
+    "hp": "gm",
+    "hitDice": "gm",
+    "speed": "gm",
+    "initiativeBonus": "gm",
+    "abilities": "gm",
+    "saves": "gm",
+    "skills": "gm",
+    "bonuses": "gm",
+    "damageVulnerabilities": "gm",
+    "damageResistances": "gm",
+    "damageImmunities": "gm",
+    "conditionImmunities": "gm",
+    "damageModifiers": "gm",
+    "senses": "gm",
+    "languages": "gm",
+    "cr": "gm",
+    "xp": "gm",
+    "traits": "gm",
+    "actions": "gm",
+    "reactions": "gm",
+    "legendaryActions": "gm",
+    "attacks": "gm",
+    "description": "gm",
+    "notes": "gm"
    }
   },
   {
@@ -10631,6 +11991,194 @@
       "path": "attacks",
       "keys": {
        "damageType": "type"
+      },
+      "bonus": {
+       "if": [
+        {
+         "var": [
+          "item.ability",
+          ""
+         ]
+        },
+        {
+         "+": [
+          {
+           "if": [
+            {
+             "==": [
+              {
+               "var": [
+                "item.ability",
+                ""
+               ]
+              },
+              "finesse"
+             ]
+            },
+            {
+             "max": [
+              {
+               "var": [
+                "computed.strengthMod",
+                0
+               ]
+              },
+              {
+               "var": [
+                "computed.dexterityMod",
+                0
+               ]
+              }
+             ]
+            },
+            {
+             "==": [
+              {
+               "var": [
+                "item.ability",
+                ""
+               ]
+              },
+              "spellcasting"
+             ]
+            },
+            {
+             "var": [
+              "computed.spellcastingMod",
+              0
+             ]
+            },
+            {
+             "var": [
+              {
+               "cat": [
+                "computed.",
+                {
+                 "var": [
+                  "item.ability",
+                  ""
+                 ]
+                },
+                "Mod"
+               ]
+              },
+              0
+             ]
+            }
+           ]
+          },
+          {
+           "if": [
+            {
+             "var": [
+              "item.proficient",
+              false
+             ]
+            },
+            {
+             "var": [
+              "computed.proficiencyBonus",
+              2
+             ]
+            },
+            0
+           ]
+          }
+         ]
+        },
+        null
+       ]
+      },
+      "damageBonus": {
+       "if": [
+        {
+         "and": [
+          {
+           "var": [
+            "item.ability",
+            ""
+           ]
+          },
+          {
+           "!=": [
+            {
+             "var": [
+              "item.ability",
+              ""
+             ]
+            },
+            "spellcasting"
+           ]
+          }
+         ]
+        },
+        {
+         "if": [
+          {
+           "==": [
+            {
+             "var": [
+              "item.ability",
+              ""
+             ]
+            },
+            "finesse"
+           ]
+          },
+          {
+           "max": [
+            {
+             "var": [
+              "computed.strengthMod",
+              0
+             ]
+            },
+            {
+             "var": [
+              "computed.dexterityMod",
+              0
+             ]
+            }
+           ]
+          },
+          {
+           "==": [
+            {
+             "var": [
+              "item.ability",
+              ""
+             ]
+            },
+            "spellcasting"
+           ]
+          },
+          {
+           "var": [
+            "computed.spellcastingMod",
+            0
+           ]
+          },
+          {
+           "var": [
+            {
+             "cat": [
+              "computed.",
+              {
+               "var": [
+                "item.ability",
+                ""
+               ]
+              },
+              "Mod"
+             ]
+            },
+            0
+           ]
+          }
+         ]
+        },
+        0
+       ]
       }
      }
     ],
@@ -11178,7 +12726,18 @@
       "deathSaves.failures": 0
      }
     },
-    "text": "A character at 0 hit points falls unconscious and makes a death saving throw at the start of each of its turns (the death save tracker): 10 or higher is a success, three successes stabilize it, three failures kill it, a natural 20 brings it back with 1 hit point. Damage at 0 hit points is a failed death save (two on a critical hit), and damage that leaves the rest equal to its hit point maximum kills it outright. Any healing wakes it.",
+    "deathSaves": {
+     "successes": "deathSaves.successes",
+     "failures": "deathSaves.failures",
+     "max": 3,
+     "dc": 10,
+     "damageFailures": 1,
+     "criticalFailures": 2,
+     "natural1Failures": 2,
+     "natural20Heals": 1,
+     "massiveDamage": true
+    },
+    "text": "A character at 0 hit points falls unconscious and makes a death saving throw at the start of each of its turns (Roll death save on its card): 10 or higher is a success, a natural 1 counts as two failures, a natural 20 brings it back with 1 hit point. Three successes stabilize it; three failures kill it. Damage while at 0 hit points is a failed death save (two on a critical hit), and the card counts it. If the damage left over after dropping to 0, or taken while down, is at least its hit point maximum, it dies outright. Any healing wakes it.",
     "cite": "SRD 5.1 — Combat: Damage and Healing, Dropping to 0 Hit Points"
    },
    {
@@ -11527,6 +13086,260 @@
     "isPC": true
    },
    "data": {
+    "alwaysPrepared": {
+     "Life": [
+      {
+       "level": 1,
+       "name": "Bless"
+      },
+      {
+       "level": 1,
+       "name": "Cure Wounds"
+      },
+      {
+       "level": 3,
+       "name": "Lesser Restoration"
+      },
+      {
+       "level": 3,
+       "name": "Spiritual Weapon"
+      },
+      {
+       "level": 5,
+       "name": "Beacon of Hope"
+      },
+      {
+       "level": 5,
+       "name": "Revivify"
+      },
+      {
+       "level": 7,
+       "name": "Death Ward"
+      },
+      {
+       "level": 7,
+       "name": "Guardian of Faith"
+      },
+      {
+       "level": 9,
+       "name": "Mass Cure Wounds"
+      },
+      {
+       "level": 9,
+       "name": "Raise Dead"
+      }
+     ],
+     "Devotion": [
+      {
+       "level": 3,
+       "name": "Protection from Evil and Good"
+      },
+      {
+       "level": 3,
+       "name": "Sanctuary"
+      },
+      {
+       "level": 5,
+       "name": "Lesser Restoration"
+      },
+      {
+       "level": 5,
+       "name": "Zone of Truth"
+      },
+      {
+       "level": 9,
+       "name": "Beacon of Hope"
+      },
+      {
+       "level": 9,
+       "name": "Dispel Magic"
+      },
+      {
+       "level": 13,
+       "name": "Freedom of Movement"
+      },
+      {
+       "level": 13,
+       "name": "Guardian of Faith"
+      },
+      {
+       "level": 17,
+       "name": "Commune"
+      },
+      {
+       "level": 17,
+       "name": "Flame Strike"
+      }
+     ],
+     "Life Domain": [
+      {
+       "level": 3,
+       "name": "Aid"
+      },
+      {
+       "level": 3,
+       "name": "Bless"
+      },
+      {
+       "level": 3,
+       "name": "Cure Wounds"
+      },
+      {
+       "level": 3,
+       "name": "Lesser Restoration"
+      },
+      {
+       "level": 5,
+       "name": "Mass Healing Word"
+      },
+      {
+       "level": 5,
+       "name": "Revivify"
+      },
+      {
+       "level": 7,
+       "name": "Aura of Life"
+      },
+      {
+       "level": 7,
+       "name": "Death Ward"
+      },
+      {
+       "level": 9,
+       "name": "Greater Restoration"
+      },
+      {
+       "level": 9,
+       "name": "Mass Cure Wounds"
+      }
+     ],
+     "Oath of Devotion": [
+      {
+       "level": 3,
+       "name": "Protection from Evil and Good"
+      },
+      {
+       "level": 3,
+       "name": "Shield of Faith"
+      },
+      {
+       "level": 5,
+       "name": "Aid"
+      },
+      {
+       "level": 5,
+       "name": "Zone of Truth"
+      },
+      {
+       "level": 9,
+       "name": "Beacon of Hope"
+      },
+      {
+       "level": 9,
+       "name": "Dispel Magic"
+      },
+      {
+       "level": 13,
+       "name": "Freedom of Movement"
+      },
+      {
+       "level": 13,
+       "name": "Guardian of Faith"
+      },
+      {
+       "level": 17,
+       "name": "Commune"
+      },
+      {
+       "level": 17,
+       "name": "Flame Strike"
+      }
+     ],
+     "Draconic Sorcery": [
+      {
+       "level": 3,
+       "name": "Alter Self"
+      },
+      {
+       "level": 3,
+       "name": "Chromatic Orb"
+      },
+      {
+       "level": 3,
+       "name": "Command"
+      },
+      {
+       "level": 3,
+       "name": "Dragon's Breath"
+      },
+      {
+       "level": 5,
+       "name": "Fear"
+      },
+      {
+       "level": 5,
+       "name": "Fly"
+      },
+      {
+       "level": 7,
+       "name": "Arcane Eye"
+      },
+      {
+       "level": 7,
+       "name": "Charm Monster"
+      },
+      {
+       "level": 9,
+       "name": "Legend Lore"
+      },
+      {
+       "level": 9,
+       "name": "Summon Dragon"
+      }
+     ],
+     "Fiend Patron": [
+      {
+       "level": 3,
+       "name": "Burning Hands"
+      },
+      {
+       "level": 3,
+       "name": "Command"
+      },
+      {
+       "level": 3,
+       "name": "Scorching Ray"
+      },
+      {
+       "level": 3,
+       "name": "Suggestion"
+      },
+      {
+       "level": 5,
+       "name": "Fireball"
+      },
+      {
+       "level": 5,
+       "name": "Stinking Cloud"
+      },
+      {
+       "level": 7,
+       "name": "Fire Shield"
+      },
+      {
+       "level": 7,
+       "name": "Wall of Fire"
+      },
+      {
+       "level": 9,
+       "name": "Geas"
+      },
+      {
+       "level": 9,
+       "name": "Insect Plague"
+      }
+     ]
+    },
     "subclassGroups": {
      "Land": {
       "groups": [
@@ -11938,6 +13751,18 @@
          "weight": 8
         }
        ],
+       "fixedAttacks": [
+        {
+         "name": "Javelin",
+         "category": "Simple Melee",
+         "dice": "1d6",
+         "type": "piercing",
+         "ability": "strength",
+         "kind": "melee",
+         "notes": "thrown (range 30/120), monk",
+         "proficient": true
+        }
+       ],
        "picks": [],
        "choices": [
         {
@@ -11953,12 +13778,25 @@
              "weight": 7
             }
            ],
+           "attacks": [
+            {
+             "name": "Greataxe",
+             "category": "Martial Melee",
+             "dice": "1d12",
+             "type": "slashing",
+             "ability": "strength",
+             "kind": "melee",
+             "notes": "heavy, two-handed",
+             "proficient": true
+            }
+           ],
            "picks": []
           },
           {
            "id": "barbarian-0-b",
            "name": "(b) any martial melee weapon",
            "rows": [],
+           "attacks": [],
            "picks": [
             {
              "list": "weapons",
@@ -11985,12 +13823,25 @@
              "weight": 4
             }
            ],
+           "attacks": [
+            {
+             "name": "Handaxe",
+             "category": "Simple Melee",
+             "dice": "1d6",
+             "type": "slashing",
+             "ability": "strength",
+             "kind": "melee",
+             "notes": "light, thrown (range 20/60), monk",
+             "proficient": true
+            }
+           ],
            "picks": []
           },
           {
            "id": "barbarian-1-b",
            "name": "(b) any simple weapon",
            "rows": [],
+           "attacks": [],
            "picks": [
             {
              "list": "weapons",
@@ -12271,6 +14122,18 @@
          "weight": 1
         }
        ],
+       "fixedAttacks": [
+        {
+         "name": "Dagger",
+         "category": "Simple Melee",
+         "dice": "1d4",
+         "type": "piercing",
+         "ability": "finesse",
+         "kind": "melee",
+         "notes": "finesse, light, thrown (range 20/60), monk",
+         "proficient": true
+        }
+       ],
        "armor": {
         "base": 11,
         "dex": "full"
@@ -12290,6 +14153,18 @@
              "weight": 2
             }
            ],
+           "attacks": [
+            {
+             "name": "Rapier",
+             "category": "Martial Melee",
+             "dice": "1d8",
+             "type": "piercing",
+             "ability": "finesse",
+             "kind": "melee",
+             "notes": "finesse",
+             "proficient": true
+            }
+           ],
            "picks": []
           },
           {
@@ -12302,12 +14177,25 @@
              "weight": 3
             }
            ],
+           "attacks": [
+            {
+             "name": "Longsword",
+             "category": "Martial Melee",
+             "dice": "1d8",
+             "type": "slashing",
+             "ability": "strength",
+             "kind": "melee",
+             "notes": "versatile (1d10)",
+             "proficient": true
+            }
+           ],
            "picks": []
           },
           {
            "id": "bard-0-c",
            "name": "(c) any simple weapon",
            "rows": [],
+           "attacks": [],
            "picks": [
             {
              "list": "weapons",
@@ -12334,6 +14222,7 @@
              "quantity": 1
             }
            ],
+           "attacks": [],
            "picks": []
           },
           {
@@ -12345,6 +14234,7 @@
              "quantity": 1
             }
            ],
+           "attacks": [],
            "picks": []
           }
          ]
@@ -12362,12 +14252,14 @@
              "weight": 2
             }
            ],
+           "attacks": [],
            "picks": []
           },
           {
            "id": "bard-2-b",
            "name": "(b) any other musical instrument",
            "rows": [],
+           "attacks": [],
            "picks": [
             {
              "list": "tools",
@@ -12702,6 +14594,7 @@
          "weight": 6
         }
        ],
+       "fixedAttacks": [],
        "shield": true,
        "picks": [
         {
@@ -12727,6 +14620,18 @@
              "weight": 4
             }
            ],
+           "attacks": [
+            {
+             "name": "Mace",
+             "category": "Simple Melee",
+             "dice": "1d6",
+             "type": "bludgeoning",
+             "ability": "strength",
+             "kind": "melee",
+             "notes": "monk",
+             "proficient": true
+            }
+           ],
            "picks": []
           },
           {
@@ -12737,6 +14642,17 @@
              "name": "Warhammer",
              "quantity": 1,
              "weight": 2
+            }
+           ],
+           "attacks": [
+            {
+             "name": "Warhammer",
+             "category": "Martial Melee",
+             "dice": "1d8",
+             "type": "bludgeoning",
+             "ability": "strength",
+             "kind": "melee",
+             "notes": "versatile (1d10)"
             }
            ],
            "picks": []
@@ -12756,6 +14672,7 @@
              "weight": 45
             }
            ],
+           "attacks": [],
            "armor": {
             "base": 14,
             "dex": "max2"
@@ -12772,6 +14689,7 @@
              "weight": 10
             }
            ],
+           "attacks": [],
            "armor": {
             "base": 11,
             "dex": "full"
@@ -12788,6 +14706,7 @@
              "weight": 55
             }
            ],
+           "attacks": [],
            "armor": {
             "base": 16,
             "dex": "none"
@@ -12814,12 +14733,25 @@
              "weight": 1.5
             }
            ],
+           "attacks": [
+            {
+             "name": "Crossbow, light",
+             "category": "Simple Ranged",
+             "dice": "1d8",
+             "type": "piercing",
+             "ability": "dexterity",
+             "kind": "ranged",
+             "notes": "ammunition (range 80/320), loading, two-handed",
+             "proficient": true
+            }
+           ],
            "picks": []
           },
           {
            "id": "cleric-2-b",
            "name": "(b) any simple weapon",
            "rows": [],
+           "attacks": [],
            "picks": [
             {
              "list": "weapons",
@@ -12846,6 +14778,7 @@
              "quantity": 1
             }
            ],
+           "attacks": [],
            "picks": []
           },
           {
@@ -12857,6 +14790,7 @@
              "quantity": 1
             }
            ],
+           "attacks": [],
            "picks": []
           }
          ]
@@ -13115,6 +15049,7 @@
          "quantity": 1
         }
        ],
+       "fixedAttacks": [],
        "armor": {
         "base": 11,
         "dex": "full"
@@ -13143,6 +15078,7 @@
              "weight": 6
             }
            ],
+           "attacks": [],
            "shield": true,
            "picks": []
           },
@@ -13150,6 +15086,7 @@
            "id": "druid-0-b",
            "name": "(b) any simple weapon",
            "rows": [],
+           "attacks": [],
            "picks": [
             {
              "list": "weapons",
@@ -13177,12 +15114,25 @@
              "weight": 3
             }
            ],
+           "attacks": [
+            {
+             "name": "Scimitar",
+             "category": "Martial Melee",
+             "dice": "1d6",
+             "type": "slashing",
+             "ability": "finesse",
+             "kind": "melee",
+             "notes": "finesse, light",
+             "proficient": true
+            }
+           ],
            "picks": []
           },
           {
            "id": "druid-1-b",
            "name": "(b) any simple melee weapon",
            "rows": [],
+           "attacks": [],
            "picks": [
             {
              "list": "weapons",
@@ -13602,6 +15552,7 @@
       ],
       "equipment": {
        "fixed": [],
+       "fixedAttacks": [],
        "picks": [],
        "choices": [
         {
@@ -13617,6 +15568,7 @@
              "weight": 55
             }
            ],
+           "attacks": [],
            "armor": {
             "base": 16,
             "dex": "none"
@@ -13643,6 +15595,18 @@
              "weight": 1
             }
            ],
+           "attacks": [
+            {
+             "name": "Longbow",
+             "category": "Martial Ranged",
+             "dice": "1d8",
+             "type": "piercing",
+             "ability": "dexterity",
+             "kind": "ranged",
+             "notes": "ammunition (range 150/600), heavy, two-handed",
+             "proficient": true
+            }
+           ],
            "armor": {
             "base": 11,
             "dex": "full"
@@ -13664,6 +15628,7 @@
              "weight": 6
             }
            ],
+           "attacks": [],
            "shield": true,
            "picks": [
             {
@@ -13681,6 +15646,7 @@
            "id": "fighter-1-b",
            "name": "(b) two martial weapons",
            "rows": [],
+           "attacks": [],
            "picks": [
             {
              "list": "weapons",
@@ -13713,6 +15679,18 @@
              "weight": 1.5
             }
            ],
+           "attacks": [
+            {
+             "name": "Crossbow, light",
+             "category": "Simple Ranged",
+             "dice": "1d8",
+             "type": "piercing",
+             "ability": "dexterity",
+             "kind": "ranged",
+             "notes": "ammunition (range 80/320), loading, two-handed",
+             "proficient": true
+            }
+           ],
            "picks": []
           },
           {
@@ -13723,6 +15701,18 @@
              "name": "Handaxe",
              "quantity": 2,
              "weight": 4
+            }
+           ],
+           "attacks": [
+            {
+             "name": "Handaxe",
+             "category": "Simple Melee",
+             "dice": "1d6",
+             "type": "slashing",
+             "ability": "strength",
+             "kind": "melee",
+             "notes": "light, thrown (range 20/60), monk",
+             "proficient": true
             }
            ],
            "picks": []
@@ -13741,6 +15731,7 @@
              "quantity": 1
             }
            ],
+           "attacks": [],
            "picks": []
           },
           {
@@ -13752,6 +15743,7 @@
              "quantity": 1
             }
            ],
+           "attacks": [],
            "picks": []
           }
          ]
@@ -13955,6 +15947,18 @@
          "weight": 2.5
         }
        ],
+       "fixedAttacks": [
+        {
+         "name": "Dart",
+         "category": "Simple Ranged",
+         "dice": "1d4",
+         "type": "piercing",
+         "ability": "finesse",
+         "kind": "ranged",
+         "notes": "finesse, thrown (range 20/60)",
+         "proficient": true
+        }
+       ],
        "picks": [],
        "choices": [
         {
@@ -13970,12 +15974,25 @@
              "weight": 2
             }
            ],
+           "attacks": [
+            {
+             "name": "Shortsword",
+             "category": "Martial Melee",
+             "dice": "1d6",
+             "type": "piercing",
+             "ability": "finesse",
+             "kind": "melee",
+             "notes": "finesse, light, monk",
+             "proficient": true
+            }
+           ],
            "picks": []
           },
           {
            "id": "monk-0-b",
            "name": "(b) any simple weapon",
            "rows": [],
+           "attacks": [],
            "picks": [
             {
              "list": "weapons",
@@ -14002,6 +16019,7 @@
              "quantity": 1
             }
            ],
+           "attacks": [],
            "picks": []
           },
           {
@@ -14013,6 +16031,7 @@
              "quantity": 1
             }
            ],
+           "attacks": [],
            "picks": []
           }
          ]
@@ -14380,6 +16399,7 @@
          "weight": 55
         }
        ],
+       "fixedAttacks": [],
        "armor": {
         "base": 16,
         "dex": "none"
@@ -14408,6 +16428,7 @@
              "weight": 6
             }
            ],
+           "attacks": [],
            "shield": true,
            "picks": [
             {
@@ -14425,6 +16446,7 @@
            "id": "paladin-0-b",
            "name": "(b) two martial weapons",
            "rows": [],
+           "attacks": [],
            "picks": [
             {
              "list": "weapons",
@@ -14452,12 +16474,25 @@
              "weight": 10
             }
            ],
+           "attacks": [
+            {
+             "name": "Javelin",
+             "category": "Simple Melee",
+             "dice": "1d6",
+             "type": "piercing",
+             "ability": "strength",
+             "kind": "melee",
+             "notes": "thrown (range 30/120), monk",
+             "proficient": true
+            }
+           ],
            "picks": []
           },
           {
            "id": "paladin-1-b",
            "name": "(b) any simple melee weapon",
            "rows": [],
+           "attacks": [],
            "picks": [
             {
              "list": "weapons",
@@ -14483,6 +16518,7 @@
              "quantity": 1
             }
            ],
+           "attacks": [],
            "picks": []
           },
           {
@@ -14494,6 +16530,7 @@
              "quantity": 1
             }
            ],
+           "attacks": [],
            "picks": []
           }
          ]
@@ -14889,6 +16926,18 @@
          "weight": 1
         }
        ],
+       "fixedAttacks": [
+        {
+         "name": "Longbow",
+         "category": "Martial Ranged",
+         "dice": "1d8",
+         "type": "piercing",
+         "ability": "dexterity",
+         "kind": "ranged",
+         "notes": "ammunition (range 150/600), heavy, two-handed",
+         "proficient": true
+        }
+       ],
        "picks": [],
        "choices": [
         {
@@ -14904,6 +16953,7 @@
              "weight": 45
             }
            ],
+           "attacks": [],
            "armor": {
             "base": 14,
             "dex": "max2"
@@ -14920,6 +16970,7 @@
              "weight": 10
             }
            ],
+           "attacks": [],
            "armor": {
             "base": 11,
             "dex": "full"
@@ -14941,12 +16992,25 @@
              "weight": 4
             }
            ],
+           "attacks": [
+            {
+             "name": "Shortsword",
+             "category": "Martial Melee",
+             "dice": "1d6",
+             "type": "piercing",
+             "ability": "finesse",
+             "kind": "melee",
+             "notes": "finesse, light, monk",
+             "proficient": true
+            }
+           ],
            "picks": []
           },
           {
            "id": "ranger-1-b",
            "name": "(b) two simple melee weapons",
            "rows": [],
+           "attacks": [],
            "picks": [
             {
              "list": "weapons",
@@ -14972,6 +17036,7 @@
              "quantity": 1
             }
            ],
+           "attacks": [],
            "picks": []
           },
           {
@@ -14983,6 +17048,7 @@
              "quantity": 1
             }
            ],
+           "attacks": [],
            "picks": []
           }
          ]
@@ -15354,6 +17420,18 @@
          "weight": 1
         }
        ],
+       "fixedAttacks": [
+        {
+         "name": "Dagger",
+         "category": "Simple Melee",
+         "dice": "1d4",
+         "type": "piercing",
+         "ability": "finesse",
+         "kind": "melee",
+         "notes": "finesse, light, thrown (range 20/60), monk",
+         "proficient": true
+        }
+       ],
        "armor": {
         "base": 11,
         "dex": "full"
@@ -15373,6 +17451,18 @@
              "weight": 2
             }
            ],
+           "attacks": [
+            {
+             "name": "Rapier",
+             "category": "Martial Melee",
+             "dice": "1d8",
+             "type": "piercing",
+             "ability": "finesse",
+             "kind": "melee",
+             "notes": "finesse",
+             "proficient": true
+            }
+           ],
            "picks": []
           },
           {
@@ -15383,6 +17473,18 @@
              "name": "Shortsword",
              "quantity": 1,
              "weight": 2
+            }
+           ],
+           "attacks": [
+            {
+             "name": "Shortsword",
+             "category": "Martial Melee",
+             "dice": "1d6",
+             "type": "piercing",
+             "ability": "finesse",
+             "kind": "melee",
+             "notes": "finesse, light, monk",
+             "proficient": true
             }
            ],
            "picks": []
@@ -15412,6 +17514,18 @@
              "weight": 1
             }
            ],
+           "attacks": [
+            {
+             "name": "Shortbow",
+             "category": "Simple Ranged",
+             "dice": "1d6",
+             "type": "piercing",
+             "ability": "dexterity",
+             "kind": "ranged",
+             "notes": "ammunition (range 80/320), two-handed",
+             "proficient": true
+            }
+           ],
            "picks": []
           },
           {
@@ -15422,6 +17536,18 @@
              "name": "Shortsword",
              "quantity": 1,
              "weight": 2
+            }
+           ],
+           "attacks": [
+            {
+             "name": "Shortsword",
+             "category": "Martial Melee",
+             "dice": "1d6",
+             "type": "piercing",
+             "ability": "finesse",
+             "kind": "melee",
+             "notes": "finesse, light, monk",
+             "proficient": true
             }
            ],
            "picks": []
@@ -15440,6 +17566,7 @@
              "quantity": 1
             }
            ],
+           "attacks": [],
            "picks": []
           },
           {
@@ -15451,6 +17578,7 @@
              "quantity": 1
             }
            ],
+           "attacks": [],
            "picks": []
           },
           {
@@ -15462,6 +17590,7 @@
              "quantity": 1
             }
            ],
+           "attacks": [],
            "picks": []
           }
          ]
@@ -15819,6 +17948,18 @@
          "weight": 2
         }
        ],
+       "fixedAttacks": [
+        {
+         "name": "Dagger",
+         "category": "Simple Melee",
+         "dice": "1d4",
+         "type": "piercing",
+         "ability": "finesse",
+         "kind": "melee",
+         "notes": "finesse, light, thrown (range 20/60), monk",
+         "proficient": true
+        }
+       ],
        "picks": [],
        "choices": [
         {
@@ -15839,12 +17980,25 @@
              "weight": 1.5
             }
            ],
+           "attacks": [
+            {
+             "name": "Crossbow, light",
+             "category": "Simple Ranged",
+             "dice": "1d8",
+             "type": "piercing",
+             "ability": "dexterity",
+             "kind": "ranged",
+             "notes": "ammunition (range 80/320), loading, two-handed",
+             "proficient": true
+            }
+           ],
            "picks": []
           },
           {
            "id": "sorcerer-0-b",
            "name": "(b) any simple weapon",
            "rows": [],
+           "attacks": [],
            "picks": [
             {
              "list": "weapons",
@@ -15872,12 +18026,14 @@
              "weight": 2
             }
            ],
+           "attacks": [],
            "picks": []
           },
           {
            "id": "sorcerer-1-b",
            "name": "(b) an arcane focus",
            "rows": [],
+           "attacks": [],
            "picks": [
             {
              "list": "gear",
@@ -15903,6 +18059,7 @@
              "quantity": 1
             }
            ],
+           "attacks": [],
            "picks": []
           },
           {
@@ -15914,6 +18071,7 @@
              "quantity": 1
             }
            ],
+           "attacks": [],
            "picks": []
           }
          ]
@@ -16491,6 +18649,18 @@
          "weight": 2
         }
        ],
+       "fixedAttacks": [
+        {
+         "name": "Dagger",
+         "category": "Simple Melee",
+         "dice": "1d4",
+         "type": "piercing",
+         "ability": "finesse",
+         "kind": "melee",
+         "notes": "finesse, light, thrown (range 20/60), monk",
+         "proficient": true
+        }
+       ],
        "armor": {
         "base": 11,
         "dex": "full"
@@ -16525,12 +18695,25 @@
              "weight": 1.5
             }
            ],
+           "attacks": [
+            {
+             "name": "Crossbow, light",
+             "category": "Simple Ranged",
+             "dice": "1d8",
+             "type": "piercing",
+             "ability": "dexterity",
+             "kind": "ranged",
+             "notes": "ammunition (range 80/320), loading, two-handed",
+             "proficient": true
+            }
+           ],
            "picks": []
           },
           {
            "id": "warlock-0-b",
            "name": "(b) any simple weapon",
            "rows": [],
+           "attacks": [],
            "picks": [
             {
              "list": "weapons",
@@ -16558,12 +18741,14 @@
              "weight": 2
             }
            ],
+           "attacks": [],
            "picks": []
           },
           {
            "id": "warlock-1-b",
            "name": "(b) an arcane focus",
            "rows": [],
+           "attacks": [],
            "picks": [
             {
              "list": "gear",
@@ -16589,6 +18774,7 @@
              "quantity": 1
             }
            ],
+           "attacks": [],
            "picks": []
           },
           {
@@ -16600,6 +18786,7 @@
              "quantity": 1
             }
            ],
+           "attacks": [],
            "picks": []
           }
          ]
@@ -16873,6 +19060,7 @@
          "weight": 3
         }
        ],
+       "fixedAttacks": [],
        "picks": [],
        "choices": [
         {
@@ -16888,6 +19076,18 @@
              "weight": 4
             }
            ],
+           "attacks": [
+            {
+             "name": "Quarterstaff",
+             "category": "Simple Melee",
+             "dice": "1d6",
+             "type": "bludgeoning",
+             "ability": "strength",
+             "kind": "melee",
+             "notes": "versatile (1d8), monk",
+             "proficient": true
+            }
+           ],
            "picks": []
           },
           {
@@ -16898,6 +19098,18 @@
              "name": "Dagger",
              "quantity": 1,
              "weight": 1
+            }
+           ],
+           "attacks": [
+            {
+             "name": "Dagger",
+             "category": "Simple Melee",
+             "dice": "1d4",
+             "type": "piercing",
+             "ability": "finesse",
+             "kind": "melee",
+             "notes": "finesse, light, thrown (range 20/60), monk",
+             "proficient": true
             }
            ],
            "picks": []
@@ -16917,12 +19129,14 @@
              "weight": 2
             }
            ],
+           "attacks": [],
            "picks": []
           },
           {
            "id": "wizard-1-b",
            "name": "(b) an arcane focus",
            "rows": [],
+           "attacks": [],
            "picks": [
             {
              "list": "gear",
@@ -16948,6 +19162,7 @@
              "quantity": 1
             }
            ],
+           "attacks": [],
            "picks": []
           },
           {
@@ -16959,6 +19174,7 @@
              "quantity": 1
             }
            ],
+           "attacks": [],
            "picks": []
           }
          ]
@@ -17348,6 +19564,114 @@
      "wizard-ability-score-improvement-5": {
       "skip": true
      },
+     "barbarian-subclass-2024": {
+      "skip": true
+     },
+     "barbarian-ability-score-improvement-2024": {
+      "skip": true
+     },
+     "barbarian-epic-boon-2024": {
+      "skip": true
+     },
+     "bard-subclass-2024": {
+      "skip": true
+     },
+     "bard-ability-score-improvement-2024": {
+      "skip": true
+     },
+     "bard-epic-boon-2024": {
+      "skip": true
+     },
+     "cleric-subclass-2024": {
+      "skip": true
+     },
+     "cleric-ability-score-improvement-2024": {
+      "skip": true
+     },
+     "cleric-epic-boon-2024": {
+      "skip": true
+     },
+     "druid-subclass-2024": {
+      "skip": true
+     },
+     "druid-ability-score-improvement-2024": {
+      "skip": true
+     },
+     "druid-epic-boon-2024": {
+      "skip": true
+     },
+     "fighter-subclass-2024": {
+      "skip": true
+     },
+     "fighter-ability-score-improvement-2024": {
+      "skip": true
+     },
+     "fighter-epic-boon-2024": {
+      "skip": true
+     },
+     "monk-subclass-2024": {
+      "skip": true
+     },
+     "monk-ability-score-improvement-2024": {
+      "skip": true
+     },
+     "monk-epic-boon-2024": {
+      "skip": true
+     },
+     "paladin-subclass-2024": {
+      "skip": true
+     },
+     "paladin-ability-score-improvement-2024": {
+      "skip": true
+     },
+     "paladin-epic-boon-2024": {
+      "skip": true
+     },
+     "ranger-subclass-2024": {
+      "skip": true
+     },
+     "ranger-ability-score-improvement-2024": {
+      "skip": true
+     },
+     "ranger-epic-boon-2024": {
+      "skip": true
+     },
+     "rogue-subclass-2024": {
+      "skip": true
+     },
+     "rogue-ability-score-improvement-2024": {
+      "skip": true
+     },
+     "rogue-epic-boon-2024": {
+      "skip": true
+     },
+     "sorcerer-subclass-2024": {
+      "skip": true
+     },
+     "sorcerer-ability-score-improvement-2024": {
+      "skip": true
+     },
+     "sorcerer-epic-boon-2024": {
+      "skip": true
+     },
+     "warlock-subclass-2024": {
+      "skip": true
+     },
+     "warlock-ability-score-improvement-2024": {
+      "skip": true
+     },
+     "warlock-epic-boon-2024": {
+      "skip": true
+     },
+     "wizard-subclass-2024": {
+      "skip": true
+     },
+     "wizard-ability-score-improvement-2024": {
+      "skip": true
+     },
+     "wizard-epic-boon-2024": {
+      "skip": true
+     },
      "fighter-fighting-style-archery": {
       "option": true
      },
@@ -17609,6 +19933,48 @@
       "skills": 3
      },
      "life": {
+      "alwaysPrepared": [
+       {
+        "level": 1,
+        "name": "Bless"
+       },
+       {
+        "level": 1,
+        "name": "Cure Wounds"
+       },
+       {
+        "level": 3,
+        "name": "Lesser Restoration"
+       },
+       {
+        "level": 3,
+        "name": "Spiritual Weapon"
+       },
+       {
+        "level": 5,
+        "name": "Beacon of Hope"
+       },
+       {
+        "level": 5,
+        "name": "Revivify"
+       },
+       {
+        "level": 7,
+        "name": "Death Ward"
+       },
+       {
+        "level": 7,
+        "name": "Guardian of Faith"
+       },
+       {
+        "level": 9,
+        "name": "Mass Cure Wounds"
+       },
+       {
+        "level": 9,
+        "name": "Raise Dead"
+       }
+      ],
       "proficiencies": "Heavy armor"
      },
      "land": {
@@ -17920,6 +20286,50 @@
        [],
        [],
        []
+      ]
+     },
+     "devotion": {
+      "alwaysPrepared": [
+       {
+        "level": 3,
+        "name": "Protection from Evil and Good"
+       },
+       {
+        "level": 3,
+        "name": "Sanctuary"
+       },
+       {
+        "level": 5,
+        "name": "Lesser Restoration"
+       },
+       {
+        "level": 5,
+        "name": "Zone of Truth"
+       },
+       {
+        "level": 9,
+        "name": "Beacon of Hope"
+       },
+       {
+        "level": 9,
+        "name": "Dispel Magic"
+       },
+       {
+        "level": 13,
+        "name": "Freedom of Movement"
+       },
+       {
+        "level": 13,
+        "name": "Guardian of Faith"
+       },
+       {
+        "level": 17,
+        "name": "Commune"
+       },
+       {
+        "level": 17,
+        "name": "Flame Strike"
+       }
       ]
      },
      "hunter": {
@@ -18470,6 +20880,182 @@
        [],
        [],
        []
+      ]
+     },
+     "life-domain-2024": {
+      "alwaysPrepared": [
+       {
+        "level": 3,
+        "name": "Aid"
+       },
+       {
+        "level": 3,
+        "name": "Bless"
+       },
+       {
+        "level": 3,
+        "name": "Cure Wounds"
+       },
+       {
+        "level": 3,
+        "name": "Lesser Restoration"
+       },
+       {
+        "level": 5,
+        "name": "Mass Healing Word"
+       },
+       {
+        "level": 5,
+        "name": "Revivify"
+       },
+       {
+        "level": 7,
+        "name": "Aura of Life"
+       },
+       {
+        "level": 7,
+        "name": "Death Ward"
+       },
+       {
+        "level": 9,
+        "name": "Greater Restoration"
+       },
+       {
+        "level": 9,
+        "name": "Mass Cure Wounds"
+       }
+      ]
+     },
+     "oath-of-devotion-2024": {
+      "alwaysPrepared": [
+       {
+        "level": 3,
+        "name": "Protection from Evil and Good"
+       },
+       {
+        "level": 3,
+        "name": "Shield of Faith"
+       },
+       {
+        "level": 5,
+        "name": "Aid"
+       },
+       {
+        "level": 5,
+        "name": "Zone of Truth"
+       },
+       {
+        "level": 9,
+        "name": "Beacon of Hope"
+       },
+       {
+        "level": 9,
+        "name": "Dispel Magic"
+       },
+       {
+        "level": 13,
+        "name": "Freedom of Movement"
+       },
+       {
+        "level": 13,
+        "name": "Guardian of Faith"
+       },
+       {
+        "level": 17,
+        "name": "Commune"
+       },
+       {
+        "level": 17,
+        "name": "Flame Strike"
+       }
+      ]
+     },
+     "draconic-sorcery-2024": {
+      "alwaysPrepared": [
+       {
+        "level": 3,
+        "name": "Alter Self"
+       },
+       {
+        "level": 3,
+        "name": "Chromatic Orb"
+       },
+       {
+        "level": 3,
+        "name": "Command"
+       },
+       {
+        "level": 3,
+        "name": "Dragon's Breath"
+       },
+       {
+        "level": 5,
+        "name": "Fear"
+       },
+       {
+        "level": 5,
+        "name": "Fly"
+       },
+       {
+        "level": 7,
+        "name": "Arcane Eye"
+       },
+       {
+        "level": 7,
+        "name": "Charm Monster"
+       },
+       {
+        "level": 9,
+        "name": "Legend Lore"
+       },
+       {
+        "level": 9,
+        "name": "Summon Dragon"
+       }
+      ]
+     },
+     "fiend-patron-2024": {
+      "alwaysPrepared": [
+       {
+        "level": 3,
+        "name": "Burning Hands"
+       },
+       {
+        "level": 3,
+        "name": "Command"
+       },
+       {
+        "level": 3,
+        "name": "Scorching Ray"
+       },
+       {
+        "level": 3,
+        "name": "Suggestion"
+       },
+       {
+        "level": 5,
+        "name": "Fireball"
+       },
+       {
+        "level": 5,
+        "name": "Stinking Cloud"
+       },
+       {
+        "level": 7,
+        "name": "Fire Shield"
+       },
+       {
+        "level": 7,
+        "name": "Wall of Fire"
+       },
+       {
+        "level": 9,
+        "name": "Geas"
+       },
+       {
+        "level": 9,
+        "name": "Insect Plague"
+       }
       ]
      }
     },
@@ -19288,6 +21874,22 @@
       "languageChoice": 2,
       "equipment": [
        {
+        "name": "Holy symbol",
+        "quantity": 1
+       },
+       {
+        "name": "Prayer book",
+        "quantity": 1
+       },
+       {
+        "name": "Incense (stick)",
+        "quantity": 5
+       },
+       {
+        "name": "Vestments",
+        "quantity": 1
+       },
+       {
         "name": "Clothes, common",
         "quantity": 1,
         "weight": 3
@@ -19296,10 +21898,6 @@
         "name": "Pouch",
         "quantity": 1,
         "weight": 1
-       },
-       {
-        "name": "Holy symbol",
-        "quantity": 1
        }
       ],
       "gp": 15,
@@ -19339,6 +21937,7 @@
           "weight": 4
          }
         ],
+        "attacks": [],
         "gp": 8
        },
        {
@@ -19405,6 +22004,17 @@
           "weight": 4
          }
         ],
+        "attacks": [
+         {
+          "name": "Dagger",
+          "category": "Simple Melee",
+          "dice": "1d4",
+          "type": "piercing",
+          "ability": "finesse",
+          "kind": "melee",
+          "notes": "finesse, light, thrown (range 20/60), monk"
+         }
+        ],
         "gp": 16
        },
        {
@@ -19459,6 +22069,17 @@
           "name": "Robes",
           "quantity": 1,
           "weight": 4
+         }
+        ],
+        "attacks": [
+         {
+          "name": "Quarterstaff",
+          "category": "Simple Melee",
+          "dice": "1d6",
+          "type": "bludgeoning",
+          "ability": "strength",
+          "kind": "melee",
+          "notes": "versatile (1d8), monk"
          }
         ],
         "gp": 8
@@ -19539,6 +22160,26 @@
           "name": "Clothes, traveler's",
           "quantity": 1,
           "weight": 4
+         }
+        ],
+        "attacks": [
+         {
+          "name": "Spear",
+          "category": "Simple Melee",
+          "dice": "1d6",
+          "type": "piercing",
+          "ability": "strength",
+          "kind": "melee",
+          "notes": "thrown (range 20/60), versatile (1d8), monk"
+         },
+         {
+          "name": "Shortbow",
+          "category": "Simple Ranged",
+          "dice": "1d6",
+          "type": "piercing",
+          "ability": "dexterity",
+          "kind": "ranged",
+          "notes": "ammunition (range 80/320), two-handed"
          }
         ],
         "gp": 14
@@ -19741,109 +22382,432 @@
     },
     "dnd5e-srd.weapons": {
      "club": {
-      "weight": 2
+      "weight": 2,
+      "attack": {
+       "name": "Club",
+       "category": "Simple Melee",
+       "dice": "1d4",
+       "type": "bludgeoning",
+       "ability": "strength",
+       "kind": "melee",
+       "notes": "light, monk"
+      }
      },
      "dagger": {
-      "weight": 1
+      "weight": 1,
+      "attack": {
+       "name": "Dagger",
+       "category": "Simple Melee",
+       "dice": "1d4",
+       "type": "piercing",
+       "ability": "finesse",
+       "kind": "melee",
+       "notes": "finesse, light, thrown (range 20/60), monk"
+      }
      },
      "greatclub": {
-      "weight": 10
+      "weight": 10,
+      "attack": {
+       "name": "Greatclub",
+       "category": "Simple Melee",
+       "dice": "1d8",
+       "type": "bludgeoning",
+       "ability": "strength",
+       "kind": "melee",
+       "notes": "two-handed"
+      }
      },
      "handaxe": {
-      "weight": 2
+      "weight": 2,
+      "attack": {
+       "name": "Handaxe",
+       "category": "Simple Melee",
+       "dice": "1d6",
+       "type": "slashing",
+       "ability": "strength",
+       "kind": "melee",
+       "notes": "light, thrown (range 20/60), monk"
+      }
      },
      "javelin": {
-      "weight": 2
+      "weight": 2,
+      "attack": {
+       "name": "Javelin",
+       "category": "Simple Melee",
+       "dice": "1d6",
+       "type": "piercing",
+       "ability": "strength",
+       "kind": "melee",
+       "notes": "thrown (range 30/120), monk"
+      }
      },
      "light-hammer": {
-      "weight": 2
+      "weight": 2,
+      "attack": {
+       "name": "Light hammer",
+       "category": "Simple Melee",
+       "dice": "1d4",
+       "type": "bludgeoning",
+       "ability": "strength",
+       "kind": "melee",
+       "notes": "light, thrown (range 20/60), monk"
+      }
      },
      "mace": {
-      "weight": 4
+      "weight": 4,
+      "attack": {
+       "name": "Mace",
+       "category": "Simple Melee",
+       "dice": "1d6",
+       "type": "bludgeoning",
+       "ability": "strength",
+       "kind": "melee",
+       "notes": "monk"
+      }
      },
      "quarterstaff": {
-      "weight": 4
+      "weight": 4,
+      "attack": {
+       "name": "Quarterstaff",
+       "category": "Simple Melee",
+       "dice": "1d6",
+       "type": "bludgeoning",
+       "ability": "strength",
+       "kind": "melee",
+       "notes": "versatile (1d8), monk"
+      }
      },
      "sickle": {
-      "weight": 2
+      "weight": 2,
+      "attack": {
+       "name": "Sickle",
+       "category": "Simple Melee",
+       "dice": "1d4",
+       "type": "slashing",
+       "ability": "strength",
+       "kind": "melee",
+       "notes": "light, monk"
+      }
      },
      "spear": {
-      "weight": 3
+      "weight": 3,
+      "attack": {
+       "name": "Spear",
+       "category": "Simple Melee",
+       "dice": "1d6",
+       "type": "piercing",
+       "ability": "strength",
+       "kind": "melee",
+       "notes": "thrown (range 20/60), versatile (1d8), monk"
+      }
      },
      "crossbow-light": {
-      "weight": 5
+      "weight": 5,
+      "attack": {
+       "name": "Crossbow, light",
+       "category": "Simple Ranged",
+       "dice": "1d8",
+       "type": "piercing",
+       "ability": "dexterity",
+       "kind": "ranged",
+       "notes": "ammunition (range 80/320), loading, two-handed"
+      }
      },
      "dart": {
-      "weight": 0.25
+      "weight": 0.25,
+      "attack": {
+       "name": "Dart",
+       "category": "Simple Ranged",
+       "dice": "1d4",
+       "type": "piercing",
+       "ability": "finesse",
+       "kind": "ranged",
+       "notes": "finesse, thrown (range 20/60)"
+      }
      },
      "shortbow": {
-      "weight": 2
+      "weight": 2,
+      "attack": {
+       "name": "Shortbow",
+       "category": "Simple Ranged",
+       "dice": "1d6",
+       "type": "piercing",
+       "ability": "dexterity",
+       "kind": "ranged",
+       "notes": "ammunition (range 80/320), two-handed"
+      }
+     },
+     "sling": {
+      "attack": {
+       "name": "Sling",
+       "category": "Simple Ranged",
+       "dice": "1d4",
+       "type": "bludgeoning",
+       "ability": "dexterity",
+       "kind": "ranged",
+       "notes": "ammunition (range 30/120)"
+      }
      },
      "battleaxe": {
-      "weight": 4
+      "weight": 4,
+      "attack": {
+       "name": "Battleaxe",
+       "category": "Martial Melee",
+       "dice": "1d8",
+       "type": "slashing",
+       "ability": "strength",
+       "kind": "melee",
+       "notes": "versatile (1d10)"
+      }
      },
      "flail": {
-      "weight": 2
+      "weight": 2,
+      "attack": {
+       "name": "Flail",
+       "category": "Martial Melee",
+       "dice": "1d8",
+       "type": "bludgeoning",
+       "ability": "strength",
+       "kind": "melee"
+      }
      },
      "glaive": {
-      "weight": 6
+      "weight": 6,
+      "attack": {
+       "name": "Glaive",
+       "category": "Martial Melee",
+       "dice": "1d10",
+       "type": "slashing",
+       "ability": "strength",
+       "kind": "melee",
+       "notes": "heavy, reach, two-handed"
+      }
      },
      "greataxe": {
-      "weight": 7
+      "weight": 7,
+      "attack": {
+       "name": "Greataxe",
+       "category": "Martial Melee",
+       "dice": "1d12",
+       "type": "slashing",
+       "ability": "strength",
+       "kind": "melee",
+       "notes": "heavy, two-handed"
+      }
      },
      "greatsword": {
-      "weight": 6
+      "weight": 6,
+      "attack": {
+       "name": "Greatsword",
+       "category": "Martial Melee",
+       "dice": "2d6",
+       "type": "slashing",
+       "ability": "strength",
+       "kind": "melee",
+       "notes": "heavy, two-handed"
+      }
      },
      "halberd": {
-      "weight": 6
+      "weight": 6,
+      "attack": {
+       "name": "Halberd",
+       "category": "Martial Melee",
+       "dice": "1d10",
+       "type": "slashing",
+       "ability": "strength",
+       "kind": "melee",
+       "notes": "heavy, reach, two-handed"
+      }
      },
      "lance": {
-      "weight": 6
+      "weight": 6,
+      "attack": {
+       "name": "Lance",
+       "category": "Martial Melee",
+       "dice": "1d12",
+       "type": "piercing",
+       "ability": "strength",
+       "kind": "melee",
+       "notes": "reach, special"
+      }
      },
      "longsword": {
-      "weight": 3
+      "weight": 3,
+      "attack": {
+       "name": "Longsword",
+       "category": "Martial Melee",
+       "dice": "1d8",
+       "type": "slashing",
+       "ability": "strength",
+       "kind": "melee",
+       "notes": "versatile (1d10)"
+      }
      },
      "maul": {
-      "weight": 10
+      "weight": 10,
+      "attack": {
+       "name": "Maul",
+       "category": "Martial Melee",
+       "dice": "2d6",
+       "type": "bludgeoning",
+       "ability": "strength",
+       "kind": "melee",
+       "notes": "heavy, two-handed"
+      }
      },
      "morningstar": {
-      "weight": 4
+      "weight": 4,
+      "attack": {
+       "name": "Morningstar",
+       "category": "Martial Melee",
+       "dice": "1d8",
+       "type": "piercing",
+       "ability": "strength",
+       "kind": "melee"
+      }
      },
      "pike": {
-      "weight": 18
+      "weight": 18,
+      "attack": {
+       "name": "Pike",
+       "category": "Martial Melee",
+       "dice": "1d10",
+       "type": "piercing",
+       "ability": "strength",
+       "kind": "melee",
+       "notes": "heavy, reach, two-handed"
+      }
      },
      "rapier": {
-      "weight": 2
+      "weight": 2,
+      "attack": {
+       "name": "Rapier",
+       "category": "Martial Melee",
+       "dice": "1d8",
+       "type": "piercing",
+       "ability": "finesse",
+       "kind": "melee",
+       "notes": "finesse"
+      }
      },
      "scimitar": {
-      "weight": 3
+      "weight": 3,
+      "attack": {
+       "name": "Scimitar",
+       "category": "Martial Melee",
+       "dice": "1d6",
+       "type": "slashing",
+       "ability": "finesse",
+       "kind": "melee",
+       "notes": "finesse, light"
+      }
      },
      "shortsword": {
-      "weight": 2
+      "weight": 2,
+      "attack": {
+       "name": "Shortsword",
+       "category": "Martial Melee",
+       "dice": "1d6",
+       "type": "piercing",
+       "ability": "finesse",
+       "kind": "melee",
+       "notes": "finesse, light, monk"
+      }
      },
      "trident": {
-      "weight": 4
+      "weight": 4,
+      "attack": {
+       "name": "Trident",
+       "category": "Martial Melee",
+       "dice": "1d6",
+       "type": "piercing",
+       "ability": "strength",
+       "kind": "melee",
+       "notes": "thrown (range 20/60), versatile (1d8)"
+      }
      },
      "war-pick": {
-      "weight": 2
+      "weight": 2,
+      "attack": {
+       "name": "War pick",
+       "category": "Martial Melee",
+       "dice": "1d8",
+       "type": "piercing",
+       "ability": "strength",
+       "kind": "melee"
+      }
      },
      "warhammer": {
-      "weight": 2
+      "weight": 2,
+      "attack": {
+       "name": "Warhammer",
+       "category": "Martial Melee",
+       "dice": "1d8",
+       "type": "bludgeoning",
+       "ability": "strength",
+       "kind": "melee",
+       "notes": "versatile (1d10)"
+      }
      },
      "whip": {
-      "weight": 3
+      "weight": 3,
+      "attack": {
+       "name": "Whip",
+       "category": "Martial Melee",
+       "dice": "1d4",
+       "type": "slashing",
+       "ability": "finesse",
+       "kind": "melee",
+       "notes": "finesse, reach"
+      }
      },
      "blowgun": {
-      "weight": 1
+      "weight": 1,
+      "attack": {
+       "name": "Blowgun",
+       "category": "Martial Ranged",
+       "dice": "1",
+       "type": "piercing",
+       "ability": "dexterity",
+       "kind": "ranged",
+       "notes": "ammunition (range 25/100), loading"
+      }
      },
      "crossbow-hand": {
-      "weight": 3
+      "weight": 3,
+      "attack": {
+       "name": "Crossbow, hand",
+       "category": "Martial Ranged",
+       "dice": "1d6",
+       "type": "piercing",
+       "ability": "dexterity",
+       "kind": "ranged",
+       "notes": "ammunition (range 30/120), light, loading"
+      }
      },
      "crossbow-heavy": {
-      "weight": 18
+      "weight": 18,
+      "attack": {
+       "name": "Crossbow, heavy",
+       "category": "Martial Ranged",
+       "dice": "1d10",
+       "type": "piercing",
+       "ability": "dexterity",
+       "kind": "ranged",
+       "notes": "ammunition (range 100/400), heavy, loading, two-handed"
+      }
      },
      "longbow": {
-      "weight": 2
+      "weight": 2,
+      "attack": {
+       "name": "Longbow",
+       "category": "Martial Ranged",
+       "dice": "1d8",
+       "type": "piercing",
+       "ability": "dexterity",
+       "kind": "ranged",
+       "notes": "ammunition (range 150/600), heavy, two-handed"
+      }
      },
      "net": {
       "weight": 3
@@ -20199,7 +23163,7 @@
      "guide": [
       "SRD 5.1 (2014): your race gives ability score increases; backgrounds give skills, languages and equipment.",
       "SRD 5.2 (2024): your background gives +2/+1 or +1/+1/+1 among three abilities and an origin feat; species give traits, not increases.",
-      "Classes follow the SRD 5.1 tables either way: the SRD 5.2 classes are not in this module."
+      "Classes follow the SRD 5.1 tables (hit dice, spell slots, spells known) either way; an SRD 5.2 build gets the SRD 5.2 class features and takes its subclass at level 3."
      ],
      "source": {
       "options": [
@@ -20222,7 +23186,15 @@
         "original": true
        }
       ]
-     }
+     },
+     "grants": [
+      {
+       "path": "edition",
+       "value": {
+        "var": "item.id"
+       }
+      }
+     ]
     },
     {
      "kind": "choice",
@@ -20887,7 +23859,22 @@
           "var": "item.builder.languageChoice"
          },
          "source": {
-          "list": "dnd5e-srd.languages"
+          "list": "dnd5e-srd.languages",
+          "where": {
+           "!": {
+            "in": [
+             {
+              "var": "option.name"
+             },
+             {
+              "var": [
+               "fields.languages",
+               []
+              ]
+             }
+            ]
+           }
+          }
          },
          "available": {
           "!": {
@@ -21197,7 +24184,22 @@
         "var": "item.builder.languageChoice"
        },
        "source": {
-        "list": "dnd5e-srd.languages"
+        "list": "dnd5e-srd.languages",
+        "where": {
+         "!": {
+          "in": [
+           {
+            "var": "option.name"
+           },
+           {
+            "var": [
+             "fields.languages",
+             []
+            ]
+           }
+          ]
+         }
+        }
        },
        "min": {
         "var": "item.builder.languageChoice"
@@ -21710,14 +24712,40 @@
            }
           },
           {
-           "!=": [
+           "if": [
             {
-             "var": [
-              "entry.edition",
-              ""
+             "==": [
+              {
+               "var": [
+                "choices.edition.id",
+                "2014"
+               ]
+              },
+              "2024"
              ]
             },
-            "2024"
+            {
+             "==": [
+              {
+               "var": [
+                "entry.edition",
+                ""
+               ]
+              },
+              "2024"
+             ]
+            },
+            {
+             "!=": [
+              {
+               "var": [
+                "entry.edition",
+                ""
+               ]
+              },
+              "2024"
+             ]
+            }
            ]
           }
          ]
@@ -22230,7 +25258,22 @@
         "var": "item.builder.languageChoice"
        },
        "source": {
-        "list": "dnd5e-srd.languages"
+        "list": "dnd5e-srd.languages",
+        "where": {
+         "!": {
+          "in": [
+           {
+            "var": "option.name"
+           },
+           {
+            "var": [
+             "fields.languages",
+             []
+            ]
+           }
+          ]
+         }
+        }
        },
        "min": {
         "var": "item.builder.languageChoice"
@@ -22289,11 +25332,30 @@
        "source": {
         "list": "dnd5e-srd.languages",
         "where": {
-         "==": [
+         "and": [
           {
-           "var": "option.type"
+           "==": [
+            {
+             "var": "option.type"
+            },
+            "Standard"
+           ]
           },
-          "Standard"
+          {
+           "!": {
+            "in": [
+             {
+              "var": "option.name"
+             },
+             {
+              "var": [
+               "fields.languages",
+               []
+              ]
+             }
+            ]
+           }
+          }
          ]
         }
        },
@@ -22839,9 +25901,25 @@
             "var": "item.value"
            },
            {
-            "var": [
-             "choices.class.item.builder.subclassLevel",
-             99
+            "if": [
+             {
+              "==": [
+               {
+                "var": [
+                 "choices.edition.id",
+                 "2014"
+                ]
+               },
+               "2024"
+              ]
+             },
+             3,
+             {
+              "var": [
+               "choices.class.item.builder.subclassLevel",
+               99
+              ]
+             }
             ]
            }
           ]
@@ -23025,6 +26103,40 @@
             ""
            ]
           }
+         }
+        },
+        {
+         "path": "spells",
+         "op": "append",
+         "each": {
+          "var": [
+           "item.builder.alwaysPrepared",
+           []
+          ]
+         },
+         "when": {
+          "<=": [
+           {
+            "var": "entry.level"
+           },
+           {
+            "var": [
+             "choices.level.value",
+             1
+            ]
+           }
+          ]
+         },
+         "value": {
+          "var": "entry.name"
+         },
+         "label": {
+          "cat": [
+           "Always prepared: ",
+           {
+            "var": "entry.name"
+           }
+          ]
          }
         }
        ],
@@ -24735,11 +27847,106 @@
        {
         "if": [
          {
-          "var": "choices.class.item.builder.spellcasting.preparedDivisor"
+          "and": [
+           {
+            "var": "choices.class.item.builder.spellcasting.preparedDivisor"
+           },
+           {
+            ">": [
+             {
+              "lookup": [
+               {
+                "var": [
+                 "choices.class.item.builder.spellcasting.maxLevel",
+                 []
+                ]
+               },
+               {
+                "-": [
+                 {
+                  "var": [
+                   "choices.level.value",
+                   1
+                  ]
+                 },
+                 1
+                ]
+               },
+               0
+              ]
+             },
+             0
+            ]
+           }
+          ]
          },
          {
           "cat": [
-           "; prepare ",
+           {
+            "if": [
+             {
+              "or": [
+               {
+                ">": [
+                 {
+                  "lookup": [
+                   {
+                    "var": [
+                     "choices.class.item.builder.spellcasting.cantrips",
+                     []
+                    ]
+                   },
+                   {
+                    "-": [
+                     {
+                      "var": [
+                       "choices.level.value",
+                       1
+                      ]
+                     },
+                     1
+                    ]
+                   },
+                   0
+                  ]
+                 },
+                 0
+                ]
+               },
+               {
+                ">": [
+                 {
+                  "lookup": [
+                   {
+                    "var": [
+                     "choices.class.item.builder.spellcasting.known",
+                     []
+                    ]
+                   },
+                   {
+                    "-": [
+                     {
+                      "var": [
+                       "choices.level.value",
+                       1
+                      ]
+                     },
+                     1
+                    ]
+                   },
+                   0
+                  ]
+                 },
+                 0
+                ]
+               }
+              ]
+             },
+             "; ",
+             ""
+            ]
+           },
+           "prepare ",
            {
             "max": [
              1,
@@ -25184,6 +28391,440 @@
          }
         }
        ]
+      },
+      {
+       "id": "prepared",
+       "label": {
+        "cat": [
+         "Prepare ",
+         {
+          "if": [
+           {
+            ">": [
+             {
+              "lookup": [
+               {
+                "var": [
+                 "choices.class.item.builder.spellcasting.maxLevel",
+                 []
+                ]
+               },
+               {
+                "-": [
+                 {
+                  "var": [
+                   "choices.level.value",
+                   1
+                  ]
+                 },
+                 1
+                ]
+               },
+               0
+              ]
+             },
+             0
+            ]
+           },
+           {
+            "max": [
+             1,
+             {
+              "+": [
+               {
+                "var": [
+                 {
+                  "cat": [
+                   "computed.",
+                   {
+                    "var": "choices.class.item.builder.spellcasting.ability"
+                   },
+                   "Mod"
+                  ]
+                 },
+                 0
+                ]
+               },
+               {
+                "floor": {
+                 "/": [
+                  {
+                   "var": [
+                    "choices.level.value",
+                    1
+                   ]
+                  },
+                  {
+                   "var": [
+                    "choices.class.item.builder.spellcasting.preparedDivisor",
+                    1
+                   ]
+                  }
+                 ]
+                }
+               }
+              ]
+             }
+            ]
+           },
+           0
+          ]
+         },
+         " ",
+         {
+          "var": [
+           "choices.class.item.name",
+           ""
+          ]
+         },
+         " spells (up to level ",
+         {
+          "lookup": [
+           {
+            "var": [
+             "choices.class.item.builder.spellcasting.maxLevel",
+             []
+            ]
+           },
+           {
+            "-": [
+             {
+              "var": [
+               "choices.level.value",
+               1
+              ]
+             },
+             1
+            ]
+           },
+           0
+          ]
+         },
+         ")"
+        ]
+       },
+       "help": "The spells you have ready today: after a long rest you can change them. Domain and oath spells are always prepared and do not count.",
+       "when": {
+        "and": [
+         {
+          "==": [
+           {
+            "var": "choices.class.item.builder.spellcasting.kind"
+           },
+           "prepared"
+          ]
+         },
+         {
+          ">": [
+           {
+            "if": [
+             {
+              ">": [
+               {
+                "lookup": [
+                 {
+                  "var": [
+                   "choices.class.item.builder.spellcasting.maxLevel",
+                   []
+                  ]
+                 },
+                 {
+                  "-": [
+                   {
+                    "var": [
+                     "choices.level.value",
+                     1
+                    ]
+                   },
+                   1
+                  ]
+                 },
+                 0
+                ]
+               },
+               0
+              ]
+             },
+             {
+              "max": [
+               1,
+               {
+                "+": [
+                 {
+                  "var": [
+                   {
+                    "cat": [
+                     "computed.",
+                     {
+                      "var": "choices.class.item.builder.spellcasting.ability"
+                     },
+                     "Mod"
+                    ]
+                   },
+                   0
+                  ]
+                 },
+                 {
+                  "floor": {
+                   "/": [
+                    {
+                     "var": [
+                      "choices.level.value",
+                      1
+                     ]
+                    },
+                    {
+                     "var": [
+                      "choices.class.item.builder.spellcasting.preparedDivisor",
+                      1
+                     ]
+                    }
+                   ]
+                  }
+                 }
+                ]
+               }
+              ]
+             },
+             0
+            ]
+           },
+           0
+          ]
+         }
+        ]
+       },
+       "source": {
+        "list": "dnd5e-srd.spells",
+        "where": {
+         "and": [
+          {
+           ">=": [
+            {
+             "var": "option.level"
+            },
+            1
+           ]
+          },
+          {
+           "<=": [
+            {
+             "var": "option.level"
+            },
+            {
+             "lookup": [
+              {
+               "var": [
+                "choices.class.item.builder.spellcasting.maxLevel",
+                []
+               ]
+              },
+              {
+               "-": [
+                {
+                 "var": [
+                  "choices.level.value",
+                  1
+                 ]
+                },
+                1
+               ]
+              },
+              0
+             ]
+            }
+           ]
+          },
+          {
+           "in": [
+            {
+             "var": [
+              "choices.class.item.name",
+              ""
+             ]
+            },
+            {
+             "var": [
+              "option.classes",
+              []
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       },
+       "min": {
+        "if": [
+         {
+          ">": [
+           {
+            "lookup": [
+             {
+              "var": [
+               "choices.class.item.builder.spellcasting.maxLevel",
+               []
+              ]
+             },
+             {
+              "-": [
+               {
+                "var": [
+                 "choices.level.value",
+                 1
+                ]
+               },
+               1
+              ]
+             },
+             0
+            ]
+           },
+           0
+          ]
+         },
+         {
+          "max": [
+           1,
+           {
+            "+": [
+             {
+              "var": [
+               {
+                "cat": [
+                 "computed.",
+                 {
+                  "var": "choices.class.item.builder.spellcasting.ability"
+                 },
+                 "Mod"
+                ]
+               },
+               0
+              ]
+             },
+             {
+              "floor": {
+               "/": [
+                {
+                 "var": [
+                  "choices.level.value",
+                  1
+                 ]
+                },
+                {
+                 "var": [
+                  "choices.class.item.builder.spellcasting.preparedDivisor",
+                  1
+                 ]
+                }
+               ]
+              }
+             }
+            ]
+           }
+          ]
+         },
+         0
+        ]
+       },
+       "max": {
+        "if": [
+         {
+          ">": [
+           {
+            "lookup": [
+             {
+              "var": [
+               "choices.class.item.builder.spellcasting.maxLevel",
+               []
+              ]
+             },
+             {
+              "-": [
+               {
+                "var": [
+                 "choices.level.value",
+                 1
+                ]
+               },
+               1
+              ]
+             },
+             0
+            ]
+           },
+           0
+          ]
+         },
+         {
+          "max": [
+           1,
+           {
+            "+": [
+             {
+              "var": [
+               {
+                "cat": [
+                 "computed.",
+                 {
+                  "var": "choices.class.item.builder.spellcasting.ability"
+                 },
+                 "Mod"
+                ]
+               },
+               0
+              ]
+             },
+             {
+              "floor": {
+               "/": [
+                {
+                 "var": [
+                  "choices.level.value",
+                  1
+                 ]
+                },
+                {
+                 "var": [
+                  "choices.class.item.builder.spellcasting.preparedDivisor",
+                  1
+                 ]
+                }
+               ]
+              }
+             }
+            ]
+           }
+          ]
+         },
+         0
+        ]
+       },
+       "available": {
+        "!": {
+         "in": [
+          {
+           "var": "option.name"
+          },
+          {
+           "var": [
+            "fields.spells",
+            []
+           ]
+          }
+         ]
+        }
+       },
+       "availableText": "Always prepared.",
+       "grants": [
+        {
+         "path": "spells",
+         "op": "append",
+         "value": {
+          "var": "item.name"
+         }
+        }
+       ]
       }
      ]
     },
@@ -25202,6 +28843,136 @@
         "var": [
          "choices.class.item.builder.equipment.fixed",
          []
+        ]
+       }
+      },
+      {
+       "path": "attacks",
+       "op": "append",
+       "each": {
+        "var": [
+         "choices.class.item.builder.equipment.fixedAttacks",
+         []
+        ]
+       },
+       "object": {
+        "name": {
+         "var": "entry.name"
+        },
+        "damage": {
+         "var": "entry.dice"
+        },
+        "type": {
+         "var": "entry.type"
+        },
+        "ability": {
+         "var": "entry.ability"
+        },
+        "kind": {
+         "var": "entry.kind"
+        },
+        "proficient": {
+         "if": [
+          {
+           "var": [
+            "entry.proficient",
+            false
+           ]
+          },
+          true,
+          {
+           "or": [
+            {
+             "and": [
+              {
+               "startsWith": [
+                {
+                 "var": [
+                  "entry.category",
+                  ""
+                 ]
+                },
+                "Simple"
+               ]
+              },
+              {
+               "matches": [
+                {
+                 "var": [
+                  "fields.proficiencies",
+                  ""
+                 ]
+                },
+                "simple (and martial )?weapons|simple weapons"
+               ]
+              }
+             ]
+            },
+            {
+             "and": [
+              {
+               "startsWith": [
+                {
+                 "var": [
+                  "entry.category",
+                  ""
+                 ]
+                },
+                "Martial"
+               ]
+              },
+              {
+               "matches": [
+                {
+                 "var": [
+                  "fields.proficiencies",
+                  ""
+                 ]
+                },
+                "martial weapons"
+               ]
+              }
+             ]
+            },
+            {
+             "matches": [
+              {
+               "var": [
+                "fields.proficiencies",
+                ""
+               ]
+              },
+              {
+               "cat": [
+                "\\b",
+                {
+                 "var": [
+                  "entry.name",
+                  "-"
+                 ]
+                },
+                "s?\\b"
+               ]
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        "notes": {
+         "var": [
+          "entry.notes",
+          ""
+         ]
+        }
+       },
+       "label": {
+        "cat": [
+         "Attack: ",
+         {
+          "var": "entry.name"
+         }
         ]
        }
       },
@@ -25320,6 +29091,45 @@
             0
            ]
           }
+         }
+        },
+        {
+         "path": "attacks",
+         "op": "append",
+         "when": {
+          "var": "item.builder.attack"
+         },
+         "object": {
+          "name": {
+           "var": "item.builder.attack.name"
+          },
+          "damage": {
+           "var": "item.builder.attack.dice"
+          },
+          "type": {
+           "var": "item.builder.attack.type"
+          },
+          "ability": {
+           "var": "item.builder.attack.ability"
+          },
+          "kind": {
+           "var": "item.builder.attack.kind"
+          },
+          "proficient": true,
+          "notes": {
+           "var": [
+            "item.builder.attack.notes",
+            ""
+           ]
+          }
+         },
+         "label": {
+          "cat": [
+           "Attack: ",
+           {
+            "var": "item.name"
+           }
+          ]
          }
         }
        ]
@@ -25512,6 +29322,136 @@
          }
         },
         {
+         "path": "attacks",
+         "op": "append",
+         "each": {
+          "var": [
+           "item.attacks",
+           []
+          ]
+         },
+         "object": {
+          "name": {
+           "var": "entry.name"
+          },
+          "damage": {
+           "var": "entry.dice"
+          },
+          "type": {
+           "var": "entry.type"
+          },
+          "ability": {
+           "var": "entry.ability"
+          },
+          "kind": {
+           "var": "entry.kind"
+          },
+          "proficient": {
+           "if": [
+            {
+             "var": [
+              "entry.proficient",
+              false
+             ]
+            },
+            true,
+            {
+             "or": [
+              {
+               "and": [
+                {
+                 "startsWith": [
+                  {
+                   "var": [
+                    "entry.category",
+                    ""
+                   ]
+                  },
+                  "Simple"
+                 ]
+                },
+                {
+                 "matches": [
+                  {
+                   "var": [
+                    "fields.proficiencies",
+                    ""
+                   ]
+                  },
+                  "simple (and martial )?weapons|simple weapons"
+                 ]
+                }
+               ]
+              },
+              {
+               "and": [
+                {
+                 "startsWith": [
+                  {
+                   "var": [
+                    "entry.category",
+                    ""
+                   ]
+                  },
+                  "Martial"
+                 ]
+                },
+                {
+                 "matches": [
+                  {
+                   "var": [
+                    "fields.proficiencies",
+                    ""
+                   ]
+                  },
+                  "martial weapons"
+                 ]
+                }
+               ]
+              },
+              {
+               "matches": [
+                {
+                 "var": [
+                  "fields.proficiencies",
+                  ""
+                 ]
+                },
+                {
+                 "cat": [
+                  "\\b",
+                  {
+                   "var": [
+                    "entry.name",
+                    "-"
+                   ]
+                  },
+                  "s?\\b"
+                 ]
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          },
+          "notes": {
+           "var": [
+            "entry.notes",
+            ""
+           ]
+          }
+         },
+         "label": {
+          "cat": [
+           "Attack: ",
+           {
+            "var": "entry.name"
+           }
+          ]
+         }
+        },
+        {
          "path": "$armor",
          "value": {
           "var": "item.armor"
@@ -25600,6 +29540,45 @@
               0
              ]
             }
+           }
+          },
+          {
+           "path": "attacks",
+           "op": "append",
+           "when": {
+            "var": "item.builder.attack"
+           },
+           "object": {
+            "name": {
+             "var": "item.builder.attack.name"
+            },
+            "damage": {
+             "var": "item.builder.attack.dice"
+            },
+            "type": {
+             "var": "item.builder.attack.type"
+            },
+            "ability": {
+             "var": "item.builder.attack.ability"
+            },
+            "kind": {
+             "var": "item.builder.attack.kind"
+            },
+            "proficient": true,
+            "notes": {
+             "var": [
+              "item.builder.attack.notes",
+              ""
+             ]
+            }
+           },
+           "label": {
+            "cat": [
+             "Attack: ",
+             {
+              "var": "item.name"
+             }
+            ]
            }
           }
          ]
@@ -25799,6 +29778,136 @@
          }
         },
         {
+         "path": "attacks",
+         "op": "append",
+         "each": {
+          "var": [
+           "item.attacks",
+           []
+          ]
+         },
+         "object": {
+          "name": {
+           "var": "entry.name"
+          },
+          "damage": {
+           "var": "entry.dice"
+          },
+          "type": {
+           "var": "entry.type"
+          },
+          "ability": {
+           "var": "entry.ability"
+          },
+          "kind": {
+           "var": "entry.kind"
+          },
+          "proficient": {
+           "if": [
+            {
+             "var": [
+              "entry.proficient",
+              false
+             ]
+            },
+            true,
+            {
+             "or": [
+              {
+               "and": [
+                {
+                 "startsWith": [
+                  {
+                   "var": [
+                    "entry.category",
+                    ""
+                   ]
+                  },
+                  "Simple"
+                 ]
+                },
+                {
+                 "matches": [
+                  {
+                   "var": [
+                    "fields.proficiencies",
+                    ""
+                   ]
+                  },
+                  "simple (and martial )?weapons|simple weapons"
+                 ]
+                }
+               ]
+              },
+              {
+               "and": [
+                {
+                 "startsWith": [
+                  {
+                   "var": [
+                    "entry.category",
+                    ""
+                   ]
+                  },
+                  "Martial"
+                 ]
+                },
+                {
+                 "matches": [
+                  {
+                   "var": [
+                    "fields.proficiencies",
+                    ""
+                   ]
+                  },
+                  "martial weapons"
+                 ]
+                }
+               ]
+              },
+              {
+               "matches": [
+                {
+                 "var": [
+                  "fields.proficiencies",
+                  ""
+                 ]
+                },
+                {
+                 "cat": [
+                  "\\b",
+                  {
+                   "var": [
+                    "entry.name",
+                    "-"
+                   ]
+                  },
+                  "s?\\b"
+                 ]
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          },
+          "notes": {
+           "var": [
+            "entry.notes",
+            ""
+           ]
+          }
+         },
+         "label": {
+          "cat": [
+           "Attack: ",
+           {
+            "var": "entry.name"
+           }
+          ]
+         }
+        },
+        {
          "path": "coins.gp",
          "op": "add",
          "value": {
@@ -25887,7 +29996,7 @@
            {
             "count": {
              "var": [
-              "fields.equipment",
+              "fields.attacks",
               []
              ]
             }
@@ -25896,7 +30005,7 @@
           ]
          },
          [
-          "Attack rows: add your weapons' attack bonus and damage on the sheet."
+          "Attacks: the weapon rows work out their attack bonus and damage from your scores; tick Proficient on any you are not proficient with, or add another with Add a weapon on the sheet."
          ],
          []
         ]
@@ -26025,7 +30134,82 @@
       "max": [
        1,
        {
-        "+": [
+        "if": [
+         {
+          "==": [
+           {
+            "var": [
+             "choices.level.sub.hp.id",
+             "average"
+            ]
+           },
+           "roll"
+          ]
+         },
+         {
+          "+": [
+           {
+            "var": [
+             "vars.hitDie",
+             0
+            ]
+           },
+           {
+            "var": [
+             "choices.level.sub.hp.rolled",
+             0
+            ]
+           },
+           {
+            "*": [
+             {
+              "var": [
+               "fields.level",
+               1
+              ]
+             },
+             {
+              "var": [
+               "computed.constitutionMod",
+               0
+              ]
+             }
+            ]
+           },
+           {
+            "*": [
+             {
+              "var": [
+               "fields.level",
+               1
+              ]
+             },
+             {
+              "var": [
+               "vars.hpPerLevel",
+               0
+              ]
+             }
+            ]
+           }
+          ]
+         },
+         {
+          "var": [
+           "computed.suggestedHpMax",
+           1
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     "label": {
+      "cat": [
+       "Hit point maximum ",
+       {
+        "max": [
+         1,
          {
           "if": [
            {
@@ -26068,6 +30252,22 @@
                 ]
                }
               ]
+             },
+             {
+              "*": [
+               {
+                "var": [
+                 "fields.level",
+                 1
+                ]
+               },
+               {
+                "var": [
+                 "vars.hpPerLevel",
+                 0
+                ]
+               }
+              ]
              }
             ]
            },
@@ -26075,105 +30275,6 @@
             "var": [
              "computed.suggestedHpMax",
              1
-            ]
-           }
-          ]
-         },
-         {
-          "*": [
-           {
-            "var": [
-             "fields.level",
-             1
-            ]
-           },
-           {
-            "var": [
-             "vars.hpPerLevel",
-             0
-            ]
-           }
-          ]
-         }
-        ]
-       }
-      ]
-     },
-     "label": {
-      "cat": [
-       "Hit point maximum ",
-       {
-        "max": [
-         1,
-         {
-          "+": [
-           {
-            "if": [
-             {
-              "==": [
-               {
-                "var": [
-                 "choices.level.sub.hp.id",
-                 "average"
-                ]
-               },
-               "roll"
-              ]
-             },
-             {
-              "+": [
-               {
-                "var": [
-                 "vars.hitDie",
-                 0
-                ]
-               },
-               {
-                "var": [
-                 "choices.level.sub.hp.rolled",
-                 0
-                ]
-               },
-               {
-                "*": [
-                 {
-                  "var": [
-                   "fields.level",
-                   1
-                  ]
-                 },
-                 {
-                  "var": [
-                   "computed.constitutionMod",
-                   0
-                  ]
-                 }
-                ]
-               }
-              ]
-             },
-             {
-              "var": [
-               "computed.suggestedHpMax",
-               1
-              ]
-             }
-            ]
-           },
-           {
-            "*": [
-             {
-              "var": [
-               "fields.level",
-               1
-              ]
-             },
-             {
-              "var": [
-               "vars.hpPerLevel",
-               0
-              ]
-             }
             ]
            }
           ]
@@ -26558,35 +30659,122 @@
        {
         "if": [
          {
-          "and": [
+          "endsWith": [
            {
-            "var": [
-             "fields.subrace",
-             ""
+            "if": [
+             {
+              "and": [
+               {
+                "var": [
+                 "fields.subrace",
+                 ""
+                ]
+               },
+               {
+                "!": {
+                 "in": [
+                  ":",
+                  {
+                   "var": [
+                    "fields.subrace",
+                    ""
+                   ]
+                  }
+                 ]
+                }
+               }
+              ]
+             },
+             {
+              "var": "fields.subrace"
+             },
+             {
+              "var": [
+               "fields.race",
+               ""
+              ]
+             }
             ]
            },
-           {
-            "!": {
-             "in": [
-              ":",
-              {
-               "var": [
-                "fields.subrace",
-                ""
-               ]
-              }
-             ]
-            }
-           }
+           " (2024)"
           ]
          },
          {
-          "var": "fields.subrace"
+          "substr": [
+           {
+            "if": [
+             {
+              "and": [
+               {
+                "var": [
+                 "fields.subrace",
+                 ""
+                ]
+               },
+               {
+                "!": {
+                 "in": [
+                  ":",
+                  {
+                   "var": [
+                    "fields.subrace",
+                    ""
+                   ]
+                  }
+                 ]
+                }
+               }
+              ]
+             },
+             {
+              "var": "fields.subrace"
+             },
+             {
+              "var": [
+               "fields.race",
+               ""
+              ]
+             }
+            ]
+           },
+           0,
+           -7
+          ]
          },
          {
-          "var": [
-           "fields.race",
-           ""
+          "if": [
+           {
+            "and": [
+             {
+              "var": [
+               "fields.subrace",
+               ""
+              ]
+             },
+             {
+              "!": {
+               "in": [
+                ":",
+                {
+                 "var": [
+                  "fields.subrace",
+                  ""
+                 ]
+                }
+               ]
+              }
+             }
+            ]
+           },
+           {
+            "var": "fields.subrace"
+           },
+           {
+            "var": [
+             "fields.race",
+             ""
+            ]
+           }
           ]
          }
         ]
@@ -30009,14 +34197,40 @@
             }
            },
            {
-            "!=": [
+            "if": [
              {
-              "var": [
-               "entry.edition",
-               ""
+              "==": [
+               {
+                "var": [
+                 "base.edition",
+                 "2014"
+                ]
+               },
+               "2024"
               ]
              },
-             "2024"
+             {
+              "==": [
+               {
+                "var": [
+                 "entry.edition",
+                 ""
+                ]
+               },
+               "2024"
+              ]
+             },
+             {
+              "!=": [
+               {
+                "var": [
+                 "entry.edition",
+                 ""
+                ]
+               },
+               "2024"
+              ]
+             }
             ]
            }
           ]
@@ -30032,6 +34246,61 @@
            ""
           ]
          }
+        }
+       },
+       {
+        "path": "spells",
+        "op": "append",
+        "each": {
+         "lookup": [
+          {
+           "var": [
+            "data.alwaysPrepared",
+            {}
+           ]
+          },
+          {
+           "var": [
+            "vars.subclass",
+            ""
+           ]
+          },
+          []
+         ]
+        },
+        "when": {
+         "and": [
+          {
+           "var": [
+            "vars.subclass",
+            ""
+           ]
+          },
+          {
+           "==": [
+            {
+             "var": "entry.level"
+            },
+            {
+             "var": [
+              "vars.classLevel",
+              1
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        "value": {
+         "var": "entry.name"
+        },
+        "label": {
+         "cat": [
+          "Always prepared: ",
+          {
+           "var": "entry.name"
+          }
+         ]
         }
        },
        {
@@ -30545,9 +34814,25 @@
              ]
             },
             {
-             "var": [
-              "choices.class.item.builder.subclassLevel",
-              99
+             "if": [
+              {
+               "==": [
+                {
+                 "var": [
+                  "base.edition",
+                  "2014"
+                 ]
+                },
+                "2024"
+               ]
+              },
+              3,
+              {
+               "var": [
+                "choices.class.item.builder.subclassLevel",
+                99
+               ]
+              }
              ]
             }
            ]
@@ -30566,14 +34851,92 @@
         "source": {
          "list": "dnd5e-srd.subclasses",
          "where": {
-          "==": [
+          "and": [
            {
-            "var": "option.class"
+            "==": [
+             {
+              "var": "option.class"
+             },
+             {
+              "var": [
+               "choices.class.item.name",
+               ""
+              ]
+             }
+            ]
            },
            {
-            "var": [
-             "choices.class.item.name",
-             ""
+            "if": [
+             {
+              "==": [
+               {
+                "var": [
+                 "base.edition",
+                 "2014"
+                ]
+               },
+               "2014"
+              ]
+             },
+             {
+              "!=": [
+               {
+                "var": [
+                 "option.edition",
+                 ""
+                ]
+               },
+               "2024"
+              ]
+             },
+             {
+              "==": [
+               {
+                "var": [
+                 "base.edition",
+                 "2014"
+                ]
+               },
+               "2024"
+              ]
+             },
+             {
+              "or": [
+               {
+                "==": [
+                 {
+                  "var": [
+                   "option.edition",
+                   ""
+                  ]
+                 },
+                 "2024"
+                ]
+               },
+               {
+                "and": [
+                 {
+                  "var": [
+                   "option.source",
+                   ""
+                  ]
+                 },
+                 {
+                  "!=": [
+                   {
+                    "var": [
+                     "option.source",
+                     ""
+                    ]
+                   },
+                   "SRD 5.2"
+                  ]
+                 }
+                ]
+               }
+              ]
+             },
+             true
             ]
            }
           ]
@@ -30695,6 +35058,40 @@
              ""
             ]
            }
+          }
+         },
+         {
+          "path": "spells",
+          "op": "append",
+          "each": {
+           "var": [
+            "item.builder.alwaysPrepared",
+            []
+           ]
+          },
+          "when": {
+           "<=": [
+            {
+             "var": "entry.level"
+            },
+            {
+             "var": [
+              "vars.classLevel",
+              1
+             ]
+            }
+           ]
+          },
+          "value": {
+           "var": "entry.name"
+          },
+          "label": {
+           "cat": [
+            "Always prepared: ",
+            {
+             "var": "entry.name"
+            }
+           ]
           }
          }
         ],
@@ -32292,7 +36689,7 @@
       "kind": "choice",
       "id": "spells",
       "title": "Spells",
-      "intro": "New cantrips and spells known at this class level.",
+      "intro": "New cantrips, spells known, and for a cleric, druid or paladin the spells it prepares, at this class level.",
       "when": {
        "and": [
         {
@@ -32417,6 +36814,200 @@
                 0
                ]
               }
+             ]
+            },
+            0
+           ]
+          },
+          {
+           ">": [
+            {
+             "if": [
+              {
+               "==": [
+                {
+                 "var": "choices.class.item.builder.spellcasting.kind"
+                },
+                "prepared"
+               ]
+              },
+              {
+               "-": [
+                {
+                 "if": [
+                  {
+                   ">": [
+                    {
+                     "lookup": [
+                      {
+                       "var": [
+                        "choices.class.item.builder.spellcasting.maxLevel",
+                        []
+                       ]
+                      },
+                      {
+                       "-": [
+                        {
+                         "var": [
+                          "vars.classLevel",
+                          1
+                         ]
+                        },
+                        1
+                       ]
+                      },
+                      0
+                     ]
+                    },
+                    0
+                   ]
+                  },
+                  {
+                   "max": [
+                    1,
+                    {
+                     "+": [
+                      {
+                       "var": [
+                        {
+                         "cat": [
+                          "computed.",
+                          {
+                           "var": "choices.class.item.builder.spellcasting.ability"
+                          },
+                          "Mod"
+                         ]
+                        },
+                        0
+                       ]
+                      },
+                      {
+                       "floor": {
+                        "/": [
+                         {
+                          "var": [
+                           "vars.classLevel",
+                           1
+                          ]
+                         },
+                         {
+                          "var": [
+                           "choices.class.item.builder.spellcasting.preparedDivisor",
+                           1
+                          ]
+                         }
+                        ]
+                       }
+                      }
+                     ]
+                    }
+                   ]
+                  },
+                  0
+                 ]
+                },
+                {
+                 "if": [
+                  {
+                   ">": [
+                    {
+                     "var": [
+                      "vars.classLevel",
+                      1
+                     ]
+                    },
+                    1
+                   ]
+                  },
+                  {
+                   "if": [
+                    {
+                     ">": [
+                      {
+                       "lookup": [
+                        {
+                         "var": [
+                          "choices.class.item.builder.spellcasting.maxLevel",
+                          []
+                         ]
+                        },
+                        {
+                         "-": [
+                          {
+                           "-": [
+                            {
+                             "var": [
+                              "vars.classLevel",
+                              1
+                             ]
+                            },
+                            1
+                           ]
+                          },
+                          1
+                         ]
+                        },
+                        0
+                       ]
+                      },
+                      0
+                     ]
+                    },
+                    {
+                     "max": [
+                      1,
+                      {
+                       "+": [
+                        {
+                         "var": [
+                          {
+                           "cat": [
+                            "computed.",
+                            {
+                             "var": "choices.class.item.builder.spellcasting.ability"
+                            },
+                            "Mod"
+                           ]
+                          },
+                          0
+                         ]
+                        },
+                        {
+                         "floor": {
+                          "/": [
+                           {
+                            "-": [
+                             {
+                              "var": [
+                               "vars.classLevel",
+                               1
+                              ]
+                             },
+                             1
+                            ]
+                           },
+                           {
+                            "var": [
+                             "choices.class.item.builder.spellcasting.preparedDivisor",
+                             1
+                            ]
+                           }
+                          ]
+                         }
+                        }
+                       ]
+                      }
+                     ]
+                    },
+                    0
+                   ]
+                  },
+                  0
+                 ]
+                }
+               ]
+              },
+              0
              ]
             },
             0
@@ -33072,6 +37663,892 @@
           }
          }
         ]
+       },
+       {
+        "id": "prepared",
+        "label": {
+         "cat": [
+          "Prepare ",
+          {
+           "if": [
+            {
+             "==": [
+              {
+               "var": "choices.class.item.builder.spellcasting.kind"
+              },
+              "prepared"
+             ]
+            },
+            {
+             "-": [
+              {
+               "if": [
+                {
+                 ">": [
+                  {
+                   "lookup": [
+                    {
+                     "var": [
+                      "choices.class.item.builder.spellcasting.maxLevel",
+                      []
+                     ]
+                    },
+                    {
+                     "-": [
+                      {
+                       "var": [
+                        "vars.classLevel",
+                        1
+                       ]
+                      },
+                      1
+                     ]
+                    },
+                    0
+                   ]
+                  },
+                  0
+                 ]
+                },
+                {
+                 "max": [
+                  1,
+                  {
+                   "+": [
+                    {
+                     "var": [
+                      {
+                       "cat": [
+                        "computed.",
+                        {
+                         "var": "choices.class.item.builder.spellcasting.ability"
+                        },
+                        "Mod"
+                       ]
+                      },
+                      0
+                     ]
+                    },
+                    {
+                     "floor": {
+                      "/": [
+                       {
+                        "var": [
+                         "vars.classLevel",
+                         1
+                        ]
+                       },
+                       {
+                        "var": [
+                         "choices.class.item.builder.spellcasting.preparedDivisor",
+                         1
+                        ]
+                       }
+                      ]
+                     }
+                    }
+                   ]
+                  }
+                 ]
+                },
+                0
+               ]
+              },
+              {
+               "if": [
+                {
+                 ">": [
+                  {
+                   "var": [
+                    "vars.classLevel",
+                    1
+                   ]
+                  },
+                  1
+                 ]
+                },
+                {
+                 "if": [
+                  {
+                   ">": [
+                    {
+                     "lookup": [
+                      {
+                       "var": [
+                        "choices.class.item.builder.spellcasting.maxLevel",
+                        []
+                       ]
+                      },
+                      {
+                       "-": [
+                        {
+                         "-": [
+                          {
+                           "var": [
+                            "vars.classLevel",
+                            1
+                           ]
+                          },
+                          1
+                         ]
+                        },
+                        1
+                       ]
+                      },
+                      0
+                     ]
+                    },
+                    0
+                   ]
+                  },
+                  {
+                   "max": [
+                    1,
+                    {
+                     "+": [
+                      {
+                       "var": [
+                        {
+                         "cat": [
+                          "computed.",
+                          {
+                           "var": "choices.class.item.builder.spellcasting.ability"
+                          },
+                          "Mod"
+                         ]
+                        },
+                        0
+                       ]
+                      },
+                      {
+                       "floor": {
+                        "/": [
+                         {
+                          "-": [
+                           {
+                            "var": [
+                             "vars.classLevel",
+                             1
+                            ]
+                           },
+                           1
+                          ]
+                         },
+                         {
+                          "var": [
+                           "choices.class.item.builder.spellcasting.preparedDivisor",
+                           1
+                          ]
+                         }
+                        ]
+                       }
+                      }
+                     ]
+                    }
+                   ]
+                  },
+                  0
+                 ]
+                },
+                0
+               ]
+              }
+             ]
+            },
+            0
+           ]
+          },
+          " more ",
+          {
+           "var": [
+            "choices.class.item.name",
+            ""
+           ]
+          },
+          " spells (up to level ",
+          {
+           "lookup": [
+            {
+             "var": [
+              "choices.class.item.builder.spellcasting.maxLevel",
+              []
+             ]
+            },
+            {
+             "-": [
+              {
+               "var": [
+                "vars.classLevel",
+                1
+               ]
+              },
+              1
+             ]
+            },
+            0
+           ]
+          },
+          ")"
+         ]
+        },
+        "help": "Prepared casters change these after a long rest; domain and oath spells are always prepared and do not count.",
+        "when": {
+         ">": [
+          {
+           "if": [
+            {
+             "==": [
+              {
+               "var": "choices.class.item.builder.spellcasting.kind"
+              },
+              "prepared"
+             ]
+            },
+            {
+             "-": [
+              {
+               "if": [
+                {
+                 ">": [
+                  {
+                   "lookup": [
+                    {
+                     "var": [
+                      "choices.class.item.builder.spellcasting.maxLevel",
+                      []
+                     ]
+                    },
+                    {
+                     "-": [
+                      {
+                       "var": [
+                        "vars.classLevel",
+                        1
+                       ]
+                      },
+                      1
+                     ]
+                    },
+                    0
+                   ]
+                  },
+                  0
+                 ]
+                },
+                {
+                 "max": [
+                  1,
+                  {
+                   "+": [
+                    {
+                     "var": [
+                      {
+                       "cat": [
+                        "computed.",
+                        {
+                         "var": "choices.class.item.builder.spellcasting.ability"
+                        },
+                        "Mod"
+                       ]
+                      },
+                      0
+                     ]
+                    },
+                    {
+                     "floor": {
+                      "/": [
+                       {
+                        "var": [
+                         "vars.classLevel",
+                         1
+                        ]
+                       },
+                       {
+                        "var": [
+                         "choices.class.item.builder.spellcasting.preparedDivisor",
+                         1
+                        ]
+                       }
+                      ]
+                     }
+                    }
+                   ]
+                  }
+                 ]
+                },
+                0
+               ]
+              },
+              {
+               "if": [
+                {
+                 ">": [
+                  {
+                   "var": [
+                    "vars.classLevel",
+                    1
+                   ]
+                  },
+                  1
+                 ]
+                },
+                {
+                 "if": [
+                  {
+                   ">": [
+                    {
+                     "lookup": [
+                      {
+                       "var": [
+                        "choices.class.item.builder.spellcasting.maxLevel",
+                        []
+                       ]
+                      },
+                      {
+                       "-": [
+                        {
+                         "-": [
+                          {
+                           "var": [
+                            "vars.classLevel",
+                            1
+                           ]
+                          },
+                          1
+                         ]
+                        },
+                        1
+                       ]
+                      },
+                      0
+                     ]
+                    },
+                    0
+                   ]
+                  },
+                  {
+                   "max": [
+                    1,
+                    {
+                     "+": [
+                      {
+                       "var": [
+                        {
+                         "cat": [
+                          "computed.",
+                          {
+                           "var": "choices.class.item.builder.spellcasting.ability"
+                          },
+                          "Mod"
+                         ]
+                        },
+                        0
+                       ]
+                      },
+                      {
+                       "floor": {
+                        "/": [
+                         {
+                          "-": [
+                           {
+                            "var": [
+                             "vars.classLevel",
+                             1
+                            ]
+                           },
+                           1
+                          ]
+                         },
+                         {
+                          "var": [
+                           "choices.class.item.builder.spellcasting.preparedDivisor",
+                           1
+                          ]
+                         }
+                        ]
+                       }
+                      }
+                     ]
+                    }
+                   ]
+                  },
+                  0
+                 ]
+                },
+                0
+               ]
+              }
+             ]
+            },
+            0
+           ]
+          },
+          0
+         ]
+        },
+        "source": {
+         "list": "dnd5e-srd.spells",
+         "where": {
+          "and": [
+           {
+            ">=": [
+             {
+              "var": "option.level"
+             },
+             1
+            ]
+           },
+           {
+            "<=": [
+             {
+              "var": "option.level"
+             },
+             {
+              "lookup": [
+               {
+                "var": [
+                 "choices.class.item.builder.spellcasting.maxLevel",
+                 []
+                ]
+               },
+               {
+                "-": [
+                 {
+                  "var": [
+                   "vars.classLevel",
+                   1
+                  ]
+                 },
+                 1
+                ]
+               },
+               0
+              ]
+             }
+            ]
+           },
+           {
+            "in": [
+             {
+              "var": [
+               "choices.class.item.name",
+               ""
+              ]
+             },
+             {
+              "var": [
+               "option.classes",
+               []
+              ]
+             }
+            ]
+           }
+          ]
+         }
+        },
+        "min": {
+         "if": [
+          {
+           "==": [
+            {
+             "var": "choices.class.item.builder.spellcasting.kind"
+            },
+            "prepared"
+           ]
+          },
+          {
+           "-": [
+            {
+             "if": [
+              {
+               ">": [
+                {
+                 "lookup": [
+                  {
+                   "var": [
+                    "choices.class.item.builder.spellcasting.maxLevel",
+                    []
+                   ]
+                  },
+                  {
+                   "-": [
+                    {
+                     "var": [
+                      "vars.classLevel",
+                      1
+                     ]
+                    },
+                    1
+                   ]
+                  },
+                  0
+                 ]
+                },
+                0
+               ]
+              },
+              {
+               "max": [
+                1,
+                {
+                 "+": [
+                  {
+                   "var": [
+                    {
+                     "cat": [
+                      "computed.",
+                      {
+                       "var": "choices.class.item.builder.spellcasting.ability"
+                      },
+                      "Mod"
+                     ]
+                    },
+                    0
+                   ]
+                  },
+                  {
+                   "floor": {
+                    "/": [
+                     {
+                      "var": [
+                       "vars.classLevel",
+                       1
+                      ]
+                     },
+                     {
+                      "var": [
+                       "choices.class.item.builder.spellcasting.preparedDivisor",
+                       1
+                      ]
+                     }
+                    ]
+                   }
+                  }
+                 ]
+                }
+               ]
+              },
+              0
+             ]
+            },
+            {
+             "if": [
+              {
+               ">": [
+                {
+                 "var": [
+                  "vars.classLevel",
+                  1
+                 ]
+                },
+                1
+               ]
+              },
+              {
+               "if": [
+                {
+                 ">": [
+                  {
+                   "lookup": [
+                    {
+                     "var": [
+                      "choices.class.item.builder.spellcasting.maxLevel",
+                      []
+                     ]
+                    },
+                    {
+                     "-": [
+                      {
+                       "-": [
+                        {
+                         "var": [
+                          "vars.classLevel",
+                          1
+                         ]
+                        },
+                        1
+                       ]
+                      },
+                      1
+                     ]
+                    },
+                    0
+                   ]
+                  },
+                  0
+                 ]
+                },
+                {
+                 "max": [
+                  1,
+                  {
+                   "+": [
+                    {
+                     "var": [
+                      {
+                       "cat": [
+                        "computed.",
+                        {
+                         "var": "choices.class.item.builder.spellcasting.ability"
+                        },
+                        "Mod"
+                       ]
+                      },
+                      0
+                     ]
+                    },
+                    {
+                     "floor": {
+                      "/": [
+                       {
+                        "-": [
+                         {
+                          "var": [
+                           "vars.classLevel",
+                           1
+                          ]
+                         },
+                         1
+                        ]
+                       },
+                       {
+                        "var": [
+                         "choices.class.item.builder.spellcasting.preparedDivisor",
+                         1
+                        ]
+                       }
+                      ]
+                     }
+                    }
+                   ]
+                  }
+                 ]
+                },
+                0
+               ]
+              },
+              0
+             ]
+            }
+           ]
+          },
+          0
+         ]
+        },
+        "max": {
+         "if": [
+          {
+           "==": [
+            {
+             "var": "choices.class.item.builder.spellcasting.kind"
+            },
+            "prepared"
+           ]
+          },
+          {
+           "-": [
+            {
+             "if": [
+              {
+               ">": [
+                {
+                 "lookup": [
+                  {
+                   "var": [
+                    "choices.class.item.builder.spellcasting.maxLevel",
+                    []
+                   ]
+                  },
+                  {
+                   "-": [
+                    {
+                     "var": [
+                      "vars.classLevel",
+                      1
+                     ]
+                    },
+                    1
+                   ]
+                  },
+                  0
+                 ]
+                },
+                0
+               ]
+              },
+              {
+               "max": [
+                1,
+                {
+                 "+": [
+                  {
+                   "var": [
+                    {
+                     "cat": [
+                      "computed.",
+                      {
+                       "var": "choices.class.item.builder.spellcasting.ability"
+                      },
+                      "Mod"
+                     ]
+                    },
+                    0
+                   ]
+                  },
+                  {
+                   "floor": {
+                    "/": [
+                     {
+                      "var": [
+                       "vars.classLevel",
+                       1
+                      ]
+                     },
+                     {
+                      "var": [
+                       "choices.class.item.builder.spellcasting.preparedDivisor",
+                       1
+                      ]
+                     }
+                    ]
+                   }
+                  }
+                 ]
+                }
+               ]
+              },
+              0
+             ]
+            },
+            {
+             "if": [
+              {
+               ">": [
+                {
+                 "var": [
+                  "vars.classLevel",
+                  1
+                 ]
+                },
+                1
+               ]
+              },
+              {
+               "if": [
+                {
+                 ">": [
+                  {
+                   "lookup": [
+                    {
+                     "var": [
+                      "choices.class.item.builder.spellcasting.maxLevel",
+                      []
+                     ]
+                    },
+                    {
+                     "-": [
+                      {
+                       "-": [
+                        {
+                         "var": [
+                          "vars.classLevel",
+                          1
+                         ]
+                        },
+                        1
+                       ]
+                      },
+                      1
+                     ]
+                    },
+                    0
+                   ]
+                  },
+                  0
+                 ]
+                },
+                {
+                 "max": [
+                  1,
+                  {
+                   "+": [
+                    {
+                     "var": [
+                      {
+                       "cat": [
+                        "computed.",
+                        {
+                         "var": "choices.class.item.builder.spellcasting.ability"
+                        },
+                        "Mod"
+                       ]
+                      },
+                      0
+                     ]
+                    },
+                    {
+                     "floor": {
+                      "/": [
+                       {
+                        "-": [
+                         {
+                          "var": [
+                           "vars.classLevel",
+                           1
+                          ]
+                         },
+                         1
+                        ]
+                       },
+                       {
+                        "var": [
+                         "choices.class.item.builder.spellcasting.preparedDivisor",
+                         1
+                        ]
+                       }
+                      ]
+                     }
+                    }
+                   ]
+                  }
+                 ]
+                },
+                0
+               ]
+              },
+              0
+             ]
+            }
+           ]
+          },
+          0
+         ]
+        },
+        "available": {
+         "!": {
+          "in": [
+           {
+            "var": "option.name"
+           },
+           {
+            "var": [
+             "fields.spells",
+             []
+            ]
+           }
+          ]
+         }
+        },
+        "availableText": "Already on the sheet.",
+        "grants": [
+         {
+          "path": "spells",
+          "op": "append",
+          "value": {
+           "var": "item.name"
+          }
+         }
+        ]
        }
       ]
      },
@@ -33096,35 +38573,122 @@
         {
          "if": [
           {
-           "and": [
+           "endsWith": [
             {
-             "var": [
-              "fields.subrace",
-              ""
+             "if": [
+              {
+               "and": [
+                {
+                 "var": [
+                  "fields.subrace",
+                  ""
+                 ]
+                },
+                {
+                 "!": {
+                  "in": [
+                   ":",
+                   {
+                    "var": [
+                     "fields.subrace",
+                     ""
+                    ]
+                   }
+                  ]
+                 }
+                }
+               ]
+              },
+              {
+               "var": "fields.subrace"
+              },
+              {
+               "var": [
+                "fields.race",
+                ""
+               ]
+              }
              ]
             },
-            {
-             "!": {
-              "in": [
-               ":",
-               {
-                "var": [
-                 "fields.subrace",
-                 ""
-                ]
-               }
-              ]
-             }
-            }
+            " (2024)"
            ]
           },
           {
-           "var": "fields.subrace"
+           "substr": [
+            {
+             "if": [
+              {
+               "and": [
+                {
+                 "var": [
+                  "fields.subrace",
+                  ""
+                 ]
+                },
+                {
+                 "!": {
+                  "in": [
+                   ":",
+                   {
+                    "var": [
+                     "fields.subrace",
+                     ""
+                    ]
+                   }
+                  ]
+                 }
+                }
+               ]
+              },
+              {
+               "var": "fields.subrace"
+              },
+              {
+               "var": [
+                "fields.race",
+                ""
+               ]
+              }
+             ]
+            },
+            0,
+            -7
+           ]
           },
           {
-           "var": [
-            "fields.race",
-            ""
+           "if": [
+            {
+             "and": [
+              {
+               "var": [
+                "fields.subrace",
+                ""
+               ]
+              },
+              {
+               "!": {
+                "in": [
+                 ":",
+                 {
+                  "var": [
+                   "fields.subrace",
+                   ""
+                  ]
+                 }
+                ]
+               }
+              }
+             ]
+            },
+            {
+             "var": "fields.subrace"
+            },
+            {
+             "var": [
+              "fields.race",
+              ""
+             ]
+            }
            ]
           }
          ]
@@ -33788,6 +39352,65 @@
       "var": [
        "preset.fields.xp",
        0
+      ]
+     },
+     "budget": {
+      "*": [
+       {
+        "*": [
+         {
+          "var": [
+           "inputs.partySize",
+           4
+          ]
+         },
+         {
+          "*": [
+           {
+            "var": [
+             "inputs.partyLevel",
+             1
+            ]
+           },
+           {
+            "+": [
+             50,
+             {
+              "*": [
+               15,
+               {
+                "var": [
+                 "inputs.partyLevel",
+                 1
+                ]
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "*": [
+         {
+          "var": [
+           "threat.scale",
+           1
+          ]
+         },
+         {
+          "if": [
+           {
+            "var": "room.lair"
+           },
+           1.5,
+           1
+          ]
+         }
+        ]
+       }
       ]
      },
      "activity": "dnd5e-srd.encounter.activity",
@@ -34649,6 +40272,10 @@
   ],
   "format": "{year}-{month:02}-{day:02}"
  },
+ "terms": {
+  "party": "party",
+  "rewardExamples": "coin, gear, a favour owed, a new ally"
+ },
  "guide": {
   "id": "dnd5e-srd.first-campaign",
   "title": "Your first 5e campaign",
@@ -34704,7 +40331,7 @@
       "title": "Build a character step by step",
       "body": [
        "Click *Open the PCs* in the checklist, then *Build a character*. The builder walks *Edition* (SRD 5.1 rules, SRD 5.2 rules or *Mixed*), *Species / race*, *Class*, *Background*, *Ability scores* (standard array, point buy, rolled or typed), *Starting level*, spells for a caster, *Equipment*, *Details* and *Review*. Each option shows its full text, and the summary on the right keeps the scores, hit points, AC, saves and skills up to date as you pick.",
-       "The example is a hill dwarf fighter with the Acolyte background and a point buy, named Doran Kettleby under *Details*. *Keep for later* saves a half-built character in the campaign; on *Review*, every grant is listed with where it came from, and *Create character* makes the PC."
+       "The example is a hill dwarf fighter with the Acolyte background and a point buy, named Doran Kettleby under *Details*. A step that shows a pick but still needs something (the Acolyte's two languages) says how many choices are left in the list of steps; a pick a later step makes unavailable (a class skill the background also gives) is marked, and you can untick it. *Keep for later* saves a half-built character in the campaign; on *Review*, every grant is listed with where it came from, and *Create character* makes the PC."
       ],
       "image": {
        "key": "build-character",
@@ -34743,7 +40370,7 @@
       "title": "The sheet does the arithmetic",
       "body": [
        "The new PC opens on its sheet. You keep the scores, proficiencies, level and gear; everything marked *Computed* is worked out from them each time the sheet is shown: ability modifiers, proficiency bonus, initiative, saving throw and skill bonuses, passive Perception, hit dice and the spellcasting numbers.",
-       "*Roll* beside a save or skill rolls the d20 with its bonus, with advantage, disadvantage and a DC if you want them. *Level up* adds a class level later, multiclassing included."
+       "The weapons from *Equipment* are on *Attacks*, each with the ability it uses: *To hit* and *Damage* follow the scores, and *Add a weapon* adds another from the SRD's list. *Roll* beside a save or skill rolls the d20 with its bonus, with advantage, disadvantage and a DC if you want them. *Level up* adds a class level later, multiclassing included."
       ],
       "image": {
        "key": "pc-sheet",
@@ -34896,7 +40523,7 @@
       "id": "npc-by-hand",
       "title": "An NPC by hand",
       "body": [
-       "For someone who will mostly talk, use the *NPC* sheet. On the Atlas's *NPCs* tab, click *+ New* and choose *NPC* as the *Type*, name them (Brother Tobin Marsh) and click *Create NPC*. Write the *Summary*, then *Occupation*, *Attitude toward the party* and, under *Playing them*, a quirk, a voice, *What they want* and a *Secret*. *Stat block* names the SRD stat block to use if it does come to a fight (Acolyte, for the sexton).",
+       "For someone who will mostly talk, use the *NPC* sheet. On the Atlas's *NPCs* tab, click *+ New*, set *Type* to *NPC* (the page can start on another type), name them (Brother Tobin Marsh) and click *Create NPC*. Write the *Summary*, then *Occupation*, *Attitude toward the party* and, under *Playing them*, *Quirk*, *Voice and manner*, *What they want* and a *Secret*. *Stat block* names the SRD stat block to use if it does come to a fight (Acolyte, for the sexton).",
        "*Generate* → *NPC* rolls one for you: a name, an occupation with a stat block, a quirk, a voice, a want and a secret."
       ],
       "image": {
@@ -34928,7 +40555,7 @@
       "title": "Add a relationship",
       "body": [
        "On Brother Tobin's page, go to *Relationships* and click *+ Add relationship*. Choose how they relate (*knows*, *member of*, *serves*, *rival of*, *owns*, *wants*, *within* and more), *Choose…* who, add a *Note* if it helps (“Asked him to keep the watch away from the graveyard”) and click *Add*.",
-       "A relationship shows on both pages: Captain Hollis Varrow's *Relationships* tab lists the sexton too."
+       "A relationship shows on both pages: Captain Hollis Varrow's *Relationships* tab lists the sexton too. The types offered follow what the page is: *serves* and *rival of* are for people and factions, so a place's dialog (Barrowfield Chapel's) leaves them out."
       ],
       "image": {
        "key": "relationship",
@@ -35037,7 +40664,7 @@
       "title": "Take a quest from the quest board",
       "body": [
        "Home's *Quest board* groups the campaign's quests by status. The rumour from the settlement generator sits under *Rumour*; *Generate a quest* opens *Generate*, and *+ Quest* writes one by hand.",
-       "Open the rumour and fill in its sheet: *Patron* (Captain Hollis Varrow), *Objective*, *Reward* and *Deadline*, with *Complications* kept GM only. Set *Status* to *Offered* when the party hears it and *Active* when they take it; the board moves it along. *People in this job* lists who is tied to it (Quilla, who heard the rumour)."
+       "Open the rumour and fill in its sheet: *Patron* (Captain Hollis Varrow), *Objective*, *Reward* and *Deadline*, with *Complications* kept GM only. Set *Status* to *Offered* when the party hears it and *Active* when they take it; the board moves it along. *People in this quest* lists who is tied to it (Quilla, who heard the rumour)."
       ],
       "image": {
        "key": "quest-board",
@@ -35101,7 +40728,7 @@
       "id": "encounter",
       "title": "Roll an encounter for the road",
       "body": [
-       "The template's second scene is the road to the lair. Open *Generate* and *Random encounter*, set the *Party level* and the *Terrain* (Wilby sits in grassland), and it picks SRD monsters for the terrain and the party's level band, how many, and what they are doing; tick *Include* on *Twist* for a complication.",
+       "The template's second scene is the road to the lair. Open *Generate* and *Random encounter*, set the *Party level* and the *Terrain* (*Grassland and hills*, for Wilby), and it picks SRD monsters for the terrain and the party's level band, how many, and what they are doing; tick *Include* on *Twist* for a complication.",
        "Click *Accept into campaign*: the encounter and each creature, from its SRD stat block, join the campaign. The example is three bandits arguing about which way to go."
       ],
       "image": {
@@ -35119,7 +40746,8 @@
       "id": "dungeon",
       "title": "Generate the lair: a dungeon",
       "body": [
-       "On *Generate*, under *Site maps*, click *Generate a site map: Dungeon*. Fill the *Brief*: *Site type* (*Crypt or tomb*), *Size*, *Levels*, *Party level* and *Party size*, *Threat* and *Theme* (*The dead*). Type a *Seed* or keep the one offered and click *Generate*: the GM map shows numbered rooms, doors and secret doors, and the marks for encounters, traps and treasure. *Re-run this stage* changes one stage and keeps the rest; *Checks* says every room can be reached.",
+       "On *Generate*, under *Site maps*, click *Generate a site map: Dungeon*. Fill the *Brief*: *Site type* (*Crypt or tomb*), *Size*, *Levels*, *Party level* and *Party size*, *Threat* and *Theme* (*The dead*). Type a *Seed* or keep the one offered and click *Generate*: the GM map shows numbered rooms, doors and secret doors, and the marks for encounters, traps and treasure.",
+       "Each encounter is kept within an XP budget for the party's level and size (a stronger roll is re-rolled). *Re-run this stage* changes one stage and keeps the rest; *Checks* says every room can be reached, and names any encounter still too strong for the party.",
        "Name it (The Barrowfield Crypt) and click *Save to campaign*: the dungeon, its rooms, encounters and monsters are added (GM only), and the map page has the room key and a *Player map* that shows only what you reveal."
       ],
       "image": {
@@ -35138,7 +40766,7 @@
       "id": "scene",
       "title": "Put places and people in a scene",
       "body": [
-       "Back in the adventure, click a scene in the outline. *Location* *Pick* sets where it happens (the witnesses meet at The Lucky Lantern); *Participants* *+ Add* puts NPCs, PCs and monsters in it (Quilla Greyhame and Brother Tobin Marsh). *Encounter* *Pick* takes the bandits' encounter for the road, with the bandits as its participants, and *Map* shows The Barrowfield Crypt on the lair's entrance.",
+       "Back in the adventure, click a scene in the outline. *Location* *Pick* sets where it happens (the witnesses meet at The Lucky Lantern); *Participants* *+ Add* puts NPCs, PCs and monsters in it (Quilla Greyhame and Brother Tobin Marsh). *Encounter* *Pick* links the bandits' encounter to the road; picking it does not bring the bandits along, so add them under *Participants* with *+ Add* (Bandit 1, 2 and 3), which is who the combat panel puts in the fight. On the lair's entrance, *Location* is The Barrowfield Crypt and the *Map* select shows its map.",
        "Below, *Events* lists what must or may happen, *Read-aloud text* is the boxed text for the players, and *Scene notes* take *@* links. Table mode shows all of it for the scene you are in."
       ],
       "image": {
@@ -35156,7 +40784,7 @@
       "id": "handout",
       "title": "Add a handout",
       "body": [
-       "Click an act in the outline (Act 1) and, under *Handouts*, *+ Handout*. Title it (here “A page torn from the burial register”), open it to write the text or add an image, and leave it *GM only*: you reveal it at the table. *+ Agenda* adds a handout for one character, which goes to that player alone."
+       "Click an act in the outline (Act 1) and, under *Handouts*, *+ Handout*. Title it (here “A page torn from the burial register”), open it to write the text or add an image, and leave it *GM only*: you reveal it at the table. *+ Personal handout* adds a handout for one character, which goes to that player alone."
       ],
       "image": {
        "key": "handout",
@@ -35180,11 +40808,11 @@
       "id": "session-plan",
       "title": "Plan the session",
       "body": [
-       "Click *Plan a session* in the checklist (or *Plan next session* on *Sessions*). Under *Scenes planned*, open *Add scenes* and click *+ Plan* on each scene for tonight, or *Add all* for an act; table mode steps through them in order, and the arrows reorder them. Add what to remember to the *Plan* (“Tobin lies about the crypt key”); the *Session checklist* has the module's own prep items, such as checking hit points and spell slots."
+       "Click *Plan a session* in the checklist: it opens *Sessions*, where *Plan a session* (or *Plan next session*, once there is one) makes the session and opens it. Under *Scenes planned*, open *Add scenes* and click *+ Plan* on each scene for tonight, or *Add all* for an act; table mode steps through them in order, and the arrows reorder them. Type what to remember into the *Plan* and press Enter (“Tobin lies about the crypt key”); the *Session checklist* has the module's own prep items, such as checking hit points and spell slots."
       ],
       "image": {
        "key": "session-plan",
-       "alt": "Session 1's Scenes planned: the witnesses, the road and the crypt's entrance"
+       "alt": "Session 1's Scenes planned (the witnesses, the road and the crypt's entrance) and its Plan with Tobin's lie"
       },
       "links": [
        {
@@ -35222,7 +40850,7 @@
       "title": "Roll initiative",
       "body": [
        "On the road, the *Combat* panel lists the PCs and the scene's monsters. Click *Roll initiative for everyone*: each rolls a d20 plus its initiative and the order is sorted, highest first, with whose turn it is on top. *Next turn* moves on and counts the rounds.",
-       "Each card has its hit points with *Damage*, *Heal* and *Temp HP*, its AC and *+ Condition*. *Attack* rolls an attack from a stat block or the sheet's attacks against a target's AC, then its damage, with resistances, critical hits and saves applied; a condition's chip says what it does and what the app applies by itself."
+       "Each card has its hit points with *Damage*, *Heal* and *Temp HP*, its AC and *+ Condition*. *Attack* rolls an attack from a stat block or the sheet's attacks (Doran's longsword, with his bonus worked out) against a target's AC, then its damage, with resistances, critical hits and saves applied; a condition's chip says what it does and what the app applies by itself."
       ],
       "image": {
        "key": "combat",

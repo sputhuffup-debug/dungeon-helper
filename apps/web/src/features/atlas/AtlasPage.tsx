@@ -1,6 +1,8 @@
 /**
  * Atlas: location tree, rosters per entity kind, and a relationship graph.
- * "Preview as player" runs every entity through `projectEntityForViewer`.
+ * "Preview as player" runs every entity through `projectEntityForViewer`:
+ * the tag filter offers only the tags of what players see, and the GM's
+ * creation buttons and drafts are left out of the preview.
  */
 import { locationTree, projectEntityForViewer, readableTags, relationshipLabel, type Entity, type TreeNode, type Viewer } from "@campaign-forge/core";
 import type { CoreEntityKind, EntityTypeDef } from "@campaign-forge/module-sdk";
@@ -43,6 +45,24 @@ export function isPlayerCharacter(e: Entity): boolean {
   return e.fields.isPC === true || !!e.ownerMemberId;
 }
 
+/** A character type made for player characters: its schema starts new ones as PCs (`isPC` defaults to true). */
+function isPcType(t: EntityTypeDef): boolean {
+  const props = t.schema.properties as Record<string, { default?: unknown } | undefined> | undefined;
+  return props?.isPC?.default === true;
+}
+
+/**
+ * The types a roster's "+ New" makes: those of its kind and, for the PCs and
+ * NPCs tabs of a module with a type for each, the PC type or the others
+ * (a module with one character type for both keeps it on either tab).
+ */
+export function typesForGroup(types: EntityTypeDef[], kind: CoreEntityKind | undefined, pc: boolean | undefined): EntityTypeDef[] {
+  const of = types.filter((t) => t.kind === kind);
+  if (pc === undefined) return of;
+  const fit = of.filter((t) => isPcType(t) === pc);
+  return fit.length ? fit : of;
+}
+
 export function AtlasPage() {
   const ctx = useCampaign();
   const search = useSearch({ from: "/c/$campaignId/atlas" });
@@ -65,7 +85,11 @@ export function AtlasPage() {
   const types = ctx.module.module.entityTypes;
   const typeById = useMemo(() => new Map(types.map((t) => [t.id, t])), [types]);
   const kinds = new Set(types.map((t) => t.kind));
-  const groups = KIND_GROUPS.filter((g) => g.kind && kinds.has(g.kind));
+  // a kind the module has one type of is named after it ("Quests", "Monsters"); NPCs and PCs keep their own names
+  const groups = KIND_GROUPS.filter((g) => g.kind && kinds.has(g.kind)).map((g) => {
+    const ofKind = types.filter((t) => t.kind === g.kind);
+    return g.kind !== "character" && ofKind.length === 1 && ofKind[0]!.plural.trim() ? { ...g, label: ofKind[0]!.plural } : g;
+  });
   const tab = search.tab ?? "locations";
 
   // player preview: drop what a player cannot see, strip hidden fields
@@ -75,8 +99,8 @@ export function AtlasPage() {
   }, [all, asPlayer, typeById]);
   const visibleIds = useMemo(() => new Set(visible.map((e) => e.id)), [visible]);
 
-  // the GM's own tags; machine tags ("within:...", "subtype:...") are data, not filters
-  const allTags = useMemo(() => [...new Set(all.flatMap((e) => readableTags(e.tags, machineTags)))].sort(), [all, machineTags]);
+  // the GM's own tags of what is shown (in the preview, only what players see); machine tags ("within:...", "subtype:...") are data, not filters
+  const allTags = useMemo(() => [...new Set(visible.flatMap((e) => readableTags(e.tags, machineTags)))].sort(), [visible, machineTags]);
   const matches = (e: Entity) =>
     (!tag || e.tags.includes(tag)) && (!typeFilter || e.type === typeFilter) && (!text.trim() || e.name.toLowerCase().includes(text.trim().toLowerCase()));
 
@@ -110,7 +134,7 @@ export function AtlasPage() {
       content:
         g.id === "pcs" ? (
           <>
-            <DraftList />
+            {!asPlayer && <DraftList />}
             <EntityTable entities={groupEntities(g)} typeById={typeById} kind={g.kind} pc={g.pc} />
           </>
         ) : (
@@ -126,11 +150,17 @@ export function AtlasPage() {
 
   const pcBuilder = useCharacterBuilder();
   const pcProcedures = useCharacterProcedures({ pc: true });
+  // the type filter offers every type of the tab's kind (a PC type's character marked an NPC is on the NPCs tab)
   const typesForTab = (() => {
     const g = groups.find((x) => x.id === tab);
     if (g) return types.filter((t) => t.kind === g.kind);
     if (tab === "locations") return types.filter((t) => t.kind === "location");
     return types;
+  })();
+  // "+ New" makes the tab's own: an NPC on the NPCs tab, a player character on the PCs tab
+  const newTypes = (() => {
+    const g = groups.find((x) => x.id === tab);
+    return g ? typesForGroup(types, g.kind, g.pc) : typesForTab;
   })();
 
   return (
@@ -142,11 +172,14 @@ export function AtlasPage() {
             <input type="checkbox" checked={asPlayer} onChange={(e) => setAsPlayer(e.target.checked)} data-testid="preview-as-player" />
             Preview as player
           </label>
-          {tab === "pcs" && pcBuilder && <BuildCharacterButton entityType={pcBuilder.entityType} />}
-          {tab === "pcs" && <CharacterProcedureLinks pc primary={!pcBuilder} />}
-          <Link to="/c/$campaignId/entities/new" params={{ campaignId: ctx.campaignId }} search={typesForTab.length === 1 && typesForTab[0] ? { type: typesForTab[0].id, ...(tab === "pcs" ? { pc: 1 as const } : {}) } : {}} className={`cf-btn${tab === "pcs" && (pcBuilder || pcProcedures.length > 0) ? "" : " cf-btn--primary"}`}>
-            + New
-          </Link>
+          {/* making things is the GM's: the player preview shows none of it */}
+          {!asPlayer && tab === "pcs" && pcBuilder && <BuildCharacterButton entityType={pcBuilder.entityType} />}
+          {!asPlayer && tab === "pcs" && <CharacterProcedureLinks pc primary={!pcBuilder} />}
+          {!asPlayer && (
+            <Link to="/c/$campaignId/entities/new" params={{ campaignId: ctx.campaignId }} search={newTypes.length === 1 && newTypes[0] ? { type: newTypes[0].id, ...(tab === "pcs" ? { pc: 1 as const } : {}) } : {}} className={`cf-btn${tab === "pcs" && (pcBuilder || pcProcedures.length > 0) ? "" : " cf-btn--primary"}`}>
+              + New
+            </Link>
+          )}
         </div>
       </header>
       {asPlayer && <p className="app-note">Showing only what a player could see: GM-only entities and fields are hidden. Open an entity to see its page as players do.</p>}
@@ -201,7 +234,7 @@ function LocationTree({ nodes, matches, typeById }: { nodes: TreeNode[]; matches
   // keep a node when it or a descendant matches the filters
   const keep = (n: TreeNode): boolean => matches(n.entity) || n.children.some(keep);
   const shown = nodes.filter(keep);
-  if (shown.length === 0) return <EmptyState title="No locations" text="Add a location, or generate a star system, and nest places with “within” relationships." />;
+  if (shown.length === 0) return <EmptyState title="No locations" text="Add a location with + New, and nest places in one another with “within” relationships." />;
   return (
     <ul className="app-tree" role="tree" aria-label="Locations">
       {shown.map((n) => (
@@ -251,12 +284,18 @@ function EntityTable({ entities, typeById, kind, pc }: { entities: Entity[]; typ
   const asPlayer = useContext(PreviewContext);
   const refName = (list: string, id: string) => module.referenceItem(list, id)?.name;
   const sorted = [...entities].sort((a, b) => a.name.localeCompare(b.name));
+  // say only the ways in this module offers: a builder, a roller (a life path), by hand
+  const pcBuilder = useCharacterBuilder();
+  const pcRollers = useCharacterProcedures({ pc: true });
   if (sorted.length === 0) {
-    const def = module.module.entityTypes.find((t) => t.kind === kind);
+    // the NPCs tab makes an NPC, the PCs tab a player character, when the module has a type for each
+    const def = typesForGroup(module.module.entityTypes, kind, pc)[0];
+    if (asPlayer) return <EmptyState title="Nothing here players can see" />;
+    const ways = [pcBuilder ? "build one step by step" : "", pcRollers.length > 0 ? "roll one" : "", "make one by hand"].filter(Boolean);
     return (
       <EmptyState
         title="Nothing here yet"
-        text={pc ? "Player characters are characters marked as PCs: roll one, or make one by hand." : "Create one from a preset or from scratch."}
+        text={pc ? `Player characters are characters marked as PCs: ${ways.length > 2 ? `${ways.slice(0, -1).join(", ")} or ${ways[ways.length - 1]}` : ways.join(", or ")}.` : "Create one from a preset or from scratch."}
         action={
           def && (
             <span className="app-row">

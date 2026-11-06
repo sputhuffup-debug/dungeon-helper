@@ -4,8 +4,10 @@ import {
   checkDeterminism,
   computeFields,
   createRng,
+  defaultFieldsFor,
   loadModule,
   moduleFromPackSource,
+  ownerVisiblePaths,
   packFromSource,
   runProcedure,
   type DicePool,
@@ -85,9 +87,18 @@ describe("Fantasy d20 Remaster (ORC) data pack", () => {
     expect(checkDeterminism(module, { seeds: 8 })).toEqual([]);
   });
 
+  it("shows a PC's own player the whole sheet but the GM's notes, and keeps a creature's stat block with the GM", () => {
+    const pc = module.entityTypes.find((t) => t.id === "pf2e-orc.character")!;
+    const keys = Object.keys(pc.schema.properties as object);
+    expect(ownerVisiblePaths(pc).sort()).toEqual(keys.filter((k) => k !== "notes").sort());
+    const creature = module.entityTypes.find((t) => t.id === "pf2e-orc.creature")!;
+    for (const k of ["level", "ac", "hp", "saves", "attributes", "strikes", "abilities", "actions", "spells", "description", "notes"]) expect(creature.defaultVisibility?.[k], k).toBe("gm");
+    for (const k of ["size", "traits", "conditions"]) expect(creature.defaultVisibility?.[k], k).toBeUndefined();
+  });
+
   it("ships the ORC notice, the attribution notices and the trademark disclaimer", () => {
     const license = module.manifest.license!;
-    expect(license).toMatchObject({ spdx: "LicenseRef-ORC", name: "ORC License", url: "https://paizo.com/orclicense" });
+    expect(license).toMatchObject({ spdx: "LicenseRef-ORC", name: "ORC License", url: "https://paizo.com/orclicense", inExports: true });
     expect(license.attribution).toContain(ORC_NOTICE);
     for (const l of ATTRIBUTION_LINES) expect(license.attribution).toContain(l);
     expect(license.attribution).toContain(TRADEMARK_NOTICE);
@@ -316,5 +327,38 @@ describe("Fantasy d20 Remaster (ORC) data pack", () => {
     for (const t of module.templates) expect(t.original, t.id).toBe(true);
     expect(module.playGuides?.every((g) => g.original)).toBe(true);
     expect(module.calendar?.months.map((m) => m.name)).not.toContain("Abadius");
+  });
+});
+
+describe("walkthrough fixes", () => {
+  const pc = () => module.entityTypes.find((t) => t.id === "pf2e-orc.character")!;
+
+  it("a blank PC is untrained everywhere and never above its Hit Point maximum", () => {
+    const def = pc();
+    // nothing stored for current Hit Points means full; the sheet shows the maximum
+    const blank = defaultFieldsFor(def);
+    expect((blank as { hp?: { current?: number } }).hp?.current).toBeUndefined();
+    const c = computeFields(def, blank as Record<string, unknown>) as Record<string, unknown>;
+    expect(c.ac).toBe(10);
+    expect(c.classDc).toBe(10);
+    expect(c.fortitudeTotal).toBe(0);
+  });
+
+  it("the gnome's text names the realm of the fey once, and no level of creatures needs a 1d54", () => {
+    const gnome = item("ancestries", "Gnome");
+    expect(String(gnome.description)).not.toMatch(/realm of the fey, realm of the fey/);
+    expect(String(gnome.description)).toMatch(/the realm of the fey\./);
+    for (const t of module.tables.filter((x) => /^pf2e-orc\.(creature|encounter)\./.test(x.id))) expect(["1d2", "1d3", "1d4", "1d6", "1d8", "1d10", "1d12", "1d20", "1d100"], `${t.id} ${t.dice}`).toContain(t.dice);
+  });
+
+  it("an NPC's ancestry follows a stat block that names its people, and what it wants starts GM only", () => {
+    for (let i = 0; i < 60; i++) {
+      const g = runProcedure(loaded.procedure("pf2e-orc.proc.npc")!, module, { seed: `npc-${i}` }) as GeneratedGraph;
+      const npc = g.produced.entities[0]!;
+      const block = String(npc.fields.statBlock);
+      for (const people of ["Merfolk", "Dwarf", "Halfling", "Orc", "Elf", "Gnome", "Goblin"]) if (block.startsWith(`${people} `)) expect(npc.fields.ancestry, `${block}`).toBe(people);
+    }
+    const npcType = module.entityTypes.find((t) => t.id === "pf2e-orc.npc")!;
+    expect(npcType.defaultVisibility?.motivation).toBe("gm");
   });
 });

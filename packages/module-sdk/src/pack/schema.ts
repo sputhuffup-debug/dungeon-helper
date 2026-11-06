@@ -28,6 +28,7 @@ import type {
 } from "../engines/types";
 import type {
   CalendarDef,
+  ModuleTerms,
   ConditionalVisibilityDef,
   CoreEntityKind,
   D20AttackKind,
@@ -44,6 +45,7 @@ import type {
   D20Restriction,
   D20SaveDef,
   D20ZeroHpRule,
+  D20DeathSaves,
   EntityPreset,
   EntityTypeDef,
   CharacterBuilderAbilityStep,
@@ -232,13 +234,25 @@ const httpUrl = str({ pattern: "^https?://", maxLength: 2000 });
 
 const definitions: Record<string, JsonSchema> = {
   id: str({ minLength: 1, maxLength: 200, pattern: ID_PATTERN }),
-  page: { anyOf: [int({ minimum: 1 }), list(int({ minimum: 1 }), { minItems: 2, maxItems: 2 })], description: "A page, or an inclusive [first, last] range." },
+  page: {
+    anyOf: [
+      int({ minimum: 1 }),
+      list(int({ minimum: 1 }), { minItems: 2, maxItems: 2 }),
+      {
+        type: "object",
+        properties: { pages: list({ anyOf: [int({ minimum: 1 }), list(int({ minimum: 1 }), { minItems: 2, maxItems: 2 })] }, { minItems: 1 }) },
+        required: ["pages"],
+        additionalProperties: false,
+      },
+    ],
+    description: "A page, an inclusive [first, last] range, or { pages: [...] } for pages and ranges cited together (\"p. 27, 158\").",
+  },
   cite: str({ minLength: 1, maxLength: 200, description: "A section citation, e.g. \"SRD 5.1, Conditions\"." }),
   modes: list(ref("id")),
   tone: oneOfValues<RollTone>()(ROLL_TONES),
 
   playMode: object<PlayMode>()({ id: ref("id"), name: text, description: str(), page: ref("page"), cite: ref("cite") }, ["id", "name"]),
-  license: object<ModuleLicense>()({ spdx: str({ maxLength: 100 }), name: text, url: httpUrl, attribution: text }, ["name", "attribution"]),
+  license: object<ModuleLicense>()({ spdx: str({ maxLength: 100 }), name: text, url: httpUrl, attribution: text, inExports: bool }, ["name", "attribution"]),
   sourceBook: object<NonNullable<ModuleManifest["sourceBook"]>>()({ title: text, year: int(), pageNote: str(), url: httpUrl }, ["title"]),
   manifest: object<PackManifest>()(
     {
@@ -478,6 +492,7 @@ const definitions: Record<string, JsonSchema> = {
       cite: ref("cite"),
       original: bool,
       tags: list(str()),
+      group: str(),
       fields: freeObject,
       unverified: bool,
     },
@@ -552,8 +567,22 @@ const definitions: Record<string, JsonSchema> = {
       months: list(object<CalendarDef["months"][number]>()({ name: text, days: int({ minimum: 1, maximum: 1000 }) }, ["name", "days"]), { minItems: 1, maxItems: 100 }),
       weekdays: list(text),
       format: str({ maxLength: 100 }),
+      displayFormat: str({ maxLength: 100, description: "How dates are shown: {year} {month} {day} (with :02), {monthName}, {weekday}. Default \"{day} {monthName} {year}\"." }),
     },
     ["id", "name", "defaultYear", "months"],
+  ),
+  terms: object<ModuleTerms>()(
+    {
+      party: str({ minLength: 1, maxLength: 40, description: "The player characters together, lower case: \"crew\", \"party\". Default \"group\"." }),
+      mapLevel: str({ minLength: 1, maxLength: 40, description: "One level of a site map: \"deck\", \"floor\". Default \"level\"." }),
+      mapLevels: str({ minLength: 1, maxLength: 40 }),
+      agenda: str({ minLength: 1, maxLength: 40, description: "A handout for one character's player: \"agenda\". Default \"personal handout\"." }),
+      agendas: str({ minLength: 1, maxLength: 40 }),
+      rewardExamples: str({ minLength: 1, maxLength: 200 }),
+      epiloguePrompt: str({ minLength: 1, maxLength: 200 }),
+    },
+    [],
+    { description: "The words generic screens use for the game. See docs/modules/pack-format.md#terms." },
   ),
   playGuideGroup: object<PlayGuideGroup>()({ id: ref("id"), label: text, summary: str(), page: ref("page") }, ["id", "label"]),
   playGuideEntry: object<PlayGuideEntry>()(
@@ -685,6 +714,8 @@ const definitions: Record<string, JsonSchema> = {
         additionalProperties: false,
         description: "Item keys that differ from the attack convention.",
       },
+      bonus: { ...logic, description: "The attack bonus of an item that states none: JSONLogic over { fields, computed, item }." },
+      damageBonus: { ...logic, description: "A flat number added to the item's first damage part: JSONLogic over { fields, computed, item }." },
     },
     ["path"],
   ),
@@ -751,6 +782,21 @@ const definitions: Record<string, JsonSchema> = {
       recover: object<NonNullable<D20ZeroHpRule["recover"]>>()(
         { remove: list(text), conditions: list(ref("d20RuleCondition")), setFields: { type: "object", additionalProperties: { type: ["number", "string", "boolean"] } } },
         [],
+      ),
+      deathSaves: object<D20DeathSaves>()(
+        {
+          successes: text,
+          failures: text,
+          max: int({ minimum: 1 }),
+          dc: int({ minimum: 1 }),
+          damageFailures: int({ minimum: 0 }),
+          criticalFailures: int({ minimum: 0 }),
+          natural1Failures: int({ minimum: 0 }),
+          natural20Heals: int({ minimum: 1 }),
+          massiveDamage: bool,
+        },
+        ["successes", "failures"],
+        { description: "Death saves while at 0 hit points: the sheet counters, damage while down as failures, and the save the combat card offers." },
       ),
       text: text,
       page: ref("page"),
@@ -1122,6 +1168,7 @@ const definitions: Record<string, JsonSchema> = {
     {
       table: logic,
       prefer: logic,
+      budget: logic,
       groups: list(ref("dungeonEncounterGroup"), { minItems: 1, maxItems: 6 }),
       creatureType: ref("id"),
       xp: logic,
@@ -1265,6 +1312,7 @@ export const MODULE_PACK_SCHEMA: JsonSchema = {
       manifest: ref("manifest"),
       dice: ref("dice"),
       calendar: ref("calendar"),
+      terms: ref("terms"),
       styleNotes: list(str()),
       primer: ref("primer"),
       d20Combat: ref("d20Combat"),

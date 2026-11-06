@@ -286,6 +286,52 @@ export function zoneNumbers(layout: Pick<SiteLayout, "zones" | "numbering">): Ma
   return out;
 }
 
+/**
+ * How many zones a map has, the one count every page shows: a generated
+ * site map's playable zones (its layout, out-of-bounds left out), else the
+ * zones drawn on an imported image.
+ */
+export function mapZoneCount(map: { layout?: Pick<SiteLayout, "zones"> | undefined; zones?: unknown[] }): number {
+  if (map.layout) return map.layout.zones.filter((z) => z.kind !== "out-of-bounds").length;
+  return map.zones?.length ?? 0;
+}
+
+/**
+ * A label per zone that tells zones apart in a list: "3 Den" for a numbered
+ * zone; an unnumbered one by its name ("Tunnel"), and when several share it,
+ * by the numbered zones it opens onto ("Tunnel by 2 Entrance") and then a
+ * letter ("Tunnel A", "Tunnel B").
+ */
+export function zoneLabels(layout: Pick<SiteLayout, "zones" | "numbering" | "borders">): Map<string, string> {
+  const numbers = zoneNumbers(layout);
+  const base = (z: MapZoneData) => z.name ?? (z.layer === "duct" ? "Duct" : z.kind.replace(/-/g, " "));
+  const out = new Map<string, string>();
+  for (const z of layout.zones) out.set(z.id, numbers.has(z.id) ? `${numbers.get(z.id)} ${base(z)}` : base(z));
+  const dupes = (m: Map<string, string>) => {
+    const count = new Map<string, number>();
+    for (const v of m.values()) count.set(v, (count.get(v) ?? 0) + 1);
+    return (id: string) => (count.get(m.get(id)!) ?? 0) > 1;
+  };
+  const byZone = new Map(layout.zones.map((z) => [z.id, z]));
+  let isDupe = dupes(out);
+  for (const z of layout.zones) {
+    if (numbers.has(z.id) || !isDupe(z.id)) continue;
+    const near = [...new Set((layout.borders ?? []).flatMap((b) => (b.a === z.id ? [b.b] : b.b === z.id ? [b.a] : [])))].filter((id) => numbers.has(id) && byZone.has(id));
+    if (near.length) out.set(z.id, `${base(z)} by ${near.slice(0, 2).map((id) => out.get(id)).join(" and ")}`);
+  }
+  isDupe = dupes(out);
+  const seen = new Map<string, number>();
+  const snapshot = new Map(out);
+  for (const z of layout.zones) {
+    const label = snapshot.get(z.id)!;
+    if (numbers.has(z.id) || !isDupe(z.id)) continue;
+    const i = seen.get(label) ?? 0;
+    seen.set(label, i + 1);
+    out.set(z.id, `${label} ${i < 26 ? String.fromCharCode(65 + i) : i + 1}`);
+  }
+  return out;
+}
+
 export function isFlagTarget(t: MapLegendEntry["target"]): t is { flag: string; value?: unknown } {
   return "flag" in t;
 }
@@ -680,6 +726,40 @@ export function playerLayout(layout: SiteLayout, opts: PlayerLayoutOptions): Pla
   if (layout.acts === false) out.acts = false;
   if (layout.cover === false) out.cover = false;
   return out;
+}
+
+/**
+ * The legend as the players get it with a map: the entries they may see
+ * (not `gmOnly`) of what is on the part of the map they see, so the legend
+ * never names a hazard, a zone kind or a border that is not drawn for them
+ * (an alien structure on a station deck, a shaft in an unexplored duct).
+ * Zones count when not fogged; borders when one side is such a zone;
+ * flags from the zones (cluttered included), their live flags and the
+ * borders; markers as drawn. In legend order.
+ */
+export function playerLegendInUse(legend: MapLegendEntry[] | undefined, layout: PlayerLayout, live?: Pick<PlayerLiveState, "zoneFlags"> | undefined): MapLegendEntry[] {
+  const fogged = new Set(layout.fogged);
+  const seen = layout.zones.filter((z) => !fogged.has(z.id));
+  const seenIds = new Set(seen.map((z) => z.id));
+  const borders = layout.borders.filter((b) => seenIds.has(b.a) || seenIds.has(b.b));
+  const flagSets: Array<Record<string, unknown>> = [];
+  for (const z of seen) {
+    flagSets.push({ ...(z.flags ?? {}), ...(live?.zoneFlags[z.id] ?? {}), ...(z.cluttered ? { cluttered: true } : {}) });
+  }
+  for (const b of borders) flagSets.push({ ...(b.flags ?? {}), ...(b.sealed ? { sealed: true } : {}) });
+  const kinds = new Set<string>(seen.map((z) => z.kind));
+  const areas = new Set(seen.map((z) => z.area).filter((a): a is string => typeof a === "string"));
+  const borderKinds = new Set<string>(borders.map((b) => b.kind));
+  const markerKinds = new Set<string>(layout.markers.filter((m) => seenIds.has(m.zone)).map((m) => m.kind));
+  return (legend ?? []).filter((e) => {
+    if (e.gmOnly) return false;
+    const t = e.target;
+    if ("border" in t) return borderKinds.has(t.border);
+    if ("kind" in t) return kinds.has(t.kind);
+    if ("area" in t) return areas.has(t.area);
+    if ("marker" in t) return markerKinds.has(t.marker);
+    return flagSets.some((f) => flagEntryMatches(e, f));
+  });
 }
 
 export interface PlayerLiveState {

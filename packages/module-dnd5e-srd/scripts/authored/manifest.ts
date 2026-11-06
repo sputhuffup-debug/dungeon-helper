@@ -14,7 +14,7 @@ export const VERSION = "0.1.0";
 
 export const MODES = [
   { id: "campaign", name: "Campaign", description: "Long-running play: characters level up over many sessions, with factions, quests and a living world between adventures." },
-  { id: "one-shot", name: "One-shot", description: "A single session: ready-made characters, one adventure in three acts, and a clear ending tonight." },
+  { id: "one-shot", name: "One-shot", description: "A single session: quick characters from the step-by-step builder, one adventure in three acts, and a clear ending tonight." },
 ];
 
 export const manifest: PackManifest = {
@@ -38,6 +38,8 @@ export const manifest: PackManifest = {
     name: "Creative Commons Attribution 4.0 International",
     url: "https://creativecommons.org/licenses/by/4.0/",
     attribution: `${SRD_ATTRIBUTION}\n\n${SRD52_ATTRIBUTION}`,
+    // CC BY 4.0: every copy of SRD text the players get (shares, packets, booklets, maps) carries the attribution
+    inExports: true,
   },
 };
 

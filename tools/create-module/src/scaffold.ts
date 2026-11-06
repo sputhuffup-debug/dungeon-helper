@@ -13,6 +13,7 @@ import {
   PACK_FORMAT_VERSION,
   PACK_ID_PATTERN,
   type CalendarDef,
+  type ModuleTerms,
   type DiceEngineConfig,
   type DiceEngineId,
   type EntityTypeDef,
@@ -347,8 +348,10 @@ function common(opts: Required<Omit<ScaffoldOptions, "id">> & { id: string }) {
       scaffold: { title: name, items: [{ id: `${id}.prep.recap`, phase: "prep", text: "Write a two-line recap of last session" }] },
     },
   ];
-  const calendar: CalendarDef = { id: `${id}.calendar`, name: "Calendar", defaultYear: 1, months: Array.from({ length: 12 }, (_, i) => ({ name: `Month ${i + 1}`, days: 30 })), format: "{year}-{month:02}-{day:02}" };
-  return { manifest, dice: s.dice, character, place, list, tables, rules, templates, calendar };
+  const calendar: CalendarDef = { id: `${id}.calendar`, name: "Calendar", defaultYear: 1, months: Array.from({ length: 12 }, (_, i) => ({ name: `Month ${i + 1}`, days: 30 })), format: "{year}-{month:02}-{day:02}", displayFormat: "{year}-{month:02}-{day:02}" };
+  // the words the app's generic screens use for this game (docs/modules/pack-format.md#terms); rename them to the game's own
+  const terms: ModuleTerms = { party: "group", mapLevel: "level" };
+  return { manifest, dice: s.dice, character, place, list, tables, rules, templates, calendar, terms };
 }
 
 function resolveOptions(opts: ScaffoldOptions) {
@@ -396,6 +399,7 @@ export function scaffoldPack(opts: ScaffoldOptions): ModulePack {
     templates: c.templates,
     rules: c.rules,
     calendar: c.calendar,
+    terms: c.terms,
   };
 }
 
@@ -434,6 +438,7 @@ import {
   type CalendarDef,
   type EntityTypeDef,
   type GameModule,
+  type ModuleTerms,
   type Procedure,
   type ReferenceList,
   type RollTable,
@@ -472,6 +477,9 @@ const templates: Template[] = ${json(c.templates)};
 
 const calendar: CalendarDef = ${json(c.calendar)};
 
+/** The words the app's generic screens use for this game: rename them to the game's own. */
+const terms: ModuleTerms = ${json(c.terms)};
+
 export const ${name}: GameModule = {
   manifest,
   dice: createDiceEngine(${json(c.dice, 2)}),
@@ -485,6 +493,7 @@ export const ${name}: GameModule = {
   rules,
   trackers: [],
   calendar,
+  terms,
 };
 
 export default ${name};

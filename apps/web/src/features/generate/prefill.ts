@@ -100,16 +100,29 @@ export function entityHint(s: Schema | undefined): EntityInputHint | undefined {
   return h as EntityInputHint;
 }
 
-/** The value an entity input carries: a snapshot, so a run stays reproducible. */
-export function entitySnapshot(e: Entity): EntitySnapshot {
-  return { id: e.id, name: e.name, type: e.type, fields: clone(e.fields) };
+/**
+ * The entity's payout already on the ledger: an entry its payout button
+ * posted, or an idempotent posting keyed `<category>:<id>` that links it (a
+ * procedure's payment effect uses the payout's key).
+ */
+export function paidOutOf(store: CampaignStore, id: Id): EntitySnapshot["paidOut"] | undefined {
+  const entry = store
+    .list("ledger")
+    .find((l) => (l.source?.kind === "payout" && l.source.id === id) || (!!l.key && l.key.endsWith(`:${id}`) && Object.values(l.links ?? {}).includes(id)));
+  return entry ? { amount: entry.amount, ...(entry.key ? { key: entry.key } : {}) } : undefined;
+}
+
+/** The value an entity input carries: a snapshot, so a run stays reproducible (with its payout when one is posted, given the store). */
+export function entitySnapshot(e: Entity, store?: CampaignStore): EntitySnapshot {
+  const paidOut = store ? paidOutOf(store, e.id) : undefined;
+  return { id: e.id, name: e.name, type: e.type, fields: clone(e.fields), ...(paidOut ? { paidOut } : {}) };
 }
 
 /** Snapshot of `id` when it is an entity of one of the hint's types. */
 export function snapshotFor(store: CampaignStore, hint: EntityInputHint, id: unknown): EntitySnapshot | undefined {
   if (typeof id !== "string") return undefined;
   const e = store.get("entities", id);
-  return e && hint.types.includes(e.type) ? entitySnapshot(e) : undefined;
+  return e && hint.types.includes(e.type) ? entitySnapshot(e, store) : undefined;
 }
 
 /** The campaign-snapshot hint on an input schema (`"x-campaign"`), if any. */

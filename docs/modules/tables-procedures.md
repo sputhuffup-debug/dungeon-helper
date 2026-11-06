@@ -25,7 +25,7 @@
 - `modifiers`: `when` (JSONLogic, optional) and `add` (number or JSONLogic). A JSONLogic `add` cannot be enumerated, so cover its range with open-ended rows.
 - `gmDecides`: the app shows the row and lets the GM choose.
 - `resultFields`: what a rolled row means at the table, shown with the roll (the roll result dialog, a condition's tooltip): `[{ "path": "effect", "label": "Effect" }, { "path": "fatal", "label": "Lethal", "as": "flag", "tone": "danger" }, { "path": "healingTime", "label": "Healing time", "unit": "days", "valueLabels": { "shift": "one shift" } }]`. `path` reads the row's object `result`; `as: "flag"` shows the label alone when the value is `true`; `unit` follows a value with no `valueLabels` entry. Rows without the field skip it; `module-check` warns about a field no row has.
-- Cite the source with `page` (or `[first, last]`), `cite` for a section, or mark it `original`. Rows may cite their own `page` / `cite`.
+- Cite the source with `page` (or `[first, last]` for a range, or `{ "pages": [27, 158] }` for pages and ranges cited together, which reads "p. 27, 158"), `cite` for a section, or mark it `original`. Rows may cite their own `page` / `cite`.
 - `mode`, `tags`, `notes`, `unverified` as in the contract.
 
 ## Procedures (generators)
@@ -113,7 +113,7 @@ A procedure's `inputs` is a JSON Schema; the workbench builds its form from it a
 
 | Hint | The app passes |
 |---|---|
-| `"x-entity": { "types": ["my-pack.ship"], "setting": "ship" }` | One entity picked from a list, as `{ id, name, type, fields }`, pre-filled from the campaign setting `setting`. |
+| `"x-entity": { "types": ["my-pack.ship"], "setting": "ship" }` | One entity picked from a list, as `{ id, name, type, fields }`, pre-filled from the campaign setting `setting`. When the entity's payout is already on the ledger (its `ledger.payouts` button was pressed, e.g. a job's payment collected in the wrap-up), the snapshot also carries `paidOut: { amount, key }`, so the procedure does not post or count that money again. |
 | `"x-campaign": { "kinds"?, "types"?, "fields"?, "relationships"? }` | A snapshot of the campaign: `{ entities: [{ id, name, type, kind, subtype?, pc?, tags, fields? }], relationships: [{ type, from, to }] }`, sorted by name. Only ids, names, kinds, tags and the scalar `fields` you list (e.g. `["career", "android"]`) are copied, never text; `kinds`/`types` and `relationships` filter it. It is read when the page opens. |
 | `"x-adventure": {}` | An adventure picked from a list (the campaign's only one by default, or the one the page was opened for): `{ id, title, premise, situation, fields, acts: [{ number, title, goal, fields }], cast: { role: [ids] }, rooms }`, with the hidden situation as plain text, string narrative fields only and the named rooms of the adventure's site maps. Per-character inputs (arrays whose items have `id` and `name`) are filled from that adventure's PCs. |
 

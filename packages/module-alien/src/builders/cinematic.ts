@@ -447,7 +447,7 @@ const actRules = (n: 1 | 2 | 3): ReviewRule[] => {
         and: [blank("adventure.fields.countdown"), { "!": [{ matches: [v("item.fields.pressure"), TIMER_PATTERN, "i"] }] }],
       }),
       message: "Act 3 has no timer; a countdown speeds up the climax",
-      page: [28, 55],
+      page: { pages: [28, 55] },
     });
   }
   return rules;
@@ -547,7 +547,7 @@ const review: ReviewRule[] = [
     each: "pcs",
     check: (item, ctx) => ACT_NUMBERS.filter((a) => agendaText(item, a, ctx) === "").map((a) => `${who(item, "PC")}: write the Act ${a} agenda`),
     message: "{name}: write an agenda for every act",
-    page: [27, 158],
+    page: { pages: [27, 158] },
   },
   {
     id: "pcs.agenda-short",
@@ -614,7 +614,7 @@ const review: ReviewRule[] = [
     each: "npcs",
     when: { and: [{ "==": [{ var: "item.fields.secretAndroid" }, true] }, { "!": [{ var: "item.fields.android" }] }] },
     message: "{name}: a secret synthetic is still an android; tick Android too so its sheet follows the android rules",
-    page: [25, 77],
+    page: { pages: [25, 77] },
   },
   {
     id: "npcs.clues",

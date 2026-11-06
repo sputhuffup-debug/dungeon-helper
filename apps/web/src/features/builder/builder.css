@@ -457,9 +457,17 @@
   margin: 0;
   min-width: 0;
 }
-/* a wide table in a detail scrolls sideways inside its cell */
+/* a wide table in a detail scrolls sideways inside its cell; its headings and numbers never break inside a word */
 .cb-details__md {
   overflow-x: auto;
+}
+.cb-details__md th,
+.cb-details__md td {
+  overflow-wrap: normal;
+  word-break: normal;
+}
+.cb-details__md th {
+  white-space: nowrap;
 }
 .cb-details__md > :first-child {
   margin-top: 0;
@@ -690,4 +698,7 @@
   .cb-range {
     grid-template-columns: repeat(5, minmax(40px, 1fr));
   }
+}
+.cb__step-todo {
+  color: var(--cf-warning);
 }

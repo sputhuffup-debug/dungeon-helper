@@ -155,7 +155,10 @@ function rewrite(text: string, log: ScrubLog): string {
   let s = text;
   for (const x of RESERVED) {
     if (!x.replace) continue;
-    const re = new RegExp(`(?<![\\p{L}\\p{N}])(?:([Tt])he )?${escape(x.term)}(['’]s)?(?![\\p{L}\\p{N}])`, "gu");
+    // "the First World, realm of the fey": the source's own gloss after the name would repeat the replacement, so it goes with the name
+    const bare = x.replace.replace(/^the /i, "");
+    const gloss = `(?:,\\s+(?:the\\s+)?${escape(bare)}(?![\\p{L}\\p{N}]))?`;
+    const re = new RegExp(`(?<![\\p{L}\\p{N}])(?:([Tt])he )?${escape(x.term)}(['’]s)?(?![\\p{L}\\p{N}])${gloss}`, "gu");
     s = s.replace(re, (_m, the: string | undefined, poss: string | undefined) => {
       bump(log.replaced, x.term);
       let out = x.replace!;

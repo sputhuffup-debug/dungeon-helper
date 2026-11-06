@@ -26,7 +26,7 @@ One campaign holds everything: the party, the places, the quests and every sessi
 
 On the campaign list, click *New campaign*. Give it a name (the example is The Wardens of Mossford) and choose *Fantasy d20 Remaster (ORC)* as the *Game module*. The dialog shows the module's licence and notices.
 
-Under *Play mode*, *Campaign* is long-running play: characters gain levels over many sessions, with factions, quests and a world that moves between adventures; this guide follows it. *One-shot* is a single evening with ready-made characters. Click *Create campaign*.
+Under *Play mode*, *Campaign* is long-running play: characters gain levels over many sessions, with factions, quests and a world that moves between adventures; this guide follows it. *One-shot* is a single evening: quick characters from the builder, one adventure and a clear ending. Click *Create campaign*.
 
 ![The New campaign dialog with the Fantasy d20 Remaster (ORC) module chosen and its ORC License line](../screenshots/guide-pf2e-orc-new-campaign.png)
 
@@ -100,7 +100,7 @@ The Atlas's *Locations* tab now shows the inn under the town. The settlement and
 
 On *Generate*, open *Settlement and tavern*. Each step shows its roll: a name, a size and level, a notable feature, a local trouble, the tavern and its innkeeper. *Re-roll* or *Pin* any step; a *Seed* gives the same result every time.
 
-The *Preview* lists what will join the campaign; rename anything there (here the village of Ivyford, the Merry Crow and its keeper Bram Oakhollow) and click *Accept into campaign*. The tavern sits within the village, and the local trouble lands on Home's *Quest board* as a rumour.
+The *Preview* lists what will join the campaign; rename anything there (here the village of Ivyford, the Merry Crow and its keeper Bram Oakhollow; the rumour and the tavern's text follow the new names) and click *Accept into campaign*. The tavern sits within the village, and the local trouble lands on Home's *Quest board* as a rumour.
 
 ![The Settlement and tavern generator: its seed and first rolls beside the preview of Ivyford, its trouble, and the Merry Crow within it](../screenshots/guide-pf2e-orc-settlement-generator.png)
 
@@ -138,7 +138,7 @@ Relationships, links in notes, and who gets to see what.
 
 ### 5.1 Add a relationship
 
-Open an NPC (Odalys Brand), go to *Relationships* and click *+ Add relationship*. Choose how they relate (*knows*, *member of*, *owns*, *wants*, *within* and more, and this module's own: *rival of*, *serves*, *lairs in*, *guards*), *Choose…* who, add a *Note* if it helps (“Pays her to watch the ferry road”) and click *Add*.
+Open an NPC (Odalys Brand), go to *Relationships* and click *+ Add relationship*. Choose how they relate (*knows*, *member of*, *owns*, *wants*, *within* and more, and this module's own *rival of* and *serves*; a creature's page also offers *lairs in* and *guards*), *Choose…* who, add a *Note* if it helps (“Pays her to watch the ferry road”) and click *Add*.
 
 A relationship shows on both pages: Ilsa Varrow's *Relationships* tab lists Odalys Brand too.
 
@@ -192,7 +192,7 @@ Write the *Player introduction* the players hear and *The situation (GM only)*: 
 
 ### 6.3 Put places and people in a scene
 
-Click a scene in the outline (Act 1's first). *Location* *Pick* sets where it happens (here the Merry Crow); *Participants* *+ Add* puts NPCs, PCs and creatures in it (Bram Oakhollow and Hesper Quill). *Clues*, *Encounter* and *Map* work the same way.
+Click a scene in the outline (Act 1's first). *Location* *Pick* sets where it happens (here the Merry Crow); *Participants* *+ Add* puts NPCs, PCs and creatures in it (Bram Oakhollow and Hesper Quill). *Clues* and *Encounter* are picked the same way; *Map* is a select of the campaign's maps, with *Create map* beside it.
 
 Below, *Events* lists what must or may happen, *Read-aloud text* is the boxed text for the players, and *Scene notes* take *@* links. Table mode shows all of it for the scene you are in.
 
@@ -200,13 +200,13 @@ Below, *Events* lists what must or may happen, *Read-aloud text* is the boxed te
 
 ### 6.4 Build an encounter
 
-On *Generate*, open *Encounter builder*. Set the *Party level*, *Party size* and *Threat*: it spends the XP budget for them on Monster Core creatures, then rolls what they are doing and a twist. Here two kobold warriors lie in ambush on the road. Click *Accept into campaign*: the encounter and each creature, with its stat block, join the campaign.
+On *Generate*, open *Encounter builder*. Set the *Party level*, *Party size* and *Threat*: it spends the XP budget for them on Monster Core creatures, then rolls what they are doing and a twist. Here two kobold warriors rest by the road, one lookout half awake. Click *Accept into campaign*: the encounter and each creature, with its stat block, join the campaign.
 
-Back in the adventure, open the scene for it (*The road there*), *Pick* it as the *Encounter* and *+ Add* its creatures as *Participants*: at the table, the combat panel fights whoever is in the scene.
+Back in the adventure, open the scene for it (*The road there*) and *Pick* it as the *Encounter*. Picking it does not bring its creatures along: *+ Add* them as *Participants* too, since at the table the combat panel fights whoever is in the scene.
 
 *Rulebook: GM Core — Building Encounters.*
 
-![The encounter builder for a party of two at level 1, moderate threat: its XP budget and rolls beside the preview of two kobold warriors laying an ambush](../screenshots/guide-pf2e-orc-encounter.png)
+![The encounter builder for a party of two at level 1, moderate threat: its XP budget and rolls beside the preview of two kobold warriors resting with a lookout](../screenshots/guide-pf2e-orc-encounter.png)
 
 ### 6.5 Generate the dungeon
 
@@ -220,7 +220,7 @@ Name it (the Crowfoot Warren) and click *Save to campaign*: its rooms, encounter
 
 ### 6.6 Add a handout
 
-Click an act in the outline (Act 1) and, under *Handouts*, *+ Handout*. Title it (here “A letter from the reeve”), open it to write the text or add an image, and leave it *GM only*: you reveal it at the table. *+ Agenda* adds a character's agenda card, which goes to that player alone.
+Click an act in the outline (Act 1) and, under *Handouts*, *+ Handout*. Title it (here “A letter from the reeve”), open it to write the text or add an image, and leave it *GM only*: you reveal it at the table. *+ Personal handout* adds a handout for one character, which goes to that player alone.
 
 ![Act 1's Handouts card with A letter from the reeve](../screenshots/guide-pf2e-orc-handout.png)
 
@@ -240,7 +240,7 @@ The *Session checklist* adds this module's own reminders: levels and spell slots
 
 Click *Start this session* on Home. Table mode shows the scene you are in with its read-aloud text, events and participants; *Mark run* or *Skip* it and *Next →* moves on. The clock's *+ Round*, *+ Minute* and *+ Hour* keep time, and the tabs hold the trackers (dying, wounded, doomed, Hero Points, conditions), dice, hints, the checklist and the log.
 
-In a scene with creatures, the *Combat* panel's *Roll initiative for everyone* sorts the order; each card takes *Damage*, *Heal* and *+ Condition*, *Attack* rolls a Strike against AC with all four degrees, and *Next turn* moves on.
+In a scene with creatures, the *Combat* panel's *Roll initiative for everyone* sorts the order; each card takes *Damage*, *Heal* and *+ Condition*, *Attack* rolls a Strike against AC with all four degrees (a PC's Strikes work out their attack and damage from the sheet), and *Next turn* moves on.
 
 *Rulebook: Player Core — Encounter Mode: Initiative.*
 

@@ -264,6 +264,15 @@ describe("the players' recap is built from the player projection only", () => {
     expect(read()).not.toContain(SECRET.summary);
   });
 
+  it("writes in-world dates the way the module's calendar shows them, not as stored", () => {
+    const x = setup();
+    const named: GameModule = { ...MODULE, calendar: { id: "example.hearth", name: "Hearth", defaultYear: 812, months: [{ name: "Frostwane", days: 30 }, { name: "Thawmonth", days: 30 }], format: "{year}-{month:02}-{day:02}" } };
+    x.store.update("sessions", x.s2.id, { inWorldDate: "812-02-12" });
+    generateSessionRecap(x.store, named, x.s3.id, { at: "2026-03-14T18:00:00.000Z" });
+    const story = x.store.get("sessions", x.s3.id)!.recap!.players.find((s) => s.id === "story")!;
+    expect(story.lines[0]!.text).toBe("Session 2: The docks (12 Thawmonth 812).");
+  });
+
   it("a session started now takes the campaign's in-world date", () => {
     const x = setup();
     x.store.updateMeta({ currentDate: "2183-07-01" });

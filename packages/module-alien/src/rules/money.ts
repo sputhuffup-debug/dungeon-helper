@@ -8,7 +8,7 @@ export const moneyRules: RuleCard[] = [
     tags: ["campaign", "money"],
     links: { fields: [F.cash], rules: ["alien.rule.salaries", "alien.rule.living-expenses", "alien.rule.cash"] },
   }),
-  card("salaries", "Salaries", "Weekly pay is low on purpose: colonial labor $500–640, commercial employees $400–960, officials $540–1,200, law enforcement $400–700, military $500–760, elite jobs $1,300–20,000. In the campaign frames, weeks spent in stasis pay only 10% of salary.", [117, 235], {
+  card("salaries", "Salaries", "Weekly pay is low on purpose: colonial labor $500–640, commercial employees $400–960, officials $540–1,200, law enforcement $400–700, military $500–760, elite jobs $1,300–20,000. In the campaign frames, weeks spent in stasis pay only 10% of salary.", { pages: [117, 235] }, {
     mode: [CAMPAIGN],
     tags: ["campaign", "money"],
     links: { fields: [F.cash], rules: ["alien.rule.currencies", "alien.rule.job-frames"] },

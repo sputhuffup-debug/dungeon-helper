@@ -7,7 +7,7 @@
  * `linked`: accepting the run moves the clocks (a checkbox leaves them be).
  */
 import { applyArcTicks, planArcTicks, type ArcMilestone, type ClockMove } from "@campaign-forge/core";
-import { payoffLabel, type ArcsDef } from "@campaign-forge/module-sdk";
+import { diceRange, payoffLabel, type ArcsDef } from "@campaign-forge/module-sdk";
 import { useMemo, useState } from "react";
 import { Badge, Button, Card, pushToast } from "../../components/ui";
 import { currentSession } from "../../state/arcActions";
@@ -26,6 +26,32 @@ export interface LinkedTicker {
   moved?: ClockMove[];
 }
 
+const SEGMENT_WORDS = ["no move", "one segment", "two segments", "three segments", "four segments"];
+
+/**
+ * The tick table as ranges of the roll: "1–2 no move (the sponsor waits), 3–5
+ * one segment (…), 6 two segments (…)", each with its step's label when it has one.
+ */
+export function tickStepsText(tick: NonNullable<ArcsDef["tick"]>): string {
+  const steps = [...tick.steps].sort((a, b) => a.min - b.min);
+  let max = Number.POSITIVE_INFINITY;
+  try {
+    max = diceRange(tick.dice)[1];
+  } catch {
+    // not a dice expression: open-ended ranges
+  }
+  return steps
+    .map((s, i) => {
+      const top = i + 1 < steps.length ? steps[i + 1]!.min - 1 : max;
+      const range = top === s.min ? `${s.min}` : Number.isFinite(top) ? `${s.min}–${top}` : `${s.min}+`;
+      const moves = SEGMENT_WORDS[s.ticks] ?? `${s.ticks} segments`;
+      // "The sponsor waits" reads mid-sentence as "the sponsor waits" (an acronym keeps its case)
+      const label = s.label && /^[A-Z][a-z]/.test(s.label) ? s.label[0]!.toLowerCase() + s.label.slice(1) : s.label;
+      return `${range} ${moves}${label ? ` (${label})` : ""}`;
+    })
+    .join(", ");
+}
+
 export function ArcClockTicker({ def, seed: fixedSeed, linked }: { def: ArcsDef; seed?: string; linked?: LinkedTicker }) {
   const ctx = useCampaign();
   const threads = useList("arcs");
@@ -36,7 +62,6 @@ export function ArcClockTicker({ def, seed: fixedSeed, linked }: { def: ArcsDef;
   const plan = useMemo(() => (def.tick ? planArcTicks({ arcs: Object.fromEntries(threads.map((t) => [t.id, t])) }, def, seed) : []), [threads, def, seed]);
   if (!def.tick) return null;
   const tick = def.tick;
-  const steps = [...tick.steps].sort((a, b) => a.min - b.min);
   const apply = () => {
     const session = currentSession(ctx.store);
     const done = applyArcTicks(ctx.store, plan, { ...(session ? { session: session.id } : {}), note: "Between jobs" });
@@ -48,7 +73,7 @@ export function ArcClockTicker({ def, seed: fixedSeed, linked }: { def: ArcsDef;
   return (
     <Card
       title="Thread clocks between jobs"
-      subtitle={`Each active thread rolls ${tick.dice}: ${steps.map((s) => `${s.min}+ ${s.ticks === 0 ? "nothing" : `+${s.ticks}`}`).join(", ")}; a thread the crew ignored moves ${tick.ignored} more.`}
+      subtitle={`Each active thread rolls ${tick.dice}: ${tickStepsText(tick)}; a thread the crew ignored moves ${tick.ignored} more.`}
       data-testid="arc-ticker"
     >
       {linked?.moved ? (

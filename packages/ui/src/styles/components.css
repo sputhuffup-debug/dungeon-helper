@@ -995,6 +995,15 @@ td .cf-autogrow {
   flex: none;
   white-space: nowrap;
 }
+/* a section citation ("Player Core — Conditions: Frightened") wraps beside the text instead of pushing the card past a phone's width */
+.cf-rulelist__item .cf-page--cite {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 45%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
 .cf-rulelist__item-summary {
   display: block;
   color: var(--cf-muted);
@@ -1652,20 +1661,26 @@ span.cf-weapons__name {
   border-style: dashed;
   text-decoration: line-through;
 }
+/* centred over its die and never wider than the die plus the gap, so two badges side by side never overlap (a long name ends in an ellipsis; the die's label, the tooltip and the summary under the pool carry it whole) */
 .cf-die__symbol {
   position: absolute;
   top: -8px;
-  right: -8px;
-  padding: 0 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: calc(100% + var(--cf-space-2));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0 3px;
   border-radius: var(--cf-radius-pill);
   background: var(--cf-accent);
   color: var(--cf-text-inverse);
   font-family: var(--cf-font-sans);
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.02em;
-  line-height: 16px;
+  letter-spacing: 0;
+  line-height: 15px;
 }
 .cf-die__symbol--special,
 .cf-die__symbol--bane,
@@ -2633,4 +2648,16 @@ span.cf-weapons__name {
   .cf-weapons--catalog .cf-weapons__page {
     width: 3.5rem;
   }
+}
+
+/* under an editable table: Add row, and a list to add a row from */
+.cf-table__add {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cf-space-2, 0.5rem);
+  align-items: center;
+}
+.cf-table__add-from {
+  width: auto;
+  max-width: 100%;
 }

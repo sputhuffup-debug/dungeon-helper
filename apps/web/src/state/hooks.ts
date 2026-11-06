@@ -4,7 +4,7 @@
  * the record changes and never tears.
  */
 import { plainText, type CampaignMeta, type Entity, type Id, type MapName, type RecordOf } from "@campaign-forge/core";
-import { computeFields, type EntityPreset, type EntityTypeDef } from "@campaign-forge/module-sdk";
+import { computeFields, displayCalendarDate, resolveTerms, type EntityPreset, type EntityTypeDef, type ResolvedTerms } from "@campaign-forge/module-sdk";
 import type { SheetEntityRef } from "@campaign-forge/ui";
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { useCampaign, type VersionKey } from "./CampaignProvider";
@@ -55,6 +55,18 @@ export function useMeta(): CampaignMeta {
   );
   const get = useCallback(() => store.meta(), [store]);
   return useSyncExternalStore(subscribe, get, get);
+}
+
+/** The words the module uses for the group, a map level, a job... (`GameModule.terms`, neutral defaults). */
+export function useTerms(): ResolvedTerms {
+  const { module } = useCampaign();
+  return useMemo(() => resolveTerms(module.module), [module]);
+}
+
+/** Show a stored in-world date the way the module's calendar writes it for people ("3 Frostwane 812"). */
+export function useWorldDate(): (date: string) => string {
+  const { module } = useCampaign();
+  return useCallback((date: string) => displayCalendarDate(module.module.calendar, date), [module]);
 }
 
 export function useEntityType(typeId: string | undefined): EntityTypeDef | undefined {

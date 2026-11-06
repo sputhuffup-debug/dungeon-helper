@@ -12,7 +12,7 @@
  * conditions by outcome). Rolls are in the app or typed from the table
  * (the page's dice mode); everything is logged GM-only.
  */
-import { d20ConditionsOf, type Entity, type Id } from "@campaign-forge/core";
+import { d20ConditionsOf, d20DeathSaveState, type Entity, type Id } from "@campaign-forge/core";
 import {
   d20Condition,
   d20ConditionAdjustment,
@@ -29,6 +29,8 @@ import {
   d20SaveConditions,
   d20Speed,
   d20ZeroHpRule,
+  rollModeNames,
+  upperFirst,
   type ActiveCondition,
   type D20Attack,
   type D20CombatDef,
@@ -51,6 +53,7 @@ import {
   damageAgainst,
   damageModifierFor,
   damageRun,
+  deathSavePool,
   degreeLabel,
   effectDc,
   healCombatant,
@@ -61,6 +64,7 @@ import {
   removeCondition,
   rollAttack,
   rollDamage,
+  rollDeathSave,
   rollSave,
   saveMultiplier,
   saveRun,
@@ -69,6 +73,7 @@ import {
   startCombat,
   type AttackRoll,
   type DamageRollDone,
+  type DeathSaveRoll,
   type HitApplied,
   type SaveRoll,
   type TurnChange,
@@ -111,15 +116,31 @@ function RollFaces({ result }: { result: RollResult }) {
   );
 }
 
-const MODE_LABEL: Record<Mode, string> = { normal: "Normal", advantage: "Advantage", disadvantage: "Disadvantage" };
+/** The roll modes as the module's dice name them ("Fortune", "Misfortune"), the same words as the sheet's roll panel. */
+function useModeLabels(): Record<Mode, string> {
+  const { module } = useCampaign();
+  return useMemo(() => {
+    const names = rollModeNames(module.module.dice);
+    return { normal: upperFirst(names.normal), advantage: upperFirst(names.advantage), disadvantage: upperFirst(names.disadvantage) };
+  }, [module]);
+}
 
 /** "Disadvantage: Poisoned" lines for a roll mode the conditions give. */
 function ModeReasons({ advantage, disadvantage }: { advantage: string[]; disadvantage: string[] }) {
+  const modeLabel = useModeLabels();
   if (!advantage.length && !disadvantage.length) return null;
   return (
     <span className="app-d20__reasons" data-testid="roll-reasons">
-      {advantage.length > 0 && <span>Advantage: {advantage.join(", ")}</span>}
-      {disadvantage.length > 0 && <span>Disadvantage: {disadvantage.join(", ")}</span>}
+      {advantage.length > 0 && (
+        <span>
+          {modeLabel.advantage}: {advantage.join(", ")}
+        </span>
+      )}
+      {disadvantage.length > 0 && (
+        <span>
+          {modeLabel.disadvantage}: {disadvantage.join(", ")}
+        </span>
+      )}
       {advantage.length > 0 && disadvantage.length > 0 && <span className="cf-muted">(they cancel out)</span>}
     </span>
   );
@@ -431,8 +452,47 @@ export function CombatantCard({
         </p>
       )}
       {openCondition && <ConditionHelp sessionId={sessionId} entity={entity} condition={openCondition} def={def} onClose={() => setOpen(undefined)} />}
+      {down && <DeathSavesRow sessionId={sessionId} entity={entity} />}
       {down && <ZeroHpNote entity={entity} />}
     </li>
+  );
+}
+
+/** A creature down under a rule that keeps death saves: the counters and the save to roll (the module's `deathSaves`). */
+function DeathSavesRow({ sessionId, entity }: { sessionId: Id; entity: Entity }) {
+  const ctx = useCampaign();
+  const roller = useDiceRoller();
+  const [last, setLast] = useState<DeathSaveRoll | undefined>();
+  const state = d20DeathSaveState(ctx.module, entity);
+  if (!state) return null;
+  const settled = state.successes >= state.max ? "Stable" : state.failures >= state.max ? "Dead" : undefined;
+  const rollIt = () =>
+    roller.roll({
+      title: `${entity.name}: death save`,
+      run: (rng) => ctx.module.module.dice.roll(deathSavePool(ctx, entity), rng),
+      perform: (entered) => {
+        const r = attempt(() => rollDeathSave(ctx, sessionId, entity.id, entered));
+        if (r) setLast(r);
+      },
+    });
+  return (
+    <p className="app-row app-d20__death" data-testid="death-saves">
+      <span>
+        Death saves: <strong data-testid="death-successes">{state.successes}</strong>/{state.max} successes, <strong data-testid="death-failures">{state.failures}</strong>/{state.max} failures
+      </span>
+      {settled ? (
+        <Badge tone={settled === "Dead" ? "danger" : "success"}>{settled}</Badge>
+      ) : (
+        <Button size="sm" variant="primary" onClick={rollIt} aria-label={`Roll a death save for ${entity.name}`} data-testid="roll-death-save">
+          Roll death save
+        </Button>
+      )}
+      {last && (
+        <span className="cf-muted app-small" data-testid="death-save-result">
+          Last: {last.text}
+        </span>
+      )}
+    </p>
   );
 }
 
@@ -700,6 +760,7 @@ export function AttackPanel({ sessionId, combatants, attackerId, onClose }: { se
   const ctx = useCampaign();
   const def = useD20Combat()!;
   const roller = useDiceRoller();
+  const MODE_LABEL = useModeLabels();
   const withAttacks = combatants.filter((c) => (combatantOf(ctx, c)?.attacks.length ?? 0) > 0);
   const [attacker, setAttacker] = useState<Id>(attackerId && withAttacks.some((c) => c.id === attackerId) ? attackerId : (withAttacks[0]?.id ?? ""));
   const attackerEntity = combatants.find((c) => c.id === attacker);

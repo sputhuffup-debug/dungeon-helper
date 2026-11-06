@@ -14,7 +14,7 @@ import { Badge, Button, Card, EmptyState } from "../../components/ui";
 import { adventureTitle, formatDate, humanize, relativeTime } from "../../lib/format";
 import { createNote, startSession } from "../../state/actions";
 import { money } from "../../state/shipActions";
-import { useCampaign, useList, useMapVersion, useMeta } from "../../state/hooks";
+import { useCampaign, useList, useMapVersion, useMeta, useWorldDate } from "../../state/hooks";
 import { useCampaignSetup } from "../../state/setupActions";
 import { sheetFieldOf, summaryLine } from "../entities/summary";
 import { SetupGuide } from "./SetupGuide";
@@ -22,6 +22,7 @@ import { SetupGuide } from "./SetupGuide";
 export function HomePage() {
   const ctx = useCampaign();
   const meta = useMeta();
+  const worldDate = useWorldDate();
   const navigate = useNavigate();
   const campaignId = ctx.campaignId;
   const sessions = useList("sessions");
@@ -44,7 +45,8 @@ export function HomePage() {
   const withPresets = (kind: string) => types.find((t) => t.kind === kind && ctx.module.presetsFor(t.id).length > 0);
   const characterType = withPresets("character") ?? withPresets("creature") ?? types.find((t) => t.kind === "character");
   const locationType = ctx.module.module.entityTypes.find((t) => t.kind === "location");
-  const jobType = ctx.module.module.entityTypes.find((t) => t.kind === "job");
+  // a board only in a play mode the job type is for (no job board in Alien's cinematic play)
+  const jobType = ctx.module.forMode(meta.mode).entityTypes.find((t) => t.kind === "job");
 
   const openTable = (sessionId: Id) => void navigate({ to: "/c/$campaignId/table/$sessionId", params: { campaignId, sessionId } });
 
@@ -71,7 +73,7 @@ export function HomePage() {
           <h1 className="app-title">{meta.name}</h1>
           <p className="cf-muted">
             {ctx.module.manifest.name}
-            {meta.currentDate ? ` · In-world date ${meta.currentDate}` : ""}
+            {meta.currentDate ? ` · In-world date ${worldDate(meta.currentDate)}` : ""}
           </p>
         </div>
         <div className="app-row" aria-label="Quick create">

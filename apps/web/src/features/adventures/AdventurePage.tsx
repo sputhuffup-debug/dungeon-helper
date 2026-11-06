@@ -7,6 +7,7 @@
  * shows this outline for it.
  */
 import type { Act, Adventure, AdventureStatus, Id } from "@campaign-forge/core";
+import { upperFirst } from "@campaign-forge/module-sdk";
 import { Link, useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import { useState } from "react";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
@@ -16,7 +17,7 @@ import { Badge, Button, EmptyState, IconButton, PageRef, pushToast } from "../..
 import { downloadFile, slug } from "../../lib/download";
 import { ADVENTURE_STATUS_LABELS, adventureTitle, errorMessage } from "../../lib/format";
 import { addAct, addScene, deleteAct, deleteAdventure, deleteScene, moveAct, moveScene, updateAdventure } from "../../state/prepActions";
-import { useCampaign, useList, useRecord } from "../../state/hooks";
+import { useCampaign, useList, useRecord, useTerms } from "../../state/hooks";
 import { ActEditor } from "./ActEditor";
 import { ADVENTURE_STATUSES, statusTone } from "./AdventuresPage";
 import { bookletMarkdown } from "./booklet";
@@ -61,6 +62,7 @@ type Pending = { kind: "act" | "scene" | "adventure"; id: Id; title: string } | 
 
 function Builder({ adventure, node }: { adventure: Adventure; node: string | undefined }) {
   const ctx = useCampaign();
+  const terms = useTerms();
   const navigate = useNavigate({ from: "/c/$campaignId/adventures/$adventureId" });
   const acts = useList("acts");
   const scenes = useList("scenes");
@@ -169,7 +171,7 @@ function Builder({ adventure, node }: { adventure: Adventure; node: string | und
             Print booklet
           </Link>
           <Link to="/c/$campaignId/adventures/$adventureId" params={{ campaignId: ctx.campaignId, adventureId: adventure.id }} search={{ view: "agendas-print" }} className="cf-btn" data-testid="agenda-cards-link">
-            Agenda cards
+            {upperFirst(terms.agenda)} cards
           </Link>
           <Button variant="ghost" onClick={() => setConfirm({ kind: "adventure", id: adventure.id, title: adventureTitle(adventure) })}>
             Delete adventure

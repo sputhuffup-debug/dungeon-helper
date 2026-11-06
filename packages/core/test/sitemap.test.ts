@@ -28,7 +28,9 @@ import {
   zoneKeyCsv,
   zoneKeyMarkdown,
   zoneKeyRows,
+  zoneLabels,
   zoneNumbers,
+  mapZoneCount,
   zonePath,
   type SiteMap,
 } from "../src";
@@ -135,6 +137,23 @@ describe("zoneDistances", () => {
       ["D", 4],
       ["V", 5],
     ]);
+  });
+
+  // Walkthrough 3 (O9): seven identical "Tunnel" entries in the Range selector; three pages, three zone counts
+  it("labels same-named unnumbered zones apart, and counts a map's zones one way", () => {
+    const layout: SiteLayout = { ...lineLayout(), numbering: "key", zones: lineLayout().zones.map((z) => (z.key ? z : { ...z, name: "Tunnel" })) };
+    const labels = zoneLabels(layout);
+    expect(labels.get("A")).toBe("1 Airlock");
+    expect(labels.get("D")).toBe("2 Den");
+    // B opens onto 1 Airlock, C onto 2 Den, V onto both
+    expect([labels.get("B"), labels.get("C"), labels.get("V")]).toEqual(["Tunnel by 1 Airlock", "Tunnel by 2 Den", "Tunnel by 1 Airlock and 2 Den"]);
+    // no numbered neighbour to tell them by: a letter
+    const bare: SiteLayout = { ...layout, borders: [] };
+    expect(["B", "C", "V"].map((id) => zoneLabels(bare).get(id))).toEqual(["Tunnel A", "Tunnel B", "Tunnel C"]);
+    expect(new Set(zoneLabels(layout).values()).size).toBe(5);
+    expect(mapZoneCount({ layout })).toBe(5);
+    expect(mapZoneCount({ layout: { zones: [...layout.zones, { ...layout.zones[0]!, id: "X", kind: "out-of-bounds" }] } })).toBe(5);
+    expect(mapZoneCount({ zones: [1, 2] })).toBe(2);
   });
 });
 

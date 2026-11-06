@@ -3,7 +3,7 @@
  * plain JSON, and Markdown rendering of adventures, scenes, handouts and
  * entity sheets.
  */
-import type { EntityTypeDef, GameModule, SheetField, SheetLayout } from "@campaign-forge/module-sdk";
+import { entitySheet, type EntityTypeDef, type GameModule, type SheetField, type SheetLayout } from "@campaign-forge/module-sdk";
 import { strFromU8, strToU8, unzipSync, zipSync } from "fflate";
 import { newId, now } from "./ids";
 import { clone, getPath } from "./paths";
@@ -322,10 +322,9 @@ function fieldLabel(field: SheetField): string {
   return last.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/^./, (c) => c.toUpperCase());
 }
 
+/** The entity's sheet: the type's sections and its subtype's. */
 function sheetFor(def: EntityTypeDef | undefined, entity: Entity): SheetLayout | undefined {
-  if (!def) return undefined;
-  const sub = entity.subtype ? def.subtypes?.find((s) => s.id === entity.subtype) : undefined;
-  return sub?.sheet ?? def.sheet;
+  return def ? entitySheet(def, entity.subtype) : undefined;
 }
 
 function entityMarkdown(ctx: Ctx, entity: Entity, level = 1): string[] {

@@ -11,7 +11,7 @@ import type { PackIssue } from "@campaign-forge/module-sdk";
 import { useRef, useState } from "react";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { Badge, Button, Dialog, pushToast } from "../../components/ui";
-import { errorMessage } from "../../lib/format";
+import { dataStatusLabel, errorMessage } from "../../lib/format";
 import { importFiles, isSupplementResult, PackImportError, readPackFiles } from "../../modules/importPack";
 import {
   builtinSupplementsFor,
@@ -101,7 +101,7 @@ function BuiltinSupplementRow({ s, moduleName }: { s: BuiltinSupplementEntry; mo
         <span className="cf-mono cf-muted">{s.version}</span>
         <Badge>Built-in</Badge>
         <Badge>Supplement</Badge>
-        {s.dataStatus && s.dataStatus !== "verified" && <Badge tone="warning">{s.dataStatus}</Badge>}
+        {s.dataStatus && s.dataStatus !== "verified" && <Badge tone="warning">{dataStatusLabel(s.dataStatus)}</Badge>}
         {problems && <Badge tone="warning">Not applied</Badge>}
         <label className="app-module__switch">
           <input
@@ -115,7 +115,7 @@ function BuiltinSupplementRow({ s, moduleName }: { s: BuiltinSupplementEntry; mo
               pushToast(e.target.checked ? `${s.name} is on: ${moduleName} campaigns load it from the next time they open` : `${s.name} is off on this device`, { tone: "success" });
             }}
           />
-          <span>{on ? "On" : "Off"} on this device</span>
+          <span>{on ? "Used on this device" : "Off on this device"}</span>
         </label>
       </div>
       <p className="cf-muted app-module__meta">
@@ -148,7 +148,7 @@ function ModuleRow({ entry, supplements, onRemove, onRemoveSupplement }: { entry
         {entry.source === "imported" ? <Badge tone="accent">Imported</Badge> : <Badge>Built-in</Badge>}
         {entry.format === "pack" && <Badge>Data pack</Badge>}
         {entry.dev && <Badge tone="warning">Fixture</Badge>}
-        {entry.dataStatus !== "verified" && <Badge tone="warning">{entry.dataStatus}</Badge>}
+        {entry.dataStatus !== "verified" && <Badge tone="warning">{dataStatusLabel(entry.dataStatus)}</Badge>}
         {entry.source === "imported" && (
           <Button size="sm" variant="ghost" onClick={() => onRemove(entry)} data-testid={`remove-module-${entry.id}`}>
             Remove

@@ -54,10 +54,15 @@ function writeDrafts(ctx: Ctx, update: (drafts: Record<string, StoredDraft>) => 
   updateMeta(ctx, { settings: { ...settings, [DRAFTS_SETTING]: drafts } });
 }
 
-/** Start a draft: a new character, or a level-up of `entity`. */
-export function startDraft(ctx: Ctx, builder: CharacterBuilderDef, mode: "create" | "levelUp", entity?: Entity): StoredDraft {
+/** A draft that is not saved yet: a new character, or a level-up of the entity `entityId`. */
+export function newDraft(builder: CharacterBuilderDef, mode: "create" | "levelUp", entityId?: string, id: string = newId()): StoredDraft {
   const at = now();
-  const draft: StoredDraft = { ...emptyDraft(builder, mode), id: newId(), created: at, updated: at, seed: newId(), ...(entity ? { entity: entity.id } : {}) };
+  return { ...emptyDraft(builder, mode), id, created: at, updated: at, seed: newId(), ...(entityId ? { entity: entityId } : {}) };
+}
+
+/** Start a draft and save it at once: a new character, or a level-up of `entity`. */
+export function startDraft(ctx: Ctx, builder: CharacterBuilderDef, mode: "create" | "levelUp", entity?: Entity): StoredDraft {
+  const draft = newDraft(builder, mode, entity?.id);
   writeDrafts(ctx, (d) => (d[draft.id] = draft));
   return draft;
 }

@@ -80,15 +80,16 @@ export function shapeTables(): RollTable[] {
   return LEVEL_BANDS.flatMap((band) => budgets().map((b) => {
     const shapes = shapesFor(b, band.lowest, band.highest);
     if (shapes.length === 0) throw new Error(`no creature combination spends ${b} XP for ${band.levels}`);
+    const { dice, ranges } = tableDice(shapes.length);
     return {
       id: id(`encounter.budget-${b}${band.suffix}`),
       name: `Encounter shape (${b} XP${band.suffix ? `, ${band.levels}` : ""})`,
       family: "encounter",
       cite: BUILDING_ENCOUNTERS,
-      dice: `1d${shapes.length}`,
+      dice,
       notes: "Creature groups whose XP adds up to the budget exactly (XP per creature by its level relative to the party's, from GM Core). The groups are our own enumeration.",
       rows: shapes.map((gs, i) => ({
-        range: [i + 1, i + 1] as [number, number],
+        range: ranges[i]!,
         label: gs.map(describe).join(", "),
         result: Object.fromEntries(gs.flatMap((g, k) => [[`o${k + 1}`, g.offset], [`n${k + 1}`, g.n]])) as Record<string, number>,
       })),
@@ -103,13 +104,15 @@ function creatureTables(presets: EntityPreset[]): RollTable[] {
     const at = presets.filter((p) => p.fields.level === level).sort((a, b) => a.name.localeCompare(b.name));
     if (at.length === 0) throw new Error(`no Monster Core creature of level ${level}`);
     if (level === LEVEL_MAX && presets.some((p) => Number(p.fields.level) > LEVEL_MAX)) throw new Error("creatures above LEVEL_MAX: raise it");
+    // a die the GM can roll: a d20 or d100 with each creature on one or two faces, not a "1d54"
+    const { dice, ranges } = tableDice(at.length);
     tables.push({
       id: id(`creature.level-${level}`),
       name: `Creatures of level ${level}`,
       family: "creature",
       cite: cite("Monster Core", "Creatures by Level"),
-      dice: `1d${at.length}`,
-      rows: at.map((p, i) => ({ range: [i + 1, i + 1] as [number, number], label: p.name, result: { preset: p.id, name: p.name, level } })),
+      dice,
+      rows: at.map((p, i) => ({ range: ranges[i]!, label: p.name, result: { preset: p.id, name: p.name, level } })),
     });
   }
   return tables;
@@ -165,6 +168,27 @@ const ANCESTRY_ROWS: Array<[number, number, string]> = [
   [20, 20, "Leshy"],
 ];
 
+/** The people a stat block's name starts with ("Merfolk Warrior" is a merfolk): the NPC is one of them. */
+const STAT_BLOCK_PEOPLE = ["Dwarf", "Halfling", "Dhampir", "Goblin", "Orc", "Elf", "Centaur", "Gnome", "Kholo", "Kobold", "Hobgoblin", "Merfolk", "Lizardfolk", "Duskwalker", "Ratfolk"];
+const peopleOf = (block: string): string | undefined => STAT_BLOCK_PEOPLE.find((p) => block.startsWith(`${p} `));
+
+/**
+ * Dice a GM can roll at the table for a list of `n`: the die itself when it
+ * is one (d4 to d20), else a d20 or d100 with each entry on one or two faces
+ * (as even as the faces allow). Ranges in list order.
+ */
+export function tableDice(n: number): { dice: string; ranges: Array<[number, number]> } {
+  const die = [2, 3, 4, 6, 8, 10, 12, 20].includes(n) ? n : n < 20 ? 20 : n <= 100 ? 100 : n;
+  const ranges: Array<[number, number]> = [];
+  let at = 1;
+  for (let i = 0; i < n; i++) {
+    const size = Math.floor(die / n) + (i < die % n ? 1 : 0);
+    ranges.push([at, at + size - 1]);
+    at += size;
+  }
+  return { dice: `1d${die}`, ranges };
+}
+
 export function originalTables(presets: EntityPreset[]): RollTable[] {
   const names = new Set(presets.map((p) => p.name));
   for (const [, block] of OCCUPATIONS) if (!names.has(block)) throw new Error(`occupation stat block ${block} is not a Monster Core creature`);
@@ -204,7 +228,7 @@ export function originalTables(presets: EntityPreset[]): RollTable[] {
       original: true,
       dice: "1d20",
       notes: "Each occupation suggests a Monster Core stat block in case it comes to a fight.",
-      rows: OCCUPATIONS.map(([job, block], i) => ({ range: [i + 1, i + 1] as [number, number], label: job, result: { occupation: job, statBlock: block, preset: presetOf.get(block)! } })),
+      rows: OCCUPATIONS.map(([job, block], i) => ({ range: [i + 1, i + 1] as [number, number], label: job, result: { occupation: job, statBlock: block, preset: presetOf.get(block)!, ...(peopleOf(block) ? { ancestry: peopleOf(block)! } : {}) } })),
     },
     {
       id: id("npc.ancestry"),
@@ -509,8 +533,9 @@ export function procedures(): PackProcedure[] {
       steps: [
         { id: "first", title: "First name", table: id("npc.first-name") },
         { id: "family", title: "Family name", table: id("npc.family-name") },
-        { id: "ancestry", title: "Ancestry", table: id("npc.ancestry"), display: v("result.ancestry", "") },
         { id: "occupation", title: "Occupation", table: id("npc.occupation"), display: cat(v("result.occupation"), " (stat block: ", v("result.statBlock"), ")") },
+        // a stat block that names its people decides the ancestry (a Merfolk Warrior is a merfolk); otherwise it is rolled
+        { id: "ancestry", title: "Ancestry", table: id("npc.ancestry"), reads: ["occupation"], display: ifs(v("results.occupation.ancestry", ""), cat(v("results.occupation.ancestry"), " (the stat block's)"), v("result.ancestry", "")) },
         { id: "quirk", title: "Quirk", table: id("npc.quirk"), display: TEXT },
         { id: "voice", title: "Voice", table: id("npc.voice"), display: TEXT },
         { id: "motivation", title: "Wants", table: id("npc.motivation"), display: TEXT },
@@ -522,10 +547,10 @@ export function procedures(): PackProcedure[] {
             tempId: "npc",
             type: NPC,
             name: cat(v("results.first.name"), " ", v("results.family.name")),
-            summary: cat(v("results.ancestry.ancestry"), " ", v("results.occupation.occupation")),
+            summary: cat(ifs(v("results.occupation.ancestry", ""), v("results.occupation.ancestry"), v("results.ancestry.ancestry")), " ", v("results.occupation.occupation")),
             fields: {
               occupation: v("results.occupation.occupation"),
-              ancestry: v("results.ancestry.ancestry"),
+              ancestry: ifs(v("results.occupation.ancestry", ""), v("results.occupation.ancestry"), v("results.ancestry.ancestry")),
               quirk: v("results.quirk.text"),
               voice: v("results.voice.text"),
               motivation: v("results.motivation.text"),

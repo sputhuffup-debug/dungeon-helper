@@ -1,6 +1,7 @@
 import "fake-indexeddb/auto";
 import { fromMarkdown, revealZones, runMapGenerator, shareBaseline, startLive, type Id } from "@campaign-forge/core";
 import { exampleModule, exampleSiteGenerator } from "@campaign-forge/module-example";
+import type { ModuleManifest } from "@campaign-forge/module-sdk";
 import { svgPagesToPdf } from "@campaign-forge/ui";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -62,7 +63,7 @@ async function seed(): Promise<Seeded> {
   const layout = result.layout;
   const other = layout.zones.find((z) => z.id !== layout.start && z.layer !== "duct" && layout.decks.find((d) => d.id === z.deck)?.layer !== "duct");
   if (other) revealZones(store, map.id, [other.id]);
-  const scene = store.createScene(act1.id, { title: "At the gate", map: map.id, withReadAloudDoc: true });
+  const scene = store.createScene(act1.id, { title: "At the gate", playerTitle: "At the gate", map: map.id, withReadAloudDoc: true });
   write(scene.bodyDoc, "SECRET-GM-NOTES");
   write(scene.readAloudDoc, "Rain on the old stones.");
 
@@ -254,5 +255,50 @@ describe("campaign primer", () => {
     await waitFor(() => expect(screen.getByTestId("share-send").textContent).toBe("Download"));
     await act(async () => fireEvent.click(screen.getByTestId("share-send")));
     await waitFor(() => expect(s.ctx.store.get("sessions", s.sessionId)!.shares?.[0]).toMatchObject({ primer: true, handouts: [], format: "pdf" }));
+  });
+});
+
+describe("the licence a module's content asks for", () => {
+  const SRD = "This work includes material taken from the System Reference Document 5.1 (\"SRD 5.1\").";
+
+  it("ends every format of a share of a module whose licence asks for it, once, and nothing else changes", async () => {
+    const s = await seed();
+    const share = await sessionShare(s.ctx, s.sessionId, s.sceneId, "2026-10-22T20:00:00.000Z");
+    // the example module's licence asks for nothing
+    expect(share.licence).toBeUndefined();
+    const sections = shareSections({ share });
+    expect(phoneCards(sections, share).some((c) => c.kind === "licence")).toBe(false);
+    const licensed = { ...share, licence: [{ name: "Creative Commons Attribution 4.0 International", text: `${SRD}\n\nSecond paragraph.` }] };
+    const cards = phoneCards(sections, licensed);
+    expect(cards[cards.length - 1]!.kind).toBe("licence");
+    expect(cards.filter((c) => c.kind === "licence")).toHaveLength(1);
+    expect(cards[cards.length - 1]!.text.join(" ")).toContain("System Reference Document 5.1");
+    expect(cards.slice(0, -1).map((c) => c.section)).toEqual(sections.map((x) => x.id));
+    const text = pdfText(svgPagesToPdf(packetPages(sections, licensed, "a4").pages));
+    expect(text).toContain("System Reference Document 5.1");
+    expect(text).toContain("Second paragraph.");
+    const files = await buildShareFiles({ share: licensed, sections, images: { ready: new Map(), originals: new Map() }, format: "page", paper: "a4" });
+    const html = await files[0]!.text();
+    expect(html).toContain("System Reference Document 5.1");
+    expect(html.match(/data-kind="licence"/g)).toHaveLength(1);
+    // the PDF too, from the same sections
+    const pdf = await buildShareFiles({ share: licensed, sections, images: { ready: new Map(), originals: new Map() }, format: "pdf", paper: "a4" });
+    expect(pdfText(new Uint8Array(await pdf[0]!.arrayBuffer()))).toContain("System Reference Document 5.1");
+  });
+
+  it("is the SRD and ORC attribution, as written, for the 5e and ORC modules, and none for the Alien module", async () => {
+    const { exportLicences } = await import("@campaign-forge/core");
+    // the static manifests the registry lists (kept equal to the loaded modules' by the registry's own test)
+    const { listModules } = await import("../../modules/registry");
+    const licencesOf = (id: string) => {
+      const entry = listModules().find((e) => e.id === id)!;
+      return exportLicences({ manifest: { ...(entry.license ? { license: entry.license } : {}) } as ModuleManifest });
+    };
+    const srd = licencesOf("dnd5e-srd");
+    expect(srd).toHaveLength(1);
+    expect(srd[0]!.text).toContain("System Reference Document 5.1");
+    expect(srd[0]!.text).toContain("System Reference Document 5.2");
+    expect(licencesOf("pf2e-orc")[0]!.text).toContain("ORC Notice");
+    expect(licencesOf("alien")).toEqual([]);
   });
 });

@@ -7,9 +7,10 @@
  * of its zones, fogged elsewhere; duct event rolls stay in the GM's table
  * mode and the session log, which this screen never reads. Of the live hunt
  * the players get the motion tracker readout (blips at a range band and a
- * direction, never a zone) and the threats the GM has revealed.
+ * direction, never a zone) and the threats the GM has revealed. The legend
+ * lists only what is on the part of the map the players see.
  */
-import { liveOf, playerLayout, playerLive, type SiteMap } from "@campaign-forge/core";
+import { liveOf, playerLayout, playerLegendInUse, playerLive, type SiteMap } from "@campaign-forge/core";
 import { useMemo } from "react";
 import { MapLegend, SiteMapView } from "../../components/ui";
 import { useMapGenerator, useMapPalette } from "../maps/siteMapFiles";
@@ -25,20 +26,23 @@ export function PlayerSiteMap({ map }: { map: SiteMap }) {
     const live = liveOf(map);
     const layout = playerLayout(map.layout, { act: live.act, revealed: live.revealed, legend, live });
     const pLive = playerLive(live, layout, legend);
-    // framed on what the crew has seen and where they stand, so tokens and labels are big enough to read across the table
-    const shown = new Set(layout.zones.map((z) => z.id));
-    const focus = [...new Set([...pLive.tokens.map((t) => t.zone), ...live.revealed])].filter((z) => shown.has(z));
-    return { layout, live: pLive, focus };
+    // framed on what the crew has seen and where they stand, so tokens and labels are big enough to read across the table;
+    // before anything is revealed, on the way in
+    const fogged = new Set(layout.fogged);
+    const shown = new Set(layout.zones.filter((z) => !fogged.has(z.id)).map((z) => z.id));
+    const seen = [...new Set([...pLive.tokens.map((t) => t.zone), ...live.revealed])].filter((z) => shown.has(z));
+    const focus = seen.length ? seen : layout.start && shown.has(layout.start) ? [layout.start] : [];
+    return { layout, live: pLive, focus, legend: playerLegendInUse(legend, layout, pLive) };
   }, [map, legend]);
   if (!view) return null;
   return (
     <section className="app-player__map" aria-label="Map" data-testid="player-map">
       <SiteMapView layout={view.layout} view="player" legend={legend} fogged={view.layout.fogged} live={view.live} passable={def?.passable} palette={palette} title={map.name} gridToggle={false} grid focus={view.focus.length ? view.focus : undefined} followFocus />
       <TrackerReadout tracker={view.live.tracker} bands={def?.rangeBands} />
-      {legend && legend.length > 0 && (
+      {view.legend.length > 0 && (
         <details className="app-player__legend">
           <summary>Legend</summary>
-          <MapLegend legend={legend} view="player" palette={palette} />
+          <MapLegend legend={view.legend} view="player" palette={palette} />
         </details>
       )}
     </section>

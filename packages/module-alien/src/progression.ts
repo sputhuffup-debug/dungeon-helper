@@ -70,7 +70,7 @@ export const XP_AWARDS: AwardQuestionDef[] = [
   q("danger", "Did you get through a dangerous event, by violence or otherwise?"),
   q("discovery", "Did you make a major discovery or uncover a revelation?"),
   q("extraordinary", "Did you pull off something extraordinary?"),
-  q("money", "Did you earn any money?", { hint: "The crew ledger shows this session's income." }),
+  q("money", "Did you earn any money?", { suggest: (ctx) => (ctx.income ?? 0) > 0, hint: "Ticked when the ledger shows income this session (a payment collected counts)." }),
 ];
 
 /** Cinematic play: one Story Point per act for following the act's agenda (p. 27, 158). */

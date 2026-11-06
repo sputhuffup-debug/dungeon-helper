@@ -151,7 +151,7 @@ const BUILTIN: ModuleEntry[] = [
       version: "0.1.0",
       modes: [
         { id: "campaign", name: "Campaign", description: "Long-running play: characters level up over many sessions, with factions, quests and a living world between adventures." },
-        { id: "one-shot", name: "One-shot", description: "A single session: ready-made characters, one adventure in three acts, and a clear ending tonight." },
+        { id: "one-shot", name: "One-shot", description: "A single session: quick characters from the step-by-step builder, one adventure in three acts, and a clear ending tonight." },
       ],
       defaultMode: "campaign",
       dataStatus: "partially-verified",
@@ -164,6 +164,7 @@ const BUILTIN: ModuleEntry[] = [
         url: "https://creativecommons.org/licenses/by/4.0/",
         attribution:
           'This work includes material taken from the System Reference Document 5.1 ("SRD 5.1") by Wizards of the Coast LLC and available at https://dnd.wizards.com/resources/systems-reference-document. The SRD 5.1 is licensed under the Creative Commons Attribution 4.0 International License available at https://creativecommons.org/licenses/by/4.0/legalcode.\n\nThis work includes material from the System Reference Document 5.2 (“SRD 5.2”) by Wizards of the Coast LLC, available at https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License, available at https://creativecommons.org/licenses/by/4.0/legalcode.',
+        inExports: true,
       },
     },
     () => import("@campaign-forge/module-dnd5e-srd").then((m) => m.dnd5eSrdSource),

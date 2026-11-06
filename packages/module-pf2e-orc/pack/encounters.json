@@ -2738,13 +2738,13 @@
    "name": "Encounter shape (20 XP, party level 1)",
    "family": "encounter",
    "cite": "GM Core — Building Encounters",
-   "dice": "1d1",
+   "dice": "1d20",
    "notes": "Creature groups whose XP adds up to the budget exactly (XP per creature by its level relative to the party's, from GM Core). The groups are our own enumeration.",
    "rows": [
     {
      "range": [
       1,
-      1
+      20
      ],
      "label": "1 × party level −2",
      "result": {
@@ -2759,13 +2759,13 @@
    "name": "Encounter shape (30 XP, party level 1)",
    "family": "encounter",
    "cite": "GM Core — Building Encounters",
-   "dice": "1d1",
+   "dice": "1d20",
    "notes": "Creature groups whose XP adds up to the budget exactly (XP per creature by its level relative to the party's, from GM Core). The groups are our own enumeration.",
    "rows": [
     {
      "range": [
       1,
-      1
+      20
      ],
      "label": "1 × party level −1",
      "result": {
@@ -2812,13 +2812,13 @@
    "name": "Encounter shape (50 XP, party level 1)",
    "family": "encounter",
    "cite": "GM Core — Building Encounters",
-   "dice": "1d1",
+   "dice": "1d20",
    "notes": "Creature groups whose XP adds up to the budget exactly (XP per creature by its level relative to the party's, from GM Core). The groups are our own enumeration.",
    "rows": [
     {
      "range": [
       1,
-      1
+      20
      ],
      "label": "1 × party level −1, 1 × party level −2",
      "result": {
@@ -4829,13 +4829,13 @@
    "name": "Encounter shape (20 XP, party level 2)",
    "family": "encounter",
    "cite": "GM Core — Building Encounters",
-   "dice": "1d1",
+   "dice": "1d20",
    "notes": "Creature groups whose XP adds up to the budget exactly (XP per creature by its level relative to the party's, from GM Core). The groups are our own enumeration.",
    "rows": [
     {
      "range": [
       1,
-      1
+      20
      ],
      "label": "1 × party level −2",
      "result": {

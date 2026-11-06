@@ -6,7 +6,7 @@
 import { describe, expect, it } from "vitest";
 import { playerLayout } from "@campaign-forge/core";
 import type { SiteLayout } from "@campaign-forge/module-sdk";
-import { defaultMmPerMetre, drawSiteMap, legendSwatch, nodeToString, planRollPrint, printScalesFor, printTiles, renderSiteMapSvg, rollPrintPages, scaleBar, scaleTextFor } from "../src/index";
+import { defaultMmPerMetre, drawSiteMap, focusBox, legendSwatch, nodeToString, noticeLines, noticePage, planRollPrint, printScalesFor, printTiles, printTilesHtml, renderSiteMapSvg, rollPrintPages, scaleBar, scaleTextFor } from "../src/index";
 
 const rect = (x: number, y: number, w: number, h: number): Array<[number, number]> => [
   [x, y],
@@ -79,6 +79,22 @@ describe("drawing a dungeon", () => {
     expect([gm.width, gm.height]).toEqual([22, 12]);
   });
 
+  it("frames the players' focus on the cropped drawing, not on blank space beside it", () => {
+    const shown = playerLayout(dungeon(), { act: 1, revealed: ["R03"] });
+    const player = drawSiteMap(shown, { view: "player", fogged: shown.fogged });
+    expect(player.origin.x).toBeGreaterThan(0);
+    const box = focusBox(shown, "L1", ["R03"], player.origin)!;
+    // the box's centre is on the drawing (it used to sit past its right edge, so the screen opened on nothing)
+    const cx = box.x + box.w / 2;
+    const cy = box.y + box.h / 2;
+    expect(cx).toBeGreaterThan(0);
+    expect(cx).toBeLessThan(player.width);
+    expect(cy).toBeGreaterThan(0);
+    expect(cy).toBeLessThan(player.height);
+    // the GM's whole-deck drawing starts at the deck's corner
+    expect(drawSiteMap(dungeon(), { view: "gm" }).origin).toEqual({ x: 0, y: 0 });
+  });
+
   it("legend swatches exist for the new borders and marks", () => {
     for (const target of [{ border: "bars" as const }, { border: "rubble" as const }, { marker: "trap" as const }, { marker: "treasure" as const }]) {
       expect(nodeToString(legendSwatch({ target, label: "x" }, "light")).length).toBeGreaterThan(80);
@@ -125,5 +141,25 @@ describe("printing a dungeon", () => {
     expect(renderSiteMapSvg(l, { view: "gm", physical: true, titleBlock: true, title: "Keep" })).toContain("5 ft = 15.2 mm");
     const tiles = printTiles(l, { view: "player", paper: "letter", mmPerMetre: defaultMmPerMetre(l), title: "Keep" });
     expect(tiles.tiles[0]!.svg).toContain("1 in = 5 ft · 28mm miniatures");
+  });
+
+  it("carries a licence notice at the foot of an SVG and on a last page of the tiles and the roll", () => {
+    const l = dungeon();
+    const notice = "This work includes material from a reference document.\n\nLicensed under a licence that asks for this line.";
+    const plain = renderSiteMapSvg(l, { view: "player", title: "Keep" });
+    const svg = renderSiteMapSvg(l, { view: "player", title: "Keep", notice });
+    expect(plain).not.toContain("data-notice");
+    expect(svg).toContain('data-notice="licence"');
+    expect(svg).toContain("Licensed under a licence");
+    // the notice adds height below the map, never over it
+    const h = (s: string) => Number(/viewBox="0 0 [\d.]+ ([\d.]+)"/.exec(s)![1]);
+    expect(h(svg)).toBeGreaterThan(h(plain));
+    const tiles = printTiles(l, { view: "player", paper: "letter", title: "Keep", notice });
+    expect(tiles.notice).toBe(notice);
+    const html = printTilesHtml(tiles, "Keep");
+    expect(html).toContain('<div class="page notice"><h1>Licence</h1><p>This work includes material from a reference document.</p><p>Licensed under a licence that asks for this line.</p></div>');
+    expect(printTilesHtml(printTiles(l, { view: "player", paper: "letter", title: "Keep" }), "Keep")).not.toContain("Licence");
+    expect(noticePage(notice).node).toBeDefined();
+    expect(noticeLines("a b c", 10, 1000)).toEqual(["a b c"]);
   });
 });

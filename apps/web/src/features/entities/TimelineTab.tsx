@@ -3,11 +3,12 @@ import { useMemo, useState } from "react";
 import { useRecordLinks } from "../../components/EntityLinkContext";
 import { AutoGrowText, Badge, Button, EmptyState, IconButton } from "../../components/ui";
 import { formatDate } from "../../lib/format";
-import { useCampaign, useList, useMapVersion, useMeta } from "../../state/hooks";
+import { useCampaign, useList, useMapVersion, useMeta, useWorldDate } from "../../state/hooks";
 
 export function TimelineTab({ entity }: { entity: Entity }) {
   const ctx = useCampaign();
   const meta = useMeta();
+  const worldDate = useWorldDate();
   const links = useRecordLinks();
   const v = useMapVersion("*");
   const appearances = useMemo(
@@ -44,7 +45,7 @@ export function TimelineTab({ entity }: { entity: Entity }) {
           <ul className="app-list">
             {sortedEvents.map((t) => (
               <li key={t.id} className="app-list__row">
-                <span className="cf-mono">{t.inWorldDate}</span>
+                <span className="cf-mono">{worldDate(t.inWorldDate)}</span>
                 <span>{t.text}</span>
                 <IconButton className="app-list__end" size="sm" variant="ghost" label="Remove event" icon="×" onClick={() => ctx.store.remove("timeline", t.id)} />
               </li>

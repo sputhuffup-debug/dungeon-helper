@@ -1,5 +1,5 @@
-import type { JsonSchema } from "@campaign-forge/module-sdk";
-import { schemaDefaults } from "@campaign-forge/module-sdk";
+import type { JsonLogicRule, JsonSchema } from "@campaign-forge/module-sdk";
+import { evaluateLogic, schemaDefaults } from "@campaign-forge/module-sdk";
 import { useSheetContext } from "../context";
 import { AutoGrowText } from "../primitives/AutoGrowText";
 import { Button, IconButton } from "../primitives/Button";
@@ -10,6 +10,18 @@ import type { WidgetProps } from "./types";
 function itemSchemaOf(schema: JsonSchema | undefined): JsonSchema | undefined {
   const items = schema?.items;
   return isRecord(items) ? items : undefined;
+}
+
+/** A new row: the item schema's defaults, with its required text keys present (empty), so a fresh row is valid until filled in. */
+function newRow(itemSchema: JsonSchema | undefined): Record<string, unknown> {
+  if (!itemSchema) return {};
+  const row = schemaDefaults(itemSchema);
+  const props = isRecord(itemSchema.properties) ? itemSchema.properties : {};
+  for (const k of Array.isArray(itemSchema.required) ? (itemSchema.required as string[]) : []) {
+    const p = props[k];
+    if (row[k] === undefined && isRecord(p) && p.type === "string") row[k] = "";
+  }
+  return row;
 }
 
 function propertyEntries(schema: JsonSchema | undefined, sample?: unknown): Array<[string, JsonSchema | undefined]> {
@@ -35,7 +47,7 @@ export function ListField(props: WidgetProps) {
     copy[j] = a;
     onChange(copy);
   };
-  const add = () => onChange([...items, itemSchema ? schemaDefaults(itemSchema) : {}]);
+  const add = () => onChange([...items, newRow(itemSchema)]);
   return (
     <div className="cf-list">
       {items.length === 0 && <span className="cf-muted">Empty</span>}
@@ -165,21 +177,100 @@ interface ColumnDef {
   label?: string;
   type?: string;
   readonly?: boolean;
+  /** A read-only column worked out per row: JSONLogic over `{ fields, computed, item }` (never stored, rule 4). */
+  computed?: JsonLogicRule;
 }
 
 function columnsOf(field: WidgetProps["field"], schema: JsonSchema | undefined, sample: unknown): ColumnDef[] {
   const cfg = field.config?.columns;
   if (Array.isArray(cfg)) {
-    return (cfg as unknown[]).map((c) => (typeof c === "string" ? { key: c } : isRecord(c) ? { key: String(c.key), label: typeof c.label === "string" ? c.label : undefined, type: typeof c.type === "string" ? c.type : undefined, readonly: c.readonly === true } : { key: String(c) }));
+    return (cfg as unknown[]).map((c) =>
+      typeof c === "string"
+        ? { key: c }
+        : isRecord(c)
+          ? { key: String(c.key), label: typeof c.label === "string" ? c.label : undefined, type: typeof c.type === "string" ? c.type : undefined, readonly: c.readonly === true, ...(c.computed !== undefined ? { computed: c.computed as JsonLogicRule } : {}) }
+          : { key: String(c) },
+    );
   }
   return propertyEntries(itemSchemaOf(schema), sample).map(([key]) => ({ key }));
 }
 
+/** A computed cell's text ("—" when the rule gives nothing or fails). */
+function computedCell(rule: JsonLogicRule, data: Record<string, unknown>): string {
+  try {
+    const v = evaluateLogic(rule, data);
+    if (v === undefined || v === null || v === "" || (typeof v === "number" && !Number.isFinite(v))) return "—";
+    return typeof v === "object" ? "—" : String(v);
+  } catch {
+    return "—";
+  }
+}
+
+/**
+ * `config.addFrom`: rows picked from a reference list ("Add a weapon"):
+ * `{ ref, label?, where?, row }`, `where` JSONLogic over `{ item }` keeping
+ * the items offered, `row` the new row's keys as JSONLogic over
+ * `{ item, fields, computed }` (the item's own fields are its keys).
+ */
+interface AddFrom {
+  ref: string;
+  label: string;
+  where?: JsonLogicRule;
+  row: Record<string, JsonLogicRule>;
+}
+
+function addFromOf(field: WidgetProps["field"]): AddFrom | undefined {
+  const a = field.config?.addFrom;
+  if (!isRecord(a) || typeof a.ref !== "string" || !isRecord(a.row)) return undefined;
+  return { ref: a.ref, label: typeof a.label === "string" ? a.label : "Add from the list", ...(a.where !== undefined ? { where: a.where as JsonLogicRule } : {}), row: a.row as Record<string, JsonLogicRule> };
+}
+
+function AddFromList({ spec, lists, fields, computed, onAdd }: { spec: AddFrom; lists: WidgetProps["referenceLists"]; fields: Record<string, unknown>; computed: Record<string, unknown>; onAdd: (row: Record<string, unknown>) => void }) {
+  const items = (lists[spec.ref]?.items ?? []).filter((item) => {
+    if (spec.where === undefined) return true;
+    try {
+      return !!evaluateLogic(spec.where, { item });
+    } catch {
+      return false;
+    }
+  });
+  if (items.length === 0) return null;
+  return (
+    <select
+      className="cf-select cf-table__add-from"
+      aria-label={spec.label}
+      value=""
+      onChange={(e) => {
+        const item = items.find((i) => i.id === e.target.value);
+        if (!item) return;
+        const row: Record<string, unknown> = {};
+        for (const [k, rule] of Object.entries(spec.row)) {
+          try {
+            const v = evaluateLogic(rule, { item, fields, computed });
+            if (v !== undefined && v !== null && v !== "") row[k] = v;
+          } catch {
+            // a key the rule cannot fill stays empty
+          }
+        }
+        onAdd(row);
+      }}
+    >
+      <option value="">{spec.label}…</option>
+      {items.map((i) => (
+        <option key={i.id} value={i.id}>
+          {i.name}
+        </option>
+      ))}
+    </select>
+  );
+}
+
 /** Array rendered as a table with one editable cell per configured column. */
 export function TableField(props: WidgetProps) {
-  const { value, onChange, readonly, schema, field, id } = props;
+  const { value, onChange, readonly, schema, field, id, fields, computed, referenceLists } = props;
   const rows = Array.isArray(value) ? value : [];
   const cols = columnsOf(field, schema, rows[0]);
+  const addFrom = addFromOf(field);
   const itemSchema = itemSchemaOf(schema);
   const subSchema = (key: string, col: ColumnDef): JsonSchema | undefined => {
     const p = isRecord(itemSchema?.properties) ? itemSchema.properties[key] : undefined;
@@ -212,11 +303,17 @@ export function TableField(props: WidgetProps) {
           )}
           {rows.map((r, i) => (
             <tr key={i}>
-              {cols.map((c) => (
-                <td key={c.key}>
-                  <SchemaValueEditor schema={subSchema(c.key, c)} name={c.key} label={`${c.label ?? humanize(c.key)} ${i + 1}`} value={isRecord(r) ? r[c.key] : undefined} readonly={readonly || c.readonly} onChange={(v) => update(i, c.key, v)} />
-                </td>
-              ))}
+              {cols.map((c) =>
+                c.computed !== undefined ? (
+                  <td key={c.key} className="cf-mono" data-computed={c.key}>
+                    {computedCell(c.computed, { fields, computed, item: isRecord(r) ? r : {} })}
+                  </td>
+                ) : (
+                  <td key={c.key}>
+                    <SchemaValueEditor schema={subSchema(c.key, c)} name={c.key} label={`${c.label ?? humanize(c.key)} ${i + 1}`} value={isRecord(r) ? r[c.key] : undefined} readonly={readonly || c.readonly} onChange={(v) => update(i, c.key, v)} />
+                  </td>
+                ),
+              )}
               {!readonly && (
                 <td className="cf-table__action">
                   <IconButton size="sm" variant="ghost" label={`Remove row ${i + 1}`} icon="×" onClick={() => onChange(rows.filter((_, j) => j !== i))} />
@@ -228,9 +325,12 @@ export function TableField(props: WidgetProps) {
       </table>
       </div>
       {!readonly && (
-        <Button size="sm" onClick={() => onChange([...rows, itemSchema ? schemaDefaults(itemSchema) : {}])}>
-          Add row
-        </Button>
+        <div className="cf-table__add">
+          <Button size="sm" onClick={() => onChange([...rows, newRow(itemSchema)])}>
+            Add row
+          </Button>
+          {addFrom && <AddFromList spec={addFrom} lists={referenceLists} fields={fields} computed={computed} onAdd={(row) => onChange([...rows, { ...newRow(itemSchema), ...row }])} />}
+        </div>
       )}
     </div>
   );

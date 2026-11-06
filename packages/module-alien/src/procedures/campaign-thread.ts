@@ -17,7 +17,7 @@
  * (crew notes). All text is original.
  */
 import { labelledEnum } from "../entities/common";
-import { createRng, type ArcDraft, type ArcSnapshot, type Offer, type OfferSet, type OfferSlot, type PageRef, type Procedure, type ProcedureContext, type ProducedEntity, type Rng } from "@campaign-forge/module-sdk";
+import { createRng, pageRefText, type ArcDraft, type ArcSnapshot, type Offer, type OfferSet, type OfferSlot, type PageRef, type Procedure, type ProcedureContext, type ProducedEntity, type Rng } from "@campaign-forge/module-sdk";
 import { factionPresets, minorFactionPresets } from "../data/factions";
 import { locationPresets } from "../data/charted-space";
 import { CAMPAIGN } from "../modes";
@@ -97,7 +97,7 @@ function bookPage(name: string, kind: "faction" | "place"): PageRef | undefined 
   const list = kind === "faction" ? factionPresets : locationPresets;
   return list.find((p) => p.name.toLowerCase() === name.toLowerCase())?.page;
 }
-const pageText = (p: PageRef) => (Array.isArray(p) ? `p. ${p[0]}-${p[1]}` : `p. ${p}`);
+const pageText = (p: PageRef) => pageRefText(p, "p.", "-");
 
 // ---------------------------------------------------------------------------
 // one thread
@@ -195,9 +195,20 @@ function pickClock(rng: Rng, tiers: StageTier[]): ClockPick {
   const kinds = ["posting", "complication", "grudge", "threat"];
   const milestones = tiers.slice(1).map((tier, i) => {
     const payoff = tier === "endgame" ? "threat" : kinds[(i + rng.fork(`payoff-${i}`).int(0, kinds.length - 1)) % kinds.length]!;
-    return { text: pickIndex(rng.fork(`text-${i}`), MILESTONES[tier].length), payoff, payoffText: pickIndex(rng.fork(`payoff-text-${i}`), PAYOFFS[payoff]!.length) };
+    return { text: pickIndex(rng.fork(`text-${i}`), MILESTONES[tier].length), payoff, payoffText: pickIndex(rng.fork(`payoff-text-${i}`), PAYOFFS[payoff]!.length), endgame: tier === "endgame" };
   });
-  return { segments, milestones };
+  // a payoff is never the same line twice on one clock: the endgame keeps its (always a threat), and an earlier
+  // repeat takes its kind's next line, or the next kind's
+  const used = new Set<string>();
+  for (const m of [...milestones].sort((a, b) => Number(b.endgame) - Number(a.endgame))) {
+    for (let t = 0; t < kinds.length * 8 && used.has(`${m.payoff}/${m.payoffText}`); t++) {
+      const n = PAYOFFS[m.payoff]!.length;
+      if (!m.endgame && t % n === n - 1) m.payoff = kinds[(kinds.indexOf(m.payoff) + 1) % kinds.length]!;
+      m.payoffText = (m.payoffText + 1) % PAYOFFS[m.payoff]!.length;
+    }
+    used.add(`${m.payoff}/${m.payoffText}`);
+  }
+  return { segments, milestones: milestones.map(({ endgame: _e, ...m }) => m) };
 }
 
 /** Milestone positions: one per stage after the first, the last at the full clock. */

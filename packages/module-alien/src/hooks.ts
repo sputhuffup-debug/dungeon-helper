@@ -1,5 +1,6 @@
-import type { Effect, ModuleHooks, Prompt, SessionEndContext } from "@campaign-forge/module-sdk";
-import { PANIC_TRAUMA_THRESHOLD } from "./dice/operations";
+import type { ClockAdvanceContext, Effect, ModuleHooks, Prompt, SessionEndContext } from "@campaign-forge/module-sdk";
+import { CRITICAL_INJURY_CONDITION, PANIC_TRAUMA_THRESHOLD } from "./dice/operations";
+import { criticalInjuryItems } from "./reference/criticalInjuries";
 import { CAMPAIGN, CINEMATIC } from "./modes";
 import { PANIC_ATTACKS_TRAUMA } from "./reference/mentalTraumas";
 import { STRESS_TRACKER } from "./trackers";
@@ -121,4 +122,62 @@ export function onEntityChange(_ctx: { mode: string }, entity: { id: string; typ
   return effects;
 }
 
-export const hooks: ModuleHooks = { onSessionEnd, onEntityChange };
+/** Condition marking a lethal critical injury stabilised by first aid: no more death rolls for it (p. 71). */
+export const STABILISED_CONDITION = "critical-injury-stabilised:";
+/** Condition set when a death roll fails (p. 71). */
+export const DEAD_CONDITION = "alien.dead";
+
+/**
+ * Death rolls (p. 68, 71): a lethal critical injury calls for a death roll
+ * (Stamina, no push, no stress dice) after each of its time limits, unless
+ * first aid stabilised it. Each time the table clock passes that unit (a
+ * round, a stretch, a shift), every character carrying such an injury gets
+ * a prompt: survived, stabilised, or dead.
+ */
+export function deathRollPrompts(ctx: ClockAdvanceContext): Prompt[] {
+  const out: Prompt[] = [];
+  for (const e of ctx.entities) {
+    if (e.conditions.includes(DEAD_CONDITION)) continue;
+    for (const id of e.conditions) {
+      if (!id.startsWith(CRITICAL_INJURY_CONDITION)) continue;
+      const roll = Number(id.slice(CRITICAL_INJURY_CONDITION.length));
+      const injury = criticalInjuryItems.find((c) => c.roll === roll);
+      if (!injury?.fatal || injury.instantDeath || !injury.timeLimit || !ctx.units.includes(injury.timeLimit)) continue;
+      if (e.conditions.includes(`${STABILISED_CONDITION}${roll}`)) continue;
+      const count = ctx.counters[injury.timeLimit] ?? 0;
+      out.push({
+        id: `alien.death-roll:${e.id}:${roll}:${injury.timeLimit}:${count}`,
+        kind: "choice",
+        text: `${e.name}: ${injury.name} is lethal. Make a death roll now: Stamina, no push, no stress dice; a failure kills. First aid stabilises (a failed attempt shortens the time limit a step).`,
+        page: [68, 71],
+        entity: e.id,
+        options: [
+          { id: "survived", label: "Death roll made: still alive", effects: [{ kind: "log", text: `${e.name} made a death roll (${injury.name}).` }] },
+          {
+            id: "stabilised",
+            label: "Stabilised by first aid",
+            effects: [
+              { kind: "addCondition", entity: e.id, condition: { id: `${STABILISED_CONDITION}${roll}`, label: `Stabilised: ${injury.name}`, page: 71 } },
+              { kind: "log", text: `${e.name}'s ${injury.name} is stabilised: no more death rolls for it.` },
+            ],
+          },
+          {
+            id: "dead",
+            label: "Death roll failed: dead",
+            effects: [
+              { kind: "addCondition", entity: e.id, condition: { id: DEAD_CONDITION, label: "Dead", page: 71 } },
+              { kind: "log", text: `${e.name} died of ${injury.name}.` },
+            ],
+          },
+        ],
+      });
+    }
+  }
+  return out;
+}
+
+export function onClockAdvance(ctx: ClockAdvanceContext): Prompt[] {
+  return deathRollPrompts(ctx);
+}
+
+export const hooks: ModuleHooks = { onSessionEnd, onEntityChange, onClockAdvance };

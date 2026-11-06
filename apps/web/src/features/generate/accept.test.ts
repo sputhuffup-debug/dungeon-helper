@@ -53,6 +53,25 @@ describe("accepting generator output", () => {
     expect(again.results).toEqual(graph.results);
   });
 
+  it.each([["dnd5e-srd"], ["pf2e-orc"]])("a place renamed before accepting is renamed in the generated text that named it (%s)", async (moduleId) => {
+    const id = await createCampaign({ name: "Vale", moduleId, mode: "campaign" });
+    const ctx = await openCampaign(id);
+    opened.push(ctx.close);
+    const graph = runGenerator(ctx.module, { procedureId: `${moduleId}.proc.settlement`, seed: "rename-1" });
+    const settlement = graph.produced.entities.find((e) => e.tempId === "settlement")!;
+    const old = settlement.name;
+    expect(JSON.stringify(graph.produced.entities.find((e) => e.tempId === "rumour")!.fields)).toContain(old);
+    const res = acceptGenerated(ctx, { graph, names: { settlement: "Fernwick" } });
+    const byName = (n: string) => res.entities.find((e) => e.name === n);
+    expect(byName("Fernwick")).toBeDefined();
+    const text = JSON.stringify(res.entities.map((e) => [e.name, e.summary, e.fields]));
+    expect(text).not.toContain(old);
+    const rumour = res.entities.find((e) => e.fields.hook !== undefined)!;
+    expect(String(rumour.fields.hook)).toMatch(/^In Fernwick: /);
+    const tavern = res.entities.find((e) => e.fields.description !== undefined && String(e.fields.description).startsWith("The tavern of"))!;
+    expect(tavern.fields.description).toMatch(/^The tavern of Fernwick\./);
+  });
+
   it("chains the job into the system generator and nests the result within the job", async () => {
     const ctx = await open();
     const graph = runGenerator(ctx.module, { procedureId: "alien.job.create", seed: "chain", inputs: { frame: "space-truckers", pcCount: 4 } });

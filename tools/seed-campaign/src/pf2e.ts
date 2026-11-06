@@ -625,6 +625,8 @@ export async function buildPf2eDemo(opts: BuildPf2eDemoOptions = {}): Promise<Pf
 
   interface SceneText {
     title: string;
+    /** The heading the players read (else the location when they may see it, else the scene's number). */
+    playerTitle?: string;
     location: Entity;
     participants: Entity[];
     encounter?: Entity;
@@ -664,6 +666,8 @@ export async function buildPf2eDemo(opts: BuildPf2eDemoOptions = {}): Promise<Pf
     },
     "3.1": {
       title: "The xulgath den",
+      // the players have not met the xulgath yet: their heading names the place, not what waits there
+      playerTitle: "Deep in the Glimmer Caves",
       location: caves,
       participants: [boss, brute, skrit],
       encounter: den,
@@ -681,6 +685,7 @@ export async function buildPf2eDemo(opts: BuildPf2eDemoOptions = {}): Promise<Pf
       if (!text) return;
       const scene = store.createScene(a.id, {
         title: text.title,
+        ...(text.playerTitle ? { playerTitle: text.playerTitle } : {}),
         purpose: s.purpose,
         location: text.location.id,
         participants: text.participants.map((p) => p.id),

@@ -73,6 +73,14 @@ describe("award checklist", () => {
     expect(withBuddy.find((r) => r.question.id === "alien.award.panic")?.ticked).toBe(false);
   });
 
+  it("suggests the money question when the session brought income in (a payment collected in the wrap-up)", () => {
+    const qs = awardQuestions(progression, "campaign");
+    const money = (income?: number) => evaluateAwards(qs, awardCtx({ isPC: true }, income === undefined ? {} : { income })).find((r) => r.question.id === "alien.award.money")!;
+    expect(money(8000)).toMatchObject({ ticked: true, suggested: true });
+    expect(money(0)).toMatchObject({ ticked: false, suggested: false });
+    expect(money()).toMatchObject({ ticked: false, suggested: false });
+  });
+
   it("awards one Story Point per act in cinematic play (p. 158) and one XP for a week of shore leave on the agenda (p. 257)", () => {
     const act = awardQuestions(progression, "cinematic", "act");
     expect(act.map((q) => q.id)).toEqual([ACT_AGENDA_AWARD]);

@@ -82,4 +82,19 @@ describe("the skill roll at the table", () => {
     fireEvent.click(within(screen.getByTestId("dice-panel")).getByRole("button", { name: "Roll" }));
     expect(lastRoll(ctx, sessionId)!.text).toMatch(/^Dana: Comtech: /);
   });
+
+  // Walkthrough 3 (A14): a broken PC rolled skills with no warning
+  it("says what a broken character can still do, from the module's brokenNote", async () => {
+    const { ctx, sessionId, dana } = await setup();
+    render(<Harness ctx={ctx} sessionId={sessionId} pcId={dana.id} />);
+    fireEvent.change(screen.getByRole("combobox", { name: "Character" }), { target: { value: dana.id } });
+    fireEvent.change(screen.getByRole("combobox", { name: "Skill" }), { target: { value: "mobility" } });
+    expect(screen.queryByTestId("roll-broken-note")).toBeNull();
+    cleanup();
+    ctx.store.update("entities", dana.id, { fields: { ...ctx.store.get("entities", dana.id)!.fields, damage: 99 } });
+    render(<Harness ctx={ctx} sessionId={sessionId} pcId={dana.id} />);
+    fireEvent.change(screen.getByRole("combobox", { name: "Character" }), { target: { value: dana.id } });
+    fireEvent.change(screen.getByRole("combobox", { name: "Skill" }), { target: { value: "mobility" } });
+    expect(screen.getByTestId("roll-broken-note").textContent).toContain("Dana is broken. Only one move action a round");
+  });
 });

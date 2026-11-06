@@ -1012,7 +1012,7 @@ test("secret-synthetic", async ({ page }) => {
 });
 
 test("critical-injury-result", async ({ page }) => {
-  // a PC broken by a hit rolls a critical injury: what it does, how long it takes to heal, and the ids kept under Raw result
+  // a PC broken by a hit rolls a critical injury: what it does, how long it takes to heal, and the ids kept under Full result
   await page.setViewportSize({ width: 1440, height: 1000 });
   await loadDemo(page, "skyfire");
   await startPlannedSession(page);
@@ -1364,9 +1364,9 @@ test("dnd5e-sheet", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1720 });
   await openPc(page, "Isolde Fairweather");
   // scores and proficiencies are stored; every number marked "computed" is derived at render time
-  await expect(page.getByTestId("computed-proficiencyBonus")).toHaveText("2");
-  await expect(page.getByTestId("computed-intelligenceMod")).toHaveText("3");
-  await expect(page.getByTestId("computed-initiative")).toHaveText("2");
+  await expect(page.getByTestId("computed-proficiencyBonus")).toHaveText("+2");
+  await expect(page.getByTestId("computed-intelligenceMod")).toHaveText("+3");
+  await expect(page.getByTestId("computed-initiative")).toHaveText("+2");
   await page.evaluate(() => window.scrollTo(0, 0));
   await shot(page, "dnd5e-sheet");
 });
@@ -2161,7 +2161,7 @@ test("guide-dnd5e-srd", async ({ page }) => {
   // the finished sheet: its numbers computed
   await expect(page.getByTestId("entity-page")).toBeVisible();
   await expect(page.getByTestId("entity-title")).toHaveValue("Doran Kettleby");
-  await expect(page.getByTestId("computed-proficiencyBonus")).toHaveText("2");
+  await expect(page.getByTestId("computed-proficiencyBonus")).toHaveText("+2");
   await g("pc-sheet", [page.locator('[data-section="abilities"]'), page.locator('[data-section="combat"]')], { maxHeight: 760 });
 
   // a PC by hand
@@ -2321,7 +2321,7 @@ test("guide-dnd5e-srd", async ({ page }) => {
   await nav(page, "Generate").click();
   await main.getByText("Random encounter", { exact: true }).click();
   await page.getByRole("spinbutton", { name: "Party level" }).fill("1");
-  await page.getByRole("combobox", { name: "Terrain" }).selectOption({ label: "Grassland" });
+  await page.getByRole("combobox", { name: "Terrain" }).selectOption({ label: "Grassland and hills" });
   await page.getByTestId("seed").fill("wilby-road-6");
   await expect(page.getByTestId("preview")).toContainText("3 × Bandit");
   await g("encounter", [main.locator(".app-page__header").first(), page.getByTestId("preview")], { maxHeight: 760 });
@@ -2405,7 +2405,9 @@ test("guide-dnd5e-srd", async ({ page }) => {
   await planned.getByText("Add scenes", { exact: true }).click();
   await page.getByRole("textbox", { name: "New plan item" }).fill("Tobin lies about the crypt key");
   await page.getByRole("textbox", { name: "New plan item" }).press("Enter");
-  await g("session-plan", planned);
+  await expect.poll(() => page.locator('[aria-label^="Plan item "]').evaluateAll((els) => els.map((e) => (e as HTMLTextAreaElement).value))).toContain("Tobin lies about the crypt key");
+  // the scenes and the plan item the step asks for
+  await g("session-plan", [planned, main.locator(".cf-card").filter({ has: page.getByRole("textbox", { name: "New plan item" }) })]);
 
   // start it: table mode
   await nav(page, "Home").click();
@@ -2762,7 +2764,8 @@ test("guide-pf2e-orc", async ({ page }) => {
   await nav(page, "Generate").click();
   await page.getByTestId("procedure-pf2e-orc.proc.encounter").click();
   await page.getByRole("spinbutton", { name: "Party size" }).fill("2");
-  await page.getByTestId("seed").fill("mossford-road-0");
+  // (re-picked when the creature tables moved to dice a GM can roll: the old seed now deals halfling watchers)
+  await page.getByTestId("seed").fill("mossford-road-84");
   await expect(page.getByTestId("step-result-g1list")).toHaveText(/^2 × Kobold Warrior/);
   await orcShot("encounter", [main.locator(".cf-card").filter({ hasText: "Inputs" }).first(), page.getByTestId("preview")], { maxHeight: 760 });
   await page.getByTestId("accept").click();
@@ -2816,7 +2819,9 @@ test("guide-pf2e-orc", async ({ page }) => {
   await page.getByText("Add scenes", { exact: true }).click();
   await page.getByRole("textbox", { name: "New plan item" }).fill("Hesper knows a hidden way into the warren");
   await page.getByRole("textbox", { name: "New plan item" }).press("Enter");
-  await orcShot("session-plan", main.locator(".cf-card").filter({ hasText: "Scenes planned" }));
+  await expect.poll(() => page.locator('[aria-label^="Plan item "]').evaluateAll((els) => els.map((e) => (e as HTMLTextAreaElement).value))).toContain("Hesper knows a hidden way into the warren");
+  // the scenes and the plan item the step asks for
+  await orcShot("session-plan", [main.locator(".cf-card").filter({ hasText: "Scenes planned" }), main.locator(".cf-card").filter({ has: page.getByRole("textbox", { name: "New plan item" }) })]);
 
   // start it: table mode, on to the road, initiative for everyone
   await nav(page, "Home").click();
@@ -2844,7 +2849,7 @@ test("guide-pf2e-orc", async ({ page }) => {
   await page.getByTestId("mark-run").click();
   await page.getByTestId("end-session").click();
   const wrap = page.getByTestId("wrapup");
-  await wrap.getByRole("textbox", { name: "Session summary" }).fill("Reeve Brand sent the wardens to Ivyford; kobolds ambushed them on the ferry road.");
+  await wrap.getByRole("textbox", { name: "Session summary" }).fill("Reeve Brand sent the wardens to Ivyford; the wardens surprised two kobolds resting by the ferry road.");
   await orcShot("wrap-up", wrap, { maxHeight: 640 });
   await wrap.getByRole("button", { name: /^Next: Rewards/ }).click();
   await wrap.getByRole("button", { name: /^Next: Timeline/ }).click();

@@ -29,6 +29,7 @@ export function downloadMapSvg(map: SiteMap, o: MapFileOptions): void {
     title: `${map.name} (${o.view})`,
     scale: o.view === "tracking" ? 28 : 20,
     titleBlock: o.titleBlock ? { title: map.name } : undefined,
+    notice: o.notice,
   });
   downloadFile(svg, `${fileBase(map, o.view, o.deck)}.svg`, "image/svg+xml");
 }
@@ -37,7 +38,7 @@ export function downloadMapSvg(map: SiteMap, o: MapFileOptions): void {
 export async function downloadMapPng(map: SiteMap, o: MapFileOptions): Promise<void> {
   if (!map.layout) return;
   const layout = layoutForView(map.layout, o.view, o.def, map.live);
-  const blob = await renderSiteMapPng(layout, { view: o.view, deck: deckIn(layout, o.deck), legend: o.def?.legend, passable: o.def?.passable, grid: o.view !== "tracking", dpi: 150, titleBlock: o.titleBlock ? { title: map.name } : undefined });
+  const blob = await renderSiteMapPng(layout, { view: o.view, deck: deckIn(layout, o.deck), legend: o.def?.legend, passable: o.def?.passable, grid: o.view !== "tracking", dpi: 150, titleBlock: o.titleBlock ? { title: map.name } : undefined, notice: o.notice });
   downloadFile(blob, `${fileBase(map, o.view, o.deck)}-150dpi.png`, "image/png");
 }
 
@@ -46,7 +47,7 @@ export function printMapTiles(map: SiteMap, o: MapFileOptions & { paper: PaperSi
   if (!map.layout) return { pages: 0, opened: false };
   const layout = layoutForView(map.layout, o.view, o.def, map.live);
   const deckName = map.layout.decks.find((d) => d.id === o.deck)?.name ?? "";
-  const tiles = printTiles(layout, { view: o.view, deck: deckIn(layout, o.deck), legend: o.def?.legend, passable: o.def?.passable, paper: o.paper, grid: o.view !== "tracking", title: `${map.name} ${deckName}`.trim(), idPrefix: "tile", ...(o.mmPerMetre !== undefined ? { mmPerMetre: o.mmPerMetre, gridSquares: o.view !== "gm" } : {}) });
+  const tiles = printTiles(layout, { view: o.view, deck: deckIn(layout, o.deck), legend: o.def?.legend, passable: o.def?.passable, paper: o.paper, grid: o.view !== "tracking", title: `${map.name} ${deckName}`.trim(), idPrefix: "tile", notice: o.notice, ...(o.mmPerMetre !== undefined ? { mmPerMetre: o.mmPerMetre, gridSquares: o.view !== "gm" } : {}) });
   const html = printTilesHtml(tiles, `${map.name}: print tiles`);
   const name = `${fileBase(map, o.view, o.deck)}-tiles-${o.paper}.html`;
   let opened = false;

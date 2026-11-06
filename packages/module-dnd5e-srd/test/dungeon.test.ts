@@ -62,6 +62,27 @@ describe("the fifth edition dungeon generator", { timeout: 120_000 }, () => {
     }
   });
 
+  it("keeps a small low-level party's encounters within its budget, and the Checks name any left above it", () => {
+    // two level 1 characters, standard threat: 2 × 65 XP per encounter, half again in the lair
+    let over = 0;
+    let encounters = 0;
+    for (let i = 0; i < 30; i++) {
+      const l = run({ siteType: "keep", size: "medium", partyLevel: 1, partySize: 2, threat: "standard" }, `toll-keep-${i}`).layout;
+      const check = l.checks.find((c) => c.id === "encounter-budget")!;
+      expect(check, `seed ${i}`).toBeDefined();
+      for (const s of l.markers.filter((x) => x.kind === "spawn")) {
+        encounters++;
+        if (Number(s.data!.xp) > 195) over++;
+      }
+      if (!check.ok) expect(check.message).toMatch(/above the party's budget/);
+    }
+    // the lone CR 2 brute (450 XP) the walkthrough met is re-rolled away almost always
+    expect(over / encounters).toBeLessThan(0.05);
+    // and a party of four at level 5 still meets real fights
+    const big = run({ siteType: "crypt", size: "medium", partyLevel: 5, partySize: 4, threat: "standard" }, "big-party").layout;
+    expect(big.markers.filter((x) => x.kind === "spawn").some((s) => Number(s.data!.xp) >= 450)).toBe(true);
+  });
+
   it("locked doors cite the SRD's lock; secret doors stay hidden; the keep has a portcullis at the gate", () => {
     const l = run({ siteType: "keep", size: "large", threat: "deadly" }, "doors");
     const locked = l.layout.borders.filter((b) => b.kind === "door" && b.lockedInActs?.length);

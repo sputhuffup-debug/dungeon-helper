@@ -408,9 +408,28 @@ describe("alien.job.create", () => {
       if (e.detail) {
         nested++;
         expect(job.fields.employer).toBe(e.detail.name);
-      } else expect(job.fields.employer).toBe(e.name);
+      } else if (e.name === "Scientist") expect(job.fields.employer).toMatch(/^Dr\. \w+'s research group$/);
+      else expect(job.fields.employer).toBe(e.name);
     }
     expect(nested).toBeGreaterThan(0);
+  });
+
+  it("names an employer that the table gives only as a kind of client", () => {
+    const seen = new Map<string, string>();
+    for (let i = 0; i < 400; i++) {
+      const g = run("alien.job.create", { seed: `kind-${i}`, inputs: { frame: "space-truckers" } });
+      const kind = (g.results.employer as { name: string }).name;
+      const faction = g.produced.entities.find((x) => x.type === "alien.faction")!;
+      seen.set(kind, faction.name);
+      // the faction keeps the kind as its summary
+      expect(faction.summary).toBeTruthy();
+    }
+    expect(seen.get("Colony representative")).toMatch(/ Colony Council$/);
+    expect(seen.get("Shipping Corporation")).toMatch(/ (Freight Lines|Shipping|Haulage|Interstellar Freight|Cargo Combine)$/);
+    expect(seen.get("Wealthy Individual")).toMatch(/^The \w+ family trust$/);
+    expect(seen.get("USCMC Colonel or other military officer")).toMatch(/^Colonel \w+'s office \(USCMC\)$/);
+    // a row that names its employer keeps the name
+    expect(seen.get("Colonial Administration")).toBe("Colonial Administration");
   });
 
   it("rolls the ship type and re-rolls the location for a colonist Wreckage destination", () => {

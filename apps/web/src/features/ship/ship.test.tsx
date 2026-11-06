@@ -192,5 +192,9 @@ describe("entity inputs (x-entity)", () => {
     expect(inputs.wagon).toEqual({ id: wagon.id, name: "Old Bess", type: "example.wagon", fields: wagon.fields });
     expect(inputs.place).toBeUndefined();
     expect(pickedInputs(proc, ctx.store, `place:${fair.id},wagon:nope`)).toEqual({ place: { id: fair.id, name: "Fairhaven", type: "example.place", fields: fair.fields } });
+    // once its payout is on the ledger the snapshot says so, so a procedure does not count it again
+    postPayout(ctx, ctx.store.get("entities", fair.id)!, ctx.module.module.ledger!.payouts![0]!);
+    const paid = pickedInputs(proc, ctx.store, `place:${fair.id}`).place as { paidOut?: unknown };
+    expect(paid.paidOut).toEqual({ amount: 300, key: expect.stringContaining(fair.id) });
   });
 });

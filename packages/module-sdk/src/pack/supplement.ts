@@ -145,6 +145,7 @@ const NOT_IN_SUPPLEMENTS: Record<string, string> = {
   trackers: "a supplement cannot add trackers",
   dice: "a supplement cannot change the dice; it uses the base module's",
   calendar: "a supplement cannot change the calendar",
+  terms: "a supplement cannot change the module's terms",
   styleNotes: "a supplement has no style notes",
 };
 

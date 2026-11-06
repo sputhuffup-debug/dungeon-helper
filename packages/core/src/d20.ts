@@ -17,6 +17,8 @@ import {
   d20CombatantFor,
   d20ConditionImmunities,
   d20DamageModifiers,
+  d20DeathSave,
+  d20DeathSaveDamage,
   d20HitPoints,
   d20HitPointWrites,
   d20RuleValue,
@@ -32,6 +34,9 @@ import {
   type D20CombatantDef,
   type D20CombatDef,
   type D20DamageModifier,
+  type D20DeathSaveCount,
+  type D20DeathSaveResult,
+  type D20DeathSaves,
   type D20HitPoints,
   type D20ZeroHpRule,
   type EntityTypeDef,
@@ -324,6 +329,8 @@ export interface D20DamageOutcome {
   /** Conditions the rule applied, as labels. */
   conditionsAdded: string[];
   defeated: boolean;
+  /** The rule keeps death saves: the counters after this damage (failures it added; killed outright by massive damage). */
+  deathSaves?: D20DeathSaveCount & { added: number; dead: boolean; massive: boolean };
 }
 
 function writeFields(store: CampaignStore, entity: Entity, writes: Record<string, unknown>): Entity {
@@ -369,6 +376,17 @@ export function applyD20Damage(store: CampaignStore, module: D20Module, entityId
       if (rule) {
         out.rule = rule;
         out.defeated = !!rule.defeated;
+        const ds = rule.deathSaves;
+        // the damage that reached the hit points beyond 0 (all of it, once down)
+        const beyond = Math.max(0, Math.floor(amount) - hit.fromTemp - Math.max(0, before.current));
+        if (ds) {
+          const counted = d20DeathSaveDamage(ds, deathSaveCount(ds, entity.fields), { amount: beyond, max: after.max, ...(opts.critical ? { critical: true } : {}) });
+          // damage while down is a failed save; the hit that drops it to 0 counts only as massive damage
+          if (alreadyDown || counted.massive) {
+            entity = writeFields(store, entity, { [ds.successes]: counted.successes, [ds.failures]: counted.failures });
+            out.deathSaves = counted;
+          }
+        }
         if (dropped) {
           const values = conditionValues(m, entity);
           for (const c of rule.conditions ?? []) {
@@ -381,6 +399,37 @@ export function applyD20Damage(store: CampaignStore, module: D20Module, entityId
       }
     }
     return out;
+  });
+}
+
+function deathSaveCount(ds: D20DeathSaves, fields: Record<string, unknown>): D20DeathSaveCount {
+  const n = (p: string) => Math.max(0, Math.floor(Number(getPath(fields, p)) || 0));
+  return { successes: n(ds.successes), failures: n(ds.failures) };
+}
+
+/** The death saves an entity keeps right now: at 0 hit points under a rule with `deathSaves`. */
+export function d20DeathSaveState(module: D20Module, entity: Entity): (D20DeathSaveCount & { def: D20DeathSaves; max: number }) | undefined {
+  const m = gameModule(module);
+  const cb = d20CombatantFor(m.d20Combat, entity.type);
+  if (!cb) return undefined;
+  const hp = d20HitPoints(cb, { fields: entity.fields, computed: computedFor(m, entity) });
+  if (!(hp.max > 0 && hp.current <= 0)) return undefined;
+  const ds = ruleFor(m, entity)?.deathSaves;
+  return ds ? { ...deathSaveCount(ds, entity.fields), def: ds, max: Math.max(1, ds.max ?? 3) } : undefined;
+}
+
+/** Record a death save from its natural d20: the counters move; a natural 20 under `natural20Heals` heals (and the rule's `recover` applies). */
+export function applyD20DeathSave(store: CampaignStore, module: D20Module, entityId: Id, natural: number): D20DeathSaveResult {
+  const m = gameModule(module);
+  return store.transact(() => {
+    const entity = store.get("entities", entityId);
+    if (!entity) throw new Error(`entities/${entityId} not found`);
+    const state = d20DeathSaveState(m, entity);
+    if (!state) throw new Error(`${entity.name} is not making death saves`);
+    const res = d20DeathSave(state.def, state, natural);
+    if (res.heals) healD20(store, m, entityId, res.heals);
+    else writeFields(store, entity, { [state.def.successes]: res.successes, [state.def.failures]: res.failures });
+    return res;
   });
 }
 

@@ -105,8 +105,8 @@ h3 {
   font-weight: 600;
   font-size: var(--cf-text-sm);
 }
+/* hover only darkens the text: a fill stays the mark of the page you are on (after Back the pointer may still rest on another link) */
 .app-nav__link:hover {
-  background: var(--cf-elevated);
   color: var(--cf-text);
 }
 .app-nav__link.is-active {
@@ -190,8 +190,18 @@ h3 {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* the hit's name is what you look for: it wraps rather than ending in "…"; its kind and citation give way first */
+.app-search__hit .app-search__name {
+  flex: 1 1 40%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
 .app-search__hit .cf-muted {
-  flex-shrink: 0;
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .app-search__empty {
   padding: var(--cf-space-3);
@@ -723,6 +733,12 @@ h3 {
   margin-left: calc(-1 * var(--cf-space-1));
   width: 100%;
   font-family: inherit;
+}
+/* a name that wraps (an AutoGrowText): a heading's line height, no input padding */
+.app-entity__name--wrap {
+  --cf-autogrow-pad: 2px;
+  line-height: 1.25;
+  max-height: none;
 }
 .app-entity__name:hover,
 .app-entity__name:focus {
@@ -4052,8 +4068,10 @@ a.cf-btn {
   grid-area: more;
   margin-left: 0;
 }
+/* the bar and its numbers stay together (.cf-health); the broken roll and Take a hit wrap under them rather than run into "More" */
 .app-participant__vitals .app-participant__health {
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 @container (max-width: 620px) {
   .app-participant .app-participant__row {

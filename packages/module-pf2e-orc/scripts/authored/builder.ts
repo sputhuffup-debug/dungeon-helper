@@ -25,6 +25,7 @@
 import type { CharacterBuilderDef, CharacterBuilderGrant, CharacterBuilderStep, CharacterBuilderSubChoice, ReferenceList } from "@campaign-forge/module-sdk";
 import { ATTRIBUTES, CHARACTER, cite, id, LIST, SAVES, SKILLS } from "../ids.ts";
 import { add, cat, eq, floor, gt, ifs, lookup, max, mul, signedText, sub, v, type Rule } from "./logic.ts";
+import { STRIKE_ROW } from "./entityTypes.ts";
 
 type Grant = CharacterBuilderGrant;
 type Sub = CharacterBuilderSubChoice;
@@ -751,7 +752,7 @@ export function characterBuilder(input: BuilderInput): CharacterBuilderDef {
     cite: cite("GM Core", "Treasure", "Character Wealth"),
     guide: [
       "At 1st level you have 15 gp. Above it, GM Core gives currency plus permanent items of set levels, or one lump sum.",
-      "Picked armor and shields go on the sheet (AC follows); weapons become Strikes rows whose attack bonus you write in.",
+      "Picked armor and shields go on the sheet (AC follows); weapons become Strikes rows whose attack and damage follow your attributes and proficiency.",
     ],
     summary: cat(floor({ "/": [left, 100] }), " gp left"),
     source: {
@@ -786,7 +787,7 @@ export function characterBuilder(input: BuilderInput): CharacterBuilderDef {
           { path: "shield.hardness", value: v("item.builder.shield.hardness", 0), when: v("item.builder.shield"), hidden: true },
           { path: "shield.hp", value: v("item.builder.shield.hp", 0), when: v("item.builder.shield"), hidden: true },
           { path: "shield.maxHp", value: v("item.builder.shield.hp", 0), when: v("item.builder.shield"), hidden: true },
-          { path: "strikes", op: "append", object: { name: v("item.name"), damage: v("item.damage", ""), traits: v("item.traits", ""), type: v("item.builder.strike") }, when: v("item.builder.strike"), label: cat("Strike: ", v("item.name")) },
+          { path: "strikes", op: "append", object: STRIKE_ROW, when: v("item.builder.strike"), label: cat("Strike: ", v("item.name")) },
         ],
         validate: [{ rule: lte(v("vars.spent", 0), v("vars.budget", 0)), message: cat("Over budget by ", floor({ "/": [sub(v("vars.spent", 0), v("vars.budget", 0)), 100] }), " gp or more.") }],
       },
@@ -818,7 +819,7 @@ export function characterBuilder(input: BuilderInput): CharacterBuilderDef {
       ifs(lookup(v("data.classNotes"), v("fields.class", ""), ""), list([lookup(v("data.classNotes"), v("fields.class", ""), "")]), list([])),
       ifs(gt(v("fields.spellcasting.rank", 0), 0), lit(["Spells: choose your cantrips and spells (and spell slots or repertoire) from the spell lists by hand; the builder sets your spellcasting proficiency, tradition and attribute."]), list([])),
       ifs(and(gt(v("fields.spellcasting.rank", 0), 0), not(v("fields.spellcasting.tradition"))), lit(["Spellcasting tradition: set it on the sheet (your class choice decides it)."]), list([])),
-      ifs(gt(count(v("fields.strikes", [])), 0), lit(["Strikes: write in each weapon's attack bonus and any damage bonus."]), list([])),
+      ifs(gt(count(v("fields.strikes", [])), 0), lit(["Strikes: the attack and damage are worked out from your attributes and proficiency; add runes (potency) and class bonuses such as weapon specialization on the sheet."]), list([])),
       ifs(gt(count(v("fields.feats", [])), 0), lit(["Feats: the builder applies the skills, senses, Lore, Hit Points per level and feats they give; check each feat's text for the rest."]), list([])),
       ifs(find(v("fields.feats", []), "type", "archetype"), lit(["Archetype feats: check the dedication rules (two other feats of an archetype before another dedication)."]), list([])),
       ifs(A("more"), list([cat(v("choices.ancestry.item.name", ""), ": make its other choices by hand (size, form and so on).")]), list([])),

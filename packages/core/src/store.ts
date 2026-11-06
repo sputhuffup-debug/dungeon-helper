@@ -337,6 +337,7 @@ export class CampaignStore {
     actId: Id | undefined,
     input: {
       title: string;
+      playerTitle?: string;
       purpose?: string;
       location?: Id;
       participants?: Id[];
@@ -362,6 +363,7 @@ export class CampaignStore {
         tags: input.tags ?? [],
       };
       if (actId !== undefined) rec.act = actId;
+      if (input.playerTitle?.trim()) rec.playerTitle = input.playerTitle.trim();
       if (input.purpose !== undefined) rec.purpose = input.purpose;
       if (input.location !== undefined) rec.location = input.location;
       if (input.encounter !== undefined) rec.encounter = input.encounter;

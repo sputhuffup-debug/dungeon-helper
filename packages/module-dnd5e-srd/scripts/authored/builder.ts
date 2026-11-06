@@ -20,6 +20,7 @@
 import type { CharacterBuilderDef, CharacterBuilderGrant, CharacterBuilderStep, CharacterBuilderSubChoice, ReferenceItem, ReferenceList, RuleCard } from "@campaign-forge/module-sdk";
 import { ABILITIES, CHARACTER, CLASSES, LIST, SKILLS, cite, cite52, id, rule, type AbilityId } from "../ids.ts";
 import { add, cat, eq, floor, gt, ifs, lookup, max, min, mul, sub, v, type Rule } from "./logic.ts";
+import { WEAPON_PROFICIENT } from "./entityTypes.ts";
 
 // ---------------------------------------------------------------------------
 // JSONLogic helpers
@@ -50,17 +51,23 @@ const ABILITY_IDS = ABILITIES.map((a) => a.id);
 const ABILITY_OPTIONS = ABILITIES.map((a) => ({ id: a.id, name: a.name }));
 const level1 = (arr: string): Rule => lookup(v(arr, []), sub(L, 1), []);
 
-/** Items of the current edition: 2014 keeps SRD 5.1 items, 2024 SRD 5.2 ones; supplement items (a source that is not SRD 5.2) show in every edition. */
-function editionWhere(candidate = "option"): Rule {
+/** Items of the current edition (`edition`, the build's by default): 2014 keeps SRD 5.1 items, 2024 SRD 5.2 ones; supplement items (a source that is not SRD 5.2) show in every edition. */
+function editionWhere(candidate = "option", edition: Rule = E): Rule {
   const ed = v(`${candidate}.edition`, "");
   const supplement = and(v(`${candidate}.source`, ""), ne(v(`${candidate}.source`, ""), "SRD 5.2"));
-  return ifs(eq(E, "2014"), ne(ed, "2024"), eq(E, "2024"), or(eq(ed, "2024"), supplement), true);
+  return ifs(eq(edition, "2014"), ne(ed, "2024"), eq(edition, "2024"), or(eq(ed, "2024"), supplement), true);
 }
+
+/** A class's own features of the build's rules: an SRD 5.2 build gets the SRD 5.2 ones, any other the SRD 5.1 ones. */
+const classFeatureEdition = (edition: Rule): Rule => ifs(eq(edition, "2024"), eq(v("entry.edition", ""), "2024"), ne(v("entry.edition", ""), "2024"));
 
 /** Add an ability increase object (`{ dexterity: 2 }`) found at `obj`, one grant per ability. */
 function addAbilities(obj: Rule, when?: Rule): CharacterBuilderGrant {
   return { path: cat("abilities.", v("entry")), op: "add", each: list(ABILITY_IDS), value: lookup(obj, v("entry"), 0), when: when === undefined ? ne(lookup(obj, v("entry"), 0), 0) : and(ne(lookup(obj, v("entry"), 0), 0), when) };
 }
+
+/** A language the character does not know yet (the ones it knows are not offered). */
+const notKnownLanguage: Rule = { "!": { in: [{ var: "option.name" }, { var: ["fields.languages", []] }] } };
 
 /** Append reference items as features `{ name, desc }`. */
 function featuresFrom(listId: string, where: Rule): CharacterBuilderGrant {
@@ -343,8 +350,10 @@ const GROUPS: GroupSpec[] = [
   { class: "Ranger", subclass: "Hunter", name: "Multiattack", prefix: "Multiattack: ", counts: { 11: 1 } },
   { class: "Ranger", subclass: "Hunter", name: "Superior Hunter's Defense", prefix: "Superior Hunter's Defense: ", counts: { 15: 1 } },
 ];
-/** Features that stand for a later choice or a placeholder ("Arcane Tradition feature"), not granted as text. */
-const PLACEHOLDER = /^(Ability Score Improvement|.* feature)$/;
+/** Features that stand for a later choice or a placeholder ("Arcane Tradition feature", SRD 5.2 "Wizard Subclass", "Epic Boon"), not granted as text. */
+const PLACEHOLDER = /^(Ability Score Improvement|Epic Boon|.* feature|\w+ Subclass|Subclass Feature)$/;
+/** SRD 5.2: every class takes its subclass at level 3. */
+const SUBCLASS_LEVEL_2024 = 3;
 
 /** Subclass data the SRD gives as prose (bonus proficiencies). */
 const SUBCLASS_SPECS: Record<string, { proficiencies?: string; skills?: number }> = {
@@ -548,7 +557,8 @@ interface BackgroundSpec {
 }
 
 const BACKGROUND_SPECS: Record<string, BackgroundSpec> = {
-  acolyte: { skills: ["insight", "religion"], languageChoice: 2, equipment: ["Clothes, common", "Pouch", { name: "Holy symbol" }], gp: 15, feature: "Shelter of the Faithful" },
+  // SRD 5.1, Backgrounds: a holy symbol, a prayer book or prayer wheel, 5 sticks of incense, vestments, common clothes and a pouch with 15 gp
+  acolyte: { skills: ["insight", "religion"], languageChoice: 2, equipment: [{ name: "Holy symbol" }, { name: "Prayer book" }, { name: "Incense (stick)", quantity: 5 }, { name: "Vestments" }, "Clothes, common", "Pouch"], gp: 15, feature: "Shelter of the Faithful" },
   "acolyte-2024": { skills: ["insight", "religion"], tools: "Calligrapher's Supplies", abilityScores: ["intelligence", "wisdom", "charisma"], feat: "magic-initiate-2024", featList: "Cleric", packages: { a: ["Calligrapher's Supplies", { name: "Book (prayers)" }, { name: "Holy symbol" }, { name: "Parchment (one sheet)", quantity: 10 }, "Robes"], aGp: 8, bGp: 50 } },
   "criminal-2024": { skills: ["sleight-of-hand", "stealth"], tools: "Thieves' Tools", abilityScores: ["dexterity", "constitution", "intelligence"], feat: "alert-2024", packages: { a: [{ name: "Dagger", quantity: 2 }, "Thieves' Tools", "Crowbar", { name: "Pouch", quantity: 2 }, "Clothes, traveler's"], aGp: 16, bGp: 50 } },
   "sage-2024": { skills: ["arcana", "history"], tools: "Calligrapher's Supplies", abilityScores: ["constitution", "intelligence", "wisdom"], feat: "magic-initiate-2024", featList: "Wizard", packages: { a: ["Quarterstaff", "Calligrapher's Supplies", { name: "Book (history)" }, { name: "Parchment (one sheet)", quantity: 8 }, "Robes"], aGp: 8, bGp: 50 } },
@@ -582,10 +592,55 @@ const BOON: FeatSpec = { requires: { level: 19 }, increase: { from: [...ABILITY_
 // Equipment rows from names
 // ---------------------------------------------------------------------------
 
+/** A weapon as an attack row's data: its dice and damage type, the ability it uses and how it attacks. */
+interface WeaponAttack {
+  name: string;
+  category: string;
+  dice: string;
+  type?: string;
+  ability: "strength" | "dexterity" | "finesse";
+  kind: "melee" | "ranged";
+  notes?: string;
+  /** Starting equipment of the character's class: proficient without checking. */
+  proficient?: true;
+}
+
 interface Gear {
   rows: Array<{ name: string; quantity: number; weight?: number }>;
+  /** The weapons among the rows, as attack rows. */
+  attacks: WeaponAttack[];
   armor?: { base: number; dex: "full" | "max2" | "none" };
   shield?: boolean;
+}
+
+/** A weapon of the weapons list as attack data ("1d8 slashing", finesse, ranged), or nothing for one with no damage (a net). */
+export function weaponAttack(it: ReferenceItem): WeaponAttack | undefined {
+  const m = /^(\d+d\d+|\d+)\s+([a-z]+)/i.exec(String(it.damage ?? ""));
+  if (!m) return undefined;
+  const props = String(it.properties ?? "");
+  const ranged = /Ranged/.test(String(it.category ?? ""));
+  return {
+    name: it.name,
+    category: String(it.category ?? ""),
+    dice: m[1]!,
+    type: m[2]!.toLowerCase(),
+    ability: /\bfinesse\b/.test(props) ? "finesse" : ranged ? "dexterity" : "strength",
+    kind: ranged ? "ranged" : "melee",
+    ...(props && props !== "—" ? { notes: props } : {}),
+  };
+}
+
+/** An attack row from attack data at `src` (an entry or an item): proficient as the data says, else when the sheet's proficiencies name the weapon or its category. */
+function attackRow(src: string): Record<string, Rule> {
+  return {
+    name: v(`${src}.name`),
+    damage: v(`${src}.dice`),
+    type: v(`${src}.type`),
+    ability: v(`${src}.ability`),
+    kind: v(`${src}.kind`),
+    proficient: ifs(v(`${src}.proficient`, false), true, WEAPON_PROFICIENT(src)),
+    notes: v(`${src}.notes`, ""),
+  };
 }
 
 function equipmentIndex(equipment: ReferenceList[]) {
@@ -599,9 +654,9 @@ function equipmentIndex(equipment: ReferenceList[]) {
     if (!m) return undefined;
     return { base: Number(m[1]), dex: m[2] ? (m[3] ? "max2" : "full") : "none" };
   };
-  /** Rows (with weights from the lists) for item names; names not in the lists stay as written. */
-  const gear = (items: Array<string | EquipItem>): Gear => {
-    const g: Gear = { rows: [] };
+  /** Rows (with weights from the lists) for item names; names not in the lists stay as written. A class's own equipment is marked proficient. */
+  const gear = (items: Array<string | EquipItem>, classGear = false): Gear => {
+    const g: Gear = { rows: [], attacks: [] };
     for (const x of items) {
       const it = typeof x === "string" ? { name: x } : x;
       const q = it.quantity ?? 1;
@@ -611,6 +666,8 @@ function equipmentIndex(equipment: ReferenceList[]) {
       const ammo = hit?.category === "Ammunition";
       const weight = unit === undefined ? undefined : ammo ? Math.round(((unit * q) / 20) * 100) / 100 : Math.round(unit * q * 100) / 100;
       g.rows.push({ name: hit?.name ?? it.name, quantity: q, ...(weight !== undefined ? { weight } : {}) });
+      const attack = hit ? weaponAttack(hit) : undefined;
+      if (attack && !g.attacks.some((a) => a.name === attack.name)) g.attacks.push({ ...attack, ...(classGear ? { proficient: true as const } : {}) });
       if (hit) {
         const a = armorOf(hit);
         if (a === "shield") g.shield = true;
@@ -793,7 +850,8 @@ export function characterBuilder(input: BuilderInput): CharacterBuilderDef {
   const classData: Record<string, Record<string, unknown>> = {};
   const featureData: Record<string, Record<string, unknown>> = {};
   for (const f of features.items) {
-    if (f.edition === "2024") continue;
+    // a subclass's own features are never placeholders
+    if (f.edition === "2024" && f.subclass) continue;
     if (PLACEHOLDER.test(f.name)) featureData[f.id] = { skip: true };
   }
   const groupsFor = (spec: GroupSpec) => {
@@ -830,7 +888,7 @@ export function characterBuilder(input: BuilderInput): CharacterBuilderDef {
       return { name: g.name, options: options.map((o) => o.id), counts };
     });
     const levels = groupLevels(groups);
-    const eq0 = gear(spec.fixed);
+    const eq0 = gear(spec.fixed, true);
     const fixedArmor = eq0.armor;
     const d: Record<string, unknown> = {
       hitDie: Number(String(item.hitDie).replace("d", "")),
@@ -847,14 +905,16 @@ export function characterBuilder(input: BuilderInput): CharacterBuilderDef {
       groupsNewByLevel: levels.new,
       equipment: {
         fixed: eq0.rows,
+        fixedAttacks: eq0.attacks,
         ...(fixedArmor ? { armor: fixedArmor } : {}),
         ...(eq0.shield ? { shield: true } : {}),
         picks: spec.fixedPicks ?? [],
         choices: spec.choices.map((group, gi) => ({
           label: group.map((o, i) => `(${String.fromCharCode(97 + i)}) ${o.name}`).join(" or "),
           options: group.map((o, i) => {
-            const g = gear(o.items ?? []);
-            return { id: `${c}-${gi}-${String.fromCharCode(97 + i)}`, name: `(${String.fromCharCode(97 + i)}) ${o.name}`, rows: g.rows, ...(g.armor ? { armor: g.armor } : {}), ...(g.shield ? { shield: true } : {}), picks: o.picks ?? [] };
+            // "a warhammer (if proficient)": checked against the character's proficiencies
+            const g = gear(o.items ?? [], !/if proficient/.test(o.name));
+            return { id: `${c}-${gi}-${String.fromCharCode(97 + i)}`, name: `(${String.fromCharCode(97 + i)}) ${o.name}`, rows: g.rows, attacks: g.attacks, ...(g.armor ? { armor: g.armor } : {}), ...(g.shield ? { shield: true } : {}), picks: o.picks ?? [] };
           }),
         })),
       },
@@ -877,14 +937,26 @@ export function characterBuilder(input: BuilderInput): CharacterBuilderDef {
     for (const [a, n] of Object.entries({ ...spec.multiclass.all, ...spec.multiclass.any })) if (!mcText.toLowerCase().includes(`${a} ${n}`)) throw new Error(`builder: ${c} multiclass ${a} ${n} vs "${mcText}"`);
     classData[c] = d;
   }
-  // subclass option groups (Dragon Ancestor, Circle of the Land, Hunter's Prey...) and proficiencies
+  // subclass option groups (Dragon Ancestor, Circle of the Land, Hunter's Prey...), proficiencies and always-prepared spells
   const subclassData: Record<string, Record<string, unknown>> = {};
+  const alwaysPreparedBy: Record<string, Array<{ level: number; name: string }>> = {};
+  const spellNames = new Map(listById(lists, LIST.spells).items.map((s) => [s.name.toLowerCase().replace(/[’']/g, "'"), s.name]));
+  /** A spell's name as the spell list spells it (a name the list does not have stays as written). */
+  const spellName = (n: string): string => spellNames.get(n.toLowerCase().replace(/[’']/g, "'")) ?? n.replace(/’/g, "'");
   for (const s of subclasses.items) {
     const groups = GROUPS.filter((g) => g.subclass === s.name && g.class === s.class).map((g) => ({ name: g.name, options: groupsFor(g).map((o) => o.id), counts: g.counts }));
     const extra = SUBCLASS_SPECS[s.id] ?? {};
-    if (!groups.length && !extra.proficiencies && !extra.skills) continue;
+    // domain and oath spells: always prepared from the class level the subclass's table names
+    const alwaysPrepared = String(s.spells ?? "")
+      .split(";")
+      .map((part) => /^\s*(\d+):\s*(.+)$/.exec(part))
+      .filter((m): m is RegExpExecArray => !!m)
+      .flatMap((m) => m[2]!.split(",").map((n) => ({ level: Number(m[1]), name: spellName(n.trim()) })));
+    if (alwaysPrepared.length) alwaysPreparedBy[s.name] = alwaysPrepared;
+    if (!groups.length && !extra.proficiencies && !extra.skills && !alwaysPrepared.length) continue;
     const levels = groupLevels(groups);
     subclassData[s.id] = {
+      ...(alwaysPrepared.length ? { alwaysPrepared } : {}),
       ...(groups.length ? { groups: groups.map((g) => ({ name: g.name, options: g.options })), groupsByLevel: levels.all, groupsNewByLevel: levels.new } : {}),
       ...(extra.proficiencies ? { proficiencies: extra.proficiencies } : {}),
       ...(extra.skills ? { skills: extra.skills } : {}),
@@ -913,7 +985,7 @@ export function characterBuilder(input: BuilderInput): CharacterBuilderDef {
     if (spec.gp) d.gp = spec.gp;
     if (spec.packages) {
       d.packages = [
-        { id: "a", name: `(A) ${String(b.equipment).replace(/^Choose A or B: \(A\) /, "").replace(/; or \(B\).*$/, "")}`, rows: gear(spec.packages.a).rows, gp: spec.packages.aGp },
+        { id: "a", name: `(A) ${String(b.equipment).replace(/^Choose A or B: \(A\) /, "").replace(/; or \(B\).*$/, "")}`, rows: gear(spec.packages.a).rows, attacks: gear(spec.packages.a).attacks, gp: spec.packages.aGp },
         { id: "b", name: `(B) ${spec.packages.bGp} GP`, rows: [], gp: spec.packages.bGp },
       ];
     }
@@ -943,7 +1015,8 @@ export function characterBuilder(input: BuilderInput): CharacterBuilderDef {
     [LIST.subraces]: race.subraces,
     [LIST.backgrounds]: backgroundData,
     [LIST.feats]: featData,
-    [LIST.weapons]: weight(listById(lists, LIST.weapons)),
+    // a weapon picked from the list becomes an attack row too
+    [LIST.weapons]: Object.fromEntries(listById(lists, LIST.weapons).items.map((i) => [i.id, { ...(pounds(i.weight) !== undefined ? { weight: pounds(i.weight) } : {}), ...(weaponAttack(i) ? { attack: weaponAttack(i) } : {}) }]).filter(([, d]) => Object.keys(d as object).length > 0)),
     [LIST.gear]: weight(listById(lists, LIST.gear)),
     [LIST.tools]: weight(tools),
   };
@@ -951,6 +1024,9 @@ export function characterBuilder(input: BuilderInput): CharacterBuilderDef {
   // --- shared rules ----------------------------------------------------------
   const rowGrant = (rows: Rule, when?: Rule): CharacterBuilderGrant => ({ path: "equipment", op: "append", value: rows, ...(when ? { when } : {}) });
   const pickRow: CharacterBuilderGrant = { path: "equipment", op: "append", object: { name: v("item.name"), quantity: 1, weight: v("item.builder.weight", 0) } };
+  // a class's "any martial weapon" picks are weapons it is proficient with
+  const pickAttack: CharacterBuilderGrant = { path: "attacks", op: "append", when: v("item.builder.attack"), object: { ...attackRow("item.builder.attack"), proficient: true }, label: cat("Attack: ", v("item.name")) };
+  const attackGrant = (list: Rule, when?: Rule): CharacterBuilderGrant => ({ path: "attacks", op: "append", each: list, object: attackRow("entry"), label: cat("Attack: ", v("entry.name")), ...(when ? { when } : {}) });
   const picksOf = (listKey: "weapons" | "gear" | "tools", listId: string, picks: string): CharacterBuilderSubChoice => ({
     id: `pick-${listKey}`,
     label: v("entry.label"),
@@ -958,7 +1034,7 @@ export function characterBuilder(input: BuilderInput): CharacterBuilderDef {
     source: { list: listId, where: isIn(v("option.category", ""), v("entry.categories", [])) },
     min: v("entry.count", 1),
     max: v("entry.count", 1),
-    grants: [pickRow],
+    grants: [pickRow, ...(listKey === "weapons" ? [pickAttack] : [])],
   });
   const picks = (path: string) => [picksOf("weapons", LIST.weapons, path), picksOf("gear", LIST.gear, path), picksOf("tools", LIST.tools, path)];
   const twoThousandFourBackground = v("choices.background.item.builder.abilityScores");
@@ -969,6 +1045,8 @@ export function characterBuilder(input: BuilderInput): CharacterBuilderDef {
   const cantripsAt = (lvl: Rule) => lookup(spellcasting("cantrips", []), sub(lvl, 1), 0);
   const knownAt = (lvl: Rule) => lookup(spellcasting("known", []), sub(lvl, 1), 0);
   const maxSpellAt = (lvl: Rule) => lookup(spellcasting("maxLevel", []), sub(lvl, 1), 0);
+  /** Spells a prepared caster prepares at a class level: its spellcasting modifier plus the level (halved for a paladin), at least 1, once it has spell slots. */
+  const preparedAt = (lvl: Rule) => ifs(gt(maxSpellAt(lvl), 0), max(1, add(varAt(cat("computed.", spellcasting("ability"), "Mod"), 0), floor({ "/": [lvl, spellcasting("preparedDivisor", 1)] }))), 0);
   const classSpellWhere = (lo: number, hi: Rule) => and(gte(v("option.level"), lo), lte(v("option.level"), hi), isIn(CLASS_NAME, v("option.classes", [])));
   const notKnown = not(isIn(v("option.name"), v("fields.spells", [])));
 
@@ -976,11 +1054,12 @@ export function characterBuilder(input: BuilderInput): CharacterBuilderDef {
   const skillsList: Rule = { merge: skillNames.map((s) => ifs(gte(v(`fields.skills.${s}`, 0), 1), [cat(SKILLS.find((x) => x.id === s)!.name, ifs(eq(v(`fields.skills.${s}`, 0), 2), " (expertise)", ""))] as unknown as Rule, lit([]))) };
   const savesList: Rule = { merge: ABILITIES.map((a) => ifs(gte(v(`fields.saves.${a.id}-save`, 0), 1), lit([a.name]), lit([]))) };
 
-  // hit points: average (the sheet's suggested maximum) or the dice rolled, plus Dwarven Toughness
+  // hit points: average (the sheet's suggested maximum, which counts Dwarven Toughness) or the dice rolled plus Dwarven Toughness
   const hpRolled = eq(v("choices.level.sub.hp.id", "average"), "roll");
-  const hpMax = add(
-    ifs(hpRolled, add(v("vars.hitDie", 0), v("choices.level.sub.hp.rolled", 0), mul(v("fields.level", 1), v("computed.constitutionMod", 0))), v("computed.suggestedHpMax", 1)),
-    mul(v("fields.level", 1), v("vars.hpPerLevel", 0)),
+  const hpMax = ifs(
+    hpRolled,
+    add(v("vars.hitDie", 0), v("choices.level.sub.hp.rolled", 0), mul(v("fields.level", 1), v("computed.constitutionMod", 0)), mul(v("fields.level", 1), v("vars.hpPerLevel", 0))),
+    v("computed.suggestedHpMax", 1),
   );
   // armor class: armor (Dex in full, up to 2, or not at all), else the class's unarmored defense, else 10 + Dex; a shield adds 2
   const dexMod = v("computed.dexterityMod", 0);
@@ -1007,7 +1086,7 @@ export function characterBuilder(input: BuilderInput): CharacterBuilderDef {
     guide: [
       "SRD 5.1 (2014): your race gives ability score increases; backgrounds give skills, languages and equipment.",
       "SRD 5.2 (2024): your background gives +2/+1 or +1/+1/+1 among three abilities and an origin feat; species give traits, not increases.",
-      "Classes follow the SRD 5.1 tables either way: the SRD 5.2 classes are not in this module.",
+      "Classes follow the SRD 5.1 tables (hit dice, spell slots, spells known) either way; an SRD 5.2 build gets the SRD 5.2 class features and takes its subclass at level 3.",
     ],
     source: {
       options: [
@@ -1016,6 +1095,8 @@ export function characterBuilder(input: BuilderInput): CharacterBuilderDef {
         { id: "mixed", name: "Mixed", summary: "Options from both. Ability score increases come from one place only: the background when it lists them, the race otherwise.", original: true },
       ],
     },
+    // kept on the sheet, so a level-up follows the same rules
+    grants: [{ path: "edition", value: v("item.id") }],
   };
 
   const speciesStep: CharacterBuilderStep = {
@@ -1058,7 +1139,7 @@ export function characterBuilder(input: BuilderInput): CharacterBuilderDef {
         ],
         subChoices: [
           { id: "cantrip", label: cat("One ", v("item.builder.cantripChoice"), " cantrip"), when: v("item.builder.cantripChoice"), source: { list: LIST.spells, where: and(eq(v("option.level"), 0), isIn(v("item.builder.cantripChoice"), v("option.classes", []))) }, grants: [{ path: "spells", op: "append", value: v("item.name") }] },
-          { id: "language", label: "Extra language", when: v("item.builder.languageChoice"), source: { list: LIST.languages }, available: not(isIn(v("option.name"), v("fields.languages", []))), availableText: "Already known.", grants: [{ path: "languages", op: "append", value: v("item.name") }] },
+          { id: "language", label: "Extra language", when: v("item.builder.languageChoice"), source: { list: LIST.languages, where: notKnownLanguage }, available: not(isIn(v("option.name"), v("fields.languages", []))), availableText: "Already known.", grants: [{ path: "languages", op: "append", value: v("item.name") }] },
         ],
       },
       { id: "ancestry", label: "Draconic ancestry", when: v("item.builder.ancestry"), source: { values: v("item.builder.ancestry"), list: LIST.racialTraits }, grants: [{ path: "features", op: "append", object: { name: v("item.name"), desc: v("item.description", "") } }] },
@@ -1073,7 +1154,7 @@ export function characterBuilder(input: BuilderInput): CharacterBuilderDef {
         grants: [{ path: cat("abilities.", v("item.id")), op: "add", value: v("parent.builder.asiChoice.amount", 1) }],
       },
       skillChoice("skills", ifs(eq(v("item.builder.skillChoice.count"), 1), "One skill", cat(v("item.builder.skillChoice.count"), " skills")), ifs(v("item.builder.skillChoice.from"), v("item.builder.skillChoice.from"), list(skillNames)), v("item.builder.skillChoice.count", 0), v("item.builder.skillChoice")),
-      { id: "languages", label: cat(v("item.builder.languageChoice"), " extra language"), when: v("item.builder.languageChoice"), source: { list: LIST.languages }, min: v("item.builder.languageChoice"), max: v("item.builder.languageChoice"), available: not(isIn(v("option.name"), v("fields.languages", []))), availableText: "Already known.", grants: [{ path: "languages", op: "append", value: v("item.name") }] },
+      { id: "languages", label: cat(v("item.builder.languageChoice"), " extra language"), when: v("item.builder.languageChoice"), source: { list: LIST.languages, where: notKnownLanguage }, min: v("item.builder.languageChoice"), max: v("item.builder.languageChoice"), available: not(isIn(v("option.name"), v("fields.languages", []))), availableText: "Already known.", grants: [{ path: "languages", op: "append", value: v("item.name") }] },
       { id: "tool", label: "Artisan's tools", when: v("item.builder.toolChoice"), source: { values: v("item.builder.toolChoice"), list: LIST.tools }, grants: [{ path: "proficiencies", op: "append", separator: "; ", value: v("item.name") }] },
       {
         id: "feat",
@@ -1102,7 +1183,7 @@ export function characterBuilder(input: BuilderInput): CharacterBuilderDef {
       { path: "$hitDie", value: v("item.builder.hitDie", 0), hidden: true },
       { path: "$unarmored", value: v("item.builder.unarmored", ""), when: v("item.builder.unarmored"), hidden: true },
       { path: "spellcastingAbility", value: v("item.builder.spellcasting.ability"), when: and(v("item.builder.spellcasting"), not(isIn(v("item.id"), list(CLASSES as unknown as string[])))) },
-      featuresFrom(LIST.classFeatures, and(eq(v("entry.class"), v("item.name")), not(v("entry.subclass", "")), lte(v("entry.level"), L), not(v("entry.builder.skip")), not(v("entry.builder.option")), ne(v("entry.edition", ""), "2024"))),
+      featuresFrom(LIST.classFeatures, and(eq(v("entry.class"), v("item.name")), not(v("entry.subclass", "")), lte(v("entry.level"), L), not(v("entry.builder.skip")), not(v("entry.builder.option")), classFeatureEdition(E))),
     ],
     subChoices: [
       skillChoice("skills", cat("Choose ", v("item.builder.skills.choose"), " skills"), v("item.builder.skills.from"), v("item.builder.skills.choose", 0), v("item.builder.skills"), not(isIn(v("option.id"), v("choices.background.item.builder.skills", [])))),
@@ -1153,13 +1234,13 @@ export function characterBuilder(input: BuilderInput): CharacterBuilderDef {
           },
         ],
       },
-      { id: "languages", label: cat(v("item.builder.languageChoice"), " languages of your choice"), when: v("item.builder.languageChoice"), source: { list: LIST.languages }, min: v("item.builder.languageChoice"), max: v("item.builder.languageChoice"), available: not(isIn(v("option.name"), v("fields.languages", []))), availableText: "Already known.", grants: [{ path: "languages", op: "append", value: v("item.name") }] },
+      { id: "languages", label: cat(v("item.builder.languageChoice"), " languages of your choice"), when: v("item.builder.languageChoice"), source: { list: LIST.languages, where: notKnownLanguage }, min: v("item.builder.languageChoice"), max: v("item.builder.languageChoice"), available: not(isIn(v("option.name"), v("fields.languages", []))), availableText: "Already known.", grants: [{ path: "languages", op: "append", value: v("item.name") }] },
       {
         id: "languages2024",
         label: "Two languages",
         help: "Common plus two standard languages (SRD 5.2, Character Creation).",
         when: and(v("item.builder.abilityScores"), ne(E, "2014")),
-        source: { list: LIST.languages, where: eq(v("option.type"), "Standard") },
+        source: { list: LIST.languages, where: and(eq(v("option.type"), "Standard"), notKnownLanguage) },
         min: 2,
         max: 2,
         available: not(isIn(v("option.name"), v("fields.languages", []))),
@@ -1204,7 +1285,7 @@ export function characterBuilder(input: BuilderInput): CharacterBuilderDef {
       {
         id: "subclass",
         label: cat(CLASS_NAME, " subclass"),
-        when: and(v("choices.class.item.builder.subclassLevel"), gte(v("item.value"), v("choices.class.item.builder.subclassLevel", 99))),
+        when: and(v("choices.class.item.builder.subclassLevel"), gte(v("item.value"), ifs(eq(E, "2024"), SUBCLASS_LEVEL_2024, v("choices.class.item.builder.subclassLevel", 99)))),
         noun: "subclass",
         source: { list: LIST.subclasses, where: and(eq(v("option.class"), CLASS_NAME), editionWhere()) },
         columns: ["flavor"],
@@ -1212,6 +1293,7 @@ export function characterBuilder(input: BuilderInput): CharacterBuilderDef {
           { path: "subclass", value: v("item.name") },
           { path: "proficiencies", op: "append", separator: "; ", value: v("item.builder.proficiencies"), when: v("item.builder.proficiencies") },
           featuresFrom(LIST.classFeatures, and(eq(v("entry.subclass"), v("item.name")), eq(v("entry.class"), CLASS_NAME), lte(v("entry.level"), L), not(v("entry.builder.option")))),
+          { path: "spells", op: "append", each: v("item.builder.alwaysPrepared", []), when: lte(v("entry.level"), L), value: v("entry.name"), label: cat("Always prepared: ", v("entry.name")) },
         ],
         subChoices: [
           skillChoice("skills", cat("Bonus proficiencies: ", v("item.builder.skills"), " skills"), null, v("item.builder.skills", 0), v("item.builder.skills")),
@@ -1254,7 +1336,7 @@ export function characterBuilder(input: BuilderInput): CharacterBuilderDef {
     summary: cat(
       ifs(gt(cantripsAt(L), 0), cat(cantripsAt(L), " cantrips"), ""),
       ifs(gt(knownAt(L), 0), cat(ifs(gt(cantripsAt(L), 0), ", ", ""), knownAt(L), ifs(eq(spellcasting("kind"), "spellbook"), " in the spellbook", " known")), ""),
-      ifs(spellcasting("preparedDivisor"), cat("; prepare ", max(1, add(varAt(cat("computed.", spellcasting("ability"), "Mod"), 0), floor({ "/": [L, spellcasting("preparedDivisor", 1)] }))), " a day"), ""),
+      ifs(and(spellcasting("preparedDivisor"), gt(maxSpellAt(L), 0)), cat(ifs(or(gt(cantripsAt(L), 0), gt(knownAt(L), 0)), "; ", ""), "prepare ", max(1, add(varAt(cat("computed.", spellcasting("ability"), "Mod"), 0), floor({ "/": [L, spellcasting("preparedDivisor", 1)] }))), " a day"), ""),
     ),
     subChoices: [
       { id: "cantrips", label: cat(cantripsAt(L), " ", CLASS_NAME, " cantrips"), when: gt(cantripsAt(L), 0), source: { list: LIST.spells, where: classSpellWhere(0, 0) }, min: cantripsAt(L), max: cantripsAt(L), available: notKnown, availableText: "Already known.", grants: [{ path: "spells", op: "append", value: v("item.name") }] },
@@ -1269,6 +1351,18 @@ export function characterBuilder(input: BuilderInput): CharacterBuilderDef {
         availableText: "Already known.",
         grants: [{ path: "spells", op: "append", value: v("item.name") }],
       },
+      {
+        id: "prepared",
+        label: cat("Prepare ", preparedAt(L), " ", CLASS_NAME, " spells (up to level ", maxSpellAt(L), ")"),
+        help: "The spells you have ready today: after a long rest you can change them. Domain and oath spells are always prepared and do not count.",
+        when: and(eq(spellcasting("kind"), "prepared"), gt(preparedAt(L), 0)),
+        source: { list: LIST.spells, where: classSpellWhere(1, maxSpellAt(L)) },
+        min: preparedAt(L),
+        max: preparedAt(L),
+        available: notKnown,
+        availableText: "Always prepared.",
+        grants: [{ path: "spells", op: "append", value: v("item.name") }],
+      },
     ],
   };
 
@@ -1281,6 +1375,7 @@ export function characterBuilder(input: BuilderInput): CharacterBuilderDef {
     noun: "starting equipment",
     grants: [
       rowGrant(CB("equipment.fixed", [])),
+      attackGrant(CB("equipment.fixedAttacks", [])),
       { path: "$armor", value: CB("equipment.armor"), when: CB("equipment.armor"), hidden: true },
       { path: "$shield", value: true, when: CB("equipment.shield"), hidden: true },
       rowGrant(v("choices.background.item.builder.equipment", []), v("choices.background.item.builder.equipment")),
@@ -1294,7 +1389,7 @@ export function characterBuilder(input: BuilderInput): CharacterBuilderDef {
         each: CB("equipment.choices", []),
         sourceLabel: cat(CLASS_NAME, " equipment"),
         source: { values: v("entry.options") },
-        grants: [rowGrant(v("item.rows", []), v("item.rows")), { path: "$armor", value: v("item.armor"), when: v("item.armor"), hidden: true }, { path: "$shield", value: true, when: v("item.shield"), hidden: true }],
+        grants: [rowGrant(v("item.rows", []), v("item.rows")), attackGrant(v("item.attacks", [])), { path: "$armor", value: v("item.armor"), when: v("item.armor"), hidden: true }, { path: "$shield", value: true, when: v("item.shield"), hidden: true }],
         subChoices: picks("item.picks"),
       },
       {
@@ -1303,7 +1398,7 @@ export function characterBuilder(input: BuilderInput): CharacterBuilderDef {
         when: v("choices.background.item.builder.packages"),
         sourceLabel: cat("background ", v("choices.background.item.name", "")),
         source: { values: v("choices.background.item.builder.packages") },
-        grants: [rowGrant(v("item.rows", []), v("item.rows")), { path: "coins.gp", op: "add", value: v("item.gp", 0) }],
+        grants: [rowGrant(v("item.rows", []), v("item.rows")), attackGrant(v("item.attacks", [])), { path: "coins.gp", op: "add", value: v("item.gp", 0) }],
       },
     ],
   };
@@ -1329,7 +1424,7 @@ export function characterBuilder(input: BuilderInput): CharacterBuilderDef {
   const todo: Rule = {
     merge: [
       CB("todo", []),
-      ifs(gt({ count: v("fields.equipment", []) }, 0), lit(["Attack rows: add your weapons' attack bonus and damage on the sheet."]), lit([])),
+      ifs(gt({ count: v("fields.attacks", []) }, 0), lit(["Attacks: the weapon rows work out their attack bonus and damage from your scores; tick Proficient on any you are not proficient with, or add another with Add a weapon on the sheet."]), lit([])),
       ifs(v("choices.background.item.builder.featData.todo"), [v("choices.background.item.builder.featData.todo")] as unknown as Rule, lit([])),
       ifs(eq(E, "mixed"), lit(["Mixed rules: check with your GM which options and increases you use."]), lit([])),
       ifs(and(v("choices.species.item"), not(v("choices.species.item.builder"))), [cat(v("choices.species.item.name"), ": the module has no structured data for it; apply its traits, increases and languages by hand.")] as unknown as Rule, lit([])),
@@ -1339,9 +1434,14 @@ export function characterBuilder(input: BuilderInput): CharacterBuilderDef {
   };
 
   const reviewStep: CharacterBuilderStep = { kind: "review", id: "review", title: "Review", intro: "The sheet as it will be saved, and where every number came from.", todo };
+  // the race or subrace as the summary names it: "Dragonborn Wizard 5", not "Dragonborn (2024) Wizard 5"
+  const raceText = ifs(and(v("fields.subrace", ""), not(isIn(":", v("fields.subrace", "")))), v("fields.subrace"), v("fields.race", ""));
+  const raceShown = ifs({ endsWith: [raceText, " (2024)"] }, { substr: [raceText, 0, -7] }, raceText);
 
   // --- level up ------------------------------------------------------------------
   const baseLevels = v("base.classLevels", []);
+  /** The rules the character was built with (SRD 5.1 for a character from before the sheet kept them). */
+  const LE = v("base.edition", "2014");
   const LC = (k: string, d?: unknown) => v(`choices.class.item.builder.${k}`, d);
   /** The level the character reaches in the class picked (class level after this level-up). */
   const newClassLevel = (cls: Rule): Rule => ifs(gt(count(baseLevels), 0), add(lookup(find(baseLevels, "class", cls), "level", 0), 1), eq(cls, v("base.class")), add(v("base.level", 1), 1), 1);
@@ -1381,7 +1481,9 @@ export function characterBuilder(input: BuilderInput): CharacterBuilderDef {
       { path: "classLevels", op: "upsert", key: "class", when: or(gt(count(baseLevels), 0), ne(v("item.id"), v("base.class"))), object: { class: v("item.id"), level: NL }, label: cat(v("item.name"), " ", NL) },
       { path: "level", op: "add", value: 1 },
       { path: "proficiencies", op: "append", separator: "; ", value: v("item.builder.multiclass.proficiencies"), when: and(isNewClass, v("item.builder.multiclass.proficiencies")) },
-      featuresFrom(LIST.classFeatures, and(eq(v("entry.class"), v("item.name")), not(v("entry.subclass", "")), eq(v("entry.level"), NL), not(v("entry.builder.skip")), not(v("entry.builder.option")), ne(v("entry.edition", ""), "2024"))),
+      featuresFrom(LIST.classFeatures, and(eq(v("entry.class"), v("item.name")), not(v("entry.subclass", "")), eq(v("entry.level"), NL), not(v("entry.builder.skip")), not(v("entry.builder.option")), classFeatureEdition(LE))),
+      // the subclass's always-prepared spells of the new class level
+      { path: "spells", op: "append", each: lookup(v("data.alwaysPrepared", {}), v("vars.subclass", ""), []), when: and(v("vars.subclass", ""), eq(v("entry.level"), NL)), value: v("entry.name"), label: cat("Always prepared: ", v("entry.name")) },
       featuresFrom(LIST.classFeatures, and(v("vars.subclass", ""), eq(v("entry.class"), v("item.name")), eq(v("entry.subclass", ""), v("vars.subclass", "")), eq(v("entry.level"), NL), not(v("entry.builder.option")))),
     ],
     subChoices: [
@@ -1420,14 +1522,15 @@ export function characterBuilder(input: BuilderInput): CharacterBuilderDef {
       {
         id: "subclass",
         label: cat(v("choices.class.item.name", ""), " subclass"),
-        when: and(eq(NL, LC("subclassLevel", 99)), not(v("vars.subclass", ""))),
+        when: and(eq(NL, ifs(eq(LE, "2024"), SUBCLASS_LEVEL_2024, LC("subclassLevel", 99))), not(v("vars.subclass", ""))),
         noun: "subclass",
-        source: { list: LIST.subclasses, where: eq(v("option.class"), v("choices.class.item.name", "")) },
+        source: { list: LIST.subclasses, where: and(eq(v("option.class"), v("choices.class.item.name", "")), editionWhere("option", LE)) },
         grants: [
           { path: "subclass", value: v("item.name"), when: eq(v("choices.class.id"), v("base.class")) },
           { path: "classLevels", op: "upsert", key: "class", when: gt(count(v("fields.classLevels", [])), 0), object: { class: v("choices.class.id"), subclass: v("item.name") }, hidden: true },
           { path: "proficiencies", op: "append", separator: "; ", value: v("item.builder.proficiencies"), when: v("item.builder.proficiencies") },
           featuresFrom(LIST.classFeatures, and(eq(v("entry.subclass"), v("item.name")), eq(v("entry.class"), v("choices.class.item.name", "")), lte(v("entry.level"), NL), not(v("entry.builder.option")))),
+          { path: "spells", op: "append", each: v("item.builder.alwaysPrepared", []), when: lte(v("entry.level"), NL), value: v("entry.name"), label: cat("Always prepared: ", v("entry.name")) },
         ],
         subChoices: [skillChoice("skills", cat("Bonus proficiencies: ", v("item.builder.skills"), " skills"), null, v("item.builder.skills", 0), v("item.builder.skills")), groupChoice("options", lookup(v("item.builder.groupsByLevel", []), sub(NL, 1), []), v("item.builder.groups", []))],
       },
@@ -1451,15 +1554,30 @@ export function characterBuilder(input: BuilderInput): CharacterBuilderDef {
   const luCantrips = sub(lookup(LC("spellcasting.cantrips", []), sub(NL, 1), 0), lookup(LC("spellcasting.cantrips", []), sub(NL, 2), 0));
   const luKnown = sub(lookup(LC("spellcasting.known", []), sub(NL, 1), 0), ifs(gt(NL, 1), lookup(LC("spellcasting.known", []), sub(NL, 2), 0), 0));
   const luMax = lookup(LC("spellcasting.maxLevel", []), sub(NL, 1), 0);
+  // a prepared caster's new prepared spells: the count at the new class level minus the count before (all of them in a new class)
+  const luPreparedAt = (lvl: Rule) => ifs(gt(lookup(LC("spellcasting.maxLevel", []), sub(lvl, 1), 0), 0), max(1, add(varAt(cat("computed.", LC("spellcasting.ability"), "Mod"), 0), floor({ "/": [lvl, LC("spellcasting.preparedDivisor", 1)] }))), 0);
+  const luPrepared = ifs(eq(LC("spellcasting.kind"), "prepared"), sub(luPreparedAt(NL), ifs(gt(NL, 1), luPreparedAt(sub(NL, 1)), 0)), 0);
   const luSpells: CharacterBuilderStep = {
     kind: "choice",
     id: "spells",
     title: "Spells",
-    intro: "New cantrips and spells known at this class level.",
-    when: and(LC("spellcasting"), or(gt(luCantrips, 0), gt(luKnown, 0))),
+    intro: "New cantrips, spells known, and for a cleric, druid or paladin the spells it prepares, at this class level.",
+    when: and(LC("spellcasting"), or(gt(luCantrips, 0), gt(luKnown, 0), gt(luPrepared, 0))),
     subChoices: [
       { id: "cantrips", label: cat(luCantrips, " new cantrips"), when: gt(luCantrips, 0), source: { list: LIST.spells, where: classSpellWhere(0, 0) }, min: luCantrips, max: luCantrips, available: notKnown, availableText: "Already known.", grants: [{ path: "spells", op: "append", value: v("item.name") }] },
       { id: "known", label: cat(luKnown, " new spells (up to level ", luMax, ")"), when: gt(luKnown, 0), source: { list: LIST.spells, where: classSpellWhere(1, luMax) }, min: luKnown, max: luKnown, available: notKnown, availableText: "Already known.", grants: [{ path: "spells", op: "append", value: v("item.name") }] },
+      {
+        id: "prepared",
+        label: cat("Prepare ", luPrepared, " more ", v("choices.class.item.name", ""), " spells (up to level ", luMax, ")"),
+        help: "Prepared casters change these after a long rest; domain and oath spells are always prepared and do not count.",
+        when: gt(luPrepared, 0),
+        source: { list: LIST.spells, where: classSpellWhere(1, luMax) },
+        min: luPrepared,
+        max: luPrepared,
+        available: notKnown,
+        availableText: "Already on the sheet.",
+        grants: [{ path: "spells", op: "append", value: v("item.name") }],
+      },
     ],
   };
 
@@ -1470,14 +1588,14 @@ export function characterBuilder(input: BuilderInput): CharacterBuilderDef {
     description: "Edition, species, class, background, ability scores, starting level, spells, equipment and details, with every grant traced to its source.",
     cite: cite("Classes"),
     defaults: { isPC: true },
-    data: { subclassGroups: Object.fromEntries(subclasses.items.filter((s) => subclassData[s.id]?.groups).map((s) => [s.name, { groups: subclassData[s.id]!.groups, groupsNewByLevel: subclassData[s.id]!.groupsNewByLevel }])) },
+    data: { alwaysPrepared: alwaysPreparedBy, subclassGroups: Object.fromEntries(subclasses.items.filter((s) => subclassData[s.id]?.groups).map((s) => [s.name, { groups: subclassData[s.id]!.groups, groupsNewByLevel: subclassData[s.id]!.groupsNewByLevel }])) },
     itemData,
     steps: [editionStep, speciesStep, classStep, backgroundStep, abilityStep, levelStep, spellsStep, equipmentStep, detailsStep, reviewStep],
     finally: [
       { path: "hp.max", value: max(1, hpMax), label: cat("Hit point maximum ", max(1, hpMax), ifs(hpRolled, " (rolled)", " (average)"), ifs(v("vars.hpPerLevel"), " with Dwarven Toughness", "")) },
       { path: "hp.current", value: v("fields.hp.max", 1), hidden: true },
       { path: "ac", value: ac, label: cat("Armor Class ", ac) },
-      { path: "core.summary", value: cat(ifs(and(v("fields.subrace", ""), not(isIn(":", v("fields.subrace", "")))), v("fields.subrace"), v("fields.race", "")), " ", v("choices.class.item.name", ""), " ", v("fields.level", 1)), when: v("choices.class.item"), hidden: true },
+      { path: "core.summary", value: cat(raceShown, " ", v("choices.class.item.name", ""), " ", v("fields.level", 1)), when: v("choices.class.item"), hidden: true },
     ],
     preview: [
       { label: "Hit points", value: v("fields.hp.max") },
@@ -1499,7 +1617,7 @@ export function characterBuilder(input: BuilderInput): CharacterBuilderDef {
       finally: [
         {
           path: "core.summary",
-          value: cat(ifs(and(v("fields.subrace", ""), not(isIn(":", v("fields.subrace", "")))), v("fields.subrace"), v("fields.race", "")), " ", ifs(v("computed.classSummary", ""), v("computed.classSummary"), cat(v("choices.class.item.name", ""), " ", v("fields.level", 1)))),
+          value: cat(raceShown, " ", ifs(v("computed.classSummary", ""), v("computed.classSummary"), cat(v("choices.class.item.name", ""), " ", v("fields.level", 1)))),
           when: v("choices.class.item"),
           hidden: true,
         },
